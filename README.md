@@ -46,3 +46,9 @@ With this setup:
 - Humans keep `SPACE_HUD_PLAN.md` stable as the north star.  
 - Bots and contributors iterate on `TASKS.md` for execution.  
 
+
+
+<!-- Dungeon World Spec Link -->
+## Game Rules Spec
+- See **DUNGEON_WORLD_SPEC.md** for the app-specific Dungeon World mechanics (rolls, XP, bonds, debilities, EoS).  
+- CursorAI must read this file alongside **SPACE_HUD_PLAN.md** and **TASKS.md** before implementing rules or UI touching DW mechanics.
