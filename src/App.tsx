@@ -4,6 +4,8 @@ import { ThemeTestPage } from './components/ThemeTestPage'
 import { HudDemo } from './routes/hud-demo'
 import { MotionV12Demo } from './components/examples/MotionV12Demo'
 import { HudSmoke } from './components/examples/HudSmoke'
+import ArwesDemo from './routes/arwes-demo'
+import Background from './ui/arwes/Background'
 
 // Dev sanity check: ensure Motion compat plugin is active
 if (import.meta.env.DEV) {
@@ -25,7 +27,8 @@ if (import.meta.env.DEV) {
 
 function App() {
   return (
-    <div className="min-h-screen bg-[#001215] p-8">
+    <div className="min-h-screen bg-[#001215] p-8" style={{ position: 'relative' }}>
+      <Background />
       <Router>
         <div>
           {/* Simple navigation */}
@@ -55,6 +58,12 @@ function App() {
               >
                 HUD Smoke Test
               </Link>
+              <Link 
+                to="/arwes-demo" 
+                className="text-[#54DAD0] hover:text-white transition-colors duration-200 font-medium"
+              >
+                Arwes Demo
+              </Link>
             </div>
           </nav>
 
@@ -63,6 +72,7 @@ function App() {
             <Route path="/hud-demo" element={<HudDemo />} />
             <Route path="/motion-demo" element={<MotionV12Demo />} />
             <Route path="/hud-smoke" element={<HudSmoke />} />
+            <Route path="/arwes-demo" element={<ArwesDemo />} />
           </Routes>
         </div>
       </Router>
