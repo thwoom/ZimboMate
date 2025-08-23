@@ -1,10 +1,73 @@
-import { Animator, FrameSVGCorners } from '@arwes/react';
+import React, { ReactNode } from 'react'
+import { Animator } from '@arwes/react-animator'
+import { FrameCorners } from '@arwes/react-frames'
 
-export default function HudPanel({ children }: { children: React.ReactNode }) {
+interface HudPanelProps {
+  title?: string
+  subtitle?: string
+  decor?: ReactNode
+  children: ReactNode
+  className?: string
+  fullScreen?: boolean
+}
+
+export const HudPanel: React.FC<HudPanelProps> = ({
+  title,
+  subtitle,
+  decor,
+  children,
+  className = '',
+  fullScreen = false
+}) => {
+  return (
+    <div className={`relative ${fullScreen ? 'absolute inset-0 w-full h-full' : ''} ${className}`}>
+      <Animator>
+        <FrameCorners strokeWidth={2} />
+      </Animator>
+      
+      <div 
+        className="relative z-10 p-6"
+        style={{
+          background: 'rgba(0, 18, 21, 0.8)',
+          backdropFilter: 'blur(4px)'
+        }}
+      >
+        {(title || subtitle || decor) && (
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              {title && (
+                <h3 className="text-xl font-bold text-[#54DAD0] mb-2 tracking-wide uppercase">
+                  {title}
+                </h3>
+              )}
+              {subtitle && (
+                <p className="text-sm text-gray-300 opacity-80 tracking-wider">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+            {decor && (
+              <div className="text-[#54DAD0] text-xl opacity-80">
+                {decor}
+              </div>
+            )}
+          </div>
+        )}
+        
+        <div className="text-gray-200">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Simple version for the test route
+export default function SimpleHudPanel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ position: 'relative' }}>
       <Animator>
-        <FrameSVGCorners strokeWidth={2} />
+        <FrameCorners strokeWidth={2} />
       </Animator>
       <div style={{ position: 'relative', padding: 16 }}>{children}</div>
     </div>

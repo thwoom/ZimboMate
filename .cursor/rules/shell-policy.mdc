@@ -12,7 +12,7 @@ alwaysApply: true
 
 **Do NOT use or suggest** Unix-only tools in commands, scripts, or CI for this repo:
 - `grep`, `egrep`, `fgrep`, `ag`, `rg` (ripgrep), `sed`, `awk`, `cut`, `xargs`, `fd`, `find` (GNU), `bash`-specific pipelines.
-- Do not propose `sed -i`, `grep -R`, “one-liners” that assume a *nix shell.
+- Do not propose `sed -i`, `grep -R`, "one-liners" that assume a *nix shell.
 
 **Use instead (required):**
 - **PowerShell 7 (pwsh)** cmdlets for any search/filter/transform:
@@ -21,7 +21,7 @@ alwaysApply: true
 
 **General rules**
 - Provide commands in **PowerShell** code blocks.
-- Quote scoped packages (e.g., `npm ls '@scope/*'`)—don’t rely on shell wildcards.
+- Quote scoped packages (e.g., `npm ls '@scope/*'`)—don't rely on shell wildcards.
 - If CI needs a shell, assume `shell: pwsh` in GitHub Actions (not bash).
 
 ---
@@ -46,3 +46,4 @@ $hits2 = Get-ChildItem .\src -Recurse -Include *.ts,*.tsx,*.js,*.jsx |
 
 if ($hits1 -or $hits2) { Write-Error "Legacy Motion API found in src."; exit 1 }
 Write-Host "OK: src clean."
+```

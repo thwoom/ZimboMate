@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { Animator } from '@arwes/react'
+import { Animator } from '@arwes/react-animator'
 
 interface HudSectionProps {
   children: ReactNode

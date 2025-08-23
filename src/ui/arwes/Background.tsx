@@ -1,15 +1,19 @@
-import { Animator, GridLines, Dots, MovingLines } from '@arwes/react';
+import { GridLines, Dots, MovingLines } from '@arwes/react-bgs';
 import { useTheme } from '@emotion/react';
 
-export default function Background() {
-  const theme = useTheme() as any;
+export function Background() {
+  const theme: any = useTheme();
+  const gridColor  = theme?.palette?.primary?.deco?.(2) ?? 'rgba(84, 218, 208, 0.15)';
+  const dotsColor  = theme?.palette?.primary?.deco?.(3) ?? 'rgba(84, 218, 208, 0.1)';
+  const linesColor = theme?.palette?.primary?.deco?.(1) ?? 'rgba(84, 218, 208, 0.2)';
+
   return (
-    <Animator>
-      <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
-        <GridLines lineColor={theme.colors.primary.deco(0)} />
-        <Dots color={theme.colors.primary.deco(1)} />
-        <MovingLines lineColor={theme.colors.primary.deco(2)} />
-      </div>
-    </Animator>
+    <div style={{ position: 'absolute', inset: 0, zIndex: -2 }}>
+      <GridLines lineColor={gridColor} />
+      <Dots color={dotsColor} />
+      <MovingLines lineColor={linesColor} />
+    </div>
   );
 }
+
+export default Background;

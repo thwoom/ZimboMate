@@ -1,0 +1,84 @@
+---
+description: Engineering standards — Motion v12 + Arwes next + Vite
+globs:
+  - "src/**/*"
+  - "vite.config.ts"
+  - ".storybook/**/*"
+alwaysApply: true
+---
+
+# Engineering Standards (Motion v12 + Arwes next + Vite)
+
+## Motion v12
+
+**Keep the Motion compat Vite plugin enabled** until we explicitly de-shim.
+
+**No deep imports** from `motion/dist/*`. Always import `{ ... }` from `"motion"`.
+
+**Sequencing**: use `animate(sequence)`; do not introduce new `import { timeline }`.
+
+**Glide removed**: replace with `inertia { type: "inertia", velocity, power, timeConstant, bounceStiffness }`.
+
+**Springs**: use transition objects `{ type: "spring", ... }` (not easing-style helpers).
+
+## Arwes "next.*"
+
+**Frames** from `@arwes/react-frames` (e.g., `FrameCorners`).
+
+**Animator** from `@arwes/react-animator`; **Text** from `@arwes/react-text`.
+
+**Durations must be > 0**; for instant behavior, use tiny values or `<Animator disabled>`.
+
+**Theme frames** via CSS variables (e.g., `--arwes-frames-line-color`, `--arwes-frames-bg-color`).
+
+**No bleeps**: don't add `<BleepsProvider>` unless all props (`audioSettings`, `playersSettings`, `bleepsSettings`) are provided.
+
+## Repo structure & patterns
+
+**Components** in `src/components/`; **tests co-located** (`ComponentName.test.{tsx,jsx}`).
+
+Use `.tsx` for TS components (OK to use `.jsx` for trivial JS).
+
+**Prefer PandaCSS**; only use CSS Modules when necessary.
+
+**Naming**: PascalCase components, camelCase utilities.
+
+**React**: functional components, hooks, `React.memo` where it pays off; clean up `useEffect`s.
+
+**Tauri**: use `@tauri-apps/api/*`, clean up listeners, enforce least-privilege capabilities/permissions.
+
+**Testing**: Vitest + React Testing Library; mock Tauri APIs with `vi.mock(...)`.
+
+**Dev workflow**: conventional commits; lint + tests before commit; feature branches; all tests pass before merge.
+
+**Imports**: external → internal → utils; alphabetical within groups; prefer absolute imports; prefer named exports.
+
+## Storybook parity (if you use it)
+
+Add the **Motion compat plugin** in `.storybook/main.ts` via `viteFinal`.
+
+## CI guardrails (source of truth snippets)
+
+**Block legacy Motion imports/calls** in source (`src/`) via PowerShell.
+
+**Probe dependencies** for legacy Motion imports via Node (ESM script).
+
+**Optional**: stage a build with `MOTION_COMPAT=off` to test readiness to de-shim.
+
+## Enforcement files
+
+- `vite.motion-compat.ts` — Vite plugin that intercepts "motion", re-exports Motion v12, maps `timeline(sequence)` → `animate(sequence)`, and provides a harmless glide placeholder.
+- `src/ui/arwes/ArwesProviders.tsx` — minimal provider (no sound) with Emotion `<Global>` and `AnimatorGeneralProvider`.
+- `src/components/examples/HudSmoke.tsx` — simple `FrameCorners` demo using CSS variables.
+- `src/shim-assert.ts` — dev-time assert that the compat layer is wired (logs functions).
+- `scripts/scan-motion-deps.mjs` — ESM Node script that scans only deps which declare "motion" (fast).
+
+## Optional but recommended
+
+CI scripts in `package.json`:
+
+- `"audit:motion:src"` → PowerShell import-only scan (skip tests/stories).
+- `"audit:motion:deps"` → Node ESM deps probe.
+- `"prebuild"` → runs both.
+
+**De-shim readiness gates**: source clean, deps clean, successful `MOTION_COMPAT=off` build.

@@ -12,7 +12,7 @@ import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
-const enableCompat = process.env.MOTION_COMPAT !== "off";
+const enableCompat = false; // Disabled since we're using Motion v10 consistently
 
 export default defineConfig({
   plugins: [react(), ...(enableCompat ? [motionCompat()] : []), svgr({
@@ -27,8 +27,11 @@ export default defineConfig({
     }
   })],
   optimizeDeps: {
-    exclude: ['motion']
+    include: [
+      '@emotion/react'
+    ]
   },
+
   css: {
     postcss: {
       plugins: [pandacss()],

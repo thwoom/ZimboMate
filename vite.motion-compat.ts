@@ -33,8 +33,10 @@ export default function motionCompat(): Plugin {
           return _animate(sequence, opts);
         }
 
-        // v12 removed glide — placeholder to keep legacy imports alive.
-        export const glide = (..._args) => (t) => t;
+        // v12 removed glide — provide inertia-based replacement
+        export const glide = (velocity, power = 0.8, timeConstant = 700, bounceStiffness = 400) => {
+          return { type: "inertia", velocity, power, timeConstant, bounceStiffness };
+        };
       `;
     }
   };

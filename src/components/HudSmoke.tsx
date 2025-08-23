@@ -1,5 +1,4 @@
-import { Animator } from "@arwes/react-animator";
-import { FrameCorners } from "@arwes/react-frames";
+import { Animator, FrameCorners } from "@arwes/react";
 
 export default function HudSmoke() {
   return (

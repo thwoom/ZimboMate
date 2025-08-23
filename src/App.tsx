@@ -1,12 +1,12 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { ThemeTestPage } from './components/ThemeTestPage'
-import { HudDemo } from './routes/hud-demo'
+import HudDemo from './routes/hud-demo'
 import { MotionV12Demo } from './components/examples/MotionV12Demo'
 import { HudSmoke } from './components/examples/HudSmoke'
 import ArwesDemo from './routes/arwes-demo'
 import ArwesTest from './routes/arwes-test'
-import Background from './ui/arwes/Background'
+import HudDemoPage from './pages/HudDemoPage'
 
 // Dev sanity check: ensure Motion compat plugin is active
 if (import.meta.env.DEV) {
@@ -28,8 +28,7 @@ if (import.meta.env.DEV) {
 
 function App() {
   return (
-    <div className="min-h-screen bg-[#001215] p-8" style={{ position: 'relative' }}>
-      <Background />
+    <div className="min-h-screen bg-[#001215]" style={{ position: 'relative' }}>
       <Router>
         <div>
           {/* Simple navigation */}
@@ -71,6 +70,12 @@ function App() {
               >
                 Arwes Test
               </Link>
+              <Link 
+                to="/hud-floating" 
+                className="text-[#54DAD0] hover:text-white transition-colors duration-200 font-medium"
+              >
+                HUD Floating Demo
+              </Link>
             </div>
           </nav>
 
@@ -81,6 +86,7 @@ function App() {
             <Route path="/hud-smoke" element={<HudSmoke />} />
             <Route path="/arwes-demo" element={<ArwesDemo />} />
             <Route path="/arwes-test" element={<ArwesTest />} />
+            <Route path="/hud-floating" element={<HudDemoPage />} />
           </Routes>
         </div>
       </Router>
