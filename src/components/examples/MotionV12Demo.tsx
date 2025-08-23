@@ -6,18 +6,16 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { animate, timeline, spring, stagger, glide } from 'motion';
+import { animate, spring, stagger } from 'motion';
 
 // Sanity check for motion compatibility (dev only)
 if (import.meta.env.DEV) {
   console.log(
     "[motion compat]",
     typeof animate,
-    typeof timeline,
     typeof spring,
-    typeof stagger,
-    typeof glide
-  ); // expect: function function function function function
+    typeof stagger
+  ); // expect: function function function
 }
 import { 
   hudAnimations, 
@@ -290,7 +288,7 @@ export const MotionV12Demo: React.FC = () => {
           Simulate Drag Release
         </button>
         <p className="text-sm text-[#54DAD0]/70">
-          This demonstrates inertia-based movement that replaces the old glide() function.
+          This demonstrates inertia-based movement using Motion's inertia presets.
         </p>
       </div>
 
