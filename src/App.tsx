@@ -5,6 +5,7 @@ import { HudDemo } from './routes/hud-demo'
 import { MotionV12Demo } from './components/examples/MotionV12Demo'
 import { HudSmoke } from './components/examples/HudSmoke'
 import ArwesDemo from './routes/arwes-demo'
+import ArwesTest from './routes/arwes-test'
 import Background from './ui/arwes/Background'
 
 // Dev sanity check: ensure Motion compat plugin is active
@@ -64,6 +65,12 @@ function App() {
               >
                 Arwes Demo
               </Link>
+              <Link 
+                to="/arwes-test" 
+                className="text-[#54DAD0] hover:text-white transition-colors duration-200 font-medium"
+              >
+                Arwes Test
+              </Link>
             </div>
           </nav>
 
@@ -73,6 +80,7 @@ function App() {
             <Route path="/motion-demo" element={<MotionV12Demo />} />
             <Route path="/hud-smoke" element={<HudSmoke />} />
             <Route path="/arwes-demo" element={<ArwesDemo />} />
+            <Route path="/arwes-test" element={<ArwesTest />} />
           </Routes>
         </div>
       </Router>
