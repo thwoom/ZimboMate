@@ -1,53 +1,42 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
-import { ArwesThemeProvider, Animator, BleepsProvider } from '@arwes/react'
-import { arwesTheme } from './theme'
+import { ReactNode, createContext, useContext, useMemo, useState } from 'react';
+import { ThemeProvider, Global, css } from '@emotion/react';
+import { AnimatorGeneralProvider } from '@arwes/react-animator';
 
-interface SoundContextType {
-  soundEnabled: boolean
-  toggleSound: () => void
-}
+// Optional: keep a UI-only toggle so existing components don't break.
+// Remove this block if you don't need SoundToggle at all.
+type SoundCtx = { enabled: boolean; toggle: () => void };
+const SoundCtx = createContext<SoundCtx>({ enabled: true, toggle: () => {} });
+export const useSoundToggle = () => useContext(SoundCtx);
 
-const SoundContext = createContext<SoundContextType>({
-  soundEnabled: true,
-  toggleSound: () => {}
-})
+const theme = {};
+const stylesBaseline = css({
+  '*, *::before, *::after': { boxSizing: 'border-box' },
+  html: { height: '100%' },
+  body: {
+    minHeight: '100%',
+    margin: 0,
+    background: '#000',
+    color: '#8ff6ff',                // <— text & SVG currentColor
+    fontFamily: 'Inter, system-ui, Roboto, sans-serif'
+  },
+  a: { color: '#7cc7ff' }
+});
 
-export const useSoundToggle = () => useContext(SoundContext)
-
-interface ArwesProvidersProps {
-  children: ReactNode
-}
-
-export const ArwesProviders: React.FC<ArwesProvidersProps> = ({ children }) => {
-  const [soundEnabled, setSoundEnabled] = useState(true)
-
-  const toggleSound = () => {
-    setSoundEnabled(prev => !prev)
-  }
-
-  const bleepsSettings = {
-    categories: {
-      click: { volume: 0.3 },
-      hover: { volume: 0.2 },
-      transition: { volume: 0.25 },
-      notify: { volume: 0.2 },
-      typing: { volume: 0.15 }
-    },
-    disabled: !soundEnabled
-  }
+export function ArwesProviders({ children }: { children: ReactNode }) {
+  // UI-only toggle (doesn't control any audio now)
+  const [enabled, setEnabled] = useState(true);
+  const soundCtx = useMemo<SoundCtx>(() => ({
+    enabled, toggle: () => setEnabled(v => !v)
+  }), [enabled]);
 
   return (
-    <SoundContext.Provider value={{ soundEnabled, toggleSound }}>
-      <ArwesThemeProvider theme={arwesTheme}>
-        <BleepsProvider settings={bleepsSettings}>
-          <Animator 
-            duration={{ enter: 300, exit: 200 }}
-            easing="linear"
-          >
-            {children}
-          </Animator>
-        </BleepsProvider>
-      </ArwesThemeProvider>
-    </SoundContext.Provider>
-  )
+    <ThemeProvider theme={theme}>
+      <Global styles={stylesBaseline} />
+      <AnimatorGeneralProvider duration={{ enter: 0.2, exit: 0.2, stagger: 0.04 }}>
+        <SoundCtx.Provider value={soundCtx}>
+          {children}
+        </SoundCtx.Provider>
+      </AnimatorGeneralProvider>
+    </ThemeProvider>
+  );
 }
