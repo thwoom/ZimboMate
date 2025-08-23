@@ -1,0 +1,41 @@
+:root {
+  --arwes-frames-line-color: #54DAD0;
+  --arwes-frames-bg-color: color-mix(in srgb, #0A2A2A 20%, transparent);
+  --arwes-frames-deco-color: #54DAD0;
+  --arwes-frames-line-filter: drop-shadow(0 0 6px #54DAD0);
+}
+
+/* Base frame styling */
+.arwes-frame {
+  position: relative;
+  background: var(--arwes-frames-bg-color);
+}
+
+.arwes-frame svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  filter: var(--arwes-frames-line-filter);
+}
+
+.arwes-frame svg path,
+.arwes-frame svg line {
+  stroke: var(--arwes-frames-line-color);
+  fill: none;
+  stroke-width: 1;
+}
+
+.arwes-frame svg .deco {
+  stroke: var(--arwes-frames-deco-color);
+  stroke-width: 2;
+}
+
+/* Frame content */
+.arwes-frame-content {
+  position: relative;
+  z-index: 1;
+  padding: 1rem;
+}
