@@ -107,7 +107,7 @@ export const HudButton: React.FC<HudButtonProps> = ({
       style={{
         background: isHovered ? colors.bgHover : colors.bg,
         color: isHovered ? colors.hover : colors.base,
-        transform: isPressed ? 'scale(0.98)' : 'scale(1)',
+        transform: isPressed ? 'scale(0.98)' : isHovered ? 'scale(1.02)' : 'scale(1)',
         textShadow: `0 0 10px ${isHovered ? colors.hover : colors.base}50`
       }}
       onClick={handleClick}
@@ -116,8 +116,6 @@ export const HudButton: React.FC<HudButtonProps> = ({
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       disabled={disabled}
-      whileHover={{ scale: disabled ? 1 : 1.02 }}
-      whileTap={{ scale: disabled ? 1 : 0.98 }}
     >
       {/* Frame decoration */}
       <div className="absolute inset-0 pointer-events-none">

@@ -27,6 +27,25 @@ const HudTextV2: React.FC<HudTextV2Props> = ({
   fixed = false,
   speed = 'normal'
 }) => {
+  // Auto-detect if we should use div instead of p for block-level content
+  const shouldUseDiv = React.useMemo(() => {
+    if (as !== 'p') return false;
+    
+    // Check if children contain block-level elements
+    const hasBlockElements = React.Children.toArray(children).some(child => {
+      if (React.isValidElement(child)) {
+        const tagName = child.type;
+        if (typeof tagName === 'string') {
+          return ['div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'article', 'aside', 'header', 'footer', 'nav'].includes(tagName.toLowerCase());
+        }
+      }
+      return false;
+    });
+    
+    return hasBlockElements;
+  }, [children, as]);
+
+  const effectiveAs = shouldUseDiv ? 'div' : as;
   // Calculate duration based on text length and speed
   const getDuration = () => {
     const baseSpeed = {
@@ -89,7 +108,7 @@ const HudTextV2: React.FC<HudTextV2Props> = ({
     // Use Text component for typewriter/decipher effects
     return (
       <Text
-        as={as}
+        as={effectiveAs}
         className={className}
         style={style}
         manager={getTextManager()}

@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { FrameCorners } from '@arwes/react-frames';
 import { Animator } from '@arwes/react-animator';
+import { useTheme } from '@emotion/react';
 
 interface FloatingFrameProps {
   x: number;  // left position (%)
@@ -11,6 +12,10 @@ interface FloatingFrameProps {
 }
 
 export function FloatingFrame({ x, y, w = 30, h = 30, children }: FloatingFrameProps) {
+  const theme: any = useTheme();
+  const lineColor = theme?.palette?.primary?.deco?.(4) ?? 'rgba(84,218,208,0.8)';
+  const bgColor = theme?.palette?.primary?.deco?.(0) ?? 'rgba(84,218,208,0.15)';
+
   return (
     <Animator duration={{ enter: 0.4, exit: 0.3 }}>
       <div
@@ -23,18 +28,20 @@ export function FloatingFrame({ x, y, w = 30, h = 30, children }: FloatingFrameP
           padding: '1rem',
           borderRadius: '0.5rem',
           backdropFilter: 'blur(5px)',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)', // frosted-glass effect
+          backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent to show Vanta background
         }}
       >
         <FrameCorners
           strokeWidth={2}
           style={{
             pointerEvents: 'none',
-            '--arwes-frames-line-color': 'rgba(84,218,208,0.8)',
-            '--arwes-frames-bg-color' : 'rgba(84,218,208,0.15)',
+            '--arwes-frames-line-color': lineColor,
+            '--arwes-frames-bg-color': bgColor,
           } as React.CSSProperties}
         />
-        {children}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {children}
+        </div>
       </div>
     </Animator>
   );

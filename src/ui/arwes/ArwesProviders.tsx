@@ -1,10 +1,9 @@
 import { ReactNode, createContext, useContext, useMemo, useState } from 'react';
 import { ThemeProvider, Global } from '@emotion/react';
 import { AnimatorGeneralProvider } from '@arwes/react-animator';
-import { createAppTheme } from '@arwes/theme';
 
-// Create a proper Arwes theme with cosmic/moebius palette
-const arwesTheme = createAppTheme({
+// Define your theme manually; include palette and fonts
+const arwesTheme = {
   palette: {
     primary: { 
       main: '#54DAD0',
@@ -35,11 +34,11 @@ const arwesTheme = createAppTheme({
       main: '#001215'
     }
   },
-  fontFamily: {
-    sans: 'Tomorrow, -apple-system, sans-serif',
-    mono: 'JetBrains Mono, monospace'
-  }
-});
+      fontFamily: {
+      sans: 'Tomorrow, -apple-system, sans-serif',
+      mono: 'JetBrains Mono, monospace'
+    }
+  };
 
 // Optional: keep a UI-only toggle so existing components don't break.
 // Remove this block if you don't need SoundToggle at all.
