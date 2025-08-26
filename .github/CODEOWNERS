@@ -1,0 +1,24 @@
+# Global owners
+* @your-username
+
+# Frontend specific files
+/src/ @your-username
+*.tsx @your-username
+*.ts @your-username
+
+# Configuration files
+package.json @your-username
+tsconfig.json @your-username
+vite.config.ts @your-username
+
+# Documentation
+README.md @your-username
+docs/ @your-username
+
+# GitHub workflows
+.github/ @your-username
+
+# Tests
+tests/ @your-username
+*.test.ts @your-username
+*.test.tsx @your-username
