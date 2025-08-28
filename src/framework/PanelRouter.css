@@ -1,0 +1,50 @@
+.panel-router {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-container {
+  height: 100%;
+  width: 100%;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity var(--transition-medium), transform var(--transition-medium);
+}
+
+.panel-router--transitioning .panel-container {
+  opacity: 0.5;
+  transform: translateX(10px);
+}
+
+.panel-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 1.125rem;
+  color: var(--color-text-secondary);
+}
+
+.panel-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #dc3545;
+  font-size: 1.125rem;
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+.panel-not-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-secondary);
+  font-size: 1.125rem;
+  text-align: center;
+  padding: var(--spacing-xl);
+}

@@ -1,0 +1,10 @@
+# Git Workflow — Atomic, traceable commits
+When executing tasks:
+- Stage ONLY the files relevant to the current step.
+- Use commit message format: "<task id>: <step> — <why this change>".
+- Push only after tests pass.
+- If blocked, do not commit. Document blockers in /ops/workflow_state.md and stop.
+
+When opening PRs:
+- Title: "<task id> <short title>"
+- Description: list acceptance criteria and how they were verified.

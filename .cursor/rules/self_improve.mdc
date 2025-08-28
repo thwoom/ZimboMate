@@ -1,0 +1,5 @@
+# Self-Improve After Each Task
+After completing a task:
+- Append a brief "What went well / What to change" note in /ops/workflow_state.md.
+- If a recurring friction is identified, add a follow-up task (id, deps, acceptance) to /ops/tasks.yaml.
+- Prefer small, surgical improvements over broad refactors unless explicitly scoped.

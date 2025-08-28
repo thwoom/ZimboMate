@@ -1,0 +1,4043 @@
+tasks:
+  - id: T-005
+    title: Implement Main App Shell and Layout
+    intent: Create the foundational app structure with two-column/three-zone layout as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - feature
+      - architecture
+      - ui
+    deps:
+      - T-001
+    steps:
+      - Set up the web application framework (React/Vue/Svelte)
+      - Implement two-column layout with persistent left sidebar
+      - Create main content area with panel switching capability
+      - Add optional right-hand drawer for auxiliary tools
+      - Implement responsive layout for different screen sizes
+      - Create base styling and theming system
+    acceptance:
+      - App loads with proper layout structure
+      - Left sidebar is always visible on desktop
+      - Main content area switches between different views
+      - Right drawer can slide in/out when needed
+      - Layout is responsive and adapts to screen size
+      - All zones are properly styled and themed
+    artifacts:
+      - src/App.tsx
+      - src/layouts/MainLayout.tsx
+      - src/layouts/Sidebar.tsx
+      - src/layouts/ContentArea.tsx
+      - src/layouts/AuxiliaryDrawer.tsx
+      - src/styles/layout.css
+      - src/styles/theme.css
+    done_at: 2025-01-05T10:15:00.000Z
+  - id: T-006
+    title: Create Panel Framework and Navigation System
+    intent: Build the infrastructure for managing, switching, and rendering different panels
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - feature
+      - architecture
+      - framework
+    deps:
+      - T-005
+    steps:
+      - Create panel component interface/base class
+      - Implement panel registry and management system
+      - Build navigation/routing for panel switching
+      - Create panel state management (open/closed/active)
+      - Implement panel loading and lazy loading system
+      - Add panel transition animations
+      - Create panel API for communication between panels
+    acceptance:
+      - Panels can be registered dynamically
+      - Navigation between panels works smoothly
+      - Panel state is preserved when switching
+      - Panels load efficiently (lazy loading works)
+      - Smooth transitions between panels
+      - Panels can communicate via defined API
+    artifacts:
+      - src/framework/Panel.tsx
+      - src/framework/PanelRegistry.ts
+      - src/framework/PanelRouter.tsx
+      - src/framework/PanelState.ts
+      - src/framework/PanelLoader.tsx
+      - src/framework/PanelAPI.ts
+      - src/panels/CharacterStatsPanel/
+    done_at: 2025-01-05T11:30:00.000Z
+  - id: T-013
+    title: Implement Core Data Models and State Management
+    intent: Create the data layer for character, equipment, and game state management
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - architecture
+      - backend
+      - data
+    deps:
+      - T-001
+    steps:
+      - Define TypeScript interfaces for all game entities
+      - Implement character data model
+      - Implement equipment and inventory models
+      - Create game state management system
+      - Implement data persistence layer
+      - Add data validation and business rules
+    acceptance:
+      - All data models are properly typed
+      - State management works correctly
+      - Data persists between sessions
+      - Validation prevents invalid states
+      - Business rules are enforced
+    artifacts:
+      - src/models/Character.ts
+      - src/models/Equipment.ts
+      - src/models/Inventory.ts
+      - src/models/GameState.ts
+      - src/store/
+      - src/services/DataPersistence.ts
+    done_at: '2025-08-28T01:08:48.179Z'
+  - id: T-025
+    title: Implement Character Creation Flow
+    intent: Build the initial character setup process including class selection, stats, and starting equipment
+    owner: cursor-agent
+    status: open
+    priority: P0
+    labels:
+      - feature
+      - architecture
+      - ui
+    deps:
+      - T-005
+      - T-013
+    steps:
+      - Design character creation wizard/flow
+      - Implement class selection with starting moves
+      - Create stat generation/assignment system
+      - Build starting equipment selection
+      - Add race selection and racial moves
+      - Implement alignment selection
+      - Calculate initial derived values (HP, Load, etc.)
+    acceptance:
+      - Complete character can be created from scratch
+      - All classes supported with correct starting values
+      - Starting moves and equipment properly assigned
+      - Character data properly initialized
+    artifacts:
+      - src/features/CharacterCreation/
+      - src/data/classes.ts
+      - src/data/startingEquipment.ts
+      - test/features/CharacterCreation.test.ts
+  - id: T-027
+    title: Implement Auto-Calculation Engine
+    intent: Build automatic calculation system for armor, modifiers, encumbrance, and other derived values
+    owner: cursor-agent
+    status: completed
+    priority: P0
+    labels:
+      - feature
+      - backend
+      - core
+    deps:
+      - T-013
+    steps:
+      - Create calculation engine framework
+      - Implement armor auto-calc from equipment
+      - Build debility modifier system
+      - Create encumbrance calculations
+      - Add XP threshold calculations
+      - Implement damage die modifications
+      - Build reactive update system
+    acceptance:
+      - Armor updates when equipment changes
+      - Debilities properly modify stats
+      - Load/encumbrance calculates correctly
+      - All calculations update reactively
+      - No manual recalculation needed
+    artifacts:
+      - src/services/CalculationEngine.ts
+      - src/utils/calculations/
+      - test/services/CalculationEngine.test.ts
+  - id: T-028
+    title: Implement Move Roll System
+    intent: Create the core 2d6+modifier rolling system with success tier feedback
+    owner: cursor-agent
+    status: open
+    priority: P0
+    labels:
+      - feature
+      - core
+      - gameplay
+    deps:
+      - T-006
+      - T-027
+    steps:
+      - Build dice rolling engine
+      - Implement 2d6+mod calculation
+      - Create success tier logic (10+/7-9/6-)
+      - Add roll history logging
+      - Implement stat-based quick rolls
+      - Add forward/ongoing modifier support
+      - Create XP on failure detection
+    acceptance:
+      - All moves can be rolled with one click
+      - Success tiers properly calculated
+      - Modifiers correctly applied
+      - Roll history maintained
+      - XP prompted on failures
+    artifacts:
+      - src/services/DiceRoller.ts
+      - src/components/RollResult.tsx
+      - src/utils/rollCalculations.ts
+      - test/services/DiceRoller.test.ts
+  - id: T-032
+    title: Create UI/UX Design Specifications with Rose Pine Theme
+    intent: Extract and document all UI/UX requirements from PRD into implementable designs using Rose Pine theme palette
+    owner: cursor-agent
+    status: open
+    priority: P0
+    labels:
+      - design
+      - documentation
+      - ui
+      - theme
+    deps:
+      - T-005
+    steps:
+      - Document layout specifications
+      - Create component design system
+      - Implement Rose Pine color scheme and theming (https://github.com/rose-pine/rose-pine-palette)
+      - Define dark mode using Rose Pine main variant
+      - Create light mode using Rose Pine Dawn variant
+      - Map game state colors to Rose Pine palette (HP states, XP highlights, success/fail indicators)
+      - Specify responsive breakpoints
+      - Design modal and overlay patterns
+      - Create interaction patterns guide
+      - Document CSS variables and theme implementation
+    acceptance:
+      - Complete design system documented with Rose Pine theme
+      - All PRD UI requirements captured
+      - Rose Pine color palette properly integrated
+      - Dark/light mode specifications complete
+      - Game-specific color mappings defined
+      - Mockups or wireframes created
+      - Implementation guide ready with theme variables
+    artifacts:
+      - docs/design-system.md
+      - docs/ui-specifications.md
+      - docs/rose-pine-theme-implementation.md
+      - design/mockups/
+      - design/component-library.md
+      - src/styles/rose-pine-variables.css
+  - id: T-001
+    title: Repo health checks
+    intent: Set up lint, format, tests, and CI smoke to enforce quality gates
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - infra
+      - ci
+    deps: []
+    steps:
+      - add eslint + prettier configs
+      - add vitest with a sample test
+      - add github actions ci (build + test)
+    acceptance:
+      - CI passes on main and PR
+      - eslint and prettier run clean
+    artifacts:
+      - .eslintrc.cjs
+      - .prettierrc
+      - .github/workflows/ci.yml
+      - tests/smoke.test.ts
+    done_at: 2025-08-27T02:42:47.048Z
+  - id: T-002
+    title: PRD loader
+    intent: Parse /docs/PRD.md into a typed object and cache it
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - backend
+    deps:
+      - T-001
+    steps:
+      - create src/lib/prd.ts types
+      - implement parser
+      - add unit tests
+    acceptance:
+      - parser.spec.ts passes
+      - no nulls for required fields
+    artifacts:
+      - src/lib/prd.ts
+      - tests/parser.spec.ts
+    done_at: 2025-08-27T03:13:12.342Z
+  - id: T-007
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-006
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/CharacterStatsPanel/
+      - test/panels/CharacterStatsPanel.test.ts
+    done_at: 2025-01-05T16:20:00.000Z
+  - id: T-008
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-006
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/EquipmentPanel/
+      - test/panels/EquipmentPanel.test.ts
+    done_at: 2025-01-05T16:35:00.000Z
+  - id: T-017
+    title: Complete Phase 1 - Core Character Management
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps:
+      - T-007
+      - T-008
+      - T-009
+    steps:
+      - Verify all core panels are implemented
+      - Integrate character management features
+      - Perform end-to-end testing
+      - Prepare deployment package
+    acceptance:
+      - Character stats panel fully functional
+      - Equipment panel working correctly
+      - Inventory management complete
+      - All Phase 1 features integrated
+    artifacts:
+      - docs/phase-1-deliverables.md
+      - docs/phase-1-test-results.md
+  - id: T-026
+    title: Implement Spell Management System
+    intent: Create comprehensive spell tracking for spellcasting classes (Wizard, Cleric)
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-010
+      - T-013
+    steps:
+      - Create spell data models and interfaces
+      - Implement spell preparation UI
+      - Build prepared spell tracking
+      - Add spell slot management
+      - Create spell casting integration with moves
+      - Implement spell level and slot calculations
+    acceptance:
+      - Wizards can prepare spells from spellbook
+      - Clerics can prepare spells from list
+      - Prepared spells tracked and managed
+      - Cast a Spell move integrated
+      - Spell slots properly calculated
+    artifacts:
+      - src/features/SpellManagement/
+      - src/models/Spell.ts
+      - src/panels/MovesPanel/SpellSection.tsx
+      - test/features/SpellManagement.test.ts
+  - id: T-029
+    title: Implement Special Moves System
+    intent: Build support for Level Up, End of Session, Make Camp, and other special moves
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - gameplay
+    deps:
+      - T-010
+      - T-028
+    steps:
+      - Implement Level Up move and flow
+      - Create End of Session move with XP questions
+      - Build Make Camp integration
+      - Add Last Breath trigger at 0 HP
+      - Implement special move UI/UX
+      - Add advancement selection for level up
+    acceptance:
+      - Level Up triggers at XP threshold
+      - End of Session awards appropriate XP
+      - Make Camp consumes rations
+      - Last Breath triggers at 0 HP
+      - All special moves functional
+    artifacts:
+      - src/features/SpecialMoves/
+      - src/components/LevelUpModal.tsx
+      - src/components/EndOfSessionModal.tsx
+      - test/features/SpecialMoves.test.ts
+  - id: T-030
+    title: Implement Tags and Uses System
+    intent: Create comprehensive tag system for items and moves with uses tracking
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - data
+    deps:
+      - T-008
+      - T-009
+      - T-010
+    steps:
+      - Design tag data structure
+      - Implement tag parsing and display
+      - Create uses counter system
+      - Build ammo tracking
+      - Add tag tooltips and descriptions
+      - Implement tag-based mechanics
+    acceptance:
+      - All item tags displayed correctly
+      - Uses tracked and decremented
+      - Ammo system functional
+      - Tag tooltips provide descriptions
+      - Tag mechanics properly applied
+    artifacts:
+      - src/models/Tag.ts
+      - src/components/TagDisplay.tsx
+      - src/utils/tagMechanics.ts
+      - test/models/Tag.test.ts
+  - id: T-033
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/character-stats-&-health-panel/
+      - test/features/character-stats-&-health-panel.test.ts
+  - id: T-034
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+  - id: T-039
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-042
+    title: Complete Phase 1
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan core character management
+      - Implement core character management
+      - Test core character management
+      - Deploy core character management
+    acceptance:
+      - Phase 1 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-1-deliverables.md
+  - id: T-043
+    title: Complete Phase 2
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan advanced features and tools
+      - Implement advanced features and tools
+      - Test advanced features and tools
+      - Deploy advanced features and tools
+    acceptance:
+      - Phase 2 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-2-deliverables.md
+  - id: T-044
+    title: >-
+      Complete Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one
+      section remains persistent for vital stats, while other sections display context-specific information[1]. For
+      example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+    intent: >-
+      Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
+      one section remains persistent for vital stats, while other sections display context-specific information[1]. for
+      example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one section
+        remains persistent for vital stats, while other sections display context-specific information[1]. For example, a
+        left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
+        the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
+        be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
+        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-050
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/character-stats-&-health-panel/
+      - test/features/character-stats-&-health-panel.test.ts
+  - id: T-051
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+  - id: T-056
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-059
+    title: Complete Phase 1
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan core character management
+      - Implement core character management
+      - Test core character management
+      - Deploy core character management
+    acceptance:
+      - Phase 1 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-1-deliverables.md
+  - id: T-060
+    title: Complete Phase 2
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan advanced features and tools
+      - Implement advanced features and tools
+      - Test advanced features and tools
+      - Deploy advanced features and tools
+    acceptance:
+      - Phase 2 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-2-deliverables.md
+  - id: T-061
+    title: >-
+      Complete Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one
+      section remains persistent for vital stats, while other sections display context-specific information[1]. For
+      example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+    intent: >-
+      Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
+      one section remains persistent for vital stats, while other sections display context-specific information[1]. for
+      example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one section
+        remains persistent for vital stats, while other sections display context-specific information[1]. For example, a
+        left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
+        the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
+        be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
+        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-067
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/character-stats-&-health-panel/
+      - test/features/character-stats-&-health-panel.test.ts
+  - id: T-068
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+  - id: T-073
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-076
+    title: Complete Phase 1
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan core character management
+      - Implement core character management
+      - Test core character management
+      - Deploy core character management
+    acceptance:
+      - Phase 1 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-1-deliverables.md
+  - id: T-077
+    title: Complete Phase 2
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan advanced features and tools
+      - Implement advanced features and tools
+      - Test advanced features and tools
+      - Deploy advanced features and tools
+    acceptance:
+      - Phase 2 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-2-deliverables.md
+  - id: T-078
+    title: >-
+      Complete Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one
+      section remains persistent for vital stats, while other sections display context-specific information[1]. For
+      example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+    intent: >-
+      Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
+      one section remains persistent for vital stats, while other sections display context-specific information[1]. for
+      example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one section
+        remains persistent for vital stats, while other sections display context-specific information[1]. For example, a
+        left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
+        the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
+        be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
+        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-084
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/character-stats-&-health-panel/
+      - test/features/character-stats-&-health-panel.test.ts
+  - id: T-085
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+  - id: T-090
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-093
+    title: Complete Phase 1
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan core character management
+      - Implement core character management
+      - Test core character management
+      - Deploy core character management
+    acceptance:
+      - Phase 1 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-1-deliverables.md
+  - id: T-094
+    title: Complete Phase 2
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan advanced features and tools
+      - Implement advanced features and tools
+      - Test advanced features and tools
+      - Deploy advanced features and tools
+    acceptance:
+      - Phase 2 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-2-deliverables.md
+  - id: T-095
+    title: >-
+      Complete Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one
+      section remains persistent for vital stats, while other sections display context-specific information[1]. For
+      example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+    intent: >-
+      Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
+      one section remains persistent for vital stats, while other sections display context-specific information[1]. for
+      example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one section
+        remains persistent for vital stats, while other sections display context-specific information[1]. For example, a
+        left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
+        the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
+        be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
+        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-101
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/character-stats-&-health-panel/
+      - test/features/character-stats-&-health-panel.test.ts
+  - id: T-102
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+  - id: T-107
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-110
+    title: Complete Phase 1
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan core character management
+      - Implement core character management
+      - Test core character management
+      - Deploy core character management
+    acceptance:
+      - Phase 1 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-1-deliverables.md
+  - id: T-111
+    title: Complete Phase 2
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan advanced features and tools
+      - Implement advanced features and tools
+      - Test advanced features and tools
+      - Deploy advanced features and tools
+    acceptance:
+      - Phase 2 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-2-deliverables.md
+  - id: T-112
+    title: >-
+      Complete Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one
+      section remains persistent for vital stats, while other sections display context-specific information[1]. For
+      example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+    intent: >-
+      Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
+      one section remains persistent for vital stats, while other sections display context-specific information[1]. for
+      example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one section
+        remains persistent for vital stats, while other sections display context-specific information[1]. For example, a
+        left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
+        the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
+        be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
+        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-118
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/character-stats-&-health-panel/
+      - test/features/character-stats-&-health-panel.test.ts
+  - id: T-119
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+  - id: T-124
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-127
+    title: Complete Phase 1
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan core character management
+      - Implement core character management
+      - Test core character management
+      - Deploy core character management
+    acceptance:
+      - Phase 1 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-1-deliverables.md
+  - id: T-128
+    title: Complete Phase 2
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan advanced features and tools
+      - Implement advanced features and tools
+      - Test advanced features and tools
+      - Deploy advanced features and tools
+    acceptance:
+      - Phase 2 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-2-deliverables.md
+  - id: T-129
+    title: >-
+      Complete Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one
+      section remains persistent for vital stats, while other sections display context-specific information[1]. For
+      example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+    intent: >-
+      Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
+      one section remains persistent for vital stats, while other sections display context-specific information[1]. for
+      example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one section
+        remains persistent for vital stats, while other sections display context-specific information[1]. For example, a
+        left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
+        the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
+        be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
+        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-135
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/character-stats-&-health-panel/
+      - test/features/character-stats-&-health-panel.test.ts
+  - id: T-136
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+  - id: T-141
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-144
+    title: Complete Phase 1
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan core character management
+      - Implement core character management
+      - Test core character management
+      - Deploy core character management
+    acceptance:
+      - Phase 1 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-1-deliverables.md
+  - id: T-145
+    title: Complete Phase 2
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan advanced features and tools
+      - Implement advanced features and tools
+      - Test advanced features and tools
+      - Deploy advanced features and tools
+    acceptance:
+      - Phase 2 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-2-deliverables.md
+  - id: T-146
+    title: >-
+      Complete Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one
+      section remains persistent for vital stats, while other sections display context-specific information[1]. For
+      example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+    intent: >-
+      Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
+      one section remains persistent for vital stats, while other sections display context-specific information[1]. for
+      example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one section
+        remains persistent for vital stats, while other sections display context-specific information[1]. For example, a
+        left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
+        the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
+        be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
+        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-152
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/character-stats-&-health-panel/
+      - test/features/character-stats-&-health-panel.test.ts
+  - id: T-153
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+  - id: T-158
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-161
+    title: Complete Phase 1
+    intent: Complete core character management for phase 1
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan core character management
+      - Implement core character management
+      - Test core character management
+      - Deploy core character management
+    acceptance:
+      - Phase 1 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-1-deliverables.md
+  - id: T-162
+    title: Complete Phase 2
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - Plan advanced features and tools
+      - Implement advanced features and tools
+      - Test advanced features and tools
+      - Deploy advanced features and tools
+    acceptance:
+      - Phase 2 is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-2-deliverables.md
+  - id: T-163
+    title: >-
+      Complete Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one
+      section remains persistent for vital stats, while other sections display context-specific information[1]. For
+      example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+    intent: >-
+      Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
+      one section remains persistent for vital stats, while other sections display context-specific information[1]. for
+      example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
+      main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
+      panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
+      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Phase 3: Polish and optimization (Q3) A two-column or three-zone approach works well for desktop: one section
+        remains persistent for vital stats, while other sections display context-specific information[1]. For example, a
+        left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
+        the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
+        be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
+        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-003
+    title: PRD service API
+    intent: Expose getPRD() with in-memory cache and invalidation on file change
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - backend
+    deps:
+      - T-002
+    steps:
+      - implement src/services/prdService.ts
+      - add integration test
+    acceptance:
+      - prd.int.test.ts passes
+      - cache invalidates on PRD.md change
+    artifacts:
+      - src/services/prdService.ts
+      - tests/prd.int.test.ts
+    done_at: 2025-08-27T03:17:13.630Z
+  - id: T-004
+    title: Planning command
+    intent: Add a CLI "plan:from-prd" that proposes new tasks and appends to tasks.yaml
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - tooling
+    deps:
+      - T-003
+    steps:
+      - add scripts/planFromPrd.ts
+      - implement append with stable ids and topo-sort
+      - add test for deterministic ordering
+    acceptance:
+      - invocation updates ops/tasks.yaml deterministically
+      - no id collisions
+    artifacts:
+      - scripts/planFromPrd.ts
+      - tests/plan.e2e.test.ts
+    done_at: 2025-08-27T03:23:16.717Z
+  - id: T-009
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-006
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/InventoryPanel/
+      - test/panels/InventoryPanel.test.ts
+  - id: T-010
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-006
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/MovesPanel/
+      - test/panels/MovesPanel.test.ts
+  - id: T-011
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-006
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/SessionToolsPanel/
+      - test/panels/SessionToolsPanel.test.ts
+  - id: T-014
+    title: Setup Performance Optimization
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - performance
+    deps:
+      - T-005
+      - T-006
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Optimize panel rendering and state updates
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+      - Add performance monitoring and metrics
+    acceptance:
+      - Panel switching is instantaneous
+      - No lag in UI interactions
+      - Drag and drop is smooth
+      - Performance metrics meet targets
+    artifacts:
+      - src/utils/performance/
+      - docs/performance-requirements.md
+      - config/performance.json
+  - id: T-015
+    title: Setup Security and Data Privacy
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps:
+      - T-013
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+      - Add data encryption for sensitive information
+    acceptance:
+      - All data stored locally only
+      - Export/import works reliably
+      - Backup/recovery tested
+      - User preferences persist
+      - Sensitive data is encrypted
+    artifacts:
+      - src/services/Security.ts
+      - src/services/BackupRestore.ts
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-016
+    title: Setup UI/UX Integration Features
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+      - ux
+    deps:
+      - T-005
+      - T-006
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+      - Add ARIA labels and screen reader support
+    acceptance:
+      - All keyboard shortcuts work
+      - Context menus function properly
+      - Tooltips appear correctly
+      - Panel states persist
+      - Accessibility standards met
+    artifacts:
+      - src/utils/KeyboardShortcuts.ts
+      - src/components/ContextMenu.tsx
+      - src/components/Tooltip.tsx
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-018
+    title: Complete Phase 2 - Advanced Features and Tools
+    intent: Complete advanced features and tools for phase 2
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps:
+      - T-010
+      - T-011
+      - T-014
+      - T-015
+      - T-016
+    steps:
+      - Implement remaining feature panels
+      - Add performance optimizations
+      - Complete security features
+      - Integrate all Phase 2 components
+    acceptance:
+      - Moves and session tools panels complete
+      - Performance targets met
+      - Security features implemented
+      - All Phase 2 features integrated
+    artifacts:
+      - docs/phase-2-deliverables.md
+      - docs/phase-2-test-results.md
+  - id: T-031
+    title: Implement Bonds and Alignment System
+    intent: Build the roleplay mechanics for bonds and alignment XP triggers
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - gameplay
+    deps:
+      - T-007
+      - T-012
+    steps:
+      - Create bonds data model
+      - Implement bonds UI in character panel
+      - Build alignment selection and display
+      - Add XP trigger detection for alignment
+      - Create bond resolution flow
+      - Implement bond editing and tracking
+    acceptance:
+      - Bonds displayed and editable
+      - Alignment visible with XP trigger
+      - Bond resolution grants XP
+      - Alignment actions tracked
+      - Integration with journal/notes
+    artifacts:
+      - src/models/Bond.ts
+      - src/models/Alignment.ts
+      - src/components/BondsTracker.tsx
+      - test/features/BondsAlignment.test.ts
+  - id: T-035
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/inventory-panel/
+      - test/features/inventory-panel.test.ts
+  - id: T-036
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-037
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/session-tools-panel/
+      - test/features/session-tools-panel.test.ts
+  - id: T-040
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-041
+    title: Setup Integration
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+    deps: []
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+    acceptance:
+      - All integration requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-045
+    title: Complete DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    intent: Complete  for dungeonpaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22] is completed on
+        time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/dungeonpaper-features-overview-(character-tracking,-moves,-inventory,-notes,-dice,-etc.)[34][22]-deliverables.md
+  - id: T-046
+    title: Complete D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2]
+    intent: Complete  for d&d beyond sheet redesign concept (two-column layout for hud and content panels)[1][2]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/d&d-beyond-sheet-redesign-concept-(two-column-layout-for-hud-and-content-panels)[1][2]-deliverables.md
+  - id: T-047
+    title: >-
+      Complete Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility
+      effects, etc.)[4][3]
+    intent: >-
+      Complete  for roll20 official dungeon world sheet reference (auto-calculations for armor from equipped gear,
+      debility effects, etc.)[4][3]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility effects,
+        etc.)[4][3] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/roll20-official-dungeon-world-sheet-reference-(auto-calculations-for-armor-from-equipped-gear,-debility-effects,-etc.)[4][3]-deliverables.md
+  - id: T-052
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/inventory-panel/
+      - test/features/inventory-panel.test.ts
+  - id: T-053
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-054
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/session-tools-panel/
+      - test/features/session-tools-panel.test.ts
+  - id: T-057
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-058
+    title: Setup Integration
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+    deps: []
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+    acceptance:
+      - All integration requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-062
+    title: Complete DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    intent: Complete  for dungeonpaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22] is completed on
+        time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/dungeonpaper-features-overview-(character-tracking,-moves,-inventory,-notes,-dice,-etc.)[34][22]-deliverables.md
+  - id: T-063
+    title: Complete D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2]
+    intent: Complete  for d&d beyond sheet redesign concept (two-column layout for hud and content panels)[1][2]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/d&d-beyond-sheet-redesign-concept-(two-column-layout-for-hud-and-content-panels)[1][2]-deliverables.md
+  - id: T-064
+    title: >-
+      Complete Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility
+      effects, etc.)[4][3]
+    intent: >-
+      Complete  for roll20 official dungeon world sheet reference (auto-calculations for armor from equipped gear,
+      debility effects, etc.)[4][3]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility effects,
+        etc.)[4][3] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/roll20-official-dungeon-world-sheet-reference-(auto-calculations-for-armor-from-equipped-gear,-debility-effects,-etc.)[4][3]-deliverables.md
+  - id: T-069
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/inventory-panel/
+      - test/features/inventory-panel.test.ts
+  - id: T-070
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-071
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/session-tools-panel/
+      - test/features/session-tools-panel.test.ts
+  - id: T-074
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-075
+    title: Setup Integration
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+    deps: []
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+    acceptance:
+      - All integration requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-079
+    title: Complete DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    intent: Complete  for dungeonpaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22] is completed on
+        time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/dungeonpaper-features-overview-(character-tracking,-moves,-inventory,-notes,-dice,-etc.)[34][22]-deliverables.md
+  - id: T-080
+    title: Complete D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2]
+    intent: Complete  for d&d beyond sheet redesign concept (two-column layout for hud and content panels)[1][2]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/d&d-beyond-sheet-redesign-concept-(two-column-layout-for-hud-and-content-panels)[1][2]-deliverables.md
+  - id: T-081
+    title: >-
+      Complete Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility
+      effects, etc.)[4][3]
+    intent: >-
+      Complete  for roll20 official dungeon world sheet reference (auto-calculations for armor from equipped gear,
+      debility effects, etc.)[4][3]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility effects,
+        etc.)[4][3] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/roll20-official-dungeon-world-sheet-reference-(auto-calculations-for-armor-from-equipped-gear,-debility-effects,-etc.)[4][3]-deliverables.md
+  - id: T-086
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/inventory-panel/
+      - test/features/inventory-panel.test.ts
+  - id: T-087
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-088
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/session-tools-panel/
+      - test/features/session-tools-panel.test.ts
+  - id: T-091
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-092
+    title: Setup Integration
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+    deps: []
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+    acceptance:
+      - All integration requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-096
+    title: Complete DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    intent: Complete  for dungeonpaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22] is completed on
+        time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/dungeonpaper-features-overview-(character-tracking,-moves,-inventory,-notes,-dice,-etc.)[34][22]-deliverables.md
+  - id: T-097
+    title: Complete D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2]
+    intent: Complete  for d&d beyond sheet redesign concept (two-column layout for hud and content panels)[1][2]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/d&d-beyond-sheet-redesign-concept-(two-column-layout-for-hud-and-content-panels)[1][2]-deliverables.md
+  - id: T-098
+    title: >-
+      Complete Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility
+      effects, etc.)[4][3]
+    intent: >-
+      Complete  for roll20 official dungeon world sheet reference (auto-calculations for armor from equipped gear,
+      debility effects, etc.)[4][3]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility effects,
+        etc.)[4][3] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/roll20-official-dungeon-world-sheet-reference-(auto-calculations-for-armor-from-equipped-gear,-debility-effects,-etc.)[4][3]-deliverables.md
+  - id: T-103
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/inventory-panel/
+      - test/features/inventory-panel.test.ts
+  - id: T-104
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-105
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/session-tools-panel/
+      - test/features/session-tools-panel.test.ts
+  - id: T-108
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-109
+    title: Setup Integration
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+    deps: []
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+    acceptance:
+      - All integration requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-113
+    title: Complete DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    intent: Complete  for dungeonpaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22] is completed on
+        time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/dungeonpaper-features-overview-(character-tracking,-moves,-inventory,-notes,-dice,-etc.)[34][22]-deliverables.md
+  - id: T-114
+    title: Complete D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2]
+    intent: Complete  for d&d beyond sheet redesign concept (two-column layout for hud and content panels)[1][2]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/d&d-beyond-sheet-redesign-concept-(two-column-layout-for-hud-and-content-panels)[1][2]-deliverables.md
+  - id: T-115
+    title: >-
+      Complete Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility
+      effects, etc.)[4][3]
+    intent: >-
+      Complete  for roll20 official dungeon world sheet reference (auto-calculations for armor from equipped gear,
+      debility effects, etc.)[4][3]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility effects,
+        etc.)[4][3] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/roll20-official-dungeon-world-sheet-reference-(auto-calculations-for-armor-from-equipped-gear,-debility-effects,-etc.)[4][3]-deliverables.md
+  - id: T-120
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/inventory-panel/
+      - test/features/inventory-panel.test.ts
+  - id: T-121
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-122
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/session-tools-panel/
+      - test/features/session-tools-panel.test.ts
+  - id: T-125
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-126
+    title: Setup Integration
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+    deps: []
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+    acceptance:
+      - All integration requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-130
+    title: Complete DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    intent: Complete  for dungeonpaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22] is completed on
+        time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/dungeonpaper-features-overview-(character-tracking,-moves,-inventory,-notes,-dice,-etc.)[34][22]-deliverables.md
+  - id: T-131
+    title: Complete D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2]
+    intent: Complete  for d&d beyond sheet redesign concept (two-column layout for hud and content panels)[1][2]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/d&d-beyond-sheet-redesign-concept-(two-column-layout-for-hud-and-content-panels)[1][2]-deliverables.md
+  - id: T-132
+    title: >-
+      Complete Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility
+      effects, etc.)[4][3]
+    intent: >-
+      Complete  for roll20 official dungeon world sheet reference (auto-calculations for armor from equipped gear,
+      debility effects, etc.)[4][3]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility effects,
+        etc.)[4][3] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/roll20-official-dungeon-world-sheet-reference-(auto-calculations-for-armor-from-equipped-gear,-debility-effects,-etc.)[4][3]-deliverables.md
+  - id: T-137
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/inventory-panel/
+      - test/features/inventory-panel.test.ts
+  - id: T-138
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-139
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/session-tools-panel/
+      - test/features/session-tools-panel.test.ts
+  - id: T-142
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-143
+    title: Setup Integration
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+    deps: []
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+    acceptance:
+      - All integration requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-147
+    title: Complete DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    intent: Complete  for dungeonpaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22] is completed on
+        time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/dungeonpaper-features-overview-(character-tracking,-moves,-inventory,-notes,-dice,-etc.)[34][22]-deliverables.md
+  - id: T-148
+    title: Complete D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2]
+    intent: Complete  for d&d beyond sheet redesign concept (two-column layout for hud and content panels)[1][2]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/d&d-beyond-sheet-redesign-concept-(two-column-layout-for-hud-and-content-panels)[1][2]-deliverables.md
+  - id: T-149
+    title: >-
+      Complete Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility
+      effects, etc.)[4][3]
+    intent: >-
+      Complete  for roll20 official dungeon world sheet reference (auto-calculations for armor from equipped gear,
+      debility effects, etc.)[4][3]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility effects,
+        etc.)[4][3] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/roll20-official-dungeon-world-sheet-reference-(auto-calculations-for-armor-from-equipped-gear,-debility-effects,-etc.)[4][3]-deliverables.md
+  - id: T-154
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/inventory-panel/
+      - test/features/inventory-panel.test.ts
+  - id: T-155
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-156
+    title: Implement Session Tools Panel
+    intent: Implement the session tools panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement provide dice roller and note keeper
+      - Implement support hold/charge/counter trackers
+      - Implement include session timers and bookmarks
+      - Implement maintain roll and event log
+    acceptance:
+      - All session tools panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/session-tools-panel/
+      - test/features/session-tools-panel.test.ts
+  - id: T-159
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+  - id: T-160
+    title: Setup Integration
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+    deps: []
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+    acceptance:
+      - All integration requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-164
+    title: Complete DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    intent: Complete  for dungeonpaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        DungeonPaper features overview (character tracking, moves, inventory, notes, dice, etc.)[34][22] is completed on
+        time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/dungeonpaper-features-overview-(character-tracking,-moves,-inventory,-notes,-dice,-etc.)[34][22]-deliverables.md
+  - id: T-165
+    title: Complete D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2]
+    intent: Complete  for d&d beyond sheet redesign concept (two-column layout for hud and content panels)[1][2]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - D&D Beyond sheet redesign concept (two-column layout for HUD and content panels)[1][2] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/d&d-beyond-sheet-redesign-concept-(two-column-layout-for-hud-and-content-panels)[1][2]-deliverables.md
+  - id: T-166
+    title: >-
+      Complete Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility
+      effects, etc.)[4][3]
+    intent: >-
+      Complete  for roll20 official dungeon world sheet reference (auto-calculations for armor from equipped gear,
+      debility effects, etc.)[4][3]
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - >-
+        Roll20 Official Dungeon World sheet reference (auto-calculations for armor from equipped gear, debility effects,
+        etc.)[4][3] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - >-
+        docs/roll20-official-dungeon-world-sheet-reference-(auto-calculations-for-armor-from-equipped-gear,-debility-effects,-etc.)[4][3]-deliverables.md
+  - id: T-012
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-006
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/LoreJournalPanel/
+      - test/panels/LoreJournalPanel.test.ts
+  - id: T-019
+    title: Complete Phase 3 - Polish and Optimization
+    intent: Complete final polish, optimization, and UI refinements
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps:
+      - T-012
+      - T-018
+    steps:
+      - Complete journal/lore panel
+      - Refine UI/UX based on feedback
+      - Optimize performance further
+      - Prepare for final release
+    acceptance:
+      - All panels complete and polished
+      - UI/UX meets quality standards
+      - Performance exceeds targets
+      - Ready for production release
+    artifacts:
+      - docs/phase-3-deliverables.md
+      - docs/final-release-notes.md
+  - id: T-020
+    title: Study DungeonPaper Features
+    intent: Research and document DungeonPaper's approach to character tracking and digital tools
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - research
+      - planning
+    deps: []
+    steps:
+      - Analyze DungeonPaper's character tracking
+      - Document moves and inventory management
+      - Study dice rolling implementation
+      - Extract best practices
+    acceptance:
+      - Comprehensive analysis document
+      - Feature comparison matrix
+      - Implementation recommendations
+    artifacts:
+      - docs/dungeonpaper-analysis.md
+      - docs/feature-comparison.md
+  - id: T-021
+    title: Study D&D Beyond Sheet Design
+    intent: Analyze D&D Beyond's two-column layout approach for UI inspiration
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - research
+      - planning
+      - ui
+    deps: []
+    steps:
+      - Study two-column layout patterns
+      - Analyze HUD and content panel design
+      - Document responsive behavior
+      - Create design recommendations
+    acceptance:
+      - Layout analysis complete
+      - Design patterns documented
+      - Mockups created if needed
+    artifacts:
+      - docs/dnd-beyond-layout-analysis.md
+      - docs/ui-design-patterns.md
+  - id: T-022
+    title: Study Roll20 Dungeon World Sheet
+    intent: Analyze Roll20's auto-calculation systems for game mechanics implementation
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - research
+      - planning
+    deps: []
+    steps:
+      - Study armor calculation from equipment
+      - Analyze debility effect system
+      - Document auto-calculation rules
+      - Extract implementation patterns
+    acceptance:
+      - Calculation rules documented
+      - Implementation guide created
+      - Test cases defined
+    artifacts:
+      - docs/roll20-calculations-analysis.md
+      - docs/game-mechanics-guide.md
+  - id: T-023
+    title: Research Dungeon World SRD Rules
+    intent: Document core game rules for load, encumbrance, XP, and leveling
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - research
+      - planning
+    deps: []
+    steps:
+      - Document load and encumbrance rules
+      - Study XP and level up mechanics
+      - Create rules reference guide
+      - Define validation requirements
+    acceptance:
+      - Complete rules documentation
+      - Implementation requirements clear
+      - Validation rules defined
+    artifacts:
+      - docs/dungeon-world-rules.md
+      - docs/rules-implementation-guide.md
+  - id: T-024
+    title: Research Roll20 Item System
+    intent: Study Roll20's approach to item tags and equipment mechanics
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - research
+      - planning
+    deps: []
+    steps:
+      - Analyze item tag system
+      - Study equipment mechanics
+      - Document data structures
+      - Create implementation plan
+    acceptance:
+      - Item system documented
+      - Tag mechanics understood
+      - Implementation approach defined
+    artifacts:
+      - docs/roll20-item-system.md
+      - docs/equipment-implementation.md
+  - id: T-038
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/lore-/-journal-panel/
+      - test/features/lore-/-journal-panel.test.ts
+  - id: T-048
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-049
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-055
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/lore-/-journal-panel/
+      - test/features/lore-/-journal-panel.test.ts
+  - id: T-065
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-066
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-072
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/lore-/-journal-panel/
+      - test/features/lore-/-journal-panel.test.ts
+  - id: T-082
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-083
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-089
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/lore-/-journal-panel/
+      - test/features/lore-/-journal-panel.test.ts
+  - id: T-099
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-100
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-106
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/lore-/-journal-panel/
+      - test/features/lore-/-journal-panel.test.ts
+  - id: T-116
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-117
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-123
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/lore-/-journal-panel/
+      - test/features/lore-/-journal-panel.test.ts
+  - id: T-133
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-134
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-140
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/lore-/-journal-panel/
+      - test/features/lore-/-journal-panel.test.ts
+  - id: T-150
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-151
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-157
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/lore-/-journal-panel/
+      - test/features/lore-/-journal-panel.test.ts
+  - id: T-167
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-168
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - 'Plan '
+      - 'Implement '
+      - 'Test '
+      - 'Deploy '
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md

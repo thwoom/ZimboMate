@@ -1,0 +1,9 @@
+# Task Tags & Status Discipline
+Allowed statuses: open | in_progress | blocked | done
+Priority scale: P0 (urgent) .. P3 (low)
+
+Rules:
+- You may move a task to in_progress only if all deps are done.
+- You may mark done only if acceptance criteria are verified (tests or evidence).
+- If a dependency is missing or failing, set status=blocked and write a one-line reason.
+- Keep /ops/tasks.yaml the single source of truth; never invent tasks without appending them there.

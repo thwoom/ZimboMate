@@ -1,0 +1,85 @@
+.autosave-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(0);
+}
+
+.autosave-indicator.fade-out {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.autosave-indicator.saving {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+.autosave-indicator.saved {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.autosave-indicator.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.autosave-icon {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  animation: none;
+}
+
+.autosave-indicator.saving .autosave-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.autosave-message {
+  font-weight: 500;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .autosave-indicator {
+    background: rgba(30, 30, 30, 0.95);
+    color: #e0e0e0;
+  }
+
+  .autosave-indicator.saving {
+    background: #3d3200;
+    border-color: #5a4a00;
+    color: #fff3cd;
+  }
+
+  .autosave-indicator.saved {
+    background: #1e3a24;
+    border-color: #2d5a35;
+    color: #d4edda;
+  }
+
+  .autosave-indicator.error {
+    background: #3a1e21;
+    border-color: #5a2d31;
+    color: #f8d7da;
+  }
+}

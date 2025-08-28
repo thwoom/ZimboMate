@@ -1,0 +1,323 @@
+.test-playground {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.test-playground h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.validation-status-bar {
+  margin-bottom: 20px;
+}
+
+.playground-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+.test-section {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.test-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #444;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.test-section h4 {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+/* Character Section */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.stat-grid > div {
+  background: white;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.attribute-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.attribute-box {
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.attribute-box button {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.debility-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.debility-grid label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+/* Inventory Section */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.item-row {
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-row .equipped {
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.item-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.item-actions button {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.inventory-stats {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Roll Results */
+.roll-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.roll-result {
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+}
+
+.roll-result.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.roll-result.partial {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.roll-result.failure {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Validation Section */
+.validation-errors {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.validation-warnings {
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.validation-success {
+  background: #d4edda;
+  color: #155724;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.validation-errors h4,
+.validation-warnings h4 {
+  margin: 0 0 5px 0;
+}
+
+.validation-errors ul,
+.validation-warnings ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* Save/Load Section */
+.save-info {
+  margin-top: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Buttons */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #2563eb;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.danger {
+  background: #dc2626;
+}
+
+button.danger:hover {
+  background: #b91c1c;
+}
+
+button.level-up {
+  background: #10b981;
+  font-weight: bold;
+}
+
+button.level-up:hover {
+  background: #059669;
+}
+
+button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Scrollbar styling */
+.roll-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.roll-results::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.roll-results::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.roll-results::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Calculation breakdown styles */
+.test-playground .calc-breakdown {
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.test-playground .calc-breakdown > div {
+  padding: 2px 0;
+}
+
+.test-playground .calc-breakdown .total {
+  border-top: 1px solid #ddd;
+  margin-top: 5px;
+  padding-top: 5px;
+  font-weight: 600;
+}
+
+.test-playground .modifier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.test-playground .modifier-grid > div {
+  background: white;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.test-playground .calc-breakdown .error {
+  color: #dc2626;
+}
+
+.test-playground .calc-breakdown .warning {
+  color: #f59e0b;
+}
+
+.test-playground .calc-breakdown .success {
+  color: #10b981;
+  font-weight: 500;
+}
