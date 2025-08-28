@@ -559,16 +559,16 @@ tasks:
       example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+      This ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World's fast-paced, fiction-first gameplay.
     intent: >-
       Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
       one section remains persistent for vital stats, while other sections display context-specific information[1]. for
       example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+      this ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world's fast-paced, fiction-first gameplay.
     owner: cursor-agent
     status: open
     priority: P1
@@ -588,13 +588,13 @@ tasks:
         left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
         the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
         be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
-        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+        ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World's fast-paced, fiction-first gameplay. is completed on time
       - All deliverables are ready
       - Stakeholder approval received
     artifacts:
       - >-
-        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
   - id: T-050
     title: Implement Character Stats & Health Panel
     intent: Implement the character stats & health panel feature as specified in the PRD
@@ -710,16 +710,16 @@ tasks:
       example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+      This ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World's fast-paced, fiction-first gameplay.
     intent: >-
       Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
       one section remains persistent for vital stats, while other sections display context-specific information[1]. for
       example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+      this ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world's fast-paced, fiction-first gameplay.
     owner: cursor-agent
     status: open
     priority: P1
@@ -739,13 +739,13 @@ tasks:
         left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
         the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
         be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
-        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+        ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World's fast-paced, fiction-first gameplay. is completed on time
       - All deliverables are ready
       - Stakeholder approval received
     artifacts:
       - >-
-        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
   - id: T-067
     title: Implement Character Stats & Health Panel
     intent: Implement the character stats & health panel feature as specified in the PRD
@@ -861,16 +861,16 @@ tasks:
       example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+      This ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World's fast-paced, fiction-first gameplay.
     intent: >-
       Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
       one section remains persistent for vital stats, while other sections display context-specific information[1]. for
       example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+      this ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world's fast-paced, fiction-first gameplay.
     owner: cursor-agent
     status: open
     priority: P1
@@ -890,13 +890,13 @@ tasks:
         left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
         the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
         be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
-        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+        ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World's fast-paced, fiction-first gameplay. is completed on time
       - All deliverables are ready
       - Stakeholder approval received
     artifacts:
       - >-
-        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
   - id: T-084
     title: Implement Character Stats & Health Panel
     intent: Implement the character stats & health panel feature as specified in the PRD
@@ -1012,16 +1012,16 @@ tasks:
       example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+      This ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World's fast-paced, fiction-first gameplay.
     intent: >-
       Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
       one section remains persistent for vital stats, while other sections display context-specific information[1]. for
       example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+      this ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world's fast-paced, fiction-first gameplay.
     owner: cursor-agent
     status: open
     priority: P1
@@ -1041,13 +1041,13 @@ tasks:
         left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
         the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
         be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
-        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+        ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World's fast-paced, fiction-first gameplay. is completed on time
       - All deliverables are ready
       - Stakeholder approval received
     artifacts:
       - >-
-        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
   - id: T-101
     title: Implement Character Stats & Health Panel
     intent: Implement the character stats & health panel feature as specified in the PRD
@@ -1163,16 +1163,16 @@ tasks:
       example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+      This ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World's fast-paced, fiction-first gameplay.
     intent: >-
       Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
       one section remains persistent for vital stats, while other sections display context-specific information[1]. for
       example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+      this ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world's fast-paced, fiction-first gameplay.
     owner: cursor-agent
     status: open
     priority: P1
@@ -1192,13 +1192,13 @@ tasks:
         left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
         the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
         be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
-        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+        ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World's fast-paced, fiction-first gameplay. is completed on time
       - All deliverables are ready
       - Stakeholder approval received
     artifacts:
       - >-
-        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
   - id: T-118
     title: Implement Character Stats & Health Panel
     intent: Implement the character stats & health panel feature as specified in the PRD
@@ -1314,16 +1314,16 @@ tasks:
       example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+      This ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World's fast-paced, fiction-first gameplay.
     intent: >-
       Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
       one section remains persistent for vital stats, while other sections display context-specific information[1]. for
       example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+      this ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world's fast-paced, fiction-first gameplay.
     owner: cursor-agent
     status: open
     priority: P1
@@ -1343,13 +1343,13 @@ tasks:
         left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
         the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
         be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
-        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+        ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World's fast-paced, fiction-first gameplay. is completed on time
       - All deliverables are ready
       - Stakeholder approval received
     artifacts:
       - >-
-        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
   - id: T-135
     title: Implement Character Stats & Health Panel
     intent: Implement the character stats & health panel feature as specified in the PRD
@@ -1465,16 +1465,16 @@ tasks:
       example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+      This ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World's fast-paced, fiction-first gameplay.
     intent: >-
       Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
       one section remains persistent for vital stats, while other sections display context-specific information[1]. for
       example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+      this ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world's fast-paced, fiction-first gameplay.
     owner: cursor-agent
     status: open
     priority: P1
@@ -1494,13 +1494,13 @@ tasks:
         left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
         the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
         be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
-        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+        ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World's fast-paced, fiction-first gameplay. is completed on time
       - All deliverables are ready
       - Stakeholder approval received
     artifacts:
       - >-
-        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
   - id: T-152
     title: Implement Character Stats & Health Panel
     intent: Implement the character stats & health panel feature as specified in the PRD
@@ -1616,16 +1616,16 @@ tasks:
       example, a left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      This ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay.
+      This ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting Dungeon World's fast-paced, fiction-first gameplay.
     intent: >-
       Complete  for phase 3: polish and optimization (q3) a two-column or three-zone approach works well for desktop:
       one section remains persistent for vital stats, while other sections display context-specific information[1]. for
       example, a left sidebar can hold always-visible character vitals (hp, stats, etc.) and shortcut actions, and a
       main area to the right can switch between panels like moves, inventory, or notes[2]. a right-hand drawer or pop-up
       panel can be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise.
-      this ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-      single click, reflecting dungeon world’s fast-paced, fiction-first gameplay.
+      this ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+      single click, reflecting dungeon world's fast-paced, fiction-first gameplay.
     owner: cursor-agent
     status: open
     priority: P1
@@ -1645,13 +1645,13 @@ tasks:
         left sidebar can hold always-visible character vitals (HP, stats, etc.) and shortcut actions, and a main area to
         the right can switch between panels like Moves, Inventory, or Notes[2]. A right-hand drawer or pop-up panel can
         be used for auxiliary tools (dice roller, quick notes) that slide in when needed and hide otherwise. This
-        ensures the player isn’t constantly changing screens – most actions and info are accessible at a glance or a
-        single click, reflecting Dungeon World’s fast-paced, fiction-first gameplay. is completed on time
+        ensures the player isn't constantly changing screens – most actions and info are accessible at a glance or a
+        single click, reflecting Dungeon World's fast-paced, fiction-first gameplay. is completed on time
       - All deliverables are ready
       - Stakeholder approval received
     artifacts:
       - >-
-        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn’t-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world’s-fast-paced,-fiction-first-gameplay.-deliverables.md
+        docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
   - id: T-003
     title: PRD service API
     intent: Expose getPRD() with in-memory cache and invalidation on file change
@@ -4041,3 +4041,57 @@ tasks:
       - Stakeholder approval received
     artifacts:
       - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-169
+    title: Implement Local LLM Integration for Game Content Generation
+    intent: Add LM Studio API server integration for generating magical items, flavor text, and game assistance with structured JSON output
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - feature
+      - ai
+      - enhancement
+    deps:
+      - T-008
+      - T-009
+      - T-010
+    steps:
+      - Set up LM Studio API server integration with 7B quantized models (LLaMA-2 7B, Mistral 7B)
+      - Create AiService with structured JSON response handling and error management
+      - Implement global settings toggle for AI feature (stored in dungeonworld_settings)
+      - Create prompt templates for magical item generation with Dungeon World tag constraints
+      - Build ItemValidation.validateItem() for balance checking and output validation
+      - Implement dedicated AI Generator Panel for freeform content creation
+      - Add contextual "✨ Generate Item" buttons to Equipment and Inventory panels
+      - Create user configuration interface (model selector, temperature slider, theme context)
+      - Implement error handling with timeout (10s), retry logic, and user-friendly fallbacks
+      - Add structured JSON parsing for game data and natural text for flavor descriptions
+      - Create few-shot prompt examples with Dungeon World tone (concise, evocative, conversational)
+      - Implement background processing for longer generations (NPC backstories, etc.)
+      - Add comprehensive testing with automated validation and manual GM playtesting
+      - Create user feedback system for reporting bad generations
+      - Document local-only data privacy and no-cloud processing guarantees
+    acceptance:
+      - LM Studio integration works with 7B models (2-5s response time, max 10s timeout)
+      - AI toggle in settings enables/disables feature gracefully
+      - Magical item generation produces balanced items with proper Dungeon World tags
+      - Structured JSON output integrates seamlessly with existing EquipmentItem interface
+      - Flavor text follows Dungeon World tone (short, evocative, conversational)
+      - User can configure model, temperature, and theme context
+      - Error handling shows helpful messages and allows retry/editing
+      - All content generation is local-only with no data sent to cloud
+      - Generated items pass ItemValidation.validateItem() balance checks
+      - Contextual generation buttons work in Equipment and Inventory panels
+      - Dedicated AI panel provides freeform generation capabilities
+      - Performance impact is minimal when AI is disabled
+    artifacts:
+      - src/services/AiService.ts
+      - src/services/ItemValidation.ts
+      - src/panels/AIGeneratorPanel/
+      - src/utils/aiPrompts.ts
+      - src/types/AiTypes.ts
+      - src/store/aiSettings.ts
+      - docs/ai-integration-guide.md
+      - test/services/AiService.test.ts
+      - test/services/ItemValidation.test.ts
+      - config/ai-config.json
