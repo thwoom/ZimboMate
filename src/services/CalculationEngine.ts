@@ -11,9 +11,7 @@ import {
   getXPThreshold,
   calculateMaxHP,
   calculateMaxLoad,
-  getClassBaseHP,
-  getClassBaseLoad,
-  getClassDamageDie,
+  // Removed unused class helper functions
   DamageDie
 } from '../models/Character';
 import {
@@ -24,8 +22,6 @@ import {
 } from '../models/Inventory';
 import {
   Item,
-  Armor,
-  Weapon,
   isWeapon,
   calculateTotalArmor,
   hasTag
@@ -37,7 +33,6 @@ import {
   getConditionModifiers
 } from '../models/Conditions';
 import {
-  TemporaryModifier,
   ModifierSet
 } from '../models/Modifiers';
 import { SpellPreparation, calculateMaxPreparedSpells } from '../models/Spell';

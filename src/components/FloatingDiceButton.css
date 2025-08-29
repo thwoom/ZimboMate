@@ -1,0 +1,415 @@
+.floating-dice-container {
+  position: fixed;
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+}
+
+/* Position variants */
+.floating-dice-bottom-right {
+  bottom: var(--spacing-xl);
+  right: var(--spacing-xl);
+}
+
+.floating-dice-bottom-left {
+  bottom: var(--spacing-xl);
+  left: var(--spacing-xl);
+  align-items: flex-start;
+}
+
+.floating-dice-top-right {
+  top: var(--spacing-xl);
+  right: var(--spacing-xl);
+}
+
+.floating-dice-top-left {
+  top: var(--spacing-xl);
+  left: var(--spacing-xl);
+  align-items: flex-start;
+}
+
+/* Main Dice Button */
+.floating-dice-button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 16px var(--color-shadow);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: visible;
+}
+
+.floating-dice-button:hover:not(.disabled) {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 24px var(--color-shadow);
+}
+
+.floating-dice-button:active:not(.disabled) {
+  transform: translateY(0) scale(0.95);
+}
+
+.floating-dice-button.disabled {
+  background: var(--color-secondary);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.floating-dice-button.rolling {
+  animation: rollAnimation 0.6s ease-in-out;
+}
+
+@keyframes rollAnimation {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  75% { transform: rotate(270deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.dice-icon {
+  font-size: 1.75rem;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-3px); }
+  60% { transform: translateY(-2px); }
+}
+
+/* Last Roll Indicator */
+.last-roll-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border: 2px solid white;
+  animation: slideInScale 0.3s ease-out;
+}
+
+.last-roll-indicator.success {
+  background-color: var(--color-success, #28a745);
+  color: white;
+}
+
+.last-roll-indicator.partial {
+  background-color: var(--color-warning, #ffc107);
+  color: white;
+}
+
+.last-roll-indicator.failure {
+  background-color: var(--color-danger, #dc3545);
+  color: white;
+}
+
+@keyframes slideInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.roll-total {
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.roll-result-icon {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 0.6rem;
+}
+
+/* Roll History Mini Panel */
+.roll-history-mini {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--color-shadow);
+  width: 280px;
+  max-height: 0;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.roll-history-mini.expanded {
+  max-height: 200px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.roll-history-header {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.roll-history-items {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.roll-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+}
+
+.roll-history-item:hover {
+  background-color: var(--color-secondary);
+}
+
+.roll-history-item:last-child {
+  border-bottom: none;
+}
+
+.roll-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.roll-description {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roll-time {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.roll-result {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.result-icon {
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+.result-icon.success {
+  color: var(--color-success, #28a745);
+}
+
+.result-icon.partial {
+  color: var(--color-warning, #ffc107);
+}
+
+.result-icon.failure {
+  color: var(--color-danger, #dc3545);
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--transition-fast);
+}
+
+.floating-dice-container:hover .quick-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quick-action-button {
+  width: 40px;
+  height: 32px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+}
+
+.quick-action-button:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.quick-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Character Indicator */
+.character-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--transition-fast);
+  max-width: 120px;
+}
+
+.floating-dice-container:hover .character-indicator {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.character-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: right;
+}
+
+.character-xp {
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+/* Left-aligned variants */
+.floating-dice-bottom-left .character-indicator,
+.floating-dice-top-left .character-indicator {
+  align-items: flex-start;
+}
+
+.floating-dice-bottom-left .character-name,
+.floating-dice-top-left .character-name {
+  text-align: left;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .floating-dice-container {
+    bottom: var(--spacing-lg);
+    right: var(--spacing-lg);
+  }
+
+  .floating-dice-button {
+    width: 56px;
+    height: 56px;
+    font-size: 1.25rem;
+  }
+
+  .dice-icon {
+    font-size: 1.5rem;
+  }
+
+  .roll-history-mini {
+    width: 240px;
+  }
+
+  .quick-actions {
+    flex-direction: column;
+  }
+
+  .quick-action-button {
+    width: 36px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+
+  .character-indicator {
+    max-width: 100px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .floating-dice-container {
+    bottom: var(--spacing-md);
+    right: var(--spacing-md);
+  }
+
+  .floating-dice-button {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+
+  .dice-icon {
+    font-size: 1.25rem;
+  }
+
+  .roll-history-mini {
+    width: 200px;
+  }
+
+  /* Hide some elements on very small screens */
+  .character-indicator {
+    display: none;
+  }
+
+  .quick-actions {
+    display: none;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .dice-icon {
+    animation: none;
+  }
+
+  .floating-dice-button.rolling {
+    animation: none;
+  }
+
+  .floating-dice-button:hover:not(.disabled) {
+    transform: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .floating-dice-button {
+    border: 2px solid var(--color-text-primary);
+  }
+
+  .last-roll-indicator {
+    border-width: 3px;
+  }
+}

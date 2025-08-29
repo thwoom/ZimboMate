@@ -5,28 +5,39 @@ import './ContentArea.css';
 
 interface ContentAreaProps {
   activePanelId: string;
-  onRightDrawerToggle: () => void;
 }
 
-const ContentArea: React.FC<ContentAreaProps> = ({ activePanelId, onRightDrawerToggle }) => {
+const ContentArea: React.FC<ContentAreaProps> = ({ activePanelId }) => {
   const activePanel = panelRegistry.getPanel(activePanelId);
   const panelTitle = activePanel?.metadata.name || 'Unknown Panel';
   const panelCount = panelRegistry.getAllPanels().length;
+  
+  // Debug: Log when character creation is active
+  if (process.env.NODE_ENV === 'development' && activePanelId === 'character-creation') {
+    console.log('Character creation panel is active - applying full width');
+  }
+
+  // Debug function to toggle layout visualization
+  const toggleLayoutDebug = () => {
+    document.body.classList.toggle('debug-layout');
+  };
   
   return (
     <div className="content-area">
       <header className="content-area__header">
         <h2 className="content-area__title">{panelTitle}</h2>
-        <button
-          className="content-area__aux-button"
-          onClick={onRightDrawerToggle}
-          title="Toggle auxiliary drawer"
-        >
-          <span>☰</span>
-        </button>
+        {process.env.NODE_ENV === 'development' && activePanelId === 'character-creation' && (
+          <button
+            onClick={toggleLayoutDebug}
+            title="Toggle layout debug visualization"
+            className="content-area__debug-button"
+          >
+            🔍 Debug Layout
+          </button>
+        )}
       </header>
 
-      <div className="content-area__body">
+      <div className={`content-area__body ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
         {panelCount > 0 ? (
           <PanelRouter 
             activePanelId={activePanelId}

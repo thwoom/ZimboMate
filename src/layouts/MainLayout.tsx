@@ -1,19 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import ContentArea from './ContentArea';
-import AuxiliaryDrawer from './AuxiliaryDrawer';
+import UnifiedQuickTools from '../components/UnifiedQuickTools';
+import { panelEventBus } from '../framework/PanelAPI';
 import './MainLayout.css';
 
 interface MainLayoutProps {
-  rightDrawerOpen: boolean;
-  onRightDrawerToggle: () => void;
+  // No longer need drawer props since we're removing the auxiliary drawer
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({
-  rightDrawerOpen,
-  onRightDrawerToggle,
-}) => {
+const MainLayout: React.FC<MainLayoutProps> = () => {
   const [activePanelId, setActivePanelId] = useState<string>('character-stats');
+
+  // Listen for navigation events from panels
+  useEffect(() => {
+    const unsubscribe = panelEventBus.on('navigate', (event) => {
+      if (event.data.panelId) {
+        setActivePanelId(event.data.panelId);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // Emit panel activation events for context-aware tools
+  useEffect(() => {
+    panelEventBus.emit('main-layout', 'panel-activated', {
+      panelId: activePanelId
+    });
+  }, [activePanelId]);
 
   return (
     <div className="main-layout">
@@ -27,15 +42,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       <main className="main-layout__content">
         <ContentArea 
           activePanelId={activePanelId}
-          onRightDrawerToggle={onRightDrawerToggle} 
         />
       </main>
 
-      <aside
-        className={`main-layout__drawer ${rightDrawerOpen ? 'main-layout__drawer--open' : ''}`}
-      >
-        <AuxiliaryDrawer onClose={onRightDrawerToggle} />
-      </aside>
+      {/* Unified Quick Tools */}
+      <UnifiedQuickTools position="bottom-right" />
     </div>
   );
 };

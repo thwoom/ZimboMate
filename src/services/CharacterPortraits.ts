@@ -186,25 +186,54 @@ class CharacterPortraitService {
   // Add custom portrait from file
   async addCustomPortrait(file: File, name: string, tags: string[] = []): Promise<Portrait> {
     return new Promise((resolve, reject) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('Please select a valid image file (PNG, JPG, GIF, etc.)'));
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        reject(new Error('Image file is too large. Please select a file smaller than 5MB.'));
+        return;
+      }
+      
+      // Validate name
+      if (!name || name.trim().length === 0) {
+        reject(new Error('Please provide a name for the portrait.'));
+        return;
+      }
+      
       const reader = new FileReader();
       
       reader.onload = (e) => {
-        const portrait: Portrait = {
-          id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          name,
-          emoji: '🖼️', // Custom portrait emoji
-          color: '#696969',
-          tags: ['custom', ...tags],
-          customUrl: e.target?.result as string // Store base64 data URL
-        };
-        
-        this.customPortraits.push(portrait);
-        this.saveCustomPortraits();
-        resolve(portrait);
+        try {
+          const result = e.target?.result as string;
+          if (!result) {
+            reject(new Error('Failed to process image file.'));
+            return;
+          }
+          
+          const portrait: Portrait = {
+            id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            name: name.trim(),
+            emoji: '🖼️', // Custom portrait emoji
+            color: '#696969',
+            tags: ['custom', ...tags],
+            customUrl: result // Store base64 data URL
+          };
+          
+          this.customPortraits.push(portrait);
+          this.saveCustomPortraits();
+          resolve(portrait);
+        } catch (error) {
+          reject(new Error('Failed to create portrait from image file.'));
+        }
       };
       
       reader.onerror = () => {
-        reject(new Error('Failed to read image file'));
+        reject(new Error('Failed to read image file. Please try a different file.'));
       };
       
       reader.readAsDataURL(file);

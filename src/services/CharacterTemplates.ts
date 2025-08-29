@@ -11,6 +11,10 @@ export interface CharacterTemplate {
   selectedEquipment?: (Partial<Item> | Partial<any>)[];
   selectedMoves?: string[];
   bonds?: Partial<Bond>[];
+  equipmentChoices?: Record<number, number>;
+  personalityTraits?: string[];
+  knownSpells?: string[];
+  preparedSpells?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,9 +35,11 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
     characterData: {
       name: 'Sir Galahad',
       look: 'Shining armor, noble bearing, determined eyes',
+      background: 'Born to nobility, trained from childhood in the arts of war and chivalry. Sworn to uphold justice and protect the innocent.',
       class: 'Paladin' as CharacterClass,
       race: 'Human' as Race,
       alignment: 'Lawful' as Alignment,
+      coin: 10,
       attributes: {
         STR: 16,
         DEX: 9,
@@ -44,8 +50,19 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
       }
     },
     selectedMoves: ['Lay on Hands', 'Armored', 'Quest'],
+    selectedEquipment: [
+      { name: 'Plate Mail', armor: 3, weight: 4 },
+      { name: 'Longsword', damage: 'd8', weight: 2, tags: ['close', 'versatile'] },
+      { name: 'Shield', armor: 1, weight: 2 },
+      { name: 'Adventuring Gear', weight: 1 },
+      { name: 'Dungeon Rations', uses: 5, weight: 1 },
+      { name: 'Healing Potion', weight: 0 }
+    ],
+    equipmentChoices: { 0: 0 }, // First weapon choice
+    personalityTraits: ['Honorable', 'Protective', 'Righteous'],
     bonds: [
-      { text: '____ has stood by me in battle and can be trusted completely.' }
+      { text: '____ has stood by me in battle and can be trusted completely.' },
+      { text: 'I have sworn to protect ____ from harm.' }
     ],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -290,21 +307,47 @@ class CharacterTemplateService {
       const imported = JSON.parse(jsonString);
       
       // Validate required fields
-      if (!imported.name || !imported.characterData) {
-        throw new Error('Invalid template format');
+      if (!imported.name || typeof imported.name !== 'string') {
+        throw new Error('Template must have a valid name');
+      }
+      
+      if (!imported.characterData || typeof imported.characterData !== 'object') {
+        throw new Error('Template must contain character data');
+      }
+      
+      // Validate character data has minimum required fields
+      const charData = imported.characterData;
+      if (!charData.class || !charData.race) {
+        throw new Error('Template character data must include class and race');
+      }
+      
+      // Validate arrays if present
+      if (imported.selectedEquipment && !Array.isArray(imported.selectedEquipment)) {
+        throw new Error('Selected equipment must be an array');
+      }
+      
+      if (imported.selectedMoves && !Array.isArray(imported.selectedMoves)) {
+        throw new Error('Selected moves must be an array');
+      }
+      
+      if (imported.bonds && !Array.isArray(imported.bonds)) {
+        throw new Error('Bonds must be an array');
       }
       
       // Create new template with imported data
       return this.saveTemplate({
-        name: imported.name,
+        name: imported.name.trim(),
         description: imported.description || '',
         category: 'custom',
         characterData: imported.characterData,
-        selectedEquipment: imported.selectedEquipment,
-        selectedMoves: imported.selectedMoves,
-        bonds: imported.bonds
+        selectedEquipment: imported.selectedEquipment || [],
+        selectedMoves: imported.selectedMoves || [],
+        bonds: imported.bonds || []
       });
     } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new Error('Invalid JSON format. Please check the file and try again.');
+      }
       throw new Error(`Failed to import template: ${(error as Error).message}`);
     }
   }

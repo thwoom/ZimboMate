@@ -22,8 +22,15 @@ export class PanelRegistry {
    */
   register(panel: Panel): void {
     if (this.panels.has(panel.metadata.id)) {
-      console.warn(`Panel with id "${panel.metadata.id}" is already registered`);
-      return;
+      // In development with StrictMode, this is expected behavior
+      if (process.env.NODE_ENV === 'development') {
+        // Replace the existing panel silently
+        this.panels.set(panel.metadata.id, panel);
+        return;
+      } else {
+        console.warn(`Panel with id "${panel.metadata.id}" is already registered`);
+        return;
+      }
     }
 
     this.panels.set(panel.metadata.id, panel);

@@ -21,22 +21,16 @@
   color: var(--color-text-primary);
 }
 
-.content-area__aux-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  font-size: 1.25rem;
-  color: var(--color-text-secondary);
-  background-color: var(--color-surface);
-  border-radius: 4px;
-  transition: all var(--transition-fast);
-}
+/* Auxiliary button removed - functionality moved to UnifiedQuickTools */
 
-.content-area__aux-button:hover {
-  background-color: var(--color-secondary);
-  color: var(--color-text-primary);
+.content-area__debug-button {
+  padding: 0.5rem;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
 }
 
 .content-area__body {
@@ -44,6 +38,11 @@
   overflow-y: auto;
   padding: var(--spacing-xl);
   background-color: var(--color-background);
+}
+
+/* Remove padding for character creation panel to allow full width */
+.content-area__body--full-width {
+  padding: 0 !important;
 }
 
 .content-area__placeholder {

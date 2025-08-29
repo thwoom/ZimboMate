@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { createPanel, PanelProps } from '../../framework/Panel';
 import { createPanelAPI } from '../../framework/PanelAPI';
+import { useGameStore } from '../../store/GameStore';
+import { equipmentCalculationService, EquipmentStats } from '../../services/EquipmentCalculations';
 import './EquipmentPanel.css';
 
 // Item tags from Dungeon World
@@ -37,7 +39,11 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
   onStateChange
 }) => {
   const api = createPanelAPI(id);
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const { state: gameState, setCharacter } = useGameStore();
+  
+  // Get the active character from the game state
+  const character = gameState.activeCharacterId ? gameState.characters[gameState.activeCharacterId] : null;
+  // Removed unused selectedItem state
   
   // Default state
   const defaultState: EquipmentPanelState = {
@@ -97,19 +103,25 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
   
   const state = { ...defaultState, ...panelState };
   
-  // Calculate total weight of all items (all are equipped)
-  const totalWeight = state.items
+  // Use character inventory if available, otherwise fall back to panel state
+  const displayItems = character?.inventory || state.items;
+  
+  // Calculate equipment stats using the enhanced service
+  const equipmentStats: EquipmentStats | null = character ? 
+    equipmentCalculationService.calculateEquipmentStats(character) : null;
+  
+  // Fallback calculations for when no character is available
+  const totalWeight = equipmentStats?.totalWeight || displayItems
     .reduce((sum: number, item: EquipmentItem) => sum + item.weight, 0);
   
-  // Calculate total armor from all armor items
-  const totalArmor = state.items
+  const totalArmor = equipmentStats?.totalArmor || displayItems
     .filter((item: EquipmentItem) => item.armor)
     .reduce((sum: number, item: EquipmentItem) => sum + (item.armor || 0), 0);
   
-  // Send weight, armor, and damage updates to Character Stats panel
-  const damageItems = state.items
-    .filter((item: EquipmentItem) => item.damage)
-    .map((item: EquipmentItem) => ({ name: item.name, damage: item.damage }));
+  const damageItems = equipmentStats?.damageDice.map(dice => ({ name: 'Weapon', damage: dice })) || 
+    displayItems
+      .filter((item: EquipmentItem) => item.damage)
+      .map((item: EquipmentItem) => ({ name: item.name, damage: item.damage }));
   
   React.useEffect(() => {
     api.send('equipment-weight-changed', { totalWeight });
@@ -159,11 +171,7 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
     }
   };
   
-  // Show item details
-  const handleShowDetails = (itemId: string) => {
-    const newState = { ...state, showDetails: itemId };
-    onStateChange?.(newState);
-  };
+  // Removed unused handleShowDetails function
 
   // Close item details
   const handleCloseDetails = () => {
@@ -187,26 +195,83 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
   };
   
   // Get the item to show details for
+  // Auto-equip optimal gear
+  const handleAutoEquip = () => {
+    if (!character) return;
+    
+    const optimalGear = equipmentCalculationService.autoEquipOptimalGear(character);
+    
+    // Update character with optimally equipped items
+    const updatedInventory = character.inventory?.map(item => {
+      const optimal = optimalGear.find(opt => opt.id === item.id);
+      return optimal ? { ...item, equipped: optimal.equipped } : { ...item, equipped: false };
+    }) || [];
+    
+    // Update character in game store
+    setCharacter({ ...character, inventory: updatedInventory });
+    
+    api.send('equipment-auto-equipped', { 
+      equippedCount: optimalGear.length 
+    });
+  };
+
   const detailItem = state.showDetails ? state.items.find((i: EquipmentItem) => i.id === state.showDetails) : null;
   
   return (
     <div className="equipment-panel">
       <div className="equipment-header">
         <h2>Equipment</h2>
+        {character && (
+          <button 
+            className="btn btn-secondary auto-equip-btn"
+            onClick={handleAutoEquip}
+            title="Automatically equip optimal gear for your character"
+          >
+            🎯 Auto-Equip
+          </button>
+        )}
         <div className="equipment-summary">
-          <span className="weight-total">Total Weight: {totalWeight}</span>
+          <div className="summary-stats">
+            <span className="armor-total">Total Armor: {totalArmor}</span>
+            <span className="weight-total">Total Weight: {totalWeight}</span>
+            {equipmentStats && (
+              <>
+                <span className={`encumbrance-status encumbrance-${equipmentStats.encumbranceStatus}`}>
+                  {equipmentStats.encumbranceStatus.charAt(0).toUpperCase() + equipmentStats.encumbranceStatus.slice(1)}
+                </span>
+                {equipmentStats.damageBonus > 0 && (
+                  <span className="damage-bonus">Damage Bonus: +{equipmentStats.damageBonus}</span>
+                )}
+              </>
+            )}
+          </div>
+          
+          {/* Special Effects */}
+          {equipmentStats && equipmentStats.specialEffects.length > 0 && (
+            <div className="special-effects">
+              <h4>Active Effects:</h4>
+              <div className="effects-list">
+                {equipmentStats.specialEffects.map(effect => (
+                  <div key={effect.id} className={`effect-item effect-${effect.type}`}>
+                    <span className="effect-name">{effect.name}</span>
+                    <span className="effect-description">{effect.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
       <div className="equipment-list">
-        {state.items.length === 0 ? (
+        {displayItems.length === 0 ? (
           <div className="empty-state">
             <p>No equipment currently equipped.</p>
             <p className="empty-hint">Visit the Inventory panel to equip items.</p>
           </div>
         ) : (
           <div className="equipment-grid">
-            {state.items.map((item: EquipmentItem) => (
+            {displayItems.map((item: EquipmentItem) => (
               <div key={item.id} className="equipment-item">
                 <div className="item-header">
                   <span className="item-name">{item.name}</span>

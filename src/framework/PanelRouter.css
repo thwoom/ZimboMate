@@ -2,7 +2,7 @@
   height: 100%;
   width: 100%;
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Allow content to determine overflow behavior */
 }
 
 .panel-container {
@@ -32,7 +32,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #dc3545;
+  color: var(--color-danger);
   font-size: 1.125rem;
   text-align: center;
   padding: var(--spacing-xl);

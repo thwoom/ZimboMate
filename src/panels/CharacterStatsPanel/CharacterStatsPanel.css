@@ -120,14 +120,14 @@
 .hp-bar {
   width: 100%;
   height: 8px;
-  background-color: #e9ecef;
+  background-color: var(--color-secondary);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .hp-bar__fill {
   height: 100%;
-  background-color: #28a745;
+  background-color: var(--color-success);
   transition: width var(--transition-medium);
 }
 
@@ -160,7 +160,7 @@
 .xp-bar {
   width: 100%;
   height: 6px;
-  background-color: #e9ecef;
+  background-color: var(--color-secondary);
   border-radius: 3px;
   overflow: hidden;
   margin-top: var(--spacing-sm);
@@ -198,7 +198,7 @@
 .load-bar {
   width: 100%;
   height: 6px;
-  background-color: #e9ecef;
+  background-color: var(--color-secondary);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -209,7 +209,7 @@
 }
 
 .load-warning {
-  color: #dc3545;
+  color: var(--color-danger);
   font-size: 0.875rem;
   font-weight: 500;
   text-align: center;
@@ -281,23 +281,23 @@
 }
 
 .action-button--xp {
-  background-color: #6c757d;
+  background-color: var(--color-text-secondary);
 }
 
 .action-button--xp:hover {
-  background-color: #5a6268;
+  background-color: var(--color-text-primary);
 }
 
 .action-button--rest {
-  background-color: #28a745;
+  background-color: var(--color-success);
 }
 
 .action-button--rest:hover {
-  background-color: #218838;
+  background-color: var(--color-success-dark);
 }
 
 .level-up-ready {
-  color: #28a745;
+  color: var(--color-success);
   font-weight: bold;
   font-size: 0.875rem;
   animation: pulse 1.5s ease-in-out infinite;
@@ -338,7 +338,7 @@
 .attribute-button {
   width: 100%;
   padding: var(--spacing-md);
-  background-color: white;
+  background-color: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 6px;
   cursor: pointer;
@@ -358,7 +358,7 @@
 
 .attribute-button--debility {
   opacity: 0.7;
-  border-color: #dc3545;
+  border-color: var(--color-danger);
 }
 
 .attribute-name {
@@ -380,7 +380,7 @@
 }
 
 .attribute-button--debility .attribute-modifier {
-  color: #dc3545;
+  color: var(--color-danger);
 }
 
 /* Debilities Section */
@@ -417,7 +417,7 @@
 }
 
 .debility-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--color-secondary);
 }
 
 .debility-item input[type="checkbox"] {
@@ -470,14 +470,14 @@
 }
 
 .shortcut kbd {
-  background-color: white;
+  background-color: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 3px;
   padding: 2px 6px;
   font-family: monospace;
   font-size: 0.75rem;
   color: var(--color-text-primary);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 0 var(--color-shadow);
 }
 
 /* Responsive */
@@ -501,4 +501,36 @@
   .debilities-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* HP Bar Styles */
+.hp-bar {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: var(--spacing-sm) 0;
+}
+
+.hp-bar__fill {
+  height: 100%;
+  transition: all var(--transition-medium);
+}
+
+/* HP Bar Dynamic Styles */
+.hp-bar__fill--full {
+  background-color: var(--color-hp-full);
+}
+
+.hp-bar__fill--injured {
+  background-color: var(--color-hp-injured);
+}
+
+.hp-bar__fill--critical {
+  background-color: var(--color-hp-critical);
+}
+
+.hp-bar__fill--dead {
+  background-color: var(--color-hp-dead);
 }

@@ -21,21 +21,21 @@
 }
 
 .autosave-indicator.saving {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  color: #856404;
+  background: var(--color-warning-light);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning-text);
 }
 
 .autosave-indicator.saved {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
+  background: var(--color-success-light);
+  border: 1px solid var(--color-success);
+  color: var(--color-success-text);
 }
 
 .autosave-indicator.error {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger-text);
 }
 
 .autosave-icon {

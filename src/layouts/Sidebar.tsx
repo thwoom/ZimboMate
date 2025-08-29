@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { panelRegistry } from '../framework/PanelRegistry';
 import { PanelMetadata } from '../framework/Panel';
 import './Sidebar.css';
@@ -13,17 +13,38 @@ const Sidebar: React.FC<SidebarProps> = ({ activePanelId, onPanelSelect }) => {
 
   useEffect(() => {
     // Get initial panels sorted by priority
-    const sortedPanels = panelRegistry.getPanelsByPriority().map(p => p.metadata);
-    setPanels(sortedPanels);
+    const updatePanels = () => {
+      const sortedPanels = panelRegistry.getPanelsByPriority().map(p => p.metadata);
+      
+      // Ensure unique IDs (defensive programming)
+      const uniquePanels = sortedPanels.filter((panel, index, array) => 
+        array.findIndex(p => p.id === panel.id) === index
+      );
+      
+      // Debug logging in development
+      if (process.env.NODE_ENV === 'development') {
+        const panelIds = uniquePanels.map(p => p.id);
+        const duplicates = panelIds.filter((id, index) => panelIds.indexOf(id) !== index);
+        if (duplicates.length > 0) {
+          console.warn('Duplicate panel IDs detected:', duplicates);
+        }
+      }
+      
+      setPanels(uniquePanels);
+    };
+
+    updatePanels();
 
     // Listen for registry changes
     const unsubscribe = panelRegistry.addListener(() => {
-      const sortedPanels = panelRegistry.getPanelsByPriority().map(p => p.metadata);
-      setPanels(sortedPanels);
+      updatePanels();
     });
 
     return unsubscribe;
   }, []);
+
+  // Memoize the panel list to prevent unnecessary re-renders
+  const memoizedPanels = useMemo(() => panels, [panels]);
 
   return (
     <div className="sidebar">
@@ -33,8 +54,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePanelId, onPanelSelect }) => {
 
       <nav className="sidebar__nav">
         <ul className="sidebar__nav-list">
-          {panels.map((panel) => (
-            <li key={panel.id} className="sidebar__nav-item">
+          {memoizedPanels.map((panel) => (
+            <li key={`panel-${panel.id}`} className="sidebar__nav-item">
               <button
                 className={`sidebar__nav-button ${
                   activePanelId === panel.id ? 'sidebar__nav-button--active' : ''

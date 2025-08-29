@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { createPanel, PanelProps } from '../../framework/Panel';
 import { createPanelAPI } from '../../framework/PanelAPI';
+import { useGameStore } from '../../store/GameStore';
 import './CharacterStatsPanel.css';
 
 interface CharacterStatsPanelState {
@@ -47,6 +48,10 @@ const CharacterStatsPanel: React.FC<PanelProps & { panelState?: CharacterStatsPa
   isActive
 }) => {
   const api = createPanelAPI(id);
+  const { state: gameState, setCharacter } = useGameStore();
+  
+  // Get the active character from the game state
+  const character = gameState.activeCharacterId ? gameState.characters[gameState.activeCharacterId] : null;
   
   // Default state with migration for old data
   const defaultState: CharacterStatsPanelState = {
@@ -197,6 +202,15 @@ const CharacterStatsPanel: React.FC<PanelProps & { panelState?: CharacterStatsPa
     if (hpPercent > 25) return '#ffc107';
     return '#dc3545';
   };
+
+  // Get HP status CSS class
+  const getHpClass = (): string => {
+    const hpPercent = (state.hp / state.maxHp) * 100;
+    if (state.hp <= 0) return 'hp-bar__fill--dead';
+    if (hpPercent <= 25) return 'hp-bar__fill--critical';
+    if (hpPercent <= 50) return 'hp-bar__fill--injured';
+    return 'hp-bar__fill--full';
+  };
   
   const rollAttribute = useCallback((attribute: keyof typeof state.attributes) => {
     const modifier = getEffectiveModifier(attribute);
@@ -325,15 +339,30 @@ const CharacterStatsPanel: React.FC<PanelProps & { panelState?: CharacterStatsPa
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isActive, handleHpChange, handleAddXP, handleRest, rollAttribute, api]);
 
+  // Use character from game store if available, otherwise fall back to local state
+  const displayCharacter = character || {
+    name: state.name,
+    class: state.class,
+    level: state.level,
+    alignment: state.alignment,
+    hp: { current: state.hp, max: state.maxHp },
+    armor: state.armor,
+    damageDie: state.damage,
+    xp: state.xp,
+    load: { current: state.load, max: calculateMaxLoad() },
+    attributes: state.attributes,
+    debilities: state.debilities
+  };
+
   return (
     <div className="character-stats-panel">
       {/* Character Header */}
       <div className="character-header">
-        <h2 className="character-name">{state.name}</h2>
+        <h2 className="character-name">{displayCharacter.name}</h2>
         <div className="character-info">
-          <span className="character-class">{state.class}</span>
-          <span className="character-level">Level {state.level}</span>
-          <span className="character-alignment">{state.alignment}</span>
+          <span className="character-class">{displayCharacter.class}</span>
+          <span className="character-level">Level {displayCharacter.level}</span>
+          <span className="character-alignment">{displayCharacter.alignment}</span>
         </div>
       </div>
       
@@ -349,9 +378,9 @@ const CharacterStatsPanel: React.FC<PanelProps & { panelState?: CharacterStatsPa
               -
             </button>
             <div className="hp-value">
-              <span className="hp-current">{state.hp}</span>
+              <span className="hp-current">{displayCharacter.hp?.current ?? state.hp}</span>
               <span className="hp-separator">/</span>
-              <span className="hp-max">{state.maxHp}</span>
+              <span className="hp-max">{displayCharacter.hp?.max ?? state.maxHp}</span>
             </div>
             <button 
               className="hp-button hp-button--plus"
@@ -362,11 +391,9 @@ const CharacterStatsPanel: React.FC<PanelProps & { panelState?: CharacterStatsPa
           </div>
           <div className="hp-bar">
             <div 
-              className="hp-bar__fill"
+              className={`hp-bar__fill ${getHpClass()}`}
               style={{ 
-                width: `${(state.hp / state.maxHp) * 100}%`,
-                backgroundColor: getHpColor(),
-                transition: 'all 0.3s ease'
+                width: `${(state.hp / state.maxHp) * 100}%`
               }}
             />
           </div>
@@ -443,7 +470,7 @@ const CharacterStatsPanel: React.FC<PanelProps & { panelState?: CharacterStatsPa
       <div className="attributes-section">
         <h3>Attributes</h3>
         <div className="attributes-grid">
-          {state.attributes && Object.entries(state.attributes).map(([attr, score]) => {
+          {(displayCharacter.attributes || state.attributes) && Object.entries(displayCharacter.attributes || state.attributes).map(([attr, score]) => {
             const modifier = getEffectiveModifier(attr as keyof typeof state.attributes);
             const hasDebility = (
               (attr === 'STR' && state.debilities.weak) ||
@@ -462,7 +489,7 @@ const CharacterStatsPanel: React.FC<PanelProps & { panelState?: CharacterStatsPa
                   onClick={() => rollAttribute(attr as keyof typeof state.attributes)}
                 >
                   <span className="attribute-name">{attr}</span>
-                  <span className="attribute-score">{score}</span>
+                  <span className="attribute-score">{score as number}</span>
                   <span className="attribute-modifier">{formatModifier(modifier)}</span>
                 </button>
               </div>

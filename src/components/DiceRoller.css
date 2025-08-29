@@ -1,0 +1,291 @@
+.dice-roller {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+/* Move Info */
+.dice-roller__move-info {
+  text-align: center;
+}
+
+.move-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.roll-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.roll-stat {
+  font-weight: 500;
+}
+
+.roll-modifier {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Dice Display */
+.dice-roller__dice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.dice {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.die {
+  width: 60px;
+  height: 60px;
+  background-color: white;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px var(--color-shadow);
+  transition: all var(--transition-fast);
+}
+
+.die-face {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+/* Rolling Animation */
+.dice.rolling .die {
+  animation: rollDice 0.8s ease-in-out;
+}
+
+@keyframes rollDice {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  75% { transform: rotate(270deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Modifier Display */
+.modifier-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+/* Roll Button */
+.dice-roller__button {
+  padding: var(--spacing-md) var(--spacing-xl);
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+  border-radius: 8px;
+  min-width: 120px;
+  transition: all var(--transition-fast);
+}
+
+.dice-roller__button:hover:not(.disabled) {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px var(--color-shadow);
+}
+
+.dice-roller__button.disabled {
+  background-color: var(--color-secondary);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+/* Result Display */
+.dice-roller__result {
+  width: 100%;
+  padding: var(--spacing-lg);
+  border-radius: 8px;
+  text-align: center;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.dice-roller__result.success {
+  background-color: rgba(40, 167, 69, 0.1);
+  border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.dice-roller__result.partial {
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.dice-roller__result.failure {
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.result-total {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.result-calculation {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.result-tier {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
+
+.result-tier.success {
+  color: var(--color-success, #28a745);
+}
+
+.result-tier.partial {
+  color: var(--color-warning, #ffc107);
+}
+
+.result-tier.failure {
+  color: var(--color-danger, #dc3545);
+}
+
+.result-description {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Probability Display */
+.dice-roller__probability {
+  width: 100%;
+  margin-top: var(--spacing-sm);
+}
+
+.probability-bars {
+  display: flex;
+  height: 20px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--color-secondary);
+}
+
+.prob-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-fast);
+}
+
+.prob-bar.success {
+  background-color: var(--color-success, #28a745);
+  width: var(--success-width, 33%);
+}
+
+.prob-bar.partial {
+  background-color: var(--color-warning, #ffc107);
+  width: var(--partial-width, 33%);
+}
+
+.prob-bar.failure {
+  background-color: var(--color-danger, #dc3545);
+  width: var(--failure-width, 33%);
+}
+
+.prob-bar:hover {
+  filter: brightness(1.1);
+}
+
+/* Compact variant */
+.dice-roller.compact {
+  padding: var(--spacing-md);
+  gap: var(--spacing-md);
+}
+
+.dice-roller.compact .die {
+  width: 40px;
+  height: 40px;
+}
+
+.dice-roller.compact .die-face {
+  font-size: 1.25rem;
+}
+
+.dice-roller.compact .modifier-display {
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .dice-roller {
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .die {
+    width: 50px;
+    height: 50px;
+  }
+
+  .die-face {
+    font-size: 1.25rem;
+  }
+
+  .probability-bars {
+    height: 24px;
+  }
+
+  .prob-bar {
+    font-size: 0.875rem;
+  }
+}
+

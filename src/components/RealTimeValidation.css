@@ -1,22 +1,22 @@
 .realtime-validation {
-  background: var(--panel-bg, #fff);
+  background: var(--color-surface);
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--color-shadow);
   border: 2px solid transparent;
   transition: all 0.3s;
 }
 
 .realtime-validation.error {
-  border-color: #dc3545;
+  border-color: var(--color-danger);
 }
 
 .realtime-validation.warning {
-  border-color: #ffc107;
+  border-color: var(--color-warning);
 }
 
 .realtime-validation.success {
-  border-color: #28a745;
+  border-color: var(--color-success);
 }
 
 /* Compact Mode */
@@ -29,7 +29,7 @@
 }
 
 .realtime-validation.compact:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px var(--color-shadow);
 }
 
 .realtime-validation.compact-expanded {
@@ -58,12 +58,12 @@
 .validation-header h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: var(--text-primary, #333);
+  color: var(--color-text-primary);
 }
 
 .status-summary {
   font-size: 0.9rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
 }
 
 .status-text {
@@ -80,13 +80,13 @@
   border: none;
   cursor: pointer;
   font-size: 0.75rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   transition: transform 0.2s;
 }
 
 .expand-btn:hover,
 .collapse-btn:hover {
-  color: var(--text-primary, #333);
+  color: var(--color-text-primary);
 }
 
 /* Filter Bar */
@@ -95,29 +95,29 @@
   gap: 4px;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .filter-btn {
   padding: 4px 12px;
   background: transparent;
-  border: 1px solid var(--border-color, #ddd);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.875rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   transition: all 0.2s;
 }
 
 .filter-btn:hover:not(:disabled) {
-  background: var(--bg-secondary, #f8f9fa);
-  color: var(--text-primary, #333);
+  background: var(--color-secondary);
+  color: var(--color-text-primary);
 }
 
 .filter-btn.active {
-  background: var(--primary-color, #007bff);
+  background: var(--color-primary);
   color: white;
-  border-color: var(--primary-color, #007bff);
+  border-color: var(--color-primary);
 }
 
 .filter-btn:disabled {
@@ -144,18 +144,18 @@
 }
 
 .validation-item.error {
-  background: rgba(220, 53, 69, 0.1);
-  color: #721c24;
+  background: var(--color-danger-light);
+  color: var(--color-danger-text);
 }
 
 .validation-item.warning {
-  background: rgba(255, 193, 7, 0.1);
-  color: #856404;
+  background: var(--color-warning-light);
+  color: var(--color-warning-text);
 }
 
 .validation-item.info {
-  background: rgba(23, 162, 184, 0.1);
-  color: #0c5460;
+  background: var(--color-info-light);
+  color: var(--color-info-text);
 }
 
 .item-icon {
@@ -171,13 +171,13 @@
 .suggestions-section {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid var(--border-color, #e0e0e0);
+  border-top: 1px solid var(--color-border);
 }
 
 .suggestions-section h4 {
   margin: 0 0 8px 0;
   font-size: 0.95rem;
-  color: var(--text-primary, #333);
+  color: var(--color-text-primary);
 }
 
 .suggestions-list {
@@ -189,7 +189,7 @@
 .suggestions-list li {
   margin-bottom: 6px;
   font-size: 0.875rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   line-height: 1.4;
 }
 
@@ -199,17 +199,17 @@
 }
 
 .validation-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--color-secondary);
   border-radius: 3px;
 }
 
 .validation-list::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--color-text-secondary);
   border-radius: 3px;
 }
 
 .validation-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--color-text-primary);
 }
 
 /* Animation */

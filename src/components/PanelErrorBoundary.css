@@ -1,0 +1,101 @@
+/* Panel Error Boundary Styles */
+.panel-error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 2rem;
+  background: #fef5e7;
+  border: 1px solid #f6ad55;
+  border-radius: 8px;
+  margin: 1rem;
+}
+
+.panel-error-boundary__content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.panel-error-boundary__icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.panel-error-boundary__title {
+  color: #c05621;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.panel-error-boundary__message {
+  color: #744210;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.panel-error-boundary__retry {
+  background: #ed8936;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.panel-error-boundary__retry:hover {
+  background: #dd6b20;
+}
+
+.panel-error-boundary__retry:focus {
+  outline: 2px solid #ed8936;
+  outline-offset: 2px;
+}
+
+.panel-error-boundary__details {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.panel-error-boundary__details summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #744210;
+  margin-bottom: 0.5rem;
+}
+
+.panel-error-boundary__error {
+  background: #2d3748;
+  color: #e2e8f0;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .panel-error-boundary {
+    background: #2d1b0e;
+    border-color: #c05621;
+  }
+
+  .panel-error-boundary__title {
+    color: #f6ad55;
+  }
+
+  .panel-error-boundary__message {
+    color: #fbd38d;
+  }
+
+  .panel-error-boundary__details summary {
+    color: #fbd38d;
+  }
+}

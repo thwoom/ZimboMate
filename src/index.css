@@ -1,30 +1,10 @@
+/* Import Rose Pine Theme Variables */
+@import './styles/rose-pine-variables.css';
+
+/* Layout Variables (Rose Pine theme handles colors) */
 :root {
-  /* Color Variables */
-  --color-primary: #5e72e4;
-  --color-primary-dark: #4c63d2;
-  --color-secondary: #f4f5f7;
-  --color-background: #ffffff;
-  --color-surface: #f8f9fa;
-  --color-text-primary: #212529;
-  --color-text-secondary: #6c757d;
-  --color-border: #dee2e6;
-  --color-shadow: rgba(0, 0, 0, 0.1);
-
-  /* Spacing Variables */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-
-  /* Layout Variables */
   --sidebar-width: 260px;
-  --drawer-width: 320px;
   --header-height: 60px;
-
-  /* Transitions */
-  --transition-fast: 150ms ease-in-out;
-  --transition-medium: 300ms ease-in-out;
 }
 
 * {

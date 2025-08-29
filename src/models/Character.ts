@@ -129,6 +129,9 @@ export interface Character {
   // Conditions
   conditions: string[]; // Active condition IDs
 
+  // Equipment and Inventory
+  inventory?: import('./Equipment').Item[]; // Character's equipment and items
+
   // Other
   notes?: string;
   looks?: string; // Character appearance

@@ -1,8 +1,8 @@
 .modifiers-panel {
-  background: var(--panel-bg, #fff);
+  background: var(--color-surface);
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--color-shadow);
 }
 
 .modifiers-header {
@@ -15,12 +15,12 @@
 .modifiers-header h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: var(--text-primary, #333);
+  color: var(--color-text-primary);
 }
 
 .add-modifier-btn {
   padding: 6px 12px;
-  background: #007bff;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 4px;
@@ -30,7 +30,7 @@
 }
 
 .add-modifier-btn:hover {
-  background: #0056b3;
+  background: var(--color-primary-dark);
 }
 
 /* Aggregate Display */
@@ -47,19 +47,19 @@
   align-items: center;
   padding: 12px;
   border-radius: 8px;
-  background: var(--bg-secondary, #f8f9fa);
+  background: var(--color-background);
   border: 2px solid transparent;
   transition: all 0.2s;
 }
 
 .aggregate.positive {
-  border-color: #28a745;
-  background: rgba(40, 167, 69, 0.05);
+  border-color: var(--color-success);
+  background: var(--color-success-light);
 }
 
 .aggregate.negative {
-  border-color: #dc3545;
-  background: rgba(220, 53, 69, 0.05);
+  border-color: var(--color-danger);
+  background: var(--color-danger-light);
 }
 
 .aggregate-icon {
@@ -69,7 +69,7 @@
 
 .aggregate-label {
   font-size: 0.875rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
 
@@ -80,17 +80,17 @@
 }
 
 .aggregate.positive .aggregate-value {
-  color: #28a745;
+  color: var(--color-success);
 }
 
 .aggregate.negative .aggregate-value {
-  color: #dc3545;
+  color: var(--color-danger);
 }
 
 /* Add Form */
 .add-modifier-form {
-  background: var(--bg-secondary, #f8f9fa);
-  border: 1px solid var(--border-color, #dee2e6);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 16px;
   margin-bottom: 20px;
@@ -100,10 +100,12 @@
 .add-modifier-form select {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--border-color, #ced4da);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   font-size: 0.875rem;
   margin-bottom: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
 }
 
 .form-row {
@@ -139,21 +141,21 @@
 }
 
 .confirm-btn {
-  background: #28a745;
+  background: var(--color-success);
   color: white;
 }
 
 .confirm-btn:hover {
-  background: #218838;
+  background: var(--color-success-dark);
 }
 
 .cancel-btn {
-  background: var(--bg-tertiary, #e9ecef);
-  color: var(--text-primary, #333);
+  background: var(--color-secondary);
+  color: var(--color-text-primary);
 }
 
 .cancel-btn:hover {
-  background: var(--bg-quaternary, #dee2e6);
+  background: var(--color-border);
 }
 
 /* Modifiers List */
@@ -164,19 +166,19 @@
 .modifiers-list h4 {
   margin: 0 0 12px 0;
   font-size: 0.95rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
 }
 
 .no-modifiers {
   text-align: center;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   padding: 20px;
   font-style: italic;
 }
 
 .modifier-item {
-  background: var(--bg-secondary, #f8f9fa);
-  border: 1px solid var(--border-color, #dee2e6);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 8px;
@@ -184,15 +186,15 @@
 }
 
 .modifier-item:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--color-shadow);
 }
 
 .modifier-item.positive {
-  border-left: 3px solid #28a745;
+  border-left: 3px solid var(--color-success);
 }
 
 .modifier-item.negative {
-  border-left: 3px solid #dc3545;
+  border-left: 3px solid var(--color-danger);
 }
 
 .modifier-main {
@@ -212,7 +214,7 @@
 
 .modifier-name {
   font-weight: 600;
-  color: var(--text-primary, #333);
+  color: var(--color-text-primary);
   margin-bottom: 2px;
 }
 
@@ -220,7 +222,7 @@
   display: flex;
   gap: 12px;
   font-size: 0.875rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
 }
 
 .modifier-value {
@@ -229,11 +231,11 @@
 }
 
 .modifier-item.positive .modifier-value {
-  color: #28a745;
+  color: var(--color-success);
 }
 
 .modifier-item.negative .modifier-value {
-  color: #dc3545;
+  color: var(--color-danger);
 }
 
 .modifier-source {
@@ -248,7 +250,7 @@
 
 .modifier-expiry {
   font-size: 0.8rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
@@ -257,9 +259,9 @@
   height: 24px;
   padding: 0;
   background: transparent;
-  border: 1px solid var(--border-color, #dee2e6);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -268,16 +270,16 @@
 }
 
 .remove-btn:hover {
-  background: #dc3545;
+  background: var(--color-danger);
   color: white;
-  border-color: #dc3545;
+  border-color: var(--color-danger);
 }
 
 /* Expired Section */
 .expired-section {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid var(--border-color, #dee2e6);
+  border-top: 1px solid var(--color-border);
 }
 
 .expired-header {
@@ -290,27 +292,27 @@
 .expired-header h4 {
   margin: 0;
   font-size: 0.95rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
 }
 
 .clear-expired-btn {
   padding: 4px 12px;
-  background: var(--bg-tertiary, #e9ecef);
+  background: var(--color-secondary);
   border: none;
   border-radius: 4px;
   font-size: 0.8rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .clear-expired-btn:hover {
-  background: var(--bg-quaternary, #dee2e6);
+  background: var(--color-border);
 }
 
 .modifier-item.expired {
   opacity: 0.6;
-  background: var(--bg-tertiary, #e9ecef);
+  background: var(--color-secondary);
 }
 
 .modifier-item.expired .modifier-name {

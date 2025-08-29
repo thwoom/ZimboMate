@@ -69,20 +69,17 @@ const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
               Roll 2d6
             </button>
             {lastRoll !== null && (
-              <div style={{ 
-                marginTop: '10px', 
-                padding: '10px',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '4px',
-                textAlign: 'center'
-              }}>
-                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>
+              <div className="dice-result">
+                <p className="dice-result__total">
                   {lastRoll.total}
                 </p>
-                <p style={{ fontSize: '0.875rem', color: '#6c757d', margin: 0 }}>
+                <p className="dice-result__details">
                   {lastRoll.details}
                 </p>
-                <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: '4px 0 0 0' }}>
+                <p className={`dice-result__outcome ${
+                  lastRoll.total >= 10 ? 'success' : 
+                  lastRoll.total >= 7 ? 'partial' : 'miss'
+                }`}>
                   {lastRoll.total >= 10 ? '✓ Success!' : lastRoll.total >= 7 ? '~ Partial Success' : '✗ Miss...'}
                 </p>
               </div>
@@ -95,7 +92,7 @@ const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
           <textarea
             className="quick-notes-textarea"
             placeholder="Take quick notes during the session..."
-            rows={6}
+            rows={8}
           />
         </section>
 

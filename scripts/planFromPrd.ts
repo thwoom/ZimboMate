@@ -305,7 +305,9 @@ function main() {
   }
 }
 
-// Run if called directly
-main();
+// Run if called directly (not during tests)
+if (require.main === module) {
+  main();
+}
 
 export { TaskPlanner, type Task, type TasksFile };

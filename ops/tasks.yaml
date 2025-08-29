@@ -107,7 +107,7 @@ tasks:
     title: Implement Character Creation Flow
     intent: Build the initial character setup process including class selection, stats, and starting equipment
     owner: cursor-agent
-    status: open
+    status: completed
     priority: P0
     labels:
       - feature
@@ -168,7 +168,7 @@ tasks:
     title: Implement Move Roll System
     intent: Create the core 2d6+modifier rolling system with success tier feedback
     owner: cursor-agent
-    status: open
+    status: completed
     priority: P0
     labels:
       - feature
@@ -200,7 +200,7 @@ tasks:
     title: Create UI/UX Design Specifications with Rose Pine Theme
     intent: Extract and document all UI/UX requirements from PRD into implementable designs using Rose Pine theme palette
     owner: cursor-agent
-    status: open
+    status: completed
     priority: P0
     labels:
       - design
@@ -4095,3 +4095,94 @@ tasks:
       - test/services/AiService.test.ts
       - test/services/ItemValidation.test.ts
       - config/ai-config.json
+  - id: T-026
+    title: "Advanced Character Levels"
+    description: "Add support for creating characters at higher levels with advancement selection"
+    status: "in_progress"
+    priority: P1
+    category: "character-creation"
+    estimated_hours: 40
+    dependencies: ["T-025"]
+    
+    requirements:
+      - Level selection (2-10+) in character creator
+      - Advancement point allocation system
+      - Move selection with prerequisites and level requirements
+      - Multiclassing support for advanced characters
+      - Spell progression for casters at higher levels
+      - Equipment scaling and starting gear for higher levels
+      - Complex validation for legal advancement builds
+      - Integration with existing character creation flow
+      - Backwards compatibility with level 1 characters
+      - Advanced character templates for higher levels
+      
+    features:
+      - Level Selection Interface:
+          - Dropdown/slider for level selection (1-10+)
+          - Dynamic XP calculation based on level
+          - Starting resources scaling (HP, spells, gear, coin)
+          - Level-appropriate starting equipment suggestions
+          
+      - Advancement System:
+          - Move selection with level prerequisites
+          - Attribute advancement choices (+1 to any stat)
+          - Class-specific advancement options
+          - Multiclass move selection from other classes
+          - Advanced move unlocking at higher levels
+          
+      - Spell Progression:
+          - Automatic spell slot calculation for casters
+          - Spell selection interface for known spells
+          - Cantrip vs leveled spell distinction
+          - Spell preparation for prepared casters
+          - Ritual and utility spell access
+          
+      - Equipment Scaling:
+          - Higher-level starting equipment packages
+          - Magic item integration for advanced characters
+          - Wealth-by-level guidelines
+          - Equipment upgrade paths and suggestions
+          
+      - Validation & Balance:
+          - Legal advancement path validation
+          - Move prerequisite checking
+          - Multiclass restriction enforcement
+          - Power level balance warnings
+          - Build optimization suggestions
+          
+      - Advanced Templates:
+          - Pre-built higher level character templates
+          - Popular multiclass combinations
+          - Specialized build archetypes
+          - Campaign-specific character options
+    
+    technical_implementation:
+      - AdvancementService for level progression logic
+      - MovePrerequisiteService for move validation
+      - SpellProgressionService for caster advancement
+      - EquipmentScalingService for gear recommendations
+      - Enhanced character creation wizard with level steps
+      - Advanced validation integration
+      - Template system extensions for higher levels
+      
+    files_to_create:
+      - src/services/AdvancementService.ts
+      - src/services/MovePrerequisites.ts
+      - src/services/SpellProgression.ts
+      - src/services/EquipmentScaling.ts
+      - src/data/advancementData.ts
+      - src/data/movePrerequisites.ts
+      - src/data/spellProgression.ts
+      - src/components/LevelSelector.tsx
+      - src/components/AdvancementSelector.tsx
+      - src/components/SpellSelector.tsx
+      - src/panels/CharacterCreationPanel/steps/LevelStep.tsx
+      - src/panels/CharacterCreationPanel/steps/AdvancementStep.tsx
+      - src/panels/CharacterCreationPanel/steps/SpellProgressionStep.tsx
+      
+    files_to_modify:
+      - src/panels/CharacterCreationPanel/CharacterCreationPanel.tsx
+      - src/models/Character.ts
+      - src/services/CharacterValidation.ts
+      - src/services/CharacterTemplateService.ts
+      - src/data/classStartingData.ts

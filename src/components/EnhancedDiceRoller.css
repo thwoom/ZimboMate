@@ -1,0 +1,371 @@
+/* Enhanced Dice Roller Styles */
+.enhanced-dice-roller {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  max-width: 500px;
+}
+
+.enhanced-dice-roller.compact {
+  padding: var(--spacing-md);
+  max-width: 300px;
+}
+
+/* Header */
+.dice-roller-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.dice-roller-header h3 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.toggle-advanced {
+  background: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.toggle-advanced:hover {
+  background: var(--color-overlay);
+}
+
+/* Quick Dice Section */
+.quick-dice-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.quick-dice-section h4 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quick-dice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.quick-dice-btn {
+  background: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 40px;
+}
+
+.quick-dice-btn:hover {
+  background: var(--color-overlay);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-dice-btn.active {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+}
+
+/* Roll Controls */
+.roll-controls {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.roll-controls > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.roll-controls label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.roll-controls input,
+.roll-controls select {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast);
+}
+
+.roll-controls input:focus,
+.roll-controls select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
+}
+
+.target-input {
+  grid-column: span 2;
+}
+
+/* Advanced Options */
+.advanced-options {
+  background: var(--color-overlay);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.roll-type-select {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.advantage-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.advantage-controls label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.advantage-controls input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+/* Roll Actions */
+.roll-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Dice Animation Section */
+.dice-animation-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.dice-animation-section.compact {
+  margin-bottom: var(--spacing-md);
+  height: 120px;
+}
+
+.roll-btn {
+  flex: 1;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.roll-btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.roll-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.reroll-btn {
+  background: var(--color-warning);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.reroll-btn:hover {
+  background: var(--color-warning-dark);
+}
+
+/* Last Roll Display */
+.last-roll-display {
+  background: var(--color-overlay);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.last-roll-display h4 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.roll-result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.roll-expression {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.roll-breakdown {
+  font-size: var(--font-size-sm);
+  opacity: 0.8;
+}
+
+.roll-outcome {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin-top: var(--spacing-xs);
+}
+
+/* Roll History */
+.roll-history {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-md);
+}
+
+.roll-history h4 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.history-expression {
+  font-family: 'Courier New', monospace;
+  color: var(--color-text-secondary);
+}
+
+.history-result {
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.history-outcome {
+  font-size: var(--font-size-xs);
+}
+
+/* Compact Mode */
+.enhanced-dice-roller.compact .quick-dice-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.enhanced-dice-roller.compact .quick-dice-btn {
+  padding: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  min-height: 32px;
+}
+
+.last-roll-compact {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-overlay);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-family: 'Courier New', monospace;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .roll-controls {
+    grid-template-columns: 1fr;
+  }
+  
+  .advanced-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .roll-actions {
+    flex-direction: column;
+  }
+  
+  .quick-dice-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Animation for roll results */
+@keyframes rollAnimation {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.roll-result {
+  animation: rollAnimation 0.3s ease-out;
+}
+
+/* Dice type specific colors */
+.quick-dice-btn[data-type="move"] {
+  border-left: 3px solid var(--color-primary);
+}
+
+.quick-dice-btn[data-type="damage"] {
+  border-left: 3px solid var(--color-danger);
+}
+
+.quick-dice-btn[data-type="target"] {
+  border-left: 3px solid var(--color-info);
+}

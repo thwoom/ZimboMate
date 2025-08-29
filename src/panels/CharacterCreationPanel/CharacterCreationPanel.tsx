@@ -17,10 +17,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { CLASS_STARTING_DATA, CLASS_BOND_TEMPLATES } from '../../data/classStartingData';
 import { Item } from '../../models/Equipment';
 import { Bond } from '../../models/Character';
+import CharacterCreationAssistant from '../../components/CharacterCreationAssistant';
 import { getSpellsForClass } from '../../services/Spells';
 import { characterTemplateService, CharacterTemplate, QUICK_START_TEMPLATES } from '../../services/CharacterTemplates';
 import { portraitService, Portrait } from '../../services/CharacterPortraits';
 import { randomGeneratorService } from '../../services/RandomGenerators';
+import LevelSelector from '../../components/LevelSelector';
+import AdvancementSelector from '../../components/AdvancementSelector';
+import { advancementService, LevelProgression, AdvancementChoice, AdvancementPlan } from '../../services/AdvancementService';
 import './CharacterCreationPanel.css';
 
 // Wizard steps
@@ -32,6 +36,7 @@ type WizardStep =
   | 'portrait'
   | 'class'
   | 'race'
+  | 'level'
   | 'personality'
   | 'spells'
   | 'attributes'
@@ -53,6 +58,12 @@ interface CharacterCreationPanelState {
   showTemplateImport?: boolean;
   templateImportError?: string;
   bondPartyTarget?: string;
+  humanBonusStat?: keyof Attributes;
+  otherRaceBonusStat?: keyof Attributes;
+  selectedLevel: number;
+  levelProgression?: LevelProgression;
+  selectedAdvancements: AdvancementChoice[];
+  advancementPlan?: AdvancementPlan;
 }
 
 // Class descriptions for player-friendly selection
@@ -151,7 +162,9 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
   const defaultState: CharacterCreationPanelState = {
     currentStep: 'intro',
     characterData: {},
-    attributeMethod: 'array'
+    attributeMethod: 'array',
+    selectedLevel: 1,
+    selectedAdvancements: []
   };
   
   const currentState = { ...defaultState, ...panelState };
@@ -160,8 +173,60 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
     onStateChange?.({ ...currentState, ...updates });
   };
 
+  // Racial bonus system
+  const getRacialBonuses = (race: Race, humanBonusStat?: keyof Attributes): { attributes: Partial<Attributes>; hp: number; abilities: string[] } => {
+    switch (race) {
+      case 'Human':
+        const humanAttributes: Partial<Attributes> = {};
+        if (humanBonusStat) {
+          humanAttributes[humanBonusStat] = 1;
+        }
+        return { attributes: humanAttributes, hp: 0, abilities: ['versatile', 'ambitious'] };
+      case 'Elf':
+        return { attributes: { DEX: 1 }, hp: 0, abilities: ['keen_senses', 'ancient_wisdom'] };
+      case 'Dwarf':
+        return { attributes: { CON: 1 }, hp: 2, abilities: ['stone_sense'] };
+      case 'Halfling':
+        return { attributes: { DEX: 1 }, hp: 0, abilities: ['blessed_fortune', 'brave_heart'] };
+      case 'Other':
+        const otherAttributes: Partial<Attributes> = {};
+        if (humanBonusStat) { // Other race can also choose a stat like humans
+          otherAttributes[humanBonusStat] = 1;
+        }
+        return { attributes: otherAttributes, hp: 0, abilities: ['unique_heritage', 'cultural_wisdom'] };
+      default:
+        return { attributes: {}, hp: 0, abilities: [] };
+    }
+  };
+
+  const applyRacialBonuses = (baseAttributes: Attributes, race: Race): Attributes => {
+    const chosenStat = race === 'Human' ? currentState.humanBonusStat : 
+                     race === 'Other' ? currentState.otherRaceBonusStat : undefined;
+    const bonuses = getRacialBonuses(race, chosenStat);
+    const result = { ...baseAttributes };
+    
+    Object.entries(bonuses.attributes).forEach(([attr, bonus]) => {
+      if (bonus && attr in result) {
+        result[attr as keyof Attributes] += bonus;
+      }
+    });
+    
+    return result;
+  };
+
+  const resetCharacterCreation = () => {
+    const freshState: CharacterCreationPanelState = {
+      currentStep: 'intro',
+      characterData: {},
+      attributeMethod: 'array',
+      selectedLevel: 1,
+      selectedAdvancements: []
+    };
+    onStateChange?.(freshState);
+  };
+
   const nextStep = () => {
-    const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'moves-equipment', 'bonds', 'alignment', 'review'];
+    const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'moves-equipment', 'bonds', 'alignment', 'level', 'review'];
     const currentIndex = steps.indexOf(currentState.currentStep);
     if (currentIndex < steps.length - 1) {
       updateState({ currentStep: steps[currentIndex + 1] });
@@ -169,7 +234,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
   };
 
   const previousStep = () => {
-    const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'moves-equipment', 'bonds', 'alignment', 'review'];
+    const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'moves-equipment', 'bonds', 'alignment', 'level', 'review'];
     const currentIndex = steps.indexOf(currentState.currentStep);
     if (currentIndex > 0) {
       updateState({ currentStep: steps[currentIndex - 1] });
@@ -197,6 +262,20 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
       return;
     }
 
+    // Apply racial bonuses to base attributes
+    const baseAttributes = currentState.assignedAttributes as Attributes;
+    let finalAttributes = applyRacialBonuses(baseAttributes, currentState.characterData.race);
+    const racialBonuses = getRacialBonuses(currentState.characterData.race);
+
+    // Apply advancement improvements
+    if (currentState.selectedAdvancements.length > 0 && currentState.advancementPlan) {
+      const characterWithAdvancements = advancementService.applyAdvancementPlan(
+        { ...currentState.characterData, attributes: finalAttributes }, 
+        currentState.advancementPlan
+      );
+      finalAttributes = characterWithAdvancements.attributes || finalAttributes;
+    }
+
     const newCharacter: Character = {
       id: uuidv4(),
       name: currentState.characterData.name,
@@ -209,8 +288,8 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
       race: currentState.characterData.race,
       alignment: currentState.characterData.alignment,
       alignmentMove: currentState.characterData.alignmentMove,
-      level: 1,
-      attributes: currentState.assignedAttributes as Attributes,
+      level: currentState.selectedLevel,
+      attributes: finalAttributes,
       debilities: {
         weak: false,
         shaky: false,
@@ -223,12 +302,12 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
       armor: 0,
       baseArmor: 0,
       damageDie: getClassDamageDie(currentState.characterData.class),
-      xp: 0,
+      xp: currentState.levelProgression?.xp || 0,
       load: { current: 0, max: 0 }, // Will be calculated
       baseLoad: getClassBaseLoad(currentState.characterData.class),
       coin: currentState.characterData.coin ?? 0,
       bonds: currentState.createdBonds || [],
-      advancements: [],
+      advancements: currentState.selectedAdvancements,
       knownMoves: currentState.selectedMoves || [],
       conditions: [],
       notes: '',
@@ -236,8 +315,8 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
       updatedAt: new Date()
     };
 
-    // Calculate HP and Load
-    newCharacter.hp.max = calculateMaxHP(newCharacter);
+    // Calculate HP and Load (including racial bonuses)
+    newCharacter.hp.max = calculateMaxHP(newCharacter) + racialBonuses.hp;
     newCharacter.hp.current = newCharacter.hp.max;
     newCharacter.load.max = calculateMaxLoad(newCharacter);
 
@@ -266,19 +345,41 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
   };
 
   const renderProgressBar = () => {
-    const steps = ['Intro', 'Template', 'Name', 'Background', 'Portrait', 'Class', 'Race', 'Personality', 'Spells', 'Stats', 'Gear', 'Bonds', 'Alignment', 'Review'];
-    const currentIndex = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'moves-equipment', 'bonds', 'alignment', 'review']
-      .indexOf(currentState.currentStep);
+    const steps = [
+      { id: 'intro', emoji: '🌟', label: 'Intro' },
+      { id: 'templates', emoji: '📋', label: 'Template' },
+      { id: 'name-look', emoji: '👤', label: 'Name' },
+      { id: 'background', emoji: '📖', label: 'Background' },
+      { id: 'portrait', emoji: '🎭', label: 'Portrait' },
+      { id: 'class', emoji: '⚔️', label: 'Class' },
+      { id: 'race', emoji: '🧝', label: 'Race' },
+      { id: 'personality', emoji: '💭', label: 'Personality' },
+      { id: 'spells', emoji: '✨', label: 'Spells' },
+      { id: 'attributes', emoji: '🎲', label: 'Stats' },
+      { id: 'moves-equipment', emoji: '🎒', label: 'Gear' },
+      { id: 'bonds', emoji: '🤝', label: 'Bonds' },
+      { id: 'alignment', emoji: '⚖️', label: 'Alignment' },
+      { id: 'level', emoji: '📈', label: 'Level' },
+      { id: 'review', emoji: '👁️', label: 'Review' }
+    ];
+    
+    const currentIndex = steps.findIndex(step => step.id === currentState.currentStep);
     
     return (
       <div className="wizard-progress">
         {steps.map((step, index) => (
           <div 
-            key={step} 
+            key={step.id} 
             className={`progress-step ${index <= currentIndex ? 'completed' : ''} ${index === currentIndex ? 'active' : ''}`}
+            onClick={() => {
+              // Allow navigation to completed steps or current step
+              if (index <= currentIndex) {
+                updateState({ currentStep: step.id as any });
+              }
+            }}
           >
-            <div className="step-number">{index + 1}</div>
-            <div className="step-label">{step}</div>
+            <div className="step-icon">{step.emoji}</div>
+            <div className="step-label">{step.label}</div>
           </div>
         ))}
       </div>
@@ -469,7 +570,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
   const renderNameLookStep = () => (
     <div className="wizard-step name-look-step">
       <h2>Who Are You?</h2>
-      <div className="step-content">
+      <div className="form-container">
         <div className="form-group">
           <label htmlFor="character-name">Character Name <span className="tooltip" aria-label="Pick any fantasy-style name. You can randomize it if you’re unsure.">?</span></label>
           <input
@@ -551,7 +652,8 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
         <p className="step-intro">
           Add a short backstory or motivation for your character. This helps roleplay and GM hooks.
         </p>
-        <div className="form-group">
+        <div className="form-container">
+          <div className="form-group">
           <label htmlFor="character-background">Your Story</label>
           <textarea
             id="character-background"
@@ -564,6 +666,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
             className="background-input"
           />
           <p className="field-help">Keep it to a few sentences. You can always expand later.</p>
+          </div>
         </div>
         <div className="wizard-actions">
           <button className="btn btn-secondary" onClick={previousStep}>
@@ -832,65 +935,327 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
 
   const renderClassStep = () => (
     <div className="wizard-step class-step">
-      <h2>Choose Your Class</h2>
-      <p className="step-intro">Your class defines your role in the party and the kinds of things you're good at.</p>
-      <div className="class-grid">
-        {(Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]).map(cls => (
-          <div 
-            key={cls}
-            className={`class-card ${currentState.characterData.class === cls ? 'selected' : ''}`}
-            onClick={() => updateState({
-              characterData: { ...currentState.characterData, class: cls }
-            })}
-          >
-            <h3>{cls}</h3>
-            <p className="class-tagline">{CLASS_DESCRIPTIONS[cls].tagline}</p>
-            <p className="class-description">{CLASS_DESCRIPTIONS[cls].description}</p>
-            <div className="class-details">
-              <span className="playstyle">🎮 {CLASS_DESCRIPTIONS[cls].playstyle}</span>
-              <span className="primary-stat">📊 Primary: {CLASS_DESCRIPTIONS[cls].primaryStat}</span>
+      <div className="step-content-container">
+        <h2>Choose Your Class</h2>
+        <p className="step-intro">Your class defines your role in the party and the kinds of things you're good at.</p>
+        <div className="class-grid">
+          {(Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]).map(cls => (
+            <div 
+              key={cls}
+              className={`class-card ${currentState.characterData.class === cls ? 'selected' : ''}`}
+              onClick={() => updateState({
+                characterData: { ...currentState.characterData, class: cls }
+              })}
+            >
+              <h3>{cls}</h3>
+              <p className="class-tagline">{CLASS_DESCRIPTIONS[cls].tagline}</p>
+              <p className="class-description">{CLASS_DESCRIPTIONS[cls].description}</p>
+              <div className="class-details">
+                <span className="playstyle">🎮 {CLASS_DESCRIPTIONS[cls].playstyle}</span>
+                <span className="primary-stat">📊 Primary: {CLASS_DESCRIPTIONS[cls].primaryStat}</span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-      <div className="wizard-actions">
+      <div className="wizard-actions-sticky">
         <button className="btn btn-secondary" onClick={previousStep}>
           ← Back
         </button>
-        <button
-          className="btn btn-secondary"
-          onClick={() => {
-            const classes = (Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]);
-            const randomCls = classes[Math.floor(Math.random() * classes.length)];
-            updateState({
-              characterData: { ...currentState.characterData, class: randomCls }
-            });
-          }}
-        >
-          🎲 Random Class
-        </button>
-        <button 
-          className="btn btn-primary" 
-          onClick={nextStep}
-          disabled={!currentState.characterData.class}
-        >
-          Next: Choose Race →
-        </button>
+        <div className="step-progress-indicator">
+          Step 2 of 8
+        </div>
+        <div className="action-group">
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              const classes = (Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]);
+              const randomCls = classes[Math.floor(Math.random() * classes.length)];
+              updateState({
+                characterData: { ...currentState.characterData, class: randomCls }
+              });
+            }}
+          >
+            🎲 Random Class
+          </button>
+          <button 
+            className="btn btn-primary" 
+            onClick={nextStep}
+            disabled={!currentState.characterData.class}
+          >
+            Next: Choose Race →
+          </button>
+        </div>
       </div>
     </div>
   );
+
+  const renderLevelStep = () => {
+    const { characterData, selectedLevel, selectedAdvancements } = currentState;
+    
+    if (!characterData.class) {
+      return (
+        <div className="step-content">
+          <p className="error-message">Please select a class first.</p>
+        </div>
+      );
+    }
+
+    const handleLevelChange = (level: number, progression: LevelProgression) => {
+      updateState({ 
+        selectedLevel: level, 
+        levelProgression: progression,
+        selectedAdvancements: [], // Reset advancements when level changes
+        advancementPlan: undefined
+      });
+    };
+
+    const handleAdvancementsChange = (advancements: AdvancementChoice[], plan: AdvancementPlan) => {
+      updateState({ 
+        selectedAdvancements: advancements,
+        advancementPlan: plan
+      });
+    };
+
+    const needsAdvancements = selectedLevel > 1 && currentState.levelProgression;
+    const hasValidAdvancements = needsAdvancements && currentState.advancementPlan?.isValid;
+
+    return (
+      <div className="step-content">
+        <div className="step-header">
+          <h2>🎯 Choose Your Character's Power Level</h2>
+          <div className="level-explanation">
+            <p className="step-intro">
+              <strong>New to Dungeon World?</strong> Start at Level 1 - it's perfect for learning!
+            </p>
+            <p className="step-intro">
+              <strong>Experienced player?</strong> Higher levels give you more abilities but require advancement choices.
+            </p>
+          </div>
+        </div>
+
+        <div className="level-wizard">
+          {/* Step 1: Choose Level */}
+          <div className="level-wizard-step">
+            <div className="wizard-step-header">
+              <span className="step-number">1</span>
+              <h3>Select Starting Level</h3>
+            </div>
+            
+            <div className="level-choice-cards">
+              <div 
+                className={`level-choice-card ${selectedLevel === 1 ? 'selected' : ''}`}
+                onClick={() => handleLevelChange(1, advancementService.getLevelProgression(1, characterData.class as CharacterClass))}
+              >
+                <div className="level-card-header">
+                  <span className="level-number">Level 1</span>
+                  <span className="level-badge beginner">Beginner Friendly</span>
+                </div>
+                <div className="level-card-content">
+                  <p><strong>Perfect for new players!</strong></p>
+                  <p>Start with your class basics and learn the game naturally.</p>
+                  <div className="level-benefits">
+                    <span>✨ No complex choices</span>
+                    <span>📚 Learn as you play</span>
+                    <span>🎲 Full Dungeon World experience</span>
+                  </div>
+                </div>
+              </div>
+
+              <div 
+                className={`level-choice-card ${selectedLevel > 1 ? 'selected' : ''}`}
+                onClick={() => selectedLevel === 1 && handleLevelChange(2, advancementService.getLevelProgression(2, characterData.class as CharacterClass))}
+              >
+                <div className="level-card-header">
+                  <span className="level-number">Level 2-10</span>
+                  <span className="level-badge advanced">Advanced</span>
+                </div>
+                <div className="level-card-content">
+                  <p><strong>For experienced players</strong></p>
+                  <p>More powerful, but requires advancement choices.</p>
+                  <div className="level-benefits">
+                    <span>⚡ More abilities</span>
+                    <span>🎯 Customization options</span>
+                    <span>🏆 Higher starting resources</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {selectedLevel > 1 && (
+              <div className="level-fine-tuning">
+                <label htmlFor="level-slider" className="level-label">
+                  Fine-tune level: <span className="level-value">Level {selectedLevel}</span>
+                </label>
+                <input
+                  id="level-slider"
+                  type="range"
+                  min={2}
+                  max={10}
+                  value={selectedLevel}
+                  onChange={(e) => handleLevelChange(parseInt(e.target.value), advancementService.getLevelProgression(parseInt(e.target.value), characterData.class as CharacterClass))}
+                  className="level-slider"
+                />
+                <div className="level-markers">
+                  {[2,3,4,5,6,7,8,9,10].map(level => (
+                    <span key={level} className={`level-marker ${level === selectedLevel ? 'active' : ''}`}>
+                      {level}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Level Benefits Preview */}
+          {currentState.levelProgression && (
+            <div className="level-benefits-preview">
+              <h4>📊 Level {selectedLevel} Benefits</h4>
+              <div className="benefits-grid">
+                <div className="benefit-item">
+                  <span className="benefit-icon">❤️</span>
+                  <span className="benefit-label">Hit Points</span>
+                  <span className="benefit-value">{currentState.levelProgression.baseHP} HP</span>
+                </div>
+                <div className="benefit-item">
+                  <span className="benefit-icon">💰</span>
+                  <span className="benefit-label">Starting Coin</span>
+                  <span className="benefit-value">{currentState.levelProgression.startingCoin}</span>
+                </div>
+                <div className="benefit-item">
+                  <span className="benefit-icon">⭐</span>
+                  <span className="benefit-label">Experience</span>
+                  <span className="benefit-value">{currentState.levelProgression.xp} XP</span>
+                </div>
+                {currentState.levelProgression.totalAdvancementPoints > 0 && (
+                  <div className="benefit-item">
+                    <span className="benefit-icon">🎯</span>
+                    <span className="benefit-label">Advancement Points</span>
+                    <span className="benefit-value">{currentState.levelProgression.totalAdvancementPoints}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Choose Advancements (only if level > 1) */}
+          {needsAdvancements && (
+            <div className="level-wizard-step">
+              <div className="wizard-step-header">
+                <span className="step-number">2</span>
+                <h3>Choose Your Character Improvements</h3>
+                <div className="step-explanation">
+                  <p>
+                    <strong>How did your character grow from Level 1 to Level {selectedLevel}?</strong> 
+                    You get to make {currentState.levelProgression.totalAdvancementPoints} advancement choices.
+                  </p>
+                  <div className="improvement-breakdown">
+                    <div className="improvement-type">
+                      <span className="improvement-icon">🎯</span>
+                      <span className="improvement-text">
+                        <strong>Each advancement</strong> lets you choose ONE of:
+                        <small>
+                          • +1 to any ability score (STR, DEX, CON, INT, WIS, or CHA)<br/>
+                          • A new class move or advanced move<br/>
+                          • A move from another class (multiclass)<br/>
+                          • New spells (for spellcasters)
+                        </small>
+                      </span>
+                    </div>
+                    <div className="improvement-type">
+                      <span className="improvement-icon">⚖️</span>
+                      <span className="improvement-text">
+                        <strong>Your choice!</strong> You can focus on attributes, abilities, or mix them.
+                        <small>Want a strong fighter? Take +1 STR every level. Want versatility? Mix moves and stats.</small>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <AdvancementSelector
+                character={characterData}
+                targetLevel={selectedLevel}
+                selectedAdvancements={selectedAdvancements}
+                onAdvancementsChange={handleAdvancementsChange}
+              />
+            </div>
+          )}
+
+          {/* Progress Indicator */}
+          <div className="level-wizard-progress">
+            <div className="progress-steps">
+              <div className="progress-step completed">
+                <span className="progress-number">1</span>
+                <span className="progress-label">Level Selected</span>
+              </div>
+              {needsAdvancements && (
+                <div className={`progress-step ${hasValidAdvancements ? 'completed' : 'current'}`}>
+                  <span className="progress-number">2</span>
+                  <span className="progress-label">Choose Improvements</span>
+                </div>
+              )}
+              <div className={`progress-step ${(!needsAdvancements || hasValidAdvancements) ? 'current' : ''}`}>
+                <span className="progress-number">✓</span>
+                <span className="progress-label">Ready to Review</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderRaceStep = () => {
     const availableRaces = currentState.characterData.class 
       ? CLASS_RACES[currentState.characterData.class as CharacterClass]
       : [];
 
-    const raceDescriptions: Record<Race, string> = {
-      Human: "Ambitious and diverse, humans are the most common people in the world. They adapt quickly and excel at their chosen paths.",
-      Elf: "Graceful and wise, elves have keen senses and a deep connection to nature and magic. They live long lives filled with wonder.",
-      Dwarf: "Stout and sturdy, dwarves are master crafters and fierce warriors. They value tradition, honor, and a good ale.",
-      Halfling: "Small but brave, halflings are nimble and lucky. They enjoy comfort but rise to adventure when called.",
-      Other: "You come from a unique heritage, perhaps from distant lands or mixed bloodlines."
+    const raceInfo: Record<Race, { description: string; abilities: string[]; mechanics: string }> = {
+      Human: {
+        description: "Ambitious and diverse, humans are the most common people in the world. They adapt quickly to any situation and push themselves to excel at whatever they set their minds to.",
+        abilities: [
+          "Versatile: Choose one ability score to increase by 1",
+          "Driven: Your determination and ambition help you learn faster from meaningful experiences"
+        ],
+        mechanics: "Humans are adaptable and driven, gaining flexibility in their strengths and learning quickly from their actions."
+      },
+      Elf: {
+        description: "Graceful and wise, elves have keen senses and a deep connection to nature and magic. Having lived for centuries, they possess knowledge that spans generations.",
+        abilities: [
+          "Keen Senses: You can naturally detect magical auras and enchantments around you",
+          "Elven Grace: Your natural dexterity is enhanced (+1 DEX)",
+          "Ancient Wisdom: Your long life grants you knowledge of historical events and forgotten lore"
+        ],
+        mechanics: "Elves are naturally perceptive and agile, with the wisdom that comes from centuries of experience."
+      },
+      Dwarf: {
+        description: "Stout and sturdy, dwarves are master crafters and fierce warriors. They value tradition, honor, and have an innate understanding of stone and metal.",
+        abilities: [
+          "Dwarven Toughness: Your hardy constitution grants you additional vitality (+2 HP)",
+          "Stone Sense: You have an intuitive understanding of stonework, construction, and underground spaces",
+          "Iron Constitution: Your natural resilience is enhanced (+1 CON)"
+        ],
+        mechanics: "Dwarves are naturally hardy and tough, with an instinctive knowledge of craftsmanship and stonework."
+      },
+      Halfling: {
+        description: "Small in stature but large in courage, halflings are naturally nimble and seem to have fortune smile upon them. They value comfort and community, but don't hesitate when adventure calls.",
+        abilities: [
+          "Blessed Fortune: You can call upon your natural luck in dire moments (3 luck points to reroll dice)",
+          "Brave Heart: Your courage grows stronger when facing overwhelming odds",
+          "Halfling Nimbleness: Your small size grants you enhanced agility (+1 DEX)"
+        ],
+        mechanics: "Halflings are naturally lucky and brave, with enhanced agility that comes from their small stature."
+      },
+      Other: {
+        description: "You come from a unique heritage - perhaps from distant lands, ancient bloodlines, or cultures unknown to most. Your background shapes you in ways others might not understand.",
+        abilities: [
+          "Unique Heritage: Your unusual background grants you a distinctive ability or trait",
+          "Cultural Wisdom: You possess deep knowledge of your homeland and its customs",
+          "Adaptive Nature: Your diverse background has strengthened one of your natural abilities (+1 to chosen stat)"
+        ],
+        mechanics: "Your unique heritage provides distinctive advantages and knowledge that others lack."
+      }
     };
 
     return (
@@ -901,18 +1266,32 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
           <span className="tooltip" aria-label="Some classes have limited race choices based on the setting.">?</span>
         </p>
         <div className="race-options">
-          {availableRaces.map((race: Race) => (
-            <div
-              key={race}
-              className={`race-card ${currentState.characterData.race === race ? 'selected' : ''}`}
-              onClick={() => updateState({
-                characterData: { ...currentState.characterData, race }
-              })}
-            >
-              <h3>{race}</h3>
-              <p>{raceDescriptions[race as Race]}</p>
-            </div>
-          ))}
+          {availableRaces.map((race: Race) => {
+            const info = raceInfo[race as Race];
+            return (
+              <div
+                key={race}
+                className={`race-card ${currentState.characterData.race === race ? 'selected' : ''}`}
+                onClick={() => updateState({
+                  characterData: { ...currentState.characterData, race }
+                })}
+              >
+                <div className="race-header">
+                  <h3>{race}</h3>
+                  <span className="race-mechanics">{info.mechanics}</span>
+                </div>
+                <p className="race-description">{info.description}</p>
+                <div className="race-abilities">
+                  <h4>Racial Abilities:</h4>
+                  <ul>
+                    {info.abilities.map((ability, index) => (
+                      <li key={index}>{ability}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            );
+          })}
         </div>
         <div className="wizard-actions">
           <button className="btn btn-secondary" onClick={previousStep}>
@@ -980,86 +1359,137 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
     return (
       <div className="wizard-step attributes-step">
         <h2>Assign Your Abilities</h2>
-        <div className="attribute-method-selector">
-          <label>
-            <input
-              type="radio"
-              value="array"
-              checked={currentState.attributeMethod === 'array'}
-              onChange={() => updateState({ attributeMethod: 'array', rolledScores: undefined })}
-            />
-            Standard Array (Balanced) <span className="tooltip" aria-label="A fair spread of numbers to keep things simple.">?</span>
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="roll"
-              checked={currentState.attributeMethod === 'roll'}
-              onChange={() => updateState({ attributeMethod: 'roll' })}
-            />
-            Roll for Stats (Random) <span className="tooltip" aria-label="Roll 4d6, drop the lowest, six times for a classic feel.">?</span>
-          </label>
-        </div>
+        <p className="step-intro">
+          Choose how to determine your character's core abilities. Each method offers a different experience.
+        </p>
 
-        {currentState.attributeMethod === 'roll' && (
-          <div className="roll-section">
-            {!currentState.rolledScores ? (
-              <button className="btn btn-primary" onClick={rollAbilityScores}>
-                🎲 Roll Ability Scores
-              </button>
-            ) : (
-              <div>
-                <p className="rolled-scores">
-                  You rolled: {currentState.rolledScores.join(', ')}
-                </p>
-                <button className="btn btn-secondary" onClick={rollAbilityScores}>
-                  🎲 Reroll
-                </button>
+        <div className="step-cards">
+          {/* Card 1: Method Selection */}
+          <div className="step-card method-card">
+            <div className="card-header">
+              <h3>🎲 Generation Method</h3>
+              <p className="card-subtitle">How do you want to determine your stats?</p>
+            </div>
+            <div className="method-options">
+              <div 
+                className={`method-option ${currentState.attributeMethod === 'array' ? 'selected' : ''}`}
+                onClick={() => updateState({ attributeMethod: 'array', rolledScores: undefined })}
+              >
+                <div className="method-icon">📊</div>
+                <div className="method-content">
+                  <h4>Standard Array</h4>
+                  <p>Balanced and fair - use predetermined values</p>
+                  <div className="method-values">16, 15, 13, 12, 9, 8</div>
+                </div>
               </div>
-            )}
-          </div>
-        )}
-
-        {scores.length > 0 && (
-          <>
-            <div className="scores-to-assign">
-              <h3>Available Scores:</h3>
-              <div className="score-chips">
-                {remainingScores.map((score: number, index: number) => (
-                  <span key={index} className="score-chip">
-                    {score}
-                  </span>
-                ))}
+              <div 
+                className={`method-option ${currentState.attributeMethod === 'roll' ? 'selected' : ''}`}
+                onClick={() => updateState({ attributeMethod: 'roll' })}
+              >
+                <div className="method-icon">🎲</div>
+                <div className="method-content">
+                  <h4>Roll for Stats</h4>
+                  <p>Random and exciting - roll 4d6, drop lowest</p>
+                  <div className="method-values">Unpredictable results!</div>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="attributes-grid">
-              {attributeNames.map(attr => {
-                const isRecommended = currentState.characterData.class && 
-                  CLASS_DESCRIPTIONS[currentState.characterData.class as CharacterClass].primaryStat === attr;
-                
-                return (
-                  <div key={attr} className={`attribute-assignment ${isRecommended ? 'recommended' : ''}`}>
-                    <div className="attribute-header">
-                      <h4>{attr}</h4>
-                      {isRecommended && <span className="recommended-badge">Recommended</span>}
+          {/* Card 2: Rolling Section (if roll method selected) */}
+          {currentState.attributeMethod === 'roll' && (
+            <div className="step-card roll-card">
+              <div className="card-header">
+                <h3>🎲 Roll Your Stats</h3>
+                <p className="card-subtitle">Generate your ability scores</p>
+              </div>
+              <div className="roll-controls">
+                {!currentState.rolledScores ? (
+                  <button className="btn btn-primary btn-large" onClick={rollAbilityScores}>
+                    🎲 Roll Ability Scores
+                  </button>
+                ) : (
+                  <div className="roll-results">
+                    <div className="rolled-scores">
+                      <span className="scores-label">Your rolls:</span>
+                      <div className="scores-display">
+                        {currentState.rolledScores.map((score: number, index: number) => (
+                          <span key={index} className="score-value">{score}</span>
+                        ))}
+                      </div>
                     </div>
-                    <p className="attribute-desc">{attributeDescriptions[attr]}</p>
-                    <select
-                      value={currentState.assignedAttributes?.[attr] || ''}
-                      aria-label={`Select score for ${attr}`}
-                      onChange={(e) => {
-                        const value = e.target.value ? parseInt(e.target.value) : undefined;
-                        const newAssigned = { ...currentState.assignedAttributes };
-                        if (value) {
-                          newAssigned[attr] = value;
-                        } else {
-                          delete newAssigned[attr];
-                        }
-                        updateState({ assignedAttributes: newAssigned });
-                      }}
-                    >
-                      <option value="">Select...</option>
+                    <button className="btn btn-secondary" onClick={rollAbilityScores}>
+                      🎲 Reroll All
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Card 3: Attribute Assignment */}
+          {scores.length > 0 && (
+            <div className="step-card assignment-card">
+              <div className="card-header">
+                <h3>📊 Assign Your Abilities</h3>
+                <p className="card-subtitle">Drag scores to abilities or use dropdowns</p>
+              </div>
+              
+              <div className="available-scores">
+                <h4>Available Scores:</h4>
+                <div className="score-chips">
+                  {remainingScores.map((score: number, index: number) => (
+                    <span key={index} className="score-chip">
+                      {score}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="attributes-grid">
+                {attributeNames.map(attr => {
+                  const isRecommended = currentState.characterData.class && 
+                    CLASS_DESCRIPTIONS[currentState.characterData.class as CharacterClass].primaryStat === attr;
+                  const racialBonus = currentState.characterData.race ? getRacialBonuses(currentState.characterData.race).attributes[attr] || 0 : 0;
+                  const baseValue = currentState.assignedAttributes?.[attr] || 0;
+                  const finalValue = baseValue + racialBonus;
+                  
+                  return (
+                    <div key={attr} className={`attribute-card ${isRecommended ? 'recommended' : ''}`}>
+                      <div className="attribute-header">
+                        <div className="attr-name-section">
+                          <h4>{attr}</h4>
+                          {isRecommended && <span className="recommended-badge">⭐ Primary</span>}
+                        </div>
+                        <div className="attr-value-section">
+                          {baseValue > 0 && (
+                            <div className="final-value">
+                              {racialBonus > 0 ? (
+                                <span>{baseValue} + {racialBonus} = <strong>{finalValue}</strong></span>
+                              ) : (
+                                <strong>{baseValue}</strong>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <p className="attribute-desc">{attributeDescriptions[attr]}</p>
+                      <select
+                        value={currentState.assignedAttributes?.[attr] || ''}
+                        aria-label={`Select score for ${attr}`}
+                        className="attribute-select"
+                        onChange={(e) => {
+                          const value = e.target.value ? parseInt(e.target.value) : undefined;
+                          const newAssigned = { ...currentState.assignedAttributes };
+                          if (value) {
+                            newAssigned[attr] = value;
+                          } else {
+                            delete newAssigned[attr];
+                          }
+                          updateState({ assignedAttributes: newAssigned });
+                        }}
+                      >
+                        <option value="">Select score...</option>
                       {scores.map((score: number, index: number) => {
                         const timesUsed = Object.values(currentState.assignedAttributes || {})
                           .filter(s => s === score).length;
@@ -1077,13 +1507,29 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
                           </option>
                         );
                       })}
-                    </select>
-                  </div>
-                );
-              })}
+                      </select>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="auto-assign-section">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    const cls = currentState.characterData.class as CharacterClass;
+                    if (!cls) return;
+                    const assigned = randomGeneratorService.assignAttributesForClass(scores, cls);
+                    updateState({ assignedAttributes: assigned });
+                  }}
+                  disabled={!currentState.characterData.class}
+                >
+                  ⚡ Auto-Assign (Recommended for {currentState.characterData.class})
+                </button>
+              </div>
             </div>
-          </>
-        )}
+          )}
+        </div>
 
         <div className="wizard-actions">
           <button className="btn btn-secondary" onClick={previousStep}>
@@ -1192,7 +1638,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
             onClick={nextStep}
             disabled={!currentState.characterData.alignment}
           >
-            Next: Review Character →
+            Next: Choose Level →
           </button>
         </div>
       </div>
@@ -1241,138 +1687,161 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
 
     return (
       <div className="wizard-step moves-equipment-step">
-        <h2>Starting Moves & Equipment</h2>
-        <p className="step-intro">
-          Your class grants you special moves and starting gear for your adventures.
-        </p>
+        <div className="step-content-container">
+          <h2>Starting Moves & Equipment</h2>
+          <p className="step-intro">
+            Your class grants you special moves and starting gear for your adventures.
+          </p>
 
-        <div className="moves-section">
-          <h3>Starting Moves</h3>
-          <p className="section-intro">You begin play with these moves:</p>
-          <div className="moves-list">
-            {currentState.selectedMoves?.map((move: string) => (
-              <div key={move} className="move-card">
-                <h4>{move}</h4>
-                <p className="move-description">
-                  {/* Move descriptions would go here */}
-                  A powerful ability that defines your class.
-                </p>
+          <div className="step-cards">
+            {/* Card 1: Starting Moves - Two Column Grid */}
+            <div className="step-card moves-card">
+              <div className="card-header">
+                <h3>⚔️ Starting Moves</h3>
+                <p className="card-subtitle">Your class abilities</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="equipment-section">
-          <h3>Starting Equipment</h3>
-          <div className="guaranteed-equipment">
-            <h4>You start with:</h4>
-            <ul className="equipment-list">
-              {classData.equipment.map((item: any, index: number) => (
-                <li key={index} className="equipment-item">
-                  <span className="item-name">{item.name}</span>
-                  {item.weight !== undefined && (
-                    <span className="item-weight"> ({item.weight} weight)</span>
-                  )}
-                  {item.armor && <span className="item-armor"> [{item.armor} armor]</span>}
-                  {item.damage && <span className="item-damage"> [{item.damage} damage]</span>}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {classData.choices?.equipment && (
-            <div className="equipment-choices">
-              {classData.choices.equipment.map((choice: any, choiceIndex: number) => (
-                <div key={choiceIndex} className="equipment-choice">
-                  <h4>{choice.prompt}</h4>
-                  <div className="choice-options">
-                    {choice.options.map((option: any[], optionIndex: number) => (
-                      <div 
-                        key={optionIndex}
-                        className={`choice-option ${
-                          currentState.equipmentChoices?.[choiceIndex] === optionIndex ? 'selected' : ''
-                        }`}
-                        onClick={() => handleEquipmentChoice(choiceIndex, optionIndex)}
-                      >
-                        {option.map((item: any, itemIndex: number) => (
-                          <div key={itemIndex} className="choice-item">
-                            <h5>{item.name}</h5>
-                            {item.description && <p>{item.description}</p>}
-                            <div className="item-stats">
-                              {item.weight !== undefined && <span>Weight: {item.weight}</span>}
-                              {item.armor && <span>Armor: {item.armor}</span>}
-                              {item.damage && <span>Damage: {item.damage}</span>}
-                              {item.tags && (
-                                <span className="item-tags">
-                                  Tags: {item.tags.map((t: any) => t.name).join(', ')}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
+              <div className="moves-grid-two-column">
+                {currentState.selectedMoves?.map((move: string) => (
+                  <div key={move} className="move-item">
+                    <div className="move-icon">🎯</div>
+                    <div className="move-content">
+                      <h4 className="move-name">{move}</h4>
+                      <p className="move-description">
+                        A powerful ability that defines your class and combat style.
+                      </p>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Card 2: Starting Equipment - Multi-Column Pills */}
+            <div className="step-card equipment-card">
+              <div className="card-header">
+                <h3>🎒 Starting Equipment</h3>
+                <p className="card-subtitle">Your guaranteed gear</p>
+              </div>
+              <div className="equipment-grid-multi-column">
+                {classData.equipment.map((item: any, index: number) => (
+                  <div key={index} className="equipment-pill">
+                    <span className="item-name">{item.name}</span>
+                    <div className="item-details">
+                      {item.weight !== undefined && <span className="detail">⚖️ {item.weight}</span>}
+                      {item.armor && <span className="detail">🛡️ {item.armor}</span>}
+                      {item.damage && <span className="detail">⚔️ {item.damage}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Card 3: Gear Choices - Side-by-Side Comparison */}
+            {classData.choices?.equipment && (
+              <div className="step-card choices-card">
+                <div className="card-header">
+                  <h3>⚔️ Choose Your Gear</h3>
+                  <p className="card-subtitle">Select your preferred equipment</p>
                 </div>
-              ))}
+                <div className="choices-container-wide">
+                  {classData.choices.equipment.map((choice: any, choiceIndex: number) => (
+                    <div key={choiceIndex} className="choice-group-wide">
+                      <h4 className="choice-prompt">{choice.prompt}</h4>
+                      <div className="choice-comparison-side-by-side">
+                        {choice.options.map((option: any[], optionIndex: number) => (
+                          <div 
+                            key={optionIndex}
+                            className={`comparison-card-wide ${
+                              currentState.equipmentChoices?.[choiceIndex] === optionIndex ? 'selected' : ''
+                            }`}
+                            onClick={() => handleEquipmentChoice(choiceIndex, optionIndex)}
+                          >
+                            <div className="selection-indicator">
+                              {currentState.equipmentChoices?.[choiceIndex] === optionIndex && <span className="checkmark">✓</span>}
+                            </div>
+                            <div className="option-content">
+                              {option.map((item: any, itemIndex: number) => (
+                                <div key={itemIndex} className="option-item">
+                                  <h5 className="item-title">{item.name}</h5>
+                                  {item.description && <p className="item-desc">{item.description}</p>}
+                                <div className="item-stats-grid">
+                                  {item.weight !== undefined && <div className="stat">⚖️ {item.weight} weight</div>}
+                                  {item.armor && <div className="stat">🛡️ {item.armor} armor</div>}
+                                  {item.damage && <div className="stat">⚔️ {item.damage} damage</div>}
+                                  {item.tags && (
+                                    <div className="stat tags">
+                                      🏷️ {item.tags.map((t: any) => t.name).join(', ')}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Starting Coin Selection */}
-        <div className="coin-section" style={{ marginTop: '2rem' }}>
-          <h3>Starting Coin</h3>
-          <p className="field-help">Choose how much coin your character begins with.</p>
-          <div className="coin-controls" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <label htmlFor="starting-coin"><strong>Coin:</strong></label>
-            <input
-              id="starting-coin"
-              type="number"
-              min={0}
-              value={currentState.characterData.coin ?? 0}
-              onChange={(e) => updateState({
-                characterData: { ...currentState.characterData, coin: Math.max(0, Number(e.target.value || 0)) }
-              })}
-              style={{ width: '100px' }}
-            />
-            <button
-              className="btn btn-small btn-secondary"
-              onClick={() => updateState({ characterData: { ...currentState.characterData, coin: 10 } })}
-              aria-label="Use suggested coin"
-            >
-              Use Suggested
-            </button>
-            <button
-              className="btn btn-small btn-secondary"
-              onClick={() => updateState({ characterData: { ...currentState.characterData, coin: (currentState.characterData.coin ?? 0) + 5 } })}
-              aria-label="Add 5 coin"
-            >
-              +5
-            </button>
-            <button
-              className="btn btn-small btn-secondary"
-              onClick={() => updateState({ characterData: { ...currentState.characterData, coin: (currentState.characterData.coin ?? 0) + 10 } })}
-              aria-label="Add 10 coin"
-            >
-              +10
-            </button>
-            <button
-              className="btn btn-small"
-              onClick={() => {
-                const d6 = () => Math.floor(Math.random() * 6) + 1;
-                const roll = (d6() + d6()) * 10;
-                updateState({ characterData: { ...currentState.characterData, coin: roll } });
-              }}
-            >
-              🎲 Roll 2d6×10
-            </button>
+          {/* Card 4: Starting Coin - Wide Bar Format */}
+          <div className="step-card coin-card-wide">
+            <div className="card-header">
+              <h3>💰 Starting Coin</h3>
+              <p className="card-subtitle">Your initial wealth</p>
+            </div>
+            <div className="coin-controls-wide">
+              <div className="coin-display-large">
+                <div className="coin-icon">💰</div>
+                <div className="coin-amount">
+                  <span className="coin-number">{currentState.characterData.coin ?? 0}</span>
+                  <span className="coin-unit">coin</span>
+                </div>
+              </div>
+              <div className="coin-buttons-horizontal">
+                <button
+                  className="btn btn-secondary coin-btn-wide"
+                  onClick={() => updateState({ characterData: { ...currentState.characterData, coin: 10 } })}
+                >
+                  📋 Use Standard (10)
+                </button>
+                <button
+                  className="btn btn-secondary coin-btn-wide"
+                  onClick={() => updateState({ characterData: { ...currentState.characterData, coin: (currentState.characterData.coin ?? 0) + 5 } })}
+                >
+                  +5 Coin
+                </button>
+                <button
+                  className="btn btn-secondary coin-btn-wide"
+                  onClick={() => updateState({ characterData: { ...currentState.characterData, coin: (currentState.characterData.coin ?? 0) + 10 } })}
+                >
+                  +10 Coin
+                </button>
+                <button
+                  className="btn btn-primary coin-btn-wide"
+                  onClick={() => {
+                    const d6 = () => Math.floor(Math.random() * 6) + 1;
+                    const roll = (d6() + d6()) * 10;
+                    updateState({ characterData: { ...currentState.characterData, coin: roll } });
+                  }}
+                >
+                  🎲 Roll 2d6×10
+                </button>
+              </div>
+            </div>
           </div>
         </div>
+        </div>
 
-        <div className="wizard-actions">
+        {/* Full-Width Sticky Footer */}
+        <div className="wizard-actions-sticky">
           <button className="btn btn-secondary" onClick={previousStep}>
             ← Back
           </button>
+          <div className="step-progress-indicator">
+            Step 5 of 8
+          </div>
           <button 
             className="btn btn-primary" 
             onClick={nextStep}
@@ -1638,6 +2107,8 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
         return renderClassStep();
       case 'race':
         return renderRaceStep();
+      case 'level':
+        return renderLevelStep();
       case 'personality':
         return renderPersonalityStep();
       case 'spells':
@@ -1699,12 +2170,26 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
           {assignedAttributes && Object.keys(assignedAttributes).length === 6 && (
             <div className="preview-attributes">
               <div className="attributes-mini-grid">
-                {Object.entries(assignedAttributes).map(([attr, value]) => (
-                  <div key={attr} className="attribute-mini">
-                    <span className="attr-label">{attr}</span>
-                    <span className="attr-value">{value as React.ReactNode}</span>
-                  </div>
-                ))}
+                {Object.entries(assignedAttributes).map(([attr, value]) => {
+                  const racialBonus = characterData.race ? getRacialBonuses(characterData.race).attributes[attr as keyof Attributes] || 0 : 0;
+                  const finalValue = (value as number) + racialBonus;
+                  return (
+                    <div key={attr} className="attribute-mini">
+                      <span className="attr-label">{attr}</span>
+                      <span className="attr-value">
+                        {racialBonus > 0 ? (
+                          <span>
+                            {value as React.ReactNode}
+                            <span className="racial-bonus">+{racialBonus}</span>
+                            <span className="final-value">={finalValue}</span>
+                          </span>
+                        ) : (
+                          value as React.ReactNode
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -1734,13 +2219,24 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
       {currentState.currentStep !== 'intro' && renderProgressBar()}
       <div className="wizard-content">
         {renderCurrentStep()}
-        {renderCharacterPreview()}
       </div>
       {showSuccess && (
         <div className="success-message">
           ✨ Character Created Successfully! ✨
         </div>
       )}
+
+      {/* Character Creation Assistant - Enhanced floating tools */}
+      <CharacterCreationAssistant
+        currentStep={currentState.currentStep}
+        currentState={currentState as any}
+        onStateUpdate={updateState as any}
+        onNextStep={nextStep}
+        onPreviousStep={previousStep}
+        onFinalizeCharacter={finalizeCharacter}
+        canProceed={true} // Simplified for now
+        position="bottom-right"
+      />
     </div>
   );
 };
@@ -1758,7 +2254,9 @@ export default createPanel(
     getInitialState: (): CharacterCreationPanelState => ({
       currentStep: 'intro',
       characterData: {},
-      attributeMethod: 'array'
+      attributeMethod: 'array',
+      selectedLevel: 1,
+      selectedAdvancements: []
     })
   }
 );
