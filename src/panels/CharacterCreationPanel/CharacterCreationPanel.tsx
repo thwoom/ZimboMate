@@ -7,7 +7,6 @@ import {
   Race,
   Alignment,
   Attributes,
-  getClassBaseHP,
   getClassBaseLoad,
   getClassDamageDie,
   calculateMaxHP,
@@ -15,14 +14,14 @@ import {
 } from '../../models/Character';
 import { v4 as uuidv4 } from 'uuid';
 import { CLASS_STARTING_DATA, CLASS_BOND_TEMPLATES } from '../../data/classStartingData';
-import { Item } from '../../models/Equipment';
+import { Item, Weapon, Armor, Tag } from '../../models/Equipment';
 import { Bond } from '../../models/Character';
 import CharacterCreationAssistant from '../../components/CharacterCreationAssistant';
 import { getSpellsForClass } from '../../services/Spells';
-import { characterTemplateService, CharacterTemplate, QUICK_START_TEMPLATES } from '../../services/CharacterTemplates';
-import { portraitService, Portrait } from '../../services/CharacterPortraits';
+import { characterTemplateService, CharacterTemplate } from '../../services/CharacterTemplates';
+import { portraitService } from '../../services/CharacterPortraits';
 import { randomGeneratorService } from '../../services/RandomGenerators';
-import LevelSelector from '../../components/LevelSelector';
+
 import AdvancementSelector from '../../components/AdvancementSelector';
 import { advancementService, LevelProgression, AdvancementChoice, AdvancementPlan } from '../../services/AdvancementService';
 import './CharacterCreationPanel.css';
@@ -176,24 +175,26 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
   // Racial bonus system
   const getRacialBonuses = (race: Race, humanBonusStat?: keyof Attributes): { attributes: Partial<Attributes>; hp: number; abilities: string[] } => {
     switch (race) {
-      case 'Human':
+      case 'Human': {
         const humanAttributes: Partial<Attributes> = {};
         if (humanBonusStat) {
           humanAttributes[humanBonusStat] = 1;
         }
         return { attributes: humanAttributes, hp: 0, abilities: ['versatile', 'ambitious'] };
+      }
       case 'Elf':
         return { attributes: { DEX: 1 }, hp: 0, abilities: ['keen_senses', 'ancient_wisdom'] };
       case 'Dwarf':
         return { attributes: { CON: 1 }, hp: 2, abilities: ['stone_sense'] };
       case 'Halfling':
         return { attributes: { DEX: 1 }, hp: 0, abilities: ['blessed_fortune', 'brave_heart'] };
-      case 'Other':
+      case 'Other': {
         const otherAttributes: Partial<Attributes> = {};
         if (humanBonusStat) { // Other race can also choose a stat like humans
           otherAttributes[humanBonusStat] = 1;
         }
         return { attributes: otherAttributes, hp: 0, abilities: ['unique_heritage', 'cultural_wisdom'] };
+      }
       default:
         return { attributes: {}, hp: 0, abilities: [] };
     }
@@ -214,16 +215,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
     return result;
   };
 
-  const resetCharacterCreation = () => {
-    const freshState: CharacterCreationPanelState = {
-      currentStep: 'intro',
-      characterData: {},
-      attributeMethod: 'array',
-      selectedLevel: 1,
-      selectedAdvancements: []
-    };
-    onStateChange?.(freshState);
-  };
+
 
   const nextStep = () => {
     const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'moves-equipment', 'bonds', 'alignment', 'level', 'review'];
@@ -374,7 +366,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
             onClick={() => {
               // Allow navigation to completed steps or current step
               if (index <= currentIndex) {
-                updateState({ currentStep: step.id as any });
+                updateState({ currentStep: step.id as WizardStep });
               }
             }}
           >
@@ -455,8 +447,8 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
           const text = await file.text();
           const imported = characterTemplateService.importTemplate(text);
           handleTemplateSelect(imported);
-        } catch (error: any) {
-          updateState({ templateImportError: error.message });
+        } catch (error: unknown) {
+          updateState({ templateImportError: error instanceof Error ? error.message : 'Import failed' });
         }
       };
       input.click();
@@ -486,7 +478,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
                   className="template-card quick-start"
                   onClick={() => handleTemplateSelect(template)}
                 >
-                  <div className="template-icon">{(template as any).icon}</div>
+                  <div className="template-icon">{template.characterData.class ? '⚔️' : '🎭'}</div>
                   <h4>{template.name}</h4>
                   <p>{template.description}</p>
                   <div className="template-class">
@@ -727,7 +719,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
               </label>
             ))}
           </div>
-          <div style={{ marginTop: '0.75rem' }}>
+          <div className="margin-top-075">
             <button
               className="btn btn-small btn-secondary"
               onClick={() => updateState({ characterData: { ...currentState.characterData, personalityTraits: randomGeneratorService.generatePersonalityTraits(3) } })}
@@ -746,7 +738,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
             value={voice}
             onChange={(e) => updateState({ characterData: { ...currentState.characterData, voice: e.target.value } })}
           />
-          <div style={{ marginTop: '0.5rem' }}>
+          <div className="margin-top-05">
             <button className="btn btn-small btn-secondary" onClick={() => updateState({ characterData: { ...currentState.characterData, voice: randomGeneratorService.generateVoice() } })}>
               🎲 Random Voice
             </button>
@@ -774,7 +766,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
       nextStep();
       return null;
     }
-    const allSpells = getSpellsForClass(cls as any);
+    const allSpells = getSpellsForClass(cls as 'Wizard' | 'Cleric' | 'Immolator');
     const rotes = allSpells.filter(s => s.level === 0);
     const level1 = allSpells.filter(s => s.level === 1);
 
@@ -911,7 +903,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
               type="file"
               accept="image/*"
               onChange={handleFileUpload}
-              style={{ display: 'none' }}
+              className="hidden-input"
             />
             <div className="portrait-emoji">📤</div>
             <div className="portrait-name">Upload Custom</div>
@@ -1665,7 +1657,6 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
       const choice = classData.choices?.equipment?.[choiceIndex];
       if (!choice) return;
 
-      const selectedOption = choice.options[optionIndex];
       const newChoices = { ...currentState.equipmentChoices, [choiceIndex]: optionIndex };
       
       // Rebuild equipment list with choices
@@ -1722,13 +1713,13 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
                 <p className="card-subtitle">Your guaranteed gear</p>
               </div>
               <div className="equipment-grid-multi-column">
-                {classData.equipment.map((item: any, index: number) => (
+                {classData.equipment.map((item: Partial<Item> | Partial<Weapon> | Partial<Armor>, index: number) => (
                   <div key={index} className="equipment-pill">
                     <span className="item-name">{item.name}</span>
                     <div className="item-details">
                       {item.weight !== undefined && <span className="detail">⚖️ {item.weight}</span>}
-                      {item.armor && <span className="detail">🛡️ {item.armor}</span>}
-                      {item.damage && <span className="detail">⚔️ {item.damage}</span>}
+                                                            {'armor' in item && (item as any).armor && <span className="detail">🛡️ {(item as any).armor}</span>}
+                                      {'damage' in item && (item as any).damage && <span className="detail">⚔️ {(item as any).damage}</span>}
                     </div>
                   </div>
                 ))}
@@ -1743,11 +1734,11 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
                   <p className="card-subtitle">Select your preferred equipment</p>
                 </div>
                 <div className="choices-container-wide">
-                  {classData.choices.equipment.map((choice: any, choiceIndex: number) => (
+                  {classData.choices.equipment.map((choice: { prompt: string; options: (Partial<Item> | Partial<Weapon> | Partial<Armor>)[][] }, choiceIndex: number) => (
                     <div key={choiceIndex} className="choice-group-wide">
                       <h4 className="choice-prompt">{choice.prompt}</h4>
                       <div className="choice-comparison-side-by-side">
-                        {choice.options.map((option: any[], optionIndex: number) => (
+                        {choice.options.map((option: (Partial<Item> | Partial<Weapon> | Partial<Armor>)[], optionIndex: number) => (
                           <div 
                             key={optionIndex}
                             className={`comparison-card-wide ${
@@ -1759,17 +1750,17 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
                               {currentState.equipmentChoices?.[choiceIndex] === optionIndex && <span className="checkmark">✓</span>}
                             </div>
                             <div className="option-content">
-                              {option.map((item: any, itemIndex: number) => (
+                              {option.map((item: Partial<Item> | Partial<Weapon> | Partial<Armor>, itemIndex: number) => (
                                 <div key={itemIndex} className="option-item">
                                   <h5 className="item-title">{item.name}</h5>
                                   {item.description && <p className="item-desc">{item.description}</p>}
                                 <div className="item-stats-grid">
                                   {item.weight !== undefined && <div className="stat">⚖️ {item.weight} weight</div>}
-                                  {item.armor && <div className="stat">🛡️ {item.armor} armor</div>}
-                                  {item.damage && <div className="stat">⚔️ {item.damage} damage</div>}
+                                  {'armor' in item && (item as any).armor && <div className="stat">🛡️ {(item as any).armor} armor</div>}
+                                  {'damage' in item && (item as any).damage && <div className="stat">⚔️ {(item as any).damage} damage</div>}
                                   {item.tags && (
                                     <div className="stat tags">
-                                      🏷️ {item.tags.map((t: any) => t.name).join(', ')}
+                                      🏷️ {item.tags?.map((t: Tag) => t.name).join(', ')}
                                     </div>
                                   )}
                                 </div>
@@ -1864,8 +1855,8 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
     
     const bonds = currentState.createdBonds || [];
     const partyNames = Object.values(state.characters || {})
-      .map((c: any) => c.name)
-      .filter((n: any) => n && n.trim().length > 0);
+      .map((c: Character) => c.name)
+      .filter((n: string | undefined): n is string => n !== undefined && n.trim().length > 0);
 
     const addBond = () => {
       const newBond: Bond = {
@@ -1877,14 +1868,14 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
     };
 
     const updateBond = (bondId: string, text: string) => {
-      const updatedBonds = bonds.map((bond: any) => 
+      const updatedBonds = bonds.map((bond: Bond) => 
         bond.id === bondId ? { ...bond, text } : bond
       );
       updateState({ createdBonds: updatedBonds });
     };
 
     const removeBond = (bondId: string) => {
-      const updatedBonds = bonds.filter((bond: any) => bond.id !== bondId);
+      const updatedBonds = bonds.filter((bond: Bond) => bond.id !== bondId);
       updateState({ createdBonds: updatedBonds });
     };
 
@@ -1899,7 +1890,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
         <div className="bond-templates">
           <h3>Bond Templates</h3>
           {partyNames.length > 0 && (
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
+            <div className="form-group margin-bottom-1">
               <label htmlFor="bond-party-target">Fill blanks with party member:</label>
               <select
                 id="bond-party-target"
@@ -1943,7 +1934,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
             <p className="no-bonds">No bonds created yet. Click templates above or create custom bonds.</p>
           ) : (
             <div className="bonds-list">
-              {bonds.map((bond: any, index: number) => (
+              {bonds.map((bond: Bond, index: number) => (
                 <div key={bond.id} className="bond-item">
                   <span className="bond-number">{index + 1}.</span>
                   <textarea
@@ -2128,91 +2119,7 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
     }
   };
 
-  // Character preview
-  const renderCharacterPreview = () => {
-    const { characterData, assignedAttributes } = currentState;
-    const hasBasicInfo = characterData.name && characterData.class && characterData.race;
-    
-    if (!hasBasicInfo && currentState.currentStep === 'intro') return null;
-    
-    return (
-      <div className={`character-preview ${currentState.currentStep === 'intro' ? 'hidden' : ''}`}>
-        <h3>Character Preview</h3>
-        <div className="preview-content">
-          {characterData.portraitId && (() => {
-            const portrait = portraitService.getAllPortraits().find(p => p.id === characterData.portraitId);
-            if (portrait) {
-              return (
-                <div className="preview-portrait" style={{ backgroundColor: portrait.color }}>
-                  <div className="portrait-emoji">{portrait.emoji}</div>
-                </div>
-              );
-            }
-            return null;
-          })()}
-          {characterData.name && (
-            <div className="preview-name">{characterData.name}</div>
-          )}
-          {characterData.class && characterData.race && (
-            <div className="preview-class-race">
-              {characterData.race} {characterData.class}
-            </div>
-          )}
-          {characterData.alignment && (
-            <div className="preview-alignment">{characterData.alignment}</div>
-          )}
-          {characterData.background && (
-            <div className="preview-background">
-              <em>{characterData.background}</em>
-            </div>
-          )}
-          
-          {assignedAttributes && Object.keys(assignedAttributes).length === 6 && (
-            <div className="preview-attributes">
-              <div className="attributes-mini-grid">
-                {Object.entries(assignedAttributes).map(([attr, value]) => {
-                  const racialBonus = characterData.race ? getRacialBonuses(characterData.race).attributes[attr as keyof Attributes] || 0 : 0;
-                  const finalValue = (value as number) + racialBonus;
-                  return (
-                    <div key={attr} className="attribute-mini">
-                      <span className="attr-label">{attr}</span>
-                      <span className="attr-value">
-                        {racialBonus > 0 ? (
-                          <span>
-                            {value as React.ReactNode}
-                            <span className="racial-bonus">+{racialBonus}</span>
-                            <span className="final-value">={finalValue}</span>
-                          </span>
-                        ) : (
-                          value as React.ReactNode
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          
-          {currentState.selectedEquipment && currentState.selectedEquipment.length > 0 && (
-            <div className="preview-equipment">
-              <div className="equipment-count">
-                🎒 {currentState.selectedEquipment.length} items
-              </div>
-            </div>
-          )}
-          
-          {currentState.createdBonds && currentState.createdBonds.length > 0 && (
-            <div className="preview-bonds">
-              <div className="bonds-count">
-                🤝 {currentState.createdBonds.length} bonds
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+
 
   return (
     <div className="character-creation-panel">
@@ -2229,8 +2136,8 @@ const CharacterCreationPanel: React.FC<PanelProps & { panelState?: CharacterCrea
       {/* Character Creation Assistant - Enhanced floating tools */}
       <CharacterCreationAssistant
         currentStep={currentState.currentStep}
-        currentState={currentState as any}
-        onStateUpdate={updateState as any}
+        currentState={{...currentState, currentStep: currentState.currentStep as any, characterData: currentState.characterData as any}}
+        onStateUpdate={updateState as (updates: any) => void}
         onNextStep={nextStep}
         onPreviousStep={previousStep}
         onFinalizeCharacter={finalizeCharacter}

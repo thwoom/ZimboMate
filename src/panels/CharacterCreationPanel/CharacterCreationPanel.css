@@ -3179,3 +3179,20 @@ select:focus {
     max-width: none;
   }
 }
+
+/* Utility classes for inline style replacements */
+.margin-top-075 {
+  margin-top: 0.75rem;
+}
+
+.margin-top-05 {
+  margin-top: 0.5rem;
+}
+
+.margin-bottom-1 {
+  margin-bottom: 1rem;
+}
+
+.hidden-input {
+  display: none;
+}
