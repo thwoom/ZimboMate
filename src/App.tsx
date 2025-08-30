@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from './layouts/MainLayout';
 import { panelRegistry } from './framework/PanelRegistry';
 import { GameStoreProvider } from './store/GameStore';
-import CharacterStatsPanel from './panels/CharacterStatsPanel';
-import EquipmentPanel from './panels/EquipmentPanel';
-import MovesPanel from './panels/MovesPanel';
-import TestPlaygroundPanel from './panels/TestPlayground';
-import CharacterCreationPanel from './panels/CharacterCreationPanel';
+import { lazyPanels } from './framework/lazyPanels';
 import { createPlaceholderPanel } from './panels/PlaceholderPanel';
 import DarkModeToggle from './components/DarkModeToggle';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -18,14 +14,14 @@ function App() {
     // Clear any existing panels first to prevent duplicates
     panelRegistry.clear();
     
-    // Register panels
-    panelRegistry.register(CharacterCreationPanel);
-    panelRegistry.register(CharacterStatsPanel);
-    panelRegistry.register(EquipmentPanel);
-    panelRegistry.register(MovesPanel);
-    panelRegistry.register(TestPlaygroundPanel);
+    // Register lazy-loaded panels for code splitting
+    panelRegistry.registerLazy(lazyPanels.characterCreation);
+    panelRegistry.registerLazy(lazyPanels.characterStats);
+    panelRegistry.registerLazy(lazyPanels.equipment);
+    panelRegistry.registerLazy(lazyPanels.moves);
+    panelRegistry.registerLazy(lazyPanels.testPlayground);
     
-    // Register placeholder panels for testing
+    // Register placeholder panels for testing (these are small, no need to lazy load)
     panelRegistry.register(createPlaceholderPanel('inventory', 'Inventory', '🎒'));
     panelRegistry.register(createPlaceholderPanel('session-tools', 'Session Tools', '🎲'));
     panelRegistry.register(createPlaceholderPanel('lore-journal', 'Lore / Journal', '📖'));

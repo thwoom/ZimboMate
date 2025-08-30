@@ -1,4 +1,12 @@
 import { Panel, PanelMetadata } from './Panel';
+import { lazy, ComponentType, LazyExoticComponent } from 'react';
+
+export type LazyPanel = {
+  metadata: PanelMetadata;
+  component: LazyExoticComponent<ComponentType<any>>;
+  onMount?: () => void;
+  onUnmount?: () => void;
+};
 
 /**
  * Central registry for managing all panels in the application
@@ -6,6 +14,7 @@ import { Panel, PanelMetadata } from './Panel';
 export class PanelRegistry {
   private static instance: PanelRegistry;
   private panels: Map<string, Panel> = new Map();
+  private lazyPanels: Map<string, LazyPanel> = new Map();
   private listeners: Set<(panelId: string, action: 'register' | 'unregister') => void> = new Set();
 
   private constructor() {}
@@ -18,7 +27,29 @@ export class PanelRegistry {
   }
 
   /**
-   * Register a new panel
+   * Register a lazy-loaded panel
+   */
+  registerLazy(lazyPanel: LazyPanel): void {
+    if (this.lazyPanels.has(lazyPanel.metadata.id) || this.panels.has(lazyPanel.metadata.id)) {
+      if (process.env.NODE_ENV === 'development') {
+        this.lazyPanels.set(lazyPanel.metadata.id, lazyPanel);
+        return;
+      } else {
+        console.warn(`Panel with id "${lazyPanel.metadata.id}" is already registered`);
+        return;
+      }
+    }
+
+    this.lazyPanels.set(lazyPanel.metadata.id, lazyPanel);
+    this.notifyListeners(lazyPanel.metadata.id, 'register');
+    
+    if (lazyPanel.onMount) {
+      lazyPanel.onMount();
+    }
+  }
+
+  /**
+   * Register a new panel (legacy support)
    */
   register(panel: Panel): void {
     if (this.panels.has(panel.metadata.id)) {
@@ -69,6 +100,20 @@ export class PanelRegistry {
   }
 
   /**
+   * Get a lazy panel by ID
+   */
+  getLazyPanel(panelId: string): LazyPanel | undefined {
+    return this.lazyPanels.get(panelId);
+  }
+
+  /**
+   * Check if panel is lazy-loaded
+   */
+  isLazyPanel(panelId: string): boolean {
+    return this.lazyPanels.has(panelId);
+  }
+
+  /**
    * Get all registered panels
    */
   getAllPanels(): Panel[] {
@@ -76,10 +121,12 @@ export class PanelRegistry {
   }
 
   /**
-   * Get all panel metadata
+   * Get all panel metadata (including lazy panels)
    */
   getAllPanelMetadata(): PanelMetadata[] {
-    return this.getAllPanels().map(panel => panel.metadata);
+    const regularMetadata = this.getAllPanels().map(panel => panel.metadata);
+    const lazyMetadata = Array.from(this.lazyPanels.values()).map(panel => panel.metadata);
+    return [...regularMetadata, ...lazyMetadata];
   }
 
   /**
@@ -94,10 +141,10 @@ export class PanelRegistry {
   }
 
   /**
-   * Check if a panel is registered
+   * Check if a panel is registered (regular or lazy)
    */
   hasPanel(panelId: string): boolean {
-    return this.panels.has(panelId);
+    return this.panels.has(panelId) || this.lazyPanels.has(panelId);
   }
 
   /**
@@ -121,7 +168,13 @@ export class PanelRegistry {
         panel.onUnmount();
       }
     });
+    this.lazyPanels.forEach(panel => {
+      if (panel.onUnmount) {
+        panel.onUnmount();
+      }
+    });
     this.panels.clear();
+    this.lazyPanels.clear();
   }
 }
 

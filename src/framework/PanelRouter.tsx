@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { PanelProps } from './Panel';
 import { panelRegistry } from './PanelRegistry';
 import { panelStateManager } from './PanelState';
+import { PanelLoader } from '../components/PanelLoader';
 import './PanelRouter.css';
 
 interface PanelRouterProps {
@@ -27,7 +28,7 @@ interface PanelStates {
 export const PanelRouter: React.FC<PanelRouterProps> = ({
   activePanelId,
   onPanelChange,
-  loadingComponent = <div className="panel-loading">Loading...</div>,
+  loadingComponent,
   errorComponent = <div className="panel-error">Failed to load panel</div>,
   enableTransitions = true,
 }) => {
@@ -38,6 +39,8 @@ export const PanelRouter: React.FC<PanelRouterProps> = ({
   // Load initial states from storage
   useEffect(() => {
     const loadedStates: PanelStates = {};
+    
+    // Handle regular panels
     panelRegistry.getAllPanels().forEach(panel => {
       const savedState = panelStateManager.loadState(panel.metadata.id);
       if (savedState) {
@@ -46,6 +49,8 @@ export const PanelRouter: React.FC<PanelRouterProps> = ({
         loadedStates[panel.metadata.id] = panel.getInitialState();
       }
     });
+    
+    // Lazy panels don't have initial state until loaded
     setPanelStates(loadedStates);
   }, []);
 
@@ -61,7 +66,7 @@ export const PanelRouter: React.FC<PanelRouterProps> = ({
 
   // Handle panel activation
   useEffect(() => {
-    const panel = panelRegistry.getPanel(activePanelId);
+    const panel = panelRegistry.getPanel(activePanelId) || panelRegistry.getLazyPanel(activePanelId);
     if (panel) {
       // Handle transition
       if (enableTransitions && previousPanelId && previousPanelId !== activePanelId) {
@@ -77,13 +82,13 @@ export const PanelRouter: React.FC<PanelRouterProps> = ({
         }
       }
 
-      // Activate new panel
-      if (panel.onActivate) {
+      // Activate new panel (only for regular panels)
+      if ('onActivate' in panel && panel.onActivate) {
         panel.onActivate();
       }
 
-      // Initialize panel state if not exists
-      if (!panelStates[activePanelId] && panel.getInitialState) {
+      // Initialize panel state if not exists (only for regular panels)
+      if (!panelStates[activePanelId] && 'getInitialState' in panel && panel.getInitialState) {
         setPanelStates(prev => ({
           ...prev,
           [activePanelId]: panel.getInitialState!(),
@@ -99,13 +104,16 @@ export const PanelRouter: React.FC<PanelRouterProps> = ({
     }
   }, [activePanelId, previousPanelId, panelStates, onPanelChange, enableTransitions]);
 
-  // Get the active panel
+  // Get the active panel (regular or lazy)
   const activePanel = panelRegistry.getPanel(activePanelId);
-  if (!activePanel) {
+  const lazyPanel = panelRegistry.getLazyPanel(activePanelId);
+  
+  if (!activePanel && !lazyPanel) {
     return <div className="panel-not-found">Panel not found: {activePanelId}</div>;
   }
 
-  const PanelComponent = activePanel.component;
+  const PanelComponent = activePanel ? activePanel.component : lazyPanel!.component;
+  const panelMetadata = activePanel ? activePanel.metadata : lazyPanel!.metadata;
   const panelProps: PanelProps = {
     id: activePanelId,
     isActive: true,
@@ -118,7 +126,7 @@ export const PanelRouter: React.FC<PanelRouterProps> = ({
       className={`panel-router ${isTransitioning ? 'panel-router--transitioning' : ''}`}
     >
       <ErrorBoundary fallback={errorComponent}>
-        <Suspense fallback={loadingComponent}>
+        <Suspense fallback={loadingComponent || <PanelLoader panelName={panelMetadata.name} />}>
           <div className="panel-container">
             <PanelComponent {...panelProps} panelState={panelStates[activePanelId]} />
           </div>
