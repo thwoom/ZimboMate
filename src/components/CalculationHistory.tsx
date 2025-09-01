@@ -8,23 +8,23 @@ interface CalculationHistoryProps {
   onExport?: () => void;
 }
 
-export const CalculationHistory: React.FC<CalculationHistoryProps> = ({
+export const CalculationHistory: React.FC < CalculationHistoryProps> = ({
   changes,
   onClear,
-  onExport
+  onExport,
 }) => {
-  const [filter, setFilter] = useState<CalculationChange['type'] | 'all'>('all');
-  const [showDetails, setShowDetails] = useState<Record<string, boolean>>({});
+  const [filter, setFilter] = useState < CalculationChange['type'] | 'all'>('all');
+  const [showDetails, setShowDetails] = useState < Record < string, boolean>>({});
 
-  const filteredChanges = filter === 'all' 
-    ? changes 
+  const filteredChanges = filter === 'all'
+    ? changes
     : changes.filter(change => change.type === filter);
 
   const formatTime = (date: Date) => {
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diff = Date.now()-date.getTime();
     const seconds = Math.floor(diff / 1000);
-    
+
     if (seconds < 60) return 'Just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -53,18 +53,18 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = ({
   const toggleDetails = (id: string) => {
     setShowDetails(prev => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
   return (
     <div className="calculation-history">
       <div className="history-header">
-        <h3>Calculation History</h3>
+        <h3 > Calculation History</h3>
         <div className="history-controls">
-          <select 
-            value={filter} 
-            onChange={(e) => setFilter(e.target.value as any)}
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as string)}
             className="filter-select"
             aria-label="Filter calculation history by type"
           >
@@ -114,7 +114,7 @@ export const CalculationHistory: React.FC<CalculationHistoryProps> = ({
                 </div>
                 <div className="change-time">{formatTime(change.timestamp)}</div>
               </div>
-              
+
               {showDetails[change.id] && change.details && (
                 <div className="history-details">
                   <pre>{JSON.stringify(change.details, null, 2)}</pre>

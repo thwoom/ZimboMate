@@ -27,7 +27,7 @@ export interface ErrorInsight {
   title: string;
   description: string;
   recommendation: string;
-  data?: any;
+  data?: unknown;
 }
 
 class ErrorAnalyticsService {
@@ -39,7 +39,7 @@ class ErrorAnalyticsService {
     component?: string;
     userId?: string;
     sessionId: string;
-    context?: Record<string, any>;
+    context?: Record < string, unknown>;
   }> = [];
 
   private constructor() {
@@ -58,16 +58,16 @@ class ErrorAnalyticsService {
     this.errorPatterns = [
       {
         id: 'null-property-access',
-        pattern: /Cannot read propert(y|ies) .* of (null|undefined)/,
-        description: 'Null/Undefined Property Access',
+        pattern: /Cannot read propert(y | ies) .* of (null | undefined)/,
+        description: 'Null / Undefined Property Access',
         category: 'common',
         suggestions: [
           'Use optional chaining (?.) operator',
           'Add null checks before property access',
           'Initialize variables with default values',
-          'Use nullish coalescing (??) operator'
+          'Use nullish coalescing (??) operator',
         ],
-        documentation: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining'
+        documentation: 'https://developer.mozilla.org / en-US / docs / Web / JavaScript / Reference / Operators / Optional_chaining',
       },
       {
         id: 'function-not-found',
@@ -76,23 +76,23 @@ class ErrorAnalyticsService {
         category: 'common',
         suggestions: [
           'Verify the variable is actually a function',
-          'Check import/export statements',
+          'Check import / export statements',
           'Ensure proper function binding in class methods',
-          'Check for typos in function names'
-        ]
+          'Check for typos in function names',
+        ],
       },
       {
         id: 'react-hooks-order',
-        pattern: /Rendered (more|fewer) hooks than expected/,
+        pattern: /Rendered (more | fewer) hooks than expected/,
         description: 'React Hooks Rules Violation',
         category: 'critical',
         suggestions: [
           'Ensure hooks are called in the same order every render',
           'Don\'t call hooks inside loops, conditions, or nested functions',
           'Move conditional logic inside hooks, not around them',
-          'Review React Hooks rules documentation'
+          'Review React Hooks rules documentation',
         ],
-        documentation: 'https://reactjs.org/docs/hooks-rules.html'
+        documentation: 'https://reactjs.org / docs / hooks-rules.html',
       },
       {
         id: 'infinite-render',
@@ -103,33 +103,33 @@ class ErrorAnalyticsService {
           'Check useEffect dependencies array',
           'Avoid calling setState in render methods',
           'Use useCallback for function dependencies',
-          'Memoize expensive calculations with useMemo'
-        ]
+          'Memoize expensive calculations with useMemo',
+        ],
       },
       {
         id: 'network-error',
-        pattern: /(NetworkError|fetch.*failed|ERR_NETWORK)/,
-        description: 'Network/API Error',
+        pattern: /(NetworkError | fetch.*failed | ERR_NETWORK)/,
+        description: 'Network / API Error',
         category: 'user-action',
         suggestions: [
           'Implement proper error handling for API calls',
           'Add retry logic for failed requests',
           'Show user-friendly error messages',
-          'Check network connectivity'
-        ]
+          'Check network connectivity',
+        ],
       },
       {
         id: 'memory-leak',
-        pattern: /(out of memory|Maximum call stack)/,
-        description: 'Memory/Performance Issue',
+        pattern: /(out of memory | Maximum call stack)/,
+        description: 'Memory / Performance Issue',
         category: 'performance',
         suggestions: [
           'Check for memory leaks in event listeners',
           'Clean up subscriptions in useEffect cleanup',
           'Avoid creating objects in render methods',
-          'Use React.memo for expensive components'
-        ]
-      }
+          'Use React.memo for expensive components',
+        ],
+      },
     ];
   }
 
@@ -140,38 +140,36 @@ class ErrorAnalyticsService {
         this.errorHistory = JSON.parse(stored).slice(-100); // Keep last 100 errors
       }
     } catch (error) {
-      console.warn('Failed to load stored error history:', error);
-    }
+      }
   }
 
   private saveErrors(): void {
     try {
       localStorage.setItem('zimbomate_error_history', JSON.stringify(this.errorHistory));
     } catch (error) {
-      console.warn('Failed to save error history:', error);
-    }
+      }
   }
 
   public recordError(
-    error: Error, 
-    component?: string, 
-    context?: Record<string, any>
+    error: Error,
+    component?: string,
+    context?: Record < string, unknown>,
   ): void {
     const errorEntry = {
       error: {
         name: error.name,
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       } as Error,
       timestamp: Date.now(),
       component,
       userId: this.getCurrentUserId(),
       sessionId: this.getSessionId(),
-      context
+      context,
     };
 
     this.errorHistory.push(errorEntry);
-    
+
     // Keep only last 100 errors in memory
     if (this.errorHistory.length > 100) {
       this.errorHistory = this.errorHistory.slice(-100);
@@ -186,8 +184,8 @@ class ErrorAnalyticsService {
     category: string;
     suggestions: string[];
   } {
-    const matchedPatterns = this.errorPatterns.filter(pattern => 
-      pattern.pattern.test(error.message) || pattern.pattern.test(error.stack || '')
+    const matchedPatterns = this.errorPatterns.filter(pattern =>
+      pattern.pattern.test(error.message) || pattern.pattern.test(error.stack || ''),
     );
 
     const severity = this.calculateSeverity(error, matchedPatterns);
@@ -198,7 +196,7 @@ class ErrorAnalyticsService {
       patterns: matchedPatterns,
       severity,
       category,
-      suggestions: [...new Set(suggestions)] // Remove duplicates
+      suggestions: [...new Set(suggestions)], // Remove duplicates
     };
   }
 
@@ -212,11 +210,10 @@ class ErrorAnalyticsService {
   public getMetrics(): ErrorMetrics {
     const now = Date.now();
     const last24Hours = now - (24 * 60 * 60 * 1000);
-    const recentErrors = this.errorHistory.filter(e => e.timestamp > last24Hours);
-
+    const recentErrors = this.errorHistory.filter(e => e.timestamp >= last24Hours);
     const errorsByType: Record<string, number> = {};
     const errorsByComponent: Record<string, number> = {};
-    const topErrorsMap: Record<string, { count: number; lastSeen: number }> = {};
+    const topErrorsMap: Record < string, { count: number; lastSeen: number }> = {};
 
     recentErrors.forEach(entry => {
       // Count by error type
@@ -239,7 +236,7 @@ class ErrorAnalyticsService {
 
     const topErrors = Object.entries(topErrorsMap)
       .map(([message, data]) => ({ message, ...data }))
-      .sort((a, b) => b.count - a.count)
+      .sort((a, b) => b.count-a.count)
       .slice(0, 10);
 
     const uniqueUsers = new Set(recentErrors.map(e => e.userId).filter(Boolean)).size;
@@ -254,14 +251,14 @@ class ErrorAnalyticsService {
       userImpact: {
         affectedUsers: uniqueUsers,
         sessionsWithErrors: uniqueSessions,
-        averageErrorsPerSession: uniqueSessions > 0 ? recentErrors.length / uniqueSessions : 0
-      }
+        averageErrorsPerSession: uniqueSessions>0 ? recentErrors.length / uniqueSessions : 0,
+      },
     };
   }
 
   private getErrorTimeline(errors: typeof this.errorHistory): Array<{ timestamp: number; count: number }> {
-    const hourlyBuckets: Record<number, number> = {};
-    
+    const hourlyBuckets: Record < number, number> = {};
+
     errors.forEach(error => {
       const hour = Math.floor(error.timestamp / (60 * 60 * 1000)) * (60 * 60 * 1000);
       hourlyBuckets[hour] = (hourlyBuckets[hour] || 0) + 1;
@@ -269,7 +266,7 @@ class ErrorAnalyticsService {
 
     return Object.entries(hourlyBuckets)
       .map(([timestamp, count]) => ({ timestamp: parseInt(timestamp), count }))
-      .sort((a, b) => a.timestamp - b.timestamp);
+      .sort((a, b) => a.timestamp-b.timestamp);
   }
 
   public getInsights(): ErrorInsight[] {
@@ -279,16 +276,16 @@ class ErrorAnalyticsService {
     // Check for error spikes
     const timeline = metrics.errorsByTime;
     if (timeline.length >= 2) {
-      const recent = timeline[timeline.length - 1];
-      const previous = timeline[timeline.length - 2];
-      
+      const recent = timeline[timeline.length-1];
+      const previous = timeline[timeline.length-2];
+
       if (recent.count > previous.count * 2 && recent.count > 5) {
         insights.push({
           type: 'spike',
           severity: 'high',
           title: 'Error Spike Detected',
           description: `Error count increased from ${previous.count} to ${recent.count} in the last hour`,
-          recommendation: 'Investigate recent deployments or system changes'
+          recommendation: 'Investigate recent deployments or system changes',
         });
       }
     }
@@ -302,7 +299,7 @@ class ErrorAnalyticsService {
         severity: 'medium',
         title: 'Multiple New Error Types',
         description: `${newErrorTypes.size} different error types in recent activity`,
-        recommendation: 'Review recent code changes for potential issues'
+        recommendation: 'Review recent code changes for potential issues',
       });
     }
 
@@ -313,7 +310,7 @@ class ErrorAnalyticsService {
         severity: 'critical',
         title: 'High User Impact',
         description: `${metrics.userImpact.affectedUsers} users affected by errors`,
-        recommendation: 'Prioritize fixing the most common errors affecting users'
+        recommendation: 'Prioritize fixing the most common errors affecting users',
       });
     }
 
@@ -337,23 +334,23 @@ class ErrorAnalyticsService {
     }
 
     if (filters?.timeRange) {
-      results = results.filter(e => 
-        e.timestamp >= filters.timeRange!.start && 
-        e.timestamp <= filters.timeRange!.end
+      results = results.filter(e =>
+        e.timestamp >= filters.timeRange!.start &&
+        e.timestamp <= filters.timeRange!.end,
       );
     }
 
     // Apply text search
     if (query) {
       const queryLower = query.toLowerCase();
-      results = results.filter(e => 
+      results = results.filter(e =>
         e.error.message.toLowerCase().includes(queryLower) ||
         e.error.stack?.toLowerCase().includes(queryLower) ||
-        e.component?.toLowerCase().includes(queryLower)
+        e.component?.toLowerCase().includes(queryLower),
       );
     }
 
-    return results.sort((a, b) => b.timestamp - a.timestamp);
+    return results.sort((a, b) => b.timestamp-a.timestamp);
   }
 
   private getCurrentUserId(): string | undefined {
@@ -379,7 +376,7 @@ class ErrorAnalyticsService {
       errors: this.errorHistory,
       metrics: this.getMetrics(),
       insights: this.getInsights(),
-      exportedAt: new Date().toISOString()
+      exportedAt: new Date().toISOString(),
     }, null, 2);
   }
 }

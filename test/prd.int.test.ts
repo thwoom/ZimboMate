@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { writeFileSync, unlinkSync } from 'fs';
 import { resolve } from 'path';
-import { PRDService, getPRDService, getPRD } from '../src/services/prdService';
+import { PRDService, getPRDService, getPRD } from '../src / services / prdService';
 
 describe('PRD Service Integration', () => {
-  const testPrdPath = resolve(process.cwd(), 'test-service-prd.md');
+  const _testPrdPath = resolve(process.cwd(), 'test - service - prd.md');
   let service: PRDService;
 
-  const samplePRD = `# Test Service PRD
+  const _samplePRD = `# Test Service PRD
 
 ## Overview
 This is a test PRD for service integration testing.
@@ -17,31 +17,19 @@ A test product for service functionality.
 
 ## Core Features
 
-### Feature A
-- Requirement 1
-- Requirement 2
+### Feature A - Requirement 1 - Requirement 2
 
-### Feature B
-- Requirement 3
-- Requirement 4
+### Feature B - Requirement 3 - Requirement 4
 
 ## Technical Requirements
 
-### Performance
-- Fast loading
-- Efficient caching
+### Performance - Fast loading - Efficient caching
 
-### Security
-- Data validation
-- Access control
+### Security - Data validation - Access control
 
-## Success Metrics
-- 95% uptime
-- Response time < 100ms
-- Cache hit rate > 80%
+## Success Metrics - 95% uptime - Response time < 100ms - Cache hit rate > 80%
 
-## Timeline
-- Phase 1: Core service (Q1)
+## Timeline - Phase 1: Core service (Q1)
 - Phase 2: Advanced features (Q2)`;
 
   beforeEach(() => {
@@ -62,7 +50,7 @@ A test product for service functionality.
 
   describe('PRDService', () => {
     it('should load PRD and cache it', () => {
-      const prd = service.getPRD();
+      const _prd = service.getPRD();
 
       expect(prd.title).toBe('Test Service PRD');
       expect(prd.coreFeatures).toHaveLength(2);
@@ -71,23 +59,23 @@ A test product for service functionality.
 
     it('should return cached PRD on subsequent calls', () => {
       // First call should load and cache
-      const prd1 = service.getPRD();
+      const _prd1 = service.getPRD();
       const cacheStats1 = service.getCacheStats();
 
       expect(cacheStats1.size).toBe(1);
       expect(service.isCached()).toBe(true);
 
       // Second call should use cache
-      const prd2 = service.getPRD();
+      const _prd2 = service.getPRD();
       const cacheStats2 = service.getCacheStats();
 
       expect(cacheStats2.size).toBe(1); // Same cache entry
       expect(prd1).toBe(prd2); // Same object reference
     });
 
-    it('should invalidate cache when file changes', async () => {
+    it('should invalidate cache when file changes', async() => {
       // Initial load
-      const prd1 = service.getPRD();
+      const _prd1 = service.getPRD();
       expect(prd1.title).toBe('Test Service PRD');
 
       // Wait a bit to ensure different timestamps
@@ -104,30 +92,26 @@ A modified test product.
 
 ## Core Features
 
-### Modified Feature
-- Modified requirement
+### Modified Feature - Modified requirement
 
 ## Technical Requirements
 
-### Performance
-- Modified requirement
+### Performance - Modified requirement
 
-## Success Metrics
-- Modified metric
+## Success Metrics - Modified metric
 
-## Timeline
-- Phase 1: Modified timeline (Q1)`;
+## Timeline - Phase 1: Modified timeline (Q1)`;
 
       writeFileSync(testPrdPath, modifiedPRD);
 
       // Should reload due to file change
-      const prd2 = service.getPRD();
+      const _prd2 = service.getPRD();
       expect(prd2.title).toBe('Modified Test Service PRD');
       expect(prd1).not.toBe(prd2); // Different object reference
     });
 
     it('should handle multiple file paths', () => {
-      const testPrdPath2 = resolve(process.cwd(), 'test-service-prd-2.md');
+      const testPrdPath2 = resolve(process.cwd(), 'test - service - prd - 2.md');
       const samplePRD2 = `# Test Service PRD 2
 
 ## Overview
@@ -138,26 +122,22 @@ Second test product.
 
 ## Core Features
 
-### Feature C
-- Requirement 5
+### Feature C - Requirement 5
 
 ## Technical Requirements
 
-### Performance
-- Fast loading
+### Performance - Fast loading
 
-## Success Metrics
-- 90% uptime
+## Success Metrics - 90% uptime
 
-## Timeline
-- Phase 1: Core features (Q1)`;
+## Timeline - Phase 1: Core features (Q1)`;
 
       try {
         writeFileSync(testPrdPath2, samplePRD2);
 
         // Load both files
-        const prd1 = service.getPRD(testPrdPath);
-        const prd2 = service.getPRD(testPrdPath2);
+        const _prd1 = service.getPRD(testPrdPath);
+        const _prd2 = service.getPRD(testPrdPath2);
 
         expect(prd1.title).toBe('Test Service PRD');
         expect(prd2.title).toBe('Test Service PRD 2');
@@ -180,8 +160,8 @@ Second test product.
       }
     });
 
-    it('should throw error for non-existent file', () => {
-      expect(() => service.getPRD('non-existent.md')).toThrow(
+    it('should throw error for non - existent file', () => {
+      expect(() => service.getPRD('non - existent.md')).toThrow(
         'PRD file not found',
       );
     });
@@ -196,7 +176,7 @@ Second test product.
       expect(service.isCached()).toBe(false);
 
       // Should reload
-      const prd2 = service.getPRD();
+      const _prd2 = service.getPRD();
       expect(prd2.title).toBe('Test Service PRD');
       expect(service.isCached()).toBe(true);
     });
@@ -243,8 +223,8 @@ Second test product.
     });
 
     it('should use singleton for convenience function', () => {
-      const prd1 = getPRD(testPrdPath);
-      const prd2 = getPRD(testPrdPath);
+      const _prd1 = getPRD(testPrdPath);
+      const _prd2 = getPRD(testPrdPath);
 
       expect(prd1).toBe(prd2); // Same cached object
       expect(prd1.title).toBe('Test Service PRD');

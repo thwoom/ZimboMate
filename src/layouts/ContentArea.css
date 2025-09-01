@@ -21,7 +21,7 @@
   color: var(--color-text-primary);
 }
 
-/* Auxiliary button removed - functionality moved to UnifiedQuickTools */
+/* Auxiliary button removed-functionality moved to UnifiedQuickTools */
 
 .content-area__debug-button {
   padding: 0.5rem;

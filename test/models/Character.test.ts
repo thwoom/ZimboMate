@@ -14,8 +14,8 @@ import {
   getClassBaseLoad,
   getClassDamageDie,
   calculateMaxHP,
-  calculateMaxLoad
-} from '../../src/models/Character';
+  calculateMaxLoad,
+} from '../../src / models / Character';
 
 describe('Character Model', () => {
   describe('getAttributeModifier', () => {
@@ -37,15 +37,15 @@ describe('Character Model', () => {
 
   describe('getEffectiveModifier', () => {
     const attributes = {
-      STR: 16, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+      STR: 16, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8,
     };
 
     it('should return base modifier when no debilities', () => {
-      const debilities = {
+      const _debilities = {
         weak: false, shaky: false, sick: false,
-        stunned: false, confused: false, scarred: false
+        stunned: false, confused: false, scarred: false,
       };
-      
+
       expect(getEffectiveModifier('STR', attributes, debilities)).toBe(2);
       expect(getEffectiveModifier('DEX', attributes, debilities)).toBe(1);
       expect(getEffectiveModifier('CHA', attributes, debilities)).toBe(-1);
@@ -54,9 +54,9 @@ describe('Character Model', () => {
     it('should apply debility penalties', () => {
       const debilities = {
         weak: true, shaky: true, sick: false,
-        stunned: false, confused: false, scarred: true
+        stunned: false, confused: false, scarred: true,
       };
-      
+
       expect(getEffectiveModifier('STR', attributes, debilities)).toBe(1); // 2 - 1
       expect(getEffectiveModifier('DEX', attributes, debilities)).toBe(0); // 1 - 1
       expect(getEffectiveModifier('CHA', attributes, debilities)).toBe(-2); // -1 - 1
@@ -71,22 +71,22 @@ describe('Character Model', () => {
     });
 
     it('should correctly determine if character should level up', () => {
-      const character = {
+      const _character = {
         level: 3,
-        xp: 9
+        xp: 9,
       } as Character;
-      
+
       expect(shouldLevelUp(character)).toBe(false); // 9 < 10
-      
+
       character.xp = 10;
       expect(shouldLevelUp(character)).toBe(true); // 10 >= 10
-      
+
       character.xp = 15;
       expect(shouldLevelUp(character)).toBe(true); // 15 >= 10
     });
   });
 
-  describe('Class-specific values', () => {
+  describe('Class - specific values', () => {
     it('should return correct base HP for each class', () => {
       expect(getClassBaseHP('Fighter')).toBe(10);
       expect(getClassBaseHP('Wizard')).toBe(4);
@@ -121,7 +121,7 @@ describe('Character Model', () => {
         attributes: { STR: 16, DEX: 14, CON: 15, INT: 10, WIS: 12, CHA: 8 },
         debilities: {
           weak: false, shaky: false, sick: false,
-          stunned: false, confused: false, scarred: false
+          stunned: false, confused: false, scarred: false,
         },
         hp: { current: 10, max: 10 },
         armor: 0,
@@ -135,13 +135,13 @@ describe('Character Model', () => {
         knownMoves: [],
         conditions: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Fighter base HP (10) + CON modifier (15 = +1) = 11
       expect(calculateMaxHP(character)).toBe(11);
 
-      // With sick debility (CON -1)
+      // With sick debility (CON - 1)
       character.debilities.sick = true;
       expect(calculateMaxHP(character)).toBe(10); // 10 + 0
 
@@ -152,14 +152,14 @@ describe('Character Model', () => {
 
       // Very low CON with debility
       character.attributes.CON = 3; // -3 modifier
-      character.debilities.sick = true; // additional -1
+      character.debilities.sick = true; // additional - 1
       // Fighter base HP (10) + CON modifier (-3) + debility (-1) = 6
       expect(calculateMaxHP(character)).toBe(6);
 
       // Test minimum HP safeguard with Wizard (base HP 4)
       character.class = 'Wizard';
       character.attributes.CON = 3; // -3 modifier
-      character.debilities.sick = true; // additional -1
+      character.debilities.sick = true; // additional - 1
       // Wizard base HP (4) + CON modifier (-3) + debility (-1) = 0, but min is 1
       expect(calculateMaxHP(character)).toBe(1);
     });
@@ -177,7 +177,7 @@ describe('Character Model', () => {
         attributes: { STR: 16, DEX: 14, CON: 15, INT: 10, WIS: 12, CHA: 8 },
         debilities: {
           weak: false, shaky: false, sick: false,
-          stunned: false, confused: false, scarred: false
+          stunned: false, confused: false, scarred: false,
         },
         hp: { current: 10, max: 10 },
         armor: 0,
@@ -191,13 +191,13 @@ describe('Character Model', () => {
         knownMoves: [],
         conditions: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Fighter base load (12) + STR modifier (16 = +2) = 14
       expect(calculateMaxLoad(character)).toBe(14);
 
-      // With weak debility (STR -1)
+      // With weak debility (STR - 1)
       character.debilities.weak = true;
       expect(calculateMaxLoad(character)).toBe(13); // 12 + 1
 
@@ -208,7 +208,7 @@ describe('Character Model', () => {
 
       // Very low STR (should never go below 1)
       character.attributes.STR = 3; // -3 modifier
-      character.debilities.weak = true; // additional -1
+      character.debilities.weak = true; // additional - 1
       expect(calculateMaxLoad(character)).toBe(8); // 12 - 4 = 8 (not below 1)
     });
   });

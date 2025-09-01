@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy, useRef } from 'react';
 import { PanelProps } from './Panel';
 import { panelRegistry } from './PanelRegistry';
 import { panelStateManager } from './PanelState';
+import { performanceMonitor } from '../utils/PerformanceMonitor';
+import { panelRecoveryManager } from '../utils/panelRecovery';
+import ErrorBoundary from '../components/ErrorBoundary';
 import './PanelRouter.css';
 
 interface PanelRouterProps {
@@ -18,91 +21,274 @@ interface PanelRouterProps {
 }
 
 interface PanelStates {
-  [panelId: string]: any;
+  [panelId: string]: unknown;
 }
 
+// Performance optimization: Memoized loading component
+const DefaultLoadingComponent = React.memo(() => (
+  <div className="panel-loading">
+    <div className="panel-loading__spinner" />
+    <div className="panel-loading__text">Loading...</div>
+  </div>
+));
+
+// Performance optimization: Memoized error component
+const DefaultErrorComponent = React.memo(() => (
+  <div className="panel-error">
+    <div className="panel-error__icon">⚠️</div>
+    <div className="panel-error__text">Failed to load panel</div>
+    <button
+      onClick={() => panelRecoveryManager.performRecovery()}
+      style={{ marginTop: '10px', padding: '5px 10px' }}
+    >
+      🔄 Recover
+    </button>
+  </div>
+));
+
 /**
- * Component that handles panel routing and rendering
+ * Component that handles panel routing and rendering with performance optimizations
  */
-export const PanelRouter: React.FC<PanelRouterProps> = ({
+export const PanelRouter: React.FC < PanelRouterProps> = ({
   activePanelId,
   onPanelChange,
-  loadingComponent = <div className="panel-loading">Loading...</div>,
-  errorComponent = <div className="panel-error">Failed to load panel</div>,
+  loadingComponent = <DefaultLoadingComponent />,
+  errorComponent = <DefaultErrorComponent />,
   enableTransitions = true,
 }) => {
-  const [panelStates, setPanelStates] = useState<PanelStates>({});
+  const [panelStates, setPanelStates] = useState < PanelStates>({});
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [previousPanelId, setPreviousPanelId] = useState<string | null>(null);
+  const [previousPanelId, setPreviousPanelId] = useState < string | null>(null);
+  const [loadedPanels, setLoadedPanels] = useState < Set < string>>(new Set());
+  const [panelErrors, setPanelErrors] = useState < Map < string, Error>>(new Map());
 
-  // Load initial states from storage
+  // Use refs to track initialization and prevent infinite loops
+  const initializedPanels = useRef < Set < string>>(new Set());
+  const isInitializing = useRef < boolean>(false);
+  const isProcessing = useRef < boolean>(false);
+  const lastActivatedPanel = useRef < string | null>(null);
+
+  // Performance optimization: Debounced state saving
+  const debouncedSaveState = useCallback(
+    debounce((panelId: string, state: unknown) => {
+      try {
+        panelStateManager.saveState(panelId, state);
+      } catch (error) {
+        }
+    }, 300),
+    [],
+  );
+
+  // Load initial states from storage with error handling
   useEffect(() => {
+    if (isInitializing.current) return;
+    isInitializing.current = true;
+
     const loadedStates: PanelStates = {};
-    panelRegistry.getAllPanels().forEach(panel => {
-      const savedState = panelStateManager.loadState(panel.metadata.id);
-      if (savedState) {
-        loadedStates[panel.metadata.id] = savedState;
-      } else if (panel.getInitialState) {
-        loadedStates[panel.metadata.id] = panel.getInitialState();
+    const allPanels = panelRegistry.getAllPanels();
+
+    if (process.env.NODE_ENV === 'development') {
+      }
+
+    allPanels.forEach(panel => {
+      try {
+        const savedState = panelStateManager.loadState(panel.metadata.id);
+        if (savedState) {
+          loadedStates[panel.metadata.id] = savedState;
+        } else if (panel.getInitialState) {
+          loadedStates[panel.metadata.id] = panel.getInitialState();
+        }
+      } catch (error) {
+        // Clear corrupted state
+        panelStateManager.clearState(panel.metadata.id);
+        // Use initial state if available
+        if (panel.getInitialState) {
+          loadedStates[panel.metadata.id] = panel.getInitialState();
+        }
       }
     });
+
     setPanelStates(loadedStates);
+    isInitializing.current = false;
   }, []);
 
-  // Handle panel state changes
-  const handlePanelStateChange = useCallback((panelId: string, state: any) => {
-    setPanelStates(prev => ({
-      ...prev,
-      [panelId]: state,
-    }));
-    // Save to localStorage
-    panelStateManager.saveState(panelId, state);
-  }, []);
+  // Handle panel state changes with debouncing and error handling
+  const handlePanelStateChange = useCallback((panelId: string, state: unknown) => {
+    try {
+      setPanelStates(prev => ({
+        ...prev,
+        [panelId]: state,
+      }));
+      // Debounced save to localStorage for better performance
+      debouncedSaveState(panelId, state);
+    } catch (error) {
+      }
+  }, [debouncedSaveState]);
 
-  // Handle panel activation
+  // Performance optimization: Preload adjacent panels-STABILIZED with useCallback
+  const preloadAdjacentPanels = useCallback((currentPanelId: string) => {
+    try {
+      const allPanels = panelRegistry.getAllPanels();
+      const currentIndex = allPanels.findIndex(p => p.metadata.id === currentPanelId);
+
+      if (currentIndex !== -1) {
+        const adjacentPanels = [
+          allPanels[currentIndex-1]?.metadata.id,
+          allPanels[currentIndex + 1]?.metadata.id,
+        ].filter(Boolean) as string[];
+
+        adjacentPanels.forEach(panelId => {
+          if (!loadedPanels.has(panelId)) {
+            setLoadedPanels(prev => new Set(prev).add(panelId));
+          }
+        });
+      }
+    } catch (error) {
+      }
+  }, [loadedPanels]);
+
+  // Handle panel activation with performance optimizations and error handling
   useEffect(() => {
+    // Prevent infinite loops by checking if we're already processing
+    if (isProcessing.current) {
+      return;
+    }
+
+    // Prevent duplicate activations for the same panel
+    if (lastActivatedPanel.current === activePanelId) {
+      return;
+    }
+
+    isProcessing.current = true;
+
     const panel = panelRegistry.getPanel(activePanelId);
-    if (panel) {
-      // Handle transition
+    if (!panel) {
+      setPanelErrors(prev => new Map(prev).set(activePanelId, new Error(`Panel not found: ${activePanelId}`)));
+      isProcessing.current = false;
+      return;
+    }
+
+    // Clear unknown previous errors for this panel
+    setPanelErrors(prev => {
+      const newErrors = new Map(prev);
+      newErrors.delete(activePanelId);
+      return newErrors;
+    });
+
+    try {
+      // Start performance monitoring for panel switch
+      const endPanelSwitch = performanceMonitor.startPanelSwitch();
+
+      // Mark panel as loaded
+      setLoadedPanels(prev => new Set(prev).add(activePanelId));
+
+      // Handle transition with optimized timing
       if (enableTransitions && previousPanelId && previousPanelId !== activePanelId) {
         setIsTransitioning(true);
-        setTimeout(() => setIsTransitioning(false), 300); // Match CSS transition duration
+        // Use requestAnimationFrame for smoother transitions
+        requestAnimationFrame(() => {
+          setTimeout(() => setIsTransitioning(false), 250); // Reduced from 300ms
+        });
       }
 
-      // Deactivate previous panel
+      // Deactivate previous panel with error handling
       if (previousPanelId && previousPanelId !== activePanelId) {
         const prevPanel = panelRegistry.getPanel(previousPanelId);
         if (prevPanel?.onDeactivate) {
-          prevPanel.onDeactivate();
+          try {
+            prevPanel.onDeactivate();
+          } catch (error) {
+            }
         }
       }
 
-      // Activate new panel
+      // Activate new panel with error handling
       if (panel.onActivate) {
-        panel.onActivate();
+        try {
+          panel.onActivate();
+        } catch (error) {
+          }
       }
 
-      // Initialize panel state if not exists
-      if (!panelStates[activePanelId] && panel.getInitialState) {
-        setPanelStates(prev => ({
-          ...prev,
-          [activePanelId]: panel.getInitialState!(),
-        }));
+      // Initialize panel state if not exists and not already initialized
+      if (!initializedPanels.current.has(activePanelId) && panel.getInitialState) {
+        try {
+          setPanelStates(prev => {
+            if (!prev[activePanelId]) {
+              initializedPanels.current.add(activePanelId);
+              return {
+                ...prev,
+                [activePanelId]: panel.getInitialState!(),
+              };
+            }
+            return prev;
+          });
+        } catch (error) {
+          }
       }
 
       setPreviousPanelId(activePanelId);
+      lastActivatedPanel.current = activePanelId;
+
+      // Preload adjacent panels for faster navigation
+      preloadAdjacentPanels(activePanelId);
 
       // Notify parent
       if (onPanelChange) {
         onPanelChange(activePanelId);
       }
+
+      // End performance monitoring
+      endPanelSwitch();
+
+      // Only log in development mode to reduce console noise
+      if (process.env.NODE_ENV === 'development') {
+        }
+    } catch (error) {
+      setPanelErrors(prev => new Map(prev).set(activePanelId, error instanceof Error ? error : new Error(String(error))));
+    } finally {
+      // Always reset the processing flag
+      isProcessing.current = false;
     }
-  }, [activePanelId, previousPanelId, panelStates, onPanelChange, enableTransitions]);
+  }, [activePanelId, onPanelChange, enableTransitions]); // Removed previousPanelId from dependencies to prevent loops
 
   // Get the active panel
   const activePanel = panelRegistry.getPanel(activePanelId);
   if (!activePanel) {
-    return <div className="panel-not-found">Panel not found: {activePanelId}</div>;
+    return (
+      <div className="panel-not-found">
+        <div > Panel not found: {activePanelId}</div>
+        <button
+          onClick={() => panelRecoveryManager.performRecovery()}
+          style={{ marginTop: '10px', padding: '5px 10px' }}
+        >
+          🔄 Recover Panels
+        </button>
+      </div>
+    );
+  }
+
+  // Check if this panel has an error
+  const panelError = panelErrors.get(activePanelId);
+  if (panelError) {
+    return (
+      <div className="panel-error">
+        <div className="panel-error__icon">⚠️</div>
+        <div className="panel-error__text">Error loading panel: {panelError.message}</div>
+        <button
+          onClick={() => {
+            setPanelErrors(prev => {
+              const newErrors = new Map(prev);
+              newErrors.delete(activePanelId);
+              return newErrors;
+            });
+          }}
+          style={{ marginTop: '10px', padding: '5px 10px' }}
+        >
+          🔄 Retry
+        </button>
+      </div>
+    );
   }
 
   const PanelComponent = activePanel.component;
@@ -114,10 +300,15 @@ export const PanelRouter: React.FC<PanelRouterProps> = ({
   };
 
   return (
-    <div 
+    <div
       className={`panel-router ${isTransitioning ? 'panel-router--transitioning' : ''}`}
     >
-      <ErrorBoundary fallback={errorComponent}>
+      <ErrorBoundary
+        fallback={errorComponent}
+        onError={(error: Error, errorInfo: React.ErrorInfo) => {
+          setPanelErrors(prev => new Map(prev).set(activePanelId, error));
+        }}
+      >
         <Suspense fallback={loadingComponent}>
           <div className="panel-container">
             <PanelComponent {...panelProps} panelState={panelStates[activePanelId]} />
@@ -129,30 +320,15 @@ export const PanelRouter: React.FC<PanelRouterProps> = ({
 };
 
 /**
- * Error boundary for panel rendering
+ * Debounce utility for performance optimization
  */
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode; fallback: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(): { hasError: boolean } {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Panel error:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <>{this.props.fallback}</>;
-    }
-
-    return this.props.children;
-  }
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number,
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
 }

@@ -1,0 +1,395 @@
+tasks:
+  - id: T-012
+    title: Implement Lore / Journal Panel
+    intent: Implement the lore / journal panel feature as specified in the PRD
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-006
+    steps:
+      - Implement record session logs and journal entries
+      - Implement store world lore and reference information
+      - Implement track bonds and alignment
+      - Implement support searchable reference
+    acceptance:
+      - All lore / journal panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/LoreJournalPanel/
+      - test/panels/LoreJournalPanel.test.ts
+  - id: T-044
+    title: "Complete Phase 3: Polish and optimization (Q3) A two-column or
+      three-zone approach works well for desktop: one section remains persistent
+      for vital stats, while other sections display context-specific
+      information[1]. For example, a left sidebar can hold always-visible
+      character vitals (HP, stats, etc.) and shortcut actions, and a main area
+      to the right can switch between panels like Moves, Inventory, or Notes[2].
+      A right-hand drawer or pop-up panel can be used for auxiliary tools (dice
+      roller, quick notes) that slide in when needed and hide otherwise. This
+      ensures the player isn't constantly changing screens – most actions and
+      info are accessible at a glance or a single click, reflecting Dungeon
+      World's fast-paced, fiction-first gameplay."
+    intent: "Complete  for phase 3: polish and optimization (q3) a two-column or
+      three-zone approach works well for desktop: one section remains persistent
+      for vital stats, while other sections display context-specific
+      information[1]. for example, a left sidebar can hold always-visible
+      character vitals (hp, stats, etc.) and shortcut actions, and a main area
+      to the right can switch between panels like moves, inventory, or notes[2].
+      a right-hand drawer or pop-up panel can be used for auxiliary tools (dice
+      roller, quick notes) that slide in when needed and hide otherwise. this
+      ensures the player isn't constantly changing screens – most actions and
+      info are accessible at a glance or a single click, reflecting dungeon
+      world's fast-paced, fiction-first gameplay."
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - "Plan "
+      - "Implement "
+      - "Test "
+      - "Deploy "
+    acceptance:
+      - "Phase 3: Polish and optimization (Q3) A two-column or three-zone
+        approach works well for desktop: one section remains persistent for
+        vital stats, while other sections display context-specific
+        information[1]. For example, a left sidebar can hold always-visible
+        character vitals (HP, stats, etc.) and shortcut actions, and a main area
+        to the right can switch between panels like Moves, Inventory, or
+        Notes[2]. A right-hand drawer or pop-up panel can be used for auxiliary
+        tools (dice roller, quick notes) that slide in when needed and hide
+        otherwise. This ensures the player isn't constantly changing screens –
+        most actions and info are accessible at a glance or a single click,
+        reflecting Dungeon World's fast-paced, fiction-first gameplay. is
+        completed on time"
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/phase-3:-polish-and-optimization-(q3)-a-two-column-or-three-zone-approach-works-well-for-desktop:-one-section-remains-persistent-for-vital-stats,-while-other-sections-display-context-specific-information[1].-for-example,-a-left-sidebar-can-hold-always-visible-character-vitals-(hp,-stats,-etc.)-and-shortcut-actions,-and-a-main-area-to-the-right-can-switch-between-panels-like-moves,-inventory,-or-notes[2].-a-right-hand-drawer-or-pop-up-panel-can-be-used-for-auxiliary-tools-(dice-roller,-quick-notes)-that-slide-in-when-needed-and-hide-otherwise.-this-ensures-the-player-isn't-constantly-changing-screens-–-most-actions-and-info-are-accessible-at-a-glance-or-a-single-click,-reflecting-dungeon-world's-fast-paced,-fiction-first-gameplay.-deliverables.md
+  - id: T-048
+    title: Complete Dungeon World SRD (Load and encumbrance rules; XP and Level Up
+      guidelines)[9][7]
+    intent: Complete  for dungeon world srd (load and encumbrance rules; xp and
+      level up guidelines)[9][7]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - "Plan "
+      - "Implement "
+      - "Test "
+      - "Deploy "
+    acceptance:
+      - Dungeon World SRD (Load and encumbrance rules; XP and Level Up
+        guidelines)[9][7] is completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/dungeon-world-srd-(load-and-encumbrance-rules;-xp-and-level-up-guidelines)[9][7]-deliverables.md
+  - id: T-049
+    title: Complete Roll20 Dungeon World guide (item tags and equip mechanics)[35][5]
+    intent: Complete  for roll20 dungeon world guide (item tags and equip
+      mechanics)[35][5]
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - milestone
+      - planning
+    deps: []
+    steps:
+      - "Plan "
+      - "Implement "
+      - "Test "
+      - "Deploy "
+    acceptance:
+      - Roll20 Dungeon World guide (item tags and equip mechanics)[35][5] is
+        completed on time
+      - All deliverables are ready
+      - Stakeholder approval received
+    artifacts:
+      - docs/roll20-dungeon-world-guide-(item-tags-and-equip-mechanics)[35][5]-deliverables.md
+  - id: T-174
+    title: Replace Alerts/Prompts with Toasters
+    description: Remove remaining alert/prompt usage in spellcasting; adopt inline
+      or toast errors
+    status: open
+    priority: P3
+    category: ux
+    estimated_hours: 3
+    dependencies: []
+    acceptance:
+      - All transient errors shown inline or via toast
+      - No alert()/prompt() used
+    deps: []
+    labels: []
+  - id: T-175
+    title: Audit Other Casters for DW Compliance
+    description: Audit and align non-Wizard/Cleric casters (e.g., Immolator) with DW rules
+    status: open
+    priority: P3
+    category: rules-compliance
+    estimated_hours: 5
+    dependencies:
+      - T-026
+    acceptance:
+      - Class spellcasting rules documented and enforced where applicable
+      - Integration with existing character creation flow
+      - Backwards compatibility with level 1 characters
+      - Advanced character templates for higher levels
+    features:
+      - Level Selection Interface:
+          - Dropdown/slider for level selection (1-10+)
+          - Dynamic XP calculation based on level
+          - Starting resources scaling (HP, spells, gear, coin)
+          - Level-appropriate starting equipment suggestions
+      - Advancement System:
+          - Move selection with level prerequisites
+          - Attribute advancement choices (+1 to any stat)
+          - Class-specific advancement options
+          - Multiclass move selection from other classes
+          - Advanced move unlocking at higher levels
+      - Spell Progression:
+          - Automatic spell slot calculation for casters
+          - Spell selection interface for known spells
+          - Cantrip vs leveled spell distinction
+          - Spell preparation for prepared casters
+          - Ritual and utility spell access
+      - Equipment Scaling:
+          - Higher-level starting equipment packages
+          - Magic item integration for advanced characters
+          - Wealth-by-level guidelines
+          - Equipment upgrade paths and suggestions
+      - Validation & Balance:
+          - Legal advancement path validation
+          - Move prerequisite checking
+          - Multiclass restriction enforcement
+          - Power level balance warnings
+          - Build optimization suggestions
+      - Advanced Templates:
+          - Pre-built higher level character templates
+          - Popular multiclass combinations
+          - Specialized build archetypes
+          - Campaign-specific character options
+    technical_implementation:
+      - AdvancementService for level progression logic
+      - MovePrerequisiteService for move validation
+      - SpellProgressionService for caster advancement
+      - EquipmentScalingService for gear recommendations
+      - Enhanced character creation wizard with level steps
+      - Advanced validation integration
+      - Template system extensions for higher levels
+    files_to_create:
+      - src/services/AdvancementService.ts
+      - src/services/MovePrerequisites.ts
+      - src/services/SpellProgression.ts
+      - src/services/EquipmentScaling.ts
+      - src/data/advancementData.ts
+      - src/data/movePrerequisites.ts
+      - src/data/spellProgression.ts
+      - src/components/LevelSelector.tsx
+      - src/components/AdvancementSelector.tsx
+      - src/components/SpellSelector.tsx
+      - src/panels/CharacterCreationPanel/steps/LevelStep.tsx
+      - src/panels/CharacterCreationPanel/steps/AdvancementStep.tsx
+      - src/panels/CharacterCreationPanel/steps/SpellProgressionStep.tsx
+    files_to_modify:
+      - src/panels/CharacterCreationPanel/CharacterCreationPanel.tsx
+      - src/models/Character.ts
+      - src/services/CharacterValidation.ts
+      - src/services/CharacterTemplateService.ts
+      - src/data/classStartingData.ts
+    deps: []
+    labels: []
+  - id: T-202
+    title: Implement Character Retirement and Achievement System
+    intent: Create system for retiring characters with achievement tracking and
+      legacy features
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - character-lifecycle
+      - achievements
+      - legacy
+    deps:
+      - T-013
+      - T-196
+    steps:
+      - Create character retirement workflow and ceremony
+      - Implement achievement tracking for character accomplishments
+      - Build legacy system for retired character influence
+      - Add character hall of fame and memorial features
+      - Create retirement benefits and bonuses for new characters
+      - Implement character story completion tracking
+      - Add retirement statistics and career summaries
+      - Create character legacy export and sharing features
+    acceptance:
+      - Characters can be properly retired with ceremony and recognition
+      - Achievements track meaningful character accomplishments
+      - Retired characters provide benefits or inspiration for new characters
+      - Character legacies are preserved and can be referenced
+      - Retirement process feels meaningful and celebratory
+      - Character stories have proper narrative closure
+    artifacts:
+      - src/components/CharacterRetirement.tsx
+      - src/services/AchievementService.ts
+      - src/models/Achievement.ts
+      - src/data/achievementDefinitions.ts
+      - test/services/AchievementService.test.ts
+  - id: T-206
+    title: Implement Character Portrait and Visualization System
+    intent: Create character appearance management with portraits, equipment
+      visualization, and appearance tracking
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - character
+      - visualization
+      - appearance
+    deps:
+      - T-013
+    steps:
+      - Build character portrait upload and management system
+      - Create equipment visualization showing equipped gear
+      - Implement appearance description generator and editor
+      - Add character appearance change tracking over time
+      - Create portrait gallery and collection management
+      - Implement appearance export for sharing and printing
+      - Add appearance integration with character creation flow
+      - Create appearance templates and style guides
+    acceptance:
+      - Users can upload and manage character portraits
+      - Equipment changes are reflected in character visualization
+      - Appearance descriptions can be generated and customized
+      - Character appearance evolution is tracked over time
+      - Portrait management is intuitive and supports multiple images
+      - Appearance data integrates with character export/import
+    artifacts:
+      - src/components/CharacterPortrait.tsx
+      - src/components/EquipmentVisualization.tsx
+      - src/services/CharacterVisualizationService.ts
+      - src/utils/appearanceGeneration.ts
+      - test/services/CharacterVisualizationService.test.ts
+  - id: T-208
+    title: Implement Enhanced Randomization and Generator Tools
+    intent: Expand random generation capabilities with DW-appropriate tables and
+      generators
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - randomization
+      - generators
+      - content-creation
+    deps:
+      - T-013
+    steps:
+      - Expand existing RandomGenerators with more comprehensive tables
+      - Create treasure and loot generators appropriate to character level
+      - Build encounter seed generators for adventure inspiration
+      - Implement weather and environment generators
+      - Add NPC generator with motivations and quirks
+      - Create location generator with interesting features
+      - Build random event generators for travel and exploration
+      - Implement custom table creation and management
+    acceptance:
+      - Random generators produce DW-appropriate content for all categories
+      - Generated content scales appropriately to character level
+      - Custom random tables can be created and shared
+      - All generators follow DW tone and style guidelines
+      - Generated content integrates with existing character and campaign data
+      - Generators provide inspiration without replacing creative decision-making
+    artifacts:
+      - src/services/EnhancedRandomGenerators.ts
+      - src/components/RandomGeneratorPanel.tsx
+      - src/data/randomTables.ts
+      - src/utils/contentGeneration.ts
+      - test/services/EnhancedRandomGenerators.test.ts
+  - id: T-209
+    title: Create Character Sheet PDF Export System
+    intent: Build beautiful, printable character sheet generation for table play and
+      sharing
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - export
+      - pdf
+      - printing
+    deps:
+      - T-013
+      - T-032
+    steps:
+      - Design printable character sheet layouts following DW official format
+      - Implement PDF generation with character data population
+      - Create multiple sheet styles (official, compact, themed)
+      - Add thematic skin support for PDF exports (traditional vs chronopunk)
+      - Implement batch export for multiple characters
+      - Create print optimization and page layout options
+      - Add watermarking and customization options
+      - Implement PDF export settings and preferences
+    acceptance:
+      - Generated PDFs match official DW character sheet layout and quality
+      - All character data is accurately represented in PDF format
+      - Multiple sheet styles provide options for different use cases
+      - Thematic skins are properly reflected in PDF exports
+      - Print quality is high and suitable for table use
+      - Export process is fast and reliable for all character types
+    artifacts:
+      - src/services/PDFExportService.ts
+      - src/components/PDFExportOptions.tsx
+      - src/templates/characterSheetLayouts.ts
+      - src/utils/pdfGeneration.ts
+      - test/services/PDFExportService.test.ts
+  - id: T-222
+    title: Character Performance Analytics and Insights
+    intent: Provide players with detailed analytics and insights about their
+      character's performance and development
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - feature
+      - analytics
+      - insights
+      - player-tools
+    deps:
+      - T-219
+      - T-221
+    steps:
+      - Implement character performance tracking and metrics
+      - Create move usage analytics and effectiveness analysis
+      - Add equipment usage and effectiveness tracking
+      - Implement character development trend analysis
+      - Create performance comparison and benchmarking tools
+      - Add personalized improvement recommendations
+    acceptance:
+      - Performance analytics provide clear insights into character effectiveness
+      - Move usage analytics help optimize character actions
+      - Equipment effectiveness tracking guides equipment choices
+      - Development trends show character growth patterns
+      - Performance comparison helps identify areas for improvement
+    artifacts:
+      - src/components/PerformanceAnalytics.tsx
+      - src/services/PerformanceAnalyticsService.ts
+      - src/data/analyticsMetrics.ts
+      - src/utils/performanceAnalysis.ts
+      - test/services/PerformanceAnalyticsService.test.ts

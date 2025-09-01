@@ -1,50 +1,124 @@
+/* Panel Router Styles */
 .panel-router {
   height: 100%;
   width: 100%;
   position: relative;
-  overflow: visible; /* Allow content to determine overflow behavior */
+  overflow: hidden;
+}
+
+.panel-router--transitioning {
+  pointer-events: none;
 }
 
 .panel-container {
   height: 100%;
   width: 100%;
-  opacity: 1;
-  transform: translateX(0);
-  transition: opacity var(--transition-medium), transform var(--transition-medium);
+  position: relative;
 }
 
-.panel-router--transitioning .panel-container {
-  opacity: 0.5;
-  transform: translateX(10px);
-}
-
+/* Performance-optimized loading component */
 .panel-loading {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  font-size: 1.125rem;
+  min-height: 200px;
   color: var(--color-text-secondary);
+  font-size: 0.875rem;
 }
 
+.panel-loading__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top: 3px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.panel-loading__text {
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Performance-optimized error component */
 .panel-error {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
+  min-height: 200px;
   color: var(--color-danger);
-  font-size: 1.125rem;
   text-align: center;
-  padding: var(--spacing-xl);
+  padding: 2rem;
 }
 
+.panel-error__icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.panel-error__text {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Panel not found state */
 .panel-not-found {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
   color: var(--color-text-secondary);
-  font-size: 1.125rem;
-  text-align: center;
-  padding: var(--spacing-xl);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Enhanced transitions */
+.panel-router {
+  transition: opacity 0.25s ease-in-out;
+}
+
+.panel-router--transitioning {
+  opacity: 0.7;
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+  .panel-loading,
+  .panel-error {
+    min-height: 150px;
+    padding: 1rem;
+  }
+  
+  .panel-loading__spinner {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+  }
+  
+  .panel-error__icon {
+    font-size: 1.5rem;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .panel-loading__spinner {
+    animation: none;
+  }
+  
+  .panel-router,
+  .panel-router--transitioning {
+    transition: none;
+  }
 }

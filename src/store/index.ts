@@ -11,7 +11,7 @@ export {
   useMoves,
   useSession,
   useUIState,
-  useSettings
+  useSettings,
 } from './GameStore';
 
 // Hook exports
@@ -19,7 +19,7 @@ export {
   useCharacterActions,
   useInventoryActions,
   useRollActions,
-  useCharacterStats
+  useCharacterStats,
 } from './hooks';
 
 // Validation hook exports
@@ -28,7 +28,7 @@ export {
   useValidatedItemOperations,
   useValidatedMoveOperations,
   useCharacterAdvancement,
-  useGameStateValidation
+  useGameStateValidation,
 } from './validationHooks';
 
 // Calculation hook exports
@@ -41,5 +41,5 @@ export {
   useAttributeCalculations,
   useOptimizationSuggestions,
   useAutoCalculate,
-  useXPCalculations
+  useXPCalculations,
 } from './calculationHooks';

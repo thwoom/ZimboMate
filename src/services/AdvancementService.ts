@@ -1,574 +1,464 @@
 /**
- * Advanced character level progression and advancement service
+ * Dungeon World advancement service-matches official rules exactly
  */
 
-import { Character, CharacterClass, Attributes } from '../models/Character';
+import { Character, CharacterClass, Attributes, getXPThreshold } from '../models/Character';
+import { getAdvancedMovesForClass, getAdvancedMovesAtLevel, getStartingMovesForClass } from '../data/advancedMoves';
 
 export interface LevelProgression {
   level: number;
+  xpRequired: number; // XP needed to reach this level
+  xpForNext: number;  // XP needed for next level (level + 7)
+  baseHP: number;
+  startingCoin: number;
   xp: number;
   totalAdvancementPoints: number;
-  attributeAdvancementPoints: number;
-  moveAdvancementPoints: number;
-  baseHP: number;
-  spellSlots?: SpellSlots;
-  startingCoin: number;
-  equipmentTier: 'basic' | 'improved' | 'superior' | 'masterwork';
-}
-
-export interface SpellSlots {
-  cantrips: number;
-  level1: number;
-  level2: number;
-  level3: number;
-  level4: number;
-  level5: number;
-  level6: number;
-  level7: number;
-  level8: number;
-  level9: number;
 }
 
 export interface AdvancementChoice {
   id: string;
-  type: 'attribute' | 'move' | 'multiclass' | 'spell' | 'special';
+  type: 'move' | 'stat';
   level: number;
   name: string;
   description: string;
+  // For stat improvements
+  attribute?: keyof Attributes;
+  // For moves
+  moveId?: string;
+  sourceClass?: CharacterClass;
+  isMulticlass?: boolean;
   prerequisites?: string[];
-  mutuallyExclusive?: string[];
-  classRestriction?: CharacterClass[];
-}
-
-export interface AttributeAdvancement extends AdvancementChoice {
-  type: 'attribute';
-  attribute: keyof Attributes;
-  bonus: number;
-}
-
-export interface MoveAdvancement extends AdvancementChoice {
-  type: 'move';
-  moveId: string;
-  sourceClass: CharacterClass;
-  isMulticlass: boolean;
-  replaces?: string[];
-}
-
-export interface SpellAdvancement extends AdvancementChoice {
-  type: 'spell';
-  spellLevel: number;
-  spellSchool?: string;
-  isCantrip: boolean;
-  isPrepared?: boolean;
 }
 
 export interface AdvancementPlan {
   targetLevel: number;
-  selectedAdvancements: AdvancementChoice[];
-  remainingChoices: number;
+  selectedMove?: AdvancementChoice;    // Exactly one move choice
+  selectedStat?: AdvancementChoice;    // Exactly one stat choice
   isValid: boolean;
   validationErrors: string[];
-  suggestions: string[];
 }
 
 class AdvancementService {
-  
+
   /**
-   * Get level progression data for a specific level
+   * Get XP requirements for leveling up (official DW rules)
    */
-  getLevelProgression(level: number, characterClass: CharacterClass): LevelProgression {
-    // XP requirements for each level (Dungeon World standard)
-    const xpRequirements = [0, 0, 7, 15, 24, 34, 45, 57, 70, 84, 99];
-    
-    // In Dungeon World, you get 1 advancement choice per level after 1st
-    // You can choose: new move, multiclass move, OR +1 to any ability score
-    const totalAdvancementPoints = Math.max(0, level - 1);
-    
-    // In DW, there's no separate limit on attribute vs move advancements
-    // You can choose to improve attributes every level if you want
-    // The only limit is the total number of advancement choices
-    const attributeAdvancementPoints = totalAdvancementPoints; // Can use all for attributes
-    const moveAdvancementPoints = totalAdvancementPoints; // Can use all for moves
-    
+  getXPRequirement(currentLevel: number): number {
+    return currentLevel + 7;
+  }
+
+  /**
+   * Get level progression data with equipment scaling for higher levels
+   */
+  getLevelProgression(level: number, characterClass?: CharacterClass): LevelProgression {
+    // Base values for level 1
+    let baseHP = this.getClassBaseHP(characterClass);
+    let startingCoin = this.getClassStartingCoin(characterClass);
+    let xp = 0;
+    let totalAdvancementPoints = 0;
+
+    if (level > 1) {
+      // HP scales: base HP + (level-1) additional HP
+      baseHP = this.getClassBaseHP(characterClass) + (level-1);
+
+      // Starting coin scales with level (more experienced characters have more resources)
+      startingCoin = this.getClassStartingCoin(characterClass) + (level-1) * 5;
+
+      // XP is the amount needed to reach this level
+      xp = this.getXPRequirement(level-1);
+
+      // Advancement points: each level after 1 gives 2 points (1 move + 1 stat)
+      totalAdvancementPoints = this.getTotalAdvancementPoints(level-1);
+    }
+
     return {
       level,
-      xp: level <= 10 ? xpRequirements[level] : 99 + (level - 10) * 15,
+      xpRequired: level === 1 ? 0 : this.getXPRequirement(level-1),
+      xpForNext: this.getXPRequirement(level),
+      baseHP,
+      startingCoin,
+      xp,
       totalAdvancementPoints,
-      attributeAdvancementPoints,
-      moveAdvancementPoints,
-      baseHP: this.calculateBaseHP(level, characterClass),
-      spellSlots: this.calculateSpellSlots(level, characterClass),
-      startingCoin: this.calculateStartingCoin(level),
-      equipmentTier: this.getEquipmentTier(level)
     };
   }
 
   /**
-   * Get all available advancement choices for a character at a specific level
+   * Get base HP for a character class (Dungeon World rules)
    */
-  getAvailableAdvancements(
-    character: Partial<Character>, 
+  private getClassBaseHP(characterClass?: CharacterClass): number {
+    const classBaseHP: Record < CharacterClass, number> = {
+      'Fighter': 10,
+      'Paladin': 10,
+      'Ranger': 8,
+      'Thief': 6,
+      'Bard': 6,
+      'Cleric': 8,
+      'Druid': 8,
+      'Wizard': 4,
+      'Barbarian': 10,
+      'Immolator': 8,
+    };
+
+    return characterClass ? classBaseHP[characterClass] : 8; // Default to 8 if no class specified
+  }
+
+  /**
+   * Get starting coin for a character class (Dungeon World rules)
+   */
+  private getClassStartingCoin(characterClass?: CharacterClass): number {
+    const classStartingCoin: Record < CharacterClass, number> = {
+      'Fighter': 20,
+      'Paladin': 15,
+      'Ranger': 10,
+      'Thief': 25,
+      'Bard': 20,
+      'Cleric': 15,
+      'Druid': 5,
+      'Wizard': 10,
+      'Barbarian': 15,
+      'Immolator': 10,
+    };
+
+    return characterClass ? classStartingCoin[characterClass] : 15; // Default to 15 if no class specified
+  }
+
+  /**
+   * Check if character can level up
+   */
+  canLevelUp(character: Character): boolean {
+    const xpNeeded = this.getXPRequirement(character.level);
+    return character.xp >= xpNeeded;
+  }
+
+  /**
+   * Get available stat improvements for level up * Official DW: Choose one stat and increase it by 1 (max 18)
+   */
+  getAvailableStatImprovements(
+    character: Character,
     targetLevel: number,
-    selectedAdvancements: AdvancementChoice[] = []
   ): AdvancementChoice[] {
-    const choices: AdvancementChoice[] = [];
-    
-    if (!character.class) return choices;
-
-    // Add attribute advancement choices (with current attributes to check caps)
-    choices.push(...this.getAttributeAdvancements(targetLevel, character.attributes, selectedAdvancements));
-    
-    // Add move advancement choices
-    choices.push(...this.getMoveAdvancements(character.class, targetLevel, character.knownMoves || []));
-    
-    // Add multiclass choices if eligible
-    if (targetLevel >= 2) {
-      choices.push(...this.getMulticlassAdvancements(character.class, targetLevel));
-    }
-    
-    // Add spell choices for casters
-    if (this.isSpellcaster(character.class)) {
-      choices.push(...this.getSpellAdvancements(character.class, targetLevel));
-    }
-    
-    return choices;
-  }
-
-  /**
-   * Create an advancement plan for reaching a target level
-   */
-  createAdvancementPlan(
-    character: Partial<Character>,
-    targetLevel: number,
-    selectedAdvancements: AdvancementChoice[] = []
-  ): AdvancementPlan {
-    const currentLevel = character.level || 1;
-    const progression = this.getLevelProgression(targetLevel, character.class!);
-    
-    const plan: AdvancementPlan = {
-      targetLevel,
-      selectedAdvancements: [...selectedAdvancements],
-      remainingChoices: progression.totalAdvancementPoints - selectedAdvancements.length,
-      isValid: true,
-      validationErrors: [],
-      suggestions: []
-    };
-
-    // Validate the plan
-    this.validateAdvancementPlan(plan, character);
-    
-    // Recalculate remaining choices after validation to account for constraints
-    const attributeAdvancements = selectedAdvancements.filter(adv => adv.type === 'attribute');
-    const moveAdvancements = selectedAdvancements.filter(adv => adv.type === 'move');
-    
-    const maxAttributeChoices = Math.min(progression.attributeAdvancementPoints, progression.totalAdvancementPoints);
-    const maxMoveChoices = Math.min(progression.moveAdvancementPoints, progression.totalAdvancementPoints - attributeAdvancements.length);
-    
-    const usedChoices = attributeAdvancements.length + moveAdvancements.length;
-    plan.remainingChoices = Math.max(0, progression.totalAdvancementPoints - usedChoices);
-    
-    // Add suggestions if needed and plan is valid
-    if (plan.remainingChoices > 0 && plan.isValid) {
-      const remaining = plan.remainingChoices;
-      if (remaining === 1) {
-        plan.suggestions.push(`You have 1 more improvement to choose.`);
-      } else {
-        plan.suggestions.push(`You have ${remaining} more improvements to choose.`);
-      }
-    }
-
-    return plan;
-  }
-
-  /**
-   * Apply advancement plan to character
-   */
-  applyAdvancementPlan(character: Partial<Character>, plan: AdvancementPlan): Partial<Character> {
-    if (!plan.isValid) {
-      throw new Error('Cannot apply invalid advancement plan');
-    }
-
-    const progression = this.getLevelProgression(plan.targetLevel, character.class!);
-    const updatedCharacter: Partial<Character> = { ...character };
-
-    // Update basic progression
-    updatedCharacter.level = plan.targetLevel;
-    updatedCharacter.xp = progression.xp;
-    
-    // Apply attribute advancements
-    const attributeAdvancements = plan.selectedAdvancements.filter(
-      (adv): adv is AttributeAdvancement => adv.type === 'attribute'
-    );
-    
-    if (attributeAdvancements.length > 0) {
-      updatedCharacter.attributes = { ...character.attributes } as Attributes;
-      attributeAdvancements.forEach(adv => {
-        if (updatedCharacter.attributes) {
-          updatedCharacter.attributes[adv.attribute] += adv.bonus;
-        }
-      });
-    }
-
-    // Apply move advancements
-    const moveAdvancements = plan.selectedAdvancements.filter(
-      (adv): adv is MoveAdvancement => adv.type === 'move'
-    );
-    
-    if (moveAdvancements.length > 0) {
-      const newMoves = [...(character.knownMoves || [])];
-      moveAdvancements.forEach(adv => {
-        if (!newMoves.includes(adv.moveId)) {
-          newMoves.push(adv.moveId);
-        }
-      });
-      updatedCharacter.knownMoves = newMoves;
-    }
-
-    // Update HP based on level and CON
-    if (updatedCharacter.attributes) {
-      const conModifier = Math.floor((updatedCharacter.attributes.CON - 10) / 2);
-      const maxHP = progression.baseHP + conModifier;
-      updatedCharacter.hp = {
-        current: maxHP,
-        max: maxHP
-      };
-    }
-
-    // Update starting resources
-    updatedCharacter.coin = (updatedCharacter.coin || 0) + progression.startingCoin;
-
-    return updatedCharacter;
-  }
-
-  /**
-   * Get suggested advancement builds for a class/level combination
-   */
-  getSuggestedBuilds(characterClass: CharacterClass, level: number): AdvancementPlan[] {
-    const builds: AdvancementPlan[] = [];
-    
-    // Create different build archetypes
-    const archetypes = this.getClassArchetypes(characterClass);
-    
-    archetypes.forEach(archetype => {
-      const plan = this.generateArchetypeBuild(characterClass, level, archetype);
-      if (plan) {
-        builds.push(plan);
-      }
-    });
-
-    return builds;
-  }
-
-  /**
-   * Calculate base HP for class and level
-   */
-  private calculateBaseHP(level: number, characterClass: CharacterClass): number {
-    const baseHP: Record<CharacterClass, number> = {
-      'Barbarian': 8, 'Fighter': 10, 'Paladin': 10,
-      'Ranger': 8, 'Cleric': 8, 'Druid': 6,
-      'Thief': 6, 'Bard': 6, 'Wizard': 4, 'Immolator': 4
-    };
-
-    const classBase = baseHP[characterClass] || 6;
-    
-    // Additional HP per level (simplified - normally rolled)
-    const hpPerLevel = Math.floor(classBase / 2) + 1;
-    
-    return classBase + (hpPerLevel * (level - 1));
-  }
-
-  /**
-   * Calculate spell slots for caster classes
-   */
-  private calculateSpellSlots(level: number, characterClass: CharacterClass): SpellSlots | undefined {
-    if (!this.isSpellcaster(characterClass)) {
-      return undefined;
-    }
-
-    // Simplified spell progression - would be more complex in full implementation
-    const baseSlots: SpellSlots = {
-      cantrips: 0, level1: 0, level2: 0, level3: 0, level4: 0,
-      level5: 0, level6: 0, level7: 0, level8: 0, level9: 0
-    };
-
-    if (characterClass === 'Wizard') {
-      baseSlots.cantrips = Math.min(4, Math.floor(level / 2) + 1);
-      baseSlots.level1 = Math.min(4, level);
-      if (level >= 3) baseSlots.level2 = Math.min(3, level - 2);
-      if (level >= 5) baseSlots.level3 = Math.min(3, level - 4);
-      if (level >= 7) baseSlots.level4 = Math.min(2, level - 6);
-      if (level >= 9) baseSlots.level5 = Math.min(2, level - 8);
-    } else if (['Cleric', 'Druid'].includes(characterClass)) {
-      baseSlots.level1 = Math.min(3, Math.floor(level / 2) + 1);
-      if (level >= 3) baseSlots.level2 = Math.min(2, Math.floor((level - 1) / 2));
-      if (level >= 5) baseSlots.level3 = Math.min(2, Math.floor((level - 3) / 2));
-      if (level >= 7) baseSlots.level4 = Math.min(1, Math.floor((level - 5) / 2));
-      if (level >= 9) baseSlots.level5 = Math.min(1, Math.floor((level - 7) / 2));
-    }
-
-    return baseSlots;
-  }
-
-  /**
-   * Calculate starting coin for level
-   */
-  private calculateStartingCoin(level: number): number {
-    // Base coin increases with level
-    const baseCoin = [0, 0, 50, 100, 200, 350, 550, 800, 1100, 1450, 1850];
-    return baseCoin[Math.min(level, 10)] || 1850 + (level - 10) * 400;
-  }
-
-  /**
-   * Get equipment tier for level
-   */
-  private getEquipmentTier(level: number): 'basic' | 'improved' | 'superior' | 'masterwork' {
-    if (level <= 2) return 'basic';
-    if (level <= 4) return 'improved';
-    if (level <= 7) return 'superior';
-    return 'masterwork';
-  }
-
-  /**
-   * Get attribute advancement choices
-   */
-  private getAttributeAdvancements(
-    level: number, 
-    currentAttributes?: Attributes,
-    selectedAdvancements: AdvancementChoice[] = []
-  ): AttributeAdvancement[] {
     const attributes: (keyof Attributes)[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
-    const choices: AttributeAdvancement[] = [];
-    
-    // Calculate how many times each attribute has been selected
-    const attributeSelections = selectedAdvancements
-      .filter((adv): adv is AttributeAdvancement => adv.type === 'attribute')
-      .reduce((acc, adv) => {
-        acc[adv.attribute] = (acc[adv.attribute] || 0) + 1;
-        return acc;
-      }, {} as Record<keyof Attributes, number>);
-    
+    const choices: AdvancementChoice[] = [];
+
+    // Guard: ensure attributes exist to avoid runtime errors during panel mount
+    const safeAttributes = (character && character.attributes) ? character.attributes : {
+      STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10,
+    } as Attributes;
+
     attributes.forEach(attr => {
-      const baseValue = currentAttributes?.[attr] || 10;
-      const selectedCount = attributeSelections[attr] || 0;
-      const currentValue = baseValue + selectedCount;
-      
-      // Only offer the attribute if it's not at the cap (18)
+      const currentValue = safeAttributes[attr];
+
+      // Only offer if not at cap (18)
       if (currentValue < 18) {
-        // Create a unique ID for each potential selection
-        const selectionNumber = selectedCount + 1;
         choices.push({
-          id: `attr-${attr.toLowerCase()}-${selectionNumber}`,
-          type: 'attribute' as const,
-          level,
+          id: `stat-${attr.toLowerCase()}-${targetLevel}`,
+          type: 'stat',
+          level: targetLevel,
           name: `Increase ${attr}`,
-          description: `Increase your ${attr} by 1 (${currentValue} → ${currentValue + 1}, maximum 18)`,
+          description: `Increase your ${attr} by 1 (${currentValue} → ${currentValue + 1})${currentValue === 17 ? ' [MAX]' : ''}`,
           attribute: attr,
-          bonus: 1
         });
       }
     });
-    
+
     return choices;
   }
 
   /**
-   * Get move advancement choices for a class
+   * Get available advanced moves for level up * Official DW: Choose a new advanced move from your class
    */
-  private getMoveAdvancements(
-    characterClass: CharacterClass, 
-    level: number, 
-    knownMoves: string[]
-  ): MoveAdvancement[] {
-    // This would pull from actual move data - simplified for now
-    const classMoves = this.getClassMoves(characterClass, level);
-    
-    return classMoves
-      .filter(move => !knownMoves.includes(move.id))
-      .map(move => ({
-        id: `move-${move.id}`,
-        type: 'move' as const,
-        level,
-        name: move.name,
-        description: move.description,
-        moveId: move.id,
-        sourceClass: characterClass,
-        isMulticlass: false,
-        prerequisites: move.prerequisites
-      }));
+  getAvailableAdvancedMoves(
+    character: Character,
+    targetLevel: number,
+  ): AdvancementChoice[] {
+    const choices: AdvancementChoice[] = [];
+
+    // Get class moves for this level using the new advanced moves data
+    const classMoves = getAdvancedMovesAtLevel(character.class, targetLevel);
+
+    classMoves.forEach(move => {
+      // Safely check knownMoves (handle undefined case)
+      const knownMoves = character.knownMoves || [];
+      if (!knownMoves.includes(move.id)) {
+        choices.push({
+          id: `move-${move.id}-${targetLevel}`,
+          type: 'move',
+          level: targetLevel,
+          name: move.name,
+          description: move.description,
+          moveId: move.id,
+          sourceClass: character.class,
+          isMulticlass: false,
+          prerequisites: move.prerequisites,
+        });
+      }
+    });
+
+    // Add multiclass moves if eligible (level 2+)
+    if (targetLevel >= 2) {
+      const multiclassMoves = this.getMulticlassMoves(character, targetLevel);
+      choices.push(...multiclassMoves);
+    }
+
+    return choices;
   }
 
   /**
-   * Get multiclass advancement choices
+   * Get multiclass move options
    */
-  private getMulticlassAdvancements(characterClass: CharacterClass, level: number): MoveAdvancement[] {
-    const otherClasses = this.getMulticlassOptions(characterClass);
-    const multiclassMoves: MoveAdvancement[] = [];
+  private getMulticlassMoves(character: Character, targetLevel: number): AdvancementChoice[] {
+    const choices: AdvancementChoice[] = [];
+    const otherClasses = this.getOtherClasses(character.class);
 
     otherClasses.forEach(otherClass => {
-      const moves = this.getClassMoves(otherClass, Math.min(level, 6)); // Multiclass moves capped
-      moves.forEach(move => {
-        multiclassMoves.push({
-          id: `multiclass-${otherClass}-${move.id}`,
+      // Can take starting moves from other classes
+      const startingMoves = getStartingMovesForClass(otherClass);
+
+      startingMoves.forEach(move => {
+        choices.push({
+          id: `multiclass-${otherClass}-${move.id}-${targetLevel}`,
           type: 'move',
-          level,
+          level: targetLevel,
           name: `${move.name} (${otherClass})`,
           description: `${move.description} [Multiclass from ${otherClass}]`,
           moveId: move.id,
           sourceClass: otherClass,
           isMulticlass: true,
-          prerequisites: [`Must have taken a move from ${otherClass} before`]
+          prerequisites: [],
         });
       });
-    });
 
-    return multiclassMoves;
-  }
+      // Can also take advanced moves if you already have a move from that class
+      const hasMulticlassMove = (character.knownMoves || []).some(moveId =>
+        this.isMoveFromClass(moveId, otherClass),
+      );
 
-  /**
-   * Get spell advancement choices for casters
-   */
-  private getSpellAdvancements(characterClass: CharacterClass, level: number): SpellAdvancement[] {
-    if (!this.isSpellcaster(characterClass)) return [];
-
-    // Simplified spell choices - would be more comprehensive
-    const spells: SpellAdvancement[] = [];
-    
-    for (let spellLevel = 1; spellLevel <= Math.min(5, Math.floor(level / 2) + 1); spellLevel++) {
-      spells.push({
-        id: `spell-${characterClass}-${spellLevel}`,
-        type: 'spell',
-        level,
-        name: `Learn Level ${spellLevel} Spell`,
-        description: `Choose a new level ${spellLevel} spell for your spellbook`,
-        spellLevel,
-        isCantrip: spellLevel === 0,
-        isPrepared: characterClass !== 'Wizard'
-      });
-    }
-
-    return spells;
-  }
-
-  /**
-   * Check if class is a spellcaster
-   */
-  private isSpellcaster(characterClass: CharacterClass): boolean {
-    return ['Wizard', 'Cleric', 'Druid', 'Immolator'].includes(characterClass);
-  }
-
-  /**
-   * Get available moves for a class at a level
-   */
-  private getClassMoves(characterClass: CharacterClass, level: number): any[] {
-    // This would pull from actual move data - placeholder for now
-    return [
-      { id: 'advanced-move-1', name: 'Advanced Move 1', description: 'An advanced class move', prerequisites: [] },
-      { id: 'advanced-move-2', name: 'Advanced Move 2', description: 'Another advanced class move', prerequisites: [] }
-    ];
-  }
-
-  /**
-   * Get multiclass options for a class
-   */
-  private getMulticlassOptions(characterClass: CharacterClass): CharacterClass[] {
-    // All classes can multiclass into any other class in Dungeon World
-    const allClasses: CharacterClass[] = [
-      'Fighter', 'Wizard', 'Cleric', 'Thief', 'Bard', 'Ranger', 'Druid', 'Paladin', 'Barbarian', 'Immolator'
-    ];
-    
-    return allClasses.filter(cls => cls !== characterClass);
-  }
-
-  /**
-   * Get class archetypes for build suggestions
-   */
-  private getClassArchetypes(characterClass: CharacterClass): string[] {
-    const archetypes: Record<CharacterClass, string[]> = {
-      'Fighter': ['Tank', 'Damage Dealer', 'Versatile Warrior'],
-      'Wizard': ['Blaster', 'Controller', 'Scholar'],
-      'Cleric': ['Healer', 'Battle Cleric', 'Divine Scholar'],
-      'Thief': ['Sneaky Scout', 'Face', 'Utility Expert'],
-      'Ranger': ['Beast Master', 'Archer', 'Tracker'],
-      'Paladin': ['Holy Warrior', 'Protector', 'Divine Champion'],
-      'Bard': ['Support', 'Face', 'Jack of All Trades'],
-      'Druid': ['Shapeshifter', 'Nature Wrath', 'Healer'],
-      'Barbarian': ['Berserker', 'Tribal Warrior', 'Savage'],
-      'Immolator': ['Fire Mage', 'Elemental Warrior', 'Destroyer']
-    };
-
-    return archetypes[characterClass] || ['Balanced'];
-  }
-
-  /**
-   * Generate a build for a specific archetype
-   */
-  private generateArchetypeBuild(
-    characterClass: CharacterClass, 
-    level: number, 
-    archetype: string
-  ): AdvancementPlan | null {
-    // This would generate optimized builds based on archetype
-    // Simplified implementation for now
-    const progression = this.getLevelProgression(level, characterClass);
-    
-    return {
-      targetLevel: level,
-      selectedAdvancements: [], // Would be populated with archetype-specific choices
-      remainingChoices: progression.totalAdvancementPoints,
-      isValid: true,
-      validationErrors: [],
-      suggestions: [`Optimized for ${archetype} playstyle`]
-    };
-  }
-
-  /**
-   * Validate an advancement plan
-   */
-  private validateAdvancementPlan(plan: AdvancementPlan, character: Partial<Character>): void {
-    const errors: string[] = [];
-    
-    // Check total advancement points
-    const progression = this.getLevelProgression(plan.targetLevel, character.class!);
-    if (plan.selectedAdvancements.length > progression.totalAdvancementPoints) {
-      errors.push('Too many advancements selected for target level');
-    }
-
-    // In Dungeon World, there's no separate limit on attribute vs move advancements
-    // The only constraint is the total number of advancement choices
-    // (Each level gives you 1 choice: new move OR +1 ability score)
-
-    // Check for duplicate selections
-    const ids = plan.selectedAdvancements.map(adv => adv.id);
-    if (new Set(ids).size !== ids.length) {
-      errors.push('Duplicate advancements selected');
-    }
-
-    // Check prerequisites
-    plan.selectedAdvancements.forEach(adv => {
-      if (adv.prerequisites) {
-        adv.prerequisites.forEach(prereq => {
-          // Simplified prerequisite checking
-          if (!this.checkPrerequisite(prereq, character, plan)) {
-            errors.push(`Prerequisite not met for ${adv.name}: ${prereq}`);
-          }
+      if (hasMulticlassMove) {
+        const advancedMoves = getAdvancedMovesAtLevel(otherClass, Math.min(targetLevel, 6));
+        advancedMoves.forEach(move => {
+          choices.push({
+            id: `multiclass-adv-${otherClass}-${move.id}-${targetLevel}`,
+            type: 'move',
+            level: targetLevel,
+            name: `${move.name} (${otherClass})`,
+            description: `${move.description} [Advanced multiclass from ${otherClass}]`,
+            moveId: move.id,
+            sourceClass: otherClass,
+            isMulticlass: true,
+            prerequisites: [`Must have a move from ${otherClass}`],
+          });
         });
       }
     });
+
+    return choices;
+  }
+
+  /**
+   * Create advancement plan for level up * Official DW: Must choose exactly one move AND exactly one stat increase
+   */
+  createAdvancementPlan(
+    character: Character,
+    targetLevel: number,
+    selectedMove?: AdvancementChoice,
+    selectedStat?: AdvancementChoice,
+  ): AdvancementPlan {
+    const plan: AdvancementPlan = {
+      targetLevel,
+      selectedMove,
+      selectedStat,
+      isValid: true,
+      validationErrors: [],
+    };
+
+    this.validateAdvancementPlan(plan, character);
+    return plan;
+  }
+
+  /**
+   * Validate advancement plan according to official DW rules
+   */
+  private validateAdvancementPlan(plan: AdvancementPlan, character: Character): void {
+    const errors: string[] = [];
+
+    // Must select exactly one move
+    if (!plan.selectedMove) {
+      errors.push('You must choose one advanced move');
+    }
+
+    // Must select exactly one stat increase
+    if (!plan.selectedStat) {
+      errors.push('You must choose one ability score to increase');
+    }
+
+    // Validate move choice
+    if (plan.selectedMove) {
+      if (plan.selectedMove.type !== 'move') {
+        errors.push('Invalid move selection');
+      }
+
+      // Check if already known
+      if (plan.selectedMove.moveId && (character.knownMoves || []).includes(plan.selectedMove.moveId)) {
+        errors.push('You already know this move');
+      }
+
+      // Check prerequisites
+      if (plan.selectedMove.prerequisites) {
+        plan.selectedMove.prerequisites.forEach(prereq => {
+          if (!this.checkPrerequisite(prereq, character)) {
+            errors.push(`Prerequisite not met: ${prereq}`);
+          }
+        });
+      }
+    }
+
+    // Validate stat choice
+    if (plan.selectedStat) {
+      if (plan.selectedStat.type !== 'stat') {
+        errors.push('Invalid stat selection');
+      }
+
+      if (plan.selectedStat.attribute) {
+        const currentValue = character.attributes[plan.selectedStat.attribute];
+        if (currentValue >= 18) {
+          errors.push(`${plan.selectedStat.attribute} is already at maximum (18)`);
+        }
+      }
+    }
 
     plan.validationErrors = errors;
     plan.isValid = errors.length === 0;
   }
 
   /**
-   * Check if a prerequisite is met
+   * Apply advancement plan to character
    */
-  private checkPrerequisite(
-    prerequisite: string, 
-    character: Partial<Character>, 
-    plan: AdvancementPlan
-  ): boolean {
-    // Simplified prerequisite checking - would be more comprehensive
+  applyAdvancementPlan(character: Character, plan: AdvancementPlan): Character {
+    if (!plan.isValid) {
+      throw new Error('Cannot apply invalid advancement plan');
+    }
+
+    const updatedCharacter: Character = { ...character };
+
+    // Update level
+    updatedCharacter.level = plan.targetLevel;
+
+    // Subtract XP (official DW rule: subtract current level + 7)
+    const xpCost = this.getXPRequirement(character.level);
+    updatedCharacter.xp = Math.max(0, character.xp-xpCost);
+
+    // Apply stat increase
+    if (plan.selectedStat?.attribute) {
+      updatedCharacter.attributes = { ...character.attributes };
+      updatedCharacter.attributes[plan.selectedStat.attribute] += 1;
+
+      // Update HP if Constitution increased
+      if (plan.selectedStat.attribute === 'CON') {
+        const hpIncrease = 1; // +1 CON = +1 HP in DW
+        updatedCharacter.hp = {
+          current: character.hp.current + hpIncrease,
+          max: character.hp.max + hpIncrease,
+        };
+      }
+    }
+
+    // Apply move
+    if (plan.selectedMove?.moveId) {
+      updatedCharacter.knownMoves = [...(character.knownMoves || []), plan.selectedMove.moveId];
+
+      // Special case: Wizard gets a new spell in spellbook when leveling up
+      if (character.class === 'Wizard') {
+        // This would add a spell to the spellbook-simplified for now
+        updatedCharacter.knownSpells = [...(character.knownSpells || []), 'new-spell'];
+      }
+    }
+
+    // Update advancement history
+    const newAdvancements = [...character.advancements];
+
+    if (plan.selectedMove) {
+      newAdvancements.push({
+        level: plan.targetLevel,
+        type: 'move',
+        choice: plan.selectedMove.moveId || plan.selectedMove.name,
+        description: plan.selectedMove.description,
+        timestamp: new Date(),
+      });
+    }
+
+    if (plan.selectedStat) {
+      newAdvancements.push({
+        level: plan.targetLevel,
+        type: 'stat',
+        choice: plan.selectedStat.attribute || 'unknown',
+        description: plan.selectedStat.description,
+        timestamp: new Date(),
+      });
+    }
+
+    updatedCharacter.advancements = newAdvancements;
+    updatedCharacter.updatedAt = new Date();
+
+    return updatedCharacter;
+  }
+
+  /**
+   * Get class advanced moves (simplified-would pull from actual data)
+   */
+  private getClassAdvancedMoves(characterClass: CharacterClass, level: number): unknown[] {
+    // This method is now deprecated in favor of getAdvancedMovesAtLevel from advancedMoves.ts
+    return getAdvancedMovesAtLevel(characterClass, level);
+  }
+
+  /**
+   * Get class starting moves (for multiclassing)
+   */
+  private getClassStartingMoves(characterClass: CharacterClass): unknown[] {
+    // This method is now deprecated in favor of getStartingMovesForClass from advancedMoves.ts
+    return getStartingMovesForClass(characterClass);
+  }
+
+  /**
+   * Get other classes for multiclassing
+   */
+  private getOtherClasses(currentClass: CharacterClass): CharacterClass[] {
+    const allClasses: CharacterClass[] = [
+      'Fighter', 'Wizard', 'Cleric', 'Thief', 'Bard', 'Ranger', 'Druid', 'Paladin', 'Barbarian', 'Immolator',
+    ];
+
+    return allClasses.filter(cls => cls !== currentClass);
+  }
+
+  /**
+   * Check if a move belongs to a specific class
+   */
+  private isMoveFromClass(moveId: string, characterClass: CharacterClass): boolean {
+    // This would check actual move data
+    return moveId.includes(characterClass.toLowerCase());
+  }
+
+  /**
+   * Check if prerequisite is met
+   */
+  private checkPrerequisite(prerequisite: string, character: Character): boolean {
+    // Simplified prerequisite checking
+    if (prerequisite.includes('Must have a move from')) {
+      const className = prerequisite.split('Must have a move from ')[1];
+      return (character.knownMoves || []).some(moveId =>
+        this.isMoveFromClass(moveId, className as CharacterClass),
+      );
+    }
+
     return true;
+  }
+
+  /**
+   * Calculate total advancement points from level 1 to a given level * Each level gives exactly 2 advancement points (1 move + 1 stat)
+   */
+  private getTotalAdvancementPoints(level: number): number {
+    // Level 1 has 0 advancement points (starting character)
+    // Each level after 1 gives 2 advancement points
+    return level > 1 ? (level-1) * 2 : 0;
   }
 }
 

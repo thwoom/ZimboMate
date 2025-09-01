@@ -7,7 +7,7 @@
 .step-scroll {
   min-height: 0; /* critical: enables child scrolling */
   overflow-y: auto; /* this is the scroll container */
-  /* Legacy iOS optimization - no longer needed */
+  /* Legacy iOS optimization-no longer needed */
 }
 
 .step-actions {
@@ -26,12 +26,12 @@
 .step-content-scroll {
   flex: 1; /* take remaining space */
   overflow-y: auto;
-  /* Legacy iOS optimization - no longer needed */
-  /* Removed padding-bottom - no longer needed with new assistant */
+  /* Legacy iOS optimization-no longer needed */
+  /* Removed padding-bottom-no longer needed with new assistant */
   min-height: 0; /* critical for flex scrolling */
 }
 
-/* Allow wizard-actions to show - CharacterCreationAssistant provides additional tools */
+/* Allow wizard-actions to show-CharacterCreationAssistant provides additional tools */
 
 /* This is now handled by the combined .wizard-actions, .step-actions rule above */
 .modal-overlay {
@@ -106,7 +106,7 @@
 }
 
 
-/* Debug mode - add to body class to visualize layout */
+/* Debug mode-add to body class to visualize layout */
 body.debug-layout .panel-router,
 body.debug-layout .content-area,
 body.debug-layout .content-area__body,
@@ -401,8 +401,8 @@ body.debug-layout .character-creation-assistant { outline-color: #ff8000 !import
 /* For steps without step-content-scroll, make them scrollable */
 .wizard-step:not(.class-step):not(.moves-equipment-step) {
   overflow-y: auto;
-  /* Legacy iOS optimization - no longer needed */
-  /* Removed padding-bottom - no longer needed with new assistant */
+  /* Legacy iOS optimization-no longer needed */
+  /* Removed padding-bottom-no longer needed with new assistant */
 }
 
 /* Ensure steps with new structure work properly */
@@ -483,7 +483,7 @@ body.debug-layout .character-creation-assistant { outline-color: #ff8000 !import
 }
 
 /* Name & Look Step */
-/* Form Container - Card Style */
+/* Form Container-Card Style */
 .form-container {
   background: var(--color-background-secondary);
   border: 1px solid var(--color-border-light);
@@ -2202,7 +2202,7 @@ body.debug-layout .character-creation-assistant { outline-color: #ff8000 !import
   border-radius: 12px;
   padding: 1.5rem;
   animation: slideIn 0.4s ease;
-  max-height: calc(100dvh - 4rem);
+  max-height: calc(100dvh-4rem);
   overflow-y: auto;
 }
 
@@ -2479,7 +2479,7 @@ select:focus {
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
-  background: var(--color-background-secondary);
+  background: var(--portrait-color, var(--color-background-secondary));
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -2806,7 +2806,7 @@ select:focus {
   }
 }
 
-/* Floating Action Bar styles removed - replaced by CharacterCreationAssistant */
+/* Floating Action Bar styles removed-replaced by CharacterCreationAssistant */
 
 
 
@@ -2814,7 +2814,7 @@ select:focus {
 
 
 
-/* Validation Display - moved to CharacterCreationAssistant */
+/* Validation Display-moved to CharacterCreationAssistant */
 
 /* Level Selection Wizard Styles */
 .level-wizard {

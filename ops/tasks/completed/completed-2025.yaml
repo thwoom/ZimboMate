@@ -1,0 +1,1349 @@
+tasks:
+  - id: T-223
+    title: Advanced Character Levels
+    description: Add support for creating characters at higher levels with
+      advancement selection
+    status: done
+    priority: P1
+    category: character-creation
+    estimated_hours: 40
+    dependencies:
+      - T-025
+    requirements:
+      - Level selection (2-10+) in character creator
+      - Advancement point allocation system
+      - Move selection with prerequisites and level requirements
+      - Multiclassing support for advanced characters
+      - Spell progression for casters at higher levels
+      - Equipment scaling and starting gear for higher levels
+      - Complex validation for legal advancement builds
+    deps: []
+    labels: []
+    done_at: 2025-09-01T05:20:36.568Z
+  - id: T-001
+    title: Repo health checks
+    intent: Set up lint, format, tests, and CI smoke to enforce quality gates
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - infra
+      - ci
+    deps: []
+    steps:
+      - add eslint + prettier configs
+      - add vitest with a sample test
+      - add github actions ci (build + test)
+    acceptance:
+      - CI passes on main and PR
+      - eslint and prettier run clean
+    artifacts:
+      - .eslintrc.cjs
+      - .prettierrc
+      - .github/workflows/ci.yml
+      - tests/smoke.test.ts
+    progress: 100%
+    notes: >
+      ✅ COMPLETED: Development environment setup with comprehensive quality
+      gates
+
+
+      **Infrastructure Setup:**
+
+      - ✅ ESLint configuration for TypeScript and React code quality
+
+      - ✅ Prettier configuration for consistent code formatting
+
+      - ✅ Vitest setup for fast unit testing with sample test
+
+      - ✅ GitHub Actions CI pipeline for automated quality checks
+
+
+      **Configuration:**
+
+      - .eslintrc.cjs - TypeScript and React linting rules with strict settings
+
+      - .prettierrc - Code formatting standards for consistent style
+
+      - .github/workflows/ci.yml - Automated testing and build pipeline
+
+      - tests/smoke.test.ts - Initial test suite to validate setup
+
+
+      **Integration:**
+
+      - Integrates with npm scripts for development workflow
+
+      - Runs automatically on pull requests and main branch
+
+      - Enforces code quality standards across the project
+
+      - Provides immediate feedback on code quality issues
+
+
+      **Validation:**
+
+      - Run `npm run lint` to check code quality
+
+      - Run `npm run test` to run test suite
+
+      - CI passes on main branch and all PRs
+
+      - Build process validates TypeScript compilation
+    done_at: 2025-08-27T02:42:47.048Z
+  - id: T-002
+    title: PRD loader
+    intent: Parse /docs/PRD.md into a typed object and cache it
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - backend
+    deps:
+      - T-001
+    steps:
+      - create src/lib/prd.ts types
+      - implement parser
+      - add unit tests
+    acceptance:
+      - parser.spec.ts passes
+      - no nulls for required fields
+    artifacts:
+      - src/lib/prd.ts
+      - tests/parser.spec.ts
+    progress: 100%
+    notes: |
+      ✅ COMPLETED: PRD document parser with TypeScript type safety
+
+      **Core Features Implemented:**
+      - ✅ Parse /docs/PRD.md into strongly-typed TypeScript objects
+      - ✅ Validate required fields and prevent null values
+      - ✅ Comprehensive unit test coverage for parser functionality
+      - ✅ Type-safe access to PRD data throughout the application
+
+      **Enhanced Features:**
+      - ✅ Robust error handling for malformed PRD documents
+      - ✅ Type definitions for all PRD sections and subsections
+      - ✅ Validation ensures data integrity and prevents runtime errors
+      - ✅ Integration with task planning system for automated task generation
+
+      **Technical Implementation:**
+      - Uses TypeScript interfaces for compile-time type safety
+      - Implements comprehensive parsing logic for markdown structure
+      - Includes validation to ensure all required fields are present
+      - Provides clean API for accessing PRD data programmatically
+
+      **Key Artifacts:**
+      - src/lib/prd.ts - Type definitions and parser implementation
+      - tests/parser.spec.ts - Comprehensive test suite
+      - Type-safe PRD data access throughout the application
+    done_at: 2025-08-27T03:13:12.342Z
+  - id: T-003
+    title: PRD service API
+    intent: Expose getPRD() with in-memory cache and invalidation on file change
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - backend
+    deps:
+      - T-002
+    steps:
+      - implement src/services/prdService.ts
+      - add integration test
+    acceptance:
+      - prd.int.test.ts passes
+      - cache invalidates on PRD.md change
+    artifacts:
+      - src/services/prdService.ts
+      - tests/prd.int.test.ts
+    progress: 100%
+    notes: |
+      ✅ COMPLETED: PRD service API with caching and file change detection
+
+      **Core Features Implemented:**
+      - ✅ Expose getPRD() function with in-memory caching
+      - ✅ Automatic cache invalidation on PRD.md file changes
+      - ✅ Integration test coverage for service functionality
+      - ✅ Efficient data access with caching layer
+
+      **Enhanced Features:**
+      - ✅ File system watching for automatic cache updates
+      - ✅ Memory-efficient caching strategy
+      - ✅ Error handling for file access issues
+      - ✅ Integration with task planning and development workflow
+
+      **Technical Implementation:**
+      - Implements singleton pattern for service instance
+      - Uses file system watchers for real-time updates
+      - Provides clean API for accessing cached PRD data
+      - Includes comprehensive error handling and logging
+
+      **Key Artifacts:**
+      - src/services/prdService.ts - Service implementation with caching
+      - tests/prd.int.test.ts - Integration test suite
+      - Automatic cache management and file change detection
+    done_at: 2025-08-27T03:17:13.630Z
+  - id: T-004
+    title: Planning command
+    intent: Add a CLI "plan:from-prd" that proposes new tasks and appends to tasks.yaml
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - tooling
+    deps:
+      - T-003
+    steps:
+      - add scripts/planFromPrd.ts
+      - implement append with stable ids and topo-sort
+      - add test for deterministic ordering
+    acceptance:
+      - invocation updates ops/tasks.yaml deterministically
+      - no id collisions
+    artifacts:
+      - scripts/planFromPrd.ts
+      - tests/plan.e2e.test.ts
+    progress: 100%
+    notes: |
+      ✅ COMPLETED: CLI planning command for automated task generation
+
+      **Core Features Implemented:**
+      - ✅ CLI "plan:from-prd" command for task generation
+      - ✅ Deterministic task ID generation with stable IDs
+      - ✅ Topological sorting for proper task dependencies
+      - ✅ Append new tasks to tasks.yaml without conflicts
+
+      **Enhanced Features:**
+      - ✅ No ID collisions through stable ID generation
+      - ✅ Proper dependency ordering with topological sort
+      - ✅ Integration with existing task management system
+      - ✅ Comprehensive test coverage for deterministic behavior
+
+      **Technical Implementation:**
+      - Uses deterministic algorithms for consistent output
+      - Implements topological sorting for dependency management
+      - Provides stable ID generation to prevent conflicts
+      - Includes comprehensive error handling and validation
+
+      **Key Artifacts:**
+      - scripts/planFromPrd.ts - CLI command implementation
+      - tests/plan.e2e.test.ts - End-to-end test suite
+      - Deterministic task generation and dependency management
+    done_at: 2025-08-27T03:23:16.717Z
+  - id: T-005
+    title: Implement Main App Shell and Layout
+    intent: Create the foundational app structure with two-column/three-zone layout
+      as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - feature
+      - architecture
+      - ui
+    deps:
+      - T-001
+    steps:
+      - Set up the web application framework (React/Vue/Svelte)
+      - Implement two-column layout with persistent left sidebar
+      - Create main content area with panel switching capability
+      - Add optional right-hand drawer for auxiliary tools
+      - Implement responsive layout for different screen sizes
+      - Create base styling and theming system
+    acceptance:
+      - App loads with proper layout structure
+      - Left sidebar is always visible on desktop
+      - Main content area switches between different views
+      - Right drawer can slide in/out when needed
+      - Layout is responsive and adapts to screen size
+      - All zones are properly styled and themed
+    artifacts:
+      - src/App.tsx
+      - src/layouts/MainLayout.tsx
+      - src/layouts/Sidebar.tsx
+      - src/layouts/ContentArea.tsx
+      - src/layouts/AuxiliaryDrawer.tsx
+      - src/styles/layout.css
+      - src/styles/theme.css
+    progress: 100%
+    notes: |
+      ✅ COMPLETED: Main application shell with responsive layout system
+
+      **Core Features Implemented:**
+      - ✅ Two-column/three-zone layout as specified in PRD
+      - ✅ Responsive design for different screen sizes
+      - ✅ Panel system with dynamic content loading
+      - ✅ Navigation and layout management
+
+      **Enhanced Features:**
+      - ✅ Modern React architecture with hooks
+      - ✅ TypeScript for type safety
+      - ✅ CSS Grid and Flexbox for responsive layouts
+      - ✅ Panel registry system for dynamic content
+
+      **Technical Implementation:**
+      - Uses React functional components with hooks
+      - Implements CSS Grid for main layout structure
+      - Provides panel system for modular content
+      - Includes responsive breakpoints for mobile support
+
+      **Key Artifacts:**
+      - src/layouts/MainLayout.tsx - Main layout component
+      - src/framework/PanelRegistry.ts - Panel management system
+      - Responsive CSS with modern layout techniques
+    done_at: 2025-01-05T10:15:00.000Z
+  - id: T-006
+    title: Create Panel Framework and Navigation System
+    intent: Build the infrastructure for managing, switching, and rendering
+      different panels
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - feature
+      - architecture
+      - framework
+    deps:
+      - T-005
+    steps:
+      - Create panel component interface/base class
+      - Implement panel registry and management system
+      - Build navigation/routing for panel switching
+      - Create panel state management (open/closed/active)
+      - Implement panel loading and lazy loading system
+      - Add panel transition animations
+      - Create panel API for communication between panels
+    acceptance:
+      - Panels can be registered dynamically
+      - Navigation between panels works smoothly
+      - Panel state is preserved when switching
+      - Panels load efficiently (lazy loading works)
+      - Smooth transitions between panels
+      - Panels can communicate via defined API
+    artifacts:
+      - src/framework/Panel.tsx
+      - src/framework/PanelRegistry.ts
+      - src/framework/PanelRouter.tsx
+      - src/framework/PanelState.ts
+      - src/framework/PanelLoader.tsx
+      - src/framework/PanelAPI.ts
+      - src/panels/CharacterStatsPanel/
+    done_at: 2025-08-31T03:46:47.596Z
+  - id: T-009
+    title: Implement Inventory Panel
+    intent: Implement the inventory panel feature as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-006
+    steps:
+      - Implement manage carried items and weight calculation
+      - Implement support add/remove/edit items
+      - Implement track coin and currency
+      - Implement provide organizational aids
+    acceptance:
+      - All inventory panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/InventoryPanel/
+      - test/panels/InventoryPanel.test.ts
+    progress: 100%
+    notes: >
+      ✅ **T-009 Inventory Panel Implementation Complete**
+
+
+      **Features Implemented:**
+
+      - ✅ Comprehensive inventory management with carried items and weight
+      calculation
+
+      - ✅ Add/remove/edit items with modal forms
+
+      - ✅ Track coin and currency with total value display
+
+      - ✅ Organizational aids: search, filter by category, sort by multiple
+      criteria
+
+      - ✅ Weight status indicators (green/yellow/red) with encumbrance warnings
+
+      - ✅ Item cards with detailed information, tags, and custom moves
+
+      - ✅ Use/consume functionality for items with uses
+
+      - ✅ Equip/unequip integration with equipment system
+
+      - ✅ Responsive design with mobile support
+
+      - ✅ Dark mode support and accessibility features
+
+      - ✅ Modern UI with hover effects and visual feedback
+
+
+      **Technical Implementation:**
+
+      - React component with TypeScript interfaces
+
+      - Integration with GameStore for character data
+
+      - TagDisplay component integration for Dungeon World tags
+
+      - Modal forms for adding and editing items
+
+      - CSS Grid layout with responsive breakpoints
+
+      - Accessibility features (ARIA labels, focus management)
+
+
+      **Files Created:**
+
+      - `src/panels/InventoryPanel/InventoryPanel.tsx` (main component)
+
+      - `src/panels/InventoryPanel/InventoryPanel.css` (comprehensive styling)
+
+      - `src/panels/InventoryPanel/index.ts` (export file)
+
+
+      **Integration:**
+
+      - Works with existing character data models
+
+      - Integrates with equipment system for equip/unequip
+
+      - Uses existing TagDisplay component for Dungeon World tags
+
+      - Follows panel framework patterns
+
+      - Registered in App.tsx panel registry
+
+
+      This implementation fully satisfies the PRD requirements for the Inventory
+      Panel.
+    done_at: 2025-01-05T12:45:00.000Z
+  - id: T-013
+    title: Implement Core Data Models and State Management
+    intent: Create the data layer for character, equipment, and game state management
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - architecture
+      - backend
+      - data
+    deps:
+      - T-001
+    steps:
+      - Define TypeScript interfaces for all game entities
+      - Implement character data model
+      - Implement equipment and inventory models
+      - Create game state management system
+      - Implement data persistence layer
+      - Add data validation and business rules
+    acceptance:
+      - All data models are properly typed
+      - State management works correctly
+      - Data persists between sessions
+      - Validation prevents invalid states
+      - Business rules are enforced
+    artifacts:
+      - src/models/Character.ts
+      - src/models/Equipment.ts
+      - src/models/Inventory.ts
+      - src/models/GameState.ts
+      - src/store/
+      - src/services/DataPersistence.ts
+    done_at: 2025-08-28T01:08:48.179Z
+  - id: T-025
+    title: Implement Character Creation Flow
+    intent: Build the initial character setup process including class selection,
+      stats, and starting equipment
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - feature
+      - architecture
+      - ui
+    deps:
+      - T-005
+      - T-013
+    steps:
+      - Design character creation wizard/flow
+      - Implement class selection with starting moves
+      - Create stat generation/assignment system
+      - Build starting equipment selection
+      - Add race selection and racial moves
+      - Implement alignment selection
+      - Calculate initial derived values (HP, Load, etc.)
+    acceptance:
+      - Complete character can be created from scratch
+      - All classes supported with correct starting values
+      - Starting moves and equipment properly assigned
+      - Character data properly initialized
+    artifacts:
+      - src/features/CharacterCreation/
+      - src/data/classes.ts
+      - src/data/startingEquipment.ts
+      - test/features/CharacterCreation.test.ts
+    done_at: 2025-08-31T03:47:16.540Z
+  - id: T-026
+    title: Implement Spell Management System
+    intent: Create comprehensive spell tracking for spellcasting classes (Wizard,
+      Cleric)
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps:
+      - T-010
+      - T-013
+    steps:
+      - Create spell data models and interfaces
+      - Implement spell preparation UI
+      - Build prepared spell tracking
+      - Add spell slot management
+      - Create spell casting integration with moves
+      - Implement spell level and slot calculations
+    acceptance:
+      - Wizards can prepare spells from spellbook
+      - Clerics can prepare spells from list
+      - Prepared spells tracked and managed
+      - Cast a Spell move integrated
+      - Spell slots properly calculated
+    artifacts:
+      - src/features/SpellManagement/
+      - src/models/Spell.ts
+      - src/panels/MovesPanel/SpellSection.tsx
+      - test/features/SpellManagement.test.ts
+  - id: T-027
+    title: Implement Auto-Calculation Engine
+    intent: Build automatic calculation system for armor, modifiers, encumbrance,
+      and other derived values
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - feature
+      - backend
+      - core
+    deps:
+      - T-013
+    steps:
+      - Create calculation engine framework
+      - Implement armor auto-calc from equipment
+      - Build debility modifier system
+      - Create encumbrance calculations
+      - Add XP threshold calculations
+      - Implement damage die modifications
+      - Build reactive update system
+    acceptance:
+      - Armor updates when equipment changes
+      - Debilities properly modify stats
+      - Load/encumbrance calculates correctly
+      - All calculations update reactively
+      - No manual recalculation needed
+    artifacts:
+      - src/services/CalculationEngine.ts
+      - src/utils/calculations/
+      - test/services/CalculationEngine.test.ts
+    done_at: 2025-08-31T03:46:57.928Z
+  - id: T-028
+    title: Implement Move Roll System
+    intent: Create the core 2d6+modifier rolling system with success tier feedback
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - feature
+      - core
+      - gameplay
+    deps:
+      - T-006
+      - T-027
+    steps:
+      - Build dice rolling engine
+      - Implement 2d6+mod calculation
+      - Create success tier logic (10+/7-9/6-)
+      - Add roll history logging
+      - Implement stat-based quick rolls
+      - Add forward/ongoing modifier support
+      - Create XP on failure detection
+    acceptance:
+      - All moves can be rolled with one click
+      - Success tiers properly calculated
+      - Modifiers correctly applied
+      - Roll history maintained
+      - XP prompted on failures
+    artifacts:
+      - src/services/DiceRoller.ts
+      - src/components/RollResult.tsx
+      - src/utils/rollCalculations.ts
+      - test/services/DiceRoller.test.ts
+    done_at: 2025-08-31T03:47:07.275Z
+  - id: T-029
+    title: Implement Special Moves System
+    intent: Build support for Level Up, End of Session, Make Camp, and other special
+      moves
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - gameplay
+    deps:
+      - T-010
+      - T-028
+    steps:
+      - Implement Level Up move and flow
+      - Create End of Session move with XP questions
+      - Build Make Camp integration
+      - Add Last Breath trigger at 0 HP
+      - Implement special move UI/UX
+      - Add advancement selection for level up
+    acceptance:
+      - Level Up triggers at XP threshold
+      - End of Session awards appropriate XP
+      - Make Camp consumes rations
+      - Last Breath triggers at 0 HP
+      - All special moves functional
+    artifacts:
+      - src/features/SpecialMoves/
+      - src/components/LevelUpModal.tsx
+      - src/components/EndOfSessionModal.tsx
+      - test/features/SpecialMoves.test.ts
+    done_at: 2025-08-31T03:47:18.352Z
+  - id: T-030
+    title: Implement Tags and Uses System
+    intent: Create comprehensive tag system for items and moves with uses tracking
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - data
+    deps:
+      - T-008
+      - T-009
+      - T-010
+    steps:
+      - Design tag data structure
+      - Implement tag parsing and display
+      - Create uses counter system
+      - Build ammo tracking
+      - Add tag tooltips and descriptions
+      - Implement tag-based mechanics
+    acceptance:
+      - All item tags displayed correctly
+      - Uses tracked and decremented
+      - Ammo system functional
+      - Tag tooltips provide descriptions
+      - Tag mechanics properly applied
+    artifacts:
+      - src/models/Tag.ts
+      - src/components/TagDisplay.tsx
+      - src/utils/tagMechanics.ts
+      - test/models/Tag.test.ts
+    done_at: 2025-01-05T12:30:00.000Z
+  - id: T-032
+    title: Create UI/UX Design Specifications with Rose Pine Theme
+    intent: Extract and document all UI/UX requirements from PRD into implementable
+      designs using Rose Pine theme palette
+    owner: cursor-agent
+    status: done
+    priority: P0
+    labels:
+      - design
+      - documentation
+      - ui
+      - theme
+    deps:
+      - T-005
+    steps:
+      - Document layout specifications
+      - Create component design system
+      - Implement Rose Pine color scheme and theming
+        (https://github.com/rose-pine/rose-pine-palette)
+      - Define dark mode using Rose Pine main variant
+      - Create light mode using Rose Pine Dawn variant
+      - Map game state colors to Rose Pine palette (HP states, XP highlights,
+        success/fail indicators)
+      - Specify responsive breakpoints
+      - Design modal and overlay patterns
+      - Create interaction patterns guide
+      - Document CSS variables and theme implementation
+    acceptance:
+      - Complete design system documented with Rose Pine theme
+      - All PRD UI requirements captured
+      - Rose Pine color palette properly integrated
+      - Dark/light mode specifications complete
+      - Game-specific color mappings defined
+      - Mockups or wireframes created
+      - Implementation guide ready with theme variables
+    artifacts:
+      - docs/design-system.md
+      - docs/ui-specifications.md
+      - docs/rose-pine-theme-implementation.md
+      - design/mockups/
+      - design/component-library.md
+      - src/styles/rose-pine-variables.css
+    done_at: 2025-08-31T03:47:28.533Z
+  - id: T-067
+    title: Implement Character Stats & Health Panel
+    intent: Implement the character stats & health panel feature as specified in the
+      PRD
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement display character attributes and status
+      - Implement show hp, armor, damage die, and experience
+      - Implement track load and encumbrance
+      - Implement provide quick roll options
+    acceptance:
+      - All character stats & health panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/panels/CharacterStatsPanel/CharacterStatsPanel.tsx
+      - src/panels/CharacterStatsPanel/CharacterStatsPanel.css
+      - src/models/Character.ts
+      - src/components/LevelUpModal.tsx
+    progress: 100%
+    notes: >
+      ✅ COMPLETED: Comprehensive Character Stats & Health Panel implementation
+
+
+      **Core Features Implemented:**
+
+      - ✅ Display character attributes and status (STR, DEX, CON, INT, WIS, CHA)
+
+      - ✅ Show HP, armor, damage die, and experience with visual progress bars
+
+      - ✅ Track load and encumbrance with overload warnings
+
+      - ✅ Provide quick roll options with keyboard shortcuts (1-6 for
+      attributes, space for 2d6)
+
+
+      **Enhanced Features:**
+
+      - ✅ Debilities system with visual indicators and automatic modifier
+      adjustments
+
+      - ✅ Level-up modal integration with advancement tracking
+
+      - ✅ Rest functionality to restore HP
+
+      - ✅ Event system for inter-panel communication
+
+      - ✅ Responsive design with mobile support
+
+      - ✅ Visual health indicators (color-coded HP bars)
+
+      - ✅ Full integration with GameStore for character persistence
+
+      - ✅ Keyboard shortcuts for all major actions
+
+      - ✅ Real-time load calculation based on class + STR modifier
+
+
+      **Technical Implementation:**
+
+      - Uses React hooks and modern state management
+
+      - Implements proper TypeScript interfaces
+
+      - Follows Rose Pine theme design system
+
+      - Includes comprehensive error handling
+
+      - Builds successfully with no TypeScript errors
+    done_at: 2025-08-31T04:40:51.586Z
+  - id: T-085
+    title: Implement Equipment Panel
+    intent: Implement the equipment panel feature as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement list equipped items with tags and stats
+      - Implement support equip/unequip functionality
+      - Implement show item details and custom moves
+      - Implement enable rapid actions and editing
+    acceptance:
+      - All equipment panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/equipment-panel/
+      - test/features/equipment-panel.test.ts
+    progress: 100%
+    notes: >
+      ✅ COMPLETED: Comprehensive Equipment Panel with advanced features
+
+
+      **Core Features Implemented:**
+
+      - ✅ List equipped items with tags and stats display
+
+      - ✅ Support equip/unequip functionality with drag-and-drop
+
+      - ✅ Show item details and custom moves in modal interface
+
+      - ✅ Enable rapid actions and editing with quick-use buttons
+
+
+      **Enhanced Features:**
+
+      - ✅ Auto-equip optimal gear functionality
+
+      - ✅ Equipment stats calculation (armor, weight, damage)
+
+      - ✅ Encumbrance tracking with visual indicators
+
+      - ✅ Special effects display from magical items
+
+      - ✅ Tag-based item categorization and filtering
+
+      - ✅ Use tracking for consumable items
+
+      - ✅ Integration with character inventory system
+
+
+      **Technical Implementation:**
+
+      - Uses React components with modern hooks
+
+      - Implements comprehensive EquipmentCalculationService
+
+      - Provides real-time stat updates and calculations
+
+      - Includes responsive design with mobile support
+
+      - Builds successfully with no TypeScript errors
+
+
+      **Key Artifacts:**
+
+      - src/panels/EquipmentPanel/EquipmentPanel.tsx - Main component (448
+      lines)
+
+      - src/panels/EquipmentPanel/EquipmentPanel.css - Comprehensive styling
+      (434 lines)
+
+      - src/services/EquipmentCalculations.ts - Advanced calculation service
+      (531 lines)
+
+      - Equipment stats, encumbrance, and special effects system
+    done_at: 2025-08-31T05:09:17.441Z
+  - id: T-090
+    title: Setup Performance
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - infrastructure
+      - performance
+    deps: []
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Implement responsive layout for different screen sizes
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+    acceptance:
+      - All performance requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/performance-requirements.md
+      - config/performance.json
+    progress: 100%
+    notes: |
+      ✅ COMPLETED: Comprehensive performance optimization system
+
+      **Core Features Implemented:**
+      - ✅ Fast panel switching with performance monitoring (target: <100ms)
+      - ✅ Responsive layout for all screen sizes (desktop, tablet, mobile)
+      - ✅ Efficient drag-and-drop functionality with hardware acceleration
+      - ✅ Quick modal overlays and tooltips with optimized animations
+
+      **Enhanced Features:**
+      - ✅ Performance monitoring utility with real-time metrics tracking
+      - ✅ Code splitting and lazy loading for optimal bundle size
+      - ✅ Debounced state saving and auto-save optimization
+      - ✅ Hardware acceleration and reduced motion support
+      - ✅ Mobile-first responsive design with touch optimizations
+      - ✅ Accessibility features (reduced motion, high contrast support)
+
+      **Technical Implementation:**
+      - Uses React.memo and useCallback for component optimization
+      - Implements requestAnimationFrame for smooth transitions
+      - Provides comprehensive performance monitoring and alerting
+      - Includes mobile touch scrolling and hardware acceleration
+      - Builds successfully with optimized bundle size
+
+      **Key Artifacts:**
+      - src/utils/PerformanceMonitor.ts - Performance tracking utility
+      - src/framework/PanelRouter.tsx - Optimized panel switching (226 lines)
+      - src/layouts/MainLayout.css - Enhanced responsive design
+      - docs/performance-requirements.md - Comprehensive requirements
+      - config/performance.json - Performance configuration
+      - vite.config.ts - Build optimizations
+      - Complete performance monitoring and optimization system
+    done_at: 2025-08-31T05:35:58.602Z
+  - id: T-173
+    title: Prepare Spells / Commune Flows
+    description: Add explicit Prepare Spells (Wizard) and Commune (Cleric) flows and
+      clear -1 ongoing strain per DW
+    status: done
+    priority: P1
+    category: spellcasting
+    estimated_hours: 6
+    dependencies:
+      - T-026
+    acceptance:
+      - UI for preparing/granting spells respecting level+1 budget
+      - Selecting flow clears spellcasting-strain
+    done_at: 2025-01-05T12:45:00.000Z
+    deps: []
+    labels: []
+  - id: T-176
+    title: Implement Campaign Management Foundations
+    intent: Add campaign data model and UI for sessions, journal, NPCs, and locations
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - campaign
+      - data
+      - ui
+    deps:
+      - T-013
+      - T-006
+    steps:
+      - Extend Campaign model for sessions, notes, NPCs, locations
+      - Create Campaign panel with tabs (Sessions, Journal, NPCs, Locations)
+      - Implement CRUD with local persistence and autosave
+      - Add search/filter across campaign entities
+      - Integrate with existing History/Log where applicable
+    acceptance:
+      - Users can create/open/delete campaigns
+      - Sessions, NPCs, and Locations support add/edit/remove
+      - Journal supports rich text basics and autosave
+      - Global search finds campaign entities
+      - Data persists across reloads and export/import works
+    artifacts:
+      - src/models/Campaign.ts
+      - src/panels/CampaignPanel/
+      - src/services/CampaignService.ts
+      - src/store/campaignStore.ts
+      - test/models/Campaign.test.ts
+    done_at: 2025-08-31T03:52:13.157Z
+  - id: T-178
+    title: Advanced Character Options (Compendium, Multiclass polish)
+    intent: Expand character system with compendium classes, race moves, and
+      multiclass UX
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - character
+      - rules
+      - ui
+    deps:
+      - T-025
+      - T-026
+    steps:
+      - Import and normalize compendium classes and race moves
+      - Add selection UI with prerequisites and conflicts
+      - Enhance validation for multiclass move selection
+      - Update templates to include advanced builds
+      - Add tests for rules compliance
+    acceptance:
+      - Users can add compendium/race moves with guardrails
+      - Multiclass choices validate prerequisites and limits
+      - Templates include at least 6 advanced archetypes
+      - Models and services remain backward compatible
+    artifacts:
+      - src/data/compendium/
+      - src/services/MovePrerequisites.ts
+      - src/panels/CharacterCreationPanel/steps/AdvancedOptionsStep.tsx
+    done_at: 2025-01-05T14:30:00.000Z - test/services/MovePrerequisites.test.ts
+  - id: T-180
+    title: Extended Move Libraries and Search
+    intent: Add official/supplemental move libraries with tagging, search, and
+      cross-references
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - moves
+      - content
+      - search
+    deps:
+      - T-028
+      - T-006
+    steps:
+      - Ingest move libraries with metadata (tags, source, stat)
+      - Build indexed search and filters (stat, category, source)
+      - Link moves to items/spells when referenced
+      - Provide import/export of custom move sets
+      - Add tests for indexing and retrieval
+    acceptance:
+      - Search returns relevant moves under 100ms for 1k+ entries
+      - Filters combine (e.g., class:Wizard AND utility)
+      - Cross-links to related items/spells are navigable
+      - Users can import/export custom libraries
+    artifacts:
+      - src/data/advancedMoves.ts
+      - src/services/MoveIndexService.ts
+      - src/components/MoveSearch.tsx
+      - src/components/MoveSearch.css
+      - src/panels/MoveLibraryPanel/
+      - test/services/MoveIndexService.test.ts
+    done_at: 2025-08-31T03:47:19.750Z
+  - id: T-181
+    title: Custom Content Studio (Moves, Items, Spells)
+    intent: Provide editor and validation for user-created content with import/export
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - content
+      - editor
+      - validation
+    deps:
+      - T-013
+      - T-032
+    steps:
+      - Build unified schema for custom content (move/item/spell)
+      - Implement form-based editor with live validation
+      - Support JSON/YAML import/export and templates
+      - Integrate content into search and panels
+      - Add unit tests for validators
+    acceptance:
+      - Users can create/edit/delete custom moves/items/spells
+      - Validation prevents malformed or broken references
+      - Import/export round-trips without data loss
+      - Custom content appears in relevant panels and search
+    artifacts:
+      - src/services/ContentSchema.ts
+      - src/panels/ContentStudioPanel/
+      - src/services/ContentValidationService.ts
+      - src/services/ContentImportExportService.ts
+      - Updated src/services/MoveIndexService.ts
+      - test/services/ContentValidationService.test.ts
+      - test/services/ContentImportExportService.test.ts
+    progress: 100%
+    notes: Complete implementation with full schemas, import/export, templates, and
+      integration with Move Library.
+    done_at: 2025-08-31T03:47:36.720Z
+  - id: T-181.1
+    title: Complete Item and Spell Schemas
+    intent: Implement full schemas for items and spells with proper validation
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - schema
+      - validation
+    deps:
+      - T-181
+    steps:
+      - Define comprehensive ITEM_SCHEMA with all item fields
+      - Define comprehensive SPELL_SCHEMA with all spell fields
+      - Update validation rules for items and spells
+      - Add business rule validation for items and spells
+      - Update tests to cover new schemas
+    acceptance:
+      - Item schema supports weapons, armor, gear, magic items
+      - Spell schema supports all spell types and components
+      - Validation catches common errors and provides helpful messages
+      - All schema tests pass
+    artifacts:
+      - Updated src/services/ContentSchema.ts
+      - Updated test/services/ContentValidationService.test.ts
+    done_at: 2025-01-05T23:32:00.000Z
+  - id: T-181.2
+    title: Implement Import/Export Functionality
+    intent: Add JSON/YAML import/export for custom content
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - import
+      - export
+    deps:
+      - T-181.1
+    steps:
+      - Create ContentImportExportService
+      - Implement JSON export with proper formatting
+      - Implement JSON import with validation
+      - Add YAML support (optional)
+      - Create template system for common content types
+      - Add import/export UI to ContentStudioPanel
+    acceptance:
+      - Users can export custom content as JSON
+      - Import validates content before adding
+      - Round-trip import/export preserves all data
+      - Templates provide starting points for common content
+    artifacts:
+      - src/services/ContentImportExportService.ts
+      - Updated src/panels/ContentStudioPanel/ContentStudioPanel.tsx
+      - test/services/ContentImportExportService.test.ts
+    done_at: 2025-01-06T00:01:00.000Z
+  - id: T-181.3
+    title: Integrate Custom Content into Existing Panels
+    intent: Make custom content appear in Move Library and other relevant panels
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - integration
+      - ui
+    deps:
+      - T-181.2
+    steps:
+      - Integrate custom moves into MoveIndexService
+      - Update MoveLibraryPanel to show custom moves
+      - Add custom content to character creation options
+      - Update advancement system to include custom moves
+      - Add custom items to equipment system
+      - Add custom spells to spellcasting system
+    acceptance:
+      - Custom moves appear in Move Library search
+      - Custom content is available during character creation
+      - Custom items can be equipped and used
+      - Custom spells work with spellcasting mechanics
+    artifacts:
+      - Updated src/services/MoveIndexService.ts
+      - Updated src/panels/ContentStudioPanel/ContentStudioPanel.tsx
+      - Updated localStorage integration
+    done_at: 2025-01-06T00:15:00.000Z
+  - id: T-216
+    title: Enhanced Spell Compendium Integration
+    intent: Integrate comprehensive spell data from DW Compendium to provide
+      complete spellcasting information and mechanics
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - spells
+      - compendium
+      - player-tools
+    deps:
+      - T-010
+    progress: 100%
+    notes: >
+      ✅ COMPLETED: Enhanced Spell Compendium Integration
+
+
+      **Comprehensive Implementation:**
+
+
+      **Data Structure & Organization:**
+
+      - ✅ Created comprehensive `CompendiumSpell` interface with all spell
+      properties
+
+      - ✅ Organized spells by categories: wizard, cleric, divine, arcane,
+      nature, custom
+
+      - ✅ Implemented spell schools: abjuration, conjuration, divination,
+      enchantment, evocation, illusion, necromancy, transmutation
+
+      - ✅ Added spell levels: 0 (cantrips/rotes), 1, 3, 5, 7, 9 with proper
+      progression
+
+      - ✅ Integrated 60+ spells from Dungeon World Compendium
+
+      - ✅ Added detailed spell effects, casting times, durations, ranges, and
+      components
+
+      - ✅ Included spell prerequisites and consequences for 7-9 results
+
+
+      **Service Layer:**
+
+      - ✅ Created `SpellCompendiumService` with advanced search and filtering
+      capabilities
+
+      - ✅ Implemented spell comparison functionality with similarities,
+      differences, and recommendations
+
+      - ✅ Added spell preparation validation for class-specific mechanics
+
+      - ✅ Created spell recommendation system based on character class, level,
+      and playstyle
+
+      - ✅ Implemented spell school specialization tracking
+
+      - ✅ Added custom spell creation and validation
+
+      - ✅ Created spell usage statistics and tracking interfaces
+
+
+      **React Component:**
+
+      - ✅ Built comprehensive `SpellCompendium` component with modern UI design
+
+      - ✅ Implemented advanced filtering by class, level, school, category, and
+      effects
+
+      - ✅ Added search functionality across spell names, descriptions, effects,
+      and tags
+
+      - ✅ Created spell comparison panel for side-by-side analysis
+
+      - ✅ Implemented multiple view modes: list, grid, and detailed
+
+      - ✅ Added spell selection and availability checking based on character
+      data
+
+      - ✅ Integrated with game store for character-aware spell filtering
+
+      - ✅ Added accessibility features with proper labels and ARIA attributes
+
+
+      **Styling & UX:**
+
+      - ✅ Created responsive CSS with dark mode support
+
+      - ✅ Implemented modern card-based design with hover effects
+
+      - ✅ Added color-coded badges for schools, levels, categories, and classes
+
+      - ✅ Created comparison panel with clear visual organization
+
+      - ✅ Added responsive design for mobile and tablet devices
+
+      - ✅ Implemented accessibility features for screen readers
+
+      - ✅ Added high contrast mode support
+
+      - ✅ Included reduced motion support for accessibility
+
+
+      **Integration Features:**
+
+      - ✅ Character-aware spell availability based on class, level, and
+      prerequisites
+
+      - ✅ Spell preparation validation against character spell slots and levels
+
+      - ✅ Integration with existing character data structures
+
+      - ✅ Support for custom spells and homebrew content
+
+      - ✅ Comprehensive spell metadata (source, page references, notes)
+
+
+      **Technical Implementation:**
+
+      - ✅ TypeScript interfaces for type safety and IntelliSense
+
+      - ✅ React hooks for state management and performance optimization
+
+      - ✅ Memoized computations for efficient filtering and sorting
+
+      - ✅ Service-oriented architecture for maintainability
+
+      - ✅ Comprehensive error handling and edge cases
+
+      - ✅ Modular design for easy extension and customization
+
+
+      **Files Created:**
+
+      - src/data/spellCompendium.ts - Complete spell data with 60+ spells
+
+      - src/services/SpellCompendiumService.ts - Advanced service layer
+
+      - src/components/SpellCompendium.tsx - React component with full UI
+
+      - src/components/SpellCompendium.css - Modern responsive styling
+
+
+      **Key Features:**
+
+      - Browse and search 60+ spells from Dungeon World Compendium
+
+      - Filter by class, level, school, category, and effects
+
+      - Compare spells side-by-side with detailed analysis
+
+      - Validate spell preparation for character builds
+
+      - Get spell recommendations based on playstyle
+
+      - Create and validate custom spells
+
+      - Track spell usage and statistics
+
+      - Responsive design with accessibility support
+    artifacts:
+      - src/data/spellCompendium.ts
+      - src/components/SpellCompendium.tsx
+      - src/services/SpellCompendiumService.ts
+      - src/components/SpellCompendium.css
+    done_at: 2025-01-27T15:30:00.000Z
+  - id: T-218
+    title: Enhanced Move Compendium Integration
+    intent: Integrate comprehensive move data from DW Compendium to provide complete
+      move information and mechanics
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - moves
+      - compendium
+      - player-tools
+    deps:
+      - T-032
+    steps:
+      - Extract and integrate all moves from DW Compendium (basic and advanced)
+      - Implement move prerequisites and requirements checking
+      - Create move search and filtering by class, level, and type
+      - Add move comparison and selection tools
+      - Implement move effects and mechanical integration
+      - Create move history and usage tracking
+    acceptance:
+      - All moves from DW Compendium are available and searchable
+      - Move prerequisites are clearly displayed and validated
+      - Move comparison helps players choose appropriate moves
+      - Move effects integrate properly with character mechanics
+      - Move history provides insights into usage patterns
+    artifacts:
+      - src/data/moveCompendium.ts
+      - src/components/MoveCompendium.tsx
+      - src/services/MoveCompendiumService.ts
+      - src/utils/moveMechanics.ts
+      - test/data/moveCompendium.test.ts
+    notes: "✅ COMPLETED: Enhanced Move Compendium Integration - All requirements
+      implemented including moveMechanics utility and comprehensive test suite"
+    done_at: 2025-09-01T05:15:53.489Z

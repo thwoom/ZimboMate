@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import YAML from 'yaml';
-import { TaskPlanner } from '../scripts/planFromPrd';
+import { TaskPlanner } from '../scripts / planFromPrd';
 
 describe('Planning Command E2E', () => {
-  const testTasksPath = resolve(process.cwd(), 'test-tasks.yaml');
-  const testPrdPath = resolve(process.cwd(), 'test-planning-prd.md');
+  const testTasksPath = resolve(process.cwd(), 'test - tasks.yaml');
+  const testPrdPath = resolve(process.cwd(), 'test - planning - prd.md');
   let planner: TaskPlanner;
 
   const samplePRD = `# Test Planning PRD
@@ -19,62 +19,40 @@ A test product for planning functionality.
 
 ## Core Features
 
-### User Authentication
-- Login functionality
-- Password reset
-- Two-factor authentication
+### User Authentication - Login functionality - Password reset - Two - factor authentication
 
-### Data Management
-- CRUD operations
-- Data validation
-- Export functionality
+### Data Management - CRUD operations - Data validation - Export functionality
 
-### Reporting
-- Generate reports
-- Custom dashboards
-- Scheduled reports
+### Reporting - Generate reports - Custom dashboards - Scheduled reports
 
 ## Technical Requirements
 
-### Performance
-- Response time < 200ms
-- Support 1000 concurrent users
-- 99.9% uptime
+### Performance - Response time < 200ms - Support 1000 concurrent users - 99.9% uptime
 
-### Security
-- Data encryption
-- Access control
-- Audit logging
+### Security - Data encryption - Access control - Audit logging
 
-### Scalability
-- Horizontal scaling
-- Load balancing
-- Database optimization
+### Scalability - Horizontal scaling - Load balancing - Database optimization
 
-## Success Metrics
-- 95% user satisfaction
-- 99.9% uptime achieved
-- Response time < 200ms
+## Success Metrics - 95% user satisfaction - 99.9% uptime achieved - Response time < 200ms
 
-## Timeline
-- Phase 1: Core features (Q1)
+## Timeline - Phase 1: Core features (Q1)
 - Phase 2: Advanced features (Q2)
 - Phase 3: Enterprise features (Q3)`;
 
   const existingTasks = {
     tasks: [
       {
-        id: 'T-001',
+        id: 'T - 001',
         title: 'Existing Task 1',
         intent: 'Test existing task',
-        owner: 'test-user',
+        owner: 'test - user',
         status: 'done' as const,
         priority: 'P1' as const,
         labels: ['existing'],
         deps: [],
         steps: ['Step 1'],
         acceptance: ['Acceptance 1'],
-        done_at: '2025-01-01T00:00:00.000Z',
+        done_at: '2025 - 01 - 01T00:00:00.000Z',
       },
     ],
   };
@@ -98,7 +76,7 @@ A test product for planning functionality.
 
   describe('Task Generation', () => {
     it('should generate tasks from PRD content', () => {
-      const newTasks = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks = planner.generateTasksFromPRD(testPrdPath);
 
       expect(newTasks).toHaveLength(9); // 3 features + 3 tech reqs + 3 timeline phases
 
@@ -131,7 +109,7 @@ A test product for planning functionality.
     });
 
     it('should assign correct priorities', () => {
-      const newTasks = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks = planner.generateTasksFromPRD(testPrdPath);
 
       // First items should be P1
       expect(newTasks[0].priority).toBe('P1');
@@ -140,22 +118,22 @@ A test product for planning functionality.
 
       // Later items should be P2 or P3
       expect(newTasks[2].priority).toBe('P2'); // Third feature
-      expect(newTasks[5].priority).toBe('P2'); // Third tech req (3 items, so all P1/P2)
-      expect(newTasks[8].priority).toBe('P2'); // Third milestone (3 items, so all P1/P2)
+      expect(newTasks[5].priority).toBe('P2'); // Third tech req (3 items, so all P1 / P2)
+      expect(newTasks[8].priority).toBe('P2'); // Third milestone (3 items, so all P1 / P2)
     });
 
     it('should generate stable task IDs', () => {
-      const newTasks = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks = planner.generateTasksFromPRD(testPrdPath);
 
-      // Should start from T-002 (since T-001 exists)
-      expect(newTasks[0].id).toBe('T-002');
-      expect(newTasks[1].id).toBe('T-003');
-      expect(newTasks[2].id).toBe('T-004');
+      // Should start from T - 002 (since T - 001 exists)
+      expect(newTasks[0].id).toBe('T - 002');
+      expect(newTasks[1].id).toBe('T - 003');
+      expect(newTasks[2].id).toBe('T - 004');
       // ... and so on
     });
 
     it('should include proper steps and acceptance criteria', () => {
-      const newTasks = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks = planner.generateTasksFromPRD(testPrdPath);
       const authTask = newTasks.find(
         (task) => task.title === 'Implement User Authentication',
       );
@@ -164,7 +142,7 @@ A test product for planning functionality.
       expect(authTask?.steps).toHaveLength(3);
       expect(authTask?.steps).toContain('Implement login functionality');
       expect(authTask?.steps).toContain('Implement password reset');
-      expect(authTask?.steps).toContain('Implement two-factor authentication');
+      expect(authTask?.steps).toContain('Implement two - factor authentication');
 
       expect(authTask?.acceptance).toHaveLength(3);
       expect(authTask?.acceptance).toContain(
@@ -175,7 +153,7 @@ A test product for planning functionality.
 
   describe('Task Appending', () => {
     it('should append tasks without ID collisions', () => {
-      const newTasks = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks = planner.generateTasksFromPRD(testPrdPath);
       const collisions = planner.checkForCollisions(newTasks);
 
       expect(collisions).toHaveLength(0);
@@ -183,21 +161,21 @@ A test product for planning functionality.
       planner.appendTasks(newTasks);
 
       // Verify file was updated
-      const updatedContent = readFileSync(testTasksPath, 'utf8');
-      const updatedTasks = YAML.parse(updatedContent);
+      const _updatedContent = readFileSync(testTasksPath, 'utf8');
+      const _updatedTasks = YAML.parse(updatedContent);
 
       expect(updatedTasks.tasks).toHaveLength(10); // 1 existing + 9 new
     });
 
     it('should sort tasks by priority and ID', () => {
-      const newTasks = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks = planner.generateTasksFromPRD(testPrdPath);
       planner.appendTasks(newTasks);
 
       const updatedContent = readFileSync(testTasksPath, 'utf8');
       const updatedTasks = YAML.parse(updatedContent);
 
       // Check that tasks are sorted by priority first
-      const priorities = updatedTasks.tasks.map((task: any) => task.priority);
+      const priorities = updatedTasks.tasks.map((task: unknown) => task.priority);
       const priorityOrder = [
         'P1',
         'P1',
@@ -215,17 +193,17 @@ A test product for planning functionality.
 
       // Within same priority, should be sorted by ID
       const p1Tasks = updatedTasks.tasks.filter(
-        (task: any) => task.priority === 'P1',
+        (task: unknown) => task.priority === 'P1',
       );
-      const p1Ids = p1Tasks.map((task: any) => task.id);
-      expect(p1Ids).toEqual(['T-001', 'T-002', 'T-005', 'T-008']);
+      const p1Ids = p1Tasks.map((task: unknown) => task.id);
+      expect(p1Ids).toEqual(['T - 001', 'T - 002', 'T - 005', 'T - 008']);
     });
   });
 
   describe('Deterministic Ordering', () => {
     it('should produce same results on multiple runs', () => {
       // First run
-      const newTasks1 = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks1 = planner.generateTasksFromPRD(testPrdPath);
       planner.appendTasks(newTasks1);
 
       const content1 = readFileSync(testTasksPath, 'utf8');
@@ -235,7 +213,7 @@ A test product for planning functionality.
       writeFileSync(testTasksPath, YAML.stringify(existingTasks));
       planner = new TaskPlanner(testTasksPath);
 
-      const newTasks2 = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks2 = planner.generateTasksFromPRD(testPrdPath);
       planner.appendTasks(newTasks2);
 
       const content2 = readFileSync(testTasksPath, 'utf8');
@@ -260,7 +238,7 @@ A test product for planning functionality.
 
   describe('Statistics', () => {
     it('should provide accurate statistics', () => {
-      const newTasks = planner.generateTasksFromPRD(testPrdPath);
+      const _newTasks = planner.generateTasksFromPRD(testPrdPath);
       const stats = planner.getStats(newTasks);
 
       expect(stats.totalTasks).toBe(10); // 1 existing + 9 new
@@ -287,7 +265,7 @@ A test product for planning functionality.
 
   describe('Error Handling', () => {
     it('should handle missing PRD file', () => {
-      expect(() => planner.generateTasksFromPRD('non-existent.md')).toThrow();
+      expect(() => planner.generateTasksFromPRD('non - existent.md')).toThrow();
     });
 
     it('should handle invalid PRD content', () => {
@@ -308,16 +286,16 @@ This PRD is missing required sections.`;
 
       const newTasks = emptyPlanner.generateTasksFromPRD(testPrdPath);
       expect(newTasks).toHaveLength(9);
-      expect(newTasks[0].id).toBe('T-001'); // Should start from 1
+      expect(newTasks[0].id).toBe('T - 001'); // Should start from 1
     });
   });
 
   describe('CLI Integration', () => {
     it('should work with default PRD path', () => {
-      // This test verifies the CLI can work with the default docs/PRD.md
+      // This test verifies the CLI can work with the default docs / PRD.md
       const defaultPlanner = new TaskPlanner();
 
-      // Should not throw when docs/PRD.md exists
+      // Should not throw when docs / PRD.md exists
       expect(() => defaultPlanner.generateTasksFromPRD()).not.toThrow();
     });
   });

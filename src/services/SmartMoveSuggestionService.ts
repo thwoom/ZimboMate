@@ -1,6 +1,5 @@
 /**
- * Smart Move Suggestion Service
- * Provides context-aware move recommendations and build analysis
+ * Smart Move Suggestion Service * Provides context-aware move recommendations and build analysis
  */
 
 import { Move, BASIC_MOVES, SPECIAL_MOVES } from '../models/Move';
@@ -22,13 +21,13 @@ export interface SuggestionContext {
   environmentalFactors: string[];
 }
 
-export type GameSituation = 
-  | 'combat' 
-  | 'exploration' 
-  | 'social' 
-  | 'danger' 
-  | 'investigation' 
-  | 'rest' 
+export type GameSituation =
+  | 'combat'
+  | 'exploration'
+  | 'social'
+  | 'danger'
+  | 'investigation'
+  | 'rest'
   | 'unknown';
 
 export interface CharacterAnalysis {
@@ -49,16 +48,16 @@ export interface BuildRecommendation {
 }
 
 export class SmartMoveSuggestionService {
-  private situationKeywords: Map<GameSituation, string[]> = new Map([
+  private situationKeywords: Map < GameSituation, string[]> = new Map([
     ['combat', ['attack', 'damage', 'enemy', 'fight', 'battle', 'weapon', 'armor', 'defend']],
     ['exploration', ['search', 'investigate', 'explore', 'discover', 'hidden', 'secret', 'trap']],
     ['social', ['talk', 'convince', 'persuade', 'negotiate', 'lie', 'charm', 'intimidate']],
     ['danger', ['danger', 'threat', 'risk', 'hazard', 'peril', 'avoid', 'escape', 'survive']],
     ['investigation', ['clue', 'mystery', 'examine', 'study', 'analyze', 'deduce', 'solve']],
-    ['rest', ['rest', 'camp', 'heal', 'recover', 'sleep', 'downtime', 'prepare']]
+    ['rest', ['rest', 'camp', 'heal', 'recover', 'sleep', 'downtime', 'prepare']],
   ]);
 
-  private moveContexts: Map<string, GameSituation[]> = new Map([
+  private moveContexts: Map < string, GameSituation[]> = new Map([
     ['hack-and-slash', ['combat']],
     ['volley', ['combat']],
     ['defend', ['combat', 'danger']],
@@ -67,7 +66,7 @@ export class SmartMoveSuggestionService {
     ['discern-realities', ['investigation', 'exploration', 'danger']],
     ['parley', ['social']],
     ['aid-or-interfere', ['combat', 'social', 'exploration']],
-    ['make-camp', ['rest']]
+    ['make-camp', ['rest']],
   ]);
 
   /**
@@ -77,17 +76,17 @@ export class SmartMoveSuggestionService {
     character: Character,
     situation: GameSituation = 'unknown',
     recentRolls: DiceRoll[] = [],
-    contextDescription?: string
+    contextDescription?: string,
   ): MoveSuggestion[] {
     const analysis = this.analyzeCharacter(character, recentRolls);
-    const detectedSituation = contextDescription ? 
+    const detectedSituation = contextDescription ?
       this.detectSituation(contextDescription) : situation;
-    
+
     const context: SuggestionContext = {
       situation: detectedSituation,
       characterState: analysis,
       recentHistory: recentRolls.slice(-5), // Last 5 rolls
-      environmentalFactors: this.extractEnvironmentalFactors(contextDescription)
+      environmentalFactors: this.extractEnvironmentalFactors(contextDescription),
     };
 
     const suggestions: MoveSuggestion[] = [];
@@ -105,7 +104,7 @@ export class SmartMoveSuggestionService {
 
     // Sort by relevance and return top suggestions
     return suggestions
-      .sort((a, b) => b.relevance - a.relevance)
+      .sort((a, b) => b.relevance-a.relevance)
       .slice(0, 8); // Top 8 suggestions
   }
 
@@ -121,9 +120,9 @@ export class SmartMoveSuggestionService {
       recommendations.push({
         type: 'stat_focus',
         title: `${analysis.strongestStat} Specialist`,
-        description: `Your ${analysis.strongestStat} is excellent! Focus on moves that use this stat.`,
+        description: `Your ${analysis.strongestStat} is excellent ! Focus on moves that use this stat.`,
         priority: 80,
-        moves: this.getMovesForStat(analysis.strongestStat)
+        moves: this.getMovesForStat(analysis.strongestStat),
       });
     }
 
@@ -133,7 +132,7 @@ export class SmartMoveSuggestionService {
         type: 'stat_focus',
         title: `Shore Up ${analysis.weakestStat}`,
         description: `Your ${analysis.weakestStat} is low. Consider avoiding moves that rely on it or find ways to boost it.`,
-        priority: 60
+        priority: 60,
       });
     }
 
@@ -142,8 +141,8 @@ export class SmartMoveSuggestionService {
       recommendations.push({
         type: 'playstyle_tip',
         title: 'Consider Different Approaches',
-        description: 'Recent rolls have been tough. Try using Aid/Interfere with allies or look for environmental advantages.',
-        priority: 70
+        description: 'Recent rolls have been tough. Try using Aid / Interfere with allies or look for environmental advantages.',
+        priority: 70,
       });
     }
 
@@ -153,11 +152,11 @@ export class SmartMoveSuggestionService {
         type: 'move_synergy',
         title: `${synergy} Synergy`,
         description: `Your build works well with ${synergy.toLowerCase()} strategies.`,
-        priority: 50
+        priority: 50,
       });
     }
 
-    return recommendations.sort((a, b) => b.priority - a.priority);
+    return recommendations.sort((a, b) => b.priority-a.priority);
   }
 
   /**
@@ -181,19 +180,19 @@ export class SmartMoveSuggestionService {
     if (moveContexts.includes(situation)) {
       advice.push(`Perfect for ${situation} situations!`);
     } else if (situation !== 'unknown') {
-      advice.push(`This might not be ideal for ${situation} - consider alternatives.`);
+      advice.push(`This might not be ideal for ${situation}-consider alternatives.`);
     }
 
     // Move-specific advice
     switch (move.id) {
-      case 'hack-and-slash':
+      case 'hack-and - slash':
         advice.push('Remember: you deal damage on 7+, but take damage on 7-9.');
         break;
       case 'defy-danger':
         advice.push('Choose the stat that best fits how you\'re avoiding the danger.');
         break;
       case 'aid-or-interfere':
-        advice.push('Requires a bond with the target. +1 forward on 10+, +1 or -2 on 7-9.');
+        advice.push('Requires a bond with the target. +1 forward on 10+, +1 or-2 on 7-9.');
         break;
       case 'spout-lore':
         advice.push('Great for getting useful information from the GM.');
@@ -209,17 +208,17 @@ export class SmartMoveSuggestionService {
   private analyzeCharacter(character: Character, recentRolls: DiceRoll[]): CharacterAnalysis {
     const stats = character.attributes;
     const statEntries = Object.entries(stats) as [keyof typeof stats, number][];
-    
+
     // Find strongest and weakest stats
-    const sortedStats = statEntries.sort((a, b) => b[1] - a[1]);
+    const sortedStats = statEntries.sort((a, b) => b[1]-a[1]);
     const strongestStat = sortedStats[0][0];
-    const weakestStat = sortedStats[sortedStats.length - 1][0];
+    const weakestStat = sortedStats[sortedStats.length-1][0];
 
     // Analyze recent performance
     const recentResults = recentRolls.slice(-10).map(r => r.result);
     const successCount = recentResults.filter(r => r === 'success').length;
     const failureCount = recentResults.filter(r => r === 'failure').length;
-    
+
     let recentPerformance: CharacterAnalysis['recentPerformance'];
     if (successCount >= failureCount * 2) recentPerformance = 'excellent';
     else if (successCount > failureCount) recentPerformance = 'good';
@@ -227,21 +226,21 @@ export class SmartMoveSuggestionService {
     else recentPerformance = 'mixed';
 
     // Find preferred moves (most used recently)
-    const moveUsage = new Map<string, number>();
+    const moveUsage = new Map < string, number>();
     recentRolls.forEach(roll => {
       if (roll.move) {
         moveUsage.set(roll.move.id, (moveUsage.get(roll.move.id) || 0) + 1);
       }
     });
     const preferredMoves = Array.from(moveUsage.entries())
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1]-a[1])
       .slice(0, 3)
       .map(([moveId]) => moveId);
 
     // Identify missing essentials
     const missingEssentials: string[] = [];
-    if (this.getStatModifier(stats.CON) < 0) missingEssentials.push('Low Constitution - consider defensive moves');
-    if (this.getStatModifier(stats.WIS) < 0) missingEssentials.push('Low Wisdom - be careful with perception');
+    if (this.getStatModifier(stats.CON) < 0) missingEssentials.push('Low Constitution-consider defensive moves');
+    if (this.getStatModifier(stats.WIS) < 0) missingEssentials.push('Low Wisdom-be careful with perception');
 
     // Build synergies (simplified)
     const buildSynergies: string[] = [];
@@ -261,47 +260,47 @@ export class SmartMoveSuggestionService {
       preferredMoves,
       recentPerformance,
       missingEssentials,
-      buildSynergies
+      buildSynergies,
     };
   }
 
   private detectSituation(description: string): GameSituation {
     const lowerDesc = description.toLowerCase();
-    
+
     for (const [situation, keywords] of this.situationKeywords.entries()) {
       const matchCount = keywords.filter(keyword => lowerDesc.includes(keyword)).length;
       if (matchCount >= 2) {
         return situation;
       }
     }
-    
+
     return 'unknown';
   }
 
   private extractEnvironmentalFactors(description?: string): string[] {
     if (!description) return [];
-    
+
     const factors: string[] = [];
     const lowerDesc = description.toLowerCase();
-    
+
     if (lowerDesc.includes('dark')) factors.push('darkness');
     if (lowerDesc.includes('loud') || lowerDesc.includes('noise')) factors.push('noise');
     if (lowerDesc.includes('crowd')) factors.push('crowded');
     if (lowerDesc.includes('trap')) factors.push('trapped');
     if (lowerDesc.includes('magic')) factors.push('magical');
-    
+
     return factors;
   }
 
   private getAllAvailableMoves(character: Character): Move[] {
     const moves: Move[] = [];
-    
+
     // Add basic moves
     BASIC_MOVES.forEach(partialMove => {
       if (partialMove.name) {
         moves.push({
           id: `basic-${partialMove.name.toLowerCase().replace(/\s+/g, '-')}`,
-          ...partialMove
+          ...partialMove,
         } as Move);
       }
     });
@@ -311,20 +310,20 @@ export class SmartMoveSuggestionService {
       if (partialMove.name) {
         moves.push({
           id: `special-${partialMove.name.toLowerCase().replace(/\s+/g, '-')}`,
-          ...partialMove
+          ...partialMove,
         } as Move);
       }
     });
 
     // TODO: Add character's known class moves
-    
+
     return moves;
   }
 
   private scoreMoveRelevance(
-    move: Move, 
-    context: SuggestionContext, 
-    character: Character
+    move: Move,
+    context: SuggestionContext,
+    character: Character,
   ): MoveSuggestion {
     let relevance = 0;
     let reason = '';
@@ -345,7 +344,7 @@ export class SmartMoveSuggestionService {
     if (move.rollStat) {
       const statMod = this.getStatModifier(character.attributes[move.rollStat]);
       relevance += Math.max(0, statMod * 10 + 20); // +20 base, +10 per modifier point
-      
+
       if (statMod >= 2) {
         reason += ` (excellent ${move.rollStat} +${statMod})`;
         priority = priority === 'low' ? 'medium' : priority;
@@ -387,7 +386,7 @@ export class SmartMoveSuggestionService {
       relevance: Math.min(100, Math.max(0, relevance)),
       reason: reason || 'Available move',
       context,
-      priority
+      priority,
     };
   }
 

@@ -11,7 +11,7 @@ export interface CalculationChange {
   newValue: number;
   change: number;
   reason: string;
-  details?: Record<string, any>;
+  details?: Record < string, unknown>;
 }
 
 export interface CalculationSnapshot {
@@ -39,11 +39,11 @@ export class CalculationHistoryService {
   /**
    * Record a calculation change
    */
-  recordChange(change: Omit<CalculationChange, 'id' | 'timestamp'>): void {
+  recordChange(change: Omit < CalculationChange, 'id' | 'timestamp'>): void {
     const entry: CalculationChange = {
       ...change,
       id: `calc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     this.history.unshift(entry);
@@ -57,7 +57,7 @@ export class CalculationHistoryService {
   /**
    * Record HP change
    */
-  recordHPChange(oldHP: number, newHP: number, reason: string, details?: any): void {
+  recordHPChange(oldHP: number, newHP: number, reason: string, details?: unknown): void {
     if (oldHP === newHP) return;
 
     this.recordChange({
@@ -65,16 +65,16 @@ export class CalculationHistoryService {
       field: 'current',
       oldValue: oldHP,
       newValue: newHP,
-      change: newHP - oldHP,
+      change: newHP-oldHP,
       reason,
-      details
+      details,
     });
   }
 
   /**
    * Record armor change
    */
-  recordArmorChange(oldArmor: number, newArmor: number, reason: string, details?: any): void {
+  recordArmorChange(oldArmor: number, newArmor: number, reason: string, details?: unknown): void {
     if (oldArmor === newArmor) return;
 
     this.recordChange({
@@ -82,16 +82,16 @@ export class CalculationHistoryService {
       field: 'total',
       oldValue: oldArmor,
       newValue: newArmor,
-      change: newArmor - oldArmor,
+      change: newArmor-oldArmor,
       reason,
-      details
+      details,
     });
   }
 
   /**
    * Record load change
    */
-  recordLoadChange(oldLoad: number, newLoad: number, reason: string, details?: any): void {
+  recordLoadChange(oldLoad: number, newLoad: number, reason: string, details?: unknown): void {
     if (oldLoad === newLoad) return;
 
     this.recordChange({
@@ -99,16 +99,16 @@ export class CalculationHistoryService {
       field: 'current',
       oldValue: oldLoad,
       newValue: newLoad,
-      change: newLoad - oldLoad,
+      change: newLoad-oldLoad,
       reason,
-      details
+      details,
     });
   }
 
   /**
    * Record XP change
    */
-  recordXPChange(oldXP: number, newXP: number, reason: string, details?: any): void {
+  recordXPChange(oldXP: number, newXP: number, reason: string, details?: unknown): void {
     if (oldXP === newXP) return;
 
     this.recordChange({
@@ -116,9 +116,9 @@ export class CalculationHistoryService {
       field: 'current',
       oldValue: oldXP,
       newValue: newXP,
-      change: newXP - oldXP,
+      change: newXP-oldXP,
       reason,
-      details
+      details,
     });
   }
 
@@ -130,7 +130,7 @@ export class CalculationHistoryService {
     oldValue: number,
     newValue: number,
     reason: string,
-    details?: any
+    details?: unknown,
   ): void {
     if (oldValue === newValue) return;
 
@@ -139,9 +139,9 @@ export class CalculationHistoryService {
       field: modifierType,
       oldValue,
       newValue,
-      change: newValue - oldValue,
+      change: newValue-oldValue,
       reason,
-      details
+      details,
     });
   }
 
@@ -152,7 +152,7 @@ export class CalculationHistoryService {
     action: 'added' | 'removed',
     conditionName: string,
     modifierImpact: number,
-    details?: any
+    details?: unknown,
   ): void {
     this.recordChange({
       type: 'condition',
@@ -161,7 +161,7 @@ export class CalculationHistoryService {
       newValue: action === 'added' ? 1 : 0,
       change: modifierImpact,
       reason: `Condition ${action}: ${conditionName}`,
-      details
+      details,
     });
   }
 
@@ -171,7 +171,7 @@ export class CalculationHistoryService {
   takeSnapshot(values: CalculationSnapshot['values']): void {
     const snapshot: CalculationSnapshot = {
       timestamp: new Date(),
-      values: { ...values }
+      values: { ...values },
     };
 
     this.snapshots.unshift(snapshot);
@@ -185,7 +185,7 @@ export class CalculationHistoryService {
   /**
    * Get recent history
    */
-  getRecentHistory(count: number = 10): CalculationChange[] {
+  getRecentHistory(count = 10): CalculationChange[] {
     return this.history.slice(0, count);
   }
 
@@ -201,7 +201,7 @@ export class CalculationHistoryService {
    */
   getHistoryInRange(startTime: Date, endTime: Date = new Date()): CalculationChange[] {
     return this.history.filter(
-      change => change.timestamp >= startTime && change.timestamp <= endTime
+      change => change.timestamp >= startTime && change.timestamp <= endTime,
     );
   }
 
@@ -241,7 +241,7 @@ export class CalculationHistoryService {
     return JSON.stringify({
       history: this.history,
       snapshots: this.snapshots,
-      exportDate: new Date()
+      exportDate: new Date(),
     }, null, 2);
   }
 
@@ -252,19 +252,18 @@ export class CalculationHistoryService {
     try {
       const data = JSON.parse(json);
       if (data.history && Array.isArray(data.history)) {
-        this.history = data.history.map((entry: any) => ({
+        this.history = data.history.map((entry: unknown) => ({
           ...entry,
-          timestamp: new Date(entry.timestamp)
+          timestamp: new Date(entry.timestamp),
         }));
       }
       if (data.snapshots && Array.isArray(data.snapshots)) {
-        this.snapshots = data.snapshots.map((snapshot: any) => ({
+        this.snapshots = data.snapshots.map((snapshot: unknown) => ({
           ...snapshot,
-          timestamp: new Date(snapshot.timestamp)
+          timestamp: new Date(snapshot.timestamp),
         }));
       }
     } catch (error) {
-      console.error('Failed to import calculation history:', error);
       throw new Error('Invalid history data format');
     }
   }
@@ -274,25 +273,25 @@ export class CalculationHistoryService {
    */
   getSummary(): {
     totalChanges: number;
-    changesByType: Record<CalculationChange['type'], number>;
+    changesByType: Record < CalculationChange['type'], number>;
     netChanges: Record<string, number>;
     timeRange: { start: Date | null; end: Date | null };
   } {
-    const changesByType: Record<CalculationChange['type'], number> = {
+    const changesByType: Record < CalculationChange['type'], number> = {
       armor: 0,
       hp: 0,
       load: 0,
       xp: 0,
       damage: 0,
       modifier: 0,
-      condition: 0
+      condition: 0,
     };
 
     const netChanges: Record<string, number> = {
       hp: 0,
       armor: 0,
       load: 0,
-      xp: 0
+      xp: 0,
     };
 
     this.history.forEach(change => {
@@ -307,9 +306,9 @@ export class CalculationHistoryService {
       changesByType,
       netChanges,
       timeRange: {
-        start: this.history.length > 0 ? this.history[this.history.length - 1].timestamp : null,
-        end: this.history.length > 0 ? this.history[0].timestamp : null
-      }
+        start: this.history.length > 0 ? this.history[this.history.length-1].timestamp : null,
+        end: this.history.length > 0 ? this.history[0].timestamp : null,
+      },
     };
   }
 }

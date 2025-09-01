@@ -9,18 +9,18 @@ interface ValueChange {
 export function useValueAnimation(value: number, key?: string) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [changeClass, setChangeClass] = useState('');
-  const [changeAmount, setChangeAmount] = useState<string | null>(null);
+  const [changeAmount, setChangeAmount] = useState < string | null>(null);
   const previousValue = useRef(value);
-  const animationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const animationTimeout = useRef < ReturnType < typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Skip animation on initial mount
     if (previousValue.current === value) return;
 
-    const diff = value - previousValue.current;
+    const diff = value-previousValue.current;
     if (diff === 0) return;
 
-    // Clear any existing animation
+    // Clear unknown existing animation
     if (animationTimeout.current) {
       clearTimeout(animationTimeout.current);
     }
@@ -49,6 +49,6 @@ export function useValueAnimation(value: number, key?: string) {
   return {
     className: isAnimating ? `value-changed ${changeClass}` : '',
     'data-change': changeAmount,
-    'data-animation-key': key
+    'data-animation-key': key,
   };
 }

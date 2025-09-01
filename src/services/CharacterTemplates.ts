@@ -7,11 +7,11 @@ export interface CharacterTemplate {
   name: string;
   description: string;
   category: 'quick-start' | 'custom' | 'shared';
-  characterData: Partial<Character>;
-  selectedEquipment?: (Partial<Item> | Partial<any>)[];
+  characterData: Partial < Character>;
+  selectedEquipment?: (Partial < Item> | Partial < unknown>)[];
   selectedMoves?: string[];
-  bonds?: Partial<Bond>[];
-  equipmentChoices?: Record<number, number>;
+  bonds?: Partial < Bond>[];
+  equipmentChoices?: Record < number, number>;
   personalityTraits?: string[];
   knownSpells?: string[];
   preparedSpells?: string[];
@@ -46,8 +46,8 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
         CON: 13,
         INT: 12,
         WIS: 15,
-        CHA: 8
-      }
+        CHA: 8,
+      },
     },
     selectedMoves: ['Lay on Hands', 'Armored', 'Quest'],
     selectedEquipment: [
@@ -56,16 +56,16 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
       { name: 'Shield', armor: 1, weight: 2 },
       { name: 'Adventuring Gear', weight: 1 },
       { name: 'Dungeon Rations', uses: 5, weight: 1 },
-      { name: 'Healing Potion', weight: 0 }
+      { name: 'Healing Potion', weight: 0 },
     ],
     equipmentChoices: { 0: 0 }, // First weapon choice
     personalityTraits: ['Honorable', 'Protective', 'Righteous'],
     bonds: [
-      { text: '____ has stood by me in battle and can be trusted completely.' },
-      { text: 'I have sworn to protect ____ from harm.' }
+      { text: '___ has stood by me in battle and can be trusted completely.' },
+      { text: 'I have sworn to protect ___ from harm.' },
     ],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: 'sneaky-rogue',
@@ -85,15 +85,15 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
         CON: 12,
         INT: 13,
         WIS: 8,
-        CHA: 15
-      }
+        CHA: 15,
+      },
     },
     selectedMoves: ['Trap Expert', 'Flexible Morals', 'Backstab'],
     bonds: [
-      { text: '____ and I pulled off a job together.' }
+      { text: '___ and I pulled off a job together.' },
     ],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: 'wise-sage',
@@ -113,15 +113,15 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
         CON: 9,
         INT: 16,
         WIS: 15,
-        CHA: 13
-      }
+        CHA: 13,
+      },
     },
     selectedMoves: ['Spellbook', 'Cast a Spell', 'Ritual'],
     bonds: [
-      { text: '____ will play an important role in the events to come. I have foreseen it!' }
+      { text: '___ will play an important role in the events to come. I have foreseen it!' },
     ],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: 'savage-warrior',
@@ -141,15 +141,15 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
         CON: 15,
         INT: 8,
         WIS: 9,
-        CHA: 12
-      }
+        CHA: 12,
+      },
     },
     selectedMoves: ['Herculean Appetites', 'The Upper Hand', 'What Are You Waiting For?'],
     bonds: [
-      { text: '____ shares my hunger for glory; the earth will tremble at our deeds!' }
+      { text: '___ shares my hunger for glory; the earth will tremble at our deeds!' },
     ],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: 'devout-healer',
@@ -169,15 +169,15 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
         CON: 13,
         INT: 9,
         WIS: 16,
-        CHA: 15
-      }
+        CHA: 15,
+      },
     },
     selectedMoves: ['Deity', 'Divine Guidance', 'Turn Undead', 'Cast a Spell'],
     bonds: [
-      { text: '____ is a good and faithful person; I trust them implicitly.' }
+      { text: '___ is a good and faithful person; I trust them implicitly.' },
     ],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: 'forest-guardian',
@@ -197,16 +197,16 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
         CON: 12,
         INT: 9,
         WIS: 16,
-        CHA: 8
-      }
+        CHA: 8,
+      },
     },
     selectedMoves: ['Hunt and Track', 'Called Shot', 'Animal Companion'],
     bonds: [
-      { text: '____ is a friend of nature, so I will be their friend as well.' }
+      { text: '___ is a friend of nature, so I will be their friend as well.' },
     ],
     createdAt: new Date(),
-    updatedAt: new Date()
-  }
+    updatedAt: new Date(),
+  },
 ];
 
 class CharacterTemplateService {
@@ -233,49 +233,48 @@ class CharacterTemplateService {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (!stored) return [];
-      
+
       const templates = JSON.parse(stored);
       // Convert date strings back to Date objects
-      return templates.map((t: any) => ({
+      return templates.map((t: unknown) => ({
         ...t,
         createdAt: new Date(t.createdAt),
-        updatedAt: new Date(t.updatedAt)
+        updatedAt: new Date(t.updatedAt),
       }));
     } catch (error) {
-      console.error('Error loading character templates:', error);
       return [];
     }
   }
 
   // Save a new custom template
-  saveTemplate(template: Omit<CharacterTemplate, 'id' | 'createdAt' | 'updatedAt'>): CharacterTemplate {
+  saveTemplate(template: Omit < CharacterTemplate, 'id' | 'createdAt' | 'updatedAt'>): CharacterTemplate {
     const newTemplate: CharacterTemplate = {
       ...template,
       id: `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     const templates = this.getCustomTemplates();
     templates.push(newTemplate);
     this.saveToStorage(templates);
-    
+
     return newTemplate;
   }
 
   // Update an existing template
-  updateTemplate(id: string, updates: Partial<CharacterTemplate>): CharacterTemplate | null {
+  updateTemplate(id: string, updates: Partial < CharacterTemplate>): CharacterTemplate | null {
     const templates = this.getCustomTemplates();
     const index = templates.findIndex(t => t.id === id);
-    
+
     if (index === -1) return null;
-    
+
     templates[index] = {
       ...templates[index],
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    
+
     this.saveToStorage(templates);
     return templates[index];
   }
@@ -284,9 +283,9 @@ class CharacterTemplateService {
   deleteTemplate(id: string): boolean {
     const templates = this.getCustomTemplates();
     const filtered = templates.filter(t => t.id !== id);
-    
+
     if (filtered.length === templates.length) return false;
-    
+
     this.saveToStorage(filtered);
     return true;
   }
@@ -296,7 +295,7 @@ class CharacterTemplateService {
     const exportData = {
       ...template,
       exportedAt: new Date().toISOString(),
-      version: '1.0'
+      version: '1.0',
     };
     return JSON.stringify(exportData, null, 2);
   }
@@ -305,35 +304,35 @@ class CharacterTemplateService {
   importTemplate(jsonString: string): CharacterTemplate {
     try {
       const imported = JSON.parse(jsonString);
-      
+
       // Validate required fields
       if (!imported.name || typeof imported.name !== 'string') {
         throw new Error('Template must have a valid name');
       }
-      
+
       if (!imported.characterData || typeof imported.characterData !== 'object') {
         throw new Error('Template must contain character data');
       }
-      
+
       // Validate character data has minimum required fields
       const charData = imported.characterData;
       if (!charData.class || !charData.race) {
         throw new Error('Template character data must include class and race');
       }
-      
+
       // Validate arrays if present
       if (imported.selectedEquipment && !Array.isArray(imported.selectedEquipment)) {
         throw new Error('Selected equipment must be an array');
       }
-      
+
       if (imported.selectedMoves && !Array.isArray(imported.selectedMoves)) {
         throw new Error('Selected moves must be an array');
       }
-      
+
       if (imported.bonds && !Array.isArray(imported.bonds)) {
         throw new Error('Bonds must be an array');
       }
-      
+
       // Create new template with imported data
       return this.saveTemplate({
         name: imported.name.trim(),
@@ -342,7 +341,7 @@ class CharacterTemplateService {
         characterData: imported.characterData,
         selectedEquipment: imported.selectedEquipment || [],
         selectedMoves: imported.selectedMoves || [],
-        bonds: imported.bonds || []
+        bonds: imported.bonds || [],
       });
     } catch (error) {
       if (error instanceof SyntaxError) {
@@ -355,11 +354,11 @@ class CharacterTemplateService {
   // Download template as file
   downloadTemplate(template: CharacterTemplate): void {
     const json = this.exportTemplate(template);
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type: 'application / json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_template.json`;
+    a.download = `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}template.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -370,8 +369,7 @@ class CharacterTemplateService {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(templates));
     } catch (error) {
-      console.error('Error saving character templates:', error);
-    }
+      }
   }
 }
 

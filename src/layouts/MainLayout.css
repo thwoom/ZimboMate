@@ -12,6 +12,9 @@
   background-color: var(--color-surface);
   border-right: 1px solid var(--color-border);
   overflow-y: auto;
+  /* Performance optimization: Enable hardware acceleration */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .main-layout__content {
@@ -20,11 +23,39 @@
   flex-direction: column;
   overflow: hidden;
   background-color: var(--color-background);
+  /* Performance optimization: Enable hardware acceleration */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
-/* Auxiliary drawer removed - functionality moved to UnifiedQuickTools */
+/* Auto-save indicator positioning */
+.main-layout__autosave {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  /* Performance optimization: Smooth animations */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
 
-/* Responsive Design */
+/* Enhanced Responsive Design */
+@media (max-width: 1200px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 200px;
+  }
+  
+  .main-layout__autosave {
+    top: 15px;
+    right: 15px;
+  }
+}
+
 @media (max-width: 768px) {
   .main-layout {
     flex-direction: column;
@@ -33,15 +64,69 @@
   .main-layout__sidebar {
     width: 100%;
     height: auto;
+    max-height: 60vh;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
+    /* Mobile optimization: Smooth scrolling */
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* Drawer styles removed */
+  .main-layout__content {
+    flex: 1;
+    min-height: 40vh;
+  }
+
+  .main-layout__autosave {
+    top: 10px;
+    right: 10px;
+    font-size: 0.875rem;
+  }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 480px) {
   :root {
-    --sidebar-width: 200px;
+    --sidebar-width: 100%;
+  }
+  
+  .main-layout__sidebar {
+    max-height: 50vh;
+  }
+  
+  .main-layout__content {
+    min-height: 50vh;
+  }
+  
+  .main-layout__autosave {
+    top: 5px;
+    right: 5px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Performance optimizations for high-DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .main-layout__sidebar,
+  .main-layout__content {
+    /* Enable subpixel rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .main-layout__autosave {
+    transition: none;
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .main-layout__sidebar {
+    background-color: var(--color-surface-dark, #1a1a1a);
+  }
+  
+  .main-layout__content {
+    background-color: var(--color-background-dark, #0d0d0d);
   }
 }

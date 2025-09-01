@@ -60,11 +60,11 @@ export interface PopularBuild {
 }
 
 class CreationAnalyticsService {
-  
+
   /**
    * Analyze a character build and provide comprehensive analytics
    */
-  analyzeCharacterBuild(character: Partial<Character>): CreationAnalytics {
+  analyzeCharacterBuild(character: Partial < Character>): CreationAnalytics {
     if (!character.class || !character.attributes) {
       return this.getEmptyAnalytics();
     }
@@ -82,24 +82,24 @@ class CreationAnalyticsService {
       recommendations,
       warnings,
       comparisons,
-      playstyleMatch
+      playstyleMatch,
     };
   }
 
   /**
    * Calculate overall build score (0-100)
    */
-  private calculateOverallBuildScore(character: Partial<Character>, effectiveness: BuildEffectiveness): number {
+  private calculateOverallBuildScore(character: Partial < Character>, effectiveness: BuildEffectiveness): number {
     let score = effectiveness.overall;
 
     // Bonus for balanced builds
-    const scores = [effectiveness.combat, effectiveness.social, effectiveness.exploration, effectiveness.magic, effectiveness.survivability];
+    const scores =  [effectiveness.combat, effectiveness.social, effectiveness.exploration, effectiveness.magic, effectiveness.survivability];
     const variance = this.calculateVariance(scores);
     if (variance < 200) { // Low variance = balanced
       score += 5;
     }
 
-    // Penalty for very low scores in any area
+    // Penalty for very low scores in unknown area
     const minScore = Math.min(...scores);
     if (minScore < 20) {
       score -= 10;
@@ -117,7 +117,7 @@ class CreationAnalyticsService {
   /**
    * Generate personalized recommendations
    */
-  private generateRecommendations(character: Partial<Character>, effectiveness: BuildEffectiveness): Recommendation[] {
+  private generateRecommendations(character: Partial < Character>, effectiveness: BuildEffectiveness): Recommendation[] {
     const recommendations: Recommendation[] = [];
 
     if (!character.attributes || !character.class) return recommendations;
@@ -135,7 +135,7 @@ class CreationAnalyticsService {
         title: 'Improve Combat Effectiveness',
         description: 'Your combat ability is below average. Consider focusing on your primary combat attribute.',
         action: 'Increase STR or DEX',
-        impact: 'Better damage and hit chance in combat'
+        impact: 'Better damage and hit chance in combat',
       });
     }
 
@@ -147,7 +147,7 @@ class CreationAnalyticsService {
         title: 'Consider Social Skills',
         description: 'Low social effectiveness may limit roleplay opportunities.',
         action: 'Increase CHA or take social moves',
-        impact: 'Better interaction with NPCs and party members'
+        impact: 'Better interaction with NPCs and party members',
       });
     }
 
@@ -161,7 +161,7 @@ class CreationAnalyticsService {
   /**
    * Generate warnings for potential issues
    */
-  private generateWarnings(character: Partial<Character>): AnalyticsWarning[] {
+  private generateWarnings(character: Partial < Character>): AnalyticsWarning[] {
     const warnings: AnalyticsWarning[] = [];
 
     if (!character.attributes || !character.class) return warnings;
@@ -170,11 +170,11 @@ class CreationAnalyticsService {
     const dumpStats = Object.entries(character.attributes).filter(([_, value]) => value <= 8);
     if (dumpStats.length > 1) {
       warnings.push({
-        id: 'multiple-dump-stats',
+        id: 'multiple-dump - stats',
         severity: 'moderate',
         title: 'Multiple Very Low Attributes',
         description: `You have ${dumpStats.length} attributes at 8 or below: ${dumpStats.map(([attr]) => attr).join(', ')}`,
-        suggestion: 'Consider redistributing points to avoid multiple weaknesses'
+        suggestion: 'Consider redistributing points to avoid multiple weaknesses',
       });
     }
 
@@ -188,7 +188,7 @@ class CreationAnalyticsService {
   /**
    * Generate build comparisons
    */
-  private generateBuildComparisons(character: Partial<Character>, effectiveness: BuildEffectiveness): BuildComparison[] {
+  private generateBuildComparisons(character: Partial < Character>, effectiveness: BuildEffectiveness): BuildComparison[] {
     const comparisons: BuildComparison[] = [];
 
     // Compare against average builds
@@ -201,29 +201,29 @@ class CreationAnalyticsService {
         yourBuild: effectiveness.combat,
         average: averageEffectiveness.combat,
         optimal: optimalEffectiveness.combat,
-        percentile: this.calculatePercentile(effectiveness.combat, averageEffectiveness.combat)
+        percentile: this.calculatePercentile(effectiveness.combat, averageEffectiveness.combat),
       },
       {
         category: 'Social',
         yourBuild: effectiveness.social,
         average: averageEffectiveness.social,
         optimal: optimalEffectiveness.social,
-        percentile: this.calculatePercentile(effectiveness.social, averageEffectiveness.social)
+        percentile: this.calculatePercentile(effectiveness.social, averageEffectiveness.social),
       },
       {
         category: 'Exploration',
         yourBuild: effectiveness.exploration,
         average: averageEffectiveness.exploration,
         optimal: optimalEffectiveness.exploration,
-        percentile: this.calculatePercentile(effectiveness.exploration, averageEffectiveness.exploration)
+        percentile: this.calculatePercentile(effectiveness.exploration, averageEffectiveness.exploration),
       },
       {
         category: 'Survivability',
         yourBuild: effectiveness.survivability,
         average: averageEffectiveness.survivability,
         optimal: optimalEffectiveness.survivability,
-        percentile: this.calculatePercentile(effectiveness.survivability, averageEffectiveness.survivability)
-      }
+        percentile: this.calculatePercentile(effectiveness.survivability, averageEffectiveness.survivability),
+      },
     );
 
     return comparisons;
@@ -232,18 +232,18 @@ class CreationAnalyticsService {
   /**
    * Analyze playstyle match
    */
-  private analyzePlaystyle(character: Partial<Character>, effectiveness: BuildEffectiveness): PlaystyleAnalysis {
+  private analyzePlaystyle(character: Partial < Character>, effectiveness: BuildEffectiveness): PlaystyleAnalysis {
     const scores = {
       'Tank': effectiveness.survivability + effectiveness.combat * 0.5,
       'Damage Dealer': effectiveness.combat + effectiveness.magic * 0.3,
       'Support': effectiveness.social + effectiveness.magic * 0.5,
       'Scout': effectiveness.exploration + effectiveness.social * 0.3,
       'Controller': effectiveness.magic + effectiveness.exploration * 0.3,
-      'Face': effectiveness.social + effectiveness.survivability * 0.2
+      'Face': effectiveness.social + effectiveness.survivability * 0.2,
     };
 
     const sortedStyles = Object.entries(scores)
-      .sort(([,a], [,b]) => b - a);
+      .sort(([, a], [, b]) => b-a);
 
     const primaryStyle = sortedStyles[0][0];
     const secondaryStyle = sortedStyles[1][0];
@@ -255,7 +255,7 @@ class CreationAnalyticsService {
       matchPercentage,
       description: this.getPlaystyleDescription(primaryStyle),
       strengths: this.getPlaystyleStrengths(primaryStyle),
-      challenges: this.getPlaystyleChallenges(primaryStyle)
+      challenges: this.getPlaystyleChallenges(primaryStyle),
     };
   }
 
@@ -265,11 +265,11 @@ class CreationAnalyticsService {
   private getAttributeRecommendations(characterClass: CharacterClass, attributes: Attributes): Recommendation[] {
     const recommendations: Recommendation[] = [];
 
-    const primaryStats: Record<CharacterClass, keyof Attributes> = {
+    const primaryStats: Record < CharacterClass, keyof Attributes> = {
       'Fighter': 'STR', 'Paladin': 'STR', 'Barbarian': 'STR',
       'Ranger': 'DEX', 'Thief': 'DEX',
       'Cleric': 'WIS', 'Druid': 'WIS',
-      'Wizard': 'INT', 'Bard': 'CHA', 'Immolator': 'CON'
+      'Wizard': 'INT', 'Bard': 'CHA', 'Immolator': 'CON',
     };
 
     const primaryStat = primaryStats[characterClass];
@@ -281,7 +281,7 @@ class CreationAnalyticsService {
         title: `Increase ${primaryStat}`,
         description: `${characterClass}s rely heavily on ${primaryStat}. Your current score of ${attributes[primaryStat]} is below optimal.`,
         action: `Consider increasing ${primaryStat} to 15+`,
-        impact: 'Significantly improves class effectiveness'
+        impact: 'Significantly improves class effectiveness',
       });
     }
 
@@ -304,7 +304,7 @@ class CreationAnalyticsService {
             title: 'Increase Constitution',
             description: 'Fighters need good CON for survivability in melee combat.',
             action: 'Consider CON 13+',
-            impact: 'More HP and better saves'
+            impact: 'More HP and better saves',
           });
         }
         break;
@@ -318,7 +318,7 @@ class CreationAnalyticsService {
             title: 'Improve Dexterity',
             description: 'Wizards are fragile and need DEX to avoid damage.',
             action: 'Consider DEX 12+',
-            impact: 'Better AC and initiative'
+            impact: 'Better AC and initiative',
           });
         }
         break;
@@ -331,8 +331,8 @@ class CreationAnalyticsService {
             priority: 'low',
             title: 'Consider Some Strength',
             description: 'Clerics often fight in melee and can benefit from moderate STR.',
-            action: 'STR 12+ helps in combat',
-            impact: 'Better melee effectiveness'
+            action: 'STR 12 + helps in combat',
+            impact: 'Better melee effectiveness',
           });
         }
         break;
@@ -354,7 +354,7 @@ class CreationAnalyticsService {
         severity: 'minor',
         title: 'Unusual Attribute Distribution',
         description: 'High STR is uncommon for Wizards, who typically focus on mental attributes.',
-        suggestion: 'This could work for a unique "battle mage" concept, but may not be optimal'
+        suggestion: 'This could work for a unique "battle mage" concept, but may not be optimal',
       });
     }
 
@@ -365,7 +365,7 @@ class CreationAnalyticsService {
         severity: 'minor',
         title: 'Unconventional Build',
         description: 'High INT is unusual for Barbarians, who typically rely on instinct over intellect.',
-        suggestion: 'Consider if this fits your character concept'
+        suggestion: 'Consider if this fits your character concept',
       });
     }
 
@@ -376,8 +376,8 @@ class CreationAnalyticsService {
    * Get average effectiveness for class
    */
   private getAverageEffectiveness(characterClass?: CharacterClass): BuildEffectiveness {
-    // Simulated average data - in a real app, this would come from analytics
-    const averages: Record<CharacterClass, BuildEffectiveness> = {
+    // Simulated average data-in a real app, this would come from analytics
+    const averages: Record < CharacterClass, BuildEffectiveness> = {
       'Fighter': { overall: 65, combat: 75, social: 45, exploration: 55, magic: 20, survivability: 70 },
       'Wizard': { overall: 60, combat: 30, social: 55, exploration: 60, magic: 85, survivability: 35 },
       'Cleric': { overall: 70, combat: 55, social: 65, exploration: 50, magic: 75, survivability: 65 },
@@ -387,10 +387,10 @@ class CreationAnalyticsService {
       'Bard': { overall: 66, combat: 45, social: 85, exploration: 65, magic: 60, survivability: 50 },
       'Druid': { overall: 64, combat: 50, social: 55, exploration: 75, magic: 70, survivability: 60 },
       'Barbarian': { overall: 63, combat: 80, social: 35, exploration: 60, magic: 15, survivability: 75 },
-      'Immolator': { overall: 61, combat: 65, social: 45, exploration: 50, magic: 65, survivability: 55 }
+      'Immolator': { overall: 61, combat: 65, social: 45, exploration: 50, magic: 65, survivability: 55 },
     };
 
-    return characterClass ? averages[characterClass] : 
+    return characterClass ? averages[characterClass] :
       { overall: 65, combat: 60, social: 55, exploration: 60, magic: 50, survivability: 60 };
   }
 
@@ -399,7 +399,7 @@ class CreationAnalyticsService {
    */
   private getOptimalEffectiveness(characterClass?: CharacterClass): BuildEffectiveness {
     // Theoretical optimal builds
-    const optimal: Record<CharacterClass, BuildEffectiveness> = {
+    const optimal: Record < CharacterClass, BuildEffectiveness> = {
       'Fighter': { overall: 85, combat: 95, social: 60, exploration: 70, magic: 30, survivability: 90 },
       'Wizard': { overall: 80, combat: 45, social: 70, exploration: 75, magic: 100, survivability: 50 },
       'Cleric': { overall: 88, combat: 70, social: 85, exploration: 65, magic: 95, survivability: 85 },
@@ -409,10 +409,10 @@ class CreationAnalyticsService {
       'Bard': { overall: 84, combat: 60, social: 100, exploration: 80, magic: 75, survivability: 65 },
       'Druid': { overall: 82, combat: 65, social: 70, exploration: 90, magic: 85, survivability: 75 },
       'Barbarian': { overall: 80, combat: 100, social: 45, exploration: 75, magic: 20, survivability: 90 },
-      'Immolator': { overall: 78, combat: 80, social: 60, exploration: 65, magic: 80, survivability: 70 }
+      'Immolator': { overall: 78, combat: 80, social: 60, exploration: 65, magic: 80, survivability: 70 },
     };
 
-    return characterClass ? optimal[characterClass] : 
+    return characterClass ? optimal[characterClass] :
       { overall: 85, combat: 80, social: 75, exploration: 80, magic: 70, survivability: 80 };
   }
 
@@ -437,22 +437,22 @@ class CreationAnalyticsService {
    */
   private calculateVariance(numbers: number[]): number {
     const mean = numbers.reduce((sum, n) => sum + n, 0) / numbers.length;
-    const squaredDiffs = numbers.map(n => Math.pow(n - mean, 2));
+    const squaredDiffs = numbers.map(n => Math.pow(n-mean, 2));
     return squaredDiffs.reduce((sum, diff) => sum + diff, 0) / numbers.length;
   }
 
   /**
    * Get class-specific bonus
    */
-  private getClassSpecificBonus(character: Partial<Character>, effectiveness: BuildEffectiveness): number {
+  private getClassSpecificBonus(character: Partial < Character>, effectiveness: BuildEffectiveness): number {
     if (!character.class) return 0;
 
     // Bonus for playing to class strengths
-    const classStrengths: Record<CharacterClass, keyof BuildEffectiveness> = {
+    const classStrengths: Record < CharacterClass, keyof BuildEffectiveness> = {
       'Fighter': 'combat', 'Barbarian': 'combat', 'Paladin': 'survivability',
       'Wizard': 'magic', 'Cleric': 'magic', 'Druid': 'magic',
       'Thief': 'exploration', 'Ranger': 'exploration',
-      'Bard': 'social', 'Immolator': 'combat'
+      'Bard': 'social', 'Immolator': 'combat',
     };
 
     const strength = classStrengths[character.class];
@@ -467,13 +467,13 @@ class CreationAnalyticsService {
    * Get playstyle description
    */
   private getPlaystyleDescription(playstyle: string): string {
-    const descriptions: Record<string, string> = {
+    const descriptions: Record < string, string> = {
       'Tank': 'You excel at protecting allies and absorbing damage in combat.',
       'Damage Dealer': 'You focus on dealing maximum damage to enemies.',
       'Support': 'You help allies succeed through buffs, healing, and assistance.',
       'Scout': 'You excel at gathering information and navigating challenges.',
       'Controller': 'You manipulate the battlefield and environment to your advantage.',
-      'Face': 'You handle social interactions and negotiations for the party.'
+      'Face': 'You handle social interactions and negotiations for the party.',
     };
 
     return descriptions[playstyle] || 'You have a unique and versatile playstyle.';
@@ -483,13 +483,13 @@ class CreationAnalyticsService {
    * Get playstyle strengths
    */
   private getPlaystyleStrengths(playstyle: string): string[] {
-    const strengths: Record<string, string[]> = {
+    const strengths: Record < string, string[]> = {
       'Tank': ['High survivability', 'Protects allies', 'Controls enemy attention'],
       'Damage Dealer': ['High damage output', 'Ends fights quickly', 'Intimidating presence'],
       'Support': ['Keeps party healthy', 'Enhances ally abilities', 'Versatile problem solving'],
       'Scout': ['Gathers intelligence', 'Avoids danger', 'Finds hidden opportunities'],
       'Controller': ['Battlefield manipulation', 'Creative solutions', 'Tactical advantage'],
-      'Face': ['Social influence', 'Information gathering', 'Conflict resolution']
+      'Face': ['Social influence', 'Information gathering', 'Conflict resolution'],
     };
 
     return strengths[playstyle] || ['Versatile', 'Adaptable', 'Unique approach'];
@@ -499,13 +499,13 @@ class CreationAnalyticsService {
    * Get playstyle challenges
    */
   private getPlaystyleChallenges(playstyle: string): string[] {
-    const challenges: Record<string, string[]> = {
+    const challenges: Record < string, string[]> = {
       'Tank': ['Limited damage output', 'Relies on party support', 'Can be bypassed'],
       'Damage Dealer': ['May be fragile', 'Limited utility', 'Resource dependent'],
       'Support': ['Vulnerable alone', 'Limited direct impact', 'Party dependent'],
       'Scout': ['May lack combat power', 'Information overload', 'Risk of isolation'],
       'Controller': ['Complex to play', 'Situational abilities', 'Resource management'],
-      'Face': ['Combat limitations', 'Situational usefulness', 'Pressure to perform']
+      'Face': ['Combat limitations', 'Situational usefulness', 'Pressure to perform'],
     };
 
     return challenges[playstyle] || ['May lack specialization', 'Jack of all trades'];
@@ -527,8 +527,8 @@ class CreationAnalyticsService {
         matchPercentage: 0,
         description: 'Complete character creation to see analytics',
         strengths: [],
-        challenges: []
-      }
+        challenges: [],
+      },
     };
   }
 
@@ -544,7 +544,7 @@ class CreationAnalyticsService {
         attributes: { STR: 16, DEX: 12, CON: 15, INT: 8, WIS: 13, CHA: 9 },
         popularity: 85,
         winRate: 78,
-        description: 'Classic front-line fighter focused on protection and damage'
+        description: 'Classic front-line fighter focused on protection and damage',
       },
       {
         name: 'Battle Cleric',
@@ -553,7 +553,7 @@ class CreationAnalyticsService {
         attributes: { STR: 14, DEX: 9, CON: 13, INT: 8, WIS: 16, CHA: 15 },
         popularity: 72,
         winRate: 82,
-        description: 'Versatile healer who can hold their own in combat'
+        description: 'Versatile healer who can hold their own in combat',
       },
       {
         name: 'Sneaky Thief',
@@ -562,12 +562,12 @@ class CreationAnalyticsService {
         attributes: { STR: 8, DEX: 16, CON: 12, INT: 15, WIS: 13, CHA: 9 },
         popularity: 68,
         winRate: 75,
-        description: 'Stealthy scout with excellent utility and trap skills'
-      }
+        description: 'Stealthy scout with excellent utility and trap skills',
+      },
     ];
 
-    return characterClass ? 
-      allBuilds.filter(build => build.class === characterClass) : 
+    return characterClass ?
+      allBuilds.filter(build => build.class === characterClass) :
       allBuilds;
   }
 }

@@ -369,3 +369,20 @@
 .quick-dice-btn[data-type="target"] {
   border-left: 3px solid var(--color-info);
 }
+
+/* Roll Result Colors */
+.roll-result-text.success {
+  color: var(--color-roll-success);
+}
+
+.roll-result-text.partial {
+  color: var(--color-roll-partial);
+}
+
+.roll-result-text.failure {
+  color: var(--color-roll-failure);
+}
+
+.roll-result-text.neutral {
+  color: var(--color-text-primary);
+}

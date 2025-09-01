@@ -38,8 +38,8 @@ export interface TimelineItem {
 export class PRDParser {
   private prdPath: string;
 
-  constructor(prdPath: string = 'docs/PRD.md') {
-    this.prdPath = resolve(process.cwd(), prdPath);
+  constructor(prdPath = 'docs/PRD.md') {
+    this.prdPath = resolve(process.cwd(), prdPath.replace(/[^a-zA-Z0-9/._-]/g, ''));
   }
 
   /**
@@ -87,8 +87,7 @@ export class PRDParser {
       (line, index) => index > sectionStart && line.startsWith('## '),
     );
 
-    const sectionLines =
-      sectionEnd === -1
+    const sectionLines = sectionEnd === -1
         ? lines.slice(sectionStart + 1)
         : lines.slice(sectionStart + 1, sectionEnd);
 
@@ -156,7 +155,7 @@ export class PRDParser {
       .map((line) => line.replace('- ', '').trim());
 
     return metricLines.map((metric) => {
-      // Parse metrics like "User satisfaction > 4.5/5" or "90% completion rate"
+      // Parse metrics like "User satisfaction > 4.5 / 5" or "90% completion rate"
       const colonIndex = metric.indexOf(':');
       if (colonIndex !== -1) {
         return {

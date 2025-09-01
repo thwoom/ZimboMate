@@ -10,6 +10,9 @@ import { characterStateService } from '../../services/CharacterStateService';
 import MoveCard from '../../components/MoveCard';
 import EnhancedDiceRoller from '../../components/EnhancedDiceRoller';
 import './MovesPanel.css';
+import { spellCastingService } from '../../services/SpellCastingService';
+import { Spell as ServiceSpell, getSpellsForClass, SpellClass } from '../../services/Spells';
+import SpellConsequenceModal from '../../components/SpellConsequenceModal';
 
 interface MovesPanelState {
   selectedCategory: 'all' | 'basic' | 'class' | 'advanced' | 'master' | 'special';
@@ -18,14 +21,14 @@ interface MovesPanelState {
   showSuggestions: boolean;
   showInsights: boolean;
   showEnhancedDice: boolean;
-  expandedMoves: Set<string>;
+  expandedMoves: Set < string>;
   contextDescription: string;
 }
 
-const MovesPanel: React.FC<PanelProps> = ({ id }) => {
+const MovesPanel: React.FC < PanelProps> = ({ id }) => {
   const api = createPanelAPI(id);
   const { state: gameState, updateCharacter } = useGameStore();
-  const [panelState, setPanelState] = useState<MovesPanelState>({
+  const [panelState, setPanelState] = useState < MovesPanelState>({
     selectedCategory: 'all',
     searchTerm: '',
     showRollHistory: false,
@@ -33,16 +36,23 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
     showInsights: false,
     showEnhancedDice: true,
     expandedMoves: new Set(),
-    contextDescription: ''
+    contextDescription: '',
   });
 
-  const [rollHistory, setRollHistory] = useState<DiceRoll[]>([]);
-  const [suggestions, setSuggestions] = useState<MoveSuggestion[]>([]);
-  const [insights, setInsights] = useState<RollInsight[]>([]);
+  const [rollHistory, setRollHistory] = useState < DiceRoll[]>([]);
+  const [suggestions, setSuggestions] = useState < MoveSuggestion[]>([]);
+  const [insights, setInsights] = useState < RollInsight[]>([]);
 
   // Get active character
-  const character = gameState.activeCharacterId ? 
+  const character = gameState.activeCharacterId ?
     gameState.characters[gameState.activeCharacterId] : null;
+
+  // Spellcasting context
+  const isCaster = Boolean(character && (character.class === 'Wizard' || character.class === 'Cleric' || character.class === 'Immolator'));
+  const knownSpells: ServiceSpell[] = character && isCaster ? getSpellsForClass(character.class as SpellClass) : [];
+  const preparedIds = (character?.preparedSpells || []);
+  const preparedSpells = knownSpells.filter(s => preparedIds.includes(s.id));
+  const [spellModal, setSpellModal] = useState<{ open: boolean; spell?: ServiceSpell }>({ open: false });
 
   // Update roll history when it changes
   useEffect(() => {
@@ -65,7 +75,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
         character,
         'unknown',
         rollHistory.slice(-5),
-        panelState.contextDescription
+        panelState.contextDescription,
       );
       setSuggestions(newSuggestions);
     }
@@ -82,13 +92,13 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
   // Get all available moves
   const getAllMoves = (): Move[] => {
     const moves: Move[] = [];
-    
+
     // Add basic moves (always available)
     BASIC_MOVES.forEach(partialMove => {
       if (partialMove.name) {
         moves.push({
           id: `basic-${partialMove.name.toLowerCase().replace(/\s+/g, '-')}`,
-          ...partialMove
+          ...partialMove,
         } as Move);
       }
     });
@@ -98,7 +108,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
       if (partialMove.name) {
         moves.push({
           id: `special-${partialMove.name.toLowerCase().replace(/\s+/g, '-')}`,
-          ...partialMove
+          ...partialMove,
         } as Move);
       }
     });
@@ -106,7 +116,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
     // Add character's known moves (class moves, etc.)
     if (character) {
       // TODO: Get class moves and other learned moves from character
-      // This would require a move database/service
+      // This would require a move database / service
     }
 
     return moves;
@@ -124,10 +134,10 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
     // Filter by search term
     if (panelState.searchTerm) {
       const searchLower = panelState.searchTerm.toLowerCase();
-      moves = moves.filter(move => 
+      moves = moves.filter(move =>
         move.name.toLowerCase().includes(searchLower) ||
         move.description?.toLowerCase().includes(searchLower) ||
-        move.trigger?.toLowerCase().includes(searchLower)
+        move.trigger?.toLowerCase().includes(searchLower),
       );
     }
 
@@ -137,7 +147,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
   const handleRoll = (roll: DiceRoll) => {
     // Record analytics and get insights
     const newInsights = rollAnalyticsService.recordRoll(roll);
-    
+
     // Handle XP gain on failure
     if (diceRollingService.grantsXP(roll) && character) {
       const newXP = (character.xp || 0) + 1;
@@ -146,7 +156,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
 
     // Update roll history
     setRollHistory(diceRollingService.getRecentRolls(20));
-    
+
     // Add new insights
     if (newInsights.length > 0) {
       setInsights(prev => [...newInsights, ...prev].slice(0, 10)); // Keep last 10 insights
@@ -157,8 +167,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
     // Handle move usage (decrement uses, apply effects, etc.)
     if (move.uses && move.uses.current > 0) {
       // TODO: Update move uses in character data
-      console.log(`Used move: ${move.name}`);
-    }
+      }
   };
 
   const toggleMoveExpanded = (moveId: string) => {
@@ -171,16 +180,90 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
     setPanelState(prev => ({ ...prev, expandedMoves: newExpanded }));
   };
 
-  const updateState = (updates: Partial<MovesPanelState>) => {
+  const updateState = (updates: Partial < MovesPanelState>) => {
     setPanelState(prev => ({ ...prev, ...updates }));
   };
 
   const filteredMoves = getFilteredMoves();
 
+  const renderSpellSection = () => {
+    if (!character || !isCaster) return null;
+
+    const budget = spellCastingService.getPreparationBudget(character);
+    const levelCost = (s: ServiceSpell) => (s.level === 0 ? 0 : (s.level as number));
+    const current = preparedSpells.reduce((sum, s) => sum + levelCost(s), 0);
+
+    const onTogglePrepare = (spellId: string) => {
+      if (!character) return;
+      const next = preparedIds.includes(spellId)
+        ? preparedIds.filter(id => id !== spellId)
+        : [...preparedIds, spellId];
+      try {
+        const updated = spellCastingService.prepareSpells(character, next);
+        // Persist only changed fields
+        updateCharacter(character.id, { preparedSpells: updated.preparedSpells, conditions: updated.conditions });
+      } catch (e) {
+        alert((e as Error).message);
+      }
+    };
+
+    const onCast = (spell: ServiceSpell) => {
+      if (!character) return;
+      try {
+        const { roll, updated, tier } = spellCastingService.castPreparedSpell(character, spell);
+        if (tier === '7-9') {
+          setSpellModal({ open: true, spell });
+          updateCharacter(character.id, { xp: updated.xp });
+        } else {
+          updateCharacter(character.id, { xp: updated.xp });
+        }
+      } catch (e) {
+        alert((e as Error).message);
+      }
+    };
+
+    return (
+      <div className="spells-section">
+        <h3>✨ Spells</h3>
+        <div className="spells-budget">
+          <div className="spells-budget__label">Prepared levels: {current} / {budget} (cantrips / rotes don’t count)</div>
+          <div className="spells-budget__bar" aria-label={`Prepared ${current} of ${budget}`}>
+            <div className="spells-budget__fill" style={{ width: `${Math.min(100, (current / Math.max(1, budget)) * 100)}%` }} />
+          </div>
+        </div>
+        <div className="spells-list">
+          {knownSpells.map(spell => {
+            const isPrepared = preparedIds.includes(spell.id);
+            const wouldExceed = !isPrepared && (current + levelCost(spell) > budget);
+            const prepareDisabled = !isPrepared && wouldExceed;
+            const prepareTitle = prepareDisabled ? `Preparing this would exceed your budget (${current}+${levelCost(spell)} > ${budget})` : undefined;
+            const castDisabled = spell.level !== 0 && !isPrepared;
+            const castTitle = castDisabled ? 'You must prepare this spell before casting (DW rule)' : undefined;
+            return (
+              <div key={spell.id} className={`spell-row ${isPrepared ? 'prepared' : ''}`}>
+                <div className="spell-info">
+                  <strong>{spell.name}</strong> {spell.level === 0 ? '(Cantrip / Rote)' : `(Level ${spell.level})`}
+                </div>
+                <div className="spell-actions">
+                  <button className="toggle-button" onClick={() => !prepareDisabled && onTogglePrepare(spell.id)} disabled={prepareDisabled} title={prepareTitle}>
+                    {isPrepared ? 'Unprepare' : 'Prepare'}
+                  </button>
+                  <button className="toggle-button" onClick={() => onCast(spell)} disabled={castDisabled} title={castTitle}>
+                    Cast
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="moves-panel">
       <div className="moves-panel__header">
-        <h2>Moves</h2>
+        <h2 > Moves</h2>
         {character && (
           <div className="character-info">
             <span className="character-name">{character.name}</span>
@@ -191,7 +274,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
 
       {!character && (
         <div className="no-character">
-          <p>No character selected. Create or select a character to use moves.</p>
+          <p > No character selected. Create or select a character to use moves.</p>
         </div>
       )}
 
@@ -261,6 +344,23 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
 
           {/* Main Content */}
           <div className="moves-panel__content">
+            {/* 7–9 Spell Consequence Modal */}
+            {isCaster && (
+              <SpellConsequenceModal
+                isOpen={spellModal.open}
+                spellName={spellModal.spell?.name || ''}
+                casterClass={(character?.class as string) === 'Cleric' ? 'Cleric' : 'Wizard'}
+                onConfirm={(choice) => {
+                  if (!character || !spellModal.spell) return;
+                  const post = spellCastingService.applySevenToNineConsequence(character, spellModal.spell, choice as string);
+                  updateCharacter(character.id, { preparedSpells: post.preparedSpells, conditions: post.conditions, xp: post.xp });
+                  setSpellModal({ open: false });
+                }}
+                onCancel={() => setSpellModal({ open: false })}
+              />
+            )}
+            {/* Spellcasting (DW: prepare level + 1 budget; cast with INT / WIS) */}
+            {renderSpellSection()}
             {/* Enhanced Dice Roller */}
             {panelState.showEnhancedDice && (
               <div className="enhanced-dice-section">
@@ -273,7 +373,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
                   soundEnabled={true}
                   onRoll={(enhancedRoll: EnhancedDiceRoll) => {
                     // Convert to legacy format for compatibility with existing systems
-                    // Only create legacy roll for 2d6 or 3d6 (advantage/disadvantage) rolls
+                    // Only create legacy roll for 2d6 or 3d6 (advantage / disadvantage) rolls
                     if (enhancedRoll.results.length === 2 || enhancedRoll.results.length === 3) {
                       const legacyRoll: DiceRoll = {
                         id: enhancedRoll.id,
@@ -283,7 +383,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
                         result: enhancedRoll.rollResult || (enhancedRoll.success ? 'success' : 'failure'),
                         timestamp: enhancedRoll.timestamp,
                         description: `${enhancedRoll.expression.count}${enhancedRoll.expression.type}${enhancedRoll.modifier !== 0 ? (enhancedRoll.modifier > 0 ? '+' : '') + enhancedRoll.modifier : ''}`,
-                        character: character?.name || 'Unknown'
+                        character: character?.name || 'Unknown',
                       };
                       setRollHistory(prev => [legacyRoll, ...prev.slice(0, 19)]);
                     }
@@ -343,7 +443,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
             <div className="moves-list">
               {filteredMoves.length === 0 ? (
                 <div className="no-moves">
-                  <p>No moves found matching your criteria.</p>
+                  <p > No moves found matching your criteria.</p>
                 </div>
               ) : (
                 filteredMoves.map(move => (
@@ -364,7 +464,7 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
             {panelState.showRollHistory && (
               <div className="roll-history">
                 <div className="roll-history__header">
-                  <h3>Recent Rolls</h3>
+                  <h3 > Recent Rolls</h3>
                   <button
                     className="clear-history-button"
                     onClick={() => {
@@ -390,11 +490,11 @@ const MovesPanel: React.FC<PanelProps> = ({ id }) => {
                             {new Date(roll.timestamp).toLocaleTimeString()}
                           </span>
                         </div>
-                        
+
                         <div className="roll-details">
                           <span className="roll-dice">
-                            {roll.dice.length === 3 ? 
-                              `${roll.dice.join(' + ')} (${roll.advantage ? 'adv' : 'dis'})` : 
+                            {roll.dice.length === 3 ?
+                              `${roll.dice.join(' + ')} (${roll.advantage ? 'adv' : 'dis'})` :
                               `${roll.dice[0]} + ${roll.dice[1]}`
                             }
                           </span>
@@ -437,9 +537,9 @@ const movesPanelConfig = createPanel(
     name: 'Moves',
     icon: '📜',
     description: 'Roll moves, get suggestions, and track performance',
-    priority: 3
+    priority: 3,
   },
-  MovesPanel
+  MovesPanel,
 );
 
 export default movesPanelConfig;

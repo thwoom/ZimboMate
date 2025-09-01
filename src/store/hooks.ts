@@ -4,31 +4,31 @@
 
 import { useCallback, useMemo } from 'react';
 import { useGameStore, useCharacter, useInventory } from './GameStore';
-import { 
+import {
   Character,
   getEffectiveModifier,
   shouldLevelUp,
   calculateMaxHP,
   calculateMaxLoad,
-  Attribute
+  Attribute,
 } from '../models/Character';
-import { 
+import {
   Item,
   calculateTotalArmor,
   isWeapon,
-  isArmor
+  isArmor,
 } from '../models/Equipment';
 import {
   calculateInventoryStats,
   getEquippedItems,
   addItem as addItemToInventory,
   removeItem as removeItemFromInventory,
-  toggleEquipped as toggleItemEquipped
+  toggleEquipped as toggleItemEquipped,
 } from '../models/Inventory';
-import { 
+import {
   Roll,
   rollDice,
-  addRoll as addRollToSession
+  addRoll as addRollToSession,
 } from '../models/Session';
 import { getRollResult } from '../models/Move';
 
@@ -41,59 +41,57 @@ export const useCharacterActions = () => {
 
   const takeDamage = useCallback((damage: number) => {
     if (!character) return;
-    
-    const newHP = Math.max(0, character.hp.current - damage);
-    dispatch({ 
+
+    const newHP = Math.max(0, character.hp.current-damage);
+    dispatch({
       type: 'UPDATE_CHARACTER',
       payload: {
         id: character.id,
-        updates: { hp: { ...character.hp, current: newHP } }
-      }
+        updates: { hp: { ...character.hp, current: newHP } },
+      },
     });
-    
+
     // Trigger Last Breath if HP reaches 0
     if (newHP === 0) {
       // This would trigger a modal or special UI
-      console.log('Last Breath triggered!');
-    }
+      }
   }, [character, dispatch]);
 
   const heal = useCallback((amount: number) => {
     if (!character) return;
-    
+
     const maxHP = calculateMaxHP(character);
     const newHP = Math.min(maxHP, character.hp.current + amount);
-    dispatch({ 
+    dispatch({
       type: 'UPDATE_CHARACTER',
       payload: {
         id: character.id,
-        updates: { hp: { ...character.hp, current: newHP, max: maxHP } }
-      }
+        updates: { hp: { ...character.hp, current: newHP, max: maxHP } },
+      },
     });
   }, [character, dispatch]);
 
-  const gainXP = useCallback((amount: number = 1) => {
+  const gainXP = useCallback((amount = 1) => {
     if (!character) return;
-    
+
     const newXP = character.xp + amount;
-    dispatch({ 
+    dispatch({
       type: 'UPDATE_CHARACTER',
       payload: {
         id: character.id,
-        updates: { xp: newXP }
-      }
+        updates: { xp: newXP },
+      },
     });
-    
+
     // Check for level up
     if (shouldLevelUp({ ...character, xp: newXP })) {
-      console.log('Level up available!');
       // This would trigger level up UI
     }
   }, [character, dispatch]);
 
   const toggleDebility = useCallback((debility: keyof Character['debilities']) => {
     if (!character) return;
-    
+
     dispatch({
       type: 'UPDATE_CHARACTER',
       payload: {
@@ -101,10 +99,10 @@ export const useCharacterActions = () => {
         updates: {
           debilities: {
             ...character.debilities,
-            [debility]: !character.debilities[debility]
-          }
-        }
-      }
+            [debility]: !character.debilities[debility],
+          },
+        },
+      },
     });
   }, [character, dispatch]);
 
@@ -112,7 +110,7 @@ export const useCharacterActions = () => {
     takeDamage,
     heal,
     gainXP,
-    toggleDebility
+    toggleDebility,
   };
 };
 
@@ -131,8 +129,8 @@ export const useInventoryActions = () => {
       type: 'SET_INVENTORY',
       payload: {
         characterId: character.id,
-        inventory: newInventory
-      }
+        inventory: newInventory,
+      },
     });
   }, [character, inventory, dispatch]);
 
@@ -143,8 +141,8 @@ export const useInventoryActions = () => {
       type: 'SET_INVENTORY',
       payload: {
         characterId: character.id,
-        inventory: newInventory
-      }
+        inventory: newInventory,
+      },
     });
   }, [character, inventory, dispatch]);
 
@@ -155,10 +153,10 @@ export const useInventoryActions = () => {
       type: 'SET_INVENTORY',
       payload: {
         characterId: character.id,
-        inventory: newInventory
-      }
+        inventory: newInventory,
+      },
     });
-    
+
     // Armor will be auto-calculated by the calculation engine
   }, [character, inventory, dispatch]);
 
@@ -166,7 +164,7 @@ export const useInventoryActions = () => {
     if (!character || !inventory) return;
     const item = inventory.items[itemId];
     if (!item) return;
-    
+
     const updatedItem = { ...item, quantity: Math.max(0, quantity) };
     dispatch({
       type: 'UPDATE_INVENTORY',
@@ -175,10 +173,10 @@ export const useInventoryActions = () => {
         updates: {
           items: {
             ...inventory.items,
-            [itemId]: updatedItem
-          }
-        }
-      }
+            [itemId]: updatedItem,
+          },
+        },
+      },
     });
   }, [character, inventory, dispatch]);
 
@@ -194,7 +192,7 @@ export const useInventoryActions = () => {
     removeItem,
     toggleEquipped,
     updateItemQuantity,
-    stats
+    stats,
   };
 };
 
@@ -206,83 +204,83 @@ export const useRollActions = () => {
   const { session } = state;
   const character = useCharacter();
 
-  const rollAttribute = useCallback((attribute: Attribute, customModifier: number = 0) => {
+  const rollAttribute = useCallback((attribute: Attribute, customModifier = 0) => {
     if (!character) return null;
-    
+
     const modifier = getEffectiveModifier(attribute, character.attributes, character.debilities) + customModifier;
     const { rolls, total } = rollDice('2d6');
     const finalTotal = total + modifier;
     const result = getRollResult(finalTotal);
-    
-    const roll: Omit<Roll, 'id' | 'timestamp'> = {
+
+    const roll: Omit < Roll, 'id' | 'timestamp'> = {
       type: 'attribute',
       dice: '2d6',
       rolls,
       modifier,
       total: finalTotal,
       attribute,
-      result
+      result,
     };
-    
+
     const newSession = addRollToSession(session, roll);
     dispatch({
       type: 'SET_SESSION',
-      payload: newSession
+      payload: newSession,
     });
-    
+
     return { rolls, modifier, total: finalTotal, result };
   }, [character, session, dispatch]);
 
   const rollDamage = useCallback(() => {
     if (!character) return null;
-    
+
     const damageDie = character.damageDie;
     const { rolls, total } = rollDice(`1${damageDie}`);
-    
-    const roll: Omit<Roll, 'id' | 'timestamp'> = {
+
+    const roll: Omit < Roll, 'id' | 'timestamp'> = {
       type: 'damage',
-      dice: `1${damageDie}` as any,
+      dice: `1${damageDie}` as string,
       rolls,
       modifier: 0,
       total,
-      description: 'Damage roll'
+      description: 'Damage roll',
     };
-    
+
     const newSession = addRollToSession(session, roll);
     dispatch({
       type: 'SET_SESSION',
-      payload: newSession
+      payload: newSession,
     });
-    
+
     return { rolls, total };
   }, [character, session, dispatch]);
 
-  const rollCustom = useCallback((dice: string, modifier: number = 0, description?: string) => {
+  const rollCustom = useCallback((dice: string, modifier = 0, description?: string) => {
     const { rolls, total } = rollDice(dice);
     const finalTotal = total + modifier;
-    
-    const roll: Omit<Roll, 'id' | 'timestamp'> = {
+
+    const roll: Omit < Roll, 'id' | 'timestamp'> = {
       type: 'custom',
       dice: 'custom',
       rolls,
       modifier,
       total: finalTotal,
-      description
+      description,
     };
-    
+
     const newSession = addRollToSession(session, roll);
     dispatch({
       type: 'SET_SESSION',
-      payload: newSession
+      payload: newSession,
     });
-    
+
     return { rolls, modifier, total: finalTotal };
   }, [session, dispatch]);
 
   return {
     rollAttribute,
     rollDamage,
-    rollCustom
+    rollCustom,
   };
 };
 
@@ -315,8 +313,8 @@ export const useCharacterStats = () => {
         CON: getEffectiveModifier('CON', character.attributes, character.debilities),
         INT: getEffectiveModifier('INT', character.attributes, character.debilities),
         WIS: getEffectiveModifier('WIS', character.attributes, character.debilities),
-        CHA: getEffectiveModifier('CHA', character.attributes, character.debilities)
-      }
+        CHA: getEffectiveModifier('CHA', character.attributes, character.debilities),
+      },
     };
   }, [character, inventory]);
 };

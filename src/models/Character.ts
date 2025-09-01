@@ -25,7 +25,7 @@ export interface Debilities {
 }
 
 // Character classes in Dungeon World
-export type CharacterClass = 
+export type CharacterClass =
   | 'Fighter'
   | 'Paladin'
   | 'Ranger'
@@ -38,7 +38,7 @@ export type CharacterClass =
   | 'Immolator';
 
 // Alignments
-export type Alignment = 
+export type Alignment =
   | 'Good'
   | 'Lawful'
   | 'Neutral'
@@ -56,8 +56,8 @@ export interface Bond {
   resolved: boolean;
 }
 
-// Character race/species
-export type Race = 
+// Character race / species
+export type Race =
   | 'Human'
   | 'Elf'
   | 'Dwarf'
@@ -80,7 +80,7 @@ export interface Character {
   name: string;
   look?: string; // Character appearance description
   portraitId?: string; // ID of selected portrait
-  background?: string; // Narrative backstory/summary
+  background?: string; // Narrative backstory / summary
   personalityTraits?: string[]; // Short descriptors of personality
   voice?: string; // Voice or mannerisms description
   class: CharacterClass;
@@ -104,7 +104,7 @@ export interface Character {
 
   // Experience
   xp: number;
-  
+
   // Load and Encumbrance
   load: {
     current: number; // Current weight carried
@@ -125,6 +125,12 @@ export interface Character {
   // Spellcasting (for casters)
   knownSpells?: string[];
   preparedSpells?: string[];
+
+  // Advanced Options
+  compendiumClasses?: string[]; // Compendium class IDs
+  raceMoves?: string[]; // Race move IDs
+  multiclassConfig?: import('./AdvancedCharacterOptions').MulticlassConfig;
+  customMoves?: string[]; // Custom move IDs
 
   // Conditions
   conditions: string[]; // Active condition IDs
@@ -156,8 +162,7 @@ export interface CharacterCreationData {
 // Utility functions for character calculations
 
 /**
- * Calculate modifier from attribute score
- * 3: -3, 4-5: -2, 6-8: -1, 9-12: 0, 13-15: +1, 16-17: +2, 18: +3
+ * Calculate modifier from attribute score * 3: -3, 4-5: -2, 6-8: -1, 9-12: 0, 13-15: +1, 16-17: +2, 18: +3
  */
 export function getAttributeModifier(score: number): number {
   if (score <= 3) return -3;
@@ -175,10 +180,10 @@ export function getAttributeModifier(score: number): number {
 export function getEffectiveModifier(
   attribute: Attribute,
   attributes: Attributes,
-  debilities: Debilities
+  debilities: Debilities,
 ): number {
   let modifier = getAttributeModifier(attributes[attribute]);
-  
+
   // Apply debility penalties
   if (attribute === 'STR' && debilities.weak) modifier -= 1;
   if (attribute === 'DEX' && debilities.shaky) modifier -= 1;
@@ -186,16 +191,37 @@ export function getEffectiveModifier(
   if (attribute === 'INT' && debilities.stunned) modifier -= 1;
   if (attribute === 'WIS' && debilities.confused) modifier -= 1;
   if (attribute === 'CHA' && debilities.scarred) modifier -= 1;
-  
+
   return modifier;
 }
 
 /**
- * Calculate XP needed for next level
+ * Calculate XP needed for next level (official DW rule)
  * Formula: Current Level + 7
  */
 export function getXPThreshold(level: number): number {
   return level + 7;
+}
+
+/**
+ * Get official Dungeon World standard ability score array
+ */
+export function getStandardArray(): number[] {
+  return [16, 15, 13, 12, 9, 8];
+}
+
+/**
+ * Roll 3d6 for ability score
+ */
+export function rollAbilityScore(): number {
+  return Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
+}
+
+/**
+ * Generate rolled ability scores (6 rolls of 3d6)
+ */
+export function generateRolledScores(): number[] {
+  return Array.from({ length: 6 }, () => rollAbilityScore());
 }
 
 /**
@@ -209,7 +235,7 @@ export function shouldLevelUp(character: Character): boolean {
  * Get class base HP
  */
 export function getClassBaseHP(characterClass: CharacterClass): number {
-  const baseHP: Record<CharacterClass, number> = {
+  const baseHP: Record < CharacterClass, number> = {
     'Fighter': 10,
     'Paladin': 10,
     'Ranger': 8,
@@ -219,7 +245,7 @@ export function getClassBaseHP(characterClass: CharacterClass): number {
     'Druid': 6,
     'Wizard': 4,
     'Barbarian': 8,
-    'Immolator': 4
+    'Immolator': 4,
   };
   return baseHP[characterClass] || 6;
 }
@@ -228,7 +254,7 @@ export function getClassBaseHP(characterClass: CharacterClass): number {
  * Get class base load
  */
 export function getClassBaseLoad(characterClass: CharacterClass): number {
-  const baseLoad: Record<CharacterClass, number> = {
+  const baseLoad: Record < CharacterClass, number> = {
     'Fighter': 12,
     'Paladin': 12,
     'Ranger': 11,
@@ -238,7 +264,7 @@ export function getClassBaseLoad(characterClass: CharacterClass): number {
     'Druid': 6,
     'Wizard': 7,
     'Barbarian': 8,
-    'Immolator': 9
+    'Immolator': 9,
   };
   return baseLoad[characterClass] || 9;
 }
@@ -247,7 +273,7 @@ export function getClassBaseLoad(characterClass: CharacterClass): number {
  * Get class damage die
  */
 export function getClassDamageDie(characterClass: CharacterClass): DamageDie {
-  const damageDice: Record<CharacterClass, DamageDie> = {
+  const damageDice: Record < CharacterClass, DamageDie> = {
     'Fighter': 'd10',
     'Paladin': 'd10',
     'Ranger': 'd8',
@@ -257,18 +283,18 @@ export function getClassDamageDie(characterClass: CharacterClass): DamageDie {
     'Druid': 'd6',
     'Wizard': 'd4',
     'Barbarian': 'd10',
-    'Immolator': 'd8'
+    'Immolator': 'd8',
   };
   return damageDice[characterClass] || 'd6';
 }
 
 /**
- * Calculate maximum HP (base HP + Constitution modifier)
+ * Calculate maximum HP (official DW: base HP + Constitution SCORE, not modifier)
  */
 export function calculateMaxHP(character: Character): number {
   const baseHP = getClassBaseHP(character.class);
-  const conModifier = getEffectiveModifier('CON', character.attributes, character.debilities);
-  return Math.max(1, baseHP + conModifier); // Minimum 1 HP
+  // Official DW rule: HP = Class Base + CON score (not modifier)
+  return Math.max(1, baseHP + character.attributes.CON);
 }
 
 /**

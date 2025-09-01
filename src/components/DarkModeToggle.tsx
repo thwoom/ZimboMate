@@ -58,7 +58,7 @@ const DarkModeToggle: React.FC = () => {
           <div className="theme-dropdown__backdrop" onClick={() => setShowDropdown(false)} />
           <div className="theme-dropdown__content">
             <div className="theme-dropdown__header">
-              <h3>Rose Pine Themes</h3>
+              <h3 > Rose Pine Themes</h3>
             </div>
             {availableThemes.map(theme => (
               <button
@@ -76,9 +76,9 @@ const DarkModeToggle: React.FC = () => {
                 )}
               </button>
             ))}
-            
+
             <div className="theme-dropdown__footer">
-              <small>Powered by Rose Pine color palette</small>
+              <small > Powered by Rose Pine color palette</small>
             </div>
           </div>
         </div>

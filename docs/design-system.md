@@ -132,7 +132,7 @@ ZimboMate uses the **Rose Pine** color palette as its foundation, providing a wa
   box-shadow: var(--shadow-sm);
   padding: var(--spacing-lg);
 }
-```
+```text
 
 ### Buttons
 ```css
@@ -150,7 +150,7 @@ ZimboMate uses the **Rose Pine** color palette as its foundation, providing a wa
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
-```
+```text
 
 ### Status Indicators
 ```css
@@ -168,7 +168,7 @@ ZimboMate uses the **Rose Pine** color palette as its foundation, providing a wa
   background: var(--color-danger);
   color: var(--color-text-inverse);
 }
-```
+```text
 
 ## Accessibility
 

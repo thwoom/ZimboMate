@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { PRDParser, loadPRD } from '../src/lib/prd';
+import { PRDParser, loadPRD } from '../src / lib / prd';
 import { writeFileSync, unlinkSync } from 'fs';
 import { resolve } from 'path';
 
 describe('PRD Parser', () => {
-  const testPrdPath = resolve(process.cwd(), 'test-prd.md');
+  const testPrdPath = resolve(process.cwd(), 'test - prd.md');
 
   const samplePRD = `# Test Product Requirements Document
 
@@ -16,34 +16,20 @@ A simple test product that demonstrates parser functionality.
 
 ## Core Features
 
-### Task Management
-- Create and update tasks
-- Assign priorities
-- Track status
+### Task Management - Create and update tasks - Assign priorities - Track status
 
-### User Interface
-- Clean design
-- Responsive layout
-- Dark mode
+### User Interface - Clean design - Responsive layout - Dark mode
 
 ## Technical Requirements
 
-### Performance
-- Fast loading
-- Efficient processing
-- Scalable architecture
+### Performance - Fast loading - Efficient processing - Scalable architecture
 
-### Security
-- User authentication
-- Data encryption
+### Security - User authentication - Data encryption
 
-## Success Metrics
-- 90% completion rate
-- User satisfaction > 4.5/5
+## Success Metrics - 90% completion rate - User satisfaction > 4.5 / 5
 - 50% efficiency improvement
 
-## Timeline
-- Phase 1: Core features (Q1)
+## Timeline - Phase 1: Core features (Q1)
 - Phase 2: Advanced features (Q2)
 - Phase 3: Enterprise features (Q3)`;
 
@@ -63,8 +49,8 @@ A simple test product that demonstrates parser functionality.
 
   describe('PRDParser', () => {
     it('should parse a valid PRD file', () => {
-      const parser = new PRDParser(testPrdPath);
-      const prd = parser.parse();
+      const _parser = new PRDParser(testPrdPath);
+      const _prd = parser.parse();
 
       expect(prd.title).toBe('Test Product Requirements Document');
       expect(prd.overview).toContain('test PRD for unit testing');
@@ -76,8 +62,8 @@ A simple test product that demonstrates parser functionality.
     });
 
     it('should extract core features correctly', () => {
-      const parser = new PRDParser(testPrdPath);
-      const prd = parser.parse();
+      const _parser = new PRDParser(testPrdPath);
+      const _prd = parser.parse();
 
       const taskManagement = prd.coreFeatures.find(
         (f) => f.name === 'Task Management',
@@ -95,8 +81,8 @@ A simple test product that demonstrates parser functionality.
     });
 
     it('should extract technical requirements correctly', () => {
-      const parser = new PRDParser(testPrdPath);
-      const prd = parser.parse();
+      const _parser = new PRDParser(testPrdPath);
+      const _prd = parser.parse();
 
       const performance = prd.technicalRequirements.find(
         (r) => r.category === 'Performance',
@@ -114,8 +100,8 @@ A simple test product that demonstrates parser functionality.
     });
 
     it('should extract success metrics correctly', () => {
-      const parser = new PRDParser(testPrdPath);
-      const prd = parser.parse();
+      const _parser = new PRDParser(testPrdPath);
+      const _prd = parser.parse();
 
       expect(prd.successMetrics).toHaveLength(3);
 
@@ -126,15 +112,15 @@ A simple test product that demonstrates parser functionality.
       expect(completionRate?.target).toBe('');
 
       const satisfaction = prd.successMetrics.find(
-        (m) => m.name === 'User satisfaction > 4.5/5',
+        (m) => m.name === 'User satisfaction > 4.5 / 5',
       );
       expect(satisfaction).toBeDefined();
       expect(satisfaction?.target).toBe('');
     });
 
     it('should extract timeline correctly', () => {
-      const parser = new PRDParser(testPrdPath);
-      const prd = parser.parse();
+      const _parser = new PRDParser(testPrdPath);
+      const _prd = parser.parse();
 
       expect(prd.timeline).toHaveLength(3);
 
@@ -150,40 +136,40 @@ A simple test product that demonstrates parser functionality.
     });
 
     it('should validate required fields', () => {
-      const parser = new PRDParser(testPrdPath);
-      const prd = parser.parse();
+      const _parser = new PRDParser(testPrdPath);
+      const _prd = parser.parse();
 
       expect(() => parser.validate(prd)).not.toThrow();
     });
 
     it('should throw error for missing title', () => {
-      const invalidPRD = `## Overview
+      const _invalidPRD = `## Overview
 This is a test PRD without a title.`;
 
       writeFileSync(testPrdPath, invalidPRD);
 
-      const parser = new PRDParser(testPrdPath);
+      const _parser = new PRDParser(testPrdPath);
       expect(() => parser.parse()).toThrow(
         'PRD must have a title starting with #',
       );
     });
 
     it('should throw error for missing required section', () => {
-      const invalidPRD = `# Test PRD
+      const _invalidPRD = `# Test PRD
 
 ## Overview
 This is a test PRD without required sections.`;
 
       writeFileSync(testPrdPath, invalidPRD);
 
-      const parser = new PRDParser(testPrdPath);
+      const _parser = new PRDParser(testPrdPath);
       expect(() => parser.parse()).toThrow(
         "Required section 'Product Vision' not found in PRD",
       );
     });
 
     it('should throw error for empty core features', () => {
-      const invalidPRD = `# Test PRD
+      const _invalidPRD = `# Test PRD
 
 ## Overview
 Test overview.
@@ -195,19 +181,16 @@ Test vision.
 
 ## Technical Requirements
 
-### Performance
-- Fast loading
+### Performance - Fast loading
 
-## Success Metrics
-- 90% completion rate
+## Success Metrics - 90% completion rate
 
-## Timeline
-- Phase 1: Core features (Q1)`;
+## Timeline - Phase 1: Core features (Q1)`;
 
       writeFileSync(testPrdPath, invalidPRD);
 
-      const parser = new PRDParser(testPrdPath);
-      const prd = parser.parse();
+      const _parser = new PRDParser(testPrdPath);
+      const _prd = parser.parse();
       expect(() => parser.validate(prd)).toThrow(
         'PRD must have at least one core feature',
       );
@@ -216,8 +199,8 @@ Test vision.
 
   describe('loadPRD function', () => {
     it('should load and parse PRD with default path', () => {
-      // This test uses the actual docs/PRD.md file
-      const prd = loadPRD();
+      // This test uses the actual docs / PRD.md file
+      const _prd = loadPRD();
 
       expect(prd.title).toBe('Dungeon World Digital Control Panel Design');
       expect(prd.coreFeatures).toHaveLength(6);
@@ -227,7 +210,7 @@ Test vision.
     });
 
     it('should load and parse PRD with custom path', () => {
-      const prd = loadPRD(testPrdPath);
+      const _prd = loadPRD(testPrdPath);
 
       expect(prd.title).toBe('Test Product Requirements Document');
       expect(prd.coreFeatures).toHaveLength(2);
@@ -270,24 +253,20 @@ Test.
 
 ## Core Features
 
-### Single Feature
-- Only one requirement
+### Single Feature - Only one requirement
 
 ## Technical Requirements
 
-### Performance
-- Fast loading
+### Performance - Fast loading
 
-## Success Metrics
-- 90% completion rate
+## Success Metrics - 90% completion rate
 
-## Timeline
-- Phase 1: Core features (Q1)`;
+## Timeline - Phase 1: Core features (Q1)`;
 
       writeFileSync(testPrdPath, singleFeaturePRD);
 
-      const parser = new PRDParser(testPrdPath);
-      const prd = parser.parse();
+      const _parser = new PRDParser(testPrdPath);
+      const _prd = parser.parse();
 
       expect(prd.coreFeatures).toHaveLength(1);
       expect(prd.coreFeatures[0].name).toBe('Single Feature');
@@ -305,21 +284,15 @@ Test.
 
 ## Core Features
 
-### Feature
-- Requirement
+### Feature - Requirement
 
 ## Technical Requirements
 
-### Performance
-- Fast loading
+### Performance - Fast loading
 
-## Success Metrics
-- Metric 1: Target value 1
-- Metric 2: Target value 2 with : colon
-- Metric 3: No target specified
+## Success Metrics - Metric 1: Target value 1 - Metric 2: Target value 2 with : colon - Metric 3: No target specified
 
-## Timeline
-- Phase 1: Core features (Q1)`;
+## Timeline - Phase 1: Core features (Q1)`;
 
       writeFileSync(testPrdPath, complexMetricsPRD);
 

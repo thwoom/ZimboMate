@@ -7,10 +7,10 @@ interface AutoSaveIndicatorProps {
   className?: string;
 }
 
-export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
+export const AutoSaveIndicator: React.FC < AutoSaveIndicatorProps> = ({
   status,
   message,
-  className = ''
+  className = '',
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);

@@ -1,6 +1,5 @@
 /**
- * Theme Management Service
- * Handles Rose Pine theme switching and persistence
+ * Theme Management Service * Handles Rose Pine theme switching and persistence
  */
 
 export type ThemeMode = 'dark' | 'light' | 'moon' | 'high-contrast' | 'auto';
@@ -8,7 +7,7 @@ export type ThemeMode = 'dark' | 'light' | 'moon' | 'high-contrast' | 'auto';
 export interface ThemePreferences {
   mode: ThemeMode;
   followSystem: boolean;
-  customColors?: Record<string, string>;
+  customColors?: Record < string, string>;
 }
 
 export class ThemeService {
@@ -21,11 +20,11 @@ export class ThemeService {
   private constructor() {
     // Load saved preferences
     this.preferences = this.loadPreferences();
-    
+
     // Set up system theme detection
     this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     this.mediaQuery.addEventListener('change', this.handleSystemThemeChange.bind(this));
-    
+
     // Initialize theme
     this.initializeTheme();
   }
@@ -97,37 +96,37 @@ export class ThemeService {
       {
         value: 'dark',
         label: 'Rose Pine',
-        description: 'Dark theme with warm, muted colors'
+        description: 'Dark theme with warm, muted colors',
       },
       {
         value: 'light',
         label: 'Rose Pine Dawn',
-        description: 'Light theme with soft, natural tones'
+        description: 'Light theme with soft, natural tones',
       },
       {
         value: 'moon',
         label: 'Rose Pine Moon',
-        description: 'Alternative dark theme with cooler tones'
+        description: 'Alternative dark theme with cooler tones',
       },
       {
         value: 'auto',
         label: 'System',
-        description: 'Follow system preference'
+        description: 'Follow system preference',
       },
       {
         value: 'high-contrast',
         label: 'High Contrast',
-        description: 'High contrast mode for accessibility'
-      }
+        description: 'High contrast mode for accessibility',
+      },
     ];
   }
 
   /**
    * Get theme colors for current theme
    */
-  getThemeColors(): Record<string, string> {
+  getThemeColors(): Record < string, string> {
     const computedStyle = getComputedStyle(document.documentElement);
-    
+
     return {
       background: computedStyle.getPropertyValue('--color-background').trim(),
       surface: computedStyle.getPropertyValue('--color-surface').trim(),
@@ -137,7 +136,7 @@ export class ThemeService {
       success: computedStyle.getPropertyValue('--color-success').trim(),
       warning: computedStyle.getPropertyValue('--color-warning').trim(),
       danger: computedStyle.getPropertyValue('--color-danger').trim(),
-      border: computedStyle.getPropertyValue('--color-border').trim()
+      border: computedStyle.getPropertyValue('--color-border').trim(),
     };
   }
 
@@ -145,7 +144,7 @@ export class ThemeService {
    * Check if current theme is dark
    */
   isDarkTheme(): boolean {
-    return this.currentTheme === 'dark' || this.currentTheme === 'moon' || 
+    return this.currentTheme === 'dark' || this.currentTheme === 'moon' ||
            (this.currentTheme === 'auto' && this.mediaQuery.matches);
   }
 
@@ -153,7 +152,7 @@ export class ThemeService {
    * Check if current theme is light
    */
   isLightTheme(): boolean {
-    return this.currentTheme === 'light' || 
+    return this.currentTheme === 'light' ||
            (this.currentTheme === 'auto' && !this.mediaQuery.matches);
   }
 
@@ -163,10 +162,10 @@ export class ThemeService {
   getContrastRatio(color1: string, color2: string): number {
     const luminance1 = this.getLuminance(color1);
     const luminance2 = this.getLuminance(color2);
-    
+
     const lighter = Math.max(luminance1, luminance2);
     const darker = Math.min(luminance1, luminance2);
-    
+
     return (lighter + 0.05) / (darker + 0.05);
   }
 
@@ -180,22 +179,22 @@ export class ThemeService {
   } {
     const colors = this.getThemeColors();
     const issues: string[] = [];
-    
+
     // Check text contrast ratios
     const textContrast = this.getContrastRatio(colors.textPrimary, colors.background);
     const secondaryTextContrast = this.getContrastRatio(colors.textSecondary, colors.background);
-    
+
     const wcagAA = textContrast >= 4.5 && secondaryTextContrast >= 3;
     const wcagAAA = textContrast >= 7 && secondaryTextContrast >= 4.5;
-    
+
     if (textContrast < 4.5) {
       issues.push('Primary text contrast ratio is below WCAG AA standard');
     }
-    
+
     if (secondaryTextContrast < 3) {
       issues.push('Secondary text contrast ratio is below WCAG AA standard');
     }
-    
+
     return { wcagAA, wcagAAA, issues };
   }
 
@@ -208,16 +207,16 @@ export class ThemeService {
     } else {
       this.currentTheme = this.preferences.mode;
     }
-    
+
     this.applyTheme();
   }
 
   private applyTheme(): void {
     const root = document.documentElement;
-    
+
     // Remove existing theme classes
     root.removeAttribute('data-theme');
-    
+
     // Apply new theme
     if (this.currentTheme === 'auto') {
       const systemTheme = this.mediaQuery.matches ? 'dark' : 'light';
@@ -228,7 +227,7 @@ export class ThemeService {
     } else if (this.currentTheme !== 'dark') {
       root.setAttribute('data-theme', this.currentTheme);
     }
-    
+
     // Update meta theme-color for mobile browsers
     this.updateMetaThemeColor();
   }
@@ -236,13 +235,13 @@ export class ThemeService {
   private updateMetaThemeColor(): void {
     const colors = this.getThemeColors();
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    
+
     if (!metaThemeColor) {
       metaThemeColor = document.createElement('meta');
       metaThemeColor.setAttribute('name', 'theme-color');
       document.head.appendChild(metaThemeColor);
     }
-    
+
     metaThemeColor.setAttribute('content', colors.surface || colors.background);
   }
 
@@ -261,9 +260,8 @@ export class ThemeService {
         return { ...this.getDefaultPreferences(), ...JSON.parse(saved) };
       }
     } catch (error) {
-      console.warn('Failed to load theme preferences:', error);
-    }
-    
+      }
+
     return this.getDefaultPreferences();
   }
 
@@ -271,14 +269,13 @@ export class ThemeService {
     try {
       localStorage.setItem('zimbomate-theme-preferences', JSON.stringify(this.preferences));
     } catch (error) {
-      console.warn('Failed to save theme preferences:', error);
-    }
+      }
   }
 
   private getDefaultPreferences(): ThemePreferences {
     return {
       mode: 'dark',
-      followSystem: false
+      followSystem: false,
     };
   }
 
@@ -290,13 +287,13 @@ export class ThemeService {
     // Convert color to RGB
     const rgb = this.hexToRgb(color);
     if (!rgb) return 0;
-    
+
     // Calculate relative luminance
     const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(c => {
       c = c / 255;
       return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
     });
-    
+
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }
 
@@ -305,7 +302,7 @@ export class ThemeService {
     return result ? {
       r: parseInt(result[1], 16),
       g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
+      b: parseInt(result[3], 16),
     } : null;
   }
 }

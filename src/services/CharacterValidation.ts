@@ -51,11 +51,11 @@ export interface BuildEffectiveness {
 }
 
 class CharacterValidationService {
-  
+
   /**
    * Validate a complete character
    */
-  validateCharacter(character: Partial<Character>): ValidationResult {
+  validateCharacter(character: Partial < Character>): ValidationResult {
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
     const suggestions: ValidationSuggestion[] = [];
@@ -66,7 +66,7 @@ class CharacterValidationService {
         id: 'missing-name',
         field: 'name',
         message: 'Character must have a name',
-        severity: 'error'
+        severity: 'error',
       });
     }
 
@@ -75,7 +75,7 @@ class CharacterValidationService {
         id: 'missing-class',
         field: 'class',
         message: 'Character must have a class',
-        severity: 'error'
+        severity: 'error',
       });
     }
 
@@ -84,7 +84,7 @@ class CharacterValidationService {
         id: 'missing-race',
         field: 'race',
         message: 'Character must have a race',
-        severity: 'error'
+        severity: 'error',
       });
     }
 
@@ -93,7 +93,7 @@ class CharacterValidationService {
         id: 'missing-alignment',
         field: 'alignment',
         message: 'Character must have an alignment',
-        severity: 'error'
+        severity: 'error',
       });
     }
 
@@ -105,7 +105,7 @@ class CharacterValidationService {
           id: 'invalid-attributes',
           field: 'attributes',
           message: `Attribute total (${attrValidation.total}) doesn't match expected (${attrValidation.expectedTotal})`,
-          severity: 'error'
+          severity: 'error',
         });
       }
 
@@ -116,7 +116,7 @@ class CharacterValidationService {
           id: 'dump-stats',
           field: 'attributes',
           message: `Very low stats detected: ${dumpStats.join(', ')}. This may limit character effectiveness.`,
-          impact: 'medium'
+          impact: 'medium',
         });
       }
     }
@@ -144,7 +144,7 @@ class CharacterValidationService {
           id: 'invalid-alignment',
           field: 'alignment',
           message: alignmentCheck.message,
-          severity: 'error'
+          severity: 'error',
         });
       }
     }
@@ -160,7 +160,7 @@ class CharacterValidationService {
       isValid: errors.length === 0,
       errors,
       warnings,
-      suggestions
+      suggestions,
     };
   }
 
@@ -170,13 +170,12 @@ class CharacterValidationService {
   validateAttributes(attributes: Attributes, method: 'array' | 'pointbuy' | 'rolled' = 'array'): AttributeValidation {
     const values = Object.values(attributes);
     const total = values.reduce((sum, val) => sum + val, 0);
-    
     let expectedTotal: number;
     let isValid: boolean;
 
     switch (method) {
       case 'array':
-        expectedTotal = 72; // 16+15+13+12+9+8 = 72
+        expectedTotal = 72; // 16 + 15 + 13 + 12 + 9+8 = 72
         isValid = total === expectedTotal;
         break;
       case 'pointbuy':
@@ -192,8 +191,8 @@ class CharacterValidationService {
     // Determine distribution type
     const highest = Math.max(...values);
     const lowest = Math.min(...values);
-    const range = highest - lowest;
-    
+    const range = highest-lowest;
+
     let distribution: 'balanced' | 'specialized' | 'extreme';
     if (range <= 6) distribution = 'balanced';
     else if (range <= 10) distribution = 'specialized';
@@ -204,7 +203,7 @@ class CharacterValidationService {
       isValid,
       total,
       expectedTotal,
-      distribution
+      distribution,
     };
   }
 
@@ -231,7 +230,7 @@ class CharacterValidationService {
     const warnings: ValidationWarning[] = [];
     const suggestions: ValidationSuggestion[] = [];
 
-    const classRequirements: Record<CharacterClass, { primary: keyof Attributes; secondary?: keyof Attributes; avoid?: keyof Attributes }> = {
+    const classRequirements: Record < CharacterClass, { primary: keyof Attributes; secondary?: keyof Attributes; avoid?: keyof Attributes }> = {
       'Fighter': { primary: 'STR', secondary: 'CON' },
       'Paladin': { primary: 'STR', secondary: 'WIS' },
       'Ranger': { primary: 'DEX', secondary: 'WIS' },
@@ -241,7 +240,7 @@ class CharacterValidationService {
       'Druid': { primary: 'WIS', secondary: 'CON' },
       'Wizard': { primary: 'INT', secondary: 'DEX', avoid: 'STR' },
       'Barbarian': { primary: 'STR', secondary: 'CON', avoid: 'INT' },
-      'Immolator': { primary: 'CON', secondary: 'INT' }
+      'Immolator': { primary: 'CON', secondary: 'INT' },
     };
 
     const req = classRequirements[characterClass];
@@ -253,7 +252,7 @@ class CharacterValidationService {
         id: `low-primary-${req.primary}`,
         field: 'attributes',
         message: `${characterClass}s typically need high ${req.primary} (13+). Current: ${attributes[req.primary]}`,
-        impact: 'high'
+        impact: 'high',
       });
     }
 
@@ -263,7 +262,7 @@ class CharacterValidationService {
         id: `improve-secondary-${req.secondary}`,
         field: 'attributes',
         message: `Consider increasing ${req.secondary} for better ${characterClass} effectiveness`,
-        action: `Increase ${req.secondary}`
+        action: `Increase ${req.secondary}`,
       });
     }
 
@@ -288,12 +287,12 @@ class CharacterValidationService {
     const warnings: ValidationWarning[] = [];
 
     // Define synergistic combinations
-    const goodCombos: Record<Race, CharacterClass[]> = {
+    const goodCombos: Record < Race, CharacterClass[]> = {
       'Human': ['Fighter', 'Paladin', 'Cleric', 'Bard'], // Versatile
       'Elf': ['Ranger', 'Wizard', 'Druid'], // Magical affinity
       'Dwarf': ['Fighter', 'Paladin', 'Cleric'], // Hardy and traditional
       'Halfling': ['Thief', 'Bard', 'Ranger'], // Small and nimble
-      'Other': [] // No specific recommendations
+      'Other': [], // No specific recommendations
     };
 
     const racialSynergy = goodCombos[race] || [];
@@ -302,7 +301,7 @@ class CharacterValidationService {
         id: 'race-class-mismatch',
         field: 'race',
         message: `${race}s typically excel as ${racialSynergy.join(', ')}. ${characterClass} is unusual but can work.`,
-        impact: 'low'
+        impact: 'low',
       });
     }
 
@@ -316,7 +315,7 @@ class CharacterValidationService {
     isValid: boolean;
     message: string;
   } {
-    const alignmentRestrictions: Record<CharacterClass, Alignment[]> = {
+    const alignmentRestrictions: Record < CharacterClass, Alignment[]> = {
       'Paladin': ['Lawful', 'Good'],
       'Druid': ['Neutral', 'Chaotic'],
       'Fighter': ['Good', 'Lawful', 'Neutral', 'Chaotic', 'Evil'], // No restrictions
@@ -326,7 +325,7 @@ class CharacterValidationService {
       'Cleric': ['Good', 'Lawful', 'Neutral', 'Evil'], // Depends on deity
       'Wizard': ['Good', 'Lawful', 'Neutral', 'Chaotic', 'Evil'], // No restrictions
       'Barbarian': ['Neutral', 'Chaotic'],
-      'Immolator': ['Good', 'Neutral', 'Chaotic', 'Evil'] // No restrictions
+      'Immolator': ['Good', 'Neutral', 'Chaotic', 'Evil'], // No restrictions
     };
 
     const allowedAlignments = alignmentRestrictions[characterClass] || [];
@@ -334,9 +333,9 @@ class CharacterValidationService {
 
     return {
       isValid,
-      message: isValid 
+      message: isValid
         ? `${alignment} ${characterClass} is valid`
-        : `${characterClass}s cannot be ${alignment}. Allowed: ${allowedAlignments.join(', ')}`
+        : `${characterClass}s cannot be ${alignment}. Allowed: ${allowedAlignments.join(', ')}`,
     };
   }
 
@@ -352,15 +351,15 @@ class CharacterValidationService {
 
     // Calculate total weight
     const totalWeight = inventory.reduce((sum, item) => sum + (item.weight || 0), 0);
-    
+
     // Calculate load capacity (base load varies by class)
-    const classBaseLoad: Record<CharacterClass, number> = {
+    const classBaseLoad: Record < CharacterClass, number> = {
       'Fighter': 12, 'Paladin': 12, 'Ranger': 11, 'Thief': 9, 'Bard': 9,
-      'Cleric': 10, 'Druid': 6, 'Wizard': 7, 'Barbarian': 8, 'Immolator': 9
+      'Cleric': 10, 'Druid': 6, 'Wizard': 7, 'Barbarian': 8, 'Immolator': 9,
     };
-    
+
     const baseLoad = characterClass ? classBaseLoad[characterClass] : 10;
-    const strModifier = Math.floor((attributes.STR - 10) / 2);
+    const strModifier = Math.floor((attributes.STR-10) / 2);
     const maxLoad = baseLoad + strModifier;
 
     // Check encumbrance
@@ -369,14 +368,14 @@ class CharacterValidationService {
         id: 'overencumbered',
         field: 'inventory',
         message: `Carrying ${totalWeight} weight, but max load is ${maxLoad}. Character is encumbered.`,
-        impact: 'high'
+        impact: 'high',
       });
-    } else if (totalWeight > maxLoad - 2) {
+    } else if (totalWeight > maxLoad-2) {
       warnings.push({
         id: 'near-encumbrance',
         field: 'inventory',
         message: `Close to encumbrance limit (${totalWeight}/${maxLoad}). Consider dropping items.`,
-        impact: 'medium'
+        impact: 'medium',
       });
     }
 
@@ -390,7 +389,7 @@ class CharacterValidationService {
         id: 'missing-weapon',
         field: 'inventory',
         message: 'Consider adding a weapon for combat effectiveness',
-        action: 'Add weapon'
+        action: 'Add weapon',
       });
     }
 
@@ -399,7 +398,7 @@ class CharacterValidationService {
         id: 'missing-armor',
         field: 'inventory',
         message: 'Consider adding armor for protection',
-        action: 'Add armor'
+        action: 'Add armor',
       });
     }
 
@@ -407,8 +406,8 @@ class CharacterValidationService {
       suggestions.push({
         id: 'missing-rations',
         field: 'inventory',
-        message: 'Adventurers need food! Add some rations.',
-        action: 'Add rations'
+        message: 'Adventurers need food ! Add some rations.',
+        action: 'Add rations',
       });
     }
 
@@ -418,7 +417,7 @@ class CharacterValidationService {
   /**
    * Calculate build effectiveness rating
    */
-  calculateBuildEffectiveness(character: Partial<Character>): BuildEffectiveness {
+  calculateBuildEffectiveness(character: Partial < Character>): BuildEffectiveness {
     if (!character.attributes || !character.class) {
       return { overall: 0, combat: 0, social: 0, exploration: 0, magic: 0, survivability: 0 };
     }
@@ -446,9 +445,9 @@ class CharacterValidationService {
     let base = 50; // Base effectiveness
 
     // Class bonuses
-    const classBonuses: Record<CharacterClass, number> = {
+    const classBonuses: Record < CharacterClass, number> = {
       'Fighter': 25, 'Paladin': 20, 'Barbarian': 20, 'Ranger': 15,
-      'Thief': 10, 'Cleric': 10, 'Druid': 5, 'Bard': 5, 'Wizard': 0, 'Immolator': 15
+      'Thief': 10, 'Cleric': 10, 'Druid': 5, 'Bard': 5, 'Wizard': 0, 'Immolator': 15,
     };
 
     base += classBonuses[characterClass] || 0;
@@ -472,9 +471,9 @@ class CharacterValidationService {
 
     let base = 50;
 
-    const classBonuses: Record<CharacterClass, number> = {
+    const classBonuses: Record < CharacterClass, number> = {
       'Bard': 25, 'Paladin': 15, 'Cleric': 10, 'Ranger': 5,
-      'Fighter': 0, 'Thief': 5, 'Druid': 0, 'Wizard': 5, 'Barbarian': -10, 'Immolator': 0
+      'Fighter': 0, 'Thief': 5, 'Druid': 0, 'Wizard': 5, 'Barbarian': -10, 'Immolator': 0,
     };
 
     base += classBonuses[characterClass] || 0;
@@ -492,9 +491,9 @@ class CharacterValidationService {
 
     let base = 50;
 
-    const classBonuses: Record<CharacterClass, number> = {
+    const classBonuses: Record < CharacterClass, number> = {
       'Ranger': 25, 'Thief': 20, 'Druid': 15, 'Bard': 10,
-      'Fighter': 5, 'Paladin': 5, 'Cleric': 5, 'Wizard': 10, 'Barbarian': 10, 'Immolator': 5
+      'Fighter': 5, 'Paladin': 5, 'Cleric': 5, 'Wizard': 10, 'Barbarian': 10, 'Immolator': 5,
     };
 
     base += classBonuses[characterClass] || 0;
@@ -512,9 +511,9 @@ class CharacterValidationService {
 
     let base = 0; // Most classes start at 0
 
-    const classBonuses: Record<CharacterClass, number> = {
+    const classBonuses: Record < CharacterClass, number> = {
       'Wizard': 40, 'Cleric': 35, 'Druid': 35, 'Bard': 25, 'Paladin': 15,
-      'Ranger': 10, 'Immolator': 20, 'Fighter': 0, 'Thief': 0, 'Barbarian': 0
+      'Ranger': 10, 'Immolator': 20, 'Fighter': 0, 'Thief': 0, 'Barbarian': 0,
     };
 
     base += classBonuses[characterClass] || 0;
@@ -534,9 +533,9 @@ class CharacterValidationService {
 
     let base = 50;
 
-    const classBonuses: Record<CharacterClass, number> = {
+    const classBonuses: Record < CharacterClass, number> = {
       'Fighter': 20, 'Paladin': 20, 'Barbarian': 25, 'Ranger': 15, 'Druid': 10,
-      'Cleric': 15, 'Thief': 5, 'Bard': 5, 'Wizard': -10, 'Immolator': 10
+      'Cleric': 15, 'Thief': 5, 'Bard': 5, 'Wizard': -10, 'Immolator': 10,
     };
 
     base += classBonuses[characterClass] || 0;
@@ -548,9 +547,8 @@ class CharacterValidationService {
   }
 
   private getModifier(score: number): number {
-    return Math.floor((score - 10) / 2);
+    return Math.floor((score-10) / 2);
   }
-
 
 }
 

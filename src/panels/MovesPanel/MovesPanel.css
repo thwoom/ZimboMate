@@ -555,3 +555,59 @@
   color: var(--color-text-primary);
   font-size: var(--font-size-lg);
 }
+
+/* Spells Section */
+.spells-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin: 0 var(--spacing-lg);
+  padding: var(--spacing-lg);
+}
+
+.spells-budget {
+  margin-bottom: var(--spacing-md);
+}
+
+.spells-budget__label {
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+
+.spells-budget__bar {
+  height: 8px;
+  width: 100%;
+  background: var(--color-background);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.spells-budget__fill {
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.spells-list {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.spell-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.spell-row.prepared {
+  border-color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb, 142, 122, 245), 0.06);
+}
+
+.spell-actions .toggle-button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

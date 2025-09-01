@@ -9,11 +9,11 @@ interface CacheEntry {
 }
 
 class PRDService {
-  private cache: Map<string, CacheEntry> = new Map();
+  private cache: Map < string, CacheEntry> = new Map();
   private defaultPath: string;
 
-  constructor(defaultPath: string = 'docs/PRD.md') {
-    this.defaultPath = resolve(process.cwd(), defaultPath);
+  constructor(defaultPath = 'docs/PRD.md') {
+    this.defaultPath = resolve(process.cwd(), defaultPath.replace(/[^a-zA-Z0-9/._-]/g, ''));
   }
 
   /**
@@ -21,7 +21,7 @@ class PRDService {
    */
   getPRD(prdPath?: string): PRD {
     const filePath = prdPath
-      ? resolve(process.cwd(), prdPath)
+      ? resolve(process.cwd(), prdPath.replace(/[^a-zA-Z0-9/._-]/g, ''))
       : this.defaultPath;
     const cacheKey = filePath;
 
@@ -58,7 +58,7 @@ class PRDService {
    */
   refreshCache(prdPath?: string): void {
     const filePath = prdPath
-      ? resolve(process.cwd(), prdPath)
+      ? resolve(process.cwd(), prdPath.replace(/[^a-zA-Z0-9/._-]/g, ''))
       : this.defaultPath;
     const cacheKey = filePath;
 
@@ -87,7 +87,7 @@ class PRDService {
    */
   isCached(prdPath?: string): boolean {
     const filePath = prdPath
-      ? resolve(process.cwd(), prdPath)
+      ? resolve(process.cwd(), prdPath.replace(/[^a-zA-Z0-9/._-]/g, ''))
       : this.defaultPath;
     const cacheKey = filePath;
 
@@ -107,7 +107,7 @@ class PRDService {
    */
   getLastModified(prdPath?: string): number | null {
     const filePath = prdPath
-      ? resolve(process.cwd(), prdPath)
+      ? resolve(process.cwd(), prdPath.replace(/[^a-zA-Z0-9/._-]/g, ''))
       : this.defaultPath;
     const cacheKey = filePath;
 

@@ -6,31 +6,31 @@ export function useModifiers() {
   const { state, dispatch } = useGameStore();
   const modifiers = state.modifiers;
 
-  const addModifier = useCallback((modifier: Omit<TemporaryModifier, 'id'>) => {
+  const addModifier = useCallback((modifier: Omit < TemporaryModifier, 'id'>) => {
     const newModifier: TemporaryModifier = {
       id: Date.now().toString(36) + Math.random().toString(36).substr(2),
       ...modifier,
       createdAt: new Date(),
-      active: true
+      active: true,
     };
 
     dispatch({
       type: 'ADD_MODIFIER',
-      payload: newModifier
+      payload: newModifier,
     });
   }, [dispatch]);
 
   const removeModifier = useCallback((id: string) => {
     dispatch({
       type: 'REMOVE_MODIFIER',
-      payload: id
+      payload: id,
     });
   }, [dispatch]);
 
-  const updateModifier = useCallback((id: string, updates: Partial<TemporaryModifier>) => {
+  const updateModifier = useCallback((id: string, updates: Partial < TemporaryModifier>) => {
     dispatch({
       type: 'UPDATE_MODIFIER',
-      payload: { id, updates }
+      payload: { id, updates },
     });
   }, [dispatch]);
 
@@ -40,19 +40,19 @@ export function useModifiers() {
       type: 'SET_MODIFIERS',
       payload: {
         modifiers: cleaned,
-        lastUpdated: new Date()
-      }
+        lastUpdated: new Date(),
+      },
     });
   }, [modifiers, dispatch]);
 
   const clearAllModifiers = useCallback(() => {
     dispatch({
-      type: 'CLEAR_MODIFIERS'
+      type: 'CLEAR_MODIFIERS',
     });
   }, [dispatch]);
 
-  const applyForwardModifier = useCallback((value: number, source: string = 'Manual') => {
-    // Remove any existing forward modifiers
+  const applyForwardModifier = useCallback((value: number, source = 'Manual') => {
+    // Remove unknown existing forward modifiers
     const existingForward = modifiers.modifiers.filter(m => m.type === 'forward');
     existingForward.forEach(m => removeModifier(m.id));
 
@@ -65,7 +65,7 @@ export function useModifiers() {
       target: 'next-roll',
       expiry: 'used',
       createdAt: new Date(),
-      active: true
+      active: true,
     });
   }, [modifiers, addModifier, removeModifier]);
 
@@ -101,6 +101,6 @@ export function useModifiers() {
     getTotalModifier,
     totalOngoing: getTotalModifier('ongoing'),
     totalForward: getTotalModifier('forward'),
-    totalHold: getTotalModifier('hold')
+    totalHold: getTotalModifier('hold'),
   };
 }

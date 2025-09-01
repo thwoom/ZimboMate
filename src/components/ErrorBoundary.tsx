@@ -5,7 +5,7 @@ interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
-  resetKeys?: Array<string | number>;
+  resetKeys?: Array < string | number>;
   resetOnPropsChange?: boolean;
 }
 
@@ -26,7 +26,7 @@ interface State {
   }>;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundary extends Component < Props, State> {
   private resetTimeoutId: number | null = null;
 
   constructor(props: Props) {
@@ -40,38 +40,36 @@ class ErrorBoundary extends Component<Props, State> {
       showAdvancedDetails: false,
       copyFormat: 'cursor-ai',
       showCopyDropdown: false,
-      errorHistory: []
+      errorHistory: [],
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<State> {
+  static getDerivedStateFromError(error: Error): Partial < State> {
     // Update state so the next render will show the fallback UI
     return {
       hasError: true,
       error,
-      eventId: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      eventId: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
     const eventId = this.state.eventId || `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // Add to error history
     const errorEntry = {
       error,
       timestamp: Date.now(),
       eventId,
-      userActions: this.getUserActionHistory()
+      userActions: this.getUserActionHistory(),
     };
-    
+
     this.setState(prevState => ({
       error,
       errorInfo,
       eventId,
-      errorHistory: [...prevState.errorHistory, errorEntry].slice(-5) // Keep last 5 errors
+      errorHistory: [...prevState.errorHistory, errorEntry].slice(-5), // Keep last 5 errors
     }));
 
     // Call custom error handler if provided
@@ -89,16 +87,16 @@ class ErrorBoundary extends Component<Props, State> {
 
     // Reset error boundary when resetKeys change
     if (hasError && resetKeys) {
-      const hasResetKeyChanged = resetKeys.some((resetKey, idx) => 
-        prevProps.resetKeys?.[idx] !== resetKey
+      const hasResetKeyChanged = resetKeys.some((resetKey, idx) =>
+        prevProps.resetKeys?.[idx] !== resetKey,
       );
-      
+
       if (hasResetKeyChanged) {
         this.resetErrorBoundary();
       }
     }
 
-    // Reset error boundary when any props change (if enabled)
+    // Reset error boundary when unknown props change (if enabled)
     if (hasError && resetOnPropsChange && prevProps !== this.props) {
       this.resetErrorBoundary();
     }
@@ -116,7 +114,7 @@ class ErrorBoundary extends Component<Props, State> {
       eventId: null,
       copied: false,
       showAdvancedDetails: false,
-      showCopyDropdown: false
+      showCopyDropdown: false,
       // Keep errorHistory for debugging
     });
   };
@@ -129,10 +127,10 @@ class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
-  copyErrorToClipboard = async (format?: 'cursor-ai' | 'technical' | 'github') => {
+  copyErrorToClipboard = async(format?: 'cursor-ai' | 'technical' | 'github') => {
     const selectedFormat = format || this.state.copyFormat;
     let content: string;
-    
+
     switch (selectedFormat) {
       case 'cursor-ai':
         content = this.generateCursorAIPrompt();
@@ -145,7 +143,7 @@ class ErrorBoundary extends Component<Props, State> {
         content = this.generateErrorReport();
         break;
     }
-    
+
     try {
       await navigator.clipboard.writeText(content);
       this.setState({ copied: true });
@@ -166,7 +164,7 @@ class ErrorBoundary extends Component<Props, State> {
   generateGitHubIssueBody = (): string => {
     const { error, errorInfo, eventId } = this.state;
     const userActions = this.getUserActionHistory();
-    
+
     return `## 🐛 Bug Report
 
 ### Error Information
@@ -200,14 +198,14 @@ ${errorInfo?.componentStack || 'No component stack available'}
 - **Timestamp:** ${new Date().toISOString()}
 
 ### Additional Context
-[Add any other context about the problem here]`;
+[Add unknown other context about the problem here]`;
   };
 
   generateErrorReport = (): string => {
     const { error, errorInfo, eventId } = this.state;
     const timestamp = new Date().toISOString();
-    
-    return `# Error Report - ZimboMate
+
+    return `# Error Report-ZimboMate
 
 ## Event Details
 - **Event ID:** ${eventId}
@@ -246,7 +244,7 @@ ${this.getUserActionHistory().map(action => `- ${action}`).join('\n')}
     const { error, errorInfo } = this.state;
     const userActions = this.getUserActionHistory();
     const suggestions = this.getErrorSuggestions();
-    
+
     return `I'm getting a React error in my ZimboMate application and need help debugging it. Here are the details:
 
 ## 🚨 Error Details
@@ -296,53 +294,53 @@ Can you analyze this error and provide a solution? If you need to see specific f
     const errorReport = this.generateErrorReport();
     const title = encodeURIComponent(`Bug: ${this.state.error?.message || 'Unhandled Error'}`);
     const body = encodeURIComponent(`## Bug Report\n\n${errorReport}\n\n## Steps to Reproduce\n1. \n2. \n3. \n\n## Expected Behavior\n\n\n## Actual Behavior\n\n`);
-    
-    const githubUrl = `https://github.com/YOUR_USERNAME/ZimboMate/issues/new?title=${title}&body=${body}&labels=bug,error-boundary`;
-    window.open(githubUrl, '_blank');
+
+    const githubUrl = `https://github.com / YOUR_USERNAME / ZimboMate / issues / new?title=${title}&body=${body}&labels = bug,error-boundary`;
+    window.open(githubUrl, 'blank');
   };
 
   toggleAdvancedDetails = () => {
     this.setState(prevState => ({
-      showAdvancedDetails: !prevState.showAdvancedDetails
+      showAdvancedDetails: !prevState.showAdvancedDetails,
     }));
   };
 
   searchStackOverflow = () => {
     const query = encodeURIComponent(`${this.state.error?.name || 'React Error'} ${this.state.error?.message || ''}`);
-    const url = `https://stackoverflow.com/search?q=${query}`;
-    window.open(url, '_blank');
+    const url = `https://stackoverflow.com / search?q=${query}`;
+    window.open(url, 'blank');
   };
 
   getErrorSuggestions = (): string[] => {
     const error = this.state.error;
     if (!error) return [];
-    
+
     const suggestions: string[] = [];
-    
+
     if (error.message.includes('Cannot read property')) {
-      suggestions.push('Check for null/undefined values before accessing properties');
+      suggestions.push('Check for null / undefined values before accessing properties');
       suggestions.push('Use optional chaining (?.) operator');
       suggestions.push('Add proper null checks or default values');
     }
-    
+
     if (error.message.includes('is not a function')) {
       suggestions.push('Verify the function exists and is properly imported');
       suggestions.push('Check if the variable is actually a function');
       suggestions.push('Ensure proper binding of class methods');
     }
-    
+
     if (error.message.includes('Maximum update depth exceeded')) {
       suggestions.push('Check for infinite re-renders in useEffect or setState');
       suggestions.push('Add proper dependencies to useEffect');
       suggestions.push('Avoid calling setState in render methods');
     }
-    
+
     if (error.stack?.includes('hooks')) {
       suggestions.push('Ensure hooks are called at the top level of components');
       suggestions.push('Don\'t call hooks inside loops, conditions, or nested functions');
       suggestions.push('Check React hooks rules');
     }
-    
+
     return suggestions;
   };
 
@@ -356,12 +354,11 @@ Can you analyze this error and provide a solution? If you need to see specific f
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
       url: window.location.href,
-      eventId: this.state.eventId
+      eventId: this.state.eventId,
     };
 
     // For now, just log to console
     console.group('🚨 Error Report');
-    console.error('Error:', errorReport);
     console.groupEnd();
 
     // TODO: Replace with actual error service
@@ -382,81 +379,78 @@ Can you analyze this error and provide a solution? If you need to see specific f
             <div className="error-boundary__icon">
               ⚠️
             </div>
-            
+
             <h1 className="error-boundary__title">
-              Oops! Something went wrong
+              Oops ! Something went wrong
             </h1>
-            
+
             <p className="error-boundary__message">
-              We're sorry, but something unexpected happened. The error has been logged 
+              We're sorry, but something unexpected happened. The error has been logged
               and we'll look into it.
             </p>
 
             <div className="error-boundary__actions">
-              <button 
+              <button
                 className="error-boundary__button error-boundary__button--primary"
                 onClick={this.handleRetry}
               >
                 🔄 Try Again
               </button>
-              
-              <button 
+
+              <button
                 className="error-boundary__button error-boundary__button--secondary"
                 onClick={this.handleReload}
               >
                 🔃 Reload Page
               </button>
-              
+
               <div className="error-boundary__copy-group">
-                <button 
+                <button
                   className={`error-boundary__button error-boundary__button--copy ${this.state.copied ? 'copied' : ''}`}
                   onClick={() => this.copyErrorToClipboard()}
                   title={`Copy error for ${this.state.copyFormat === 'cursor-ai' ? 'Cursor AI' : this.state.copyFormat}`}
                 >
                   {this.state.copied ? '✅ Copied!' : `📋 Copy for ${this.state.copyFormat === 'cursor-ai' ? 'AI' : this.state.copyFormat}`}
                 </button>
-                
-                <button 
+
+                <button
                   className="error-boundary__copy-dropdown-toggle"
                   onClick={() => this.setState(prev => ({ showCopyDropdown: !prev.showCopyDropdown }))}
                   title="Choose copy format"
                 >
                   ▼
                 </button>
-                
+
                 {this.state.showCopyDropdown && (
                   <div className="error-boundary__copy-dropdown">
-                    <button 
+                    <button
                       className={`copy-option ${this.state.copyFormat === 'cursor-ai' ? 'active' : ''}`}
                       onClick={() => {
                         this.setState({ copyFormat: 'cursor-ai', showCopyDropdown: false });
                         this.copyErrorToClipboard('cursor-ai');
                       }}
                     >
-                      🤖 Cursor AI Prompt
-                      <span className="copy-option-desc">Perfect for pasting into AI assistants</span>
+                      🤖 Cursor AI Prompt < span className="copy-option-desc">Perfect for pasting into AI assistants</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       className={`copy-option ${this.state.copyFormat === 'github' ? 'active' : ''}`}
                       onClick={() => {
                         this.setState({ copyFormat: 'github', showCopyDropdown: false });
                         this.copyErrorToClipboard('github');
                       }}
                     >
-                      🐛 GitHub Issue
-                      <span className="copy-option-desc">Formatted for bug reports</span>
+                      🐛 GitHub Issue < span className="copy-option-desc">Formatted for bug reports</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       className={`copy-option ${this.state.copyFormat === 'technical' ? 'active' : ''}`}
                       onClick={() => {
                         this.setState({ copyFormat: 'technical', showCopyDropdown: false });
                         this.copyErrorToClipboard('technical');
                       }}
                     >
-                      🔧 Technical Report
-                      <span className="copy-option-desc">Detailed technical information</span>
+                      🔧 Technical Report < span className="copy-option-desc">Detailed technical information</span>
                     </button>
                   </div>
                 )}
@@ -465,23 +459,23 @@ Can you analyze this error and provide a solution? If you need to see specific f
 
             {/* Quick Actions */}
             <div className="error-boundary__quick-actions">
-              <button 
+              <button
                 className="error-boundary__quick-action"
                 onClick={this.createGitHubIssue}
                 title="Create GitHub issue"
               >
                 🐛 Report Bug
               </button>
-              
-              <button 
+
+              <button
                 className="error-boundary__quick-action"
                 onClick={this.searchStackOverflow}
                 title="Search Stack Overflow"
               >
                 🔍 Search Help
               </button>
-              
-              <button 
+
+              <button
                 className="error-boundary__quick-action"
                 onClick={this.toggleAdvancedDetails}
                 title="Toggle advanced debugging info"
@@ -511,17 +505,17 @@ Can you analyze this error and provide a solution? If you need to see specific f
                       <h3>🔍 Error Analysis:</h3>
                       <div className="error-boundary__analysis">
                         <div className="analysis-item">
-                          <strong>Error Type:</strong> {this.state.error?.name || 'Unknown'}
+                          <strong > Error Type:</strong> {this.state.error?.name || 'Unknown'}
                         </div>
                         <div className="analysis-item">
-                          <strong>Severity:</strong> 
+                          <strong > Severity:</strong>
                           <span className={`severity ${this.state.error?.stack?.includes('TypeError') ? 'high' : 'medium'}`}>
                             {this.state.error?.stack?.includes('TypeError') ? 'High' : 'Medium'}
                           </span>
                         </div>
                         <div className="analysis-item">
-                          <strong>Likely Cause:</strong> 
-                          {this.state.error?.message.includes('Cannot read property') ? 'Null/Undefined Access' :
+                          <strong > Likely Cause:</strong>
+                          {this.state.error?.message.includes('Cannot read property') ? 'Null / Undefined Access' :
                            this.state.error?.message.includes('is not a function') ? 'Function Call Error' :
                            'Runtime Error'}
                         </div>
@@ -532,16 +526,16 @@ Can you analyze this error and provide a solution? If you need to see specific f
                       <h3>📊 Error Context:</h3>
                       <div className="error-boundary__context-grid">
                         <div className="context-item">
-                          <strong>Timestamp:</strong> {new Date().toLocaleString()}
+                          <strong > Timestamp:</strong> {new Date().toLocaleString()}
                         </div>
                         <div className="context-item">
-                          <strong>Page:</strong> {window.location.pathname}
+                          <strong > Page:</strong> {window.location.pathname}
                         </div>
                         <div className="context-item">
-                          <strong>User Agent:</strong> {navigator.userAgent.split(' ')[0]}
+                          <strong > User Agent:</strong> {navigator.userAgent.split(' ')[0]}
                         </div>
                         <div className="context-item">
-                          <strong>Viewport:</strong> {window.innerWidth}x{window.innerHeight}
+                          <strong > Viewport:</strong> {window.innerWidth}x{window.innerHeight}
                         </div>
                       </div>
                     </div>
@@ -575,17 +569,17 @@ Can you analyze this error and provide a solution? If you need to see specific f
                 <summary className="error-boundary__details-summary">
                   🛠️ Raw Error Details (Development Only)
                 </summary>
-                
+
                 <div className="error-boundary__error-info">
                   <div className="error-boundary__error-section">
-                    <h3>Error Message:</h3>
+                    <h3 > Error Message:</h3>
                     <pre className="error-boundary__code">
                       {this.state.error?.message}
                     </pre>
                   </div>
 
                   <div className="error-boundary__error-section">
-                    <h3>Stack Trace:</h3>
+                    <h3 > Stack Trace:</h3>
                     <pre className="error-boundary__code">
                       {this.state.error?.stack}
                     </pre>
@@ -593,7 +587,7 @@ Can you analyze this error and provide a solution? If you need to see specific f
 
                   {this.state.errorInfo && (
                     <div className="error-boundary__error-section">
-                      <h3>Component Stack:</h3>
+                      <h3 > Component Stack:</h3>
                       <pre className="error-boundary__code">
                         {this.state.errorInfo.componentStack}
                       </pre>
@@ -601,15 +595,15 @@ Can you analyze this error and provide a solution? If you need to see specific f
                   )}
 
                   <div className="error-boundary__error-section">
-                    <h3>Event ID:</h3>
+                    <h3 > Event ID:</h3>
                     <code className="error-boundary__event-id">
                       {this.state.eventId}
                     </code>
                   </div>
 
                   <div className="error-boundary__error-section">
-                    <h3>Full Error Report:</h3>
-                    <textarea 
+                    <h3 > Full Error Report:</h3>
+                    <textarea
                       className="error-boundary__report-text"
                       value={this.generateErrorReport()}
                       readOnly
@@ -622,7 +616,7 @@ Can you analyze this error and provide a solution? If you need to see specific f
 
             <div className="error-boundary__footer">
               <p className="error-boundary__footer-text">
-                If this problem persists, please contact support with Event ID: 
+                If this problem persists, please contact support with Event ID:
                 <code className="error-boundary__event-id">
                   {this.state.eventId}
                 </code>
@@ -642,20 +636,18 @@ export default ErrorBoundary;
 // Hook version for functional components (React 16.8+)
 export function useErrorHandler() {
   return (error: Error, errorInfo?: ErrorInfo) => {
-    console.error('Unhandled error:', error, errorInfo);
-    
     // In a real app, you would report this to your error service
     // errorTrackingService.captureException(error, { extra: errorInfo });
-    
+
     // You could also trigger a state update to show an error message
     throw error; // Re-throw to trigger error boundary
   };
 }
 
 // Higher-order component version
-export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
-  errorBoundaryProps?: Omit<Props, 'children'>
+export function withErrorBoundary < P extends object>(
+  Component: React.ComponentType < P>,
+  errorBoundaryProps?: Omit < Props, 'children'>,
 ) {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary {...errorBoundaryProps}>
@@ -664,6 +656,6 @@ export function withErrorBoundary<P extends object>(
   );
 
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 }

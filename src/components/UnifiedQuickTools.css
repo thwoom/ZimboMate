@@ -1,4 +1,4 @@
-/* Unified Quick Tools - Elegant Solution */
+/* Unified Quick Tools-Elegant Solution */
 .unified-quick-tools {
   position: fixed;
   z-index: 1000;
@@ -29,7 +29,7 @@
   left: 2rem;
 }
 
-/* Collapsed Mode - Floating Button */
+/* Collapsed Mode-Floating Button */
 .tools-collapsed {
   display: flex;
   align-items: center;
@@ -132,7 +132,7 @@
   50% { transform: scale(1.2); opacity: 1; }
 }
 
-/* Expanded Modes - Panel */
+/* Expanded Modes-Panel */
 .unified-quick-tools.mode-quick,
 .unified-quick-tools.mode-advanced,
 .unified-quick-tools.mode-suggestions,
@@ -758,7 +758,7 @@
   .unified-quick-tools.mode-advanced,
   .unified-quick-tools.mode-suggestions,
   .unified-quick-tools.mode-history {
-    width: calc(100vw - 2rem);
+    width: calc(100vw-2rem);
     max-width: 320px;
   }
 

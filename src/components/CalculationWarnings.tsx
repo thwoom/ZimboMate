@@ -8,13 +8,13 @@ interface CalculationWarningsProps {
   onAction?: (warning: CalculationWarning) => void;
 }
 
-export const CalculationWarnings: React.FC<CalculationWarningsProps> = ({
+export const CalculationWarnings: React.FC < CalculationWarningsProps> = ({
   warnings,
   suggestions = [],
-  onAction
+  onAction,
 }) => {
-  const [expandedWarnings, setExpandedWarnings] = useState<Set<string>>(new Set());
-  const [filter, setFilter] = useState<CalculationWarning['type'] | 'all'>('all');
+  const [expandedWarnings, setExpandedWarnings] = useState < Set < string>>(new Set());
+  const [filter, setFilter] = useState < CalculationWarning['type'] | 'all'>('all');
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedWarnings);
@@ -46,15 +46,15 @@ export const CalculationWarnings: React.FC<CalculationWarningsProps> = ({
     }
   };
 
-  const filteredWarnings = filter === 'all' 
-    ? warnings 
+  const filteredWarnings = filter === 'all'
+    ? warnings
     : warnings.filter(w => w.type === filter);
 
   const warningCounts = {
     critical: warnings.filter(w => w.type === 'critical').length,
     error: warnings.filter(w => w.type === 'error').length,
     warning: warnings.filter(w => w.type === 'warning').length,
-    info: warnings.filter(w => w.type === 'info').length
+    info: warnings.filter(w => w.type === 'info').length,
   };
 
   if (warnings.length === 0) {
@@ -62,7 +62,7 @@ export const CalculationWarnings: React.FC<CalculationWarningsProps> = ({
       <div className="calculation-warnings">
         <div className="no-warnings">
           <span className="check-icon">✅</span>
-          <p>All calculations look good!</p>
+          <p > All calculations look good!</p>
         </div>
       </div>
     );
@@ -71,7 +71,7 @@ export const CalculationWarnings: React.FC<CalculationWarningsProps> = ({
   return (
     <div className="calculation-warnings">
       <div className="warnings-header">
-        <h3>Calculation Analysis</h3>
+        <h3 > Calculation Analysis</h3>
         <div className="warning-counts">
           {warningCounts.critical > 0 && (
             <span className="count critical">{warningCounts.critical} Critical</span>
@@ -89,34 +89,34 @@ export const CalculationWarnings: React.FC<CalculationWarningsProps> = ({
       </div>
 
       <div className="filter-tabs">
-        <button 
+        <button
           className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
           All ({warnings.length})
         </button>
-        <button 
+        <button
           className={`filter-tab ${filter === 'critical' ? 'active' : ''}`}
           onClick={() => setFilter('critical')}
           disabled={warningCounts.critical === 0}
         >
           Critical ({warningCounts.critical})
         </button>
-        <button 
+        <button
           className={`filter-tab ${filter === 'error' ? 'active' : ''}`}
           onClick={() => setFilter('error')}
           disabled={warningCounts.error === 0}
         >
           Errors ({warningCounts.error})
         </button>
-        <button 
+        <button
           className={`filter-tab ${filter === 'warning' ? 'active' : ''}`}
           onClick={() => setFilter('warning')}
           disabled={warningCounts.warning === 0}
         >
           Warnings ({warningCounts.warning})
         </button>
-        <button 
+        <button
           className={`filter-tab ${filter === 'info' ? 'active' : ''}`}
           onClick={() => setFilter('info')}
           disabled={warningCounts.info === 0}
@@ -127,11 +127,11 @@ export const CalculationWarnings: React.FC<CalculationWarningsProps> = ({
 
       <div className="warnings-list">
         {filteredWarnings.map(warning => (
-          <div 
-            key={warning.id} 
+          <div
+            key={warning.id}
             className={`warning-item ${warning.type} ${expandedWarnings.has(warning.id) ? 'expanded' : ''}`}
           >
-            <div 
+            <div
               className="warning-header"
               onClick={() => toggleExpanded(warning.id)}
             >
@@ -147,24 +147,24 @@ export const CalculationWarnings: React.FC<CalculationWarningsProps> = ({
                 {expandedWarnings.has(warning.id) ? '▼' : '▶'}
               </button>
             </div>
-            
+
             {expandedWarnings.has(warning.id) && (
               <div className="warning-details">
                 {warning.suggestion && (
                   <div className="suggestion">
-                    <strong>Suggestion:</strong> {warning.suggestion}
+                    <strong > Suggestion:</strong> {warning.suggestion}
                   </div>
                 )}
-                
+
                 {warning.details && (
                   <div className="details">
-                    <strong>Details:</strong>
+                    <strong > Details:</strong>
                     <pre>{JSON.stringify(warning.details, null, 2)}</pre>
                   </div>
                 )}
-                
+
                 {warning.actionable && onAction && (
-                  <button 
+                  <button
                     className="action-btn"
                     onClick={() => onAction(warning)}
                   >
@@ -179,7 +179,7 @@ export const CalculationWarnings: React.FC<CalculationWarningsProps> = ({
 
       {suggestions.length > 0 && (
         <div className="optimization-suggestions">
-          <h4>Optimization Tips</h4>
+          <h4 > Optimization Tips</h4>
           <ul>
             {suggestions.map((suggestion, index) => (
               <li key={index}>{suggestion}</li>

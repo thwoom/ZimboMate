@@ -4,9 +4,9 @@
 
 export interface PanelStateManager {
   /** Save panel state to storage */
-  saveState(panelId: string, state: any): void;
+  saveState(panelId: string, state: unknown): void;
   /** Load panel state from storage */
-  loadState(panelId: string): any;
+  loadState(panelId: string): unknown;
   /** Clear panel state */
   clearState(panelId: string): void;
   /** Clear all panel states */
@@ -19,22 +19,20 @@ export interface PanelStateManager {
 export class LocalStoragePanelStateManager implements PanelStateManager {
   private readonly storagePrefix = 'panel-state-';
 
-  saveState(panelId: string, state: any): void {
+  saveState(panelId: string, state: unknown): void {
     try {
       const key = this.getStorageKey(panelId);
       localStorage.setItem(key, JSON.stringify(state));
     } catch (error) {
-      console.error(`Failed to save panel state for ${panelId}:`, error);
-    }
+      }
   }
 
-  loadState(panelId: string): any {
+  loadState(panelId: string): unknown {
     try {
       const key = this.getStorageKey(panelId);
       const storedState = localStorage.getItem(key);
       return storedState ? JSON.parse(storedState) : null;
     } catch (error) {
-      console.error(`Failed to load panel state for ${panelId}:`, error);
       return null;
     }
   }
@@ -44,7 +42,7 @@ export class LocalStoragePanelStateManager implements PanelStateManager {
       const key = this.getStorageKey(panelId);
       localStorage.removeItem(key);
     } catch (error) {
-      console.error(`Failed to clear panel state for ${panelId}:`, error);
+      console.error("Error clearing state for panel", panelId + ":", error);
     }
   }
 
@@ -57,8 +55,7 @@ export class LocalStoragePanelStateManager implements PanelStateManager {
         }
       });
     } catch (error) {
-      console.error('Failed to clear all panel states:', error);
-    }
+      }
   }
 
   private getStorageKey(panelId: string): string {
@@ -70,13 +67,13 @@ export class LocalStoragePanelStateManager implements PanelStateManager {
  * In-memory panel state manager (useful for testing)
  */
 export class InMemoryPanelStateManager implements PanelStateManager {
-  private states: Map<string, any> = new Map();
+  private states: Map < string, unknown> = new Map();
 
-  saveState(panelId: string, state: any): void {
+  saveState(panelId: string, state: unknown): void {
     this.states.set(panelId, state);
   }
 
-  loadState(panelId: string): any {
+  loadState(panelId: string): unknown {
     return this.states.get(panelId) || null;
   }
 

@@ -5,9 +5,9 @@ import YAML from 'yaml';
 
 describe('Task Manager', () => {
   it('should have a valid tasks.yaml file', () => {
-    const tasksPath = resolve(process.cwd(), 'ops', 'tasks.yaml');
-    const raw = readFileSync(tasksPath, 'utf8');
-    const doc = YAML.parse(raw);
+    const _tasksPath = resolve(process.cwd(), 'ops', 'tasks.yaml');
+    const _raw = readFileSync(tasksPath, 'utf8');
+    const _doc = YAML.parse(raw);
 
     expect(doc).toBeDefined();
     expect(Array.isArray(doc.tasks)).toBe(true);
@@ -15,9 +15,9 @@ describe('Task Manager', () => {
   });
 
   it('should have required task fields', () => {
-    const tasksPath = resolve(process.cwd(), 'ops', 'tasks.yaml');
-    const raw = readFileSync(tasksPath, 'utf8');
-    const doc = YAML.parse(raw);
+    const _tasksPath = resolve(process.cwd(), 'ops', 'tasks.yaml');
+    const _raw = readFileSync(tasksPath, 'utf8');
+    const _doc = YAML.parse(raw);
 
     for (const task of doc.tasks) {
       expect(task.id).toBeDefined();
@@ -28,9 +28,9 @@ describe('Task Manager', () => {
   });
 
   it('should have valid task statuses', () => {
-    const tasksPath = resolve(process.cwd(), 'ops', 'tasks.yaml');
-    const raw = readFileSync(tasksPath, 'utf8');
-    const doc = YAML.parse(raw);
+    const _tasksPath = resolve(process.cwd(), 'ops', 'tasks.yaml');
+    const _raw = readFileSync(tasksPath, 'utf8');
+    const _doc = YAML.parse(raw);
 
     const validStatuses = ['open', 'in_progress', 'blocked', 'done', 'completed'];
 

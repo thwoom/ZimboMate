@@ -1,5 +1,5 @@
 /**
- * Export/Import service with calculated state integrity checks
+ * Export / Import service with calculated state integrity checks
  */
 
 import { GameState } from '../models/GameState';
@@ -12,7 +12,7 @@ export interface ExportedState {
   version: string;
   exportDate: string;
   gameState: GameState;
-  calculatedSnapshots: Record<string, CalculatedValues>;
+  calculatedSnapshots: Record < string, CalculatedValues>;
   metadata: {
     characterCount: number;
     totalPlayTime?: number;
@@ -32,7 +32,7 @@ export interface ImportResult {
 
 export class StateExportImportService {
   private readonly VERSION = '1.0.0';
-  
+
   /**
    * Export game state with calculated values
    */
@@ -41,35 +41,35 @@ export class StateExportImportService {
     includeHistory?: boolean;
     notes?: string;
   }): string {
-    const { 
-      includeCalculations = true, 
+    const {
+      includeCalculations = true,
       includeHistory = false,
-      notes 
+      notes,
     } = options || {};
-    
+
     // Calculate snapshots for each character
-    const calculatedSnapshots: Record<string, CalculatedValues> = {};
-    
+    const calculatedSnapshots: Record < string, CalculatedValues> = {};
+
     if (includeCalculations) {
       Object.keys(state.characters).forEach(charId => {
         const character = state.characters[charId];
         const inventory = state.inventories[charId];
-        
+
         if (character && inventory) {
           const context = {
             character,
             inventory,
             modifiers: state.modifiers,
             conditions: state.conditions,
-            conditionDefinitions: COMMON_CONDITIONS as any,
-            spellPreparation: state.spellPreparations[charId]
+            conditionDefinitions: COMMON_CONDITIONS as string,
+            spellPreparation: state.spellPreparations[charId],
           };
-          
+
           calculatedSnapshots[charId] = calculationEngine.calculate(context);
         }
       });
     }
-    
+
     // Create export object
     const exportData: ExportedState = {
       version: this.VERSION,
@@ -78,96 +78,96 @@ export class StateExportImportService {
       calculatedSnapshots,
       metadata: {
         characterCount: Object.keys(state.characters).length,
-        notes
+        notes,
       },
-      checksum: ''
+      checksum: '',
     };
-    
+
     // Generate checksum
     exportData.checksum = this.generateChecksum(exportData);
-    
+
     return JSON.stringify(exportData, null, 2);
   }
-  
+
   /**
    * Import game state with validation
    */
-  async importState(jsonData: string): Promise<ImportResult> {
+  async importState(jsonData: string): Promise < ImportResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
     const fixedIssues: string[] = [];
-    
+
     try {
       // Parse JSON
       const importData = JSON.parse(jsonData) as ExportedState;
-      
+
       // Validate structure
       if (!this.validateImportStructure(importData)) {
         errors.push('Invalid import file structure');
         return { success: false, errors, warnings, fixedIssues };
       }
-      
+
       // Check version compatibility
       if (!this.isVersionCompatible(importData.version)) {
         warnings.push(`Import file version (${importData.version}) may not be fully compatible`);
       }
-      
+
       // Verify checksum
       if (!this.verifyChecksum(importData)) {
-        warnings.push('Checksum verification failed - data may have been modified');
+        warnings.push('Checksum verification failed-data may have been modified');
       }
-      
+
       // Validate and fix game state
       const { state: fixedState, issues } = this.validateAndFixGameState(
         importData.gameState,
-        importData.calculatedSnapshots
+        importData.calculatedSnapshots,
       );
-      
+
       fixedIssues.push(...issues);
-      
+
       // Run validation service
       const validationResult = { valid: true, errors: [], warnings: [] };
       if (!validationResult.valid) {
-        validationResult.errors.forEach(err => 
-          errors.push(err)
+        validationResult.errors.forEach(err =>
+          errors.push(err),
         );
-        validationResult.warnings.forEach(warn => 
-          warnings.push(warn)
+        validationResult.warnings.forEach(warn =>
+          warnings.push(warn),
         );
       }
-      
+
       // Verify calculated values if present
       if (importData.calculatedSnapshots) {
         const calcErrors = this.verifyCalculatedValues(
           fixedState,
-          importData.calculatedSnapshots
+          importData.calculatedSnapshots,
         );
         warnings.push(...calcErrors);
       }
-      
+
       // Return result
       if (errors.length > 0) {
         return { success: false, errors, warnings, fixedIssues };
       }
-      
+
       return {
         success: true,
         state: fixedState,
         errors,
         warnings,
-        fixedIssues
+        fixedIssues,
       };
-      
+
     } catch (error) {
       errors.push(`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return { success: false, errors, warnings, fixedIssues };
     }
   }
-  
+
   /**
    * Validate import structure
    */
-  private validateImportStructure(data: any): data is ExportedState {
+  private validateImportStructure(data: unknown): data is ExportedState {
     return (
       data &&
       typeof data === 'object' &&
@@ -178,7 +178,7 @@ export class StateExportImportService {
       'checksum' in data
     );
   }
-  
+
   /**
    * Check version compatibility
    */
@@ -187,28 +187,28 @@ export class StateExportImportService {
     const [currentMajor] = this.VERSION.split('.');
     return major === currentMajor;
   }
-  
+
   /**
    * Generate checksum
    */
-  private generateChecksum(data: Omit<ExportedState, 'checksum'>): string {
+  private generateChecksum(data: Omit < ExportedState, 'checksum'>): string {
     const content = JSON.stringify({
       version: data.version,
       gameState: data.gameState,
-      calculatedSnapshots: data.calculatedSnapshots
+      calculatedSnapshots: data.calculatedSnapshots,
     });
-    
-    // Simple checksum - in production would use crypto
+
+    // Simple checksum-in production would use crypto
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = ((hash << 5)-hash) + char;
       hash = hash & hash;
     }
-    
+
     return Math.abs(hash).toString(36);
   }
-  
+
   /**
    * Verify checksum
    */
@@ -217,64 +217,64 @@ export class StateExportImportService {
     const calculated = this.generateChecksum(dataWithoutChecksum);
     return calculated === checksum;
   }
-  
+
   /**
    * Validate and fix game state
    */
   private validateAndFixGameState(
     state: GameState,
-    snapshots?: Record<string, CalculatedValues>
+    snapshots?: Record < string, CalculatedValues>,
   ): { state: GameState; issues: string[] } {
     const issues: string[] = [];
     const fixedState = { ...state };
-    
+
     // Fix character HP
     Object.keys(fixedState.characters).forEach(charId => {
       const character = fixedState.characters[charId];
       const snapshot = snapshots?.[charId];
-      
+
       // Ensure HP doesn't exceed max
       if (character.hp.current > character.hp.max) {
         character.hp.current = character.hp.max;
         issues.push(`Fixed ${character.name}'s HP (was above maximum)`);
       }
-      
+
       // Ensure HP isn't negative
       if (character.hp.current < 0) {
         character.hp.current = 0;
         issues.push(`Fixed ${character.name}'s HP (was negative)`);
       }
-      
+
       // Verify max HP calculation if snapshot available
       if (snapshot && character.hp.max !== snapshot.maxHP) {
         issues.push(
-          `${character.name}'s max HP mismatch: stored ${character.hp.max}, calculated ${snapshot.maxHP}`
+          `${character.name}'s max HP mismatch: stored ${character.hp.max}, calculated ${snapshot.maxHP}`,
         );
       }
     });
-    
+
     // Fix inventory weights
     Object.keys(fixedState.inventories).forEach(charId => {
       const inventory = fixedState.inventories[charId];
       let recalculatedWeight = 0;
-      
+
       Object.values(inventory.items).forEach(item => {
         // Ensure positive quantities
         if (item.quantity && item.quantity < 0) {
           item.quantity = 0;
           issues.push(`Fixed negative quantity for ${item.name}`);
         }
-        
+
         // Ensure positive weight
         if (item.weight < 0) {
           item.weight = 0;
           issues.push(`Fixed negative weight for ${item.name}`);
         }
-        
+
         recalculatedWeight += item.weight * (item.quantity || 1);
       });
     });
-    
+
     // Clean up expired modifiers
     const now = new Date();
     const activeModifiers = fixedState.modifiers.modifiers.filter(mod => {
@@ -284,73 +284,73 @@ export class StateExportImportService {
       }
       return true;
     });
-    
+
     if (activeModifiers.length !== fixedState.modifiers.modifiers.length) {
       fixedState.modifiers.modifiers = activeModifiers;
     }
-    
+
     // Ensure active character exists
-    if (fixedState.activeCharacterId && 
+    if (fixedState.activeCharacterId &&
         !fixedState.characters[fixedState.activeCharacterId]) {
       const firstCharId = Object.keys(fixedState.characters)[0];
       fixedState.activeCharacterId = firstCharId || null;
       issues.push('Fixed invalid active character reference');
     }
-    
+
     return { state: fixedState, issues };
   }
-  
+
   /**
    * Verify calculated values match
    */
   private verifyCalculatedValues(
     state: GameState,
-    snapshots: Record<string, CalculatedValues>
+    snapshots: Record < string, CalculatedValues>,
   ): string[] {
     const errors: string[] = [];
-    
+
     Object.keys(snapshots).forEach(charId => {
       const character = state.characters[charId];
       const inventory = state.inventories[charId];
       const snapshot = snapshots[charId];
-      
+
       if (!character || !inventory) return;
-      
+
       // Recalculate
       const context = {
         character,
         inventory,
         modifiers: state.modifiers,
         conditions: state.conditions,
-        conditionDefinitions: COMMON_CONDITIONS as any,
-        spellPreparation: state.spellPreparations[charId]
+        conditionDefinitions: COMMON_CONDITIONS as string,
+        spellPreparation: state.spellPreparations[charId],
       };
-      
+
       const recalculated = calculationEngine.calculate(context);
-      
+
       // Compare key values
       if (recalculated.totalArmor !== snapshot.totalArmor) {
         errors.push(
-          `Armor mismatch for ${character.name}: imported ${snapshot.totalArmor}, calculated ${recalculated.totalArmor}`
+          `Armor mismatch for ${character.name}: imported ${snapshot.totalArmor}, calculated ${recalculated.totalArmor}`,
         );
       }
-      
+
       if (recalculated.maxLoad !== snapshot.maxLoad) {
         errors.push(
-          `Load capacity mismatch for ${character.name}: imported ${snapshot.maxLoad}, calculated ${recalculated.maxLoad}`
+          `Load capacity mismatch for ${character.name}: imported ${snapshot.maxLoad}, calculated ${recalculated.maxLoad}`,
         );
       }
-      
+
       if (recalculated.xpThreshold !== snapshot.xpThreshold) {
         errors.push(
-          `XP threshold mismatch for ${character.name}: imported ${snapshot.xpThreshold}, calculated ${recalculated.xpThreshold}`
+          `XP threshold mismatch for ${character.name}: imported ${snapshot.xpThreshold}, calculated ${recalculated.xpThreshold}`,
         );
       }
     });
-    
+
     return errors;
   }
-  
+
   /**
    * Strip history from state for smaller exports
    */
@@ -360,11 +360,11 @@ export class StateExportImportService {
       session: {
         ...state.session,
         rollHistory: [],
-        events: []
-      }
+        events: [],
+      },
     };
   }
-  
+
   /**
    * Create a backup before import
    */
@@ -372,7 +372,7 @@ export class StateExportImportService {
     return this.exportState(currentState, {
       includeCalculations: true,
       includeHistory: true,
-      notes: 'Automatic backup before import'
+      notes: 'Automatic backup before import',
     });
   }
 }

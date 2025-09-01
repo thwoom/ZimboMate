@@ -1,0 +1,57 @@
+/* Bond Tracker Panel Styles */
+
+.bond-tracker-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bond-tracker-panel__header {
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.bond-tracker-panel__header h2 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.bond-tracker-panel__subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.bond-tracker-panel__content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the BondTracker component fills the available space */
+.bond-tracker-panel__content .bond-tracker {
+  flex: 1;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bond-tracker-panel__header {
+    padding: 1rem;
+  }
+  
+  .bond-tracker-panel__header h2 {
+    font-size: 1.25rem;
+  }
+}
+

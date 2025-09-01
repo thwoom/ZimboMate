@@ -3,37 +3,37 @@ import { CharacterClass, Race, Alignment, Attributes } from '../models/Character
 // Name generation data
 const FIRST_NAMES = {
   human: {
-    male: ['Aldric', 'Bram', 'Cade', 'Darius', 'Edmund', 'Felix', 'Gareth', 'Hugo', 'Ivan', 'Jasper', 
+    male: ['Aldric', 'Bram', 'Cade', 'Darius', 'Edmund', 'Felix', 'Gareth', 'Hugo', 'Ivan', 'Jasper',
            'Kieran', 'Leon', 'Marcus', 'Nolan', 'Oscar', 'Pierce', 'Quinn', 'Roland', 'Silas', 'Tobias'],
     female: ['Aria', 'Brenna', 'Cara', 'Diana', 'Elena', 'Freya', 'Gwen', 'Helena', 'Iris', 'Julia',
              'Kira', 'Luna', 'Maya', 'Nora', 'Ophelia', 'Piper', 'Quinn', 'Rosa', 'Stella', 'Thea'],
     neutral: ['Alex', 'Blake', 'Casey', 'Drew', 'Ellis', 'Finley', 'Gray', 'Harper', 'Indigo', 'Jordan',
-              'Kai', 'Lake', 'Morgan', 'Nico', 'Onyx', 'Phoenix', 'River', 'Sage', 'Sky', 'Winter']
+              'Kai', 'Lake', 'Morgan', 'Nico', 'Onyx', 'Phoenix', 'River', 'Sage', 'Sky', 'Winter'],
   },
   elf: {
     male: ['Aelrindel', 'Caelum', 'Elrond', 'Faelar', 'Galion', 'Haldir', 'Ilithien', 'Legolas', 'Mirion', 'Orion',
            'Silvain', 'Thranduil', 'Valandil'],
     female: ['Arwen', 'Celebrian', 'Elaria', 'Galadriel', 'Illyria', 'Luthien', 'Nimrodel', 'Silvara', 'Tauriel'],
-    neutral: ['Aerin', 'Elm', 'Lore', 'Rain', 'Star', 'Whisper', 'Zephyr']
+    neutral: ['Aerin', 'Elm', 'Lore', 'Rain', 'Star', 'Whisper', 'Zephyr'],
   },
   dwarf: {
     male: ['Balin', 'Dain', 'Dwalin', 'Gimli', 'Gloin', 'Grim', 'Thorin', 'Thrain', 'Ulfgar', 'Varric'],
     female: ['Dagna', 'Kili', 'Mira', 'Nori', 'Ragna', 'Thora', 'Ylva'],
-    neutral: ['Flint', 'Iron', 'Stone', 'Steel']
+    neutral: ['Flint', 'Iron', 'Stone', 'Steel'],
   },
   halfling: {
     male: ['Bilbo', 'Drogo', 'Frodo', 'Merry', 'Pippin', 'Samwise', 'Tobold'],
     female: ['Belladonna', 'Daisy', 'Eglantine', 'Lobelia', 'Pearl', 'Poppy', 'Rosie'],
-    neutral: ['Bailey', 'Clover', 'Pepper', 'Sunny']
-  }
+    neutral: ['Bailey', 'Clover', 'Pepper', 'Sunny'],
+  },
 };
 
 const SURNAMES = {
-  human: ['Blackwood', 'Brightblade', 'Darkwater', 'Goldshire', 'Ironforge', 'Lightbringer', 'Nightfall', 
+  human: ['Blackwood', 'Brightblade', 'Darkwater', 'Goldshire', 'Ironforge', 'Lightbringer', 'Nightfall',
           'Redmane', 'Shadowmere', 'Silverstone', 'Stormwind', 'Winterhold'],
   elf: ['Moonwhisper', 'Starweaver', 'Sunblade', 'Windrunner', 'Leafsong', 'Silverleaf', 'Goldleaf'],
   dwarf: ['Battlehammer', 'Bronzebeard', 'Ironfoot', 'Stoneforge', 'Goldbeard', 'Fireforge'],
-  halfling: ['Baggins', 'Brandybuck', 'Goodbarrel', 'Greenhill', 'Proudfoot', 'Underhill']
+  halfling: ['Baggins', 'Brandybuck', 'Goodbarrel', 'Greenhill', 'Proudfoot', 'Underhill'],
 };
 
 // Appearance descriptors
@@ -43,8 +43,8 @@ const APPEARANCE_DESCRIPTORS = {
   hairColor: ['black', 'brown', 'blonde', 'red', 'silver', 'white', 'gray', 'auburn'],
   eyes: ['piercing', 'kind', 'sharp', 'weary', 'bright', 'deep-set', 'wide', 'narrow'],
   eyeColor: ['blue', 'green', 'brown', 'gray', 'amber', 'hazel', 'violet', 'black'],
-  feature: ['scarred face', 'tattooed arms', 'missing finger', 'crooked nose', 'perfect teeth', 
-            'weathered hands', 'graceful movements', 'imposing presence', 'infectious smile']
+  feature: ['scarred face', 'tattooed arms', 'missing finger', 'crooked nose', 'perfect teeth',
+            'weathered hands', 'graceful movements', 'imposing presence', 'infectious smile'],
 };
 
 class RandomGeneratorService {
@@ -60,12 +60,12 @@ class RandomGeneratorService {
   }
 
   // Random utilities
-  private random<T>(array: T[]): T {
+  private random < T>(array: T[]): T {
     return array[Math.floor(Math.random() * array.length)];
   }
 
   private randomInt(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * (max-min + 1)) + min;
   }
 
   // Name generation
@@ -83,7 +83,7 @@ class RandomGeneratorService {
 
     const firstName = this.random(firstNames);
     const surname = this.random(surnameData);
-    
+
     return `${firstName} ${surname}`;
   }
 
@@ -98,7 +98,7 @@ class RandomGeneratorService {
 
     // Race-specific adjustments
     let raceSpecific = '';
-    switch(race) {
+    switch (race) {
       case 'Elf':
         raceSpecific = 'pointed ears, ';
         break;
@@ -112,7 +112,7 @@ class RandomGeneratorService {
 
     // Class-specific adjustments
     let classSpecific = '';
-    switch(characterClass) {
+    switch (characterClass) {
       case 'Fighter':
       case 'Paladin':
         classSpecific = ' Carries themselves like a warrior.';
@@ -142,20 +142,20 @@ class RandomGeneratorService {
       const scores: number[] = [];
       for (let i = 0; i < 6; i++) {
         const rolls = [1, 2, 3, 4].map(() => this.randomInt(1, 6));
-        rolls.sort((a, b) => b - a);
+        rolls.sort((a, b) => b-a);
         scores.push(rolls[0] + rolls[1] + rolls[2]);
       }
-      return scores.sort((a, b) => b - a);
+      return scores.sort((a, b) => b-a);
     }
   }
 
   // Assign attributes based on class preferences
   assignAttributesForClass(scores: number[], characterClass: CharacterClass): Attributes {
-    const sorted = [...scores].sort((a, b) => b - a);
-    const attributes: Partial<Attributes> = {};
+    const sorted = [...scores].sort((a, b) => b-a);
+    const attributes: Partial < Attributes> = {};
 
     // Class-based stat priority
-    const priorities: Record<CharacterClass, (keyof Attributes)[]> = {
+    const priorities: Record < CharacterClass, (keyof Attributes)[]> = {
       Fighter: ['STR', 'CON', 'DEX', 'WIS', 'CHA', 'INT'],
       Paladin: ['STR', 'CHA', 'CON', 'WIS', 'DEX', 'INT'],
       Ranger: ['DEX', 'WIS', 'STR', 'CON', 'INT', 'CHA'],
@@ -165,7 +165,7 @@ class RandomGeneratorService {
       Thief: ['DEX', 'CHA', 'INT', 'WIS', 'CON', 'STR'],
       Bard: ['CHA', 'DEX', 'INT', 'CON', 'WIS', 'STR'],
       Barbarian: ['STR', 'CON', 'DEX', 'WIS', 'CHA', 'INT'],
-      Immolator: ['INT', 'CON', 'WIS', 'CHA', 'DEX', 'STR']
+      Immolator: ['INT', 'CON', 'WIS', 'CHA', 'DEX', 'STR'],
     };
 
     const classPriorities = priorities[characterClass];
@@ -193,7 +193,7 @@ class RandomGeneratorService {
     const characterClass = options?.class || this.random(['Fighter', 'Wizard', 'Cleric', 'Thief', 'Ranger', 'Bard', 'Druid', 'Paladin', 'Barbarian', 'Immolator'] as CharacterClass[]);
     const race = options?.race || this.random(['Human', 'Elf', 'Dwarf', 'Halfling'] as Race[]);
     const alignment = options?.alignment || this.random(['Good', 'Neutral', 'Evil', 'Lawful', 'Chaotic'] as Alignment[]);
-    
+
     // Generate details
     const gender = this.random(['male', 'female', 'neutral'] as const);
     const name = this.generateName(race, gender);
@@ -207,7 +207,7 @@ class RandomGeneratorService {
       class: characterClass,
       race,
       alignment,
-      attributes
+      attributes,
     };
   }
 
@@ -216,7 +216,7 @@ class RandomGeneratorService {
     const template = this.random(templates);
     const names = ['Aldric', 'Brenna', 'Cade', 'Diana', 'Edmund', 'Freya', 'Gareth', 'Helena'];
     const name = this.random(names);
-    return template.replace('____', name);
+    return template.replace('___', name);
   }
 
   // Background generation
@@ -229,7 +229,7 @@ class RandomGeneratorService {
       'trying to reclaim a fallen honor',
       'yearning to map the unknown',
       'hoping to cure a mysterious curse',
-      'compelled by a divine mission'
+      'compelled by a divine mission',
     ];
 
     const pasts = [
@@ -240,7 +240,7 @@ class RandomGeneratorService {
       'a failed apprentice',
       'a caravan guard',
       'a reformed brigand',
-      'a village healer'
+      'a village healer',
     ];
 
     const bonds = [
@@ -248,23 +248,23 @@ class RandomGeneratorService {
       'is haunted by a promise left unfulfilled',
       'carries a token from a loved one',
       'fears what they might become',
-      'trusts their instincts more than any rule',
-      'keeps a diary of every journey'
+      'trusts their instincts more than unknown rule',
+      'keeps a diary of every journey',
     ];
 
-    const cls = options?.class || this.random(['Fighter','Wizard','Cleric','Thief','Ranger','Bard','Druid','Paladin','Barbarian','Immolator'] as CharacterClass[]);
-    const race = options?.race || this.random(['Human','Elf','Dwarf','Halfling'] as Race[]);
-    const alignment = options?.alignment || this.random(['Good','Neutral','Evil','Lawful','Chaotic'] as Alignment[]);
+    const cls = options?.class || this.random(['Fighter', 'Wizard', 'Cleric', 'Thief', 'Ranger', 'Bard', 'Druid', 'Paladin', 'Barbarian', 'Immolator'] as CharacterClass[]);
+    const race = options?.race || this.random(['Human', 'Elf', 'Dwarf', 'Halfling'] as Race[]);
+    const alignment = options?.alignment || this.random(['Good', 'Neutral', 'Evil', 'Lawful', 'Chaotic'] as Alignment[]);
 
     return `A ${race.toLowerCase()} ${cls.toLowerCase()} of ${alignment.toLowerCase()} bent, ${this.random(pasts)}, ` +
            `${this.random(motives)}; ${this.random(bonds)}.`;
   }
 
   // Personality & voice
-  generatePersonalityTraits(count: number = 3): string[] {
+  generatePersonalityTraits(count = 3): string[] {
     const traits = [
       'brave', 'cautious', 'curious', 'stoic', 'hot-headed', 'compassionate', 'reckless', 'loyal', 'pragmatic',
-      'idealistic', 'sarcastic', 'cheerful', 'brooding', 'superstitious', 'methodical', 'impulsive'
+      'idealistic', 'sarcastic', 'cheerful', 'brooding', 'superstitious', 'methodical', 'impulsive',
     ];
     const result: string[] = [];
     while (result.length < count && traits.length > 0) {

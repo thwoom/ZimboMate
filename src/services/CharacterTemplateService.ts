@@ -13,36 +13,36 @@ export interface CharacterTemplate {
   category: 'official' | 'community' | 'custom';
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tags: string[];
-  
+
   // Character data
   characterClass: CharacterClass;
   race: Race;
   alignment: Alignment;
   attributes: Attributes;
-  
+
   // Optional customizations
   suggestedName?: string;
   suggestedLook?: string;
   suggestedBackground?: string;
   suggestedPersonality?: string[];
   suggestedVoice?: string;
-  
+
   // Equipment and moves
   startingEquipment: Item[];
   recommendedMoves?: string[];
-  
+
   // Metadata
   author?: string;
   version: string;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Build info
   buildNotes?: string;
   playstyle: string[];
   strengths: string[];
   weaknesses: string[];
-  
+
   // Validation
   isValid?: boolean;
   validationNotes?: string[];
@@ -68,7 +68,7 @@ export interface QuickStartTemplate {
 }
 
 class CharacterTemplateService {
-  
+
   /**
    * Get all available template categories
    */
@@ -79,36 +79,36 @@ class CharacterTemplateService {
         name: 'Beginner Friendly',
         description: 'Simple, effective builds perfect for new players',
         icon: '🌟',
-        templates: this.getBeginnerTemplates()
+        templates: this.getBeginnerTemplates(),
       },
       {
         id: 'classic',
         name: 'Classic Archetypes',
         description: 'Traditional fantasy roles that everyone recognizes',
         icon: '⚔️',
-        templates: this.getClassicTemplates()
+        templates: this.getClassicTemplates(),
       },
       {
         id: 'specialized',
         name: 'Specialized Builds',
         description: 'Focused characters optimized for specific roles',
         icon: '🎯',
-        templates: this.getSpecializedTemplates()
+        templates: this.getSpecializedTemplates(),
       },
       {
         id: 'creative',
         name: 'Creative Concepts',
         description: 'Unique and interesting character concepts',
         icon: '🎨',
-        templates: this.getCreativeTemplates()
+        templates: this.getCreativeTemplates(),
       },
       {
         id: 'custom',
         name: 'Custom Templates',
         description: 'Your saved character templates',
         icon: '💾',
-        templates: this.getCustomTemplates()
-      }
+        templates: this.getCustomTemplates(),
+      },
     ];
   }
 
@@ -125,7 +125,7 @@ class CharacterTemplateService {
         characterClass: 'Fighter',
         race: 'Human',
         concept: 'Tank and damage dealer',
-        difficulty: 'beginner'
+        difficulty: 'beginner',
       },
       {
         id: 'sneaky-thief',
@@ -135,7 +135,7 @@ class CharacterTemplateService {
         characterClass: 'Thief',
         race: 'Halfling',
         concept: 'Stealth and utility',
-        difficulty: 'beginner'
+        difficulty: 'beginner',
       },
       {
         id: 'wise-cleric',
@@ -145,7 +145,7 @@ class CharacterTemplateService {
         characterClass: 'Cleric',
         race: 'Human',
         concept: 'Healing and support',
-        difficulty: 'intermediate'
+        difficulty: 'intermediate',
       },
       {
         id: 'nature-ranger',
@@ -155,15 +155,15 @@ class CharacterTemplateService {
         characterClass: 'Ranger',
         race: 'Elf',
         concept: 'Ranged combat and tracking',
-        difficulty: 'intermediate'
-      }
+        difficulty: 'intermediate',
+      },
     ];
   }
 
   /**
    * Create a character from a template
    */
-  createCharacterFromTemplate(template: CharacterTemplate): Partial<Character> {
+  createCharacterFromTemplate(template: CharacterTemplate): Partial < Character> {
     return {
       name: template.suggestedName || this.generateNameForTemplate(template),
       class: template.characterClass,
@@ -179,14 +179,14 @@ class CharacterTemplateService {
       level: 1,
       xp: 0,
       coin: this.calculateStartingCoin(template),
-      notes: template.buildNotes || ''
+      notes: template.buildNotes || '',
     };
   }
 
   /**
    * Create a character from a quick start template
    */
-  createCharacterFromQuickStart(quickStart: QuickStartTemplate): Partial<Character> {
+  createCharacterFromQuickStart(quickStart: QuickStartTemplate): Partial < Character> {
     const fullTemplate = this.getTemplateByClassAndRace(quickStart.characterClass, quickStart.race);
     if (fullTemplate) {
       return this.createCharacterFromTemplate(fullTemplate);
@@ -201,14 +201,14 @@ class CharacterTemplateService {
       attributes: this.getOptimalAttributes(quickStart.characterClass),
       inventory: this.getBasicStartingEquipment(quickStart.characterClass),
       level: 1,
-      xp: 0
+      xp: 0,
     };
   }
 
   /**
    * Save a custom template
    */
-  saveCustomTemplate(character: Partial<Character>, templateData: {
+  saveCustomTemplate(character: Partial < Character>, templateData: {
     name: string;
     description: string;
     buildNotes?: string;
@@ -222,26 +222,26 @@ class CharacterTemplateService {
       category: 'custom',
       difficulty: 'intermediate',
       tags: templateData.tags,
-      
+
       characterClass: character.class!,
       race: character.race!,
       alignment: character.alignment!,
       attributes: character.attributes!,
-      
+
       suggestedName: character.name,
       suggestedLook: character.look,
       suggestedBackground: character.background,
       suggestedPersonality: character.personalityTraits,
       suggestedVoice: character.voice,
-      
+
       startingEquipment: character.inventory || [],
       recommendedMoves: character.knownMoves,
-      
+
       author: 'Player',
       version: '1.0',
       createdAt: new Date(),
       updatedAt: new Date(),
-      
+
       buildNotes: templateData.buildNotes,
       playstyle: templateData.playstyle,
       strengths: this.calculateStrengths(character),
@@ -271,30 +271,30 @@ class CharacterTemplateService {
         category: 'official',
         difficulty: 'beginner',
         tags: ['combat', 'tank', 'simple'],
-        
+
         characterClass: 'Fighter',
         race: 'Human',
         alignment: 'Good',
         attributes: { STR: 16, DEX: 13, CON: 15, INT: 8, WIS: 12, CHA: 9 },
-        
+
         suggestedName: 'Marcus',
         suggestedLook: 'A sturdy warrior with battle-worn armor and a determined expression',
         suggestedBackground: 'Former town guard who took up adventuring to protect the innocent',
         suggestedPersonality: ['Brave', 'Loyal', 'Straightforward'],
-        
+
         startingEquipment: this.getBasicStartingEquipment('Fighter'),
-        
+
         author: 'Dungeon World Team',
         version: '1.0',
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
-        
+
         buildNotes: 'Focus on Strength and Constitution. Take Bend Bars, Lift Gates early.',
         playstyle: ['Front-line fighter', 'Damage dealer', 'Party protector'],
         strengths: ['High damage', 'Good armor', 'Simple to play'],
         weaknesses: ['Limited utility', 'Poor social skills'],
-        
-        isValid: true
+
+        isValid: true,
       },
       {
         id: 'helpful-cleric',
@@ -303,31 +303,31 @@ class CharacterTemplateService {
         category: 'official',
         difficulty: 'beginner',
         tags: ['healing', 'support', 'divine'],
-        
+
         characterClass: 'Cleric',
         race: 'Human',
         alignment: 'Good',
         attributes: { STR: 12, DEX: 9, CON: 13, INT: 8, WIS: 16, CHA: 15 },
-        
+
         suggestedName: 'Sister Mara',
         suggestedLook: 'Kind eyes and gentle hands, wearing simple robes with a holy symbol',
         suggestedBackground: 'Devoted to healing and helping others in need',
         suggestedPersonality: ['Compassionate', 'Wise', 'Patient'],
-        
+
         startingEquipment: this.getBasicStartingEquipment('Cleric'),
-        
+
         author: 'Dungeon World Team',
         version: '1.0',
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
-        
+
         buildNotes: 'Prioritize Wisdom for spells. Take healing and support spells.',
         playstyle: ['Healer', 'Support caster', 'Divine magic'],
         strengths: ['Healing magic', 'Divine protection', 'Party support'],
         weaknesses: ['Limited combat ability', 'Spell dependency'],
-        
-        isValid: true
-      }
+
+        isValid: true,
+      },
     ];
   }
 
@@ -343,31 +343,31 @@ class CharacterTemplateService {
         category: 'official',
         difficulty: 'intermediate',
         tags: ['paladin', 'tank', 'divine', 'lawful'],
-        
+
         characterClass: 'Paladin',
         race: 'Human',
         alignment: 'Lawful',
         attributes: { STR: 16, DEX: 9, CON: 15, INT: 12, WIS: 13, CHA: 8 },
-        
+
         suggestedName: 'Sir Gareth',
         suggestedLook: 'Shining armor, noble bearing, and an unwavering gaze',
         suggestedBackground: 'Sworn to uphold justice and protect the innocent',
         suggestedPersonality: ['Honorable', 'Dutiful', 'Righteous'],
-        
+
         startingEquipment: this.getBasicStartingEquipment('Paladin'),
-        
+
         author: 'Community',
         version: '1.0',
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
-        
+
         buildNotes: 'Balance STR and WIS. Focus on protection and healing spells.',
         playstyle: ['Tank', 'Healer', 'Divine warrior'],
         strengths: ['Heavy armor', 'Healing', 'Divine magic'],
         weaknesses: ['Alignment restrictions', 'Limited flexibility'],
-        
-        isValid: true
-      }
+
+        isValid: true,
+      },
     ];
   }
 
@@ -383,31 +383,31 @@ class CharacterTemplateService {
         category: 'official',
         difficulty: 'intermediate',
         tags: ['ranger', 'archer', 'dex', 'ranged'],
-        
+
         characterClass: 'Ranger',
         race: 'Elf',
         alignment: 'Good',
         attributes: { STR: 9, DEX: 16, CON: 13, INT: 12, WIS: 15, CHA: 8 },
-        
+
         suggestedName: 'Lyralei',
         suggestedLook: 'Keen eyes, steady hands, and a well-maintained bow',
         suggestedBackground: 'Guardian of the forest, protector of nature',
         suggestedPersonality: ['Observant', 'Patient', 'Independent'],
-        
+
         startingEquipment: this.getArcherEquipment(),
-        
+
         author: 'Community',
         version: '1.0',
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
-        
+
         buildNotes: 'Maximize DEX for accuracy. Take Called Shot and other archery moves.',
         playstyle: ['Ranged damage', 'Tracking', 'Nature magic'],
         strengths: ['High accuracy', 'Good damage', 'Utility spells'],
         weaknesses: ['Fragile in melee', 'Ammo dependency'],
-        
-        isValid: true
-      }
+
+        isValid: true,
+      },
     ];
   }
 
@@ -423,31 +423,31 @@ class CharacterTemplateService {
         category: 'community',
         difficulty: 'advanced',
         tags: ['wizard', 'scholar', 'utility', 'intelligence'],
-        
+
         characterClass: 'Wizard',
         race: 'Human',
         alignment: 'Neutral',
         attributes: { STR: 8, DEX: 12, CON: 9, INT: 16, WIS: 13, CHA: 15 },
-        
+
         suggestedName: 'Erasmus',
         suggestedLook: 'Ink-stained fingers, thick spectacles, and robes covered in pockets',
         suggestedBackground: 'Former university professor turned adventuring scholar',
         suggestedPersonality: ['Curious', 'Analytical', 'Absent-minded'],
-        
+
         startingEquipment: this.getScholarEquipment(),
-        
+
         author: 'Community',
         version: '1.0',
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
-        
+
         buildNotes: 'Focus on utility spells and knowledge. Avoid direct combat.',
         playstyle: ['Problem solver', 'Utility caster', 'Knowledge expert'],
         strengths: ['Versatile magic', 'High intelligence', 'Utility'],
         weaknesses: ['Very fragile', 'Limited combat', 'Spell dependency'],
-        
-        isValid: true
-      }
+
+        isValid: true,
+      },
     ];
   }
 
@@ -472,8 +472,7 @@ class CharacterTemplateService {
       const updated = [...existing.filter(t => t.id !== template.id), template];
       localStorage.setItem('zimbomate_custom_templates', JSON.stringify(updated));
     } catch (error) {
-      console.error('Failed to save template:', error);
-    }
+      }
   }
 
   /**
@@ -484,7 +483,7 @@ class CharacterTemplateService {
       ...this.getBeginnerTemplates(),
       ...this.getClassicTemplates(),
       ...this.getSpecializedTemplates(),
-      ...this.getCreativeTemplates()
+      ...this.getCreativeTemplates(),
     ];
 
     return allTemplates.find(t => t.characterClass === characterClass && t.race === race) || null;
@@ -501,7 +500,7 @@ class CharacterTemplateService {
    * Generate name based on class and race
    */
   private generateNameForClass(characterClass: CharacterClass, race: Race): string {
-    const names: Record<string, string[]> = {
+    const names: Record < string, string[]> = {
       'Fighter': ['Marcus', 'Gareth', 'Thora', 'Bjorn'],
       'Thief': ['Raven', 'Sly', 'Whisper', 'Shadow'],
       'Cleric': ['Mara', 'Benedict', 'Seraphina', 'Aldric'],
@@ -511,7 +510,7 @@ class CharacterTemplateService {
       'Bard': ['Melody', 'Verse', 'Harmony', 'Ballad'],
       'Druid': ['Oakenheart', 'Moonwhisper', 'Thornwick', 'Sage'],
       'Barbarian': ['Grok', 'Thunderfist', 'Wildmane', 'Rage'],
-      'Immolator': ['Blaze', 'Ember', 'Inferno', 'Ash']
+      'Immolator': ['Blaze', 'Ember', 'Inferno', 'Ash'],
     };
 
     const classNames = names[characterClass] || ['Hero'];
@@ -522,7 +521,7 @@ class CharacterTemplateService {
    * Get default alignment for class
    */
   private getDefaultAlignment(characterClass: CharacterClass): Alignment {
-    const defaults: Record<CharacterClass, Alignment> = {
+    const defaults: Record < CharacterClass, Alignment> = {
       'Fighter': 'Good',
       'Paladin': 'Lawful',
       'Ranger': 'Good',
@@ -532,7 +531,7 @@ class CharacterTemplateService {
       'Druid': 'Neutral',
       'Wizard': 'Neutral',
       'Barbarian': 'Chaotic',
-      'Immolator': 'Neutral'
+      'Immolator': 'Neutral',
     };
 
     return defaults[characterClass] || 'Neutral';
@@ -542,7 +541,7 @@ class CharacterTemplateService {
    * Get optimal attributes for class
    */
   private getOptimalAttributes(characterClass: CharacterClass): Attributes {
-    const optimal: Record<CharacterClass, Attributes> = {
+    const optimal: Record < CharacterClass, Attributes> = {
       'Fighter': { STR: 16, DEX: 13, CON: 15, INT: 8, WIS: 12, CHA: 9 },
       'Paladin': { STR: 16, DEX: 9, CON: 15, INT: 12, WIS: 13, CHA: 8 },
       'Ranger': { STR: 12, DEX: 16, CON: 13, INT: 9, WIS: 15, CHA: 8 },
@@ -552,7 +551,7 @@ class CharacterTemplateService {
       'Druid': { STR: 8, DEX: 13, CON: 15, INT: 12, WIS: 16, CHA: 9 },
       'Wizard': { STR: 8, DEX: 12, CON: 9, INT: 16, WIS: 13, CHA: 15 },
       'Barbarian': { STR: 16, DEX: 12, CON: 15, INT: 8, WIS: 13, CHA: 9 },
-      'Immolator': { STR: 12, DEX: 13, CON: 16, INT: 15, WIS: 9, CHA: 8 }
+      'Immolator': { STR: 12, DEX: 13, CON: 16, INT: 15, WIS: 9, CHA: 8 },
     };
 
     return optimal[characterClass] || { STR: 13, DEX: 13, CON: 13, INT: 13, WIS: 13, CHA: 13 };
@@ -563,7 +562,7 @@ class CharacterTemplateService {
    */
   private getBasicStartingEquipment(characterClass: CharacterClass): Item[] {
     // This would return appropriate starting equipment based on class
-    // For now, returning empty array - would be populated with actual equipment data
+    // For now, returning empty array-would be populated with actual equipment data
     return [];
   }
 
@@ -588,9 +587,9 @@ class CharacterTemplateService {
    */
   private calculateStartingCoin(template: CharacterTemplate): number {
     // Base coin varies by class and background
-    const baseCoin: Record<CharacterClass, number> = {
+    const baseCoin: Record < CharacterClass, number> = {
       'Fighter': 20, 'Paladin': 15, 'Ranger': 10, 'Thief': 25, 'Bard': 20,
-      'Cleric': 15, 'Druid': 5, 'Wizard': 10, 'Barbarian': 15, 'Immolator': 10
+      'Cleric': 15, 'Druid': 5, 'Wizard': 10, 'Barbarian': 15, 'Immolator': 10,
     };
 
     return baseCoin[template.characterClass] || 15;
@@ -599,13 +598,13 @@ class CharacterTemplateService {
   /**
    * Calculate character strengths
    */
-  private calculateStrengths(character: Partial<Character>): string[] {
+  private calculateStrengths(character: Partial < Character>): string[] {
     const strengths: string[] = [];
-    
+
     if (!character.attributes || !character.class) return strengths;
 
     const attrs = character.attributes;
-    
+
     // High attribute bonuses
     if (attrs.STR >= 16) strengths.push('High Strength');
     if (attrs.DEX >= 16) strengths.push('High Dexterity');
@@ -615,7 +614,7 @@ class CharacterTemplateService {
     if (attrs.CHA >= 16) strengths.push('High Charisma');
 
     // Class-specific strengths
-    const classStrengths: Record<CharacterClass, string[]> = {
+    const classStrengths: Record < CharacterClass, string[]> = {
       'Fighter': ['Combat prowess', 'Heavy armor'],
       'Paladin': ['Divine magic', 'Healing'],
       'Ranger': ['Tracking', 'Nature magic'],
@@ -625,7 +624,7 @@ class CharacterTemplateService {
       'Druid': ['Shapeshifting', 'Nature magic'],
       'Wizard': ['Powerful magic', 'Utility spells'],
       'Barbarian': ['High damage', 'Rage'],
-      'Immolator': ['Fire magic', 'Damage']
+      'Immolator': ['Fire magic', 'Damage'],
     };
 
     strengths.push(...(classStrengths[character.class] || []));
@@ -636,13 +635,13 @@ class CharacterTemplateService {
   /**
    * Calculate character weaknesses
    */
-  private calculateWeaknesses(character: Partial<Character>): string[] {
+  private calculateWeaknesses(character: Partial < Character>): string[] {
     const weaknesses: string[] = [];
-    
+
     if (!character.attributes || !character.class) return weaknesses;
 
     const attrs = character.attributes;
-    
+
     // Low attribute penalties
     if (attrs.STR <= 8) weaknesses.push('Low Strength');
     if (attrs.DEX <= 8) weaknesses.push('Low Dexterity');
@@ -652,7 +651,7 @@ class CharacterTemplateService {
     if (attrs.CHA <= 8) weaknesses.push('Low Charisma');
 
     // Class-specific weaknesses
-    const classWeaknesses: Record<CharacterClass, string[]> = {
+    const classWeaknesses: Record < CharacterClass, string[]> = {
       'Fighter': ['Limited utility', 'Poor social skills'],
       'Paladin': ['Alignment restrictions'],
       'Ranger': ['Limited armor'],
@@ -662,7 +661,7 @@ class CharacterTemplateService {
       'Druid': ['No metal equipment'],
       'Wizard': ['Very fragile', 'Spell dependency'],
       'Barbarian': ['Poor social skills', 'Limited utility'],
-      'Immolator': ['Self-damage risk']
+      'Immolator': ['Self-damage risk'],
     };
 
     weaknesses.push(...(classWeaknesses[character.class] || []));
@@ -679,8 +678,7 @@ class CharacterTemplateService {
       const updated = existing.filter(t => t.id !== templateId);
       localStorage.setItem('zimbomate_custom_templates', JSON.stringify(updated));
     } catch (error) {
-      console.error('Failed to delete template:', error);
-    }
+      }
   }
 
   /**
@@ -697,7 +695,7 @@ class CharacterTemplateService {
 
     return allTemplates.filter(template => {
       // Text search
-      const matchesQuery = !query || 
+      const matchesQuery = !query ||
         template.name.toLowerCase().includes(query.toLowerCase()) ||
         template.description.toLowerCase().includes(query.toLowerCase()) ||
         template.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()));
@@ -712,7 +710,7 @@ class CharacterTemplateService {
       const matchesClass = !filters.characterClass || template.characterClass === filters.characterClass;
 
       // Tags filter
-      const matchesTags = !filters.tags?.length || 
+      const matchesTags = !filters.tags?.length ||
         filters.tags.some(tag => template.tags.includes(tag));
 
       return matchesQuery && matchesCategory && matchesDifficulty && matchesClass && matchesTags;

@@ -1,0 +1,54 @@
+tasks:
+  - id: T-014
+    title: Setup Performance Optimization
+    intent: Implement performance requirements as specified in the PRD
+    owner: cursor-agent
+    status: cancelled
+    priority: P2
+    labels:
+      - infrastructure
+      - performance
+    deps:
+      - T-005
+      - T-006
+    steps:
+      - Implement fast panel switching and data synchronization
+      - Optimize panel rendering and state updates
+      - Implement efficient drag-and-drop functionality
+      - Implement quick modal overlays and tooltips
+      - Add performance monitoring and metrics
+    acceptance:
+      - Panel switching is instantaneous
+      - No lag in UI interactions
+      - Drag and drop is smooth
+      - Performance metrics meet targets
+    artifacts:
+      - src/utils/performance/
+      - docs/performance-requirements.md
+      - config/performance.json
+    notes: Duplicate of T-090 (Performance Setup) - already completed
+  - id: T-040
+    title: Setup Security
+    intent: Implement security requirements as specified in the PRD
+    owner: cursor-agent
+    status: cancelled
+    priority: P2
+    labels:
+      - infrastructure
+      - security
+    deps: []
+    steps:
+      - Implement local data storage and privacy
+      - Implement export/import functionality
+      - Implement backup and recovery options
+      - Implement user preference management
+    acceptance:
+      - All security requirements are met
+      - Performance benchmarks pass
+      - Security audit passes
+    artifacts:
+      - docs/security-requirements.md
+      - config/security.json
+    notes: >-
+      Duplicate of T-015 (Security and Data Privacy) - more comprehensive
+      version exists

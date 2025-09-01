@@ -5,7 +5,7 @@
 import { Attribute } from './Character';
 
 // Types of temporary modifiers
-export type ModifierType = 
+export type ModifierType =
   | 'forward'  // +1 to next roll
   | 'ongoing'  // +1 to all rolls until condition ends
   | 'hold'     // Spend hold for specific effects
@@ -13,7 +13,7 @@ export type ModifierType =
   | 'custom';  // Custom modifier
 
 // What the modifier applies to
-export type ModifierTarget = 
+export type ModifierTarget =
   | 'next-roll'           // Only the next roll
   | 'specific-move'       // A specific move
   | 'specific-attribute'  // Rolls with a specific attribute
@@ -23,7 +23,7 @@ export type ModifierTarget =
   | 'load';              // Load capacity
 
 // When the modifier expires
-export type ModifierExpiry = 
+export type ModifierExpiry =
   | 'used'      // After being used once
   | 'scene'     // End of scene
   | 'session'   // End of session
@@ -40,20 +40,20 @@ export interface TemporaryModifier {
   value: number; // Can be negative for penalties
   source: string; // What created this modifier (move name, item, etc.)
   target: ModifierTarget;
-  
+
   // Optional target specifics
   targetMove?: string; // For specific-move target
   targetAttribute?: Attribute; // For specific-attribute target
-  
+
   // Expiry conditions
   expiry: ModifierExpiry;
   expiryTime?: Date; // For time-based expiry
   expiryCondition?: string; // Description of condition
-  
+
   // Hold-specific
   remaining?: number; // For hold type
   holdOptions?: string[]; // What the hold can be spent on
-  
+
   // Metadata
   createdAt: Date;
   active: boolean;
@@ -67,34 +67,34 @@ export interface ModifierSet {
 
 // Common modifier templates
 export const COMMON_MODIFIERS = {
-  aid: (source: string): Partial<TemporaryModifier> => ({
+  aid: (source: string): Partial < TemporaryModifier> => ({
     name: 'Aid',
     type: 'forward',
     value: 1,
     source,
     target: 'next-roll',
-    expiry: 'used'
+    expiry: 'used',
   }),
-  
-  interfere: (source: string): Partial<TemporaryModifier> => ({
+
+  interfere: (source: string): Partial < TemporaryModifier> => ({
     name: 'Interfere',
     type: 'forward',
     value: -2,
     source,
     target: 'next-roll',
-    expiry: 'used'
+    expiry: 'used',
   }),
-  
-  bless: (source: string): Partial<TemporaryModifier> => ({
+
+  bless: (source: string): Partial < TemporaryModifier> => ({
     name: 'Blessed',
     type: 'ongoing',
     value: 1,
     source,
     target: 'all-rolls',
-    expiry: 'scene'
+    expiry: 'scene',
   }),
-  
-  defend: (holdAmount: number): Partial<TemporaryModifier> => ({
+
+  defend: (holdAmount: number): Partial < TemporaryModifier> => ({
     name: 'Defend',
     type: 'hold',
     value: holdAmount,
@@ -106,20 +106,20 @@ export const COMMON_MODIFIERS = {
       'Redirect an attack to yourself',
       'Halve the attack\'s effect or damage',
       'Open up the attacker to an ally (+1 forward against attacker)',
-      'Deal damage equal to your level to the attacker'
+      'Deal damage equal to your level to the attacker',
     ],
-    expiry: 'scene'
+    expiry: 'scene',
   }),
-  
-  encumbered: (): Partial<TemporaryModifier> => ({
+
+  encumbered: (): Partial < TemporaryModifier> => ({
     name: 'Encumbered',
     type: 'penalty',
     value: -1,
     source: 'Carrying too much weight',
     target: 'all-rolls',
     expiry: 'condition',
-    expiryCondition: 'Reduce carried weight below max load'
-  })
+    expiryCondition: 'Reduce carried weight below max load',
+  }),
 };
 
 // Utility functions
@@ -132,16 +132,16 @@ export function applyModifiers(
   modifiers: TemporaryModifier[],
   rollType: 'attribute' | 'damage' | 'move',
   attribute?: Attribute,
-  moveName?: string
+  moveName?: string,
 ): { total: number; appliedModifiers: TemporaryModifier[] } {
   let total = baseValue;
   const appliedModifiers: TemporaryModifier[] = [];
-  
+
   for (const modifier of modifiers) {
     if (!modifier.active) continue;
-    
+
     let applies = false;
-    
+
     // Check if modifier applies to this roll
     switch (modifier.target) {
       case 'all-rolls':
@@ -162,35 +162,35 @@ export function applyModifiers(
       default:
         break;
     }
-    
+
     if (applies) {
       total += modifier.value;
       appliedModifiers.push(modifier);
     }
   }
-  
+
   return { total, appliedModifiers };
 }
 
 /**
- * Use a modifier (for forward/used expiry)
+ * Use a modifier (for forward / used expiry)
  */
 export function useModifier(
-  modifier: TemporaryModifier
+  modifier: TemporaryModifier,
 ): TemporaryModifier {
   if (modifier.expiry === 'used') {
     return { ...modifier, active: false };
   }
-  
+
   if (modifier.type === 'hold' && modifier.remaining) {
-    const newRemaining = modifier.remaining - 1;
+    const newRemaining = modifier.remaining-1;
     return {
       ...modifier,
       remaining: newRemaining,
-      active: newRemaining > 0
+      active: newRemaining>0,
     };
   }
-  
+
   return modifier;
 }
 
@@ -199,10 +199,10 @@ export function useModifier(
  */
 export function isModifierExpired(
   modifier: TemporaryModifier,
-  currentTime: Date = new Date()
+  currentTime: Date = new Date(),
 ): boolean {
   if (!modifier.active) return true;
-  
+
   switch (modifier.expiry) {
     case 'time':
       return modifier.expiryTime ? currentTime > modifier.expiryTime : false;
@@ -211,7 +211,7 @@ export function isModifierExpired(
     case 'hold':
       return modifier.remaining === 0;
     default:
-      return false; // Scene/session/condition/manual handled elsewhere
+      return false; // Scene / session / condition / manual handled elsewhere
   }
 }
 
@@ -220,10 +220,10 @@ export function isModifierExpired(
  */
 export function cleanupModifiers(
   modifiers: TemporaryModifier[],
-  currentTime: Date = new Date()
+  currentTime: Date = new Date(),
 ): TemporaryModifier[] {
-  return modifiers.filter(mod => 
-    mod.active && !isModifierExpired(mod, currentTime)
+  return modifiers.filter(mod =>
+    mod.active && !isModifierExpired(mod, currentTime),
   );
 }
 
@@ -232,7 +232,7 @@ export function cleanupModifiers(
  */
 export function addModifier(
   modifierSet: ModifierSet,
-  modifier: Partial<TemporaryModifier>
+  modifier: Partial < TemporaryModifier>,
 ): ModifierSet {
   const newModifier: TemporaryModifier = {
     id: generateId(),
@@ -244,12 +244,12 @@ export function addModifier(
     expiry: 'used',
     createdAt: new Date(),
     active: true,
-    ...modifier
+    ...modifier,
   };
-  
+
   return {
     modifiers: [...modifierSet.modifiers, newModifier],
-    lastUpdated: new Date()
+    lastUpdated: new Date(),
   };
 }
 
@@ -258,10 +258,10 @@ export function addModifier(
  */
 export function endScene(modifierSet: ModifierSet): ModifierSet {
   return {
-    modifiers: modifierSet.modifiers.map(mod => 
-      mod.expiry === 'scene' ? { ...mod, active: false } : mod
+    modifiers: modifierSet.modifiers.map(mod =>
+      mod.expiry === 'scene' ? { ...mod, active: false } : mod,
     ),
-    lastUpdated: new Date()
+    lastUpdated: new Date(),
   };
 }
 
@@ -270,12 +270,12 @@ export function endScene(modifierSet: ModifierSet): ModifierSet {
  */
 export function endSession(modifierSet: ModifierSet): ModifierSet {
   return {
-    modifiers: modifierSet.modifiers.map(mod => 
-      (mod.expiry === 'session' || mod.expiry === 'scene') 
-        ? { ...mod, active: false } 
-        : mod
+    modifiers: modifierSet.modifiers.map(mod =>
+      (mod.expiry === 'session' || mod.expiry === 'scene')
+        ? { ...mod, active: false }
+        : mod,
     ),
-    lastUpdated: new Date()
+    lastUpdated: new Date(),
   };
 }
 

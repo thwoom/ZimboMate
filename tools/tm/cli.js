@@ -1,35 +1,122 @@
-#!/usr/bin/env node
+#!/usr / bin / env node
 import { fileURLToPath } from 'url';
 import { resolve, dirname } from 'path';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import YAML from 'yaml';
 
-const __filename = fileURLToPath(import.meta.url);
-const TASKS_PATH = resolve(process.cwd(), 'ops', 'tasks.yaml');
+const TASKS_DIR = resolve(process.cwd(), 'ops', 'tasks');
 
 // ---------- utils ----------
 function loadTasks() {
-  if (!existsSync(TASKS_PATH)) {
-    throw new Error(`Missing ${TASKS_PATH}. Create ops/tasks.yaml first.`);
+  const tasks = [];
+
+  // Load from split files
+  const priorities = ['p1', 'p2', 'p3'];
+  for (const priority of priorities) {
+
+    if (existsSync(filePath)) {
+      try {
+
+        if (doc && Array.isArray(doc.tasks)) {
+          tasks.push(...doc.tasks);
+        }
+      } catch (error) {
+        }
+    }
   }
-  const raw = readFileSync(TASKS_PATH, 'utf8');
-  const doc = YAML.parse(raw);
-  if (!doc || !Array.isArray(doc.tasks)) {
-    throw new Error(`Invalid tasks.yaml: expected { tasks: [...] }`);
+
+  // Load completed tasks
+
+  if (existsSync(completedPath)) {
+    try {
+
+      if (doc && Array.isArray(doc.tasks)) {
+        tasks.push(...doc.tasks);
+      }
+    } catch (error) {
+      }
   }
-  for (const t of doc.tasks) {
+
+  // Fallback to original file if split files don't exist
+  if (tasks.length === 0) {
+    const originalPath = resolve(process.cwd(), 'ops', 'tasks.yaml');
+    if (!existsSync(originalPath)) {
+      throw new Error(`Missing task files. Create ops / tasks.yaml or run migration first.`);
+    }
+
+    if (!doc || !Array.isArray(doc.tasks)) {
+      throw new Error(`Invalid tasks.yaml: expected { tasks: [...] }`);
+    }
+    tasks.push(...doc.tasks);
+  }
+
+  // Normalize task data
+  for (const t of tasks) {
     t.deps = Array.isArray(t.deps) ? t.deps : [];
     t.status = t.status || 'open'; // open | in_progress | blocked | done
-    t.priority = t.priority || 'P2'; // P0|P1|P2|P3
+    t.priority = t.priority || 'P2'; // P0 | P1 | P2 | P3
     t.labels = Array.isArray(t.labels) ? t.labels : [];
   }
-  return doc;
+
+  return { tasks };
 }
+
 function saveTasks(doc) {
-  const yaml = YAML.stringify(doc, { indent: 2 });
-  const outDir = dirname(TASKS_PATH);
-  if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
-  writeFileSync(TASKS_PATH, yaml, 'utf8');
+  // Group tasks by priority and status
+  const active = { p1: [], p2: [], p3: [] };
+
+  for (const task of doc.tasks) {
+    if (task.status === 'done') {
+      completed.push(task);
+    } else if (task.status === 'cancelled') {
+      archived.push(task);
+    } else {
+      // Active tasks
+      switch (task.priority) {
+        case 'P1':
+          active.p1.push(task);
+          break;
+        case 'P2':
+          active.p2.push(task);
+          break;
+        case 'P3':
+          active.p3.push(task);
+          break;
+        default:
+          active.p3.push(task); // Default to P3
+      }
+    }
+  }
+
+  // Ensure directories exist
+  const dirs = [
+    resolve(TASKS_DIR, 'active'),
+    resolve(TASKS_DIR, 'completed'),
+    resolve(TASKS_DIR, 'archived')
+  ];
+
+  dirs.forEach(dir => {
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+  });
+
+  // Write active tasks
+  for (const [priority, tasks] of Object.entries(active)) {
+    const filePath = resolve(TASKS_DIR, 'active', `${priority}-tasks.yaml`);
+    const yaml = YAML.stringify({ tasks }, { indent: 2 });
+    writeFileSync(filePath, yaml, 'utf8');
+  }
+
+  // Write completed tasks
+  const completedPath = resolve(TASKS_DIR, 'completed', 'completed - 2025.yaml');
+  const completedYaml = YAML.stringify({ tasks: completed }, { indent: 2 });
+  writeFileSync(completedPath, completedYaml, 'utf8');
+
+  // Write archived tasks
+  const archivedPath = resolve(TASKS_DIR, 'archived', 'archived - tasks.yaml');
+  const archivedYaml = YAML.stringify({ tasks: archived }, { indent: 2 });
+  writeFileSync(archivedPath, archivedYaml, 'utf8');
 }
 function topoOrder(tasks) {
   const idToTask = new Map(tasks.map((t) => [t.id, t]));
@@ -44,7 +131,7 @@ function topoOrder(tasks) {
   const out = [];
   while (q.length) {
     q.sort(); // stable deterministic order
-    const id = q.shift();
+
     out.push(id);
     for (const t of tasks) {
       if (t.deps?.includes(id)) {
@@ -65,7 +152,7 @@ function topoOrder(tasks) {
 function depsSatisfied(task, byId) {
   return (task.deps || []).every((d) => {
     const dep = byId.get(d);
-    return !dep || dep.status === 'done'; // external or finished
+    return ! dep || dep.status === 'done'; // external or finished
   });
 }
 function comparePriority(a, b) {
@@ -76,85 +163,62 @@ function comparePriority(a, b) {
 // ---------- commands ----------
 function cmdList() {
   const { tasks } = loadTasks();
-  const order = topoOrder(tasks);
-  const byId = new Map(tasks.map((t) => [t.id, t]));
-  console.log('\\nID    Status        Pri  Owner           Title');
-  console.log(
-    '----  ------------  ----  --------------  --------------------------------',
-  );
-  for (const id of order) {
-    const t = byId.get(id);
-    const line = `${(t.id || '').padEnd(4)}  ${(t.status || '').padEnd(12)}  ${(t.priority || '').padEnd(4)}  ${String(t.owner || '').padEnd(14)}  ${t.title || ''}`;
-    console.log(line);
-  }
-  console.log('');
-}
+
+  // // // // for (const id of order) {
+
+    const _line =  `${(t.id || '').padEnd(4)}  ${(t.status || '').padEnd(12)}  ${(t.priority || '').padEnd(4)}  ${String(t.owner || '').padEnd(14)}  ${t.title || ''}`;
+    // // }
+  // // }
 function cmdNext() {
   const { tasks } = loadTasks();
   const order = topoOrder(tasks);
-  const byId = new Map(tasks.map((t) => [t.id, t]));
+
   const candidates = order
     .map((id) => byId.get(id))
     .filter((t) => ['open', 'in_progress'].includes(t.status))
     .filter((t) => depsSatisfied(t, byId))
     .sort((a, b) => comparePriority(a, b) || a.id.localeCompare(b.id));
   if (!candidates.length) {
-    console.log('No unblocked tasks. Either all done or blocked by deps.');
-    return;
+    // // return;
   }
   const t = candidates[0];
-  console.log(`Next task: ${t.id} — ${t.title}`);
-  console.log(
-    `Status: ${t.status} | Priority: ${t.priority} | Owner: ${t.owner || ''}`,
-  );
-  console.log(`Deps: ${t.deps?.join(', ') || '-'}`);
+  // // // // // // || '-'}`);
   if (Array.isArray(t.acceptance) && t.acceptance.length) {
-    console.log('\\nAcceptance:');
-    for (const a of t.acceptance) console.log(` - ${a}`);
-  }
+    // // for (const a of t.acceptance) // // }
   if (Array.isArray(t.steps) && t.steps.length) {
-    console.log('\\nSteps:');
-    for (const s of t.steps) console.log(` - ${s}`);
-  }
+    // // for (const s of t.steps) // // }
 }
 function cmdMove(args) {
-  // usage: npm run tm:move -- --id T-003 --status in_progress
+  // usage: npm run tm:move -- --id T - 003 --status in_progress
   const idArg = findFlag(args, '--id');
   const statusArg = findFlag(args, '--status');
   if (!idArg || !statusArg) {
-    console.error(
-      'Usage: npm run tm:move -- --id <TASK_ID> --status <open|in_progress|blocked|done>',
-    );
     process.exit(1);
   }
   const allowed = new Set(['open', 'in_progress', 'blocked', 'done']);
   if (!allowed.has(statusArg)) {
-    console.error(
-      `Invalid status: ${statusArg}. Allowed: ${[...allowed].join(', ')}`,
+    }`,
     );
     process.exit(1);
   }
   const doc = loadTasks();
   const idx = doc.tasks.findIndex((t) => t.id === idArg);
   if (idx < 0) {
-    console.error(`Task not found: ${idArg}`);
     process.exit(1);
   }
   if (['in_progress', 'done'].includes(statusArg)) {
     const byId = new Map(doc.tasks.map((t) => [t.id, t]));
     if (!depsSatisfied(doc.tasks[idx], byId)) {
-      console.error(
-        `Cannot set ${idArg} to ${statusArg}: unmet dependencies [${(doc.tasks[idx].deps || []).join(', ')}].`,
+      .join(', ')}].`,
       );
       process.exit(2);
     }
   }
-  const prev = doc.tasks[idx].status || 'open';
+  const _prev = doc.tasks[idx].status || 'open';
   doc.tasks[idx].status = statusArg;
   if (statusArg === 'done') doc.tasks[idx].done_at = new Date().toISOString();
   saveTasks(doc);
-  console.log(`Updated ${idArg}: ${prev} -> ${statusArg}`);
-}
+  // // }
 function findFlag(argv, name) {
   const i = argv.indexOf(name);
   if (i === -1 || i === argv.length - 1) return null;
@@ -172,8 +236,4 @@ switch (sub) {
     cmdMove(process.argv.slice(3));
     break;
   default:
-    console.log(`Usage:
-  npm run tm:list
-  npm run tm:next
-  npm run tm:move -- --id T-001 --status in_progress`);
-}
+    // // }

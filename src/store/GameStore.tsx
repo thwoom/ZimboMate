@@ -3,11 +3,11 @@
  */
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useState } from 'react';
-import { 
-  GameState, 
-  GameStateAction, 
-  createInitialGameState, 
-  gameStateReducer 
+import {
+  GameState,
+  GameStateAction,
+  createInitialGameState,
+  gameStateReducer,
 } from '../models/GameState';
 import { Character } from '../models/Character';
 import { Inventory } from '../models/Inventory';
@@ -19,32 +19,33 @@ import { useAutoSave } from '../hooks/useAutoSave';
 // Context types
 interface GameStoreContextType {
   state: GameState;
-  dispatch: React.Dispatch<GameStateAction>;
-  
+  dispatch: React.Dispatch < GameStateAction>;
+
   // Convenience methods
   setCharacter: (character: Character) => void;
-  updateCharacter: (characterId: string, updates: Partial<Character>) => void;
-  updateInventory: (characterId: string, updates: Partial<Inventory>) => void;
+  updateCharacter: (characterId: string, updates: Partial < Character>) => void;
+  updateInventory: (characterId: string, updates: Partial < Inventory>) => void;
   addMove: (move: Move) => void;
-  updateMove: (id: string, changes: Partial<Move>) => void;
+  updateMove: (id: string, changes: Partial < Move>) => void;
   removeMove: (id: string) => void;
-  updateSession: (updates: Partial<Session>) => void;
-  updateUIState: (updates: Partial<GameState['ui']>) => void;
-  updateSettings: (updates: Partial<GameState['settings']>) => void;
-  saveGame: (slotName?: string) => Promise<void>;
-  loadGame: (slotId?: string) => Promise<boolean>;
+  updateSession: (updates: Partial < Session>) => void;
+  updateUIState: (updates: Partial < GameState['ui']>) => void;
+  updateSettings: (updates: Partial < GameState['settings']>) => void;
+  updateGameState: (newState: GameState) => void;
+  saveGame: (slotName?: string) => Promise < void>;
+  loadGame: (slotId?: string) => Promise < boolean>;
   resetGame: () => void;
-  quickSave: () => Promise<void>;
-  getSaveSlots: () => Promise<SaveSlot[]>;
-  deleteSaveSlot: (slotId: string) => Promise<void>;
-  exportSave: () => Promise<void>;
-  importSave: (file: File) => Promise<boolean>;
+  quickSave: () => Promise < void>;
+  getSaveSlots: () => Promise < SaveSlot[]>;
+  deleteSaveSlot: (slotId: string) => Promise < void>;
+  exportSave: () => Promise < void>;
+  importSave: (file: File) => Promise < boolean>;
   autoSaveStatus: 'idle' | 'saving' | 'saved' | 'error';
   toggleAutoSave: (enabled: boolean) => void;
 }
 
 // Create contexts
-const GameStoreContext = createContext<GameStoreContextType | undefined>(undefined);
+const GameStoreContext = createContext < GameStoreContextType | undefined>(undefined);
 
 // Provider component
 export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -58,11 +59,11 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     dispatch({ type: 'SET_ACTIVE_CHARACTER', payload: character.id });
   }, []);
 
-  const updateCharacter = useCallback((characterId: string, updates: Partial<Character>) => {
+  const updateCharacter = useCallback((characterId: string, updates: Partial < Character>) => {
     dispatch({ type: 'UPDATE_CHARACTER', payload: { id: characterId, updates } });
   }, []);
 
-  const updateInventory = useCallback((characterId: string, updates: Partial<Inventory>) => {
+  const updateInventory = useCallback((characterId: string, updates: Partial < Inventory>) => {
     dispatch({ type: 'UPDATE_INVENTORY', payload: { characterId, updates } });
   }, []);
 
@@ -70,7 +71,7 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     dispatch({ type: 'ADD_MOVE', payload: move });
   }, []);
 
-  const updateMove = useCallback((id: string, changes: Partial<Move>) => {
+  const updateMove = useCallback((id: string, changes: Partial < Move>) => {
     dispatch({ type: 'UPDATE_MOVE', payload: { id, changes } });
   }, []);
 
@@ -78,37 +79,35 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     dispatch({ type: 'REMOVE_MOVE', payload: id });
   }, []);
 
-  const updateSession = useCallback((updates: Partial<Session>) => {
+  const updateSession = useCallback((updates: Partial < Session>) => {
     dispatch({ type: 'UPDATE_SESSION', payload: updates });
   }, []);
 
-  const updateUIState = useCallback((updates: Partial<GameState['ui']>) => {
+  const updateUIState = useCallback((updates: Partial < GameState['ui']>) => {
     dispatch({ type: 'SET_UI_STATE', payload: updates });
   }, []);
 
-  const updateSettings = useCallback((updates: Partial<GameState['settings']>) => {
+  const updateSettings = useCallback((updates: Partial < GameState['settings']>) => {
     dispatch({ type: 'SET_SETTINGS', payload: updates });
   }, []);
 
   // Save game to a slot
-  const saveGame = useCallback(async (slotName?: string) => {
+  const saveGame = useCallback(async(slotName?: string) => {
     try {
       await dataPersistence.saveGame(state, undefined, slotName);
       dispatch({ type: 'MARK_SAVED' });
     } catch (error) {
-      console.error('Failed to save game:', error);
       throw error;
     }
   }, [state]);
 
   // Load game from a slot
-  const loadGame = useCallback(async (slotId?: string): Promise<boolean> => {
+  const loadGame = useCallback(async(slotId?: string): Promise < boolean> => {
     try {
       // If no slotId provided, try to load the most recent save
       if (!slotId) {
         const slots = await dataPersistence.getSaveSlots();
         if (slots.length === 0) {
-          console.log('No save data found');
           return false;
         }
         slotId = slots[0].id;
@@ -122,44 +121,41 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       dispatch({ type: 'LOAD_STATE', payload: loadedState });
       return true;
     } catch (error) {
-      console.error('Failed to load game:', error);
       return false;
     }
   }, []);
 
   // Quick save
-  const quickSave = useCallback(async () => {
+  const quickSave = useCallback(async() => {
     try {
       await dataPersistence.quickSave(state);
       dispatch({ type: 'MARK_SAVED' });
     } catch (error) {
-      console.error('Failed to quick save:', error);
       throw error;
     }
   }, [state]);
 
   // Get save slots
-  const getSaveSlots = useCallback(async () => {
+  const getSaveSlots = useCallback(async() => {
     return dataPersistence.getSaveSlots();
   }, []);
 
   // Delete save slot
-  const deleteSaveSlot = useCallback(async (slotId: string) => {
+  const deleteSaveSlot = useCallback(async(slotId: string) => {
     return dataPersistence.deleteSaveSlot(slotId);
   }, []);
 
   // Export save
-  const exportSave = useCallback(async () => {
+  const exportSave = useCallback(async() => {
     try {
       await dataPersistence.exportSave(state);
     } catch (error) {
-      console.error('Failed to export save:', error);
       throw error;
     }
   }, [state]);
 
   // Import save
-  const importSave = useCallback(async (file: File): Promise<boolean> => {
+  const importSave = useCallback(async(file: File): Promise < boolean> => {
     try {
       const importedState = await dataPersistence.importSave(file);
       if (!importedState) {
@@ -168,9 +164,13 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       dispatch({ type: 'LOAD_STATE', payload: importedState });
       return true;
     } catch (error) {
-      console.error('Failed to import save:', error);
       return false;
     }
+  }, []);
+
+  // Update entire game state (for imports)
+  const updateGameState = useCallback((newState: GameState) => {
+    dispatch({ type: 'REPLACE_STATE', payload: newState });
   }, []);
 
   // Reset game state
@@ -184,13 +184,12 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Auto-save effect
   useEffect(() => {
     if (state.settings.autoSave && state.isDirty) {
-      const timeoutId = setTimeout(async () => {
+      const timeoutId = setTimeout(async() => {
         try {
           await dataPersistence.autoSave(state);
           dispatch({ type: 'MARK_SAVED' });
         } catch (error) {
-          console.error('Auto-save failed:', error);
-        }
+          }
       }, state.settings.autoSaveInterval * 60 * 1000);
 
       return () => clearTimeout(timeoutId);
@@ -212,9 +211,8 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       dispatch({ type: 'MARK_SAVED' });
     },
     onError: (error) => {
-      console.error('Auto-save failed:', error);
       setAutoSaveStatus('error');
-    }
+    },
   });
 
   const toggleAutoSave = useCallback((enabled: boolean) => {
@@ -233,6 +231,7 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     updateSession,
     updateUIState,
     updateSettings,
+    updateGameState,
     saveGame,
     loadGame,
     resetGame,
@@ -242,7 +241,7 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     exportSave,
     importSave,
     autoSaveStatus,
-    toggleAutoSave
+    toggleAutoSave,
   };
 
   return (

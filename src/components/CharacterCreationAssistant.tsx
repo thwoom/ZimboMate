@@ -5,7 +5,7 @@ import { ValidationResult } from '../services/CharacterValidation';
 import './CharacterCreationAssistant.css';
 
 // Types matching the CharacterCreationPanel
-type CharacterCreationStep = 
+type CharacterCreationStep =
   | 'intro'
   | 'templates'
   | 'name-look'
@@ -13,27 +13,28 @@ type CharacterCreationStep =
   | 'portrait'
   | 'class'
   | 'race'
-  | 'level'
-  | 'advancement'
   | 'personality'
   | 'spells'
   | 'attributes'
+  | 'level'
   | 'moves-equipment'
   | 'bonds'
   | 'alignment'
-  | 'review';
+  | 'advanced-options'
+  | 'review'
+  | 'advancement';
 
 interface CharacterCreationState {
   currentStep: CharacterCreationStep;
-  characterData: any; // Using any for now to avoid complex imports
-  [key: string]: any;
+  characterData: unknown; // Using unknown for now to avoid complex imports
+  [key: string]: unknown;
 }
 
 interface CharacterCreationAssistantProps {
   currentStep: CharacterCreationStep;
   currentState: CharacterCreationState;
   validationResult?: ValidationResult;
-  onStateUpdate: (updates: Partial<CharacterCreationState>) => void;
+  onStateUpdate: (updates: Partial < CharacterCreationState>) => void;
   onNextStep: () => void;
   onPreviousStep: () => void;
   onFinalizeCharacter: () => void;
@@ -51,106 +52,112 @@ interface StepInfo {
   tools: string[];
 }
 
-const STEP_INFO: Record<CharacterCreationStep, StepInfo> = {
+const STEP_INFO: Record < CharacterCreationStep, StepInfo> = {
   intro: {
     title: 'Getting Started',
     description: 'Choose how to create your character',
     icon: '🎭',
-    tools: ['templates', 'random-full']
+    tools: ['templates', 'random-full'],
   },
   templates: {
     title: 'Templates',
     description: 'Quick start templates',
     icon: '📋',
-    tools: ['random-template', 'import-template']
+    tools: ['random-template', 'import-template'],
   },
   'name-look': {
     title: 'Identity',
     description: 'Name and appearance',
     icon: '👤',
-    tools: ['random-name', 'random-look', 'name-generator']
+    tools: ['random-name', 'random-look', 'name-generator'],
   },
   background: {
     title: 'Background',
     description: 'Character history and origins',
     icon: '📖',
-    tools: ['random-background', 'background-suggestions']
+    tools: ['random-background', 'background-suggestions'],
   },
   portrait: {
     title: 'Portrait',
     description: 'Character appearance',
     icon: '🖼️',
-    tools: ['portrait-gallery', 'upload-custom']
+    tools: ['portrait-gallery', 'upload-custom'],
   },
   class: {
     title: 'Class',
     description: 'Choose your character class',
     icon: '⚔️',
-    tools: ['random-class', 'class-quiz', 'compare-classes']
+    tools: ['random-class', 'class-quiz', 'compare-classes'],
   },
   race: {
     title: 'Race',
     description: 'Character ancestry',
     icon: '🧝',
-    tools: ['random-race', 'race-suggestions']
+    tools: ['random-race', 'race-suggestions'],
   },
   level: {
     title: 'Level',
     description: 'Starting level',
     icon: '📈',
-    tools: ['set-level']
+    tools: ['set-level'],
   },
   advancement: {
     title: 'Advancement',
     description: 'Level advancement choices',
     icon: '⬆️',
-    tools: ['auto-advance', 'balanced-advance']
+    tools: ['auto-advance', 'balanced-advance'],
   },
   personality: {
     title: 'Personality',
     description: 'Traits and quirks',
     icon: '🎭',
-    tools: ['random-personality', 'trait-suggestions']
+    tools: ['random-personality', 'trait-suggestions'],
   },
   spells: {
     title: 'Spells',
     description: 'Starting magical abilities',
     icon: '✨',
-    tools: ['random-spells', 'spell-recommendations']
+    tools: ['random-spells', 'spell-recommendations'],
   },
   attributes: {
     title: 'Attributes',
     description: 'Assign ability scores',
     icon: '📊',
-    tools: ['auto-assign', 'balanced-build', 'min-max-build']
+    tools: ['auto-assign', 'balanced-build', 'min-max-build'],
   },
   'moves-equipment': {
     title: 'Gear & Moves',
     description: 'Starting equipment and abilities',
     icon: '🎒',
-    tools: ['random-gear', 'optimal-loadout', 'move-suggestions']
+    tools: ['random-gear', 'optimal-loadout', 'move-suggestions'],
   },
   bonds: {
     title: 'Bonds',
     description: 'Relationships with other characters',
     icon: '🤝',
-    tools: ['bond-generator', 'relationship-ideas']
+    tools: ['bond-generator', 'relationship-ideas'],
   },
   alignment: {
     title: 'Alignment',
     description: 'Moral compass',
     icon: '⚖️',
-    tools: ['alignment-quiz', 'alignment-guide']
+    tools: ['alignment-quiz', 'alignment-guide'],
+  },
+  'advanced-options': {
+    title: 'Advanced Options',
+    description: 'Compendium classes and special abilities',
+    icon: '🔧',
+    tools: ['compendium-classes', 'race-moves', 'multiclassing'],
   },
   review: {
     title: 'Review',
     description: 'Final character overview',
     icon: '✅',
-    tools: ['export-character', 'print-sheet', 'save-template']
-  }
+    tools: ['export-character', 'print-sheet', 'save-template'],
+  },
 };
 
-export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProps> = ({
+export const CharacterCreationAssistant: React.FC < CharacterCreationAssistantProps> = ({
   currentStep,
   currentState,
   validationResult,
@@ -160,13 +167,13 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
   onFinalizeCharacter,
   canProceed,
   position = 'bottom-center',
-  className = ''
+  className = '',
 }) => {
-  const [mode, setMode] = useState<AssistantMode>('collapsed');
-  const [showValidationDetails, setShowValidationDetails] = useState(false);
+  const [mode, setMode] = useState < AssistantMode>('collapsed');
+  const [, setShowValidationDetails] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  
-  const assistantRef = useRef<HTMLDivElement>(null);
+
+  const assistantRef = useRef < HTMLDivElement>(null);
   const stepInfo = STEP_INFO[currentStep];
 
   // Auto-collapse when step changes
@@ -197,7 +204,7 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
         return;
       }
 
-      // Ctrl/Cmd + Enter to proceed
+      // Ctrl / Cmd + Enter to proceed
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && canProceed) {
         e.preventDefault();
         if (currentStep === 'review') {
@@ -207,7 +214,7 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
         }
       }
 
-      // Ctrl/Cmd + Backspace to go back
+      // Ctrl / Cmd + Backspace to go back
       if ((e.ctrlKey || e.metaKey) && e.key === 'Backspace' && currentStep !== 'intro') {
         e.preventDefault();
         onPreviousStep();
@@ -235,59 +242,62 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
     setTimeout(() => setIsAnimating(false), 600);
 
     switch (action) {
-      case 'random-name':
+      case 'random-name': {
         const randomName = randomGeneratorService.generateName();
         onStateUpdate({
           characterData: {
             ...currentState.characterData,
-            name: randomName
-          }
+            name: randomName,
+          },
         });
         break;
+      }
 
-      case 'random-background':
+      case 'random-background': {
         const randomBackground = randomGeneratorService.generateBackground();
         onStateUpdate({
           characterData: {
             ...currentState.characterData,
-            background: randomBackground
-          }
+            background: randomBackground,
+          },
         });
         break;
+      }
 
-      case 'random-class':
+      case 'random-class': {
         const classes: CharacterClass[] = ['Fighter', 'Cleric', 'Thief', 'Wizard', 'Ranger', 'Paladin', 'Bard', 'Druid', 'Barbarian'];
         const randomClass = classes[Math.floor(Math.random() * classes.length)];
         onStateUpdate({
           characterData: {
             ...currentState.characterData,
-            class: randomClass
-          }
+            class: randomClass,
+          },
         });
         break;
+      }
 
-      case 'auto-assign':
+      case 'auto-assign': {
         // Auto-assign attributes using standard method
         const stats = randomGeneratorService.generateAttributes('roll');
         const attributes = {
           STR: stats[0],
-          DEX: stats[1], 
+          DEX: stats[1],
           CON: stats[2],
           INT: stats[3],
           WIS: stats[4],
-          CHA: stats[5]
+          CHA: stats[5],
         };
         onStateUpdate({
           characterData: {
             ...currentState.characterData,
-            attributes
-          }
+            attributes,
+          },
         });
         break;
+      }
 
       default:
-        console.log(`Random action not implemented: ${action}`);
-    }
+        }
   }, [currentState, onStateUpdate]);
 
   const getPositionClass = () => {
@@ -306,21 +316,23 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
       case 'portrait': return 'Next: Personality →';
       case 'personality': return 'Next: Class →';
       case 'class': return 'Next: Race →';
-      case 'race': 
-        return currentState.characterData.class === 'wizard' 
-          ? 'Next: Spells →' 
+      case 'race':
+        return currentState.characterData.class === 'wizard'
+          ? 'Next: Spells →'
           : 'Next: Attributes →';
       case 'spells': return 'Next: Attributes →';
-      case 'attributes': return 'Next: Gear & Moves →';
+      case 'attributes': return 'Next: Level →';
+      case 'level': return 'Next: Gear & Moves →';
       case 'moves-equipment': return 'Next: Bonds →';
       case 'bonds': return 'Next: Alignment →';
-      case 'alignment': return 'Next: Review →';
+      case 'alignment': return 'Next: Advanced Options →';
+      case 'advanced-options': return 'Next: Review →';
       case 'review': return 'Create Character ✨';
       default: return 'Next →';
     }
   };
 
-  const hasValidationIssues = validationResult && 
+  const hasValidationIssues = validationResult &&
     (validationResult.errors.length > 0 || validationResult.warnings.length > 0);
 
   const renderCollapsedMode = () => (
@@ -352,14 +364,14 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
           </div>
         </div>
         <div className="mode-switchers">
-          <button 
+          <button
             className={`mode-btn ${mode === 'navigation' ? 'active' : ''}`}
             onClick={() => setMode('navigation')}
             title="Navigation"
           >
             🧭
           </button>
-          <button 
+          <button
             className={`mode-btn ${mode === 'tools' ? 'active' : ''}`}
             onClick={() => setMode('tools')}
             title="Tools & Generators"
@@ -367,7 +379,7 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
             🛠️
           </button>
           {hasValidationIssues && (
-            <button 
+            <button
               className={`mode-btn ${mode === 'validation' ? 'active' : ''}`}
               onClick={() => setMode('validation')}
               title="Validation Issues"
@@ -375,14 +387,14 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
               {validationResult!.errors.length > 0 ? '⚠️' : '💡'}
             </button>
           )}
-          <button 
+          <button
             className={`mode-btn ${mode === 'help' ? 'active' : ''}`}
             onClick={() => setMode('help')}
             title="Help & Tips"
           >
             ❓
           </button>
-          <button 
+          <button
             className="close-btn"
             onClick={() => setMode('collapsed')}
             title="Close (Esc)"
@@ -394,19 +406,19 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
 
       <div className="navigation-actions">
         {currentStep !== 'intro' && (
-          <button 
+          <button
             className="nav-btn nav-btn-back"
             onClick={onPreviousStep}
-            title="Previous step (Ctrl+Backspace)"
+            title="Previous step (Ctrl + Backspace)"
           >
             ← Back
           </button>
         )}
-        <button 
+        <button
           className={`nav-btn nav-btn-next ${!canProceed ? 'disabled' : ''}`}
           onClick={currentStep === 'review' ? onFinalizeCharacter : onNextStep}
           disabled={!canProceed}
-          title={`${getNextLabel()} (Ctrl+Enter)`}
+          title={`${getNextLabel()} (Ctrl + Enter)`}
         >
           {getNextLabel()}
         </button>
@@ -414,7 +426,7 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
 
       <div className="progress-indicator">
         <div className="progress-bar">
-          <div 
+          <div
             className="progress-fill"
             style={{ '--progress': `${((Object.keys(STEP_INFO).indexOf(currentStep) + 1) / 13) * 100}%` } as React.CSSProperties}
           />
@@ -492,25 +504,25 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
   const renderHelpMode = () => (
     <div className="assistant-help">
       <div className="help-section">
-        <h4>Keyboard Shortcuts</h4>
+        <h4 > Keyboard Shortcuts</h4>
         <div className="shortcut-list">
           <div className="shortcut-item">
-            <kbd>Space</kbd> <span>Toggle Assistant</span>
+            <kbd > Space</kbd> <span > Toggle Assistant</span>
           </div>
           <div className="shortcut-item">
-            <kbd>Ctrl</kbd> + <kbd>Enter</kbd> <span>Next Step</span>
+            <kbd > Ctrl</kbd> + <kbd > Enter</kbd> <span > Next Step</span>
           </div>
           <div className="shortcut-item">
-            <kbd>Ctrl</kbd> + <kbd>Backspace</kbd> <span>Previous Step</span>
+            <kbd > Ctrl</kbd> + <kbd > Backspace</kbd> <span > Previous Step</span>
           </div>
           <div className="shortcut-item">
-            <kbd>Esc</kbd> <span>Close Assistant</span>
+            <kbd > Esc</kbd> <span > Close Assistant</span>
           </div>
         </div>
       </div>
-      
+
       <div className="help-section">
-        <h4>Current Step Tips</h4>
+        <h4 > Current Step Tips</h4>
         <div className="step-tips">
           {currentStep === 'attributes' && (
             <p>💡 Consider your class when assigning attributes. Warriors need STR, rogues need DEX, wizards need INT.</p>
@@ -528,7 +540,7 @@ export const CharacterCreationAssistant: React.FC<CharacterCreationAssistantProp
   );
 
   return (
-    <div 
+    <div
       ref={assistantRef}
       className={`character-creation-assistant ${getPositionClass()} ${className} mode-${mode}`}
     >

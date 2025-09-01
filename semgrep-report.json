@@ -1,0 +1,178 @@
+{
+  "summary": {
+    "totalIssues": 20,
+    "bySeverity": {
+      "high": 0,
+      "medium": 15,
+      "low": 5
+    },
+    "byCategory": {
+      "security": 0,
+      "performance": 0,
+      "quality": 5,
+      "logic": 15
+    }
+  },
+  "issues": [
+    {
+      "id": "semgrep-logic-scripts-taskDashboard-ts-1756734183213",
+      "title": "[Semgrep] Logic Issues in scripts\\taskDashboard.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\taskDashboard.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-enhancedTaskManager-ts-1756734183213",
+      "title": "[Semgrep] Logic Issues in scripts\\enhancedTaskManager.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\enhancedTaskManager.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-tools-tm-cli-js-1756734183213",
+      "title": "[Semgrep] Logic Issues in tools\\tm\\cli.js",
+      "severity": "medium",
+      "category": "logic",
+      "file": "tools\\tm\\cli.js",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-autoCleanupTasks-ts-1756734183213",
+      "title": "[Semgrep] Logic Issues in scripts\\autoCleanupTasks.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\autoCleanupTasks.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-cleanupTasks-ts-1756734183213",
+      "title": "[Semgrep] Logic Issues in scripts\\cleanupTasks.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\cleanupTasks.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-migrateTasks-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in scripts\\migrateTasks.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\migrateTasks.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-planFromPrd-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in scripts\\planFromPrd.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\planFromPrd.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-taskBrowser-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in scripts\\taskBrowser.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\taskBrowser.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-src-framework-PanelLoader-tsx-1756734183214",
+      "title": "[Semgrep] Logic Issues in src\\framework\\PanelLoader.tsx",
+      "severity": "medium",
+      "category": "logic",
+      "file": "src\\framework\\PanelLoader.tsx",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-auditTaskStatus-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in scripts\\auditTaskStatus.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\auditTaskStatus.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-semgrepIntegration-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in scripts\\semgrepIntegration.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\semgrepIntegration.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-taskManager-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in scripts\\taskManager.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\taskManager.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-scripts-updateCompletedTasks-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in scripts\\updateCompletedTasks.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "scripts\\updateCompletedTasks.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-src-lib-prd-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in src\\lib\\prd.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "src\\lib\\prd.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-logic-src-utils-panelRecovery-ts-1756734183214",
+      "title": "[Semgrep] Logic Issues in src\\utils\\panelRecovery.ts",
+      "severity": "medium",
+      "category": "logic",
+      "file": "src\\utils\\panelRecovery.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-quality-scripts-taskDashboard-ts-1756734183214",
+      "title": "[Semgrep] Quality Issues in scripts\\taskDashboard.ts",
+      "severity": "low",
+      "category": "quality",
+      "file": "scripts\\taskDashboard.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-quality-src-panels-CharacterCreationPanel-CharacterCreationPanel-tsx-1756734183214",
+      "title": "[Semgrep] Quality Issues in src\\panels\\CharacterCreationPanel\\CharacterCreationPanel.tsx",
+      "severity": "low",
+      "category": "quality",
+      "file": "src\\panels\\CharacterCreationPanel\\CharacterCreationPanel.tsx",
+      "line": 0
+    },
+    {
+      "id": "semgrep-quality-scripts-taskBrowser-ts-1756734183214",
+      "title": "[Semgrep] Quality Issues in scripts\\taskBrowser.ts",
+      "severity": "low",
+      "category": "quality",
+      "file": "scripts\\taskBrowser.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-quality-scripts-enhancedTaskManager-ts-1756734183214",
+      "title": "[Semgrep] Quality Issues in scripts\\enhancedTaskManager.ts",
+      "severity": "low",
+      "category": "quality",
+      "file": "scripts\\enhancedTaskManager.ts",
+      "line": 0
+    },
+    {
+      "id": "semgrep-quality-src-services-CharacterValidation-ts-1756734183214",
+      "title": "[Semgrep] Quality Issues in src\\services\\CharacterValidation.ts",
+      "severity": "low",
+      "category": "quality",
+      "file": "src\\services\\CharacterValidation.ts",
+      "line": 0
+    }
+  ]
+}

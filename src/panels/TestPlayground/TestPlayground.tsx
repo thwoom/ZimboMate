@@ -20,13 +20,13 @@ import {
   useArmorCalculations,
   useDamageCalculations,
   useLoadCalculations,
-  useAutoCalculate
+  useAutoCalculate,
 } from '../../store';
 import {
   Character,
   getClassBaseHP,
   getClassBaseLoad,
-  getClassDamageDie
+  getClassDamageDie,
 } from '../../models/Character';
 import { Item, Weapon, Armor } from '../../models/Equipment';
 import { useValueAnimation } from '../../hooks/useValueAnimation';
@@ -52,38 +52,38 @@ const TestPlayground: React.FC = () => {
   const { rollAttribute, rollDamage } = useRollActions();
   const { levelUp, canLevelUp } = useCharacterAdvancement();
   const { errors, warnings } = useGameStateValidation();
-  
+
   // Auto-calculation hooks
   const calculatedValues = useCalculatedValues();
   const armorCalc = useArmorCalculations();
   const damageCalc = useDamageCalculations();
   const loadCalc = useLoadCalculations();
-  
+
   // Calculation history
   const {
     recentChanges,
     clearHistory,
-    exportHistory
+    exportHistory,
   } = useCalculationHistory(character, calculatedValues);
-  
+
   // Modifiers
   const {
     modifiers,
     addModifier,
     removeModifier,
     updateModifier,
-    clearExpiredModifiers
+    clearExpiredModifiers,
   } = useModifiers();
-  
+
   // Integrated validation
   const integratedValidation = useIntegratedValidation();
 
-  const [rollResults, setRollResults] = useState<any[]>([]);
+  const [rollResults, setRollResults] = useState < unknown[]>([]);
 
   // Create test character
   const createTestCharacter = () => {
     const testChar: Character = {
-      id: 'test-char-1',
+      id: 'test-char - 1',
       name: 'Test Hero',
       class: 'Fighter',
       race: 'Human',
@@ -96,7 +96,7 @@ const TestPlayground: React.FC = () => {
         CON: 13,
         INT: 9,
         WIS: 12,
-        CHA: 8
+        CHA: 8,
       },
       debilities: {
         weak: false,
@@ -104,24 +104,24 @@ const TestPlayground: React.FC = () => {
         sick: false,
         stunned: false,
         confused: false,
-        scarred: false
+        scarred: false,
       },
       hp: {
         current: getClassBaseHP('Fighter') + 1, // +1 from CON
-        max: getClassBaseHP('Fighter') + 1
+        max: getClassBaseHP('Fighter') + 1,
       },
       armor: 0,
       damageDie: getClassDamageDie('Fighter'),
       xp: 0,
       load: {
         current: 0,
-        max: getClassBaseLoad('Fighter') + 2 // +2 from STR
+        max: getClassBaseLoad('Fighter') + 2, // +2 from STR
       },
       baseLoad: getClassBaseLoad('Fighter'),
       coin: 50,
       bonds: [
         { id: '1', text: 'I have sworn to protect [Name]', resolved: false },
-        { id: '2', text: '[Name] owes me their life', resolved: false }
+        { id: '2', text: '[Name] owes me their life', resolved: false },
       ],
       advancements: [],
       knownMoves: [],
@@ -129,7 +129,7 @@ const TestPlayground: React.FC = () => {
       looks: 'Weathered face, kind eyes, muscular build',
       backstory: 'A veteran soldier turned adventurer',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     setCharacter(testChar);
@@ -143,13 +143,13 @@ const TestPlayground: React.FC = () => {
       category: 'weapon',
       tags: [
         { name: 'close' },
-        { name: 'weight', value: 1 }
+        { name: 'weight', value: 1 },
       ],
       weight: 1,
       value: 10,
       quantity: 1,
       equipped: false,
-      damage: '+1 damage'
+      damage: '+1 damage',
     };
 
     const armor: Armor = {
@@ -158,13 +158,13 @@ const TestPlayground: React.FC = () => {
       category: 'armor',
       tags: [
         { name: 'worn' },
-        { name: 'weight', value: 1 }
+        { name: 'weight', value: 1 },
       ],
       weight: 1,
       value: 10,
       quantity: 1,
       equipped: false,
-      armorValue: 1
+      armorValue: 1,
     };
 
     const potion: Item = {
@@ -177,7 +177,7 @@ const TestPlayground: React.FC = () => {
       quantity: 3,
       equipped: false,
       description: 'Heal 2d4 HP when consumed',
-      uses: { current: 3, max: 3 }
+      uses: { current: 3, max: 3 },
     };
 
     addItem(sword, 'carried');
@@ -193,7 +193,7 @@ const TestPlayground: React.FC = () => {
         type: 'attribute',
         attr,
         ...result,
-        timestamp: new Date()
+        timestamp: new Date(),
       }, ...prev.slice(0, 9)]);
     }
   };
@@ -204,7 +204,7 @@ const TestPlayground: React.FC = () => {
       setRollResults(prev => [{
         type: 'damage',
         ...result,
-        timestamp: new Date()
+        timestamp: new Date(),
       }, ...prev.slice(0, 9)]);
     }
   };
@@ -215,11 +215,11 @@ const TestPlayground: React.FC = () => {
     const hpAnimation = useValueAnimation(character?.hp.current || 0, 'hp');
     const armorAnimation = useValueAnimation(stats?.totalArmor || 0, 'armor');
     const xpAnimation = useValueAnimation(character?.xp || 0, 'xp');
-    
+
     if (!character) {
       return (
         <div className="test-section">
-          <h3>Character</h3>
+          <h3 > Character</h3>
           <button onClick={createTestCharacter}>Create Test Character</button>
         </div>
       );
@@ -227,14 +227,13 @@ const TestPlayground: React.FC = () => {
 
     return (
       <div className="test-section">
-        <h3>Character: {character.name}</h3>
+        <h3 > Character: {character.name}</h3>
         <div className="stat-grid">
-          <div>Class: {character.class}</div>
-          <div>Level: {character.level}</div>
-          <div>XP: <span {...xpAnimation}>{character.xp}</span>/{character.level + 7}</div>
-          <div>HP: <span {...hpAnimation}>{character.hp.current}</span>/{character.hp.max}</div>
-          <div>
-            Armor: 
+          <div > Class: {character.class}</div>
+          <div > Level: {character.level}</div>
+          <div > XP: <span {...xpAnimation}>{character.xp}</span>/{character.level + 7}</div>
+          <div > HP: <span {...hpAnimation}>{character.hp.current}</span>/{character.hp.max}</div>
+          <div > Armor:
             {armorCalc?.breakdown ? (
               <span className="calculation-breakdown">
                 <span {...armorAnimation}>{stats?.totalArmor || 0}</span>
@@ -247,21 +246,21 @@ const TestPlayground: React.FC = () => {
               <span {...armorAnimation}>{stats?.totalArmor || 0}</span>
             )}
           </div>
-          <div>Load: {stats?.currentLoad || 0}/{stats?.maxLoad || 0}</div>
+          <div > Load: {stats?.currentLoad || 0}/{stats?.maxLoad || 0}</div>
         </div>
-        
+
         {/* Condition badges */}
         {state.conditions.length > 0 && (
           <div className="conditions-section">
-            <h4>Active Conditions</h4>
-            <ConditionBadges 
-              conditions={state.conditions} 
+            <h4 > Active Conditions</h4>
+            <ConditionBadges
+              conditions={state.conditions}
               definitions={COMMON_CONDITIONS}
             />
           </div>
         )}
 
-        <h4>Attributes</h4>
+        <h4 > Attributes</h4>
         <div className="attribute-grid">
           {Object.entries(character.attributes).map(([attr, score]) => (
             <div key={attr} className="attribute-box">
@@ -273,7 +272,7 @@ const TestPlayground: React.FC = () => {
           ))}
         </div>
 
-        <h4>Debilities</h4>
+        <h4 > Debilities</h4>
         <div className="debility-grid">
           {Object.entries(character.debilities).map(([deb, active]) => (
             <label key={deb}>
@@ -287,7 +286,7 @@ const TestPlayground: React.FC = () => {
           ))}
         </div>
 
-        <h4>Actions</h4>
+        <h4 > Actions</h4>
         <div className="action-buttons">
           <button onClick={() => takeDamage(3)}>Take 3 Damage</button>
           <button onClick={() => heal(5)}>Heal 5 HP</button>
@@ -309,7 +308,7 @@ const TestPlayground: React.FC = () => {
 
     return (
       <div className="test-section">
-        <h3>Inventory</h3>
+        <h3 > Inventory</h3>
         {items.length === 0 ? (
           <button onClick={createTestItems}>Create Test Items</button>
         ) : (
@@ -324,15 +323,15 @@ const TestPlayground: React.FC = () => {
                     {item.equipped ? 'Unequip' : 'Equip'}
                   </button>
                   <button onClick={() => updateItemQuantity(item.id, item.quantity + 1)}>+</button>
-                  <button onClick={() => updateItemQuantity(item.id, item.quantity - 1)}>-</button>
+                  <button onClick={() => updateItemQuantity(item.id, item.quantity-1)}>-</button>
                 </div>
               </div>
             ))}
           </div>
         )}
         <div className="inventory-stats">
-          <div>Total Weight: {stats?.currentLoad || 0}</div>
-          <div>Status: {stats?.encumbranceStatus || 'normal'}</div>
+          <div > Total Weight: {stats?.currentLoad || 0}</div>
+          <div > Status: {stats?.encumbranceStatus || 'normal'}</div>
         </div>
       </div>
     );
@@ -341,7 +340,7 @@ const TestPlayground: React.FC = () => {
   // Render roll results
   const renderRollResults = () => (
     <div className="test-section">
-      <h3>Roll Results</h3>
+      <h3 > Roll Results</h3>
       <div className="roll-results">
         {rollResults.map((result, i) => (
           <div key={i} className={`roll-result ${result.result}`}>
@@ -364,10 +363,10 @@ const TestPlayground: React.FC = () => {
   // Render validation section
   const renderValidationSection = () => (
     <div className="test-section">
-      <h3>Validation Status</h3>
+      <h3 > Validation Status</h3>
       {errors.length > 0 && (
         <div className="validation-errors">
-          <h4>Errors:</h4>
+          <h4 > Errors:</h4>
           <ul>
             {errors.map((error, i) => (
               <li key={i}>{error}</li>
@@ -377,7 +376,7 @@ const TestPlayground: React.FC = () => {
       )}
       {warnings.length > 0 && (
         <div className="validation-warnings">
-          <h4>Warnings:</h4>
+          <h4 > Warnings:</h4>
           <ul>
             {warnings.map((warning, i) => (
               <li key={i}>{warning}</li>
@@ -397,9 +396,9 @@ const TestPlayground: React.FC = () => {
 
     return (
       <div className="test-section">
-        <h3>Auto-Calculations</h3>
-        
-        <h4>Armor Breakdown</h4>
+        <h3 > Auto-Calculations</h3>
+
+        <h4 > Armor Breakdown</h4>
         {armorCalc && (
           <div className="calc-breakdown">
             {armorCalc.breakdown.map((item, i) => (
@@ -409,41 +408,41 @@ const TestPlayground: React.FC = () => {
           </div>
         )}
 
-        <h4>Damage Output</h4>
+        <h4 > Damage Output</h4>
         {damageCalc && (
           <div className="calc-breakdown">
-            <div>Expression: {damageCalc.totalExpression}</div>
+            <div > Expression: {damageCalc.totalExpression}</div>
             {damageCalc.breakdown.map((item, i) => (
               <div key={i}>{item.label}: {item.value}</div>
             ))}
           </div>
         )}
 
-        <h4>Load Details</h4>
+        <h4 > Load Details</h4>
         {loadCalc && (
           <div className="calc-breakdown">
-            <div>Current: {loadCalc.currentLoad}/{loadCalc.maxLoad} ({loadCalc.percentage.toFixed(1)}%)</div>
-            <div>Status: {loadCalc.status}</div>
+            <div > Current: {loadCalc.currentLoad}/{loadCalc.maxLoad} ({loadCalc.percentage.toFixed(1)}%)</div>
+            <div > Status: {loadCalc.status}</div>
             {loadCalc.penalties.map((penalty, i) => (
               <div key={i} className="error">{penalty.description}</div>
             ))}
           </div>
         )}
 
-        <h4>Modifiers</h4>
+        <h4 > Modifiers</h4>
         <div className="modifier-grid">
-          <div>Ongoing: {calculatedValues.ongoingModifier}</div>
-          <div>Forward: {calculatedValues.forwardModifier}</div>
-          <div>Encumbrance: {calculatedValues.encumbrancePenalty}</div>
+          <div > Ongoing: {calculatedValues.ongoingModifier}</div>
+          <div > Forward: {calculatedValues.forwardModifier}</div>
+          <div > Encumbrance: {calculatedValues.encumbrancePenalty}</div>
         </div>
 
-        <h4>XP & Leveling</h4>
+        <h4 > XP & Leveling</h4>
         <div>
-          <div>XP: {character?.xp || 0}/{calculatedValues.xpThreshold}</div>
-          <div>Can Level: {calculatedValues.canLevelUp ? 'Yes' : 'No'}</div>
+          <div > XP: {character?.xp || 0}/{calculatedValues.xpThreshold}</div>
+          <div > Can Level: {calculatedValues.canLevelUp ? 'Yes' : 'No'}</div>
         </div>
 
-        <h4>Calculation Warnings</h4>
+        <h4 > Calculation Warnings</h4>
         {calculatedValues.warnings.length > 0 ? (
           <ul>
             {calculatedValues.warnings.map((warning, i) => (
@@ -457,18 +456,18 @@ const TestPlayground: React.FC = () => {
     );
   };
 
-  // Render save/load section
+  // Render save / load section
   const renderSaveLoadSection = () => (
     <div className="test-section">
-      <h3>Save/Load</h3>
+      <h3 > Save / Load</h3>
       <div className="action-buttons">
         <button onClick={() => saveGame('Test Save')}>Save Game</button>
         <button onClick={() => loadGame()}>Load Game</button>
         <button onClick={resetGame} className="danger">Reset All</button>
       </div>
       <div className="save-info">
-        <div>Is Dirty: {state.isDirty ? 'Yes' : 'No'}</div>
-        <div>Last Saved: {state.lastSaved?.toLocaleString() || 'Never'}</div>
+        <div > Is Dirty: {state.isDirty ? 'Yes' : 'No'}</div>
+        <div > Last Saved: {state.lastSaved?.toLocaleString() || 'Never'}</div>
       </div>
     </div>
   );
@@ -476,13 +475,13 @@ const TestPlayground: React.FC = () => {
   // Render calculation history section
   const renderHistorySection = () => (
     <div className="test-section">
-      <h3>Calculation History</h3>
+      <h3 > Calculation History</h3>
       <CalculationHistory
         changes={recentChanges}
         onClear={clearHistory}
         onExport={() => {
           const data = exportHistory();
-          const blob = new Blob([data], { type: 'application/json' });
+          const blob = new Blob([data], { type: 'application / json' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -497,7 +496,7 @@ const TestPlayground: React.FC = () => {
   // Render modifiers section
   const renderModifiersSection = () => (
     <div className="test-section">
-      <h3>Temporary Modifiers</h3>
+      <h3 > Temporary Modifiers</h3>
       <ModifiersPanel
         modifiers={modifiers}
         onAddModifier={addModifier}
@@ -511,15 +510,14 @@ const TestPlayground: React.FC = () => {
   // Render enhanced warnings section
   const renderWarningsSection = () => {
     if (!calculatedValues) return null;
-    
+
     return (
       <div className="test-section">
-        <h3>Analysis & Warnings</h3>
+        <h3 > Analysis & Warnings</h3>
         <CalculationWarnings
           warnings={calculatedValues.detailedWarnings || []}
           suggestions={calculatedValues.optimizationSuggestions || []}
           onAction={(warning) => {
-            console.log('Action triggered for warning:', warning);
             // Handle actionable warnings here
           }}
         />
@@ -529,17 +527,17 @@ const TestPlayground: React.FC = () => {
 
   return (
     <div className="test-playground">
-      <h2>Test Playground</h2>
-      
+      <h2 > Test Playground</h2>
+
       {/* Real-time validation status */}
       <div className="validation-status-bar">
-        <RealTimeValidation 
+        <RealTimeValidation
           validation={integratedValidation}
           compact={true}
           showSuggestions={true}
         />
       </div>
-      
+
       <div className="playground-grid">
         {renderCharacterSection()}
         {renderInventorySection()}
@@ -561,9 +559,9 @@ const TestPlaygroundPanel: Panel = {
     name: 'Test Playground',
     icon: '🧪',
     description: 'Manual testing environment for data models and state management',
-    priority: 999 // Low priority, dev tool
+    priority: 999, // Low priority, dev tool
   },
-  component: TestPlayground as React.ComponentType<PanelProps>
+  component: TestPlayground as React.ComponentType < PanelProps>,
 };
 
 export default TestPlaygroundPanel;

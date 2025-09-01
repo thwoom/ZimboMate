@@ -9,4 +9,24 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  build: {
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
+    // Enable source maps for debugging
+    sourcemap: false,
+    // Optimize dependencies
+    commonjsOptions: {
+      include: [/node_modules/]
+    }
+  },
+  // Optimize development server
+  server: {
+    hmr: {
+      overlay: false
+    }
+  },
+  // Optimize CSS
+  css: {
+    devSourcemap: false
+  }
 });

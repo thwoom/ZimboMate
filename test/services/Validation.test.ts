@@ -9,37 +9,37 @@ import {
   InventoryValidation,
   MoveValidation,
   BusinessRules,
-  validateGameState
-} from '../../src/services/Validation';
-import { Character, Attributes } from '../../src/models/Character';
-import { Item, Armor } from '../../src/models/Equipment';
-import { Move } from '../../src/models/Move';
-import { createEmptyInventory } from '../../src/models/Inventory';
+  validateGameState,
+} from '../../src / services / Validation';
+import { Character, Attributes } from '../../src / models / Character';
+import { Item, Armor } from '../../src / models / Equipment';
+import { Move } from '../../src / models / Move';
+import { createEmptyInventory } from '../../src / models / Inventory';
 
 describe('Validation Service', () => {
   describe('CharacterValidation', () => {
     describe('validateAttributes', () => {
       it('should validate attribute ranges', () => {
         const validAttributes: Attributes = {
-          STR: 16, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+          STR: 16, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8,
         };
-        
-        const result = CharacterValidation.validateAttributes(validAttributes);
+
+        const _result = CharacterValidation.validateAttributes(validAttributes);
         expect(result.valid).toBe(true);
         expect(result.errors).toHaveLength(0);
       });
 
-      it('should catch out-of-range attributes', () => {
+      it('should catch out - of - range attributes', () => {
         const invalidAttributes: Attributes = {
           STR: 19, // Too high
           DEX: 14,
           CON: 2,  // Too low
           INT: 12,
           WIS: 10,
-          CHA: 8
+          CHA: 8,
         };
-        
-        const result = CharacterValidation.validateAttributes(invalidAttributes);
+
+        const _result = CharacterValidation.validateAttributes(invalidAttributes);
         expect(result.valid).toBe(false);
         expect(result.errors).toHaveLength(2);
         expect(result.errors[0]).toContain('STR must be between 3 and 18');
@@ -48,10 +48,10 @@ describe('Validation Service', () => {
 
       it('should warn about high point totals', () => {
         const highAttributes: Attributes = {
-          STR: 16, DEX: 16, CON: 16, INT: 14, WIS: 14, CHA: 14 // Total: 90
+          STR: 16, DEX: 16, CON: 16, INT: 14, WIS: 14, CHA: 14, // Total: 90
         };
-        
-        const result = CharacterValidation.validateAttributes(highAttributes);
+
+        const _result = CharacterValidation.validateAttributes(highAttributes);
         expect(result.valid).toBe(true);
         expect(result.warnings).toHaveLength(1);
         expect(result.warnings[0]).toContain('exceed standard point buy limit');
@@ -60,19 +60,19 @@ describe('Validation Service', () => {
 
     describe('validateLevelAndXP', () => {
       it('should validate valid level and XP', () => {
-        const result = CharacterValidation.validateLevelAndXP(3, 5);
+        const _result = CharacterValidation.validateLevelAndXP(3, 5);
         expect(result.valid).toBe(true);
         expect(result.errors).toHaveLength(0);
       });
 
       it('should catch invalid levels', () => {
-        const result = CharacterValidation.validateLevelAndXP(11, 5);
+        const _result = CharacterValidation.validateLevelAndXP(11, 5);
         expect(result.valid).toBe(false);
         expect(result.errors[0]).toContain('Level must be between 1 and 10');
       });
 
       it('should warn about level up eligibility', () => {
-        const result = CharacterValidation.validateLevelAndXP(3, 10); // 3 + 7 = 10
+        const _result = CharacterValidation.validateLevelAndXP(3, 10); // 3 + 7 = 10
         expect(result.valid).toBe(true);
         expect(result.warnings[0]).toContain('Character has enough XP');
       });
@@ -89,7 +89,7 @@ describe('Validation Service', () => {
         attributes: { STR: 16, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8 },
         debilities: {
           weak: false, shaky: false, sick: false,
-          stunned: false, confused: false, scarred: false
+          stunned: false, confused: false, scarred: false,
         },
         hp: { current: 10, max: 11 },
         armor: 2,
@@ -103,40 +103,40 @@ describe('Validation Service', () => {
         knownMoves: [],
         conditions: [],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       it('should validate a valid character', () => {
-        const character = createTestCharacter();
-        const result = CharacterValidation.validateCharacter(character);
-        
+        const _character = createTestCharacter();
+        const _result = CharacterValidation.validateCharacter(character);
+
         expect(result.valid).toBe(true);
         expect(result.warnings).toContain('Character has no bonds - consider adding bonds for better roleplay');
       });
 
       it('should catch missing name', () => {
-        const character = createTestCharacter();
+        const _character = createTestCharacter();
         character.name = '';
-        
-        const result = CharacterValidation.validateCharacter(character);
+
+        const _result = CharacterValidation.validateCharacter(character);
         expect(result.valid).toBe(false);
         expect(result.errors[0]).toContain('Character must have a name');
       });
 
       it('should warn about negative HP', () => {
-        const character = createTestCharacter();
+        const _character = createTestCharacter();
         character.hp.current = -2;
-        
-        const result = CharacterValidation.validateCharacter(character);
+
+        const _result = CharacterValidation.validateCharacter(character);
         expect(result.warnings).toContain('Character HP is below 0 - Last Breath should be triggered');
       });
 
       it('should catch HP exceeding max', () => {
-        const character = createTestCharacter();
+        const _character = createTestCharacter();
         character.hp.current = 15;
         character.hp.max = 11;
-        
-        const result = CharacterValidation.validateCharacter(character);
+
+        const _result = CharacterValidation.validateCharacter(character);
         expect(result.valid).toBe(false);
         expect(result.errors).toContain('Current HP (15) cannot exceed max HP (11)');
       });
@@ -153,10 +153,10 @@ describe('Validation Service', () => {
           tags: [],
           weight: 2,
           quantity: 1,
-          equipped: false
+          equipped: false,
         };
-        
-        const result = ItemValidation.validateWeight(item);
+
+        const _result = ItemValidation.validateWeight(item);
         expect(result.valid).toBe(true);
       });
 
@@ -168,10 +168,10 @@ describe('Validation Service', () => {
           tags: [],
           weight: -1,
           quantity: 1,
-          equipped: false
+          equipped: false,
         };
-        
-        const result = ItemValidation.validateWeight(item);
+
+        const _result = ItemValidation.validateWeight(item);
         expect(result.valid).toBe(false);
         expect(result.errors[0]).toContain('Item weight cannot be negative');
       });
@@ -184,10 +184,10 @@ describe('Validation Service', () => {
           tags: [],
           weight: 15,
           quantity: 1,
-          equipped: false
+          equipped: false,
         };
-        
-        const result = ItemValidation.validateWeight(item);
+
+        const _result = ItemValidation.validateWeight(item);
         expect(result.warnings[0]).toContain('Item is extremely heavy');
       });
     });
@@ -200,16 +200,16 @@ describe('Validation Service', () => {
           category: 'weapon',
           tags: [
             { name: 'hand' },
-            { name: 'two-handed' }
+            { name: 'two - handed' },
           ],
           weight: 1,
           quantity: 1,
-          equipped: false
+          equipped: false,
         };
-        
-        const result = ItemValidation.validateTags(item);
+
+        const _result = ItemValidation.validateTags(item);
         expect(result.valid).toBe(false);
-        expect(result.errors[0]).toContain("cannot be both 'hand' and 'two-handed'");
+        expect(result.errors[0]).toContain("cannot be both 'hand' and 'two - handed'");
       });
 
       it('should warn about missing armor tags', () => {
@@ -221,10 +221,10 @@ describe('Validation Service', () => {
           weight: 1,
           quantity: 1,
           equipped: false,
-          armorValue: 1
+          armorValue: 1,
         };
-        
-        const result = ItemValidation.validateTags(armor);
+
+        const _result = ItemValidation.validateTags(armor);
         expect(result.warnings[0]).toContain("Armor should have 'worn' tag");
       });
 
@@ -237,10 +237,10 @@ describe('Validation Service', () => {
           weight: 0,
           quantity: 1,
           equipped: false,
-          uses: { current: 5, max: 3 }
+          uses: { current: 5, max: 3 },
         };
-        
-        const result = ItemValidation.validateTags(item);
+
+        const _result = ItemValidation.validateTags(item);
         expect(result.valid).toBe(false);
         expect(result.errors[0]).toContain('Current uses (5) cannot exceed max uses (3)');
       });
@@ -250,29 +250,29 @@ describe('Validation Service', () => {
   describe('InventoryValidation', () => {
     describe('validateEncumbrance', () => {
       it('should validate normal load', () => {
-        const result = InventoryValidation.validateEncumbrance(
+        const _result = InventoryValidation.validateEncumbrance(
           createEmptyInventory(),
           10,
-          'normal'
+          'normal',
         );
         expect(result.valid).toBe(true);
         expect(result.warnings).toHaveLength(0);
       });
 
       it('should warn about encumbrance', () => {
-        const result = InventoryValidation.validateEncumbrance(
+        const _result = InventoryValidation.validateEncumbrance(
           createEmptyInventory(),
           10,
-          'encumbered'
+          'encumbered',
         );
         expect(result.warnings[0]).toContain('Character is encumbered');
       });
 
       it('should error on overload', () => {
-        const result = InventoryValidation.validateEncumbrance(
+        const _result = InventoryValidation.validateEncumbrance(
           createEmptyInventory(),
           10,
-          'overloaded'
+          'overloaded',
         );
         expect(result.valid).toBe(false);
         expect(result.errors[0]).toContain('Character is overloaded');
@@ -289,7 +289,7 @@ describe('Validation Service', () => {
             tags: [],
             weight: 1,
             quantity: 1,
-            equipped: true
+            equipped: true,
           },
           {
             id: '2',
@@ -298,25 +298,25 @@ describe('Validation Service', () => {
             tags: [],
             weight: 3,
             quantity: 1,
-            equipped: true
-          }
+            equipped: true,
+          },
         ];
-        
-        const result = InventoryValidation.validateEquippedItems(items);
+
+        const _result = InventoryValidation.validateEquippedItems(items);
         expect(result.valid).toBe(false);
         expect(result.errors[0]).toContain('Cannot equip multiple armor pieces');
       });
 
-      it('should warn about two-handed weapon conflicts', () => {
+      it('should warn about two - handed weapon conflicts', () => {
         const items: Item[] = [
           {
             id: '1',
             name: 'Greatsword',
             category: 'weapon',
-            tags: [{ name: 'two-handed' }],
+            tags: [{ name: 'two - handed' }],
             weight: 3,
             quantity: 1,
-            equipped: true
+            equipped: true,
           },
           {
             id: '2',
@@ -325,12 +325,12 @@ describe('Validation Service', () => {
             tags: [{ name: 'hand' }],
             weight: 1,
             quantity: 1,
-            equipped: true
-          }
+            equipped: true,
+          },
         ];
-        
-        const result = InventoryValidation.validateEquippedItems(items);
-        expect(result.warnings[0]).toContain('Two-handed weapon equipped with other weapons');
+
+        const _result = InventoryValidation.validateEquippedItems(items);
+        expect(result.warnings[0]).toContain('Two - handed weapon equipped with other weapons');
       });
     });
   });
@@ -345,10 +345,10 @@ describe('Validation Service', () => {
           description: 'A powerful move',
           trigger: 'When you...',
           triggerType: 'action',
-          level: 6
+          level: 6,
         };
-        
-        const result = MoveValidation.validateMoveRequirements(move, 5, 'Fighter', []);
+
+        const _result = MoveValidation.validateMoveRequirements(move, 5, 'Fighter', []);
         expect(result.valid).toBe(false);
         expect(result.errors[0]).toContain('Character level (5) too low');
       });
@@ -361,10 +361,10 @@ describe('Validation Service', () => {
           description: 'Call upon your deity',
           trigger: 'When you...',
           triggerType: 'action',
-          requiresClass: 'Cleric'
+          requiresClass: 'Cleric',
         };
-        
-        const result = MoveValidation.validateMoveRequirements(move, 3, 'Fighter', []);
+
+        const _result = MoveValidation.validateMoveRequirements(move, 3, 'Fighter', []);
         expect(result.valid).toBe(false);
         expect(result.errors[0]).toContain('requires Cleric class');
       });
@@ -382,10 +382,10 @@ describe('Validation Service', () => {
           rollStat: 'STR',
           onSuccess: 'Deal damage and impress',
           onPartial: 'Deal damage',
-          custom: true
+          custom: true,
         };
-        
-        const result = MoveValidation.validateCustomMove(move);
+
+        const _result = MoveValidation.validateCustomMove(move);
         expect(result.valid).toBe(true);
       });
 
@@ -397,10 +397,10 @@ describe('Validation Service', () => {
           description: '',
           trigger: '',
           triggerType: 'roll',
-          custom: true
+          custom: true,
         };
-        
-        const result = MoveValidation.validateCustomMove(move);
+
+        const _result = MoveValidation.validateCustomMove(move);
         expect(result.valid).toBe(false);
         expect(result.errors).toHaveLength(4); // name, description, trigger, rollStat
       });
@@ -414,13 +414,13 @@ describe('Validation Service', () => {
           trigger: 'When you roll',
           triggerType: 'roll',
           rollStat: 'DEX',
-          custom: true
+          custom: true,
         };
-        
+
         const result = MoveValidation.validateCustomMove(move);
         expect(result.warnings).toHaveLength(2);
-        expect(result.warnings[0]).toContain('should specify 10+ result');
-        expect(result.warnings[1]).toContain('should specify 7-9 result');
+        expect(result.warnings[0]).toContain('should specify 10 + result');
+        expect(result.warnings[1]).toContain('should specify 7 - 9 result');
       });
     });
   });
@@ -428,23 +428,23 @@ describe('Validation Service', () => {
   describe('BusinessRules', () => {
     describe('checkAutoTriggers', () => {
       it('should detect Last Breath trigger', () => {
-        const character = {
+        const _character = {
           hp: { current: 0, max: 10 },
           level: 3,
-          xp: 5
+          xp: 5,
         } as Character;
-        
-        const triggers = BusinessRules.checkAutoTriggers(character);
+
+        const _triggers = BusinessRules.checkAutoTriggers(character);
         expect(triggers).toContain('Last Breath');
       });
 
       it('should detect Level Up trigger', () => {
-        const character = {
+        const _character = {
           hp: { current: 10, max: 10 },
           level: 3,
-          xp: 10 // 3 + 7
+          xp: 10, // 3 + 7
         } as Character;
-        
+
         const triggers = BusinessRules.checkAutoTriggers(character);
         expect(triggers).toContain('Level Up');
       });
@@ -453,7 +453,7 @@ describe('Validation Service', () => {
     describe('applyEncumbranceEffects', () => {
       it('should apply correct ongoing penalties', () => {
         const character = {} as Character;
-        
+
         expect(BusinessRules.applyEncumbranceEffects(character, 'normal').ongoing).toBe(0);
         expect(BusinessRules.applyEncumbranceEffects(character, 'encumbered').ongoing).toBe(-1);
         expect(BusinessRules.applyEncumbranceEffects(character, 'overloaded').ongoing).toBe(-3);

@@ -129,6 +129,7 @@
   height: 100%;
   background-color: var(--color-success);
   transition: width var(--transition-medium);
+  width: var(--hp-progress, 0%);
 }
 
 /* Combat Stats */
@@ -170,6 +171,7 @@
   height: 100%;
   background-color: var(--color-primary);
   transition: width var(--transition-medium);
+  width: var(--xp-progress, 0%);
 }
 
 /* Load */
@@ -206,6 +208,12 @@
 .load-bar__fill {
   height: 100%;
   transition: all var(--transition-medium);
+  width: var(--load-progress, 0%);
+  background-color: var(--color-primary);
+}
+
+.load-bar__fill.overloaded {
+  background-color: var(--color-danger);
 }
 
 .load-warning {
@@ -294,6 +302,18 @@
 
 .action-button--rest:hover {
   background-color: var(--color-success-dark);
+}
+
+.action-button--level-up {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.action-button--level-up:hover {
+  background-color: var(--color-primary-dark);
+  transform: scale(1.05);
 }
 
 .level-up-ready {
@@ -516,6 +536,7 @@
 .hp-bar__fill {
   height: 100%;
   transition: all var(--transition-medium);
+  width: var(--hp-progress, 0%);
 }
 
 /* HP Bar Dynamic Styles */

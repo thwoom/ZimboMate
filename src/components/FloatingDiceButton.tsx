@@ -10,18 +10,18 @@ interface FloatingDiceButtonProps {
   className?: string;
 }
 
-export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
+export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
   position = 'bottom-right',
-  className = ''
+  className = '',
 }) => {
   const { state: gameState, updateCharacter } = useGameStore();
   const [showQuickRoll, setShowQuickRoll] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [recentRolls, setRecentRolls] = useState<DiceRoll[]>([]);
+  const [recentRolls, setRecentRolls] = useState < DiceRoll[]>([]);
   const [showRollHistory, setShowRollHistory] = useState(false);
 
   // Get active character
-  const character = gameState.activeCharacterId ? 
+  const character = gameState.activeCharacterId ?
     gameState.characters[gameState.activeCharacterId] : null;
 
   // Update recent rolls periodically
@@ -38,7 +38,7 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
   // Global keyboard shortcut
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + D to open quick roll
+      // Ctrl / Cmd + D to open quick roll
       if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
         e.preventDefault();
         setShowQuickRoll(true);
@@ -56,7 +56,7 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
 
     // Record analytics
     const insights = rollAnalyticsService.recordRoll(roll);
-    
+
     // Handle XP gain
     if (diceRollingService.grantsXP(roll) && character && roll.result === 'failure') {
       const newXP = (character.xp || 0) + 1;
@@ -65,8 +65,7 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
 
     // Show insights as notifications (could be enhanced with a toast system)
     insights.forEach(insight => {
-      console.log(`[${insight.type}] ${insight.title}: ${insight.description}`);
-    });
+      });
 
     // Update recent rolls
     setRecentRolls(diceRollingService.getRecentRolls(3));
@@ -83,10 +82,10 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
 
   const getLastRollIndicator = () => {
     if (recentRolls.length === 0) return null;
-    
+
     const lastRoll = recentRolls[0];
     return (
-      <div className={`last-roll-indicator ${lastRoll.result}`}>
+      <div className={`last-roll - indicator ${lastRoll.result}`}>
         <span className="roll-total">{lastRoll.total}</span>
         <span className="roll-result-icon">
           {lastRoll.result === 'success' && '✓'}
@@ -105,7 +104,7 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
           className={`floating-dice-button ${isAnimating ? 'rolling' : ''} ${!character ? 'disabled' : ''}`}
           onClick={() => setShowQuickRoll(true)}
           disabled={!character}
-          title={character ? 'Quick Roll (Ctrl+D)' : 'No character selected'}
+          title={character ? 'Quick Roll (Ctrl + D)' : 'No character selected'}
         >
           <span className="dice-icon">🎲</span>
           {getLastRollIndicator()}
@@ -113,13 +112,13 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
 
         {/* Roll History Mini Panel */}
         {recentRolls.length > 0 && (
-          <div 
+          <div
             className={`roll-history-mini ${showRollHistory ? 'expanded' : ''}`}
             onMouseEnter={() => setShowRollHistory(true)}
             onMouseLeave={() => setShowRollHistory(false)}
           >
             <div className="roll-history-header">
-              <span>Recent Rolls</span>
+              <span > Recent Rolls</span>
             </div>
             <div className="roll-history-items">
               {recentRolls.map((roll, index) => (
@@ -129,9 +128,9 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
                       {roll.description || 'Unknown Roll'}
                     </span>
                     <span className="roll-time">
-                      {new Date(roll.timestamp).toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                      {new Date(roll.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
                       })}
                     </span>
                   </div>
@@ -156,7 +155,7 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
             onClick={() => {
               if (character) {
                 const roll = diceRollingService.rollStat('STR', character, {
-                  description: 'Quick STR roll'
+                  description: 'Quick STR roll',
                 });
                 handleRoll(roll);
               }
@@ -171,7 +170,7 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
             onClick={() => {
               if (character) {
                 const roll = diceRollingService.rollStat('DEX', character, {
-                  description: 'Quick DEX roll'
+                  description: 'Quick DEX roll',
                 });
                 handleRoll(roll);
               }
@@ -186,7 +185,7 @@ export const FloatingDiceButton: React.FC<FloatingDiceButtonProps> = ({
             onClick={() => {
               if (character) {
                 const roll = diceRollingService.rollStat('WIS', character, {
-                  description: 'Quick WIS roll'
+                  description: 'Quick WIS roll',
                 });
                 handleRoll(roll);
               }

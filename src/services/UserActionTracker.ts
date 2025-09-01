@@ -5,7 +5,7 @@ export interface UserAction {
   timestamp: number;
   description: string;
   element?: string;
-  data?: Record<string, any>;
+  data?: Record < string, unknown>;
   sessionId: string;
 }
 
@@ -33,10 +33,10 @@ class UserActionTracker {
     // Track clicks
     document.addEventListener('click', (event) => {
       if (!this.isTracking) return;
-      
+
       const target = event.target as HTMLElement;
       const description = this.getElementDescription(target);
-      
+
       this.recordAction({
         type: 'click',
         description: `Clicked: ${description}`,
@@ -44,8 +44,8 @@ class UserActionTracker {
         data: {
           x: event.clientX,
           y: event.clientY,
-          button: event.button
-        }
+          button: event.button,
+        },
       });
     });
 
@@ -57,7 +57,7 @@ class UserActionTracker {
       UserActionTracker.getInstance().recordAction({
         type: 'navigation',
         description: `Navigated to: ${args[2] || window.location.pathname}`,
-        data: { url: args[2] || window.location.pathname }
+        data: { url: args[2] || window.location.pathname },
       });
       return originalPushState.apply(history, args);
     };
@@ -66,7 +66,7 @@ class UserActionTracker {
       UserActionTracker.getInstance().recordAction({
         type: 'navigation',
         description: `Replaced state: ${args[2] || window.location.pathname}`,
-        data: { url: args[2] || window.location.pathname }
+        data: { url: args[2] || window.location.pathname },
       });
       return originalReplaceState.apply(history, args);
     };
@@ -75,7 +75,7 @@ class UserActionTracker {
     let inputTimeout: NodeJS.Timeout;
     document.addEventListener('input', (event) => {
       if (!this.isTracking) return;
-      
+
       clearTimeout(inputTimeout);
       inputTimeout = setTimeout(() => {
         const target = event.target as HTMLInputElement;
@@ -87,8 +87,8 @@ class UserActionTracker {
             data: {
               inputType: target.type,
               name: target.name,
-              id: target.id
-            }
+              id: target.id,
+            },
           });
         }
       }, 1000);
@@ -102,8 +102,8 @@ class UserActionTracker {
         data: {
           filename: event.filename,
           lineno: event.lineno,
-          colno: event.colno
-        }
+          colno: event.colno,
+        },
       });
     });
 
@@ -113,8 +113,8 @@ class UserActionTracker {
         type: 'error',
         description: `Unhandled Promise Rejection: ${event.reason}`,
         data: {
-          reason: String(event.reason)
-        }
+          reason: String(event.reason),
+        },
       });
     });
   }
@@ -132,18 +132,18 @@ class UserActionTracker {
     if (element.getAttribute('data-testid')) {
       return `[data-testid="${element.getAttribute('data-testid')}"]`;
     }
-    
+
     return element.tagName.toLowerCase();
   }
 
-  public recordAction(action: Omit<UserAction, 'id' | 'timestamp' | 'sessionId'>): void {
+  public recordAction(action: Omit < UserAction, 'id' | 'timestamp' | 'sessionId'>): void {
     if (!this.isTracking) return;
 
     const fullAction: UserAction = {
       ...action,
       id: `action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       timestamp: Date.now(),
-      sessionId: this.getSessionId()
+      sessionId: this.getSessionId(),
     };
 
     this.actions.push(fullAction);
@@ -156,13 +156,13 @@ class UserActionTracker {
     this.saveActions();
   }
 
-  public getRecentActions(limit: number = 10): UserAction[] {
+  public getRecentActions(limit = 10): UserAction[] {
     return this.actions.slice(-limit).reverse(); // Most recent first
   }
 
   public getActionsForTimeRange(start: number, end: number): UserAction[] {
-    return this.actions.filter(action => 
-      action.timestamp >= start && action.timestamp <= end
+    return this.actions.filter(action =>
+      action.timestamp >= start && action.timestamp <= end,
     );
   }
 
@@ -170,10 +170,10 @@ class UserActionTracker {
     return this.actions.filter(action => action.type === type);
   }
 
-  public getActionsBeforeError(errorTimestamp: number, lookbackMs: number = 30000): UserAction[] {
-    const startTime = errorTimestamp - lookbackMs;
-    return this.actions.filter(action => 
-      action.timestamp >= startTime && action.timestamp <= errorTimestamp
+  public getActionsBeforeError(errorTimestamp: number, lookbackMs = 30000): UserAction[] {
+    const startTime = errorTimestamp-lookbackMs;
+    return this.actions.filter(action =>
+      action.timestamp >= startTime && action.timestamp <= errorTimestamp,
     );
   }
 
@@ -205,16 +205,14 @@ class UserActionTracker {
         this.actions = JSON.parse(stored).slice(-this.maxActions);
       }
     } catch (error) {
-      console.warn('Failed to load stored user actions:', error);
-    }
+      }
   }
 
   private saveActions(): void {
     try {
       localStorage.setItem('zimbomate_user_actions', JSON.stringify(this.actions));
     } catch (error) {
-      console.warn('Failed to save user actions:', error);
-    }
+      }
   }
 
   private getSessionId(): string {
@@ -227,11 +225,11 @@ class UserActionTracker {
   }
 
   // React-specific tracking methods
-  public trackComponentMount(componentName: string, props?: Record<string, any>): void {
+  public trackComponentMount(componentName: string, props?: Record < string, unknown>): void {
     this.recordAction({
       type: 'custom',
       description: `Component mounted: ${componentName}`,
-      data: { componentName, props }
+      data: { componentName, props },
     });
   }
 
@@ -239,7 +237,7 @@ class UserActionTracker {
     this.recordAction({
       type: 'custom',
       description: `Component unmounted: ${componentName}`,
-      data: { componentName }
+      data: { componentName },
     });
   }
 
@@ -247,26 +245,26 @@ class UserActionTracker {
     this.recordAction({
       type: 'api-call',
       description: `API ${method} ${url}${status ? ` (${status})` : ''}`,
-      data: { url, method, status }
+      data: { url, method, status },
     });
   }
 
-  public trackCustomEvent(description: string, data?: Record<string, any>): void {
+  public trackCustomEvent(description: string, data?: Record < string, unknown>): void {
     this.recordAction({
       type: 'custom',
       description,
-      data
+      data,
     });
   }
 
   // Hook for React components
   public useActionTracker() {
     return {
-      trackClick: (description: string, data?: Record<string, any>) => 
+      trackClick: (description: string, data?: Record < string, unknown>) =>
         this.recordAction({ type: 'click', description, data }),
-      trackNavigation: (description: string, data?: Record<string, any>) => 
+      trackNavigation: (description: string, data?: Record < string, unknown>) =>
         this.recordAction({ type: 'navigation', description, data }),
-      trackCustom: (description: string, data?: Record<string, any>) => 
+      trackCustom: (description: string, data?: Record < string, unknown>) =>
         this.recordAction({ type: 'custom', description, data }),
     };
   }

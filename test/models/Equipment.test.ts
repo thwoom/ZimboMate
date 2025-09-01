@@ -15,8 +15,8 @@ import {
   hasTag,
   getTagValue,
   calculateTotalArmor,
-  formatTags
-} from '../../src/models/Equipment';
+  formatTags,
+} from '../../src / models / Equipment';
 
 describe('Equipment Model', () => {
   describe('Type guards', () => {
@@ -29,7 +29,7 @@ describe('Equipment Model', () => {
         weight: 1,
         quantity: 1,
         equipped: false,
-        damage: '+1 damage'
+        damage: '+1 damage',
       };
 
       const armor: Armor = {
@@ -40,7 +40,7 @@ describe('Equipment Model', () => {
         weight: 3,
         quantity: 1,
         equipped: false,
-        armorValue: 2
+        armorValue: 2,
       };
 
       expect(isWeapon(weapon)).toBe(true);
@@ -55,7 +55,7 @@ describe('Equipment Model', () => {
         tags: [],
         weight: 1,
         quantity: 1,
-        equipped: false
+        equipped: false,
       };
 
       const armor: Armor = {
@@ -66,7 +66,7 @@ describe('Equipment Model', () => {
         weight: 3,
         quantity: 1,
         equipped: false,
-        armorValue: 2
+        armorValue: 2,
       };
 
       expect(isArmor(weapon)).toBe(false);
@@ -76,7 +76,7 @@ describe('Equipment Model', () => {
 
   describe('parseTagString', () => {
     it('should parse simple tags', () => {
-      const tags = parseTagString('close, worn, magical');
+      const _tags = parseTagString('close, worn, magical');
       expect(tags).toHaveLength(3);
       expect(tags[0]).toEqual({ name: 'close' });
       expect(tags[1]).toEqual({ name: 'worn' });
@@ -84,7 +84,7 @@ describe('Equipment Model', () => {
     });
 
     it('should parse tags with values', () => {
-      const tags = parseTagString('weight 2, uses 3, armor +1');
+      const _tags = parseTagString('weight 2, uses 3, armor + 1');
       expect(tags).toHaveLength(3);
       expect(tags[0]).toEqual({ name: 'weight', value: '2' });
       expect(tags[1]).toEqual({ name: 'uses', value: '3' });
@@ -110,7 +110,7 @@ describe('Equipment Model', () => {
         tags: [],
         weight: 1,
         quantity: 5,
-        equipped: false
+        equipped: false,
       };
 
       expect(getItemTotalWeight(item)).toBe(5); // 1 * 5
@@ -132,11 +132,11 @@ describe('Equipment Model', () => {
         { name: 'close' },
         { name: 'magical' },
         { name: 'weight', value: 2 },
-        { name: 'uses', value: 3 }
+        { name: 'uses', value: 3 },
       ],
       weight: 2,
       quantity: 1,
-      equipped: false
+      equipped: false,
     };
 
     it('should check if item has tag', () => {
@@ -170,7 +170,7 @@ describe('Equipment Model', () => {
           weight: 1,
           quantity: 1,
           equipped: true,
-          armorValue: 1
+          armorValue: 1,
         } as Armor,
         {
           id: '2',
@@ -180,7 +180,7 @@ describe('Equipment Model', () => {
           weight: 2,
           quantity: 1,
           equipped: true,
-          armorValue: 1
+          armorValue: 1,
         } as Armor,
         {
           id: '3',
@@ -190,7 +190,7 @@ describe('Equipment Model', () => {
           weight: 3,
           quantity: 1,
           equipped: false, // Not equipped
-          armorValue: 2
+          armorValue: 2,
         } as Armor,
         {
           id: '4',
@@ -199,8 +199,8 @@ describe('Equipment Model', () => {
           tags: [],
           weight: 1,
           quantity: 1,
-          equipped: true
-        }
+          equipped: true,
+        },
       ];
 
       expect(calculateTotalArmor(items)).toBe(2); // Leather (1) + Shield (1)
@@ -215,8 +215,8 @@ describe('Equipment Model', () => {
           tags: [],
           weight: 1,
           quantity: 1,
-          equipped: true
-        }
+          equipped: true,
+        },
       ];
 
       expect(calculateTotalArmor(items)).toBe(0);

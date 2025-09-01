@@ -32,7 +32,7 @@ This document outlines the complete UI/UX specifications for ZimboMate, a digita
 ## Layout Architecture
 
 ### Main Layout Structure
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │ Header (Theme Toggle, Title)                        │
 ├─────────────┬─────────────────────┬─────────────────┤
@@ -46,7 +46,7 @@ This document outlines the complete UI/UX specifications for ZimboMate, a digita
 ├─────────────┴─────────────────────┴─────────────────┤
 │ Floating Action Button (Dice)                       │
 └─────────────────────────────────────────────────────┘
-```
+```text
 
 ### Responsive Breakpoints
 - **Mobile**: < 768px - Single column, collapsible sidebar

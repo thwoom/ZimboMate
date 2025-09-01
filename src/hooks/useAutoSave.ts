@@ -12,35 +12,33 @@ interface AutoSaveOptions {
 
 export function useAutoSave(
   state: GameState,
-  options: AutoSaveOptions = {}
+  options: AutoSaveOptions = {},
 ) {
   const {
     enabled = true,
     debounceMs = 2000,
     key = 'autosave',
     onSave,
-    onError
+    onError,
   } = options;
 
-  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const previousState = useRef<GameState | null>(null);
+  const saveTimeout = useRef < ReturnType < typeof setTimeout> | null>(null);
+  const previousState = useRef < GameState | null>(null);
   const isSaving = useRef(false);
 
-  const performSave = useCallback(async (stateToSave: GameState) => {
+  const performSave = useCallback(async(stateToSave: GameState) => {
     if (isSaving.current) return;
-    
+
     try {
       isSaving.current = true;
       await DataPersistenceService.getInstance().saveGame(stateToSave, undefined, key);
-      
+
       // Update saved indicator
       if (onSave) {
         onSave(stateToSave);
       }
-      
-      console.log('[AutoSave] Game state saved successfully');
-    } catch (error) {
-      console.error('[AutoSave] Failed to save game state:', error);
+
+      } catch (error) {
       if (onError) {
         onError(error as Error);
       }
@@ -50,7 +48,7 @@ export function useAutoSave(
   }, [key, onSave, onError]);
 
   const debouncedSave = useCallback((newState: GameState) => {
-    // Clear any pending save
+    // Clear unknown pending save
     if (saveTimeout.current) {
       clearTimeout(saveTimeout.current);
     }
@@ -93,13 +91,13 @@ export function useAutoSave(
 
   return {
     isSaving: isSaving.current,
-    forceSave
+    forceSave,
   };
 }
 
 // Hook to show auto-save status
 export function useAutoSaveStatus() {
-  const lastSaveTime = useRef<Date | null>(null);
+  const lastSaveTime = useRef < Date | null>(null);
   const saveStatus = useRef<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const updateStatus = useCallback((status: 'saving' | 'saved' | 'error') => {
@@ -115,7 +113,7 @@ export function useAutoSaveStatus() {
         return 'Saving...';
       case 'saved':
         if (lastSaveTime.current) {
-          const seconds = Math.floor((Date.now() - lastSaveTime.current.getTime()) / 1000);
+          const seconds = Math.floor((Date.now()-lastSaveTime.current.getTime()) / 1000);
           if (seconds < 60) return 'Saved just now';
           if (seconds < 3600) return `Saved ${Math.floor(seconds / 60)} min ago`;
           return `Saved ${Math.floor(seconds / 3600)} hours ago`;
@@ -132,6 +130,6 @@ export function useAutoSaveStatus() {
     status: saveStatus.current,
     lastSaveTime: lastSaveTime.current,
     updateStatus,
-    getStatusMessage
+    getStatusMessage,
   };
 }

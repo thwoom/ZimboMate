@@ -22,7 +22,7 @@ themeService.setTheme('light');
 const unsubscribe = themeService.addListener((theme) => {
   console.log('Theme changed to:', theme);
 });
-```
+```text
 
 ### CSS Variables (`src/styles/rose-pine-variables.css`)
 All theme colors are defined as CSS custom properties:
@@ -40,7 +40,7 @@ All theme colors are defined as CSS custom properties:
   --color-text-primary: var(--rp-text);
   /* ... */
 }
-```
+```text
 
 ## Theme Variants
 
@@ -87,7 +87,7 @@ Always use semantic CSS variables instead of raw colors:
   border: 1px solid #403d52;
   color: #e0def4;
 }
-```
+```text
 
 ### Game State Colors
 Use specific game-state variables for consistency:
@@ -100,7 +100,7 @@ Use specific game-state variables for consistency:
 .roll-result.success { color: var(--color-roll-success); }
 .roll-result.partial { color: var(--color-roll-partial); }
 .roll-result.failure { color: var(--color-roll-failure); }
-```
+```text
 
 ### Stat Colors
 Each ability score has its own color:
@@ -112,7 +112,7 @@ Each ability score has its own color:
 .stat-int { color: var(--color-stat-int); }
 .stat-wis { color: var(--color-stat-wis); }
 .stat-cha { color: var(--color-stat-cha); }
-```
+```text
 
 ## Theme Switching
 
@@ -132,7 +132,7 @@ themeService.toggleTheme();
 
 // Follow system preference
 themeService.setFollowSystem(true);
-```
+```text
 
 ### React Component Integration
 ```tsx
@@ -153,7 +153,7 @@ const MyComponent: React.FC = () => {
     </div>
   );
 };
-```
+```text
 
 ## CSS Implementation Details
 
@@ -172,7 +172,7 @@ Themes are applied via `data-theme` attribute on the document root:
 
 <!-- High contrast theme -->
 <html data-theme="high-contrast">
-```
+```text
 
 ### Variable Overrides
 Light and alternative themes override the default variables:
@@ -189,7 +189,7 @@ Light and alternative themes override the default variables:
   --color-background: var(--rp-dawn-base);
   --color-text-primary: var(--rp-dawn-text);
 }
-```
+```text
 
 ## Accessibility Considerations
 
@@ -214,7 +214,7 @@ const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     --transition-slow: 0ms;
   }
 }
-```
+```text
 
 ### High Contrast Mode
 Special handling for users who need maximum contrast:
@@ -228,7 +228,7 @@ Special handling for users who need maximum contrast:
   --color-primary: #00ff00;
   --color-danger: #ff0000;
 }
-```
+```text
 
 ## Performance Optimizations
 
@@ -241,7 +241,7 @@ Using CSS variables allows for instant theme switching without re-parsing styles
   background: var(--color-surface);
   transition: background-color var(--transition-normal);
 }
-```
+```text
 
 ### Minimal JavaScript
 Theme switching requires minimal JavaScript - just setting a data attribute:
@@ -249,7 +249,7 @@ Theme switching requires minimal JavaScript - just setting a data attribute:
 ```typescript
 // Efficient theme application
 document.documentElement.setAttribute('data-theme', 'light');
-```
+```text
 
 ### Caching
 Theme preferences are cached in localStorage:
@@ -257,7 +257,7 @@ Theme preferences are cached in localStorage:
 ```typescript
 // Automatic persistence
 localStorage.setItem('zimbomate-theme-preferences', JSON.stringify(preferences));
-```
+```text
 
 ## Extending the Theme System
 
@@ -268,7 +268,7 @@ localStorage.setItem('zimbomate-theme-preferences', JSON.stringify(preferences))
 --rp-custom-base: #your-color;
 --rp-custom-surface: #your-color;
 /* ... */
-```
+```text
 
 2. Add theme variant:
 ```css
@@ -277,12 +277,12 @@ localStorage.setItem('zimbomate-theme-preferences', JSON.stringify(preferences))
   --color-surface: var(--rp-custom-surface);
   /* ... */
 }
-```
+```text
 
 3. Update `ThemeService`:
 ```typescript
 export type ThemeMode = 'dark' | 'light' | 'moon' | 'custom' | 'auto';
-```
+```text
 
 ### Adding New Semantic Colors
 1. Define in the base theme:
@@ -290,21 +290,21 @@ export type ThemeMode = 'dark' | 'light' | 'moon' | 'custom' | 'auto';
 :root {
   --color-new-semantic: var(--rp-appropriate-color);
 }
-```
+```text
 
 2. Override in theme variants:
 ```css
 [data-theme="light"] {
   --color-new-semantic: var(--rp-dawn-appropriate-color);
 }
-```
+```text
 
 3. Use in components:
 ```css
 .new-component {
   color: var(--color-new-semantic);
 }
-```
+```text
 
 ## Testing Themes
 
@@ -323,7 +323,7 @@ describe('ThemeService', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
 });
-```
+```text
 
 ### Accessibility Testing
 - Use axe-core for automated accessibility testing
@@ -339,7 +339,7 @@ describe('ThemeService', () => {
 ```css
 /* Must be imported before other styles */
 @import './styles/rose-pine-variables.css';
-```
+```text
 
 **Flashing on load**: Ensure theme is applied before content renders
 ```typescript
@@ -349,7 +349,7 @@ if (savedTheme) {
   const { mode } = JSON.parse(savedTheme);
   document.documentElement.setAttribute('data-theme', mode);
 }
-```
+```text
 
 **Inconsistent colors**: Always use semantic variables, never raw Rose Pine colors
 ```css
@@ -358,7 +358,7 @@ color: var(--color-text-primary);
 
 /* ❌ Bad - won't change with theme */
 color: var(--rp-text);
-```
+```text
 
 ## Best Practices
 

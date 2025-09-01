@@ -259,6 +259,48 @@
   border: 1px solid var(--color-text-secondary);
 }
 
+.property.substitution {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: var(--color-warning, #ffc107);
+  border: 1px solid var(--color-warning, #ffc107);
+}
+
+/* Stat Substitution Indicators */
+.stat-substitution-indicator {
+  margin-left: 4px;
+  font-size: 0.75rem;
+  color: var(--color-warning, #ffc107);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.stat-substitution-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  width: 100%;
+}
+
+.available-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.available-stat {
+  padding: 2px 6px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+
 /* Move Source */
 .move-source {
   display: flex;

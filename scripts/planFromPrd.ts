@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr / bin / env node
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
@@ -29,7 +29,7 @@ class TaskPlanner {
   private existingTasks: TasksFile;
   private nextTaskId: number;
 
-  constructor(tasksPath: string = 'ops/tasks.yaml') {
+  constructor(tasksPath = 'ops / tasks.yaml') {
     this.tasksPath = resolve(process.cwd(), tasksPath);
     this.existingTasks = this.loadExistingTasks();
     this.nextTaskId = this.calculateNextTaskId();
@@ -51,7 +51,7 @@ class TaskPlanner {
    * Calculate the next available task ID
    */
   private calculateNextTaskId(): number {
-    const existingIds = this.existingTasks.tasks.map((task) => {
+    const _existingIds = this.existingTasks.tasks.map((task) => {
       const match = task.id.match(/^T-(\d+)$/);
       return match ? parseInt(match[1], 10) : 0;
     });
@@ -70,12 +70,12 @@ class TaskPlanner {
    * Generate tasks from PRD content
    */
   generateTasksFromPRD(prdPath?: string): Task[] {
-    const prd = getPRD(prdPath);
+    const _prd = getPRD(prdPath);
     const newTasks: Task[] = [];
 
     // Generate tasks from core features
     prd.coreFeatures.forEach((feature, index) => {
-      const taskId = this.generateTaskId();
+      const _taskId = this.generateTaskId();
       this.nextTaskId++;
 
       newTasks.push({
@@ -96,15 +96,15 @@ class TaskPlanner {
           'Documentation is updated',
         ],
         artifacts: [
-          `src/features/${feature.name.toLowerCase().replace(/\s+/g, '-')}/`,
-          `test/features/${feature.name.toLowerCase().replace(/\s+/g, '-')}.test.ts`,
+          `src / features/${feature.name.toLowerCase().replace(/\s+/g, '-')}/`,
+          `test / features/${feature.name.toLowerCase().replace(/\s+/g, '-')}.test.ts`,
         ],
       });
     });
 
     // Generate tasks from technical requirements
     prd.technicalRequirements.forEach((req, index) => {
-      const taskId = this.generateTaskId();
+      const _taskId = this.generateTaskId();
       this.nextTaskId++;
 
       newTasks.push({
@@ -189,8 +189,7 @@ class TaskPlanner {
     // Sort tasks by priority and then by ID for deterministic ordering
     this.existingTasks.tasks.sort((a, b) => {
       const priorityOrder = { P0: 0, P1: 1, P2: 2, P3: 3 };
-      const priorityDiff =
-        priorityOrder[a.priority] - priorityOrder[b.priority];
+      const priorityDiff = priorityOrder[a.priority]-priorityOrder[b.priority];
 
       if (priorityDiff !== 0) return priorityDiff;
 
@@ -212,12 +211,11 @@ class TaskPlanner {
    * Check for ID collisions
    */
   checkForCollisions(newTasks: Task[]): string[] {
-    const existingIds = new Set(
+    const _existingIds = new Set(
       this.existingTasks.tasks.map((task) => task.id),
     );
     const newIds = newTasks.map((task) => task.id);
-    const collisions = newIds.filter((id) => existingIds.has(id));
-
+    const _collisions = newIds.filter((id)
     return collisions;
   }
 
@@ -227,13 +225,13 @@ class TaskPlanner {
   getStats(newTasks: Task[]): {
     totalTasks: number;
     newTasks: number;
-    byPriority: Record<string, number>;
-    byLabel: Record<string, number>;
+    byPriority: Record < string, number>;
+    byLabel: Record < string, number>;
   } {
     const allTasks = [...this.existingTasks.tasks, ...newTasks];
 
-    const byPriority: Record<string, number> = {};
-    const byLabel: Record<string, number> = {};
+    const byPriority: Record < string, number> = {};
+    const byLabel: Record < string, number> = {};
 
     allTasks.forEach((task) => {
       byPriority[task.priority] = (byPriority[task.priority] || 0) + 1;
@@ -259,20 +257,14 @@ function main() {
   const prdPath = args[0]; // Optional PRD path argument
 
   try {
-    console.log('🎯 Planning tasks from PRD...\n');
-    console.log('PRD Path:', prdPath || 'docs/PRD.md');
-
     const planner = new TaskPlanner();
 
     // Generate tasks from PRD
     const newTasks = planner.generateTasksFromPRD(prdPath);
-    console.log('Generated', newTasks.length, 'tasks');
-
     // Check for ID collisions
     const collisions = planner.checkForCollisions(newTasks);
     if (collisions.length > 0) {
-      console.error(
-        `❌ Error: ID collisions detected: ${collisions.join(', ')}`,
+      }`,
       );
       process.exit(1);
     }
@@ -283,24 +275,14 @@ function main() {
     // Get and display statistics
     const stats = planner.getStats(newTasks);
 
-    console.log('✅ Successfully generated and appended tasks!\n');
-    console.log('📊 Statistics:');
-    console.log(`  Total tasks: ${stats.totalTasks}`);
-    console.log(`  New tasks: ${stats.newTasks}`);
-    console.log('\n📈 By Priority:');
     Object.entries(stats.byPriority).forEach(([priority, count]) => {
-      console.log(`  ${priority}: ${count} tasks`);
-    });
-    console.log('\n🏷️  By Label:');
+      });
     Object.entries(stats.byLabel).forEach(([label, count]) => {
-      console.log(`  ${label}: ${count} tasks`);
-    });
-    console.log('\n📝 New tasks added:');
+      });
     newTasks.forEach((task) => {
-      console.log(`  ${task.id}: ${task.title} (${task.priority})`);
+      `);
     });
   } catch (error) {
-    console.error('❌ Error:', error instanceof Error ? error.message : error);
     process.exit(1);
   }
 }

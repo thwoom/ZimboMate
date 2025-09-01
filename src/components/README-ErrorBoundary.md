@@ -32,7 +32,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 >
   <App />
 </ErrorBoundary>
-```
+```text
 
 ### 2. `PanelErrorBoundary` - Panel-Specific Error Boundary
 
@@ -57,7 +57,7 @@ import PanelErrorBoundary from './components/PanelErrorBoundary';
 >
   <YourPanelComponent />
 </PanelErrorBoundary>
-```
+```text
 
 ### 3. `GlobalErrorHandler` - Catches Non-Boundary Errors
 
@@ -90,7 +90,7 @@ try {
 
 // For custom messages
 captureMessage('User performed important action', 'info', 'user-action');
-```
+```text
 
 ## Error Types Handled
 
@@ -131,7 +131,7 @@ function App() {
     </ErrorBoundary>
   );
 }
-```
+```text
 
 ### 2. Panel Level Setup
 
@@ -148,7 +148,7 @@ export const MyPanel = () => (
     </div>
   </PanelErrorBoundary>
 );
-```
+```text
 
 ### 3. Global Error Handler Setup
 
@@ -172,7 +172,7 @@ const MyComponent = () => {
     }
   };
 };
-```
+```text
 
 ## Error Reporting Integration
 
@@ -205,7 +205,7 @@ private reportError(errorEntry) {
   // LogRocket example:
   LogRocket.captureException(errorEntry.error);
 }
-```
+```text
 
 ## Testing Error Boundaries
 
@@ -216,7 +216,7 @@ import ErrorBoundaryDemo from './components/ErrorBoundaryDemo';
 
 // Add to your development routes
 <Route path="/error-demo" component={ErrorBoundaryDemo} />
-```
+```text
 
 ## Best Practices
 
@@ -244,7 +244,7 @@ import ErrorBoundaryDemo from './components/ErrorBoundaryDemo';
     </ErrorBoundary>
   </ErrorBoundary>
 </ErrorBoundary>
-```
+```text
 
 ### 3. Error Recovery
 - Provide meaningful retry mechanisms

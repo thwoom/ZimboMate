@@ -1,6 +1,5 @@
 /**
- * Character State Service
- * Manages dynamic character state including modifiers, conditions, and resources
+ * Character State Service * Manages dynamic character state including modifiers, conditions, and resources
  */
 
 import { Character } from '../models/Character';
@@ -69,7 +68,7 @@ export interface BondState {
   targetCharacterId: string;
   targetName: string;
   description: string;
-  strength: number; // 0-3, affects Aid/Interfere
+  strength: number; // 0-3, affects Aid / Interfere
   lastUsed?: number;
   timesUsed: number;
 }
@@ -90,7 +89,7 @@ export interface EquipmentModifier {
 }
 
 export class CharacterStateService {
-  private characterStates: Map<string, CharacterState> = new Map();
+  private characterStates: Map < string, CharacterState> = new Map();
 
   /**
    * Get character state (creates if doesn't exist)
@@ -107,7 +106,7 @@ export class CharacterStateService {
   /**
    * Update character state
    */
-  updateCharacterState(characterId: string, updates: Partial<CharacterState>): void {
+  updateCharacterState(characterId: string, updates: Partial < CharacterState>): void {
     const state = this.getCharacterState(characterId);
     Object.assign(state, updates, { lastUpdated: Date.now() });
     this.characterStates.set(characterId, state);
@@ -118,13 +117,13 @@ export class CharacterStateService {
    */
   addCondition(characterId: string, condition: Condition): void {
     const state = this.getCharacterState(characterId);
-    
+
     // Remove existing condition with same name if it doesn't stack
-    const existingIndex = state.conditions.findIndex(c => c.name === condition.name);
+    const existingIndex = state.conditions.findIndex(c => c.id === condition.id);
     if (existingIndex >= 0) {
       state.conditions.splice(existingIndex, 1);
     }
-    
+
     state.conditions.push(condition);
     state.lastUpdated = Date.now();
   }
@@ -143,17 +142,17 @@ export class CharacterStateService {
    */
   addOngoingModifier(characterId: string, modifier: OngoingModifier): void {
     const state = this.getCharacterState(characterId);
-    
+
     // Handle stacking
     if (!modifier.stacks) {
-      const existingIndex = state.ongoingModifiers.findIndex(m => 
-        m.name === modifier.name && m.appliesTo === modifier.appliesTo && m.target === modifier.target
+      const existingIndex = state.ongoingModifiers.findIndex(m =>
+        m.name === modifier.name && m.appliesTo === modifier.appliesTo && m.target === modifier.target,
       );
       if (existingIndex >= 0) {
         state.ongoingModifiers.splice(existingIndex, 1);
       }
     }
-    
+
     state.ongoingModifiers.push(modifier);
     state.lastUpdated = Date.now();
   }
@@ -172,14 +171,13 @@ export class CharacterStateService {
    */
   useForwardModifier(characterId: string, modifierId: string): ForwardModifier | null {
     const state = this.getCharacterState(characterId);
-    const modifier = state.forwardModifiers.find(m => m.id === modifierId && !m.used);
-    
+    const modifier = state.forwardModifiers.find(m => m.id === modifierId);
     if (modifier) {
       modifier.used = true;
       state.lastUpdated = Date.now();
       return modifier;
     }
-    
+
     return null;
   }
 
@@ -198,7 +196,6 @@ export class CharacterStateService {
   updateResource(characterId: string, resourceId: string, newCurrent: number): void {
     const state = this.getCharacterState(characterId);
     const resource = state.resources.find(r => r.id === resourceId);
-    
     if (resource) {
       resource.current = Math.max(0, Math.min(resource.max, newCurrent));
       state.lastUpdated = Date.now();
@@ -211,13 +208,13 @@ export class CharacterStateService {
   setResource(characterId: string, resource: ResourceTracker): void {
     const state = this.getCharacterState(characterId);
     const existingIndex = state.resources.findIndex(r => r.id === resource.id);
-    
+
     if (existingIndex >= 0) {
       state.resources[existingIndex] = resource;
     } else {
       state.resources.push(resource);
     }
-    
+
     state.lastUpdated = Date.now();
   }
 
@@ -225,16 +222,16 @@ export class CharacterStateService {
    * Get total modifier for a specific context
    */
   getTotalModifier(
-    characterId: string, 
-    context: 'stat' | 'move' | 'damage', 
-    target?: string
+    characterId: string,
+    context: 'stat' | 'move' | 'damage',
+    target?: string,
   ): number {
     const state = this.getCharacterState(characterId);
     let total = 0;
 
     // Add ongoing modifiers
     for (const modifier of state.ongoingModifiers) {
-      if (modifier.appliesTo === 'all' || 
+      if (modifier.appliesTo === 'all' ||
           (modifier.appliesTo === context && (!modifier.target || modifier.target === target))) {
         total += modifier.value;
       }
@@ -243,7 +240,7 @@ export class CharacterStateService {
     // Add condition effects
     for (const condition of state.conditions) {
       for (const effect of condition.effects) {
-        if (effect.type === `${context}_modifier` && 
+        if (effect.type === `${context}modifier` &&
             (!effect.target || effect.target === target)) {
           total += typeof effect.value === 'number' ? effect.value : 0;
         }
@@ -270,13 +267,13 @@ export class CharacterStateService {
   getAvailableForwardModifiers(
     characterId: string,
     context: 'next_roll' | 'next_move' | 'next_stat_roll',
-    target?: string
+    target?: string,
   ): ForwardModifier[] {
     const state = this.getCharacterState(characterId);
-    return state.forwardModifiers.filter(m => 
-      !m.used && 
-      m.appliesTo === context && 
-      (!m.target || m.target === target)
+    return state.forwardModifiers.filter(m =>
+      !m.used &&
+      m.appliesTo === context &&
+      (!m.target || m.target === target),
     );
   }
 
@@ -298,19 +295,19 @@ export class CharacterStateService {
   }
 
   /**
-   * Use bond (for Aid/Interfere)
+   * Use bond (for Aid / Interfere)
    */
   useBond(characterId: string, targetCharacterId: string): boolean {
     const state = this.getCharacterState(characterId);
     const bond = state.bonds.find(b => b.targetCharacterId === targetCharacterId);
-    
+
     if (bond && bond.strength > 0) {
       bond.lastUsed = Date.now();
       bond.timesUsed++;
       state.lastUpdated = Date.now();
       return true;
     }
-    
+
     return false;
   }
 
@@ -319,13 +316,13 @@ export class CharacterStateService {
    */
   refreshResources(characterId: string, trigger: 'rest' | 'scene' | 'session'): void {
     const state = this.getCharacterState(characterId);
-    
+
     for (const resource of state.resources) {
       if (resource.refreshOn === trigger) {
         resource.current = resource.max;
       }
     }
-    
+
     state.lastUpdated = Date.now();
   }
 
@@ -334,7 +331,7 @@ export class CharacterStateService {
    */
   advanceTime(characterId: string, timeType: 'turn' | 'scene' | 'encounter'): void {
     const state = this.getCharacterState(characterId);
-    
+
     // Update condition durations
     state.conditions = state.conditions.filter(condition => {
       if (typeof condition.duration === 'number') {
@@ -343,7 +340,7 @@ export class CharacterStateService {
       }
       return condition.duration !== timeType;
     });
-    
+
     // Update ongoing modifier durations
     state.ongoingModifiers = state.ongoingModifiers.filter(modifier => {
       if (typeof modifier.duration === 'number') {
@@ -352,7 +349,7 @@ export class CharacterStateService {
       }
       return modifier.duration !== timeType;
     });
-    
+
     state.lastUpdated = Date.now();
   }
 
@@ -368,14 +365,14 @@ export class CharacterStateService {
       resources: [],
       bonds: [],
       equipment: [],
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
     };
   }
 
   private isConditionActive(condition: Condition): boolean {
     if (condition.duration === 'permanent') return true;
     if (typeof condition.duration === 'number') return condition.duration > 0;
-    return true; // Scene/encounter conditions are active until explicitly removed
+    return true; // Scene / encounter conditions are active until explicitly removed
   }
 
   /**
@@ -388,12 +385,12 @@ export class CharacterStateService {
     resourcesNeedingAttention: number;
   } {
     const state = this.getCharacterState(characterId);
-    
+
     return {
       activeConditions: this.getActiveConditions(characterId).length,
       totalOngoingModifiers: state.ongoingModifiers.length,
       availableForwardModifiers: state.forwardModifiers.filter(m => !m.used).length,
-      resourcesNeedingAttention: state.resources.filter(r => r.current <= r.max * 0.25).length
+      resourcesNeedingAttention: state.resources.filter(r => r.current <= r.max * 0.25).length,
     };
   }
 }

@@ -8,33 +8,33 @@ interface RealTimeValidationProps {
   showSuggestions?: boolean;
 }
 
-export const RealTimeValidation: React.FC<RealTimeValidationProps> = ({
+export const RealTimeValidation: React.FC < RealTimeValidationProps> = ({
   validation,
   compact = false,
-  showSuggestions = true
+  showSuggestions = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(!compact);
   const [filter, setFilter] = useState<'all' | 'errors' | 'warnings' | 'info'>('all');
-  
+
   // Auto-collapse if no issues
   useEffect(() => {
     if (compact && !validation.hasErrors && !validation.hasWarnings) {
       setIsExpanded(false);
     }
   }, [compact, validation.hasErrors, validation.hasWarnings]);
-  
+
   const getStatusColor = () => {
     if (validation.hasErrors) return 'error';
     if (validation.hasWarnings) return 'warning';
     return 'success';
   };
-  
+
   const getStatusIcon = () => {
     if (validation.hasErrors) return '❌';
     if (validation.hasWarnings) return '⚠️';
     return '✅';
   };
-  
+
   const getStatusText = () => {
     const counts = [];
     if (validation.allErrors.length > 0) {
@@ -46,10 +46,10 @@ export const RealTimeValidation: React.FC<RealTimeValidationProps> = ({
     if (validation.allInfo.length > 0) {
       counts.push(`${validation.allInfo.length} info`);
     }
-    
+
     return counts.length > 0 ? counts.join(', ') : 'All validations passed';
   };
-  
+
   const filteredItems = () => {
     switch (filter) {
       case 'errors':
@@ -62,14 +62,14 @@ export const RealTimeValidation: React.FC<RealTimeValidationProps> = ({
         return [
           ...validation.allErrors.map(err => ({ type: 'error', message: err })),
           ...validation.allWarnings.map(warn => ({ type: 'warning', message: warn })),
-          ...validation.allInfo.map(info => ({ type: 'info', message: info }))
+          ...validation.allInfo.map(info => ({ type: 'info', message: info })),
         ];
     }
   };
-  
+
   if (compact && !isExpanded) {
     return (
-      <div 
+      <div
         className={`realtime-validation compact ${getStatusColor()}`}
         onClick={() => setIsExpanded(true)}
       >
@@ -79,17 +79,17 @@ export const RealTimeValidation: React.FC<RealTimeValidationProps> = ({
       </div>
     );
   }
-  
+
   return (
     <div className={`realtime-validation ${getStatusColor()} ${compact ? 'compact-expanded' : ''}`}>
       <div className="validation-header">
         <div className="header-content">
           <span className="status-icon">{getStatusIcon()}</span>
-          <h3>Validation Status</h3>
+          <h3 > Validation Status</h3>
           <span className="status-summary">{getStatusText()}</span>
         </div>
         {compact && (
-          <button 
+          <button
             className="collapse-btn"
             onClick={() => setIsExpanded(false)}
           >
@@ -97,7 +97,7 @@ export const RealTimeValidation: React.FC<RealTimeValidationProps> = ({
           </button>
         )}
       </div>
-      
+
       {(validation.hasErrors || validation.hasWarnings || validation.allInfo.length > 0) && (
         <>
           <div className="filter-bar">
@@ -129,7 +129,7 @@ export const RealTimeValidation: React.FC<RealTimeValidationProps> = ({
               Info ({validation.allInfo.length})
             </button>
           </div>
-          
+
           <div className="validation-list">
             {filteredItems().map((item, index) => (
               <div key={index} className={`validation-item ${item.type}`}>
@@ -142,10 +142,10 @@ export const RealTimeValidation: React.FC<RealTimeValidationProps> = ({
           </div>
         </>
       )}
-      
+
       {showSuggestions && validation.suggestions.length > 0 && (
         <div className="suggestions-section">
-          <h4>Suggestions</h4>
+          <h4 > Suggestions</h4>
           <ul className="suggestions-list">
             {validation.suggestions.map((suggestion, index) => (
               <li key={index}>{suggestion}</li>

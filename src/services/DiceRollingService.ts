@@ -1,6 +1,5 @@
 /**
- * Dice Rolling Service for Dungeon World
- * Handles 2d6+modifier rolls with success tier calculation
+ * Dice Rolling Service for Dungeon World * Handles 2d6 + modifier rolls with success tier calculation
  */
 
 import { Move, RollResult, getRollResult, getMoveResult } from '../models/Move';
@@ -43,7 +42,7 @@ export interface EnhancedDiceRoll {
 export interface DiceRoll {
   id: string;
   timestamp: number;
-  dice: [number, number] | [number, number, number]; // 2d6 or 3d6 for advantage/disadvantage
+  dice: [number, number] | [number, number, number]; // 2d6 or 3d6 for advantage / disadvantage
   modifier: number;
   total: number;
   result: RollResult;
@@ -93,26 +92,26 @@ export interface RollTemplate {
 
 export class DiceRollingService {
   private rollHistory: DiceRoll[] = [];
-  private rollTemplates: Map<string, RollTemplate> = new Map();
+  private rollTemplates: Map < string, RollTemplate> = new Map();
   private readonly MAX_HISTORY = 100;
 
   /**
-   * Roll 2d6 with modifiers (or 3d6 for advantage/disadvantage)
+   * Roll 2d6 with modifiers (or 3d6 for advantage / disadvantage)
    */
   roll2d6(modifiers: RollModifiers, options: RollOptions = {}): DiceRoll {
     let dice: [number, number] | [number, number, number];
     let diceTotal: number;
-    
+
     if (options.advantage || options.disadvantage) {
-      // Roll 3d6 for advantage/disadvantage
+      // Roll 3d6 for advantage / disadvantage
       const die1 = Math.floor(Math.random() * 6) + 1;
       const die2 = Math.floor(Math.random() * 6) + 1;
       const die3 = Math.floor(Math.random() * 6) + 1;
       dice = [die1, die2, die3];
-      
-      // Sort dice to find highest/lowest pairs
-      const sorted = [...dice].sort((a, b) => b - a);
-      
+
+      // Sort dice to find highest / lowest pairs
+      const sorted = [...dice].sort((a, b) => b-a);
+
       if (options.advantage) {
         // Take highest 2 dice
         diceTotal = sorted[0] + sorted[1];
@@ -127,16 +126,16 @@ export class DiceRollingService {
       dice = [die1, die2];
       diceTotal = die1 + die2;
     }
-    
+
     // Calculate total modifier
     const totalModifier = modifiers.stat + modifiers.ongoing + modifiers.forward + modifiers.other;
-    
+
     // Calculate total
     const total = diceTotal + totalModifier;
-    
+
     // Determine result
     const result = getRollResult(total);
-    
+
     // Create roll record
     const roll: DiceRoll = {
       id: this.generateRollId(),
@@ -150,12 +149,12 @@ export class DiceRollingService {
       description: options.description,
       advantage: options.advantage,
       disadvantage: options.disadvantage,
-      template: options.template
+      template: options.template,
     };
-    
+
     // Add to history
     this.addToHistory(roll);
-    
+
     return roll;
   }
 
@@ -182,7 +181,7 @@ export class DiceRollingService {
       stat: statModifier,
       ongoing: options.ongoing || 0,
       forward: options.forward || 0,
-      other: (move.rollModifier || 0) + (options.customModifier || 0)
+      other: (move.rollModifier || 0) + (options.customModifier || 0),
     };
 
     // Roll with move context
@@ -191,7 +190,7 @@ export class DiceRollingService {
       character,
       description: `${move.name} (${move.rollStat})`,
       advantage: options.advantage,
-      disadvantage: options.disadvantage
+      disadvantage: options.disadvantage,
     });
   }
 
@@ -199,8 +198,8 @@ export class DiceRollingService {
    * Quick stat roll (like Defy Danger with specific stat)
    */
   rollStat(
-    stat: keyof Attributes, 
-    character: Character, 
+    stat: keyof Attributes,
+    character: Character,
     options: {
       ongoing?: number;
       forward?: number;
@@ -208,7 +207,7 @@ export class DiceRollingService {
       description?: string;
       advantage?: boolean;
       disadvantage?: boolean;
-    } = {}
+    } = {},
   ): DiceRoll {
     const statValue = character.attributes[stat];
     const statModifier = this.getStatModifier(statValue);
@@ -217,7 +216,7 @@ export class DiceRollingService {
       stat: statModifier,
       ongoing: options.ongoing || 0,
       forward: options.forward || 0,
-      other: options.customModifier || 0
+      other: options.customModifier || 0,
     };
 
     return this.roll2d6(modifiers, {
@@ -225,7 +224,7 @@ export class DiceRollingService {
       stat,
       description: options.description || `${stat} roll`,
       advantage: options.advantage,
-      disadvantage: options.disadvantage
+      disadvantage: options.disadvantage,
     });
   }
 
@@ -233,9 +232,9 @@ export class DiceRollingService {
    * Get stat modifier from stat value (DW uses stat-10 for modifier)
    */
   private getStatModifier(statValue: number): number {
-    if (statValue <= 3) return -3;
-    if (statValue <= 5) return -2;
-    if (statValue <= 8) return -1;
+    if (statValue <= 3) return-3;
+    if (statValue <= 5) return-2;
+    if (statValue <= 8) return-1;
     if (statValue <= 12) return 0;
     if (statValue <= 15) return 1;
     if (statValue <= 17) return 2;
@@ -252,7 +251,7 @@ export class DiceRollingService {
   /**
    * Get recent rolls (last N)
    */
-  getRecentRolls(count: number = 10): DiceRoll[] {
+  getRecentRolls(count = 10): DiceRoll[] {
     return this.getHistory().slice(0, count);
   }
 
@@ -277,7 +276,7 @@ export class DiceRollingService {
     if (roll.move) {
       return getMoveResult(roll.move, roll.result);
     }
-    
+
     // Generic result text
     switch (roll.result) {
       case 'success':
@@ -285,7 +284,7 @@ export class DiceRollingService {
       case 'partial':
         return 'Partial Success (7-9)';
       case 'failure':
-        return 'Miss (6-) - Mark XP';
+        return 'Miss (6-)-Mark XP';
     }
   }
 
@@ -300,8 +299,8 @@ export class DiceRollingService {
    * Get roll summary for display
    */
   getRollSummary(roll: DiceRoll): string {
-    const diceText = roll.dice.length === 3 ? 
-      `${roll.dice.join('+')} (${roll.advantage ? 'adv' : 'dis'})` : 
+    const diceText = roll.dice.length === 3 ?
+      `${roll.dice.join('+')} (${roll.advantage ? 'adv' : 'dis'})` :
       `${roll.dice[0]}+${roll.dice[1]}`;
     const modifierText = roll.modifier >= 0 ? `+${roll.modifier}` : `${roll.modifier}`;
     return `${diceText}${modifierText} = ${roll.total}`;
@@ -312,7 +311,7 @@ export class DiceRollingService {
    */
   private addToHistory(roll: DiceRoll): void {
     this.rollHistory.push(roll);
-    
+
     // Trim history if too long
     if (this.rollHistory.length > this.MAX_HISTORY) {
       this.rollHistory = this.rollHistory.slice(-this.MAX_HISTORY);
@@ -352,14 +351,14 @@ export class DiceRollingService {
     modifiers: RollModifiers,
     character?: Character,
     move?: Move,
-    equipment?: any[]
+    equipment?: unknown[],
   ): ModifierBreakdown {
     const breakdown: ModifierBreakdown = {
       stat: { value: modifiers.stat, source: move?.rollStat || 'Unknown' },
       ongoing: [],
       forward: [],
       equipment: [],
-      other: []
+      other: [],
     };
 
     // Add ongoing modifiers (would come from character state)
@@ -384,15 +383,14 @@ export class DiceRollingService {
    * Calculate success probability for a given modifier
    */
   getSuccessProbability(totalModifier: number): {
-    success: number; // 10+
-    partial: number; // 7-9
+    success: number; // 10 + partial: number; // 7-9
     failure: number; // 6-
   } {
     // Calculate probabilities for 2d6 + modifier
     let successCount = 0;
     let partialCount = 0;
     let failureCount = 0;
-    
+
     // All possible 2d6 combinations (36 total)
     for (let d1 = 1; d1 <= 6; d1++) {
       for (let d2 = 1; d2 <= 6; d2++) {
@@ -402,11 +400,11 @@ export class DiceRollingService {
         else failureCount++;
       }
     }
-    
+
     return {
       success: Math.round((successCount / 36) * 100),
       partial: Math.round((partialCount / 36) * 100),
-      failure: Math.round((failureCount / 36) * 100)
+      failure: Math.round((failureCount / 36) * 100),
     };
   }
 
@@ -415,18 +413,18 @@ export class DiceRollingService {
   // ========================================
 
   /**
-   * Roll any type of dice with enhanced features
+   * Roll unknown type of dice with enhanced features
    */
-  rollDice(expression: DiceExpression, options: Partial<EnhancedDiceRoll> = {}): EnhancedDiceRoll {
+  rollDice(expression: DiceExpression, options: Partial < EnhancedDiceRoll> = {}): EnhancedDiceRoll {
     const results: number[] = [];
     const diceSize = this.getDiceSize(expression.type);
-    
+
     // Roll the dice
     for (let i = 0; i < expression.count; i++) {
       results.push(Math.floor(Math.random() * diceSize) + 1);
     }
 
-    // Handle advantage/disadvantage for applicable rolls
+    // Handle advantage / disadvantage for applicable rolls
     let finalResults = results;
     if (options.advantage && expression.count >= 2) {
       finalResults = this.applyAdvantage(results);
@@ -434,7 +432,7 @@ export class DiceRollingService {
       finalResults = this.applyDisadvantage(results);
     }
 
-    const total = finalResults.reduce((sum, die) => sum + die, 0);
+    const total = finalResults.reduce((sum, die) => sum + die.result, 0);
     const modifier = options.modifier || expression.modifier || 0;
     const finalResult = total + modifier;
 
@@ -447,7 +445,7 @@ export class DiceRollingService {
       total,
       modifier,
       finalResult,
-      ...options
+      ...options,
     };
 
     // Add success determination for target number rolls
@@ -466,33 +464,33 @@ export class DiceRollingService {
   /**
    * Roll damage dice (typically d4, d6, d8, d10, d12)
    */
-  rollDamage(diceType: DiceType, count: number = 1, modifier: number = 0, options: Partial<EnhancedDiceRoll> = {}): EnhancedDiceRoll {
+  rollDamage(diceType: DiceType, count = 1, modifier = 0, options: Partial < EnhancedDiceRoll> = {}): EnhancedDiceRoll {
     return this.rollDice({
       count,
       type: diceType,
       modifier,
-      label: `${count}${diceType}${modifier >= 0 ? '+' : ''}${modifier || ''}`
+      label: `${count}${diceType}${modifier >= 0 ? '+' : ''}${modifier || ''}`,
     }, {
       type: 'damage',
       description: `Damage: ${count}${diceType}${modifier ? (modifier >= 0 ? '+' : '') + modifier : ''}`,
-      ...options
+      ...options,
     });
   }
 
   /**
    * Roll against a target number
    */
-  rollTarget(targetNumber: number, diceType: DiceType = 'd20', count: number = 1, modifier: number = 0, options: Partial<EnhancedDiceRoll> = {}): EnhancedDiceRoll {
+  rollTarget(targetNumber: number, diceType: DiceType = 'd20', count = 1, modifier = 0, options: Partial < EnhancedDiceRoll> = {}): EnhancedDiceRoll {
     return this.rollDice({
       count,
       type: diceType,
       modifier,
-      label: `${count}${diceType}+${modifier} vs ${targetNumber}`
+      label: `${count}${diceType}+${modifier} vs ${targetNumber}`,
     }, {
       type: 'target',
       targetNumber,
       description: `Target ${targetNumber}: ${count}${diceType}${modifier ? (modifier >= 0 ? '+' : '') + modifier : ''}`,
-      ...options
+      ...options,
     });
   }
 
@@ -506,7 +504,7 @@ export class DiceRollingService {
       timestamp: Date.now(),
       originalRoll: originalRoll.id,
       rerollCount: (originalRoll.rerollCount || 0) + 1,
-      description: `${originalRoll.description} (Reroll${options.spendXP ? ' - XP spent' : ''}${options.abilityName ? ` - ${options.abilityName}` : ''})`
+      description: `${originalRoll.description} (Reroll${options.spendXP ? '-XP spent' : ''}${options.abilityName ? `-${options.abilityName}` : ''})`,
     });
 
     return newRoll;
@@ -522,11 +520,11 @@ export class DiceRollingService {
     forward?: number;
     circumstantial?: number;
     other?: { value: number; source: string }[];
-  }, options: Partial<EnhancedDiceRoll> = {}): EnhancedDiceRoll {
-    const totalModifier = (modifiers.stat || 0) + 
-                         (modifiers.equipment || 0) + 
-                         (modifiers.ongoing || 0) + 
-                         (modifiers.forward || 0) + 
+  }, options: Partial < EnhancedDiceRoll> = {}): EnhancedDiceRoll {
+    const totalModifier = (modifiers.stat || 0) +
+                         (modifiers.equipment || 0) +
+                         (modifiers.ongoing || 0) +
+                         (modifiers.forward || 0) +
                          (modifiers.circumstantial || 0) +
                          (modifiers.other?.reduce((sum, mod) => sum + mod.value, 0) || 0);
 
@@ -535,7 +533,7 @@ export class DiceRollingService {
       ongoing: modifiers.ongoing ? [{ value: modifiers.ongoing, source: 'Ongoing' }] : [],
       forward: modifiers.forward ? [{ value: modifiers.forward, source: 'Forward' }] : [],
       equipment: modifiers.equipment ? [{ value: modifiers.equipment, source: 'Equipment' }] : [],
-      other: modifiers.other || []
+      other: modifiers.other || [],
     };
 
     if (modifiers.circumstantial) {
@@ -544,15 +542,15 @@ export class DiceRollingService {
 
     return this.rollDice({
       ...expression,
-      modifier: (expression.modifier || 0) + totalModifier
+      modifier: (expression.modifier || 0) + totalModifier,
     }, {
       modifierBreakdown,
-      ...options
+      ...options,
     });
   }
 
   /**
-   * Parse dice expression from string (e.g., "2d6+3", "1d8", "3d4-1")
+   * Parse dice expression from string (e.g., "2d6 + 3", "1d8", "3d4-1")
    */
   parseDiceExpression(expression: string): DiceExpression {
     const match = expression.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
@@ -574,14 +572,14 @@ export class DiceRollingService {
       count,
       type: diceType,
       modifier,
-      label: expression
+      label: expression,
     };
   }
 
   /**
    * Roll from string expression
    */
-  rollFromString(expression: string, options: Partial<EnhancedDiceRoll> = {}): EnhancedDiceRoll {
+  rollFromString(expression: string, options: Partial < EnhancedDiceRoll> = {}): EnhancedDiceRoll {
     const diceExpression = this.parseDiceExpression(expression);
     return this.rollDice(diceExpression, options);
   }
@@ -591,32 +589,32 @@ export class DiceRollingService {
   // ========================================
 
   private getDiceSize(diceType: DiceType): number {
-    const sizeMap: Record<DiceType, number> = {
+    const sizeMap: Record < DiceType, number> = {
       'd4': 4,
       'd6': 6,
       'd8': 8,
       'd10': 10,
       'd12': 12,
-      'd20': 20
+      'd20': 20,
     };
     return sizeMap[diceType];
   }
 
   private applyAdvantage(results: number[]): number[] {
     if (results.length < 2) return results;
-    return results.sort((a, b) => b - a).slice(0, Math.floor(results.length / 2) || 1);
+    return results.sort((a, b) => b-a).slice(0, Math.floor(results.length / 2) || 1);
   }
 
   private applyDisadvantage(results: number[]): number[] {
     if (results.length < 2) return results;
-    return results.sort((a, b) => a - b).slice(0, Math.floor(results.length / 2) || 1);
+    return results.sort((a, b) => a-b).slice(0, Math.floor(results.length / 2) || 1);
   }
 
   /**
    * Get enhanced roll history
    */
   getEnhancedRollHistory(): EnhancedDiceRoll[] {
-    // For now, return empty array - we'll integrate this with existing history later
+    // For now, return empty array-we'll integrate this with existing history later
     return [];
   }
 
@@ -627,18 +625,17 @@ export class DiceRollingService {
     const diceStr = `${roll.expression.count}${roll.expression.type}`;
     const resultsStr = roll.results.join(', ');
     const modifierStr = roll.modifier !== 0 ? ` ${roll.modifier >= 0 ? '+' : ''}${roll.modifier}` : '';
-    
+
     let result = `${diceStr} (${resultsStr})${modifierStr} = ${roll.finalResult}`;
-    
     if (roll.success !== undefined) {
       result += roll.success ? ' ✓' : ' ✗';
     }
-    
+
     if (roll.rollResult) {
       const resultMap = { success: '✓ Success', partial: '~ Partial', failure: '✗ Failure' };
       result += ` - ${resultMap[roll.rollResult]}`;
     }
-    
+
     return result;
   }
 }

@@ -2,13 +2,13 @@
  * Event-based API for panel communication
  */
 
-export type PanelEventHandler = (data: any) => void;
+export type PanelEventHandler = (data: unknown) => void;
 
 export interface PanelEvent {
   source: string;
   target?: string;
   type: string;
-  data: any;
+  data: unknown;
   timestamp: number;
 }
 
@@ -17,7 +17,7 @@ export interface PanelEvent {
  */
 export class PanelEventBus {
   private static instance: PanelEventBus;
-  private handlers: Map<string, Set<PanelEventHandler>> = new Map();
+  private handlers: Map < string, Set < PanelEventHandler>> = new Map();
   private eventLog: PanelEvent[] = [];
   private maxLogSize = 100;
 
@@ -33,7 +33,7 @@ export class PanelEventBus {
   /**
    * Emit an event to all listeners or a specific target
    */
-  emit(source: string, type: string, data: any, target?: string): void {
+  emit(source: string, type: string, data: unknown, target?: string): void {
     const event: PanelEvent = {
       source,
       target,
@@ -46,7 +46,7 @@ export class PanelEventBus {
     this.logEvent(event);
 
     // If target is specified, create a targeted event key
-    const eventKeys = target 
+    const eventKeys = target
       ? [`${target}:${type}`, type] // Listen to both targeted and general events
       : [type];
 
@@ -57,8 +57,7 @@ export class PanelEventBus {
           try {
             handler(event);
           } catch (error) {
-            console.error(`Error in panel event handler for ${key}:`, error);
-          }
+            }
         });
       }
     });
@@ -69,11 +68,11 @@ export class PanelEventBus {
    */
   on(type: string, handler: PanelEventHandler, targetPanel?: string): () => void {
     const key = targetPanel ? `${targetPanel}:${type}` : type;
-    
+
     if (!this.handlers.has(key)) {
       this.handlers.set(key, new Set());
     }
-    
+
     this.handlers.get(key)!.add(handler);
 
     // Return unsubscribe function
@@ -139,7 +138,7 @@ export class PanelAPI {
   /**
    * Send a message to another panel or broadcast
    */
-  send(type: string, data: any, targetPanel?: string): void {
+  send(type: string, data: unknown, targetPanel?: string): void {
     panelEventBus.emit(this.panelId, type, data, targetPanel);
   }
 
@@ -160,11 +159,11 @@ export class PanelAPI {
   /**
    * Request data from another panel
    */
-  async request<T = any>(targetPanel: string, type: string, data?: any): Promise<T> {
+  async request < T = unknown>(targetPanel: string, type: string, data?: unknown): Promise < T> {
     return new Promise((resolve, reject) => {
       const requestId = Math.random().toString(36).substr(2, 9);
-      const responseType = `${type}:response:${requestId}`;
-      
+      const responseType =  `${type}:response:${requestId}`;
+
       // Set up timeout
       const timeout = setTimeout(() => {
         unsubscribe();
@@ -172,26 +171,26 @@ export class PanelAPI {
       }, 5000);
 
       // Listen for response
-      const unsubscribe = this.listenOnce(responseType, (event) => {
+      const unsubscribe = this.listenOnce(responseType, (event: any) => {
         clearTimeout(timeout);
-        if (event.data.error) {
+        if (event.data?.error) {
           reject(new Error(event.data.error));
         } else {
-          resolve(event.data.result);
+          resolve(event.data?.result);
         }
       });
 
       // Send request
-      this.send(`${type}:request`, { ...data, requestId }, targetPanel);
+      this.send(`${type}:request`, { ...(data as any), requestId }, targetPanel);
     });
   }
 
   /**
    * Respond to requests from other panels
    */
-  handleRequests(type: string, handler: (data: any) => any | Promise<any>): () => void {
-    return this.listen(`${type}:request`, async (event) => {
-      const { requestId, ...requestData } = event.data;
+  handleRequests(type: string, handler: (data: unknown) => unknown | Promise < unknown>): () => void {
+    return this.listen(`${type}:request`, async(event: any) => {
+      const { requestId, ...requestData } = event.data || {};
       const responseType = `${type}:response:${requestId}`;
 
       try {
@@ -199,10 +198,10 @@ export class PanelAPI {
         panelEventBus.emit(this.panelId, responseType, { result }, event.source);
       } catch (error) {
         panelEventBus.emit(
-          this.panelId, 
-          responseType, 
-          { error: error instanceof Error ? error.message : 'Unknown error' }, 
-          event.source
+          this.panelId,
+          responseType,
+          { error: error instanceof Error ? error.message : 'Unknown error' },
+          event.source,
         );
       }
     });

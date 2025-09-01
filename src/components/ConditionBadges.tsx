@@ -4,12 +4,12 @@ import '../styles/calculations.css';
 
 interface ConditionBadgesProps {
   conditions: ActiveCondition[];
-  definitions: Partial<Condition>[];
+  definitions: Partial < Condition>[];
 }
 
-export const ConditionBadges: React.FC<ConditionBadgesProps> = ({
+export const ConditionBadges: React.FC < ConditionBadgesProps> = ({
   conditions,
-  definitions
+  definitions,
 }) => {
   if (!conditions || conditions.length === 0) return null;
 
@@ -17,16 +17,16 @@ export const ConditionBadges: React.FC<ConditionBadgesProps> = ({
     return definitions.find(def => def.id === id || def.name === id);
   };
 
-  const getBadgeClass = (condition: Partial<Condition>) => {
+  const getBadgeClass = (condition: Partial < Condition>) => {
     // Determine if condition is positive, negative, or neutral
-    const hasNegativeModifiers = 
-      (condition.modifiers?.ongoing || 0) < 0 || 
-      (condition.modifiers?.forward || 0) < 0 || 
+    const hasNegativeModifiers =
+      (condition.modifiers?.ongoing || 0) < 0 ||
+      (condition.modifiers?.forward || 0) < 0 ||
       (condition.modifiers?.armor || 0) < 0;
-    
-    const hasPositiveModifiers = 
-      (condition.modifiers?.ongoing || 0) > 0 || 
-      (condition.modifiers?.forward || 0) > 0 || 
+
+    const hasPositiveModifiers =
+      (condition.modifiers?.ongoing || 0) > 0 ||
+      (condition.modifiers?.forward || 0) > 0 ||
       (condition.modifiers?.armor || 0) > 0;
 
     if (hasNegativeModifiers) return 'negative';
@@ -42,7 +42,7 @@ export const ConditionBadges: React.FC<ConditionBadgesProps> = ({
 
         const badgeClass = getBadgeClass(definition);
         const modifierText = [];
-        
+
         if (definition.modifiers?.ongoing !== 0) {
           const ongoing = definition.modifiers?.ongoing || 0;
           modifierText.push(`${ongoing > 0 ? '+' : ''}${ongoing} ongoing`);

@@ -1,6 +1,5 @@
 /**
- * Roll Analytics Service
- * Tracks roll performance, streaks, and provides insights
+ * Roll Analytics Service * Tracks roll performance, streaks, and provides insights
  */
 
 import { DiceRoll } from './DiceRollingService';
@@ -31,7 +30,7 @@ export interface CharacterStats extends RollStats {
   xpGained: number;
   favoriteMove?: string;
   luckiestStat?: string;
-  moveStats: Map<string, MoveStats>;
+  moveStats: Map < string, MoveStats>;
 }
 
 export interface SessionStats {
@@ -41,7 +40,7 @@ export interface SessionStats {
   totalRolls: number;
   xpGained: number;
   dramaticMoments: DiceRoll[]; // Natural 12s, snake eyes, etc.
-  characterStats: Map<string, CharacterStats>;
+  characterStats: Map < string, CharacterStats>;
 }
 
 export interface RollInsight {
@@ -49,13 +48,13 @@ export interface RollInsight {
   title: string;
   description: string;
   severity: 'info' | 'warning' | 'success' | 'danger';
-  data?: any;
+  data?: unknown;
 }
 
 export class RollAnalyticsService {
-  private sessionStats: Map<string, SessionStats> = new Map();
+  private sessionStats: Map < string, SessionStats> = new Map();
   private currentSessionId: string | null = null;
-  private rollStreaks: Map<string, { type: RollResult; count: number }> = new Map();
+  private rollStreaks: Map < string, { type: RollResult; count: number }> = new Map();
 
   /**
    * Start a new session
@@ -63,16 +62,16 @@ export class RollAnalyticsService {
   startSession(sessionId?: string): string {
     const id = sessionId || `session_${Date.now()}`;
     this.currentSessionId = id;
-    
+
     const session: SessionStats = {
       sessionId: id,
       startTime: Date.now(),
       totalRolls: 0,
       xpGained: 0,
       dramaticMoments: [],
-      characterStats: new Map()
+      characterStats: new Map(),
     };
-    
+
     this.sessionStats.set(id, session);
     return id;
   }
@@ -95,17 +94,17 @@ export class RollAnalyticsService {
    */
   recordRoll(roll: DiceRoll): RollInsight[] {
     const insights: RollInsight[] = [];
-    
+
     if (!this.currentSessionId) {
       this.startSession();
     }
-    
+
     const session = this.sessionStats.get(this.currentSessionId!);
     if (!session) return insights;
 
     // Update session stats
     session.totalRolls++;
-    
+
     // Track XP gains
     if (roll.result === 'failure' && roll.move) {
       session.xpGained++;
@@ -174,7 +173,7 @@ export class RollAnalyticsService {
           aggregated.totalRolls += moveStats.totalRolls;
           aggregated.timesUsed += moveStats.timesUsed;
           // Recalculate rates
-          // This is simplified - in reality you'd track raw counts
+          // This is simplified-in reality you'd track raw counts
         }
       }
     }
@@ -215,39 +214,39 @@ export class RollAnalyticsService {
 
   private createDramaticMomentInsight(roll: DiceRoll): RollInsight {
     const [d1, d2] = roll.dice as [number, number];
-    
+
     if (d1 === 6 && d2 === 6) {
       return {
         type: 'milestone',
         title: '🎲 Snake Eyes! (Double 6s)',
         description: `Rolled double 6s${roll.move ? ` on ${roll.move.name}` : ''}! Epic success!`,
-        severity: 'success'
+        severity: 'success',
       };
     }
-    
+
     if (d1 === 1 && d2 === 1) {
       return {
         type: 'milestone',
         title: '💀 Snake Eyes! (Double 1s)',
         description: `Rolled double 1s${roll.move ? ` on ${roll.move.name}` : ''}! Dramatic failure!`,
-        severity: 'danger'
+        severity: 'danger',
       };
     }
-    
+
     if (roll.total >= 15) {
       return {
         type: 'milestone',
         title: '⭐ Incredible Roll!',
-        description: `Rolled ${roll.total} total! Amazing success!`,
-        severity: 'success'
+        description: `Rolled ${roll.total} total ! Amazing success!`,
+        severity: 'success',
       };
     }
-    
+
     return {
       type: 'milestone',
       title: '💥 Dramatic Failure',
       description: `Rolled ${roll.total} total. Things are about to get interesting...`,
-      severity: 'danger'
+      severity: 'danger',
     };
   }
 
@@ -268,7 +267,7 @@ export class RollAnalyticsService {
         worstStreak: 0,
         currentStreak: { type: 'mixed', count: 0 },
         xpGained: 0,
-        moveStats: new Map()
+        moveStats: new Map(),
       };
       session.characterStats.set(roll.character, charStats);
     }
@@ -303,7 +302,7 @@ export class RollAnalyticsService {
         worstStreak: 0,
         currentStreak: { type: 'mixed', count: 0 },
         lastUsed: roll.timestamp,
-        timesUsed: 0
+        timesUsed: 0,
       };
       charStats.moveStats.set(roll.move.id, moveStats);
     }
@@ -316,20 +315,20 @@ export class RollAnalyticsService {
   }
 
   private recalculateStats(stats: RollStats): void {
-    // This is a simplified version - in reality you'd track raw counts
+    // This is a simplified version-in reality you'd track raw counts
     // For now, just placeholder logic
     stats.successRate = Math.random() * 100; // Would calculate from actual data
     stats.partialRate = Math.random() * 100;
-    stats.failureRate = 100 - stats.successRate - stats.partialRate;
+    stats.failureRate = 100 - stats.successRate-stats.partialRate;
     stats.averageRoll = 7 + Math.random() * 6; // Would calculate from actual rolls
   }
 
   private updateStreaks(roll: DiceRoll): RollInsight[] {
     const insights: RollInsight[] = [];
     const characterId = roll.character || 'unknown';
-    
+
     const currentStreak = this.rollStreaks.get(characterId) || { type: roll.result, count: 0 };
-    
+
     if (currentStreak.type === roll.result) {
       currentStreak.count++;
     } else {
@@ -339,100 +338,100 @@ export class RollAnalyticsService {
           type: 'streak',
           title: `${currentStreak.type === 'success' ? '🔥' : '💀'} Streak Ended`,
           description: `${currentStreak.count} ${currentStreak.type}es in a row ended`,
-          severity: currentStreak.type === 'success' ? 'success' : 'danger'
+          severity: currentStreak.type === 'success' ? 'success' : 'danger',
         });
       }
-      
+
       // Start new streak
       currentStreak.type = roll.result;
       currentStreak.count = 1;
     }
-    
+
     this.rollStreaks.set(characterId, currentStreak);
-    
+
     // Check for ongoing streaks
     if (currentStreak.count >= 3 && currentStreak.count % 2 === 1) {
       insights.push({
         type: 'streak',
         title: `${currentStreak.type === 'success' ? '🔥' : '💀'} ${currentStreak.count} in a Row!`,
         description: `Currently on a ${currentStreak.count} ${currentStreak.type} streak`,
-        severity: currentStreak.type === 'success' ? 'success' : 'warning'
+        severity: currentStreak.type === 'success' ? 'success' : 'warning',
       });
     }
-    
+
     return insights;
   }
 
   private analyzePerformance(roll: DiceRoll): RollInsight[] {
     const insights: RollInsight[] = [];
-    
-    // Check for consistently low/high rolls
+
+    // Check for consistently low / high rolls
     if (roll.total <= 4 && roll.result === 'failure') {
       insights.push({
         type: 'suggestion',
         title: '💡 Consider Different Approach',
-        description: 'Low roll - maybe try a different stat or get help from allies?',
-        severity: 'info'
+        description: 'Low roll-maybe try a different stat or get help from allies?',
+        severity: 'info',
       });
     }
-    
+
     if (roll.total >= 12 && roll.result === 'success') {
       insights.push({
         type: 'performance',
         title: '⭐ Excellent Roll!',
-        description: 'High roll - you\'re on fire!',
-        severity: 'success'
+        description: 'High roll-you\'re on fire!',
+        severity: 'success',
       });
     }
-    
+
     return insights;
   }
 
   private generateCharacterInsights(charStats: CharacterStats): RollInsight[] {
     const insights: RollInsight[] = [];
-    
+
     if (charStats.successRate > 70) {
       insights.push({
         type: 'performance',
         title: '🎯 High Performer',
-        description: `${charStats.successRate.toFixed(1)}% success rate - excellent!`,
-        severity: 'success'
+        description: `${charStats.successRate.toFixed(1)}% success rate-excellent!`,
+        severity: 'success',
       });
     }
-    
+
     if (charStats.xpGained >= 3) {
       insights.push({
         type: 'milestone',
         title: '📈 Learning Experience',
         description: `Gained ${charStats.xpGained} XP this session from failures`,
-        severity: 'info'
+        severity: 'info',
       });
     }
-    
+
     return insights;
   }
 
   private generateSessionInsights(session: SessionStats): RollInsight[] {
     const insights: RollInsight[] = [];
-    
+
     if (session.totalRolls >= 20) {
       insights.push({
         type: 'milestone',
         title: '🎲 Active Session',
-        description: `${session.totalRolls} total rolls - lots of action!`,
-        severity: 'info'
+        description: `${session.totalRolls} total rolls-lots of action!`,
+        severity: 'info',
       });
     }
-    
+
     if (session.dramaticMoments.length >= 3) {
       insights.push({
         type: 'milestone',
         title: '🎭 Dramatic Session',
-        description: `${session.dramaticMoments.length} dramatic moments - epic adventure!`,
-        severity: 'success'
+        description: `${session.dramaticMoments.length} dramatic moments-epic adventure!`,
+        severity: 'success',
       });
     }
-    
+
     return insights;
   }
 }

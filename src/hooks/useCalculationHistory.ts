@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { 
-  calculationHistory, 
-  CalculationChange, 
-  CalculationSnapshot 
+import {
+  calculationHistory,
+  CalculationChange,
+  CalculationSnapshot,
 } from '../services/CalculationHistory';
 import { CalculatedValues } from '../services/CalculationEngine';
 import { Character } from '../models/Character';
 
 export function useCalculationHistory(
   character: Character | null,
-  calculatedValues: CalculatedValues | null
+  calculatedValues: CalculatedValues | null,
 ) {
-  const [recentChanges, setRecentChanges] = useState<CalculationChange[]>([]);
+  const [recentChanges, setRecentChanges] = useState < CalculationChange[]>([]);
   const previousValues = useRef<{
     hp?: number;
     armor?: number;
@@ -26,20 +26,20 @@ export function useCalculationHistory(
     if (!character || !calculatedValues) return;
 
     // Track HP changes
-    if (previousValues.current.hp !== undefined && 
+    if (previousValues.current.hp !== undefined &&
         previousValues.current.hp !== character.hp.current) {
-      const reason = character.hp.current < previousValues.current.hp 
-        ? 'Took damage' 
+      const reason = character.hp.current < previousValues.current.hp
+        ? 'Took damage'
         : 'Healed';
       calculationHistory.recordHPChange(
         previousValues.current.hp,
         character.hp.current,
-        reason
+        reason,
       );
     }
 
     // Track armor changes
-    if (previousValues.current.armor !== undefined && 
+    if (previousValues.current.armor !== undefined &&
         previousValues.current.armor !== calculatedValues.totalArmor) {
       calculationHistory.recordArmorChange(
         previousValues.current.armor,
@@ -48,27 +48,27 @@ export function useCalculationHistory(
         {
           breakdown: {
             base: character.armor,
-            equipped: calculatedValues.totalArmor - character.armor
-          }
-        }
+            equipped: calculatedValues.totalArmor-character.armor,
+          },
+        },
       );
     }
 
     // Track load changes
-    if (previousValues.current.load !== undefined && 
+    if (previousValues.current.load !== undefined &&
         previousValues.current.load !== calculatedValues.currentLoad) {
       calculationHistory.recordLoadChange(
         previousValues.current.load,
         calculatedValues.currentLoad,
         'Inventory change',
         {
-          encumbrance: calculatedValues.encumbranceStatus
-        }
+          encumbrance: calculatedValues.encumbranceStatus,
+        },
       );
     }
 
     // Track XP changes
-    if (previousValues.current.xp !== undefined && 
+    if (previousValues.current.xp !== undefined &&
         previousValues.current.xp !== character.xp) {
       const reason = character.xp > previousValues.current.xp
         ? 'Gained XP'
@@ -76,28 +76,28 @@ export function useCalculationHistory(
       calculationHistory.recordXPChange(
         previousValues.current.xp,
         character.xp,
-        reason
+        reason,
       );
     }
 
     // Track modifier changes
-    if (previousValues.current.ongoingMod !== undefined && 
+    if (previousValues.current.ongoingMod !== undefined &&
         previousValues.current.ongoingMod !== calculatedValues.ongoingModifier) {
       calculationHistory.recordModifierChange(
         'ongoing',
         previousValues.current.ongoingMod,
         calculatedValues.ongoingModifier,
-        'Modifier applied/removed'
+        'Modifier applied / removed',
       );
     }
 
-    if (previousValues.current.forwardMod !== undefined && 
+    if (previousValues.current.forwardMod !== undefined &&
         previousValues.current.forwardMod !== calculatedValues.forwardModifier) {
       calculationHistory.recordModifierChange(
         'forward',
         previousValues.current.forwardMod,
         calculatedValues.forwardModifier,
-        'Modifier applied/removed'
+        'Modifier applied / removed',
       );
     }
 
@@ -108,7 +108,7 @@ export function useCalculationHistory(
       load: calculatedValues.currentLoad,
       xp: character.xp,
       ongoingMod: calculatedValues.ongoingModifier,
-      forwardMod: calculatedValues.forwardModifier
+      forwardMod: calculatedValues.forwardModifier,
     };
 
     // Update recent changes
@@ -124,15 +124,15 @@ export function useCalculationHistory(
       armor: calculatedValues.totalArmor,
       load: { current: calculatedValues.currentLoad, max: calculatedValues.maxLoad },
       xp: { current: character.xp, threshold: calculatedValues.xpThreshold },
-      damage: { 
-        die: character.damageDie, 
-        bonus: calculatedValues.damageBonus 
+      damage: {
+        die: character.damageDie,
+        bonus: calculatedValues.damageBonus,
       },
       modifiers: {
         ongoing: calculatedValues.ongoingModifier,
-        forward: calculatedValues.forwardModifier
+        forward: calculatedValues.forwardModifier,
       },
-      conditions: calculatedValues.activeConditions.map(c => c.name)
+      conditions: calculatedValues.activeConditions.map(c => c.name),
     });
   }, [character, calculatedValues]);
 
@@ -165,6 +165,6 @@ export function useCalculationHistory(
     importHistory: (data: string) => {
       calculationHistory.importHistory(data);
       setRecentChanges(calculationHistory.getRecentHistory(10));
-    }
+    },
   };
 }

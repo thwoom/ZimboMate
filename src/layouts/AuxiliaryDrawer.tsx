@@ -12,9 +12,9 @@ interface RollResult {
   details?: string;
 }
 
-const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
-  const [lastRoll, setLastRoll] = useState<RollResult | null>(null);
-  
+const AuxiliaryDrawer: React.FC < AuxiliaryDrawerProps> = ({ onClose }) => {
+  const [lastRoll, setLastRoll] = useState < RollResult | null>(null);
+
   useEffect(() => {
     // Listen for attribute rolls from panels
     const unsubscribe = panelEventBus.on('attribute-rolled', (event) => {
@@ -22,10 +22,10 @@ const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
       setLastRoll({
         type: 'attribute',
         total,
-        details: `${attribute}: ${roll1}+${roll2}${modifier >= 0 ? '+' : ''}${modifier} = ${total}`
+        details: `${attribute}: ${roll1}+${roll2}${modifier >= 0 ? '+' : ''}${modifier} = ${total}`,
       });
     });
-    
+
     return unsubscribe;
   }, []);
   return (
@@ -43,9 +43,9 @@ const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
 
       <div className="auxiliary-drawer__content">
         <section className="auxiliary-drawer__section">
-          <h4>Dice Roller</h4>
+          <h4 > Dice Roller</h4>
           <div className="dice-roller-placeholder">
-            <button 
+            <button
               className="dice-button"
               onClick={() => {
                 const roll1 = Math.floor(Math.random() * 6) + 1;
@@ -54,15 +54,15 @@ const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
                 setLastRoll({
                   type: 'basic',
                   total,
-                  details: `${roll1}+${roll2} = ${total}`
+                  details: `${roll1}+${roll2} = ${total}`,
                 });
-                
+
                 // Emit dice roll event for panels to listen to
                 panelEventBus.emit('aux-drawer', 'dice-rolled', {
                   roll1,
                   roll2,
                   total,
-                  timestamp: Date.now()
+                  timestamp: Date.now(),
                 });
               }}
             >
@@ -76,10 +76,7 @@ const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
                 <p className="dice-result__details">
                   {lastRoll.details}
                 </p>
-                <p className={`dice-result__outcome ${
-                  lastRoll.total >= 10 ? 'success' : 
-                  lastRoll.total >= 7 ? 'partial' : 'miss'
-                }`}>
+                <p className={`dice-result__outcome ${lastRoll.total >= 10 ? 'success' : lastRoll.total >= 7 ? 'partial' : 'miss'}`}>
                   {lastRoll.total >= 10 ? '✓ Success!' : lastRoll.total >= 7 ? '~ Partial Success' : '✗ Miss...'}
                 </p>
               </div>
@@ -88,7 +85,7 @@ const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
         </section>
 
         <section className="auxiliary-drawer__section">
-          <h4>Quick Notes</h4>
+          <h4 > Quick Notes</h4>
           <textarea
             className="quick-notes-textarea"
             placeholder="Take quick notes during the session..."
@@ -97,11 +94,11 @@ const AuxiliaryDrawer: React.FC<AuxiliaryDrawerProps> = ({ onClose }) => {
         </section>
 
         <section className="auxiliary-drawer__section">
-          <h4>Active Counters</h4>
+          <h4 > Active Counters</h4>
           <div className="counters-placeholder">
-            <p>Hold: 0</p>
-            <p>Forward: 0</p>
-            <p>Ongoing: 0</p>
+            <p > Hold: 0</p>
+            <p > Forward: 0</p>
+            <p > Ongoing: 0</p>
           </div>
         </section>
       </div>

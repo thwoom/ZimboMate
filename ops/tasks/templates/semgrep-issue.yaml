@@ -1,0 +1,77 @@
+id: semgrep-issue-template
+title: "[Semgrep] Security/Logic Issue - {{ISSUE_TYPE}}"
+description: |
+  **Issue Type:** {{ISSUE_TYPE}}
+  **Severity:** {{SEVERITY}}
+  **File:** {{FILE_PATH}}
+  **Line:** {{LINE_NUMBER}}
+  **Column:** {{COLUMN_NUMBER}}
+  
+  **Description:**
+  {{ISSUE_DESCRIPTION}}
+  
+  **Semgrep Check ID:** {{CHECK_ID}}
+  
+  **Suggested Fix:**
+  ```typescript
+  {{SUGGESTED_FIX}}
+  ```
+  
+  **Context:**
+  This issue was automatically detected by Semgrep static analysis. Semgrep is a security-focused static analysis tool that identifies potential security vulnerabilities, logic bugs, and code quality issues.
+  
+  **Category:** {{CATEGORY}}
+  
+  **Next Steps:**
+  1. Review the code at the specified location
+  2. Understand the security/logic implications
+  3. Apply the suggested fix if applicable
+  4. Test the changes thoroughly
+  5. Consider if this pattern exists elsewhere in the codebase
+  6. Update any related documentation
+  7. Mark this task as complete when resolved
+  
+  **Resources:**
+  - [Semgrep Documentation](https://semgrep.dev/docs/)
+  - [OWASP Security Guidelines](https://owasp.org/www-project-top-ten/)
+  - [TypeScript Security Best Practices](https://github.com/typescript-eslint/typescript-eslint/blob/main/docs/getting-started/security.md)
+
+status: pending
+priority: {{PRIORITY}}
+category: security
+tags:
+  - semgrep
+  - static-analysis
+  - {{CATEGORY}}
+  - {{SEVERITY}}
+
+created: {{CREATED_DATE}}
+updated: {{CREATED_DATE}}
+
+metadata:
+  semgrep:
+    checkId: {{CHECK_ID}}
+    file: {{FILE_PATH}}
+    line: {{LINE_NUMBER}}
+    column: {{COLUMN_NUMBER}}
+    severity: {{SEVERITY}}
+    category: {{CATEGORY}}
+    suggestedFix: {{SUGGESTED_FIX}}
+    issueType: {{ISSUE_TYPE}}
+  
+  automation:
+    source: semgrep-integration
+    version: "1.0.0"
+    generated: true
+
+dependencies: []
+blockedBy: []
+blocks: []
+
+timeEstimate: 30m
+timeSpent: 0m
+
+assignee: null
+reviewer: null
+
+notes: []

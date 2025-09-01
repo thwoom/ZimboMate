@@ -4,27 +4,27 @@ import './ModifiersPanel.css';
 
 interface ModifiersPanelProps {
   modifiers: ModifierSet;
-  onAddModifier: (modifier: Omit<TemporaryModifier, 'id'>) => void;
+  onAddModifier: (modifier: Omit < TemporaryModifier, 'id'>) => void;
   onRemoveModifier: (id: string) => void;
-  onUpdateModifier: (id: string, updates: Partial<TemporaryModifier>) => void;
+  onUpdateModifier: (id: string, updates: Partial < TemporaryModifier>) => void;
   onClearExpired?: () => void;
 }
 
-export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
+export const ModifiersPanel: React.FC < ModifiersPanelProps> = ({
   modifiers,
   onAddModifier,
   onRemoveModifier,
   onUpdateModifier,
-  onClearExpired
+  onClearExpired,
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newModifier, setNewModifier] = useState<Partial<TemporaryModifier>>({
+  const [newModifier, setNewModifier] = useState < Partial < TemporaryModifier>>({
     name: '',
     value: 0,
     type: 'ongoing',
     source: '',
     target: 'all-rolls',
-    expiry: 'scene'
+    expiry: 'scene',
   });
 
   const handleAddModifier = () => {
@@ -38,7 +38,7 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
       target: newModifier.target || 'all-rolls',
       expiry: newModifier.expiry || 'scene',
       createdAt: new Date(),
-      active: true
+      active: true,
     });
 
     // Reset form
@@ -48,7 +48,7 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
       type: 'ongoing',
       source: '',
       target: 'all-rolls',
-      expiry: 'scene'
+      expiry: 'scene',
     });
     setShowAddForm(false);
   };
@@ -70,15 +70,15 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
 
   const formatExpiry = (expiryTime?: Date) => {
     if (!expiryTime) return 'Permanent';
-    
+
     const now = new Date();
-    const diff = expiryTime.getTime() - now.getTime();
-    
+    const diff = expiryTime.getTime()-Date.now();
+
     if (diff <= 0) return 'Expired';
-    
+
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) return `${hours}h ${minutes % 60}m`;
     return `${minutes}m`;
   };
@@ -97,7 +97,7 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
       .reduce((sum, m) => sum + m.value, 0),
     hold: modifiers.modifiers
       .filter(m => m.type === 'hold' && !isExpired(m))
-      .reduce((sum, m) => sum + m.value, 0)
+      .reduce((sum, m) => sum + m.value, 0),
   };
 
   const activeModifiers = modifiers.modifiers.filter(m => !isExpired(m));
@@ -106,8 +106,8 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
   return (
     <div className="modifiers-panel">
       <div className="modifiers-header">
-        <h3>Temporary Modifiers</h3>
-        <button 
+        <h3 > Temporary Modifiers</h3>
+        <button
           className="add-modifier-btn"
           onClick={() => setShowAddForm(!showAddForm)}
         >
@@ -157,7 +157,7 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
             />
             <select
               value={newModifier.type}
-              onChange={(e) => setNewModifier({ ...newModifier, type: e.target.value as any })}
+              onChange={(e) => setNewModifier({ ...newModifier, type: e.target.value as string })}
               aria-label="Modifier type"
             >
               <option value="ongoing">Ongoing</option>
@@ -187,7 +187,7 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
 
       {/* Active Modifiers */}
       <div className="modifiers-list">
-        <h4>Active Modifiers</h4>
+        <h4 > Active Modifiers</h4>
         {activeModifiers.length === 0 ? (
           <div className="no-modifiers">No active modifiers</div>
         ) : (
@@ -206,7 +206,7 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
                 </div>
                 <div className="modifier-controls">
                   <span className="modifier-expiry">{formatExpiry(modifier.expiryTime)}</span>
-                  <button 
+                  <button
                     className="remove-btn"
                     onClick={() => onRemoveModifier(modifier.id)}
                     title="Remove modifier"
@@ -224,7 +224,7 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
       {expiredModifiers.length > 0 && (
         <div className="expired-section">
           <div className="expired-header">
-            <h4>Expired Modifiers</h4>
+            <h4 > Expired Modifiers</h4>
             {onClearExpired && (
               <button onClick={onClearExpired} className="clear-expired-btn">
                 Clear All
@@ -235,7 +235,7 @@ export const ModifiersPanel: React.FC<ModifiersPanelProps> = ({
             <div key={modifier.id} className="modifier-item expired">
               <span className="modifier-icon">{getModifierIcon(modifier.type)}</span>
               <span className="modifier-name">{modifier.name}</span>
-              <button 
+              <button
                 className="remove-btn"
                 onClick={() => onRemoveModifier(modifier.id)}
               >

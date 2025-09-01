@@ -39,7 +39,7 @@ export interface ArmorInfo {
 }
 
 class EquipmentCalculationService {
-  
+
   /**
    * Calculate all equipment-related stats for a character
    */
@@ -60,7 +60,7 @@ class EquipmentCalculationService {
       damageBonus,
       damageDice,
       encumbranceStatus,
-      specialEffects
+      specialEffects,
     };
   }
 
@@ -152,7 +152,7 @@ class EquipmentCalculationService {
    */
   calculateEncumbrance(totalWeight: number, character: Character): 'normal' | 'encumbered' | 'overloaded' {
     const maxLoad = character.load?.max || this.calculateMaxLoad(character);
-    
+
     if (totalWeight <= maxLoad) {
       return 'normal';
     } else if (totalWeight <= maxLoad + 2) {
@@ -167,7 +167,7 @@ class EquipmentCalculationService {
    */
   calculateMaxLoad(character: Character): number {
     const baseLoad = character.baseLoad || 10;
-    const strModifier = Math.floor((character.attributes.STR - 10) / 2);
+    const strModifier = Math.floor((character.attributes.STR-10) / 2);
     return baseLoad + strModifier;
   }
 
@@ -186,16 +186,16 @@ class EquipmentCalculationService {
           description: '-1 ongoing to DEX-based moves',
           type: 'penalty',
           affects: ['DEX'],
-          value: -1
+          value: -1,
         });
       }
 
       // Check for magical bonuses
       if (hasTag(item, 'magical')) {
-        const enhancement = isWeapon(item) ? item.enhancement : 
-                          isArmor(item) ? item.enhancement : 
+        const enhancement = isWeapon(item) ? item.enhancement :
+                          isArmor(item) ? item.enhancement :
                           getTagValue(item, 'enhancement');
-        
+
         if (enhancement && typeof enhancement === 'number') {
           effects.push({
             id: `${item.id}-magical`,
@@ -203,7 +203,7 @@ class EquipmentCalculationService {
             description: `+${enhancement} magical bonus`,
             type: 'bonus',
             affects: isWeapon(item) ? ['damage'] : isArmor(item) ? ['armor'] : ['special'],
-            value: enhancement
+            value: enhancement,
           });
         }
       }
@@ -215,7 +215,7 @@ class EquipmentCalculationService {
           name: 'Forceful Weapon',
           description: 'Can knock enemies back or down',
           type: 'special',
-          affects: ['combat']
+          affects: ['combat'],
         });
       }
 
@@ -225,7 +225,7 @@ class EquipmentCalculationService {
           name: 'Precise Weapon',
           description: 'Use DEX instead of STR for damage',
           type: 'special',
-          affects: ['damage', 'DEX']
+          affects: ['damage', 'DEX'],
         });
       }
 
@@ -236,7 +236,7 @@ class EquipmentCalculationService {
           description: '+1d4 damage but creates mess',
           type: 'bonus',
           affects: ['damage'],
-          value: 1
+          value: 1,
         });
       }
 
@@ -247,7 +247,7 @@ class EquipmentCalculationService {
           name: `${item.name} Special`,
           description: item.customMove,
           type: 'special',
-          affects: ['special']
+          affects: ['special'],
         });
       }
     }
@@ -270,7 +270,7 @@ class EquipmentCalculationService {
       damage: item.damage || 'No damage specified',
       tags,
       range,
-      properties
+      properties,
     };
   }
 
@@ -287,7 +287,7 @@ class EquipmentCalculationService {
       name: item.name,
       armorValue: item.armorValue || 0,
       tags,
-      penalties
+      penalties,
     };
   }
 
@@ -307,10 +307,10 @@ class EquipmentCalculationService {
    */
   private getWeaponProperties(tags: string[]): string[] {
     const properties: string[] = [];
-    
+
     const propertyTags = [
-      'forceful', 'messy', 'piercing', 'precise', 'reload', 
-      'stun', 'thrown', 'two-handed', 'awkward', 'dangerous'
+      'forceful', 'messy', 'piercing', 'precise', 'reload',
+      'stun', 'thrown', 'two-handed', 'awkward', 'dangerous',
     ];
 
     for (const tag of tags) {
@@ -361,7 +361,7 @@ class EquipmentCalculationService {
       warnings.push('Low DEX reduces effectiveness of precise weapons');
     }
 
-    // Check class restrictions (if any)
+    // Check class restrictions (if unknown)
     const classRestrictions = this.getClassWeaponRestrictions(character.class);
     if (classRestrictions.length > 0) {
       const weaponType = this.getWeaponType(weapon);
@@ -378,10 +378,10 @@ class EquipmentCalculationService {
    * Get class weapon restrictions
    */
   private getClassWeaponRestrictions(characterClass: string): string[] {
-    const restrictions: Record<string, string[]> = {
+    const restrictions: Record < string, string[]> = {
       'Wizard': ['heavy', 'martial'],
       'Thief': ['heavy'],
-      'Druid': ['metal'] // No metal weapons/armor
+      'Druid': ['metal'], // No metal weapons / armor
     };
 
     return restrictions[characterClass] || [];
@@ -418,11 +418,11 @@ class EquipmentCalculationService {
     }
 
     // Equip essential items
-    const essentials = inventory.filter(item => 
-      hasTag(item, 'ration') || 
+    const essentials = inventory.filter(item =>
+      hasTag(item, 'ration') ||
       hasTag(item, 'adventuring-gear') ||
       item.name.toLowerCase().includes('rope') ||
-      item.name.toLowerCase().includes('torch')
+      item.name.toLowerCase().includes('torch'),
     );
 
     for (const item of essentials) {
@@ -480,11 +480,11 @@ class EquipmentCalculationService {
     }
 
     // Class synergy
-    const classBonuses: Record<string, string[]> = {
+    const classBonuses: Record < string, string[]> = {
       'Fighter': ['forceful', 'two-handed'],
       'Thief': ['precise', 'thrown'],
       'Ranger': ['close', 'near'],
-      'Wizard': ['precise', 'thrown']
+      'Wizard': ['precise', 'thrown'],
     };
 
     const preferredTags = classBonuses[character.class] || [];

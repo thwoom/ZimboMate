@@ -5,16 +5,16 @@
 import { Item, getItemTotalWeight } from './Equipment';
 
 // Inventory categories for organization
-export type InventoryCategory = 
+export type InventoryCategory =
   | 'equipped'    // Currently equipped items
-  | 'carried'     // In backpack/pouches
-  | 'stored'      // In storage/stash
+  | 'carried'     // In backpack / pouches
+  | 'stored'      // In storage / stash
   | 'consumables' // Quick access consumables
   | 'treasure'    // Valuable items
   | 'other';      // Miscellaneous
 
 // Encumbrance status
-export type EncumbranceStatus = 
+export type EncumbranceStatus =
   | 'normal'      // Weight <= Load
   | 'encumbered'  // Weight <= Load + 2 (-1 ongoing)
   | 'overloaded'; // Weight > Load + 2 (can barely move)
@@ -31,7 +31,7 @@ export interface Container {
 
 // Complete inventory
 export interface Inventory {
-  items: Record<string, Item>; // All items keyed by ID
+  items: Record < string, Item>; // All items keyed by ID
   containers: Container[]; // Organization containers
   quickSlots: string[]; // Item IDs for quick access
   lastUpdated: Date;
@@ -43,7 +43,7 @@ export interface InventoryStats {
   totalValue: number;
   itemCount: number;
   encumbranceStatus: EncumbranceStatus;
-  weightByCategory: Record<InventoryCategory, number>;
+  weightByCategory: Record < InventoryCategory, number>;
 }
 
 // Utility functions
@@ -59,23 +59,23 @@ export function createEmptyInventory(): Inventory {
         id: 'equipped',
         name: 'Equipped',
         category: 'equipped',
-        items: []
+        items: [],
       },
       {
         id: 'carried',
         name: 'Carried',
         category: 'carried',
-        items: []
+        items: [],
       },
       {
         id: 'consumables',
         name: 'Consumables',
         category: 'consumables',
-        items: []
-      }
+        items: [],
+      },
     ],
     quickSlots: [],
-    lastUpdated: new Date()
+    lastUpdated: new Date(),
   };
 }
 
@@ -83,9 +83,9 @@ export function createEmptyInventory(): Inventory {
  * Add item to inventory
  */
 export function addItem(inventory: Inventory, item: Item, containerId?: string): Inventory {
-  const newInventory = { ...inventory };
+  const newInventory =  { ...inventory };
   newInventory.items[item.id] = item;
-  
+
   // Add to container if specified
   if (containerId) {
     const container = newInventory.containers.find(c => c.id === containerId);
@@ -93,7 +93,7 @@ export function addItem(inventory: Inventory, item: Item, containerId?: string):
       container.items.push(item.id);
     }
   }
-  
+
   newInventory.lastUpdated = new Date();
   return newInventory;
 }
@@ -103,18 +103,18 @@ export function addItem(inventory: Inventory, item: Item, containerId?: string):
  */
 export function removeItem(inventory: Inventory, itemId: string): Inventory {
   const newInventory = { ...inventory };
-  
+
   // Remove from items
   delete newInventory.items[itemId];
-  
+
   // Remove from all containers
   newInventory.containers.forEach(container => {
     container.items = container.items.filter(id => id !== itemId);
   });
-  
+
   // Remove from quick slots
   newInventory.quickSlots = newInventory.quickSlots.filter(id => id !== itemId);
-  
+
   newInventory.lastUpdated = new Date();
   return newInventory;
 }
@@ -126,20 +126,20 @@ export function moveItem(
   inventory: Inventory,
   itemId: string,
   fromContainerId: string,
-  toContainerId: string
+  toContainerId: string,
 ): Inventory {
   const newInventory = { ...inventory };
-  
+
   const fromContainer = newInventory.containers.find(c => c.id === fromContainerId);
   const toContainer = newInventory.containers.find(c => c.id === toContainerId);
-  
+
   if (fromContainer && toContainer) {
     fromContainer.items = fromContainer.items.filter(id => id !== itemId);
     if (!toContainer.items.includes(itemId)) {
       toContainer.items.push(itemId);
     }
   }
-  
+
   newInventory.lastUpdated = new Date();
   return newInventory;
 }
@@ -150,14 +150,14 @@ export function moveItem(
 export function toggleEquipped(inventory: Inventory, itemId: string): Inventory {
   const newInventory = { ...inventory };
   const item = newInventory.items[itemId];
-  
+
   if (item) {
     item.equipped = !item.equipped;
-    
+
     // Move between equipped and carried containers
     const equippedContainer = newInventory.containers.find(c => c.category === 'equipped');
     const carriedContainer = newInventory.containers.find(c => c.category === 'carried');
-    
+
     if (item.equipped) {
       // Move to equipped
       if (carriedContainer) {
@@ -176,7 +176,7 @@ export function toggleEquipped(inventory: Inventory, itemId: string): Inventory 
       }
     }
   }
-  
+
   newInventory.lastUpdated = new Date();
   return newInventory;
 }
@@ -186,34 +186,34 @@ export function toggleEquipped(inventory: Inventory, itemId: string): Inventory 
  */
 export function calculateInventoryStats(
   inventory: Inventory,
-  maxLoad: number
+  maxLoad: number,
 ): InventoryStats {
   let totalWeight = 0;
   let totalValue = 0;
   let itemCount = 0;
-  const weightByCategory: Record<InventoryCategory, number> = {
+  const weightByCategory: Record < InventoryCategory, number> = {
     equipped: 0,
     carried: 0,
     stored: 0,
     consumables: 0,
     treasure: 0,
-    other: 0
+    other: 0,
   };
-  
+
   // Calculate totals
   for (const item of Object.values(inventory.items)) {
     const itemWeight = getItemTotalWeight(item);
     totalWeight += itemWeight;
     totalValue += (item.value || 0) * item.quantity;
     itemCount += item.quantity;
-    
+
     // Find which container has this item
     const container = inventory.containers.find(c => c.items.includes(item.id));
     if (container) {
       weightByCategory[container.category] += itemWeight;
     }
   }
-  
+
   // Determine encumbrance status
   let encumbranceStatus: EncumbranceStatus = 'normal';
   if (totalWeight > maxLoad + 2) {
@@ -221,13 +221,13 @@ export function calculateInventoryStats(
   } else if (totalWeight > maxLoad) {
     encumbranceStatus = 'encumbered';
   }
-  
+
   return {
     totalWeight,
     totalValue,
     itemCount,
     encumbranceStatus,
-    weightByCategory
+    weightByCategory,
   };
 }
 
@@ -237,7 +237,7 @@ export function calculateInventoryStats(
 export function getContainerItems(inventory: Inventory, containerId: string): Item[] {
   const container = inventory.containers.find(c => c.id === containerId);
   if (!container) return [];
-  
+
   return container.items
     .map(itemId => inventory.items[itemId])
     .filter(item => item !== undefined);
@@ -248,9 +248,9 @@ export function getContainerItems(inventory: Inventory, containerId: string): It
  */
 export function searchItems(inventory: Inventory, query: string): Item[] {
   const lowerQuery = query.toLowerCase();
-  return Object.values(inventory.items).filter(item => 
+  return Object.values(inventory.items).filter(item =>
     item.name.toLowerCase().includes(lowerQuery) ||
-    (item.description && item.description.toLowerCase().includes(lowerQuery))
+    (item.description && item.description.toLowerCase().includes(lowerQuery)),
   );
 }
 
@@ -266,16 +266,16 @@ export function getEquippedItems(inventory: Inventory): Item[] {
  */
 export function sortItems(
   items: Item[],
-  sortBy: 'name' | 'weight' | 'value' | 'category' = 'name'
+  sortBy: 'name' | 'weight' | 'value' | 'category' = 'name',
 ): Item[] {
   return [...items].sort((a, b) => {
     switch (sortBy) {
       case 'name':
         return a.name.localeCompare(b.name);
       case 'weight':
-        return getItemTotalWeight(b) - getItemTotalWeight(a);
+        return getItemTotalWeight(b)-getItemTotalWeight(a);
       case 'value':
-        return (b.value || 0) - (a.value || 0);
+        return (b.value || 0)-(a.value || 0);
       case 'category':
         return a.category.localeCompare(b.category);
       default:

@@ -18,35 +18,30 @@ export class GlobalErrorHandler {
   private setupGlobalHandlers(): void {
     // Handle unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled Promise Rejection:', event.reason);
-      
-      const error = event.reason instanceof Error 
-        ? event.reason 
+      const error = event.reason instanceof Error
+        ? event.reason
         : new Error(String(event.reason));
-      
+
       this.logError(error, 'unhandled-promise-rejection');
-      
+
       // Prevent the default browser behavior (logging to console)
       // event.preventDefault();
     });
 
     // Handle uncaught JavaScript errors
     window.addEventListener('error', (event) => {
-      console.error('Uncaught Error:', event.error);
-      
-      const error = event.error instanceof Error 
-        ? event.error 
+      const error = event.error instanceof Error
+        ? event.error
         : new Error(event.message);
-      
+
       this.logError(error, 'uncaught-error');
     });
 
     // Handle resource loading errors (images, scripts, etc.)
     window.addEventListener('error', (event) => {
       if (event.target !== window) {
-        const target = event.target as HTMLElement;
-        const error = new Error(`Resource failed to load: ${target.tagName} - ${target.getAttribute('src') || target.getAttribute('href')}`);
-        this.logError(error, 'resource-load-error');
+        const resourceError = new Error(`Resource loading failed: ${event.target}`);
+        this.logError(resourceError, 'resource-load-error');
       }
     }, true); // Use capture phase to catch resource errors
   }
@@ -55,7 +50,7 @@ export class GlobalErrorHandler {
     const errorEntry = {
       error,
       timestamp: Date.now(),
-      context
+      context,
     };
 
     // Add to queue
@@ -68,10 +63,8 @@ export class GlobalErrorHandler {
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.group(`🚨 Global Error Handler - ${context || 'Unknown Context'}`);
-      console.error('Error:', error);
-      console.error('Stack:', error.stack);
-      console.error('Timestamp:', new Date(errorEntry.timestamp).toISOString());
+      console.group(`🚨 Global Error Handler-${context || 'Unknown Context'}`);
+      console.log('Error:', errorEntry.error.message);
       console.groupEnd();
     }
 
@@ -82,7 +75,7 @@ export class GlobalErrorHandler {
   private reportError(errorEntry: { error: Error; timestamp: number; context?: string }): void {
     // TODO: Replace with your actual error reporting service
     // Examples: Sentry, Bugsnag, LogRocket, etc.
-    
+
     const errorReport = {
       message: errorEntry.error.message,
       stack: errorEntry.error.stack,
@@ -92,7 +85,7 @@ export class GlobalErrorHandler {
       url: window.location.href,
       userId: this.getCurrentUserId(), // If you have user tracking
       sessionId: this.getSessionId(),
-      buildVersion: process.env.REACT_APP_VERSION || 'unknown'
+      buildVersion: (import.meta.env?.VITE_APP_VERSION as string) || 'unknown',
     };
 
     // Example: Send to your error tracking service
@@ -103,10 +96,16 @@ export class GlobalErrorHandler {
     //   }
     // });
 
-    console.log('Error report prepared:', errorReport);
+    // Example: Send to your error tracking service
+    // errorTrackingService.captureException(errorEntry.error, {
+    //   extra: errorReport,
+    //   tags: {
+    //     context: errorEntry.context
+    //   }
+    // });
   }
 
-  public getRecentErrors(limit: number = 10): Array<{ error: Error; timestamp: number; context?: string }> {
+  public getRecentErrors(limit = 10): Array<{ error: Error; timestamp: number; context?: string }> {
     return this.errorQueue.slice(-limit);
   }
 
@@ -146,10 +145,10 @@ export class GlobalErrorHandler {
 export const globalErrorHandler = GlobalErrorHandler.getInstance();
 
 // Export convenience functions
-export const captureException = (error: Error, context?: string) => 
+export const captureException = (error: Error, context?: string) =>
   globalErrorHandler.captureException(error, context);
 
-export const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info', context?: string) => 
+export const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info', context?: string) =>
   globalErrorHandler.captureMessage(message, level, context);
 
 // React hook for error handling in components
@@ -161,6 +160,6 @@ export const useErrorHandler = () => {
     captureMessage: (message: string, level: 'info' | 'warning' | 'error' = 'info', context?: string) => {
       globalErrorHandler.captureMessage(message, level, context);
     },
-    getRecentErrors: (limit?: number) => globalErrorHandler.getRecentErrors(limit)
+    getRecentErrors: (limit?: number) => globalErrorHandler.getRecentErrors(limit),
   };
 };

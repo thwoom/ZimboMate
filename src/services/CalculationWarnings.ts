@@ -13,7 +13,7 @@ export interface CalculationWarning {
     label: string;
     action: () => void;
   };
-  details?: Record<string, unknown>;
+  details?: Record < string, unknown>;
 }
 
 export class CalculationWarningsService {
@@ -25,7 +25,7 @@ export class CalculationWarningsService {
     xp: { current: number; threshold: number };
     level: number;
     bonds: number;
-    debilities: Record<string, boolean>;
+    debilities: Record < string, boolean>;
     equippedItems: Array<{ name: string; category: string; tags?: Array<{ name: string }> }>;
   }): CalculationWarning[] {
     const warnings: CalculationWarning[] = [];
@@ -38,8 +38,8 @@ export class CalculationWarningsService {
         category: 'hp',
         title: "Death's Door",
         message: 'Your HP has reached 0. You must immediately make the Last Breath move.',
-        suggestion: 'Roll+nothing (just 2d6). On 10+, you\'re stable. On 7-9, Death offers a bargain. On 6-, you meet your fate.',
-        details: { currentHP: context.hp.current }
+        suggestion: 'Roll + nothing (just 2d6). On 10+, you\'re stable. On 7-9, Death offers a bargain. On 6-, you meet your fate.',
+        details: { currentHP: context.hp.current },
       });
     } else if (context.hp.current <= context.hp.max * 0.25) {
       warnings.push({
@@ -49,7 +49,7 @@ export class CalculationWarningsService {
         title: 'Critically Wounded',
         message: `You have only ${context.hp.current} HP remaining (${Math.round(context.hp.current / context.hp.max * 100)}% of max).`,
         suggestion: 'Consider healing, retreating, or using defensive moves like Defend.',
-        details: { currentHP: context.hp.current, maxHP: context.hp.max }
+        details: { currentHP: context.hp.current, maxHP: context.hp.max },
       });
     } else if (context.hp.current <= context.hp.max * 0.5) {
       warnings.push({
@@ -59,7 +59,7 @@ export class CalculationWarningsService {
         title: 'Wounded',
         message: `You\'re at ${Math.round(context.hp.current / context.hp.max * 100)}% health.`,
         suggestion: 'Keep an eye on your HP and have healing options ready.',
-        details: { currentHP: context.hp.current, maxHP: context.hp.max }
+        details: { currentHP: context.hp.current, maxHP: context.hp.max },
       });
     }
 
@@ -71,11 +71,11 @@ export class CalculationWarningsService {
         title: 'HP Exceeds Maximum',
         message: `Current HP (${context.hp.current}) exceeds your maximum HP (${context.hp.max}).`,
         suggestion: 'Adjust your current HP to not exceed the maximum.',
-        details: { currentHP: context.hp.current, maxHP: context.hp.max }
+        details: { currentHP: context.hp.current, maxHP: context.hp.max },
       });
     }
 
-    // Load/Encumbrance Warnings
+    // Load / Encumbrance Warnings
     if (context.encumbranceStatus === 'overloaded') {
       warnings.push({
         id: 'load-overloaded',
@@ -83,12 +83,12 @@ export class CalculationWarningsService {
         category: 'load',
         title: 'Overloaded!',
         message: `You're carrying ${context.load.current} weight (max: ${context.load.max}). You can barely move!`,
-        suggestion: `Drop at least ${context.load.current - context.load.max} weight worth of items immediately.`,
-        details: { 
-          currentLoad: context.load.current, 
+        suggestion: `Drop at least ${context.load.current-context.load.max} weight worth of items immediately.`,
+        details: {
+          currentLoad: context.load.current,
           maxLoad: context.load.max,
-          excess: context.load.current - context.load.max
-        }
+          excess: context.load.current-context.load.max,
+        },
       });
     } else if (context.encumbranceStatus === 'encumbered') {
       warnings.push({
@@ -96,27 +96,27 @@ export class CalculationWarningsService {
         type: 'warning',
         category: 'load',
         title: 'Encumbered',
-        message: `Carrying ${context.load.current}/${context.load.max} weight. You have -1 ongoing to all rolls.`,
-        suggestion: `Drop ${context.load.current - context.load.max + 1} weight to remove the penalty.`,
-        details: { 
-          currentLoad: context.load.current, 
+        message: `Carrying ${context.load.current}/${context.load.max} weight. You have-1 ongoing to all rolls.`,
+        suggestion: `Drop ${context.load.current-context.load.max + 1} weight to remove the penalty.`,
+        details: {
+          currentLoad: context.load.current,
           maxLoad: context.load.max,
-          penalty: -1
-        }
+          penalty: -1,
+        },
       });
     } else if (context.load.current >= context.load.max * 0.8) {
       warnings.push({
-        id: 'load-near-max',
+        id: 'load-near - max',
         type: 'info',
         category: 'load',
         title: 'Near Load Limit',
         message: `You're at ${Math.round(context.load.current / context.load.max * 100)}% of your load capacity.`,
         suggestion: 'Consider dropping non-essential items before picking up more.',
-        details: { 
-          currentLoad: context.load.current, 
+        details: {
+          currentLoad: context.load.current,
           maxLoad: context.load.max,
-          remaining: context.load.max - context.load.current
-        }
+          remaining: context.load.max-context.load.current,
+        },
       });
     }
 
@@ -130,12 +130,12 @@ export class CalculationWarningsService {
         title: 'Multiple Armor Equipped',
         message: 'You can only wear one suit of armor at a time.',
         suggestion: `Unequip ${equippedArmor.slice(1).map(a => a.name).join(' or ')}.`,
-        details: { equippedArmor: equippedArmor.map(a => a.name) }
+        details: { equippedArmor: equippedArmor.map(a => a.name) },
       });
     }
 
-    const clumsyArmor = context.equippedItems.find(item => 
-      item.tags?.some(tag => tag.name === 'clumsy')
+    const clumsyArmor = context.equippedItems.find(item =>
+      item.tags?.some(tag => tag.name === 'clumsy'),
     );
     if (clumsyArmor) {
       warnings.push({
@@ -143,14 +143,14 @@ export class CalculationWarningsService {
         type: 'warning',
         category: 'equipment',
         title: 'Clumsy Armor Equipped',
-        message: `${clumsyArmor.name} gives -1 ongoing to DEX-based moves.`,
+        message: `${clumsyArmor.name} gives-1 ongoing to DEX-based moves.`,
         suggestion: 'Consider switching to lighter armor if you rely on DEX.',
-        details: { armor: clumsyArmor.name }
+        details: { armor: clumsyArmor.name },
       });
     }
 
-    const twoHandedWeapons = context.equippedItems.filter(item => 
-      item.category === 'weapon' && item.tags?.some(tag => tag.name === 'two-handed')
+    const twoHandedWeapons = context.equippedItems.filter(item =>
+      item.category === 'weapon' && item.tags?.some(tag => tag.name === 'two-handed'),
     );
     const allWeapons = context.equippedItems.filter(item => item.category === 'weapon');
     if (twoHandedWeapons.length > 0 && allWeapons.length > 1) {
@@ -161,14 +161,14 @@ export class CalculationWarningsService {
         title: 'Two-Handed Weapon Conflict',
         message: `${twoHandedWeapons[0].name} requires both hands.`,
         suggestion: 'Unequip other weapons or switch to a one-handed weapon.',
-        details: { 
+        details: {
           twoHanded: twoHandedWeapons[0].name,
-          otherWeapons: allWeapons.filter(w => w !== twoHandedWeapons[0]).map(w => w.name)
-        }
+          otherWeapons: allWeapons.filter(w => w !== twoHandedWeapons[0]).map(w => w.name),
+        },
       });
     }
 
-    // XP/Level Warnings
+    // XP / Level Warnings
     if (context.xp.current >= context.xp.threshold) {
       warnings.push({
         id: 'xp-level-up',
@@ -177,11 +177,11 @@ export class CalculationWarningsService {
         title: 'Level Up Available!',
         message: `You have ${context.xp.current}/${context.xp.threshold} XP.`,
         suggestion: 'Use the Level Up move to advance your character.',
-        details: { 
-          currentXP: context.xp.current, 
+        details: {
+          currentXP: context.xp.current,
           threshold: context.xp.threshold,
-          nextLevel: context.level + 1
-        }
+          nextLevel: context.level + 1,
+        },
       });
     } else if (context.xp.current >= context.xp.threshold * 0.8) {
       warnings.push({
@@ -189,21 +189,21 @@ export class CalculationWarningsService {
         type: 'info',
         category: 'xp',
         title: 'Close to Level Up',
-        message: `Only ${context.xp.threshold - context.xp.current} XP until level ${context.level + 1}.`,
-        suggestion: 'Look for opportunities to gain XP through failed rolls and end-of-session moves.',
-        details: { 
-          currentXP: context.xp.current, 
+        message: `Only ${context.xp.threshold-context.xp.current} XP until level ${context.level + 1}.`,
+        suggestion: 'Look for opportunities to gain XP through failed rolls and end-of - session moves.',
+        details: {
+          currentXP: context.xp.current,
           threshold: context.xp.threshold,
-          remaining: context.xp.threshold - context.xp.current
-        }
+          remaining: context.xp.threshold-context.xp.current,
+        },
       });
     }
 
-    // Attribute/Debility Warnings
+    // Attribute / Debility Warnings
     const activeDebilities = Object.entries(context.debilities)
       .filter(([, active]) => active)
       .map(([name]) => name);
-    
+
     if (activeDebilities.length > 0) {
       warnings.push({
         id: 'attributes-debilities',
@@ -212,7 +212,7 @@ export class CalculationWarningsService {
         title: 'Active Debilities',
         message: `You have ${activeDebilities.length} debilities affecting your modifiers.`,
         suggestion: 'Seek healing or rest to recover from debilities.',
-        details: { debilities: activeDebilities }
+        details: { debilities: activeDebilities },
       });
     }
 
@@ -225,7 +225,7 @@ export class CalculationWarningsService {
         title: 'No Bonds',
         message: 'You have no bonds with other characters.',
         suggestion: 'Create bonds with party members for better roleplay and XP opportunities.',
-        details: { bondCount: 0 }
+        details: { bondCount: 0 },
       });
     }
 
@@ -237,7 +237,7 @@ export class CalculationWarningsService {
         title: 'Unarmored',
         message: 'You have no armor protection.',
         suggestion: 'Consider equipping armor to reduce damage taken.',
-        details: { armor: 0 }
+        details: { armor: 0 },
       });
     }
 
@@ -259,7 +259,7 @@ export class CalculationWarningsService {
     }
 
     // Combat readiness
-    if (warningsByCategory.hp?.some(w => w.type === 'warning') || 
+    if (warningsByCategory.hp?.some(w => w.type === 'warning') ||
         warningsByCategory.general?.some(w => w.id === 'general-no-armor')) {
       suggestions.push('Stock up on healing potions and bandages.');
       suggestions.push('Learn or prepare healing spells if available.');
@@ -275,14 +275,14 @@ export class CalculationWarningsService {
     return suggestions;
   }
 
-  private groupByCategory(warnings: CalculationWarning[]): Record<string, CalculationWarning[]> {
+  private groupByCategory(warnings: CalculationWarning[]): Record < string, CalculationWarning[]> {
     return warnings.reduce((groups, warning) => {
       if (!groups[warning.category]) {
         groups[warning.category] = [];
       }
       groups[warning.category].push(warning);
       return groups;
-    }, {} as Record<string, CalculationWarning[]>);
+    }, {} as Record < string, CalculationWarning[]>);
   }
 }
 

@@ -6,14 +6,14 @@ import React from 'react';
 export interface PanelProps {
   /** Unique identifier for the panel */
   id: string;
-  /** Whether the panel is currently active/visible */
+  /** Whether the panel is currently active / visible */
   isActive: boolean;
   /** Panel-specific state that should be preserved */
-  state?: any;
+  state?: unknown;
   /** Callback when panel state changes */
-  onStateChange?: (state: any) => void;
+  onStateChange?: (state: unknown) => void;
   /** Panel state for BasePanel components */
-  panelState?: any;
+  panelState?: unknown;
 }
 
 /**
@@ -41,7 +41,7 @@ export interface Panel {
   /** Panel metadata */
   metadata: PanelMetadata;
   /** The React component for this panel */
-  component: React.ComponentType<PanelProps>;
+  component: React.ComponentType < PanelProps>;
   /** Called when panel is mounted */
   onMount?: () => void;
   /** Called when panel is unmounted */
@@ -51,16 +51,15 @@ export interface Panel {
   /** Called when panel becomes inactive */
   onDeactivate?: () => void;
   /** Get initial state for the panel */
-  getInitialState?: () => any;
+  getInitialState?: () => unknown;
   /** Validate panel state */
-  validateState?: (state: any) => boolean;
+  validateState?: (state: unknown) => boolean;
 }
 
 /**
  * Base Panel Component with common functionality
  */
-export abstract class BasePanel<T = any> extends React.Component<
-  PanelProps & { panelState?: T },
+export abstract class BasePanel < T = unknown > extends React.Component < PanelProps & { panelState?: T },
   T
 > {
   constructor(props: PanelProps & { panelState?: T }) {
@@ -93,7 +92,7 @@ export abstract class BasePanel<T = any> extends React.Component<
   protected onPanelDeactivate(): void {}
 
   /** Update panel state and notify parent */
-  protected updatePanelState(state: Partial<T>) {
+  protected updatePanelState(state: Partial < T>) {
     this.setState(state as T, () => {
       if (this.props.onStateChange) {
         this.props.onStateChange(this.state);
@@ -105,16 +104,16 @@ export abstract class BasePanel<T = any> extends React.Component<
 /**
  * HOC to wrap functional components as panels
  */
-export function createPanel<T = any>(
+export function createPanel < T = unknown>(
   metadata: PanelMetadata,
-  Component: React.FC<PanelProps & { panelState?: T }>,
+  Component: React.FC < PanelProps & { panelState?: T }>,
   options?: {
     getInitialState?: () => T;
     onMount?: () => void;
     onUnmount?: () => void;
     onActivate?: () => void;
     onDeactivate?: () => void;
-  }
+  },
 ): Panel {
   return {
     metadata,

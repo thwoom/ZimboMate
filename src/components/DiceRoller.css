@@ -38,6 +38,75 @@
   color: var(--color-primary);
 }
 
+/* Stat Selection */
+.stat-selection {
+  margin: var(--spacing-md) 0;
+  padding: var(--spacing-md);
+  background-color: var(--color-surface-elevated);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.stat-options {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.stat-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 50px;
+}
+
+.stat-option:hover {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-primary);
+}
+
+.stat-option.selected {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.stat-value {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.substitution-explanation {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--color-info-bg);
+  border: 1px solid var(--color-info-border);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--color-info-text);
+  text-align: center;
+}
+
 /* Dice Display */
 .dice-roller__dice {
   display: flex;

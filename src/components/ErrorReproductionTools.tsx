@@ -9,15 +9,15 @@ interface ErrorReproductionToolsProps {
   onClose: () => void;
 }
 
-const ErrorReproductionTools: React.FC<ErrorReproductionToolsProps> = ({
+const ErrorReproductionTools: React.FC < ErrorReproductionToolsProps> = ({
   error,
   errorInfo,
-  onClose
+  onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<'reproduction' | 'timeline' | 'environment'>('reproduction');
-  const [reproductionSteps, setReproductionSteps] = useState<string[]>([]);
+  const [reproductionSteps, setReproductionSteps] = useState < string[]>([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedActions, setRecordedActions] = useState<any[]>([]);
+  const [recordedActions, setRecordedActions] = useState < unknown[]>([]);
 
   useEffect(() => {
     // Generate initial reproduction steps based on user actions
@@ -27,13 +27,13 @@ const ErrorReproductionTools: React.FC<ErrorReproductionToolsProps> = ({
     setReproductionSteps(steps);
   }, [error]);
 
-  const generateReproductionSteps = (actions: any[]): string[] => {
+  const generateReproductionSteps = (actions: unknown[]): string[] => {
     const steps: string[] = [];
-    
+
     // Add environment setup
     steps.push('1. Open the application in the browser');
     steps.push(`2. Navigate to: ${window.location.pathname}`);
-    
+
     // Convert user actions to reproduction steps
     actions.forEach((action, index) => {
       const stepNumber = index + 3;
@@ -58,7 +58,7 @@ const ErrorReproductionTools: React.FC<ErrorReproductionToolsProps> = ({
     });
 
     steps.push(`${steps.length + 1}. Error should occur: ${error.message}`);
-    
+
     return steps;
   };
 
@@ -66,7 +66,7 @@ const ErrorReproductionTools: React.FC<ErrorReproductionToolsProps> = ({
     setIsRecording(true);
     setRecordedActions([]);
     userActionTracker.startTracking();
-    
+
     // Track actions for the next 30 seconds or until stopped
     const recordingInterval = setInterval(() => {
       const recentActions = userActionTracker.getRecentActions(50);
@@ -89,20 +89,19 @@ const ErrorReproductionTools: React.FC<ErrorReproductionToolsProps> = ({
     setReproductionSteps(newSteps);
   };
 
-  const copyReproductionSteps = async () => {
+  const copyReproductionSteps = async() => {
     const stepsText = reproductionSteps.join('\n');
     try {
       await navigator.clipboard.writeText(stepsText);
       alert('Reproduction steps copied to clipboard!');
     } catch (err) {
-      console.error('Failed to copy:', err);
-    }
+      }
   };
 
   const generateBugReport = () => {
     const environment = getEnvironmentInfo();
     const timeline = userActionTracker.getRecentActions(20);
-    
+
     const bugReport = `# Bug Report
 
 ## Error Information
@@ -146,18 +145,18 @@ ${errorInfo?.componentStack || 'Not available'}
       userAgent: navigator.userAgent,
       language: navigator.language,
       cookiesEnabled: navigator.cookieEnabled,
-      onLine: navigator.onLine
+      onLine: navigator.onLine,
     };
   };
 
-  const exportBugReport = async () => {
+  const exportBugReport = async() => {
     const report = generateBugReport();
     try {
       await navigator.clipboard.writeText(report);
       alert('Bug report copied to clipboard!');
     } catch (err) {
       // Fallback: create downloadable file
-      const blob = new Blob([report], { type: 'text/markdown' });
+      const blob = new Blob([report], { type: 'text / markdown' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -170,7 +169,7 @@ ${errorInfo?.componentStack || 'Not available'}
   };
 
   const replayActions = () => {
-    // This is a simplified replay - in a real implementation, you'd need more sophisticated action replay
+    // This is a simplified replay-in a real implementation, you'd need more sophisticated action replay
     alert('Action replay is not fully implemented in this demo. This would programmatically repeat the recorded user actions.');
   };
 
@@ -182,19 +181,19 @@ ${errorInfo?.componentStack || 'Not available'}
       </div>
 
       <div className="reproduction-tabs">
-        <button 
+        <button
           className={`tab ${activeTab === 'reproduction' ? 'active' : ''}`}
           onClick={() => setActiveTab('reproduction')}
         >
           📝 Reproduction
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'timeline' ? 'active' : ''}`}
           onClick={() => setActiveTab('timeline')}
         >
           ⏱️ Timeline
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'environment' ? 'active' : ''}`}
           onClick={() => setActiveTab('environment')}
         >
@@ -206,17 +205,17 @@ ${errorInfo?.componentStack || 'Not available'}
         {activeTab === 'reproduction' && (
           <div className="reproduction-tab">
             <div className="reproduction-controls">
-              <button 
+              <button
                 className={`record-button ${isRecording ? 'recording' : ''}`}
                 onClick={isRecording ? stopRecording : startRecording}
               >
                 {isRecording ? '⏹️ Stop Recording' : '🔴 Record New Steps'}
               </button>
-              
+
               <button className="copy-button" onClick={copyReproductionSteps}>
                 📋 Copy Steps
               </button>
-              
+
               <button className="export-button" onClick={exportBugReport}>
                 📄 Export Bug Report
               </button>
@@ -224,13 +223,13 @@ ${errorInfo?.componentStack || 'Not available'}
 
             {isRecording && (
               <div className="recording-indicator">
-                <div className="recording-dot"></div>
+                <div className="recording-dot" />
                 Recording user actions... ({recordedActions.length} actions captured)
               </div>
             )}
 
             <div className="reproduction-steps">
-              <h4>Reproduction Steps:</h4>
+              <h4 > Reproduction Steps:</h4>
               <ol>
                 {reproductionSteps.map((step, index) => (
                   <li key={index} className="reproduction-step">
@@ -250,7 +249,7 @@ ${errorInfo?.componentStack || 'Not available'}
 
         {activeTab === 'timeline' && (
           <div className="timeline-tab">
-            <h4>User Action Timeline (Last 20 actions):</h4>
+            <h4 > User Action Timeline (Last 20 actions):</h4>
             <div className="timeline-list">
               {userActionTracker.getRecentActions(20).map((action, index) => (
                 <div key={action.id} className={`timeline-item ${action.type}`}>
@@ -272,7 +271,7 @@ ${errorInfo?.componentStack || 'Not available'}
 
         {activeTab === 'environment' && (
           <div className="environment-tab">
-            <h4>Environment Information:</h4>
+            <h4 > Environment Information:</h4>
             <div className="environment-grid">
               {Object.entries(getEnvironmentInfo()).map(([key, value]) => (
                 <div key={key} className="environment-item">
@@ -282,24 +281,24 @@ ${errorInfo?.componentStack || 'Not available'}
               ))}
             </div>
 
-            <h4>Error Analysis:</h4>
+            <h4 > Error Analysis:</h4>
             <div className="error-analysis">
               {(() => {
                 const analysis = errorAnalyticsService.analyzeError(error);
                 return (
                   <div>
                     <div className="analysis-item">
-                      <strong>Severity:</strong> 
+                      <strong > Severity:</strong>
                       <span className={`severity ${analysis.severity}`}>
                         {analysis.severity.toUpperCase()}
                       </span>
                     </div>
                     <div className="analysis-item">
-                      <strong>Category:</strong> {analysis.category}
+                      <strong > Category:</strong> {analysis.category}
                     </div>
                     {analysis.suggestions.length > 0 && (
                       <div className="analysis-suggestions">
-                        <strong>Suggestions:</strong>
+                        <strong > Suggestions:</strong>
                         <ul>
                           {analysis.suggestions.map((suggestion, index) => (
                             <li key={index}>{suggestion}</li>

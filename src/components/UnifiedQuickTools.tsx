@@ -3,7 +3,8 @@ import { useGameStore } from '../store/GameStore';
 import { diceRollingService, DiceRoll } from '../services/DiceRollingService';
 import { smartMoveSuggestionService, MoveSuggestion } from '../services/SmartMoveSuggestionService';
 import { rollAnalyticsService } from '../services/RollAnalyticsService';
-import { Character, Attributes } from '../models/Character';
+import { ExportImportPanel } from './ExportImportPanel';
+import { Attributes } from '../models/Character';
 import { panelEventBus } from '../framework/PanelAPI';
 import './UnifiedQuickTools.css';
 
@@ -12,7 +13,7 @@ interface UnifiedQuickToolsProps {
   className?: string;
 }
 
-type ToolMode = 'collapsed' | 'quick' | 'advanced' | 'suggestions' | 'history';
+type ToolMode = 'collapsed' | 'quick' | 'advanced' | 'suggestions' | 'history' | 'export-import';
 type QuickAction = 'stat-roll' | 'move-suggestion' | 'notes' | 'counters';
 
 interface Counter {
@@ -30,46 +31,46 @@ interface QuickNote {
   tags?: string[];
 }
 
-export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
+export const UnifiedQuickTools: React.FC < UnifiedQuickToolsProps> = ({
   position = 'bottom-right',
-  className = ''
+  className = '',
 }) => {
-  const { state: gameState, updateCharacter } = useGameStore();
-  const [mode, setMode] = useState<ToolMode>('collapsed');
-  const [selectedStat, setSelectedStat] = useState<keyof Attributes>('STR');
-  const [customModifier, setCustomModifier] = useState<number>(0);
-  const [advantage, setAdvantage] = useState<boolean>(false);
-  const [disadvantage, setDisadvantage] = useState<boolean>(false);
-  const [description, setDescription] = useState<string>('');
-  const [recentRolls, setRecentRolls] = useState<DiceRoll[]>([]);
-  const [suggestions, setSuggestions] = useState<MoveSuggestion[]>([]);
-  const [counters, setCounters] = useState<Counter[]>([
+  const { state: gameState, updateCharacter, updateGameState } = useGameStore();
+  const [mode, setMode] = useState < ToolMode>('collapsed');
+  const [selectedStat, setSelectedStat] = useState < keyof Attributes>('STR');
+  const [customModifier, setCustomModifier] = useState < number>(0);
+  const [advantage, setAdvantage] = useState < boolean>(false);
+  const [disadvantage, setDisadvantage] = useState < boolean>(false);
+  const [description, setDescription] = useState < string>('');
+  const [recentRolls, setRecentRolls] = useState < DiceRoll[]>([]);
+  const [suggestions, setSuggestions] = useState < MoveSuggestion[]>([]);
+  const [counters, setCounters] = useState < Counter[]>([
     { id: 'hold', name: 'Hold', value: 0, max: 3, color: '#4299e1' },
     { id: 'forward', name: 'Forward', value: 0, max: 3, color: '#48bb78' },
-    { id: 'ongoing', name: 'Ongoing', value: 0, color: '#ed8936' }
+    { id: 'ongoing', name: 'Ongoing', value: 0, color: '#ed8936' },
   ]);
-  const [quickNotes, setQuickNotes] = useState<QuickNote[]>([]);
-  const [currentNote, setCurrentNote] = useState<string>('');
+  const [quickNotes, setQuickNotes] = useState < QuickNote[]>([]);
+  const [currentNote, setCurrentNote] = useState < string>('');
   const [isAnimating, setIsAnimating] = useState(false);
-  const [contextualAction, setContextualAction] = useState<QuickAction | null>(null);
-  
-  const toolsRef = useRef<HTMLDivElement>(null);
+  const [contextualAction, setContextualAction] = useState < QuickAction | null>(null);
+
+  const toolsRef = useRef < HTMLDivElement>(null);
 
   // Get active character
-  const character = gameState.activeCharacterId ? 
+  const character = gameState.activeCharacterId ?
     gameState.characters[gameState.activeCharacterId] : null;
 
   // Update recent rolls and suggestions
   useEffect(() => {
     const updateData = () => {
       setRecentRolls(diceRollingService.getRecentRolls(5));
-      
+
       if (character && description) {
         const newSuggestions = smartMoveSuggestionService.getSuggestions(
           character,
           'unknown',
           diceRollingService.getRecentRolls(3),
-          description
+          description,
         );
         setSuggestions(newSuggestions.slice(0, 3)); // Top 3 suggestions
       }
@@ -84,7 +85,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
   useEffect(() => {
     const unsubscribe = panelEventBus.on('panel-activated', (event) => {
       const panelId = event.data.panelId;
-      
+
       // Suggest contextual actions based on active panel
       switch (panelId) {
         case 'moves':
@@ -115,7 +116,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
         return;
       }
 
-      // Ctrl/Cmd + D to toggle quick tools
+      // Ctrl / Cmd + D to toggle quick tools
       if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
         e.preventDefault();
         setMode(prev => prev === 'collapsed' ? 'quick' : 'collapsed');
@@ -124,7 +125,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
       // Quick stat rolls when tools are open
       if (mode !== 'collapsed') {
         const statKeys: { [key: string]: keyof Attributes } = {
-          '1': 'STR', '2': 'DEX', '3': 'CON', '4': 'INT', '5': 'WIS', '6': 'CHA'
+          '1': 'STR', '2': 'DEX', '3': 'CON', '4': 'INT', '5': 'WIS', '6': 'CHA',
         };
 
         if (statKeys[e.key] && character) {
@@ -187,11 +188,11 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
       customModifier,
       description: description || `${stat} roll`,
       advantage,
-      disadvantage
+      disadvantage,
     });
 
     handleRollResult(roll);
-    
+
     // Reset modifiers after roll
     setAdvantage(false);
     setDisadvantage(false);
@@ -205,7 +206,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
     const roll = diceRollingService.rollMove(suggestion.move, character, {
       customModifier,
       advantage,
-      disadvantage
+      disadvantage,
     });
 
     handleRollResult(roll);
@@ -236,22 +237,22 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
   };
 
   const updateCounter = (id: string, delta: number) => {
-    setCounters(prev => prev.map(counter => 
-      counter.id === id 
+    setCounters(prev => prev.map(counter =>
+      counter.id === id
         ? { ...counter, value: Math.max(0, Math.min(counter.max || 99, counter.value + delta)) }
-        : counter
+        : counter,
     ));
   };
 
   const addQuickNote = () => {
     if (!currentNote.trim()) return;
-    
+
     const note: QuickNote = {
       id: Date.now().toString(),
       text: currentNote.trim(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
-    
+
     setQuickNotes(prev => [note, ...prev.slice(0, 9)]); // Keep last 10 notes
     setCurrentNote('');
   };
@@ -266,9 +267,9 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
   };
 
   const getStatModifier = (statValue: number): number => {
-    if (statValue <= 3) return -3;
-    if (statValue <= 5) return -2;
-    if (statValue <= 8) return -1;
+    if (statValue <= 3) return-3;
+    if (statValue <= 5) return-2;
+    if (statValue <= 8) return-1;
     if (statValue <= 12) return 0;
     if (statValue <= 15) return 1;
     if (statValue <= 17) return 2;
@@ -281,7 +282,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
         className={`main-tool-button ${isAnimating ? 'animating' : ''} ${!character ? 'disabled' : ''}`}
         onClick={() => setMode('quick')}
         disabled={!character}
-        title={character ? 'Quick Tools (Ctrl+D)' : 'No character selected'}
+        title={character ? 'Quick Tools (Ctrl + D)' : 'No character selected'}
       >
         <span className="tool-icon">🎲</span>
         {recentRolls.length > 0 && (
@@ -306,7 +307,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
     <div className="tools-header">
       <div className="header-left">
         {mode !== 'quick' && (
-          <button 
+          <button
             className="back-btn"
             onClick={() => setMode('quick')}
             title="Back to Quick Tools (Backspace)"
@@ -314,47 +315,54 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
             ← Back
           </button>
         )}
-        <h3>
-          Quick Tools
+        <h3 > Quick Tools
           {mode !== 'quick' && (
             <span className="mode-indicator">
-              {mode === 'advanced' && ' - Advanced'}
-              {mode === 'suggestions' && ' - Suggestions'}
-              {mode === 'history' && ' - History'}
+              {mode === 'advanced' && '-Advanced'}
+              {mode === 'suggestions' && '-Suggestions'}
+              {mode === 'history' && '-History'}
+              {mode === 'export-import' && '-Export / Import'}
             </span>
           )}
         </h3>
       </div>
       <div className="mode-switchers">
-        <button 
+        <button
           className={`mode-btn ${mode === 'quick' ? 'active' : ''}`}
           onClick={() => setMode('quick')}
           title="Quick actions"
         >
           ⚡
         </button>
-        <button 
+        <button
           className={`mode-btn ${mode === 'advanced' ? 'active' : ''}`}
           onClick={() => setMode('advanced')}
           title="Advanced options"
         >
           🔧
         </button>
-        <button 
+        <button
           className={`mode-btn ${mode === 'suggestions' ? 'active' : ''}`}
           onClick={() => setMode('suggestions')}
           title="Move suggestions"
         >
           💡
         </button>
-        <button 
+        <button
           className={`mode-btn ${mode === 'history' ? 'active' : ''}`}
           onClick={() => setMode('history')}
           title="Roll history"
         >
           📊
         </button>
-        <button 
+        <button
+          className={`mode-btn ${mode === 'export-import' ? 'active' : ''}`}
+          onClick={() => setMode('export-import')}
+          title="Export / Import"
+        >
+          💾
+        </button>
+        <button
           className="close-btn"
           onClick={() => setMode('collapsed')}
           title="Close (Esc)"
@@ -379,13 +387,13 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
         {character && (Object.keys(character.attributes) as (keyof Attributes)[]).map((stat, index) => {
           const statValue = character.attributes[stat];
           const modifier = getStatModifier(statValue);
-          
+
           return (
             <button
               key={stat}
               className="stat-quick-btn"
               onClick={() => handleQuickStatRoll(stat)}
-              title={`${stat}: ${statValue} (${modifier >= 0 ? '+' : ''}${modifier}) - Press ${index + 1}`}
+              title={`${stat}: ${statValue} (${modifier >= 0 ? '+' : ''}${modifier})-Press ${index + 1}`}
             >
               <span className="stat-name">{stat}</span>
               <span className="stat-mod">{modifier >= 0 ? '+' : ''}{modifier}</span>
@@ -437,12 +445,12 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
         </div>
 
         <div className="stat-selector">
-          <label>Stat to Roll:</label>
+          <label > Stat to Roll:</label>
           <div className="stat-selector-buttons">
             {character && (Object.keys(character.attributes) as (keyof Attributes)[]).map((stat) => {
               const statValue = character.attributes[stat];
               const modifier = getStatModifier(statValue);
-              
+
               return (
                 <button
                   key={stat}
@@ -460,7 +468,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
 
         <div className="modifiers-row">
           <div className="modifier-input">
-            <label>Modifier:</label>
+            <label > Modifier:</label>
             <input
               type="number"
               value={customModifier}
@@ -468,7 +476,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
               aria-label="Custom roll modifier"
             />
           </div>
-          
+
           <label className="checkbox-label">
             <input
               type="checkbox"
@@ -480,7 +488,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
             />
             Advantage
           </label>
-          
+
           <label className="checkbox-label">
             <input
               type="checkbox"
@@ -544,16 +552,16 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
               <div className="roll-header">
                 <span className="roll-desc">{roll.description}</span>
                 <span className="roll-time">
-                  {new Date(roll.timestamp).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  {new Date(roll.timestamp).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
                   })}
                 </span>
               </div>
               <div className="roll-result">
                 <span className="roll-total">{roll.total}</span>
                 <span className="roll-breakdown">
-                  ({Array.isArray(roll.dice) ? roll.dice.join('+') : 'N/A'} {roll.modifier >= 0 ? '+' : ''}{roll.modifier})
+                  ({Array.isArray(roll.dice) ? roll.dice.join('+') : 'N / A'} {roll.modifier >= 0 ? '+' : ''}{roll.modifier})
                 </span>
                 <span className={`result-badge ${roll.result}`}>
                   {roll.result === 'success' && '✓'}
@@ -567,7 +575,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
       </div>
 
       <div className="recent-notes">
-        <h4>Recent Notes</h4>
+        <h4 > Recent Notes</h4>
         {quickNotes.length === 0 ? (
           <p className="no-notes">No notes yet</p>
         ) : (
@@ -575,9 +583,9 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
             <div key={note.id} className="note-item">
               <div className="note-text">{note.text}</div>
               <div className="note-time">
-                {new Date(note.timestamp).toLocaleTimeString([], { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
+                {new Date(note.timestamp).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
                 })}
               </div>
             </div>
@@ -587,13 +595,23 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
     </div>
   );
 
+  // Export / Import mode
+  const renderExportImportMode = () => (
+    <div className="tools-export-import">
+      <ExportImportPanel
+        gameState={gameState}
+        onImport={updateGameState}
+      />
+    </div>
+  );
+
   // Shared keyboard shortcuts help
   const renderKeyboardShortcuts = () => (
     <div className="keyboard-shortcuts">
       <small>
-        <strong>Shortcuts:</strong> 
+        <strong > Shortcuts:</strong>
         {mode !== 'quick' && ' Backspace (back), '}
-        Esc (close), Ctrl+D (toggle)
+        Esc (close), Ctrl + D (toggle)
         {mode === 'quick' && ', 1-6 (quick roll)'}
         {mode === 'advanced' && ', 1-6 (select stat), Enter (roll)'}
       </small>
@@ -601,9 +619,9 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
   );
 
   return (
-    <div 
+    <div
       ref={toolsRef}
-      className={`unified-quick-tools ${getPositionClass()} ${className} mode-${mode}`}
+      className={`unified-quick - tools ${getPositionClass()} ${className} mode-${mode}`}
     >
       {mode === 'collapsed' && renderCollapsedMode()}
       {mode !== 'collapsed' && (
@@ -613,6 +631,7 @@ export const UnifiedQuickTools: React.FC<UnifiedQuickToolsProps> = ({
           {mode === 'advanced' && renderAdvancedMode()}
           {mode === 'suggestions' && renderSuggestionsMode()}
           {mode === 'history' && renderHistoryMode()}
+          {mode === 'export-import' && renderExportImportMode()}
           {renderKeyboardShortcuts()}
         </>
       )}

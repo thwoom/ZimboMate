@@ -14,23 +14,23 @@ interface QuickRollInterfaceProps {
 
 type QuickRollMode = 'stat' | 'move' | 'suggestions' | 'enhanced';
 
-export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
+export const QuickRollInterface: React.FC < QuickRollInterfaceProps> = ({
   isVisible,
   onClose,
-  onRoll
+  onRoll,
 }) => {
   const { state: gameState } = useGameStore();
-  const [mode, setMode] = useState<QuickRollMode>('stat');
-  const [selectedStat, setSelectedStat] = useState<keyof Attributes>('STR');
-  const [customModifier, setCustomModifier] = useState<number>(0);
-  const [advantage, setAdvantage] = useState<boolean>(false);
-  const [disadvantage, setDisadvantage] = useState<boolean>(false);
-  const [description, setDescription] = useState<string>('');
-  const [suggestions, setSuggestions] = useState<MoveSuggestion[]>([]);
-  const [lastRoll, setLastRoll] = useState<DiceRoll | null>(null);
+  const [mode, setMode] = useState < QuickRollMode>('stat');
+  const [selectedStat, setSelectedStat] = useState < keyof Attributes>('STR');
+  const [customModifier, setCustomModifier] = useState < number>(0);
+  const [advantage, setAdvantage] = useState < boolean>(false);
+  const [disadvantage, setDisadvantage] = useState < boolean>(false);
+  const [description, setDescription] = useState < string>('');
+  const [suggestions, setSuggestions] = useState < MoveSuggestion[]>([]);
+  const [lastRoll, setLastRoll] = useState < DiceRoll | null>(null);
 
   // Get active character
-  const character = gameState.activeCharacterId ? 
+  const character = gameState.activeCharacterId ?
     gameState.characters[gameState.activeCharacterId] : null;
 
   // Load suggestions when character or description changes
@@ -40,7 +40,7 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
         character,
         'unknown',
         diceRollingService.getRecentRolls(5),
-        description
+        description,
       );
       setSuggestions(newSuggestions);
     }
@@ -53,7 +53,7 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
 
       // Number keys for stats
       const statKeys: { [key: string]: keyof Attributes } = {
-        '1': 'STR', '2': 'DEX', '3': 'CON', '4': 'INT', '5': 'WIS', '6': 'CHA'
+        '1': 'STR', '2': 'DEX', '3': 'CON', '4': 'INT', '5': 'WIS', '6': 'CHA',
       };
 
       if (statKeys[e.key]) {
@@ -98,8 +98,8 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
         customModifier,
         description: description || `${selectedStat} roll`,
         advantage,
-        disadvantage
-      }
+        disadvantage,
+      },
     );
 
     setLastRoll(roll);
@@ -120,8 +120,8 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
       {
         customModifier,
         advantage,
-        disadvantage
-      }
+        disadvantage,
+      },
     );
 
     setLastRoll(roll);
@@ -134,9 +134,9 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
   }, [character, customModifier, advantage, disadvantage, onRoll]);
 
   const getStatModifier = (statValue: number): number => {
-    if (statValue <= 3) return -3;
-    if (statValue <= 5) return -2;
-    if (statValue <= 8) return -1;
+    if (statValue <= 3) return-3;
+    if (statValue <= 5) return-2;
+    if (statValue <= 8) return-1;
     if (statValue <= 12) return 0;
     if (statValue <= 15) return 1;
     if (statValue <= 17) return 2;
@@ -156,13 +156,13 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
       <div className="quick-roll-interface">
         {/* Header */}
         <div className="quick-roll-header">
-          <h3>Quick Roll</h3>
+          <h3 > Quick Roll</h3>
           <button className="close-button" onClick={onClose}>✕</button>
         </div>
 
         {!character && (
           <div className="no-character-warning">
-            <p>No character selected. Please select a character to roll.</p>
+            <p > No character selected. Please select a character to roll.</p>
           </div>
         )}
 
@@ -204,7 +204,7 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
                     const statValue = character.attributes[stat];
                     const modifier = getStatModifier(statValue);
                     const isSelected = selectedStat === stat;
-                    
+
                     return (
                       <button
                         key={stat}
@@ -225,7 +225,7 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
 
                 <div className="roll-modifiers">
                   <div className="modifier-input">
-                    <label>Custom Modifier:</label>
+                    <label > Custom Modifier:</label>
                     <input
                       type="number"
                       value={customModifier}
@@ -324,7 +324,7 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
                         <div className="suggestion-reason">{suggestion.reason}</div>
                         {suggestion.move.rollStat && (
                           <div className="suggestion-stats">
-                            <span>Roll + {suggestion.move.rollStat}</span>
+                            <span > Roll + {suggestion.move.rollStat}</span>
                             <span>
                               ({getStatModifier(character.attributes[suggestion.move.rollStat]) >= 0 ? '+' : ''}
                               {getStatModifier(character.attributes[suggestion.move.rollStat])})
@@ -357,7 +357,7 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
                     const legacyRoll: DiceRoll = {
                       id: enhancedRoll.id,
                       timestamp: enhancedRoll.timestamp,
-                      dice: enhancedRoll.results.length === 2 ? 
+                      dice: enhancedRoll.results.length === 2 ?
                         [enhancedRoll.results[0], enhancedRoll.results[1]] as [number, number] :
                         enhancedRoll.results.length === 3 ?
                         [enhancedRoll.results[0], enhancedRoll.results[1], enhancedRoll.results[2]] as [number, number, number] :
@@ -367,7 +367,7 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
                       result: enhancedRoll.rollResult || (enhancedRoll.success ? 'success' : 'failure'),
                       description: enhancedRoll.description,
                       advantage: enhancedRoll.advantage,
-                      disadvantage: enhancedRoll.disadvantage
+                      disadvantage: enhancedRoll.disadvantage,
                     };
                     setLastRoll(legacyRoll);
                     onRoll?.(legacyRoll);
@@ -382,13 +382,13 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
                 <div className="roll-summary">
                   <span className="roll-total">{lastRoll.total}</span>
                   <span className="roll-breakdown">
-                    ({Array.isArray(lastRoll.dice) ? lastRoll.dice.join(' + ') : 'N/A'} + {lastRoll.modifier})
+                    ({Array.isArray(lastRoll.dice) ? lastRoll.dice.join(' + ') : 'N / A'} + {lastRoll.modifier})
                   </span>
                 </div>
                 <div className={`result-tier ${lastRoll.result}`}>
                   {lastRoll.result === 'success' && '✓ Success! (10+)'}
                   {lastRoll.result === 'partial' && '~ Partial Success (7-9)'}
-                  {lastRoll.result === 'failure' && '✗ Miss (6-) - Mark XP'}
+                  {lastRoll.result === 'failure' && '✗ Miss (6-)-Mark XP'}
                 </div>
                 {lastRoll.advantage && <div className="advantage-used">Used Advantage</div>}
                 {lastRoll.disadvantage && <div className="disadvantage-used">Used Disadvantage</div>}
@@ -398,7 +398,7 @@ export const QuickRollInterface: React.FC<QuickRollInterfaceProps> = ({
             {/* Keyboard Shortcuts Help */}
             <div className="keyboard-shortcuts">
               <small>
-                <strong>Shortcuts:</strong> 1-6 (select stat), Enter (roll), Tab (switch mode), Esc (close)
+                <strong > Shortcuts:</strong > 1-6 (select stat), Enter (roll), Tab (switch mode), Esc (close)
               </small>
             </div>
           </>

@@ -7,21 +7,21 @@ interface ContentAreaProps {
   activePanelId: string;
 }
 
-const ContentArea: React.FC<ContentAreaProps> = ({ activePanelId }) => {
+const ContentArea: React.FC < ContentAreaProps> = ({ activePanelId }) => {
   const activePanel = panelRegistry.getPanel(activePanelId);
   const panelTitle = activePanel?.metadata.name || 'Unknown Panel';
   const panelCount = panelRegistry.getAllPanels().length;
-  
-  // Debug: Log when character creation is active
+
+  // Debug logging (commented out)
+  // // Debug: Log when character creation is active
   if (process.env.NODE_ENV === 'development' && activePanelId === 'character-creation') {
-    console.log('Character creation panel is active - applying full width');
-  }
+    }
 
   // Debug function to toggle layout visualization
   const toggleLayoutDebug = () => {
     document.body.classList.toggle('debug-layout');
   };
-  
+
   return (
     <div className="content-area">
       <header className="content-area__header">
@@ -39,14 +39,14 @@ const ContentArea: React.FC<ContentAreaProps> = ({ activePanelId }) => {
 
       <div className={`content-area__body ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
         {panelCount > 0 ? (
-          <PanelRouter 
+          <PanelRouter
             activePanelId={activePanelId}
             enableTransitions={true}
           />
         ) : (
           <div className="content-area__placeholder">
-            <p>No panels registered</p>
-            <p>Panels will appear here once they are registered in the system</p>
+            <p > No panels registered</p>
+            <p > Panels will appear here once they are registered in the system</p>
           </div>
         )}
       </div>

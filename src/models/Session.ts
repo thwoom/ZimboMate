@@ -6,14 +6,14 @@ import { Attribute } from './Character';
 import { RollResult } from './Move';
 
 // Types of rolls
-export type RollType = 
+export type RollType =
   | 'attribute'    // Rolling + attribute
   | 'damage'       // Rolling damage
   | 'custom'       // Custom dice roll
   | 'move';        // Rolling for a specific move
 
 // Dice notation
-export type DiceNotation = 
+export type DiceNotation =
   | '2d6'
   | '1d4'
   | '1d6'
@@ -28,18 +28,18 @@ export interface Roll {
   id: string;
   timestamp: Date;
   type: RollType;
-  
+
   // Roll details
   dice: DiceNotation;
   rolls: number[]; // Individual die results
   modifier: number;
   total: number;
-  
+
   // Context
   attribute?: Attribute;
   moveName?: string;
   description?: string;
-  
+
   // Result (for move rolls)
   result?: RollResult;
 }
@@ -60,7 +60,7 @@ export interface SessionEvent {
   timestamp: Date;
   type: 'xp_gained' | 'level_up' | 'bond_resolved' | 'death_save' | 'custom';
   description: string;
-  data?: any; // Event-specific data
+  data?: unknown; // Event-specific data
 }
 
 // Tracker for holds, forward, ongoing, etc.
@@ -80,14 +80,14 @@ export interface Session {
   id: string;
   startTime: Date;
   endTime?: Date;
-  
+
   // Session content
   notes: Note[];
   rollHistory: Roll[];
   events: SessionEvent[];
   trackers: Tracker[];
-  
-  // Session bookmarks/timestamps
+
+  // Session bookmarks / timestamps
   bookmarks: {
     id: string;
     timestamp: Date;
@@ -109,7 +109,7 @@ export function createNewSession(): Session {
     rollHistory: [],
     events: [],
     trackers: [],
-    bookmarks: []
+    bookmarks: [],
   };
 }
 
@@ -118,17 +118,17 @@ export function createNewSession(): Session {
  */
 export function addRoll(
   session: Session,
-  rollData: Omit<Roll, 'id' | 'timestamp'>
+  rollData: Omit < Roll, 'id' | 'timestamp'>,
 ): Session {
   const roll: Roll = {
     ...rollData,
     id: generateId(),
-    timestamp: new Date()
+    timestamp: new Date(),
   };
-  
+
   return {
     ...session,
-    rollHistory: [roll, ...session.rollHistory] // Most recent first
+    rollHistory: [roll, ...session.rollHistory], // Most recent first
   };
 }
 
@@ -137,18 +137,18 @@ export function addRoll(
  */
 export function addNote(
   session: Session,
-  noteData: Omit<Note, 'id' | 'timestamp' | 'pinned'>
+  noteData: Omit < Note, 'id' | 'timestamp' | 'pinned'>,
 ): Session {
   const note: Note = {
     ...noteData,
     id: generateId(),
     timestamp: new Date(),
-    pinned: false
+    pinned: false,
   };
-  
+
   return {
     ...session,
-    notes: [note, ...session.notes]
+    notes: [note, ...session.notes],
   };
 }
 
@@ -157,17 +157,17 @@ export function addNote(
  */
 export function addEvent(
   session: Session,
-  eventData: Omit<SessionEvent, 'id' | 'timestamp'>
+  eventData: Omit < SessionEvent, 'id' | 'timestamp'>,
 ): Session {
   const event: SessionEvent = {
     ...eventData,
     id: generateId(),
-    timestamp: new Date()
+    timestamp: new Date(),
   };
-  
+
   return {
     ...session,
-    events: [...session.events, event]
+    events: [...session.events, event],
   };
 }
 
@@ -176,15 +176,15 @@ export function addEvent(
  */
 export function setTracker(
   session: Session,
-  trackerData: Omit<Tracker, 'id'> & { id?: string }
+  trackerData: Omit < Tracker, 'id'> & { id?: string },
 ): Session {
   const tracker: Tracker = {
     ...trackerData,
-    id: trackerData.id || generateId()
+    id: trackerData.id || generateId(),
   };
-  
+
   const existingIndex = session.trackers.findIndex(t => t.id === tracker.id);
-  
+
   if (existingIndex >= 0) {
     // Update existing
     const newTrackers = [...session.trackers];
@@ -202,7 +202,7 @@ export function setTracker(
 export function removeTracker(session: Session, trackerId: string): Session {
   return {
     ...session,
-    trackers: session.trackers.filter(t => t.id !== trackerId)
+    trackers: session.trackers.filter(t => t.id !== trackerId),
   };
 }
 
@@ -217,18 +217,18 @@ export function rollDice(notation: DiceNotation | string): {
   if (!match) {
     return { rolls: [], total: 0 };
   }
-  
+
   const count = parseInt(match[1]);
   const sides = parseInt(match[2]);
   const rolls: number[] = [];
-  
+
   for (let i = 0; i < count; i++) {
     rolls.push(Math.floor(Math.random() * sides) + 1);
   }
-  
+
   return {
     rolls,
-    total: rolls.reduce((sum, roll) => sum + roll, 0)
+    total: rolls.reduce((sum, roll) => sum + roll, 0),
   };
 }
 
@@ -244,7 +244,7 @@ export function formatRoll(roll: Roll): string {
 /**
  * Get recent rolls (last N)
  */
-export function getRecentRolls(session: Session, count: number = 10): Roll[] {
+export function getRecentRolls(session: Session, count = 10): Roll[] {
   return session.rollHistory.slice(0, count);
 }
 
@@ -260,10 +260,10 @@ export function getPinnedNotes(session: Session): Note[] {
  */
 export function searchNotes(session: Session, query: string): Note[] {
   const lowerQuery = query.toLowerCase();
-  return session.notes.filter(note => 
+  return session.notes.filter(note =>
     note.content.toLowerCase().includes(lowerQuery) ||
     (note.title && note.title.toLowerCase().includes(lowerQuery)) ||
-    note.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+    note.tags.some(tag => tag.toLowerCase().includes(lowerQuery)),
   );
 }
 

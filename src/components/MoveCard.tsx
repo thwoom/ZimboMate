@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Move, requiresRoll } from '../models/Move';
 import { Character } from '../models/Character';
 import { DiceRoll } from '../services/DiceRollingService';
+import { StatSubstitutionService } from '../services/StatSubstitutionService';
 import DiceRoller from './DiceRoller';
 import './MoveCard.css';
 
@@ -15,20 +16,26 @@ interface MoveCardProps {
   className?: string;
 }
 
-export const MoveCard: React.FC<MoveCardProps> = ({
+export const MoveCard: React.FC < MoveCardProps> = ({
   move,
   character,
   onRoll,
   onUse,
   expanded = false,
   showRoller = true,
-  className = ''
+  className = '',
 }) => {
   const [isExpanded, setIsExpanded] = useState(expanded);
   const [showDiceRoller, setShowDiceRoller] = useState(false);
 
   const needsRoll = requiresRoll(move);
   const canUse = !move.uses || move.uses.current > 0;
+
+  // Check if this move has stat substitution options
+  const hasStatSubstitution = character && StatSubstitutionService.hasStatSubstitution(character, move.name);
+  const availableStats = character && move.rollStat ?
+    StatSubstitutionService.getAvailableStats(character, move.name, move.rollStat) :
+    [move.rollStat].filter(Boolean);
 
   const handleToggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -46,7 +53,7 @@ export const MoveCard: React.FC<MoveCardProps> = ({
   const handleRoll = (roll: DiceRoll) => {
     onRoll?.(roll);
     setShowDiceRoller(false);
-    
+
     // Trigger move use
     onUse?.(move);
   };
@@ -61,8 +68,6 @@ export const MoveCard: React.FC<MoveCardProps> = ({
       default: return '📜';
     }
   };
-
-
 
   return (
     <div className={`move-card ${move.category} ${!canUse ? 'disabled' : ''} ${className}`}>
@@ -79,7 +84,7 @@ export const MoveCard: React.FC<MoveCardProps> = ({
             )}
           </div>
           <div className="move-meta">
-            <span 
+            <span
               className={`move-trigger-type ${move.triggerType}`}
             >
               {move.triggerType}
@@ -87,11 +92,16 @@ export const MoveCard: React.FC<MoveCardProps> = ({
             {move.rollStat && (
               <span className="move-stat">
                 + {move.rollStat}
+                {hasStatSubstitution && (
+                  <span className="stat-substitution-indicator" title="Has stat substitution options">
+                    ⚡
+                  </span>
+                )}
               </span>
             )}
           </div>
         </div>
-        
+
         <div className="move-actions">
           {needsRoll && character && showRoller && (
             <button
@@ -105,7 +115,7 @@ export const MoveCard: React.FC<MoveCardProps> = ({
               🎲 Roll
             </button>
           )}
-          
+
           {!needsRoll && (
             <button
               className="use-button"
@@ -118,7 +128,7 @@ export const MoveCard: React.FC<MoveCardProps> = ({
               Use
             </button>
           )}
-          
+
           <button className="expand-button">
             {isExpanded ? '▼' : '▶'}
           </button>
@@ -129,9 +139,9 @@ export const MoveCard: React.FC<MoveCardProps> = ({
       {isExpanded && (
         <div className="move-card__content">
           <div className="move-trigger">
-            <strong>When:</strong> {move.trigger}
+            <strong > When:</strong> {move.trigger}
           </div>
-          
+
           <div className="move-description">
             {move.description}
           </div>
@@ -141,17 +151,17 @@ export const MoveCard: React.FC<MoveCardProps> = ({
             <div className="move-results">
               {move.onSuccess && (
                 <div className="result-item success">
-                  <strong>10+:</strong> {move.onSuccess}
+                  <strong > 10+:</strong> {move.onSuccess}
                 </div>
               )}
               {move.onPartial && (
                 <div className="result-item partial">
-                  <strong>7-9:</strong> {move.onPartial}
+                  <strong > 7-9:</strong> {move.onPartial}
                 </div>
               )}
               {move.onFailure && (
                 <div className="result-item failure">
-                  <strong>6-:</strong> {move.onFailure}
+                  <strong > 6-:</strong> {move.onFailure}
                 </div>
               )}
             </div>
@@ -171,13 +181,25 @@ export const MoveCard: React.FC<MoveCardProps> = ({
             {move.level && (
               <span className="property level">Level {move.level}+</span>
             )}
+            {hasStatSubstitution && (
+              <div className="stat-substitution-info">
+                <span className="property substitution">⚡ Stat Options</span>
+                <div className="available-stats">
+                  {availableStats.map(stat => (
+                    <span key={stat} className="available-stat">
+                      {stat} ({character?.attributes[stat as keyof typeof character.attributes] || 0})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Source Info */}
           {(move.source || move.page) && (
             <div className="move-source">
-              {move.source && <span>Source: {move.source}</span>}
-              {move.page && <span>Page: {move.page}</span>}
+              {move.source && <span > Source: {move.source}</span>}
+              {move.page && <span > Page: {move.page}</span>}
             </div>
           )}
         </div>
@@ -189,8 +211,8 @@ export const MoveCard: React.FC<MoveCardProps> = ({
           <div className="modal-backdrop" onClick={() => setShowDiceRoller(false)} />
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Roll {move.name}</h3>
-              <button 
+              <h3 > Roll {move.name}</h3>
+              <button
                 className="close-button"
                 onClick={() => setShowDiceRoller(false)}
               >

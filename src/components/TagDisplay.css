@@ -1,0 +1,200 @@
+.tag-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: lowercase;
+  position: relative;
+  cursor: default;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+/* Tag categories */
+.tag-range {
+  background-color: var(--color-surface-2);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.tag-weapon {
+  background-color: var(--color-error);
+  color: var(--color-text-inverse);
+}
+
+.tag-armor {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.tag-general {
+  background-color: var(--color-surface-1);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.tag-numeric {
+  background-color: var(--color-warning);
+  color: var(--color-text-inverse);
+}
+
+.tag-alignment {
+  background-color: var(--color-success);
+  color: var(--color-text-inverse);
+}
+
+.tag-magical {
+  background-color: var(--color-highlight);
+  color: var(--color-text-inverse);
+}
+
+.tag-custom {
+  background-color: var(--color-surface-3);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+/* Clickable tags */
+.tag-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag-clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tag-clickable:active {
+  transform: scale(0.95);
+}
+
+/* Tag values */
+.tag-value {
+  font-weight: 600;
+  margin-left: 0.125rem;
+}
+
+/* Tooltips */
+.tag-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-surface-0);
+  color: var(--color-text);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
+  margin-bottom: 0.5rem;
+  max-width: 200px;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.tag-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 0.25rem solid transparent;
+  border-top-color: var(--color-surface-0);
+}
+
+/* Special styling for uses tags */
+.tag-numeric.tag-clickable {
+  background-color: var(--color-warning);
+  color: var(--color-text-inverse);
+}
+
+.tag-numeric.tag-clickable:hover {
+  background-color: var(--color-warning-dark);
+}
+
+/* Uses counter styling */
+.tag[data-uses="0"] {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tag-display {
+    gap: 0.375rem;
+  }
+  
+  .tag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+  }
+  
+  .tag-tooltip {
+    font-size: 0.7rem;
+    max-width: 150px;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .tag-tooltip {
+    background-color: var(--color-surface-1);
+    border-color: var(--color-border);
+  }
+  
+  .tag-tooltip::after {
+    border-top-color: var(--color-surface-1);
+  }
+}
+
+/* Animation for tag appearance */
+.tag {
+  animation: tagFadeIn 0.3s ease-out;
+}
+
+@keyframes tagFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus styles for accessibility */
+.tag:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .tag {
+    animation: none;
+    transition: none;
+  }
+  
+  .tag-clickable:hover {
+    transform: none;
+  }
+  
+  .tag-clickable:active {
+    transform: none;
+  }
+}

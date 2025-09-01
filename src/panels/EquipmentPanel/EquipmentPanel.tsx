@@ -3,11 +3,14 @@ import { createPanel, PanelProps } from '../../framework/Panel';
 import { createPanelAPI } from '../../framework/PanelAPI';
 import { useGameStore } from '../../store/GameStore';
 import { equipmentCalculationService, EquipmentStats } from '../../services/EquipmentCalculations';
+import TagDisplay from '../../components/TagDisplay';
+import { Tag } from '../../models/Equipment';
+import { useItem, canUseItem, getActiveTagEffects } from '../../utils/tagMechanics';
 import './EquipmentPanel.css';
 
 // Item tags from Dungeon World
-export type ItemTag = 
-  | 'awkward' | 'dangerous' | 'forceful' | 'messy' | 'piercing' 
+export type ItemTag =
+  | 'awkward' | 'dangerous' | 'forceful' | 'messy' | 'piercing'
   | 'precise' | 'reload' | 'stun' | 'thrown' | 'two-handed'
   | 'armor' | 'clumsy' | 'worn' | 'shield'
   | 'ration' | 'adventuring gear' | 'healing' | 'slow' | 'touch'
@@ -33,18 +36,18 @@ interface EquipmentPanelState {
   showDetails: string | null; // ID of item to show details for
 }
 
-const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }> = ({ 
-  id, 
+const EquipmentPanel: React.FC < PanelProps & { panelState?: EquipmentPanelState }> = ({
+  id,
   panelState,
-  onStateChange
+  onStateChange,
 }) => {
   const api = createPanelAPI(id);
   const { state: gameState, setCharacter } = useGameStore();
-  
+
   // Get the active character from the game state
   const character = gameState.activeCharacterId ? gameState.characters[gameState.activeCharacterId] : null;
   // Removed unused selectedItem state
-  
+
   // Default state
   const defaultState: EquipmentPanelState = {
     items: [
@@ -100,35 +103,35 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
     ],
     showDetails: null,
   };
-  
+
   const state = { ...defaultState, ...panelState };
-  
+
   // Use character inventory if available, otherwise fall back to panel state
   const displayItems = character?.inventory || state.items;
-  
+
   // Calculate equipment stats using the enhanced service
-  const equipmentStats: EquipmentStats | null = character ? 
+  const equipmentStats: EquipmentStats | null = character ?
     equipmentCalculationService.calculateEquipmentStats(character) : null;
-  
+
   // Fallback calculations for when no character is available
   const totalWeight = equipmentStats?.totalWeight || displayItems
     .reduce((sum: number, item: EquipmentItem) => sum + item.weight, 0);
-  
+
   const totalArmor = equipmentStats?.totalArmor || displayItems
     .filter((item: EquipmentItem) => item.armor)
     .reduce((sum: number, item: EquipmentItem) => sum + (item.armor || 0), 0);
-  
-  const damageItems = equipmentStats?.damageDice.map(dice => ({ name: 'Weapon', damage: dice })) || 
+
+  const damageItems = equipmentStats?.damageDice.map(dice => ({ name: 'Weapon', damage: dice })) ||
     displayItems
       .filter((item: EquipmentItem) => item.damage)
       .map((item: EquipmentItem) => ({ name: item.name, damage: item.damage }));
-  
+
   React.useEffect(() => {
     api.send('equipment-weight-changed', { totalWeight });
     api.send('equipment-armor-changed', { totalArmor });
     api.send('equipment-damage-changed', { damageItems });
   }, [totalWeight, totalArmor, state.items, api, damageItems]);
-  
+
   // Listen for items being equipped from inventory
   React.useEffect(() => {
     const unsubscribe = api.listen('item-equipped', (data: { item: EquipmentItem }) => {
@@ -138,10 +141,10 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
         onStateChange({ ...state, items: updatedItems });
       }
     });
-    
+
     return unsubscribe;
   }, [state, onStateChange, api]);
-  
+
   // Handle unequip action
   const handleUnequip = (itemId: string) => {
     const item = state.items.find((i: EquipmentItem) => i.id === itemId);
@@ -163,14 +166,14 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
       } else {
         // Decrease uses
         updatedItems = state.items.map((i: EquipmentItem) =>
-          i.id === itemId ? { ...i, uses: i.uses! - 1 } : i
+          i.id === itemId ? { ...i, uses: i.uses!-1 } : i,
         );
       }
-      const newState = { ...state, items: updatedItems };
+      const newState =  { ...state, items: updatedItems };
       onStateChange?.(newState);
     }
   };
-  
+
   // Removed unused handleShowDetails function
 
   // Close item details
@@ -178,12 +181,35 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
     const newState = { ...state, showDetails: null };
     onStateChange?.(newState);
   };
-  
-  // Format item tags for display
-  const formatTags = (tags: ItemTag[]): string => {
-    return tags.join(', ');
+
+  // Convert ItemTag[] to Tag[] for TagDisplay component
+  const convertToTags = (itemTags: ItemTag[]): Tag[] => {
+    return itemTags.map(tag => ({ name: tag }));
   };
-  
+
+  // Handle use decrement for items
+  const handleUseDecrement = (itemId: string) => {
+    const itemIndex = state.items.findIndex((item: EquipmentItem) => item.id === itemId);
+    if (itemIndex === -1) return;
+
+    const item = state.items[itemIndex];
+    if (!item.uses || item.uses <= 0) return;
+
+    const updatedItems = [...state.items];
+    updatedItems[itemIndex] = {
+      ...item,
+      uses: item.uses-1,
+    };
+
+    onStateChange?.({ items: updatedItems });
+
+    api.send('item-used', {
+      itemId,
+      itemName: item.name,
+      usesRemaining: item.uses-1,
+    });
+  };
+
   // Get item properties display
   const getItemProperties = (item: EquipmentItem): string[] => {
     const props: string[] = [];
@@ -193,36 +219,36 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
     if (item.uses !== undefined) props.push(`${item.uses}/${item.maxUses || item.uses} uses`);
     return props;
   };
-  
+
   // Get the item to show details for
   // Auto-equip optimal gear
   const handleAutoEquip = () => {
     if (!character) return;
-    
+
     const optimalGear = equipmentCalculationService.autoEquipOptimalGear(character);
-    
+
     // Update character with optimally equipped items
     const updatedInventory = character.inventory?.map(item => {
       const optimal = optimalGear.find(opt => opt.id === item.id);
       return optimal ? { ...item, equipped: optimal.equipped } : { ...item, equipped: false };
     }) || [];
-    
+
     // Update character in game store
     setCharacter({ ...character, inventory: updatedInventory });
-    
-    api.send('equipment-auto-equipped', { 
-      equippedCount: optimalGear.length 
+
+    api.send('equipment-auto - equipped', {
+      equippedCount: optimalGear.length,
     });
   };
 
   const detailItem = state.showDetails ? state.items.find((i: EquipmentItem) => i.id === state.showDetails) : null;
-  
+
   return (
     <div className="equipment-panel">
       <div className="equipment-header">
-        <h2>Equipment</h2>
+        <h2 > Equipment</h2>
         {character && (
-          <button 
+          <button
             className="btn btn-secondary auto-equip-btn"
             onClick={handleAutoEquip}
             title="Automatically equip optimal gear for your character"
@@ -245,11 +271,11 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
               </>
             )}
           </div>
-          
+
           {/* Special Effects */}
           {equipmentStats && equipmentStats.specialEffects.length > 0 && (
             <div className="special-effects">
-              <h4>Active Effects:</h4>
+              <h4 > Active Effects:</h4>
               <div className="effects-list">
                 {equipmentStats.specialEffects.map(effect => (
                   <div key={effect.id} className={`effect-item effect-${effect.type}`}>
@@ -262,11 +288,11 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
           )}
         </div>
       </div>
-      
+
       <div className="equipment-list">
         {displayItems.length === 0 ? (
           <div className="empty-state">
-            <p>No equipment currently equipped.</p>
+            <p > No equipment currently equipped.</p>
             <p className="empty-hint">Visit the Inventory panel to equip items.</p>
           </div>
         ) : (
@@ -277,15 +303,19 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
                   <span className="item-name">{item.name}</span>
                   <span className="item-weight">{item.weight} weight</span>
                 </div>
-              
+
                 <div className="item-tags">
-                  {formatTags(item.tags)}
+                  <TagDisplay
+                    tags={convertToTags(item.tags)}
+                    showTooltips={true}
+                    onUseDecrement={() => handleUseDecrement(item.id)}
+                  />
                 </div>
-              
+
                 <div className="item-properties">
                   {getItemProperties(item).join(' • ')}
                 </div>
-              
+
                 {item.description && (
                   <div className="item-description">
                     {item.description}
@@ -296,7 +326,7 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
           </div>
         )}
       </div>
-      
+
       {/* Item Details Modal */}
       {detailItem && (
         <div className="modal-overlay" onClick={handleCloseDetails}>
@@ -305,42 +335,45 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
               <h3>{detailItem.name}</h3>
               <button className="modal-close" onClick={handleCloseDetails}>×</button>
             </div>
-            
+
             <div className="modal-body">
               <div className="detail-section">
-                <h4>Tags</h4>
-                <p>{formatTags(detailItem.tags)}</p>
+                <h4 > Tags</h4>
+                <TagDisplay
+                  tags={convertToTags(detailItem.tags)}
+                  showTooltips={true}
+                />
               </div>
-              
+
               <div className="detail-section">
-                <h4>Properties</h4>
+                <h4 > Properties</h4>
                 <p>{getItemProperties(detailItem).join(' • ')}</p>
               </div>
-              
+
               {detailItem.description && (
                 <div className="detail-section">
-                  <h4>Description</h4>
+                  <h4 > Description</h4>
                   <p>{detailItem.description}</p>
                 </div>
               )}
-              
+
               {detailItem.customMove && (
                 <div className="detail-section">
-                  <h4>Custom Move</h4>
+                  <h4 > Custom Move</h4>
                   <p className="custom-move">{detailItem.customMove}</p>
                 </div>
               )}
-              
+
               {detailItem.value !== undefined && (
                 <div className="detail-section">
-                  <h4>Value</h4>
+                  <h4 > Value</h4>
                   <p>{detailItem.value} coin</p>
                 </div>
               )}
             </div>
-            
+
             <div className="modal-footer">
-              <button 
+              <button
                 className="action-button action-button--unequip"
                 onClick={() => {
                   handleUnequip(detailItem.id);
@@ -350,7 +383,7 @@ const EquipmentPanel: React.FC<PanelProps & { panelState?: EquipmentPanelState }
                 Unequip
               </button>
               {detailItem.uses !== undefined && detailItem.uses > 0 && (
-                <button 
+                <button
                   className="action-button action-button--use"
                   onClick={() => {
                     handleUseItem(detailItem.id);
@@ -410,5 +443,5 @@ export default createPanel(
       ],
       showDetails: null,
     }),
-  }
+  },
 );

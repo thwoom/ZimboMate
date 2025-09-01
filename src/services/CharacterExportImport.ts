@@ -1,5 +1,5 @@
 /**
- * Character export/import service for sharing and backup
+ * Character export / import service for sharing and backup
  */
 
 import { Character } from '../models/Character';
@@ -24,7 +24,7 @@ export interface ImportResult {
 }
 
 class CharacterExportImportService {
-  
+
   private readonly CURRENT_VERSION = '1.0';
   private readonly APP_VERSION = '1.0.0';
 
@@ -39,8 +39,8 @@ class CharacterExportImportService {
       metadata: {
         exportedAt: new Date(),
         exportedBy: 'ZimboMate',
-        appVersion: this.APP_VERSION
-      }
+        appVersion: this.APP_VERSION,
+      },
     };
 
     return JSON.stringify(exportData, null, 2);
@@ -57,8 +57,8 @@ class CharacterExportImportService {
       metadata: {
         exportedAt: new Date(),
         exportedBy: 'ZimboMate',
-        appVersion: this.APP_VERSION
-      }
+        appVersion: this.APP_VERSION,
+      },
     };
 
     return JSON.stringify(exportData, null, 2);
@@ -70,12 +70,12 @@ class CharacterExportImportService {
   importFromJson(jsonString: string): ImportResult {
     try {
       const parsed = JSON.parse(jsonString);
-      
+
       // Validate basic structure
       if (!parsed.version || !parsed.type || !parsed.data) {
         return {
           success: false,
-          error: 'Invalid export format: missing required fields'
+          error: 'Invalid export format: missing required fields',
         };
       }
 
@@ -83,7 +83,7 @@ class CharacterExportImportService {
       if (parsed.version !== this.CURRENT_VERSION) {
         return {
           success: false,
-          error: `Unsupported version: ${parsed.version}. Expected: ${this.CURRENT_VERSION}`
+          error: `Unsupported version: ${parsed.version}. Expected: ${this.CURRENT_VERSION}`,
         };
       }
 
@@ -93,42 +93,40 @@ class CharacterExportImportService {
         if (!character.isValid) {
           return {
             success: false,
-            error: `Invalid character data: ${character.errors.join(', ')}`
+            error: `Invalid character data: ${character.errors.join(', ')}`,
           };
         }
-        
+
         return {
           success: true,
           data: parsed.data as Character,
-          warnings: character.warnings
+          warnings: character.warnings,
         };
-      } 
-      else if (parsed.type === 'template') {
+      } else if (parsed.type === 'template') {
         const template = this.validateTemplateData(parsed.data);
         if (!template.isValid) {
           return {
             success: false,
-            error: `Invalid template data: ${template.errors.join(', ')}`
+            error: `Invalid template data: ${template.errors.join(', ')}`,
           };
         }
-        
+
         return {
           success: true,
           data: parsed.data as CharacterTemplate,
-          warnings: template.warnings
+          warnings: template.warnings,
         };
-      }
-      else {
+      } else {
         return {
           success: false,
-          error: `Unknown export type: ${parsed.type}`
+          error: `Unknown export type: ${parsed.type}`,
         };
       }
-      
+
     } catch (error) {
       return {
         success: false,
-        error: `Failed to parse JSON: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Failed to parse JSON: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -138,7 +136,7 @@ class CharacterExportImportService {
    */
   downloadCharacter(character: Character): void {
     const json = this.exportCharacter(character);
-    const filename = `${character.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_character.json`;
+    const filename =  `${character.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}character.json`;
     this.downloadFile(json, filename);
   }
 
@@ -147,7 +145,7 @@ class CharacterExportImportService {
    */
   downloadTemplate(template: CharacterTemplate): void {
     const json = this.exportTemplate(template);
-    const filename = `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_template.json`;
+    const filename =  `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}template.json`;
     this.downloadFile(json, filename);
   }
 
@@ -167,7 +165,7 @@ class CharacterExportImportService {
   importFromUrl(): ImportResult | null {
     const urlParams = new URLSearchParams(window.location.search);
     const importData = urlParams.get('import');
-    
+
     if (!importData) {
       return null;
     }
@@ -178,7 +176,7 @@ class CharacterExportImportService {
     } catch (error) {
       return {
         success: false,
-        error: `Failed to import from URL: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Failed to import from URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -196,8 +194,8 @@ class CharacterExportImportService {
         exportedAt: new Date(),
         exportedBy: 'ZimboMate',
         appVersion: this.APP_VERSION,
-        characterCount: characters.length
-      }
+        characterCount: characters.length,
+      },
     };
 
     return JSON.stringify(exportData, null, 2);
@@ -208,14 +206,14 @@ class CharacterExportImportService {
    */
   downloadCampaign(characters: Character[], campaignName: string): void {
     const json = this.exportCampaign(characters, campaignName);
-    const filename = `${campaignName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_campaign.json`;
+    const filename = `${campaignName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}campaign.json`;
     this.downloadFile(json, filename);
   }
 
   /**
    * Validate character data structure
    */
-  private validateCharacterData(data: any): { isValid: boolean; errors: string[]; warnings: string[] } {
+  private validateCharacterData(data: unknown): { isValid: boolean; errors: string[]; warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -229,7 +227,7 @@ class CharacterExportImportService {
 
     // Validate attributes structure
     if (data.attributes) {
-      const requiredAttrs = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+      const requiredAttrs =  ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
       for (const attr of requiredAttrs) {
         if (typeof data.attributes[attr] !== 'number') {
           errors.push(`Invalid ${attr} attribute`);
@@ -253,14 +251,14 @@ class CharacterExportImportService {
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
   /**
    * Validate template data structure
    */
-  private validateTemplateData(data: any): { isValid: boolean; errors: string[]; warnings: string[] } {
+  private validateTemplateData(data: unknown): { isValid: boolean; errors: string[]; warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -284,7 +282,7 @@ class CharacterExportImportService {
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -292,16 +290,16 @@ class CharacterExportImportService {
    * Download file helper
    */
   private downloadFile(content: string, filename: string): void {
-    const blob = new Blob([content], { type: 'application/json' });
+    const blob = new Blob([content], { type: 'application / json' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     URL.revokeObjectURL(url);
   }
 
@@ -326,19 +324,18 @@ class CharacterExportImportService {
     const shareUrl = this.createShareableUrl(character);
     // In a real implementation, you'd use a QR code library
     // For now, return a placeholder
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
+    return `https://api.qrserver.com / v1 / create-qr - code/?size = 200x200 & data=${encodeURIComponent(shareUrl)}`;
   }
 
   /**
    * Copy character data to clipboard
    */
-  async copyToClipboard(character: Character): Promise<boolean> {
+  async copyToClipboard(character: Character): Promise < boolean> {
     try {
       const json = this.exportCharacter(character);
       await navigator.clipboard.writeText(json);
       return true;
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
       return false;
     }
   }
@@ -346,14 +343,14 @@ class CharacterExportImportService {
   /**
    * Import from clipboard
    */
-  async importFromClipboard(): Promise<ImportResult> {
+  async importFromClipboard(): Promise < ImportResult> {
     try {
       const text = await navigator.clipboard.readText();
       return this.importFromJson(text);
     } catch (error) {
       return {
         success: false,
-        error: `Failed to read from clipboard: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Failed to read from clipboard: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
