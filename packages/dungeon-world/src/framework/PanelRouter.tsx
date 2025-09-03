@@ -3,6 +3,7 @@ import type { PanelProps } from './Panel'
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
 import ErrorBoundary from '../components/ErrorBoundary'
+import { setActiveScope } from '../utils/KeyboardShortcuts'
 import { panelRecoveryManager } from '../utils/panelRecovery'
 import { performanceMonitor } from '../utils/PerformanceMonitor'
 import { panelRegistry } from './PanelRegistry'
@@ -265,6 +266,16 @@ export const PanelRouter: React.FC <PanelRouterProps> = ({
       isProcessing.current = false
     }
   }, [activePanelId, onPanelChange, enableTransitions]) // Removed previousPanelId from dependencies to prevent loops
+
+  // App-wide keyboard shortcut scoping to active panel
+  useEffect(() => {
+    try {
+      setActiveScope(activePanelId)
+      return () => setActiveScope(null)
+    }
+    catch {
+    }
+  }, [activePanelId])
 
   // Get the active panel
   const activePanel = panelRegistry.getPanel(activePanelId)

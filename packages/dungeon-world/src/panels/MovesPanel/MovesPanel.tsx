@@ -7,11 +7,11 @@ import type { RollInsight } from '../../services/RollAnalyticsService'
 import type { MoveSuggestion } from '../../services/SmartMoveSuggestionService'
 import type { Spell as ServiceSpell, SpellClass } from '../../services/Spells'
 import React, { useEffect, useRef, useState } from 'react'
-import EnhancedDiceRoller from '../../components/EnhancedDiceRoller'
 import ContextMenu from '../../components/ContextMenu'
-import Tooltip from '../../components/Tooltip'
+import EnhancedDiceRoller from '../../components/EnhancedDiceRoller'
 import MoveCard from '../../components/MoveCard'
 import SpellConsequenceModal from '../../components/SpellConsequenceModal'
+import Tooltip from '../../components/Tooltip'
 import { createPanel } from '../../framework/Panel'
 import { createPanelAPI, loadPanelState, savePanelState } from '../../framework/PanelAPI'
 import { BASIC_MOVES, SPECIAL_MOVES } from '../../models/Move'
@@ -22,6 +22,7 @@ import { smartMoveSuggestionService } from '../../services/SmartMoveSuggestionSe
 import { spellCastingService } from '../../services/SpellCastingService'
 import { getSpellsForClass } from '../../services/Spells'
 import { useGameStore } from '../../store/GameStore'
+import { filterMovesByClass } from '../../utils/conditionalContent'
 import { registerShortcut, setActiveScope } from '../../utils/KeyboardShortcuts'
 import './MovesPanel.css'
 
@@ -182,6 +183,11 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
   // Filter moves based on category and search
   const getFilteredMoves = (): Move[] => {
     let moves = getAllMoves()
+
+    // Class-aware ordering/filtering (non-breaking): prefer class-relevant categories unless Show All is true
+    if (character && !panelState.showAll) {
+      moves = filterMovesByClass(character as any, moves)
+    }
 
     // Filter by category
     if (panelState.selectedCategory !== 'all') {
@@ -546,7 +552,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                   )
                 : (
                     filteredMoves.map(move => (
-                      <div key={move.id} onContextMenu={(e) => openContextMenu(e, move)}>
+                      <div key={move.id} onContextMenu={e => openContextMenu(e, move)}>
                         <MoveCard
                           move={move}
                           character={character}
