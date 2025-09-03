@@ -210,12 +210,12 @@
   background: var(--color-overlay);
 }
 
-.advancement-option input[type="radio"] {
+.advancement-option input[type='radio'] {
   margin-right: var(--spacing-md);
   accent-color: var(--color-primary);
 }
 
-.advancement-option input[type="radio"]:checked + .advancement-text {
+.advancement-option input[type='radio']:checked + .advancement-text {
   color: var(--color-primary);
   font-weight: 600;
 }
@@ -271,15 +271,15 @@
     width: 95%;
     margin: var(--spacing-md);
   }
-  
+
   .level-up-details {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-footer {
     flex-direction: column;
   }
-  
+
   .btn {
     width: 100%;
   }

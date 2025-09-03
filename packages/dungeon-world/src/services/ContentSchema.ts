@@ -1,73 +1,72 @@
-
-export type ContentType = 'move' | 'item' | 'spell';
+export type ContentType = 'move' | 'item' | 'spell'
 
 export interface ContentSchema {
-  type: ContentType;
-  version: string;
-  fields: SchemaField[];
-  validation: ValidationRule[];
+  type: ContentType
+  version: string
+  fields: SchemaField[]
+  validation: ValidationRule[]
 }
 
 export interface SchemaField {
-  name: string;
-  type: 'string' | 'number' | 'boolean' | 'select' | 'multiselect' | 'textarea' | 'object' | 'array';
-  label: string;
-  description?: string;
-  required: boolean;
-  defaultValue?: unknown;
-  options?: SchemaOption[];
-  validation?: FieldValidationRule[];
-  dependsOn?: FieldDependency;
+  name: string
+  type: 'string' | 'number' | 'boolean' | 'select' | 'multiselect' | 'textarea' | 'object' | 'array'
+  label: string
+  description?: string
+  required: boolean
+  defaultValue?: unknown
+  options?: SchemaOption[]
+  validation?: FieldValidationRule[]
+  dependsOn?: FieldDependency
 }
 
 export interface SchemaOption {
-  value: string | number;
-  label: string;
-  description?: string;
+  value: string | number
+  label: string
+  description?: string
 }
 
 export interface FieldValidationRule {
-  type: 'required' | 'minLength' | 'maxLength' | 'min' | 'max' | 'pattern' | 'custom';
-  value?: unknown;
-  message: string;
-  validator?: (value: unknown, context: ValidationContext) => boolean;
+  type: 'required' | 'minLength' | 'maxLength' | 'min' | 'max' | 'pattern' | 'custom'
+  value?: unknown
+  message: string
+  validator?: (value: unknown, context: ValidationContext) => boolean
 }
 
 export interface FieldDependency {
-  field: string;
-  value: unknown;
-  operator?: 'equals' | 'notEquals' | 'contains' | 'greaterThan' | 'lessThan';
+  field: string
+  value: unknown
+  operator?: 'equals' | 'notEquals' | 'contains' | 'greaterThan' | 'lessThan'
 }
 
 export interface ValidationRule {
-  type: 'crossField' | 'business' | 'reference';
-  condition: (data: any) => boolean;
-  message: string;
-  severity: 'error' | 'warning';
+  type: 'crossField' | 'business' | 'reference'
+  condition: (data: any) => boolean
+  message: string
+  severity: 'error' | 'warning'
 }
 
 export interface ValidationContext {
-  contentType: ContentType;
-  existingContent: unknown[];
-  characterClass?: string;
+  contentType: ContentType
+  existingContent: unknown[]
+  characterClass?: string
 }
 
 export interface ValidationResult {
-  isValid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
+  isValid: boolean
+  errors: ValidationError[]
+  warnings: ValidationWarning[]
 }
 
 export interface ValidationError {
-  field?: string;
-  message: string;
-  code: string;
+  field?: string
+  message: string
+  code: string
 }
 
 export interface ValidationWarning {
-  field?: string;
-  message: string;
-  code: string;
+  field?: string
+  message: string
+  code: string
 }
 
 // Move Schema
@@ -188,15 +187,15 @@ export const MOVE_SCHEMA: ContentSchema = {
       condition: (data) => {
         // If it's an advanced move, it should have a class
         if (data.category === 'advanced' && !data.class) {
-          return false;
+          return false
         }
-        return true;
+        return true
       },
       message: 'Advanced moves must be associated with a character class',
       severity: 'error',
     },
   ],
-};
+}
 
 // Item Schema
 export const ITEM_SCHEMA: ContentSchema = {
@@ -348,9 +347,9 @@ export const ITEM_SCHEMA: ContentSchema = {
       condition: (data) => {
         // Weapons should have damage
         if (data.type === 'weapon' && !data.damage) {
-          return false;
+          return false
         }
-        return true;
+        return true
       },
       message: 'Weapons must specify damage',
       severity: 'error',
@@ -360,15 +359,15 @@ export const ITEM_SCHEMA: ContentSchema = {
       condition: (data) => {
         // Armor should have armor value
         if (data.type === 'armor' && data.armorValue === undefined) {
-          return false;
+          return false
         }
-        return true;
+        return true
       },
       message: 'Armor must specify armor value',
       severity: 'error',
     },
   ],
-};
+}
 
 // Spell Schema
 export const SPELL_SCHEMA: ContentSchema = {
@@ -526,9 +525,9 @@ export const SPELL_SCHEMA: ContentSchema = {
       condition: (data) => {
         // Cantrips should be level 0
         if (data.name.toLowerCase().includes('cantrip') && data.level !== 0) {
-          return false;
+          return false
         }
-        return true;
+        return true
       },
       message: 'Cantrips must be level 0',
       severity: 'error',
@@ -538,60 +537,61 @@ export const SPELL_SCHEMA: ContentSchema = {
       condition: (data) => {
         // High-level spells should have material components
         if (data.level >= 6 && (!data.components || !data.components.includes('M'))) {
-          return false;
+          return false
         }
-        return true;
+        return true
       },
       message: 'High-level spells (6+) typically require material components',
       severity: 'warning',
     },
   ],
-};
+}
 
-export const SCHEMAS: Record < ContentType, ContentSchema> = {
+export const SCHEMAS: Record <ContentType, ContentSchema> = {
   move: MOVE_SCHEMA,
   item: ITEM_SCHEMA,
   spell: SPELL_SCHEMA,
-};
+}
 
 export function getSchema(contentType: ContentType): ContentSchema {
-  return SCHEMAS[contentType];
+  return SCHEMAS[contentType]
 }
 
 export function validateContent(content: unknown, contentType: ContentType, context?: ValidationContext): ValidationResult {
-  const schema = getSchema(contentType);
-  const errors: ValidationError[] = [];
-  const warnings: ValidationWarning[] = [];
+  const schema = getSchema(contentType)
+  const errors: ValidationError[] = []
+  const warnings: ValidationWarning[] = []
 
   // Validate required fields and field dependencies
   for (const field of schema.fields) {
-    const value = content[field.name];
-    const isFieldVisible = checkFieldDependency(field, content);
+    const value = content[field.name]
+    const isFieldVisible = checkFieldDependency(field, content)
 
     // Skip validation if field is not visible due to dependencies
-    if (!isFieldVisible) continue;
+    if (!isFieldVisible)
+      continue
 
     if (field.required && (value === undefined || value === null || value === '')) {
       errors.push({
         field: field.name,
         message: `${field.label} is required`,
         code: 'REQUIRED_FIELD',
-      });
-      continue;
+      })
+      continue
     }
 
-    if (value !== undefined && value !== null && value !== '' && // Field-specific validation
-      field.validation) {
-        for (const rule of field.validation) {
-          if (!validateFieldRule(value, rule)) {
-            errors.push({
-              field: field.name,
-              message: rule.message,
-              code: rule.type.toUpperCase(),
-            });
-          }
+    if (value !== undefined && value !== null && value !== '' // Field-specific validation
+      && field.validation) {
+      for (const rule of field.validation) {
+        if (!validateFieldRule(value, rule)) {
+          errors.push({
+            field: field.name,
+            message: rule.message,
+            code: rule.type.toUpperCase(),
+          })
         }
       }
+    }
   }
 
   // Schema-level validation
@@ -601,12 +601,13 @@ export function validateContent(content: unknown, contentType: ContentType, cont
         errors.push({
           message: rule.message,
           code: rule.message.replace(/\s+/g, '_').toUpperCase(),
-        });
-      } else {
+        })
+      }
+      else {
         warnings.push({
           message: rule.message,
           code: rule.message.replace(/\s+/g, '_').toUpperCase(),
-        });
+        })
       }
     }
   }
@@ -615,52 +616,50 @@ export function validateContent(content: unknown, contentType: ContentType, cont
     isValid: errors.length === 0,
     errors,
     warnings,
-  };
+  }
 }
 
 function validateFieldRule(value: unknown, rule: FieldValidationRule): boolean {
   switch (rule.type) {
     case 'required':
-      return value !== undefined && value !== null && value !== '';
+      return value !== undefined && value !== null && value !== ''
     case 'minLength':
-      return typeof value === 'string' && value.length >= rule.value;
+      return typeof value === 'string' && value.length >= rule.value
     case 'maxLength':
-      return typeof value === 'string' && value.length <= rule.value;
+      return typeof value === 'string' && value.length <= rule.value
     case 'min':
-      return typeof value === 'number' && value >= rule.value;
+      return typeof value === 'number' && value >= rule.value
     case 'max':
-      return typeof value === 'number' && value <= rule.value;
+      return typeof value === 'number' && value <= rule.value
     case 'pattern':
       // Use simple string matching instead of regex to avoid ReDoS
-      return typeof value === 'string' && String(value).includes(String(rule.value));
+      return typeof value === 'string' && String(value).includes(String(rule.value))
     case 'custom':
-      return rule.validator ? rule.validator(value, {} as ValidationContext) : true;
+      return rule.validator ? rule.validator(value, {} as ValidationContext) : true
     default:
-      return true;
+      return true
   }
 }
 
 export function checkFieldDependency(field: SchemaField, data: any): boolean {
-  if (!field.dependsOn) return true;
+  if (!field.dependsOn)
+    return true
 
-  const { field: dependentField, value, operator = 'equals' } = field.dependsOn;
-  const dependentValue = data[dependentField];
+  const { field: dependentField, value, operator = 'equals' } = field.dependsOn
+  const dependentValue = data[dependentField]
 
   switch (operator) {
     case 'equals':
-      return dependentValue === value;
+      return dependentValue === value
     case 'notEquals':
-      return dependentValue !== value;
+      return dependentValue !== value
     case 'contains':
-      return Array.isArray(dependentValue) && dependentValue.includes(value);
+      return Array.isArray(dependentValue) && dependentValue.includes(value)
     case 'greaterThan':
-      return typeof dependentValue === 'number' && dependentValue > value;
+      return typeof dependentValue === 'number' && dependentValue > value
     case 'lessThan':
-      return typeof dependentValue === 'number' && dependentValue < value;
+      return typeof dependentValue === 'number' && dependentValue < value
     default:
-      return true;
+      return true
   }
 }
-
-
-

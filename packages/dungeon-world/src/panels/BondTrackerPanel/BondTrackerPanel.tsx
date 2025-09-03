@@ -1,17 +1,18 @@
-import './BondTrackerPanel.css';
+import type { PanelProps } from '../../framework/Panel'
 
-import React from 'react';
-import { BondTracker } from '../../components/BondTracker';
-import { createPanel, PanelProps } from '../../framework/Panel';
-import { createPanelAPI } from '../../framework/PanelAPI';
-import { useCharacter } from '../../store/GameStore';
+import React from 'react'
+import { BondTracker } from '../../components/BondTracker'
+import { createPanel } from '../../framework/Panel'
+import { createPanelAPI } from '../../framework/PanelAPI'
+import { useCharacter } from '../../store/GameStore'
+import './BondTrackerPanel.css'
 
-const id = 'bond-tracker';
+const id = 'bond-tracker'
 
-const api = createPanelAPI(id);
+const api = createPanelAPI(id)
 
-const BondTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, onStateChange }) => {
-  const currentCharacter = useCharacter();
+const BondTrackerPanelComponent: React.FC <PanelProps> = ({ isActive, onStateChange }) => {
+  const currentCharacter = useCharacter()
 
   const handleBondResolved = (bondId: string, xpGained: number) => {
     // Notify the game system that XP was gained
@@ -20,9 +21,9 @@ const BondTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, onStateCh
 
     // Update panel state if needed
     if (onStateChange) {
-      onStateChange({ lastBondResolved: bondId, xpGained });
+      onStateChange({ lastBondResolved: bondId, xpGained })
     }
-  };
+  }
 
   return (
     <div className="bond-tracker-panel">
@@ -40,12 +41,12 @@ const BondTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, onStateCh
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
 const bondTrackerPanelConfig = createPanel(
   {
-    id: id,
+    id,
     name: 'Bond Tracker',
     description: 'Manage character bonds and relationships for XP',
     icon: '🔗',
@@ -55,17 +56,14 @@ const bondTrackerPanelConfig = createPanel(
   BondTrackerPanelComponent,
   {
     onMount: () => {
-      },
+    },
     onUnmount: () => {
-      },
+    },
     onActivate: () => {
-      },
+    },
     onDeactivate: () => {
-      },
+    },
   },
-);
+)
 
-export default bondTrackerPanelConfig;
-
-
-
+export default bondTrackerPanelConfig

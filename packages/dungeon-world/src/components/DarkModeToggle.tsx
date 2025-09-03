@@ -1,40 +1,41 @@
-import './DarkModeToggle.css';
+import type { ThemeMode } from '../services/ThemeService'
 
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import { themeService } from '../services/ThemeService'
 
-import { ThemeMode,themeService } from '../services/ThemeService';
+import './DarkModeToggle.css'
 
 const DarkModeToggle: React.FC = () => {
-  const [currentTheme, setCurrentTheme] = useState<ThemeMode>(themeService.getCurrentTheme());
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<ThemeMode>(themeService.getCurrentTheme())
+  const [showDropdown, setShowDropdown] = useState(false)
 
   useEffect(() => {
-    const unsubscribe = themeService.addListener(setCurrentTheme);
-    return unsubscribe;
-  }, []);
+    const unsubscribe = themeService.addListener(setCurrentTheme)
+    return unsubscribe
+  }, [])
 
-  const availableThemes = themeService.getAvailableThemes();
+  const availableThemes = themeService.getAvailableThemes()
 
   const handleThemeSelect = (theme: ThemeMode) => {
-    themeService.setTheme(theme);
-    setShowDropdown(false);
-  };
+    themeService.setTheme(theme)
+    setShowDropdown(false)
+  }
 
   const getThemeIcon = (theme: ThemeMode) => {
     switch (theme) {
-      case 'dark': return '🌙';
-      case 'light': return '☀️';
-      case 'moon': return '🌚';
-      case 'auto': return '🔄';
-      case 'high-contrast': return '⚫';
-      default: return '🌙';
+      case 'dark': return '🌙'
+      case 'light': return '☀️'
+      case 'moon': return '🌚'
+      case 'auto': return '🔄'
+      case 'high-contrast': return '⚫'
+      default: return '🌙'
     }
-  };
+  }
 
   const getCurrentThemeLabel = () => {
-    const theme = availableThemes.find(t => t.value === currentTheme);
-    return theme?.label || 'Rose Pine';
-  };
+    const theme = availableThemes.find(t => t.value === currentTheme)
+    return theme?.label || 'Rose Pine'
+  }
 
   return (
     <div className="theme-selector">
@@ -60,7 +61,7 @@ const DarkModeToggle: React.FC = () => {
           <div className="theme-dropdown__backdrop" onClick={() => setShowDropdown(false)} />
           <div className="theme-dropdown__content">
             <div className="theme-dropdown__header">
-              <h3 > Rose Pine Themes</h3>
+              <h3> Rose Pine Themes</h3>
             </div>
             {availableThemes.map(theme => (
               <button
@@ -80,16 +81,13 @@ const DarkModeToggle: React.FC = () => {
             ))}
 
             <div className="theme-dropdown__footer">
-              <small > Powered by Rose Pine color palette</small>
+              <small> Powered by Rose Pine color palette</small>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default DarkModeToggle;
-
-
-
+export default DarkModeToggle

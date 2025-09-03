@@ -342,32 +342,32 @@
     margin: var(--spacing-md);
     max-height: calc(100vh-2rem);
   }
-  
+
   .move-details-header {
     padding: var(--spacing-md);
   }
-  
+
   .move-details-header h2 {
     font-size: 1.2rem;
   }
-  
+
   .move-details-content {
     padding: var(--spacing-md);
   }
-  
+
   .move-meta-info {
     grid-template-columns: 1fr;
     gap: var(--spacing-sm);
   }
-  
+
   .panel-header {
     padding: var(--spacing-md);
   }
-  
+
   .panel-header h1 {
     font-size: 1.5rem;
   }
-  
+
   .panel-content {
     padding: var(--spacing-md);
   }
@@ -377,25 +377,25 @@
   .move-details-overlay {
     padding: var(--spacing-sm);
   }
-  
+
   .move-details-modal {
     margin: 0;
     max-height: 100vh;
     border-radius: 0;
   }
-  
+
   .move-details-header {
     border-radius: 0;
   }
-  
+
   .move-details-content {
     padding: var(--spacing-sm);
   }
-  
+
   .move-meta-info {
     padding: var(--spacing-sm);
   }
-  
+
   .move-character-context {
     padding: var(--spacing-md);
   }

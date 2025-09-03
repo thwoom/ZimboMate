@@ -1,18 +1,19 @@
-import './AlignmentXPTrackerPanel.css';
+import type { PanelProps } from '../../framework/Panel'
 
-import React from 'react';
-import { AlignmentXPTracker } from '../../components/AlignmentXPTracker';
-import { createPanel, PanelProps } from '../../framework/Panel';
-import { createPanelAPI } from '../../framework/PanelAPI';
-import { useCharacter } from '../../store/GameStore';
-import { AlignmentAction } from '../../types/XP';
+import type { AlignmentAction } from '../../types/XP'
+import React from 'react'
+import { AlignmentXPTracker } from '../../components/AlignmentXPTracker'
+import { createPanel } from '../../framework/Panel'
+import { createPanelAPI } from '../../framework/PanelAPI'
+import { useCharacter } from '../../store/GameStore'
+import './AlignmentXPTrackerPanel.css'
 
-const id = 'alignment-xp-tracker';
+const id = 'alignment-xp-tracker'
 
-const api = createPanelAPI(id);
+const api = createPanelAPI(id)
 
-const AlignmentXPTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, onStateChange }) => {
-  const currentCharacter = useCharacter();
+const AlignmentXPTrackerPanelComponent: React.FC <PanelProps> = ({ isActive, onStateChange }) => {
+  const currentCharacter = useCharacter()
 
   const handleAlignmentAction = (action: AlignmentAction) => {
     // Notify the game system that XP was gained from alignment action
@@ -21,9 +22,9 @@ const AlignmentXPTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, on
 
     // Update panel state if needed
     if (onStateChange) {
-      onStateChange({ lastAlignmentAction: action.id, xpGained: action.xpAmount });
+      onStateChange({ lastAlignmentAction: action.id, xpGained: action.xpAmount })
     }
-  };
+  }
 
   return (
     <div className="alignment-xp-tracker-panel">
@@ -41,12 +42,12 @@ const AlignmentXPTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, on
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
 const alignmentXPTrackerPanelConfig = createPanel(
   {
-    id: id,
+    id,
     name: 'Alignment XP Tracker',
     description: 'Track alignment actions and earn XP through roleplay',
     icon: '⚖️',
@@ -56,17 +57,14 @@ const alignmentXPTrackerPanelConfig = createPanel(
   AlignmentXPTrackerPanelComponent,
   {
     onMount: () => {
-      },
+    },
     onUnmount: () => {
-      },
+    },
     onActivate: () => {
-      },
+    },
     onDeactivate: () => {
-      },
+    },
   },
-);
+)
 
-export default alignmentXPTrackerPanelConfig;
-
-
-
+export default alignmentXPTrackerPanelConfig

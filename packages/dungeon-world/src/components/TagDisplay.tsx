@@ -1,19 +1,19 @@
-import './TagDisplay.css';
+import type { ItemTag, Tag } from '../models/Equipment'
 
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 
-import { ItemTag,Tag } from '../models/Equipment';
+import './TagDisplay.css'
 
 interface TagDisplayProps {
-  tags: Tag[];
-  showTooltips?: boolean;
-  showUses?: boolean;
-  onUseDecrement?: (tagName: string) => void;
-  className?: string;
+  tags: Tag[]
+  showTooltips?: boolean
+  showUses?: boolean
+  onUseDecrement?: (tagName: string) => void
+  className?: string
 }
 
 // Tag descriptions for tooltips
-const TAG_DESCRIPTIONS: Record < ItemTag, string> = {
+const TAG_DESCRIPTIONS: Record <ItemTag, string> = {
   // Weapon range tags
   'hand': 'Useful for attacking within reach',
   'close': 'Useful at arm\'s reach plus a foot or two',
@@ -63,7 +63,7 @@ const TAG_DESCRIPTIONS: Record < ItemTag, string> = {
   'magical': 'Has magical properties',
   'holy': 'Blessed or divine',
   'unholy': 'Cursed or profane',
-};
+}
 
 // Tag categories for styling
 const TAG_CATEGORIES = {
@@ -74,57 +74,57 @@ const TAG_CATEGORIES = {
   numeric: ['piercing', 'ammo', 'damage', 'armor', 'armor-plus', 'bonus', 'uses', 'weight', 'coins'],
   alignment: ['chaotic', 'evil', 'good', 'lawful'],
   magical: ['magical', 'holy', 'unholy'],
-};
+}
 
-export const TagDisplay: React.FC < TagDisplayProps> = ({
+export const TagDisplay: React.FC <TagDisplayProps> = ({
   tags,
   showTooltips = true,
   showUses = true,
   onUseDecrement,
   className = '',
 }) => {
-  const [hoveredTag, setHoveredTag] = useState < string | null>(null);
+  const [hoveredTag, setHoveredTag] = useState <string | null>(null)
 
   const getTagCategory = (tagName: string): string => {
     for (const [category, tagList] of Object.entries(TAG_CATEGORIES)) {
       if (tagList.includes(tagName as ItemTag)) {
-        return category;
+        return category
       }
     }
-    return 'custom';
-  };
+    return 'custom'
+  }
 
   const getTagDescription = (tag: Tag): string => {
     if (tag.name in TAG_DESCRIPTIONS) {
-      const baseDesc = TAG_DESCRIPTIONS[tag.name as ItemTag];
+      const baseDesc = TAG_DESCRIPTIONS[tag.name as ItemTag]
       if (tag.value !== undefined) {
-        return `${baseDesc} (${tag.value})`;
+        return `${baseDesc} (${tag.value})`
       }
-      return baseDesc;
+      return baseDesc
     }
-    return tag.value ? `${tag.name} ${tag.value}` : tag.name;
-  };
+    return tag.value ? `${tag.name} ${tag.value}` : tag.name
+  }
 
   const handleUseClick = (tag: Tag) => {
     if (tag.name === 'uses' && tag.value && typeof tag.value === 'number' && tag.value > 0 && onUseDecrement) {
-      onUseDecrement(tag.name);
+      onUseDecrement(tag.name)
     }
-  };
+  }
 
   const canDecrementUses = (tag: Tag): boolean => {
-    return tag.name === 'uses' &&
-           tag.value !== undefined &&
-           typeof tag.value === 'number' &&
-           tag.value > 0 &&
-           onUseDecrement !== undefined;
-  };
+    return tag.name === 'uses'
+      && tag.value !== undefined
+      && typeof tag.value === 'number'
+      && tag.value > 0
+      && onUseDecrement !== undefined
+  }
 
   return (
     <div className={`tag-display ${className}`}>
       {tags.map((tag, index) => {
-        const category = getTagCategory(tag.name);
-        const description = getTagDescription(tag);
-        const isClickable = canDecrementUses(tag);
+        const category = getTagCategory(tag.name)
+        const description = getTagDescription(tag)
+        const isClickable = canDecrementUses(tag)
 
         return (
           <div
@@ -145,13 +145,10 @@ export const TagDisplay: React.FC < TagDisplayProps> = ({
               </div>
             )}
           </div>
-        );
+        )
       })}
     </div>
-  );
-};
+  )
+}
 
-export default TagDisplay;
-
-
-
+export default TagDisplay

@@ -9,27 +9,27 @@
 // Ensure DOM types are available globally
 declare global {
   // Browser APIs
-  const Blob: typeof globalThis.Blob;
-  const URL: typeof globalThis.URL;
-  const FileReader: typeof globalThis.FileReader;
-  const URLSearchParams: typeof globalThis.URLSearchParams;
-  const btoa: typeof globalThis.btoa;
-  const atob: typeof globalThis.atob;
-  const requestAnimationFrame: typeof globalThis.requestAnimationFrame;
-  
+  const Blob: typeof globalThis.Blob
+  const URL: typeof globalThis.URL
+  const FileReader: typeof globalThis.FileReader
+  const URLSearchParams: typeof globalThis.URLSearchParams
+  const btoa: typeof globalThis.btoa
+  const atob: typeof globalThis.atob
+  const requestAnimationFrame: typeof globalThis.requestAnimationFrame
+
   // DOM Events
-  const KeyboardEvent: typeof globalThis.KeyboardEvent;
-  const MouseEvent: typeof globalThis.MouseEvent;
-  
+  const KeyboardEvent: typeof globalThis.KeyboardEvent
+  const MouseEvent: typeof globalThis.MouseEvent
+
   // DOM Elements
-  const HTMLDivElement: typeof globalThis.HTMLDivElement;
-  const HTMLTextAreaElement: typeof globalThis.HTMLTextAreaElement;
-  const Node: typeof globalThis.Node;
-  
+  const HTMLDivElement: typeof globalThis.HTMLDivElement
+  const HTMLTextAreaElement: typeof globalThis.HTMLTextAreaElement
+  const Node: typeof globalThis.Node
+
   // Browser dialogs
-  const alert: typeof globalThis.alert;
-  const confirm: typeof globalThis.confirm;
-  const prompt: typeof globalThis.prompt;
+  const alert: typeof globalThis.alert
+  const confirm: typeof globalThis.confirm
+  const prompt: typeof globalThis.prompt
 }
 
-export {};
+export {}

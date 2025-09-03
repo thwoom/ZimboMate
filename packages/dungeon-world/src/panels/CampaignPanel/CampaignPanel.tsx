@@ -1,206 +1,215 @@
-import './CampaignPanel.css';
+import type { PanelProps } from '../../framework/Panel'
 
-import React, { useEffect,useState } from 'react';
+import type { Campaign } from '../../models/Campaign'
+import React, { useEffect, useState } from 'react'
 
-import { createPanel, PanelProps } from '../../framework/Panel';
-import { createPanelAPI } from '../../framework/PanelAPI';
-import { Campaign } from '../../models/Campaign';
-import { campaignService } from '../../services/CampaignService';
+import { createPanel } from '../../framework/Panel'
+import { createPanelAPI } from '../../framework/PanelAPI'
+import { campaignService } from '../../services/CampaignService'
+import './CampaignPanel.css'
 
 interface CampaignPanelState {
-  selectedTab: 'sessions' | 'journal' | 'npcs' | 'locations';
-  selectedCampaignId: string | null;
-  searchTerm: string;
-  showCreateModal: boolean;
-  showDetailsModal: boolean;
-  detailsItem: unknown | null;
+  selectedTab: 'sessions' | 'journal' | 'npcs' | 'locations'
+  selectedCampaignId: string | null
+  searchTerm: string
+  showCreateModal: boolean
+  showDetailsModal: boolean
+  detailsItem: unknown | null
 }
 
-const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
-  const _api = createPanelAPI(id);
-  const [panelState, setPanelState] = useState < CampaignPanelState>({
+const CampaignPanel: React.FC <PanelProps> = ({ id }) => {
+  const _api = createPanelAPI(id)
+  const [panelState, setPanelState] = useState <CampaignPanelState>({
     selectedTab: 'sessions',
     selectedCampaignId: null,
     searchTerm: '',
     showCreateModal: false,
     showDetailsModal: false,
     detailsItem: null,
-  });
+  })
 
-  const [campaigns, setCampaigns] = useState < Campaign[]>([]);
-  const [selectedCampaign, setSelectedCampaign] = useState < Campaign | null>(null);
+  const [campaigns, setCampaigns] = useState <Campaign[]>([])
+  const [selectedCampaign, setSelectedCampaign] = useState <Campaign | null>(null)
 
   // Load campaigns on mount
   useEffect(() => {
-    const allCampaigns = campaignService.getAllCampaigns();
-    setCampaigns(allCampaigns);
+    const allCampaigns = campaignService.getAllCampaigns()
+    setCampaigns(allCampaigns)
 
     if (allCampaigns.length > 0 && !panelState.selectedCampaignId) {
-      setPanelState(prev => ({ ...prev, selectedCampaignId: allCampaigns[0].id }));
-      setSelectedCampaign(allCampaigns[0]);
+      setPanelState(prev => ({ ...prev, selectedCampaignId: allCampaigns[0].id }))
+      setSelectedCampaign(allCampaigns[0])
     }
-  }, []);
+  }, [])
 
   // Update selected campaign when ID changes
   useEffect(() => {
     if (panelState.selectedCampaignId) {
-      const campaign = campaignService.getCampaign(panelState.selectedCampaignId);
-      setSelectedCampaign(campaign || null);
+      const campaign = campaignService.getCampaign(panelState.selectedCampaignId)
+      setSelectedCampaign(campaign || null)
     }
-  }, [panelState.selectedCampaignId]);
+  }, [panelState.selectedCampaignId])
 
-  const updateState = (updates: Partial < CampaignPanelState>) => {
-    setPanelState(prev => ({ ...prev, ...updates }));
-  };
+  const updateState = (updates: Partial <CampaignPanelState>) => {
+    setPanelState(prev => ({ ...prev, ...updates }))
+  }
 
   const refreshCampaigns = () => {
-    const allCampaigns = campaignService.getAllCampaigns();
-    setCampaigns(allCampaigns);
-  };
+    const allCampaigns = campaignService.getAllCampaigns()
+    setCampaigns(allCampaigns)
+  }
 
   const handleCreateCampaign = (name: string, description?: string) => {
-    const newCampaign = campaignService.createCampaign(name, description);
-    refreshCampaigns();
+    const newCampaign = campaignService.createCampaign(name, description)
+    refreshCampaigns()
     setPanelState(prev => ({
       ...prev,
       selectedCampaignId: newCampaign.id,
       showCreateModal: false,
-    }));
-    setSelectedCampaign(newCampaign);
-  };
+    }))
+    setSelectedCampaign(newCampaign)
+  }
 
   const handleDeleteCampaign = (campaignId: string) => {
     if (confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
-      campaignService.deleteCampaign(campaignId);
-      refreshCampaigns();
+      campaignService.deleteCampaign(campaignId)
+      refreshCampaigns()
 
       if (panelState.selectedCampaignId === campaignId) {
-        const remainingCampaigns = campaignService.getAllCampaigns();
+        const remainingCampaigns = campaignService.getAllCampaigns()
         if (remainingCampaigns.length > 0) {
-          setPanelState(prev => ({ ...prev, selectedCampaignId: remainingCampaigns[0].id }));
-          setSelectedCampaign(remainingCampaigns[0]);
-        } else {
-          setPanelState(prev => ({ ...prev, selectedCampaignId: null }));
-          setSelectedCampaign(null);
+          setPanelState(prev => ({ ...prev, selectedCampaignId: remainingCampaigns[0].id }))
+          setSelectedCampaign(remainingCampaigns[0])
+        }
+        else {
+          setPanelState(prev => ({ ...prev, selectedCampaignId: null }))
+          setSelectedCampaign(null)
         }
       }
     }
-  };
+  }
 
   const handleCreateItem = (type: string, data: any) => {
-    if (!selectedCampaign) return;
+    if (!selectedCampaign)
+      return
 
     switch (type) {
       case 'sessions':
-        campaignService.addSession(selectedCampaign.id, data.title, data.summary);
-        break;
+        campaignService.addSession(selectedCampaign.id, data.title, data.summary)
+        break
       case 'journal':
-        campaignService.addJournalEntry(selectedCampaign.id, data.title, data.content);
-        break;
+        campaignService.addJournalEntry(selectedCampaign.id, data.title, data.content)
+        break
       case 'npcs':
-        campaignService.addNPC(selectedCampaign.id, data.name, data.description, data.role);
-        break;
+        campaignService.addNPC(selectedCampaign.id, data.name, data.description, data.role)
+        break
       case 'locations':
-        campaignService.addLocation(selectedCampaign.id, data.name, data.description, data.type);
-        break;
+        campaignService.addLocation(selectedCampaign.id, data.name, data.description, data.type)
+        break
     }
 
-    refreshCampaigns();
-    const updatedCampaign = campaignService.getCampaign(selectedCampaign.id);
-    setSelectedCampaign(updatedCampaign || null);
-    updateState({ showCreateModal: false });
-  };
+    refreshCampaigns()
+    const updatedCampaign = campaignService.getCampaign(selectedCampaign.id)
+    setSelectedCampaign(updatedCampaign || null)
+    updateState({ showCreateModal: false })
+  }
 
   const handleUpdateItem = (type: string, itemId: string, updates: any) => {
-    if (!selectedCampaign) return;
+    if (!selectedCampaign)
+      return
 
     switch (type) {
       case 'sessions':
-        campaignService.updateSession(selectedCampaign.id, itemId, updates);
-        break;
+        campaignService.updateSession(selectedCampaign.id, itemId, updates)
+        break
       case 'journal':
-        campaignService.updateJournalEntry(selectedCampaign.id, itemId, updates);
-        break;
+        campaignService.updateJournalEntry(selectedCampaign.id, itemId, updates)
+        break
       case 'npcs':
-        campaignService.updateNPC(selectedCampaign.id, itemId, updates);
-        break;
+        campaignService.updateNPC(selectedCampaign.id, itemId, updates)
+        break
       case 'locations':
-        campaignService.updateLocation(selectedCampaign.id, itemId, updates);
-        break;
+        campaignService.updateLocation(selectedCampaign.id, itemId, updates)
+        break
     }
 
-    refreshCampaigns();
-    const updatedCampaign = campaignService.getCampaign(selectedCampaign.id);
-    setSelectedCampaign(updatedCampaign || null);
-  };
+    refreshCampaigns()
+    const updatedCampaign = campaignService.getCampaign(selectedCampaign.id)
+    setSelectedCampaign(updatedCampaign || null)
+  }
 
   const handleDeleteItem = (type: string, itemId: string) => {
-    if (!selectedCampaign) return;
+    if (!selectedCampaign)
+      return
 
     if (confirm('Are you sure you want to delete this item?')) {
       switch (type) {
         case 'sessions':
-          campaignService.deleteSession(selectedCampaign.id, itemId);
-          break;
+          campaignService.deleteSession(selectedCampaign.id, itemId)
+          break
         case 'journal':
-          campaignService.deleteJournalEntry(selectedCampaign.id, itemId);
-          break;
+          campaignService.deleteJournalEntry(selectedCampaign.id, itemId)
+          break
         case 'npcs':
-          campaignService.deleteNPC(selectedCampaign.id, itemId);
-          break;
+          campaignService.deleteNPC(selectedCampaign.id, itemId)
+          break
         case 'locations':
-          campaignService.deleteLocation(selectedCampaign.id, itemId);
-          break;
+          campaignService.deleteLocation(selectedCampaign.id, itemId)
+          break
       }
 
-      refreshCampaigns();
-      const updatedCampaign = campaignService.getCampaign(selectedCampaign.id);
-      setSelectedCampaign(updatedCampaign || null);
+      refreshCampaigns()
+      const updatedCampaign = campaignService.getCampaign(selectedCampaign.id)
+      setSelectedCampaign(updatedCampaign || null)
     }
-  };
+  }
 
   const getFilteredItems = () => {
-    if (!selectedCampaign) return [];
+    if (!selectedCampaign)
+      return []
 
-    let items: unknown[] = [];
+    let items: unknown[] = []
     switch (panelState.selectedTab) {
       case 'sessions':
-        items = selectedCampaign.sessions;
-        break;
+        items = selectedCampaign.sessions
+        break
       case 'journal':
-        items = selectedCampaign.journal;
-        break;
+        items = selectedCampaign.journal
+        break
       case 'npcs':
-        items = selectedCampaign.npcs;
-        break;
+        items = selectedCampaign.npcs
+        break
       case 'locations':
-        items = selectedCampaign.locations;
-        break;
+        items = selectedCampaign.locations
+        break
     }
 
     if (panelState.searchTerm) {
-      const searchLower = panelState.searchTerm.toLowerCase();
-      items = items.filter(item => {
+      const searchLower = panelState.searchTerm.toLowerCase()
+      items = items.filter((item) => {
         if (panelState.selectedTab === 'sessions') {
-          return item.title.toLowerCase().includes(searchLower) ||
-                 item.summary.toLowerCase().includes(searchLower);
-        } else if (panelState.selectedTab === 'journal') {
-          return item.title.toLowerCase().includes(searchLower) ||
-                 item.content.toLowerCase().includes(searchLower);
-        } else if (panelState.selectedTab === 'npcs') {
-          return item.name.toLowerCase().includes(searchLower) ||
-                 item.description.toLowerCase().includes(searchLower) ||
-                 item.role.toLowerCase().includes(searchLower);
-        } else if (panelState.selectedTab === 'locations') {
-          return item.name.toLowerCase().includes(searchLower) ||
-                 item.description.toLowerCase().includes(searchLower);
+          return item.title.toLowerCase().includes(searchLower)
+            || item.summary.toLowerCase().includes(searchLower)
         }
-        return false;
-      });
+        else if (panelState.selectedTab === 'journal') {
+          return item.title.toLowerCase().includes(searchLower)
+            || item.content.toLowerCase().includes(searchLower)
+        }
+        else if (panelState.selectedTab === 'npcs') {
+          return item.name.toLowerCase().includes(searchLower)
+            || item.description.toLowerCase().includes(searchLower)
+            || item.role.toLowerCase().includes(searchLower)
+        }
+        else if (panelState.selectedTab === 'locations') {
+          return item.name.toLowerCase().includes(searchLower)
+            || item.description.toLowerCase().includes(searchLower)
+        }
+        return false
+      })
     }
 
-    return items;
-  };
+    return items
+  }
 
   const renderItemCard = (item: any) => {
     const handleEdit = () => {
@@ -208,12 +217,12 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
         ...prev,
         showDetailsModal: true,
         detailsItem: { ...item, type: panelState.selectedTab },
-      }));
-    };
+      }))
+    }
 
     const handleDelete = () => {
-      handleDeleteItem(panelState.selectedTab, item.id);
-    };
+      handleDeleteItem(panelState.selectedTab, item.id)
+    }
 
     return (
       <div key={item.id} className="campaign-item-card">
@@ -230,17 +239,32 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
             <>
               <p className="item-summary">{item.summary}</p>
               <div className="item-meta">
-                <span > XP: {item.xpGained || 0}</span>
-                <span > Date: {new Date(item.date).toLocaleDateString()}</span>
+                <span>
+                  {' '}
+                  XP:
+                  {item.xpGained || 0}
+                </span>
+                <span>
+                  {' '}
+                  Date:
+                  {new Date(item.date).toLocaleDateString()}
+                </span>
               </div>
             </>
           )}
 
           {panelState.selectedTab === 'journal' && (
             <>
-              <p className="item-content-preview">{item.content.slice(0, 100)}...</p>
+              <p className="item-content-preview">
+                {item.content.slice(0, 100)}
+                ...
+              </p>
               <div className="item-meta">
-                <span > Date: {new Date(item.date).toLocaleDateString()}</span>
+                <span>
+                  {' '}
+                  Date:
+                  {new Date(item.date).toLocaleDateString()}
+                </span>
                 {item.isImportant && <span className="important-badge">Important</span>}
               </div>
             </>
@@ -250,9 +274,21 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
             <>
               <p className="item-description">{item.description}</p>
               <div className="item-meta">
-                <span > Role: {item.role}</span>
-                <span > Importance: {item.importance || 'Unknown'}</span>
-                <span > Disposition: {item.disposition || 'Unknown'}</span>
+                <span>
+                  {' '}
+                  Role:
+                  {item.role}
+                </span>
+                <span>
+                  {' '}
+                  Importance:
+                  {item.importance || 'Unknown'}
+                </span>
+                <span>
+                  {' '}
+                  Disposition:
+                  {item.disposition || 'Unknown'}
+                </span>
               </div>
             </>
           )}
@@ -261,19 +297,31 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
             <>
               <p className="item-description">{item.description}</p>
               <div className="item-meta">
-                <span > Type: {item.type}</span>
-                <span > Visits: {item.visited?.length || 0}</span>
-                <span > Discovered: {new Date(item.discovered).toLocaleDateString()}</span>
+                <span>
+                  {' '}
+                  Type:
+                  {item.type}
+                </span>
+                <span>
+                  {' '}
+                  Visits:
+                  {item.visited?.length || 0}
+                </span>
+                <span>
+                  {' '}
+                  Discovered:
+                  {new Date(item.discovered).toLocaleDateString()}
+                </span>
               </div>
             </>
           )}
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   // Render modals BEFORE the early return
-  const shouldShowCreateModal = panelState.showCreateModal && !selectedCampaign;
+  const shouldShowCreateModal = panelState.showCreateModal && !selectedCampaign
 
   if (campaigns.length === 0) {
     return (
@@ -283,8 +331,8 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
             <h2>🗺️ Campaigns</h2>
           </div>
           <div className="no-campaigns">
-            <p > No campaigns found. Create your first campaign to get started!</p>
-                                   <button
+            <p> No campaigns found. Create your first campaign to get started!</p>
+            <button
               className="primary-button"
               onClick={() => updateState({ showCreateModal: true })}
             >
@@ -301,10 +349,10 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
           />
         )}
       </>
-    );
+    )
   }
 
-  const filteredItems = getFilteredItems();
+  const filteredItems = getFilteredItems()
 
   return (
     <>
@@ -314,7 +362,7 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
           <div className="campaign-selector">
             <select
               value={panelState.selectedCampaignId || ''}
-              onChange={(e) => updateState({ selectedCampaignId: e.target.value })}
+              onChange={e => updateState({ selectedCampaignId: e.target.value })}
               aria-label="Select campaign"
             >
               {campaigns.map(campaign => (
@@ -323,7 +371,7 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
                 </option>
               ))}
             </select>
-                                     <button
+            <button
               onClick={() => updateState({ showCreateModal: true })}
               className="primary-button"
             >
@@ -347,10 +395,26 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
                 <p className="campaign-description">{selectedCampaign.description}</p>
               )}
               <div className="campaign-stats">
-                <span > Sessions: {selectedCampaign.sessions.length}</span>
-                <span > Journal Entries: {selectedCampaign.journal.length}</span>
-                <span > NPCs: {selectedCampaign.npcs.length}</span>
-                <span > Locations: {selectedCampaign.locations.length}</span>
+                <span>
+                  {' '}
+                  Sessions:
+                  {selectedCampaign.sessions.length}
+                </span>
+                <span>
+                  {' '}
+                  Journal Entries:
+                  {selectedCampaign.journal.length}
+                </span>
+                <span>
+                  {' '}
+                  NPCs:
+                  {selectedCampaign.npcs.length}
+                </span>
+                <span>
+                  {' '}
+                  Locations:
+                  {selectedCampaign.locations.length}
+                </span>
               </div>
             </div>
 
@@ -372,7 +436,7 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
                   type="text"
                   placeholder={`Search ${panelState.selectedTab}...`}
                   value={panelState.searchTerm}
-                  onChange={(e) => updateState({ searchTerm: e.target.value })}
+                  onChange={e => updateState({ searchTerm: e.target.value })}
                   className="search-input"
                 />
               </div>
@@ -380,73 +444,83 @@ const CampaignPanel: React.FC < PanelProps> = ({ id }) => {
                 className="primary-button"
                 onClick={() => updateState({ showCreateModal: true })}
               >
-                Add {panelState.selectedTab.slice(0, -1)}
+                Add
+                {' '}
+                {panelState.selectedTab.slice(0, -1)}
               </button>
             </div>
 
             <div className="campaign-content">
-              {filteredItems.length === 0 ? (
-                <div className="no-items">
-                  <p > No {panelState.selectedTab} found. Create your first one!</p>
-                </div>
-              ) : (
-                <div className="items-grid">
-                  {filteredItems.map(renderItemCard)}
-                </div>
-              )}
+              {filteredItems.length === 0
+                ? (
+                    <div className="no-items">
+                      <p>
+                        {' '}
+                        No
+                        {panelState.selectedTab}
+                        {' '}
+                        found. Create your first one!
+                      </p>
+                    </div>
+                  )
+                : (
+                    <div className="items-grid">
+                      {filteredItems.map(renderItemCard)}
+                    </div>
+                  )}
             </div>
           </>
         )}
       </div>
 
-                     {/* Create Campaign Modal */}
-        {panelState.showCreateModal && !selectedCampaign && (
-          <CreateCampaignModal
-            onConfirm={handleCreateCampaign}
-            onCancel={() => updateState({ showCreateModal: false })}
-          />
-        )}
+      {/* Create Campaign Modal */}
+      {panelState.showCreateModal && !selectedCampaign && (
+        <CreateCampaignModal
+          onConfirm={handleCreateCampaign}
+          onCancel={() => updateState({ showCreateModal: false })}
+        />
+      )}
 
-                     {/* Add Item Modal */}
-        {panelState.showCreateModal && selectedCampaign && (
-          <AddItemModal
-            type={panelState.selectedTab}
-            onConfirm={handleCreateItem}
-            onCancel={() => updateState({ showCreateModal: false })}
-          />
-        )}
+      {/* Add Item Modal */}
+      {panelState.showCreateModal && selectedCampaign && (
+        <AddItemModal
+          type={panelState.selectedTab}
+          onConfirm={handleCreateItem}
+          onCancel={() => updateState({ showCreateModal: false })}
+        />
+      )}
 
-        {/* Item Details Modal */}
-        {panelState.showDetailsModal && panelState.detailsItem && (
-          <ItemDetailsModal
-            item={panelState.detailsItem}
-            onUpdate={handleUpdateItem}
-            onCancel={() => updateState({ showDetailsModal: false, detailsItem: null })}
-          />
-        )}
+      {/* Item Details Modal */}
+      {panelState.showDetailsModal && panelState.detailsItem && (
+        <ItemDetailsModal
+          item={panelState.detailsItem}
+          onUpdate={handleUpdateItem}
+          onCancel={() => updateState({ showDetailsModal: false, detailsItem: null })}
+        />
+      )}
     </>
-  );
-};
+  )
+}
 
 // Modal Components
 const CreateCampaignModal: React.FC<{
-  onConfirm: (name: string, description?: string) => void;
-  onCancel: () => void;
+  onConfirm: (name: string, description?: string) => void
+  onCancel: () => void
 }> = ({ onConfirm, onCancel }) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (name.trim()) {
-      onConfirm(name.trim(), description.trim() || undefined);
+      onConfirm(name.trim(), description.trim() || undefined)
     }
-  };
+  }
 
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h3 > Create New Campaign</h3>
+        <h3> Create New Campaign</h3>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="campaign-name">Campaign Name *</label>
@@ -454,7 +528,7 @@ const CreateCampaignModal: React.FC<{
               id="campaign-name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               required
               placeholder="Enter campaign name"
               aria-label="Campaign name"
@@ -465,7 +539,7 @@ const CreateCampaignModal: React.FC<{
             <textarea
               id="campaign-description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               placeholder="Optional campaign description"
               rows={3}
               aria-label="Campaign description"
@@ -478,20 +552,20 @@ const CreateCampaignModal: React.FC<{
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const AddItemModal: React.FC<{
-  type: 'sessions' | 'journal' | 'npcs' | 'locations';
-  onConfirm: (type: string, data: any) => void;
-  onCancel: () => void;
+  type: 'sessions' | 'journal' | 'npcs' | 'locations'
+  onConfirm: (type: string, data: any) => void
+  onCancel: () => void
 }> = ({ type, onConfirm, onCancel }) => {
-  const [formData, setFormData] = useState < unknown>({});
+  const [formData, setFormData] = useState <unknown>({})
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onConfirm(type, formData);
-  };
+    e.preventDefault()
+    onConfirm(type, formData)
+  }
 
   const renderForm = () => {
     switch (type) {
@@ -504,7 +578,7 @@ const AddItemModal: React.FC<{
                 id="session-title"
                 type="text"
                 value={formData.title || ''}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
                 required
                 placeholder="Enter session title"
                 aria-label="Session title"
@@ -515,7 +589,7 @@ const AddItemModal: React.FC<{
               <textarea
                 id="session-summary"
                 value={formData.summary || ''}
-                onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                onChange={e => setFormData({ ...formData, summary: e.target.value })}
                 required
                 placeholder="Brief session summary"
                 rows={3}
@@ -523,7 +597,7 @@ const AddItemModal: React.FC<{
               />
             </div>
           </>
-        );
+        )
 
       case 'journal':
         return (
@@ -534,7 +608,7 @@ const AddItemModal: React.FC<{
                 id="journal-title"
                 type="text"
                 value={formData.title || ''}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
                 required
                 placeholder="Enter journal entry title"
                 aria-label="Journal title"
@@ -545,7 +619,7 @@ const AddItemModal: React.FC<{
               <textarea
                 id="journal-content"
                 value={formData.content || ''}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                onChange={e => setFormData({ ...formData, content: e.target.value })}
                 required
                 placeholder="Journal entry content"
                 rows={6}
@@ -553,7 +627,7 @@ const AddItemModal: React.FC<{
               />
             </div>
           </>
-        );
+        )
 
       case 'npcs':
         return (
@@ -564,7 +638,7 @@ const AddItemModal: React.FC<{
                 id="npc-name"
                 type="text"
                 value={formData.name || ''}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 required
                 placeholder="Enter NPC name"
                 aria-label="NPC name"
@@ -575,7 +649,7 @@ const AddItemModal: React.FC<{
               <textarea
                 id="npc-description"
                 value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
                 required
                 placeholder="NPC description"
                 rows={3}
@@ -588,14 +662,14 @@ const AddItemModal: React.FC<{
                 id="npc-role"
                 type="text"
                 value={formData.role || ''}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                onChange={e => setFormData({ ...formData, role: e.target.value })}
                 required
                 placeholder="NPC role (e.g., Merchant, Quest Giver)"
                 aria-label="NPC role"
               />
             </div>
           </>
-        );
+        )
 
       case 'locations':
         return (
@@ -606,7 +680,7 @@ const AddItemModal: React.FC<{
                 id="location-name"
                 type="text"
                 value={formData.name || ''}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 required
                 placeholder="Enter location name"
                 aria-label="Location name"
@@ -617,7 +691,7 @@ const AddItemModal: React.FC<{
               <textarea
                 id="location-description"
                 value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
                 required
                 placeholder="Location description"
                 rows={3}
@@ -629,7 +703,7 @@ const AddItemModal: React.FC<{
               <select
                 id="location-type"
                 value={formData.type || 'other'}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                onChange={e => setFormData({ ...formData, type: e.target.value })}
                 aria-label="Location type"
               >
                 <option value="city">City</option>
@@ -641,17 +715,21 @@ const AddItemModal: React.FC<{
               </select>
             </div>
           </>
-        );
+        )
 
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h3 > Add New {type.slice(0, -1)}</h3>
+        <h3>
+          {' '}
+          Add New
+          {type.slice(0, -1)}
+        </h3>
         <form onSubmit={handleSubmit}>
           {renderForm()}
           <div className="modal-actions">
@@ -661,21 +739,21 @@ const AddItemModal: React.FC<{
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const ItemDetailsModal: React.FC<{
-  item: unknown;
-  onUpdate: (type: string, itemId: string, updates: any) => void;
-  onCancel: () => void;
+  item: unknown
+  onUpdate: (type: string, itemId: string, updates: any) => void
+  onCancel: () => void
 }> = ({ item, onUpdate, onCancel }) => {
-  const [formData, setFormData] = useState(item);
+  const [formData, setFormData] = useState(item)
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onUpdate(item.type, item.id, formData);
-    onCancel();
-  };
+    e.preventDefault()
+    onUpdate(item.type, item.id, formData)
+    onCancel()
+  }
 
   const renderForm = () => {
     switch (item.type) {
@@ -688,7 +766,7 @@ const ItemDetailsModal: React.FC<{
                 id="edit-session-title"
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
                 required
                 aria-label="Session title"
               />
@@ -698,7 +776,7 @@ const ItemDetailsModal: React.FC<{
               <textarea
                 id="edit-session-summary"
                 value={formData.summary}
-                onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                onChange={e => setFormData({ ...formData, summary: e.target.value })}
                 required
                 rows={3}
                 aria-label="Session summary"
@@ -710,12 +788,12 @@ const ItemDetailsModal: React.FC<{
                 id="edit-session-xp"
                 type="number"
                 value={formData.xpGained || 0}
-                onChange={(e) => setFormData({ ...formData, xpGained: Number.parseInt(e.target.value) || 0 })}
+                onChange={e => setFormData({ ...formData, xpGained: Number.parseInt(e.target.value) || 0 })}
                 aria-label="XP gained"
               />
             </div>
           </>
-        );
+        )
 
       case 'journal':
         return (
@@ -726,7 +804,7 @@ const ItemDetailsModal: React.FC<{
                 id="edit-journal-title"
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
                 required
                 aria-label="Journal title"
               />
@@ -736,7 +814,7 @@ const ItemDetailsModal: React.FC<{
               <textarea
                 id="edit-journal-content"
                 value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                onChange={e => setFormData({ ...formData, content: e.target.value })}
                 required
                 rows={6}
                 aria-label="Journal content"
@@ -747,14 +825,14 @@ const ItemDetailsModal: React.FC<{
                 <input
                   type="checkbox"
                   checked={formData.isImportant || false}
-                  onChange={(e) => setFormData({ ...formData, isImportant: e.target.checked })}
+                  onChange={e => setFormData({ ...formData, isImportant: e.target.checked })}
                   aria-label="Mark as important"
                 />
                 Mark as Important
               </label>
             </div>
           </>
-        );
+        )
 
       case 'npcs':
         return (
@@ -765,7 +843,7 @@ const ItemDetailsModal: React.FC<{
                 id="edit-npc-name"
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 required
                 aria-label="NPC name"
               />
@@ -775,7 +853,7 @@ const ItemDetailsModal: React.FC<{
               <textarea
                 id="edit-npc-description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
                 required
                 rows={3}
                 aria-label="NPC description"
@@ -787,7 +865,7 @@ const ItemDetailsModal: React.FC<{
                 id="edit-npc-role"
                 type="text"
                 value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                onChange={e => setFormData({ ...formData, role: e.target.value })}
                 required
                 aria-label="NPC role"
               />
@@ -797,7 +875,7 @@ const ItemDetailsModal: React.FC<{
               <select
                 id="edit-npc-importance"
                 value={formData.importance || 'medium'}
-                onChange={(e) => setFormData({ ...formData, importance: e.target.value })}
+                onChange={e => setFormData({ ...formData, importance: e.target.value })}
                 aria-label="NPC importance"
               >
                 <option value="low">Low</option>
@@ -810,7 +888,7 @@ const ItemDetailsModal: React.FC<{
               <select
                 id="edit-npc-disposition"
                 value={formData.disposition || 'neutral'}
-                onChange={(e) => setFormData({ ...formData, disposition: e.target.value })}
+                onChange={e => setFormData({ ...formData, disposition: e.target.value })}
                 aria-label="NPC disposition"
               >
                 <option value="friendly">Friendly</option>
@@ -820,7 +898,7 @@ const ItemDetailsModal: React.FC<{
               </select>
             </div>
           </>
-        );
+        )
 
       case 'locations':
         return (
@@ -831,7 +909,7 @@ const ItemDetailsModal: React.FC<{
                 id="edit-location-name"
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 required
                 aria-label="Location name"
               />
@@ -841,7 +919,7 @@ const ItemDetailsModal: React.FC<{
               <textarea
                 id="edit-location-description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
                 required
                 rows={3}
                 aria-label="Location description"
@@ -852,7 +930,7 @@ const ItemDetailsModal: React.FC<{
               <select
                 id="edit-location-type"
                 value={formData.type || 'other'}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                onChange={e => setFormData({ ...formData, type: e.target.value })}
                 aria-label="Location type"
               >
                 <option value="city">City</option>
@@ -864,17 +942,21 @@ const ItemDetailsModal: React.FC<{
               </select>
             </div>
           </>
-        );
+        )
 
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h3 > Edit {item.type.slice(0, -1)}</h3>
+        <h3>
+          {' '}
+          Edit
+          {item.type.slice(0, -1)}
+        </h3>
         <form onSubmit={handleSubmit}>
           {renderForm()}
           <div className="modal-actions">
@@ -884,11 +966,11 @@ const ItemDetailsModal: React.FC<{
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Export the component separately for HMR compatibility
-export { CampaignPanel };
+export { CampaignPanel }
 
 // Export the panel configuration
 const campaignPanelConfig = createPanel(
@@ -900,9 +982,6 @@ const campaignPanelConfig = createPanel(
     priority: 5,
   },
   CampaignPanel,
-);
+)
 
-export default campaignPanelConfig;
-
-
-
+export default campaignPanelConfig

@@ -2,84 +2,85 @@
  * Overall game state management for Dungeon World
  */
 
-import { Campaign } from './Campaign';
-import { Character } from './Character';
-import { ActiveCondition } from './Conditions';
-import { createEmptyInventory,Inventory } from './Inventory';
-import { ModifierSet, TemporaryModifier } from './Modifiers';
-import { Move } from './Move';
-import { Session } from './Session';
-import { SpellPreparation } from './Spell';
+import type { Campaign } from './Campaign'
+import type { Character } from './Character'
+import type { ActiveCondition } from './Conditions'
+import type { Inventory } from './Inventory'
+import type { ModifierSet, TemporaryModifier } from './Modifiers'
+import type { Move } from './Move'
+import type { Session } from './Session'
+import type { SpellPreparation } from './Spell'
+import { createEmptyInventory } from './Inventory'
 
 // Application-wide settings
 export interface AppSettings {
-  theme: 'light' | 'dark';
-  autoSave: boolean;
-  autoSaveInterval: number; // minutes
-  showRollAnimations: boolean;
-  confirmDangerousActions: boolean;
-  keyboardShortcuts: Record < string, string>;
+  theme: 'light' | 'dark'
+  autoSave: boolean
+  autoSaveInterval: number // minutes
+  showRollAnimations: boolean
+  confirmDangerousActions: boolean
+  keyboardShortcuts: Record <string, string>
 }
 
 // Complete game state
 export interface GameState {
   // Core data
-  characters: Record < string, Character>; // Multiple characters by ID
-  activeCharacterId: string | null; // Currently active character
-  inventories: Record < string, Inventory>; // Inventory per character
-  moves: Move[];
-  customMoves: Move[];
-  session: Session;
+  characters: Record <string, Character> // Multiple characters by ID
+  activeCharacterId: string | null // Currently active character
+  inventories: Record <string, Inventory> // Inventory per character
+  moves: Move[]
+  customMoves: Move[]
+  session: Session
 
   // Advanced features
-  spellPreparations: Record < string, SpellPreparation>; // Spell prep per character
-  modifiers: ModifierSet;
-  conditions: ActiveCondition[];
-  campaign: Campaign | null;
+  spellPreparations: Record <string, SpellPreparation> // Spell prep per character
+  modifiers: ModifierSet
+  conditions: ActiveCondition[]
+  campaign: Campaign | null
 
   // UI state
   ui: {
-    activePanel: string;
-    sidePanelOpen: boolean;
-    auxiliaryDrawerOpen: boolean;
-    modalStack: string[];
-  };
+    activePanel: string
+    sidePanelOpen: boolean
+    auxiliaryDrawerOpen: boolean
+    modalStack: string[]
+  }
 
   // App settings
-  settings: AppSettings;
+  settings: AppSettings
 
   // Metadata
-  version: string;
-  lastSaved: Date | null;
-  isDirty: boolean; // Has unsaved changes
+  version: string
+  lastSaved: Date | null
+  isDirty: boolean // Has unsaved changes
 }
 
 // Action types for state updates
-export type GameStateAction =
-  | { type: 'ADD_CHARACTER'; payload: Character }
-  | { type: 'UPDATE_CHARACTER'; payload: { id: string; updates: Partial < Character> } }
-  | { type: 'REMOVE_CHARACTER'; payload: string }
-  | { type: 'SET_ACTIVE_CHARACTER'; payload: string }
-  | { type: 'SET_CHARACTER'; payload: Character } // Legacy support
-  | { type: 'SET_INVENTORY'; payload: { characterId: string; inventory: Inventory } }
-  | { type: 'UPDATE_INVENTORY'; payload: { characterId: string; updates: Partial < Inventory> } }
-  | { type: 'ADD_MOVE'; payload: Move }
-  | { type: 'UPDATE_MOVE'; payload: { id: string; changes: Partial < Move> } }
-  | { type: 'REMOVE_MOVE'; payload: string }
-  | { type: 'SET_SESSION'; payload: Session }
-  | { type: 'UPDATE_SESSION'; payload: Partial < Session> }
-  | { type: 'SET_UI_STATE'; payload: Partial < GameState['ui']> }
-  | { type: 'SET_SETTINGS'; payload: Partial < AppSettings> }
-  | { type: 'ADD_MODIFIER'; payload: TemporaryModifier }
-  | { type: 'REMOVE_MODIFIER'; payload: string }
-  | { type: 'UPDATE_MODIFIER'; payload: { id: string; updates: Partial < TemporaryModifier> } }
-  | { type: 'SET_MODIFIERS'; payload: ModifierSet }
-  | { type: 'CLEAR_MODIFIERS' }
-  | { type: 'MARK_SAVED' }
-  | { type: 'MARK_DIRTY' }
-  | { type: 'RESET_STATE' }
-  | { type: 'REPLACE_STATE'; payload: GameState }
-  | { type: 'LOAD_STATE'; payload: GameState };
+export type GameStateAction
+  = | { type: 'ADD_CHARACTER', payload: Character }
+    | { type: 'UPDATE_CHARACTER', payload: { id: string, updates: Partial <Character> } }
+    | { type: 'REMOVE_CHARACTER', payload: string }
+    | { type: 'SET_ACTIVE_CHARACTER', payload: string }
+    | { type: 'SET_CHARACTER', payload: Character } // Legacy support
+    | { type: 'SET_INVENTORY', payload: { characterId: string, inventory: Inventory } }
+    | { type: 'UPDATE_INVENTORY', payload: { characterId: string, updates: Partial <Inventory> } }
+    | { type: 'ADD_MOVE', payload: Move }
+    | { type: 'UPDATE_MOVE', payload: { id: string, changes: Partial <Move> } }
+    | { type: 'REMOVE_MOVE', payload: string }
+    | { type: 'SET_SESSION', payload: Session }
+    | { type: 'UPDATE_SESSION', payload: Partial <Session> }
+    | { type: 'SET_UI_STATE', payload: Partial <GameState['ui']> }
+    | { type: 'SET_SETTINGS', payload: Partial <AppSettings> }
+    | { type: 'ADD_MODIFIER', payload: TemporaryModifier }
+    | { type: 'REMOVE_MODIFIER', payload: string }
+    | { type: 'UPDATE_MODIFIER', payload: { id: string, updates: Partial <TemporaryModifier> } }
+    | { type: 'SET_MODIFIERS', payload: ModifierSet }
+    | { type: 'CLEAR_MODIFIERS' }
+    | { type: 'MARK_SAVED' }
+    | { type: 'MARK_DIRTY' }
+    | { type: 'RESET_STATE' }
+    | { type: 'REPLACE_STATE', payload: GameState }
+    | { type: 'LOAD_STATE', payload: GameState }
 
 // Utility functions
 
@@ -122,16 +123,16 @@ export function createInitialGameState(): GameState {
       showRollAnimations: true,
       confirmDangerousActions: true,
       keyboardShortcuts: {
-        'rollDamage': 'd',
-        'rollStat': 'r',
-        'quickSave': 'ctrl + s',
-        'toggleDrawer': 'ctrl + d',
+        rollDamage: 'd',
+        rollStat: 'r',
+        quickSave: 'ctrl + s',
+        toggleDrawer: 'ctrl + d',
       },
     },
     version: '1.0.0',
     lastSaved: null,
     isDirty: false,
-  };
+  }
 }
 
 /**
@@ -143,7 +144,7 @@ export function gameStateReducer(
 ): GameState {
   switch (action.type) {
     case 'ADD_CHARACTER': {
-      const charId = action.payload.id;
+      const charId = action.payload.id
       return {
         ...state,
         characters: {
@@ -156,12 +157,13 @@ export function gameStateReducer(
         },
         activeCharacterId: state.activeCharacterId || charId,
         isDirty: true,
-      };
+      }
     }
 
     case 'UPDATE_CHARACTER': {
-      const { id, updates } = action.payload;
-      if (!state.characters[id]) return state;
+      const { id, updates } = action.payload
+      if (!state.characters[id])
+        return state
       return {
         ...state,
         characters: {
@@ -173,19 +175,19 @@ export function gameStateReducer(
           },
         },
         isDirty: true,
-      };
+      }
     }
 
     case 'REMOVE_CHARACTER': {
-      const newCharacters = { ...state.characters };
-      const newInventories = { ...state.inventories };
-      delete newCharacters[action.payload];
-      delete newInventories[action.payload];
+      const newCharacters = { ...state.characters }
+      const newInventories = { ...state.inventories }
+      delete newCharacters[action.payload]
+      delete newInventories[action.payload]
 
-      const remainingIds = Object.keys(newCharacters);
+      const remainingIds = Object.keys(newCharacters)
       const newActiveId = state.activeCharacterId === action.payload
         ? (remainingIds.length > 0 ? remainingIds[0] : null)
-        : state.activeCharacterId;
+        : state.activeCharacterId
 
       return {
         ...state,
@@ -193,7 +195,7 @@ export function gameStateReducer(
         inventories: newInventories,
         activeCharacterId: newActiveId,
         isDirty: true,
-      };
+      }
     }
 
     case 'SET_ACTIVE_CHARACTER':
@@ -201,11 +203,11 @@ export function gameStateReducer(
         ...state,
         activeCharacterId: action.payload,
         isDirty: true,
-      };
+      }
 
     case 'SET_CHARACTER': {
       // Legacy support-adds character and sets as active
-      const legacyId = action.payload.id;
+      const legacyId = action.payload.id
       return {
         ...state,
         characters: {
@@ -218,11 +220,11 @@ export function gameStateReducer(
         },
         activeCharacterId: legacyId,
         isDirty: true,
-      };
+      }
     }
 
     case 'SET_INVENTORY': {
-      const { characterId, inventory } = action.payload;
+      const { characterId, inventory } = action.payload
       return {
         ...state,
         inventories: {
@@ -230,13 +232,14 @@ export function gameStateReducer(
           [characterId]: inventory,
         },
         isDirty: true,
-      };
+      }
     }
 
     case 'UPDATE_INVENTORY': {
-      const invCharId = action.payload.characterId;
-      const invUpdates = action.payload.updates;
-      if (!state.inventories[invCharId]) return state;
+      const invCharId = action.payload.characterId
+      const invUpdates = action.payload.updates
+      if (!state.inventories[invCharId])
+        return state
       return {
         ...state,
         inventories: {
@@ -248,7 +251,7 @@ export function gameStateReducer(
           },
         },
         isDirty: true,
-      };
+      }
     }
 
     case 'ADD_MOVE':
@@ -256,7 +259,7 @@ export function gameStateReducer(
         ...state,
         customMoves: [...state.customMoves, action.payload],
         isDirty: true,
-      };
+      }
 
     case 'UPDATE_MOVE':
       return {
@@ -267,21 +270,21 @@ export function gameStateReducer(
             : move,
         ),
         isDirty: true,
-      };
+      }
 
     case 'REMOVE_MOVE':
       return {
         ...state,
         customMoves: state.customMoves.filter(move => move.id !== action.payload),
         isDirty: true,
-      };
+      }
 
     case 'SET_SESSION':
       return {
         ...state,
         session: action.payload,
         isDirty: true,
-      };
+      }
 
     case 'UPDATE_SESSION':
       return {
@@ -291,7 +294,7 @@ export function gameStateReducer(
           ...action.payload,
         },
         isDirty: true,
-      };
+      }
 
     case 'SET_UI_STATE':
       return {
@@ -300,7 +303,7 @@ export function gameStateReducer(
           ...state.ui,
           ...action.payload,
         },
-      };
+      }
 
     case 'SET_SETTINGS':
       return {
@@ -310,7 +313,7 @@ export function gameStateReducer(
           ...action.payload,
         },
         isDirty: true,
-      };
+      }
 
     case 'ADD_MODIFIER': {
       return {
@@ -320,7 +323,7 @@ export function gameStateReducer(
           modifiers: [...state.modifiers.modifiers, action.payload],
         },
         isDirty: true,
-      };
+      }
     }
 
     case 'REMOVE_MODIFIER': {
@@ -331,7 +334,7 @@ export function gameStateReducer(
           modifiers: state.modifiers.modifiers.filter(m => m.id !== action.payload),
         },
         isDirty: true,
-      };
+      }
     }
 
     case 'UPDATE_MODIFIER': {
@@ -346,7 +349,7 @@ export function gameStateReducer(
           ),
         },
         isDirty: true,
-      };
+      }
     }
 
     case 'SET_MODIFIERS': {
@@ -354,7 +357,7 @@ export function gameStateReducer(
         ...state,
         modifiers: action.payload,
         isDirty: true,
-      };
+      }
     }
 
     case 'CLEAR_MODIFIERS': {
@@ -362,7 +365,7 @@ export function gameStateReducer(
         ...state,
         modifiers: { modifiers: [], lastUpdated: new Date() },
         isDirty: true,
-      };
+      }
     }
 
     case 'MARK_SAVED':
@@ -370,31 +373,31 @@ export function gameStateReducer(
         ...state,
         lastSaved: new Date(),
         isDirty: false,
-      };
+      }
 
     case 'MARK_DIRTY':
       return {
         ...state,
         isDirty: true,
-      };
+      }
 
     case 'RESET_STATE':
-      return createInitialGameState();
+      return createInitialGameState()
 
     case 'REPLACE_STATE':
       return {
         ...action.payload,
         isDirty: true,
-      };
+      }
 
     case 'LOAD_STATE':
       return {
         ...action.payload,
         isDirty: false,
-      };
+      }
 
     default:
-      return state;
+      return state
   }
 }
 
@@ -402,7 +405,7 @@ export function gameStateReducer(
  * Generate unique ID
  */
 function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+  return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
 /**
@@ -410,16 +413,16 @@ function generateId(): string {
  */
 export function validateGameState(state: any): state is GameState {
   return (
-    state &&
-    typeof state === 'object' &&
-    'character' in state &&
-    'inventory' in state &&
-    'moves' in state &&
-    'session' in state &&
-    'ui' in state &&
-    'settings' in state &&
-    'version' in state
-  );
+    state
+    && typeof state === 'object'
+    && 'character' in state
+    && 'inventory' in state
+    && 'moves' in state
+    && 'session' in state
+    && 'ui' in state
+    && 'settings' in state
+    && 'version' in state
+  )
 }
 
 /**
@@ -428,13 +431,13 @@ export function validateGameState(state: any): state is GameState {
 export function migrateGameState(state: unknown, fromVersion: string): GameState {
   // Handle migration logic here as versions change
   // For now, just ensure all required fields exist
-  const currentState = createInitialGameState();
+  const currentState = createInitialGameState()
 
   return {
     ...currentState,
     ...state,
     version: currentState.version,
-  };
+  }
 }
 
 /**
@@ -445,9 +448,9 @@ export function exportGameState(state: GameState): string {
     ...state,
     exportDate: new Date().toISOString(),
     exportVersion: state.version,
-  };
+  }
 
-  return JSON.stringify(exportData, null, 2);
+  return JSON.stringify(exportData, null, 2)
 }
 
 /**
@@ -455,22 +458,20 @@ export function exportGameState(state: GameState): string {
  */
 export function importGameState(jsonString: string): GameState | null {
   try {
-    const data = JSON.parse(jsonString);
+    const data = JSON.parse(jsonString)
 
     if (!validateGameState(data)) {
-      return null;
+      return null
     }
 
     // Migrate if needed
     if (data.version !== createInitialGameState().version) {
-      return migrateGameState(data, data.version);
+      return migrateGameState(data, data.version)
     }
 
-    return data;
-  } catch {
-    return null;
+    return data
+  }
+  catch {
+    return null
   }
 }
-
-
-

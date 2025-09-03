@@ -7,5 +7,7 @@
   overflow: hidden;
   background-color: var(--color-background);
   color: var(--color-text-primary);
-  transition: background-color var(--transition-normal), color var(--transition-normal);
+  transition:
+    background-color var(--transition-normal),
+    color var(--transition-normal);
 }

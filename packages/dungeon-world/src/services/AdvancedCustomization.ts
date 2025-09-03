@@ -2,82 +2,86 @@
  * Advanced character customization features
  */
 
-import { CharacterClass, Race } from '../models/Character';
+import type { CharacterClass, Race } from '../models/Character'
 
 export interface CustomPortrait {
-  id: string;
-  name: string;
-  type: 'emoji' | 'image' | 'generated';
-  data: string; // emoji, URL, or base64
-  tags: string[];
-  createdAt: Date;
+  id: string
+  name: string
+  type: 'emoji' | 'image' | 'generated'
+  data: string // emoji, URL, or base64
+  tags: string[]
+  createdAt: Date
 }
 
 export interface AppearanceOption {
-  id: string;
-  category: 'hair' | 'eyes' | 'skin' | 'build' | 'clothing' | 'accessories';
-  name: string;
-  description: string;
-  rarity: 'common' | 'uncommon' | 'rare';
+  id: string
+  category: 'hair' | 'eyes' | 'skin' | 'build' | 'clothing' | 'accessories'
+  name: string
+  description: string
+  rarity: 'common' | 'uncommon' | 'rare'
 }
 
 export interface BackgroundGenerator {
-  profession: string[];
-  origin: string[];
-  motivation: string[];
-  secret: string[];
-  flaw: string[];
+  profession: string[]
+  origin: string[]
+  motivation: string[]
+  secret: string[]
+  flaw: string[]
 }
 
 export interface PersonalityTrait {
-  id: string;
-  name: string;
-  description: string;
-  category: 'positive' | 'negative' | 'neutral';
-  rarity: 'common' | 'uncommon' | 'rare';
+  id: string
+  name: string
+  description: string
+  category: 'positive' | 'negative' | 'neutral'
+  rarity: 'common' | 'uncommon' | 'rare'
 }
 
 export interface VoiceOption {
-  id: string;
-  name: string;
-  description: string;
-  accent?: string;
-  pitch: 'high' | 'medium' | 'low';
-  speed: 'fast' | 'normal' | 'slow';
-  examples: string[];
+  id: string
+  name: string
+  description: string
+  accent?: string
+  pitch: 'high' | 'medium' | 'low'
+  speed: 'fast' | 'normal' | 'slow'
+  examples: string[]
 }
 
 class AdvancedCustomizationService {
-
   /**
    * Generate detailed appearance description
    */
-  generateDetailedAppearance(race: Race, options?: Partial < AppearanceOption>[]): string {
-    const appearances = this.getAppearanceOptions(race);
-    const selected = options || this.selectRandomAppearance(appearances);
+  generateDetailedAppearance(race: Race, options?: Partial <AppearanceOption>[]): string {
+    const appearances = this.getAppearanceOptions(race)
+    const selected = options || this.selectRandomAppearance(appearances)
 
-    const parts: string[] = [];
+    const parts: string[] = []
 
     // Build description from selected options
-    const hair = selected.find(opt => opt?.category === 'hair');
-    const eyes = selected.find(opt => opt?.category === 'eyes');
-    const skin = selected.find(opt => opt?.category === 'skin');
-    const build = selected.find(opt => opt?.category === 'build');
-    const clothing = selected.find(opt => opt?.category === 'clothing');
+    const hair = selected.find(opt => opt?.category === 'hair')
+    const eyes = selected.find(opt => opt?.category === 'eyes')
+    const skin = selected.find(opt => opt?.category === 'skin')
+    const build = selected.find(opt => opt?.category === 'build')
+    const clothing = selected.find(opt => opt?.category === 'clothing')
 
-    if (hair?.description) parts.push(hair.description);
-    if (eyes?.description) parts.push(eyes.description);
-    if (skin?.description) parts.push(skin.description);
-    if (build?.description) parts.push(build.description);
-    if (clothing?.description) parts.push(clothing.description);
+    if (hair?.description)
+      parts.push(hair.description)
+    if (eyes?.description)
+      parts.push(eyes.description)
+    if (skin?.description)
+      parts.push(skin.description)
+    if (build?.description)
+      parts.push(build.description)
+    if (clothing?.description)
+      parts.push(clothing.description)
 
-    return parts.join(', ');
+    return parts.join(', ')
   }
 
   /**
    * Get appearance options for a race
    */
-  getAppearanceOptions(race: Race): Record < string, AppearanceOption[]> {
+  getAppearanceOptions(race: Race): Record <string, AppearanceOption[]> {
     const baseOptions = {
       hair: [
         { id: 'hair-1', category: 'hair' as const, name: 'Long', description: 'long, flowing hair', rarity: 'common' as const },
@@ -109,39 +113,39 @@ class AdvancedCustomizationService {
         { id: 'cloth-3', category: 'clothing' as const, name: 'Rugged', description: 'rugged, travel-stained gear', rarity: 'common' as const },
         { id: 'cloth-4', category: 'clothing' as const, name: 'Exotic', description: 'exotic, foreign-style clothing', rarity: 'rare' as const },
       ],
-    };
+    }
 
     // Race-specific modifications
     if (race === 'Elf') {
       baseOptions.hair.push(
         { id: 'elf-hair', category: 'hair', name: 'Silver', description: 'silver, ethereal hair', rarity: 'uncommon' },
-      );
+      )
       baseOptions.eyes.push(
         { id: 'elf-eyes', category: 'eyes', name: 'Ancient', description: 'ancient, wise eyes', rarity: 'uncommon' },
-      );
+      )
     }
 
     if (race === 'Dwarf') {
       baseOptions.hair.push(
         { id: 'dwarf-beard', category: 'hair', name: 'Magnificent Beard', description: 'a magnificent, well-groomed beard', rarity: 'common' },
-      );
+      )
     }
 
-    return baseOptions;
+    return baseOptions
   }
 
   /**
    * Generate comprehensive background story
    */
   generateBackground(characterClass: CharacterClass, race: Race): string {
-    const generator = this.getBackgroundGenerator();
+    const generator = this.getBackgroundGenerator()
 
-    const profession = this.randomChoice(generator.profession);
-    const origin = this.randomChoice(generator.origin);
-    const motivation = this.randomChoice(generator.motivation);
-    const secret = this.randomChoice(generator.secret);
+    const profession = this.randomChoice(generator.profession)
+    const origin = this.randomChoice(generator.origin)
+    const motivation = this.randomChoice(generator.motivation)
+    const secret = this.randomChoice(generator.secret)
 
-    return `Born ${origin}, you once worked as ${profession}. ${motivation} drives you forward, though you harbor ${secret}. Your path as ${characterClass.toLowerCase()} began when fate called you to adventure.`;
+    return `Born ${origin}, you once worked as ${profession}. ${motivation} drives you forward, though you harbor ${secret}. Your path as ${characterClass.toLowerCase()} began when fate called you to adventure.`
   }
 
   /**
@@ -150,66 +154,110 @@ class AdvancedCustomizationService {
   private getBackgroundGenerator(): BackgroundGenerator {
     return {
       profession: [
-        'a blacksmith', 'a merchant', 'a farmer', 'a scholar', 'a soldier',
-        'a sailor', 'a hunter', 'a healer', 'a performer', 'a thief',
-        'a noble', 'a priest', 'a craftsperson', 'a guide', 'a guard',
+        'a blacksmith',
+        'a merchant',
+        'a farmer',
+        'a scholar',
+        'a soldier',
+        'a sailor',
+        'a hunter',
+        'a healer',
+        'a performer',
+        'a thief',
+        'a noble',
+        'a priest',
+        'a craftsperson',
+        'a guide',
+        'a guard',
       ],
       origin: [
-        'in a bustling city', 'in a quiet village', 'in the wilderness',
-        'in a mountain stronghold', 'by the sea', 'in foreign lands',
-        'among nomads', 'in ancient ruins', 'in a hidden valley',
-        'during wartime', 'in poverty', 'in luxury',
+        'in a bustling city',
+        'in a quiet village',
+        'in the wilderness',
+        'in a mountain stronghold',
+        'by the sea',
+        'in foreign lands',
+        'among nomads',
+        'in ancient ruins',
+        'in a hidden valley',
+        'during wartime',
+        'in poverty',
+        'in luxury',
       ],
       motivation: [
-        'A desire for justice', 'The need for redemption', 'Curiosity about the world',
-        'A quest for knowledge', 'The call of adventure', 'A promise to keep',
-        'Revenge against wrongdoers', 'The protection of others', 'A search for truth',
-        'The pursuit of glory', 'A need to prove yourself', 'Ancient prophecy',
+        'A desire for justice',
+        'The need for redemption',
+        'Curiosity about the world',
+        'A quest for knowledge',
+        'The call of adventure',
+        'A promise to keep',
+        'Revenge against wrongdoers',
+        'The protection of others',
+        'A search for truth',
+        'The pursuit of glory',
+        'A need to prove yourself',
+        'Ancient prophecy',
       ],
       secret: [
-        'a dark secret from your past', 'knowledge of a hidden treasure',
-        'the identity of your true parents', 'a curse upon your bloodline',
-        'a debt that must be repaid', 'a forbidden love', 'a terrible mistake',
-        'knowledge of coming danger', 'a sacred duty', 'a powerful enemy',
-        'a lost memory', 'a divine calling',
+        'a dark secret from your past',
+        'knowledge of a hidden treasure',
+        'the identity of your true parents',
+        'a curse upon your bloodline',
+        'a debt that must be repaid',
+        'a forbidden love',
+        'a terrible mistake',
+        'knowledge of coming danger',
+        'a sacred duty',
+        'a powerful enemy',
+        'a lost memory',
+        'a divine calling',
       ],
       flaw: [
-        'You trust too easily', 'You are haunted by the past', 'You seek approval',
-        'You are overly proud', 'You fear commitment', 'You are quick to anger',
-        'You are too curious', 'You avoid responsibility', 'You are pessimistic',
-        'You are reckless', 'You are secretive', 'You are stubborn',
+        'You trust too easily',
+        'You are haunted by the past',
+        'You seek approval',
+        'You are overly proud',
+        'You fear commitment',
+        'You are quick to anger',
+        'You are too curious',
+        'You avoid responsibility',
+        'You are pessimistic',
+        'You are reckless',
+        'You are secretive',
+        'You are stubborn',
       ],
-    };
+    }
   }
 
   /**
    * Generate personality traits
    */
   generatePersonalityTraits(count = 3): PersonalityTrait[] {
-    const allTraits = this.getAllPersonalityTraits();
-    const selected: PersonalityTrait[] = [];
+    const allTraits = this.getAllPersonalityTraits()
+    const selected: PersonalityTrait[] = []
 
     // Ensure variety in categories
-    const categories: ('positive' | 'negative' | 'neutral')[] = ['positive', 'negative', 'neutral'];
+    const categories: ('positive' | 'negative' | 'neutral')[] = ['positive', 'negative', 'neutral']
 
     for (let i = 0; i < count && i < categories.length; i++) {
-      const categoryTraits = allTraits.filter(t => t.category === categories[i]);
+      const categoryTraits = allTraits.filter(t => t.category === categories[i])
       if (categoryTraits.length > 0) {
-        selected.push(this.randomChoice(categoryTraits));
+        selected.push(this.randomChoice(categoryTraits))
       }
     }
 
     // Fill remaining slots with random traits
     while (selected.length < count && selected.length < allTraits.length) {
-      const remaining = allTraits.filter(t => !selected.some(s => s.id === t.id));
+      const remaining = allTraits.filter(t => !selected.some(s => s.id === t.id))
       if (remaining.length > 0) {
-        selected.push(this.randomChoice(remaining));
-      } else {
-        break;
+        selected.push(this.randomChoice(remaining))
+      }
+      else {
+        break
       }
     }
 
-    return selected;
+    return selected
   }
 
   /**
@@ -240,27 +288,29 @@ class AdvancedCustomizationService {
       { id: 'analytical', name: 'Analytical', description: 'Breaks down complex problems', category: 'neutral', rarity: 'uncommon' },
       { id: 'spiritual', name: 'Spiritual', description: 'Deeply connected to faith or nature', category: 'neutral', rarity: 'uncommon' },
       { id: 'practical', name: 'Practical', description: 'Focuses on what works', category: 'neutral', rarity: 'common' },
-    ];
+    ]
   }
 
   /**
    * Generate voice and mannerisms
    */
   generateVoice(characterClass: CharacterClass, personalityTraits: string[]): VoiceOption {
-    const voices = this.getVoiceOptions();
+    const voices = this.getVoiceOptions()
 
     // Filter based on class and personality
-    let suitableVoices = voices;
+    let suitableVoices = voices
 
     if (characterClass === 'Barbarian') {
-      suitableVoices = voices.filter(v => v.pitch !== 'high' && v.name.includes('Gruff') || v.name.includes('Booming'));
-    } else if (characterClass === 'Wizard') {
-      suitableVoices = voices.filter(v => v.name.includes('Scholarly') || v.name.includes('Precise'));
-    } else if (characterClass === 'Bard') {
-      suitableVoices = voices.filter(v => v.name.includes('Melodious') || v.name.includes('Dramatic'));
+      suitableVoices = voices.filter(v => v.pitch !== 'high' && v.name.includes('Gruff') || v.name.includes('Booming'))
+    }
+    else if (characterClass === 'Wizard') {
+      suitableVoices = voices.filter(v => v.name.includes('Scholarly') || v.name.includes('Precise'))
+    }
+    else if (characterClass === 'Bard') {
+      suitableVoices = voices.filter(v => v.name.includes('Melodious') || v.name.includes('Dramatic'))
     }
 
-    return this.randomChoice(suitableVoices.length > 0 ? suitableVoices : voices);
+    return this.randomChoice(suitableVoices.length > 0 ? suitableVoices : voices)
   }
 
   /**
@@ -316,7 +366,7 @@ class AdvancedCustomizationService {
         speed: 'fast',
         examples: ['*gestures while speaking*', '*changes tone frequently*', '*quotes literature*'],
       },
-    ];
+    ]
   }
 
   /**
@@ -330,68 +380,68 @@ class AdvancedCustomizationService {
       data: emoji,
       tags: ['emoji', ...tags],
       createdAt: new Date(),
-    };
+    }
   }
 
   /**
    * Generate random custom portrait
    */
   generateRandomPortrait(characterClass: CharacterClass, race: Race): CustomPortrait {
-    const classEmojis: Record < CharacterClass, string[]> = {
-      'Fighter': ['⚔️', '🛡️', '🗡️', '⚡'],
-      'Wizard': ['🧙', '✨', '📚', '🔮'],
-      'Thief': ['🗡️', '🎭', '🔓', '💰'],
-      'Cleric': ['✨', '🙏', '⭐', '💫'],
-      'Ranger': ['🏹', '🌲', '🦅', '🐺'],
-      'Paladin': ['⚔️', '✨', '🛡️', '⭐'],
-      'Bard': ['🎵', '🎭', '🎪', '🎨'],
-      'Druid': ['🌿', '🐻', '🌙', '🍃'],
-      'Barbarian': ['⚡', '🔥', '💪', '🗯️'],
-      'Immolator': ['🔥', '💥', '⚡', '🌋'],
-    };
+    const classEmojis: Record <CharacterClass, string[]> = {
+      Fighter: ['⚔️', '🛡️', '🗡️', '⚡'],
+      Wizard: ['🧙', '✨', '📚', '🔮'],
+      Thief: ['🗡️', '🎭', '🔓', '💰'],
+      Cleric: ['✨', '🙏', '⭐', '💫'],
+      Ranger: ['🏹', '🌲', '🦅', '🐺'],
+      Paladin: ['⚔️', '✨', '🛡️', '⭐'],
+      Bard: ['🎵', '🎭', '🎪', '🎨'],
+      Druid: ['🌿', '🐻', '🌙', '🍃'],
+      Barbarian: ['⚡', '🔥', '💪', '🗯️'],
+      Immolator: ['🔥', '💥', '⚡', '🌋'],
+    }
 
-    const raceEmojis: Record < Race, string[]> = {
-      'Human': ['👤', '🧑', '👨', '👩'],
-      'Elf': ['🧝', '✨', '🌟', '🍃'],
-      'Dwarf': ['🧔', '⛏️', '💎', '🏔️'],
-      'Halfling': ['🧒', '🍞', '🏡', '🌻'],
-      'Other': ['❓', '🎭', '👤', '✨'],
-    };
+    const raceEmojis: Record <Race, string[]> = {
+      Human: ['👤', '🧑', '👨', '👩'],
+      Elf: ['🧝', '✨', '🌟', '🍃'],
+      Dwarf: ['🧔', '⛏️', '💎', '🏔️'],
+      Halfling: ['🧒', '🍞', '🏡', '🌻'],
+      Other: ['❓', '🎭', '👤', '✨'],
+    }
 
-    const classOptions = classEmojis[characterClass] || ['⚔️'];
-    const raceOptions = raceEmojis[race] || ['👤'];
+    const classOptions = classEmojis[characterClass] || ['⚔️']
+    const raceOptions = raceEmojis[race] || ['👤']
 
-    const emoji = Math.random() > 0.5 ?
-      this.randomChoice(classOptions) :
-      this.randomChoice(raceOptions);
+    const emoji = Math.random() > 0.5
+      ? this.randomChoice(classOptions)
+      : this.randomChoice(raceOptions)
 
     return this.createEmojiPortrait(
       emoji,
       `${race} ${characterClass}`,
       [characterClass.toLowerCase(), race.toLowerCase()],
-    );
+    )
   }
 
   /**
    * Select random appearance options
    */
-  private selectRandomAppearance(options: Record < string, AppearanceOption[]>): AppearanceOption[] {
-    const selected: AppearanceOption[] = [];
+  private selectRandomAppearance(options: Record <string, AppearanceOption[]>): AppearanceOption[] {
+    const selected: AppearanceOption[] = []
 
     for (const [category, categoryOptions] of Object.entries(options)) {
       if (categoryOptions.length > 0) {
-        selected.push(this.randomChoice(categoryOptions));
+        selected.push(this.randomChoice(categoryOptions))
       }
     }
 
-    return selected;
+    return selected
   }
 
   /**
    * Random choice helper
    */
-  private randomChoice < T>(array: T[]): T {
-    return array[Math.floor(Math.random() * array.length)];
+  private randomChoice <T>(array: T[]): T {
+    return array[Math.floor(Math.random() * array.length)]
   }
 
   /**
@@ -399,11 +449,12 @@ class AdvancedCustomizationService {
    */
   saveCustomPortrait(portrait: CustomPortrait): void {
     try {
-      const existing = this.getCustomPortraits();
-      const updated = [...existing.filter(p => p.id !== portrait.id), portrait];
-      localStorage.setItem('zimbomate_custom_portraits', JSON.stringify(updated));
-    } catch {
-      }
+      const existing = this.getCustomPortraits()
+      const updated = [...existing.filter(p => p.id !== portrait.id), portrait]
+      localStorage.setItem('zimbomate_custom_portraits', JSON.stringify(updated))
+    }
+    catch {
+    }
   }
 
   /**
@@ -411,10 +462,11 @@ class AdvancedCustomizationService {
    */
   getCustomPortraits(): CustomPortrait[] {
     try {
-      const stored = localStorage.getItem('zimbomate_custom_portraits');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
+      const stored = localStorage.getItem('zimbomate_custom_portraits')
+      return stored ? JSON.parse(stored) : []
+    }
+    catch {
+      return []
     }
   }
 
@@ -423,15 +475,13 @@ class AdvancedCustomizationService {
    */
   deleteCustomPortrait(portraitId: string): void {
     try {
-      const existing = this.getCustomPortraits();
-      const updated = existing.filter(p => p.id !== portraitId);
-      localStorage.setItem('zimbomate_custom_portraits', JSON.stringify(updated));
-    } catch {
-      }
+      const existing = this.getCustomPortraits()
+      const updated = existing.filter(p => p.id !== portraitId)
+      localStorage.setItem('zimbomate_custom_portraits', JSON.stringify(updated))
+    }
+    catch {
+    }
   }
 }
 
-export const advancedCustomizationService = new AdvancedCustomizationService();
-
-
-
+export const advancedCustomizationService = new AdvancedCustomizationService()

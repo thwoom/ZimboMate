@@ -3,72 +3,72 @@
  */
 
 // Condition duration types
-export type ConditionDuration =
-  | 'instant'    // Applied and removed immediately
-  | 'scene'      // Until end of current scene
-  | 'session'    // Until end of game session
-  | 'permanent'  // Until removed by specific means
-  | 'custom';    // Custom duration logic
+export type ConditionDuration
+  = | 'instant' // Applied and removed immediately
+    | 'scene' // Until end of current scene
+    | 'session' // Until end of game session
+    | 'permanent' // Until removed by specific means
+    | 'custom' // Custom duration logic
 
 // Condition categories
-export type ConditionCategory =
-  | 'physical'   // Physical ailments
-  | 'mental'     // Mental conditions
-  | 'magical'    // Magical effects
-  | 'divine'     // Divine influences
-  | 'environmental' // Environmental hazards
-  | 'social';    // Social conditions
+export type ConditionCategory
+  = | 'physical' // Physical ailments
+    | 'mental' // Mental conditions
+    | 'magical' // Magical effects
+    | 'divine' // Divine influences
+    | 'environmental' // Environmental hazards
+    | 'social' // Social conditions
 
 // Main condition interface
 export interface Condition {
-  id: string;
-  name: string;
-  category: ConditionCategory;
-  description: string;
-  mechanicalEffect?: string; // Game mechanics description
-  narrativeEffect?: string; // Story / roleplay description
-  duration: ConditionDuration;
+  id: string
+  name: string
+  category: ConditionCategory
+  description: string
+  mechanicalEffect?: string // Game mechanics description
+  narrativeEffect?: string // Story / roleplay description
+  duration: ConditionDuration
 
   // Visual indicators
-  icon?: string;
-  color?: string;
+  icon?: string
+  color?: string
 
   // Mechanical modifiers
   modifiers?: {
-    attributes?: Partial < Record<string, number>>;
-    armor?: number;
-    damage?: string;
-    ongoing?: number;
-    forward?: number;
-  };
+    attributes?: Partial <Record<string, number>>
+    armor?: number
+    damage?: string
+    ongoing?: number
+    forward?: number
+  }
 
   // Triggers
   triggers?: {
-    onGain?: string; // What happens when condition is gained
-    onLose?: string; // What happens when condition is removed
-    perTurn?: string; // What happens each turn / action
-  };
+    onGain?: string // What happens when condition is gained
+    onLose?: string // What happens when condition is removed
+    perTurn?: string // What happens each turn / action
+  }
 
   // Stacking behavior
-  stackable: boolean;
-  maxStacks?: number;
+  stackable: boolean
+  maxStacks?: number
 
   // Removal conditions
-  removalConditions?: string[];
+  removalConditions?: string[]
 }
 
 // Character's active condition
 export interface ActiveCondition {
-  conditionId: string;
-  characterId: string;
-  startTime: Date;
-  stacks: number;
-  customData?: unknown; // For tracking condition-specific data
-  active: boolean;
+  conditionId: string
+  characterId: string
+  startTime: Date
+  stacks: number
+  customData?: unknown // For tracking condition-specific data
+  active: boolean
 }
 
 // Common conditions in Dungeon World
-export const COMMON_CONDITIONS: Partial < Condition>[] = [
+export const COMMON_CONDITIONS: Partial <Condition>[] = [
   // Physical Conditions
   {
     name: 'Bleeding',
@@ -221,7 +221,7 @@ export const COMMON_CONDITIONS: Partial < Condition>[] = [
     removalConditions: ['Succeed at a difficult task', 'Receive encouragement'],
     stackable: false,
   },
-];
+]
 
 // Utility functions
 
@@ -235,20 +235,20 @@ export function applyCondition(
 ): ActiveCondition[] {
   const existing = activeConditions.find(
     ac => ac.characterId === characterId && ac.conditionId === condition.id,
-  );
+  )
 
   if (existing) {
     if (condition.stackable) {
       // Add a stack
-      const maxStacks = condition.maxStacks || Infinity;
+      const maxStacks = condition.maxStacks || Infinity
       return activeConditions.map(ac =>
         ac === existing
           ? { ...ac, stacks: Math.min(ac.stacks + 1, maxStacks) }
           : ac,
-      );
+      )
     }
     // Already has non-stackable condition
-    return activeConditions;
+    return activeConditions
   }
 
   // Add new condition
@@ -258,9 +258,9 @@ export function applyCondition(
     startTime: new Date(),
     stacks: 1,
     active: true,
-  };
+  }
 
-  return [...activeConditions, newCondition];
+  return [...activeConditions, newCondition]
 }
 
 /**
@@ -273,7 +273,7 @@ export function removeCondition(
 ): ActiveCondition[] {
   return activeConditions.filter(
     ac => !(ac.characterId === characterId && ac.conditionId === conditionId),
-  );
+  )
 }
 
 /**
@@ -286,11 +286,11 @@ export function getCharacterConditions(
 ): Condition[] {
   const charConditions = activeConditions.filter(
     ac => ac.characterId === characterId && ac.active,
-  );
+  )
 
   return charConditions
     .map(ac => conditionDefinitions.find(c => c.id === ac.conditionId))
-    .filter((c): c is Condition => c !== undefined);
+    .filter((c): c is Condition => c !== undefined)
 }
 
 /**
@@ -299,13 +299,13 @@ export function getCharacterConditions(
 export function endSceneConditions(
   activeConditions: ActiveCondition[],
 ): ActiveCondition[] {
-  return activeConditions.map(ac => {
-    const condition = COMMON_CONDITIONS.find(c => c.id === ac.conditionId);
+  return activeConditions.map((ac) => {
+    const condition = COMMON_CONDITIONS.find(c => c.id === ac.conditionId)
     if (condition?.duration === 'scene') {
-      return { ...ac, active: false };
+      return { ...ac, active: false }
     }
-    return ac;
-  });
+    return ac
+  })
 }
 
 /**
@@ -314,13 +314,13 @@ export function endSceneConditions(
 export function endSessionConditions(
   activeConditions: ActiveCondition[],
 ): ActiveCondition[] {
-  return activeConditions.map(ac => {
-    const condition = COMMON_CONDITIONS.find(c => c.id === ac.conditionId);
+  return activeConditions.map((ac) => {
+    const condition = COMMON_CONDITIONS.find(c => c.id === ac.conditionId)
     if (condition?.duration === 'scene' || condition?.duration === 'session') {
-      return { ...ac, active: false };
+      return { ...ac, active: false }
     }
-    return ac;
-  });
+    return ac
+  })
 }
 
 /**
@@ -330,29 +330,27 @@ export function getConditionModifiers(
   conditions: Condition[],
   activeConditions: ActiveCondition[],
 ): {
-  ongoing: number;
-  forward: number;
-  armor: number;
+  ongoing: number
+  forward: number
+  armor: number
 } {
-  let ongoing = 0;
-  let forward = 0;
-  let armor = 0;
+  let ongoing = 0
+  let forward = 0
+  let armor = 0
 
   for (const condition of conditions) {
-    const active = activeConditions.find(ac => ac.conditionId === condition.id);
-    if (!active || !active.active) continue;
+    const active = activeConditions.find(ac => ac.conditionId === condition.id)
+    if (!active || !active.active)
+      continue
 
-    const stacks = active.stacks || 1;
+    const stacks = active.stacks || 1
 
     if (condition.modifiers) {
-      ongoing += (condition.modifiers.ongoing || 0) * stacks;
-      forward += (condition.modifiers.forward || 0) * stacks;
-      armor += (condition.modifiers.armor || 0) * stacks;
+      ongoing += (condition.modifiers.ongoing || 0) * stacks
+      forward += (condition.modifiers.forward || 0) * stacks
+      armor += (condition.modifiers.armor || 0) * stacks
     }
   }
 
-  return { ongoing, forward, armor };
+  return { ongoing, forward, armor }
 }
-
-
-

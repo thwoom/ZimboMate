@@ -1,24 +1,25 @@
-import './MoveCard.css';
+import type { Character } from '../models/Character'
 
-import React, { useState } from 'react';
+import type { Move } from '../models/Move'
 
-import { Character } from '../models/Character';
-import { Move, requiresRoll } from '../models/Move';
-import { DiceRoll } from '../services/DiceRollingService';
-import { StatSubstitutionService } from '../services/StatSubstitutionService';
-import DiceRoller from './DiceRoller';
+import type { DiceRoll } from '../services/DiceRollingService'
+import React, { useState } from 'react'
+import { requiresRoll } from '../models/Move'
+import { StatSubstitutionService } from '../services/StatSubstitutionService'
+import DiceRoller from './DiceRoller'
+import './MoveCard.css'
 
 interface MoveCardProps {
-  move: Move;
-  character?: Character;
-  onRoll?: (roll: DiceRoll) => void;
-  onUse?: (move: Move) => void;
-  expanded?: boolean;
-  showRoller?: boolean;
-  className?: string;
+  move: Move
+  character?: Character
+  onRoll?: (roll: DiceRoll) => void
+  onUse?: (move: Move) => void
+  expanded?: boolean
+  showRoller?: boolean
+  className?: string
 }
 
-export const MoveCard: React.FC < MoveCardProps> = ({
+export const MoveCard: React.FC <MoveCardProps> = ({
   move,
   character,
   onRoll,
@@ -27,49 +28,50 @@ export const MoveCard: React.FC < MoveCardProps> = ({
   showRoller = true,
   className = '',
 }) => {
-  const [isExpanded, setIsExpanded] = useState(expanded);
-  const [showDiceRoller, setShowDiceRoller] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(expanded)
+  const [showDiceRoller, setShowDiceRoller] = useState(false)
 
-  const needsRoll = requiresRoll(move);
-  const canUse = !move.uses || move.uses.current > 0;
+  const needsRoll = requiresRoll(move)
+  const canUse = !move.uses || move.uses.current > 0
 
   // Check if this move has stat substitution options
-  const hasStatSubstitution = character && StatSubstitutionService.hasStatSubstitution(character, move.name);
-  const availableStats = character && move.rollStat ?
-    StatSubstitutionService.getAvailableStats(character, move.name, move.rollStat) :
-    [move.rollStat].filter(Boolean);
+  const hasStatSubstitution = character && StatSubstitutionService.hasStatSubstitution(character, move.name)
+  const availableStats = character && move.rollStat
+    ? StatSubstitutionService.getAvailableStats(character, move.name, move.rollStat)
+    : [move.rollStat].filter(Boolean)
 
   const handleToggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
+    setIsExpanded(!isExpanded)
+  }
 
   const handleShowRoller = () => {
     if (needsRoll && character) {
-      setShowDiceRoller(true);
-    } else {
-      // For non-roll moves, just trigger use
-      onUse?.(move);
+      setShowDiceRoller(true)
     }
-  };
+    else {
+      // For non-roll moves, just trigger use
+      onUse?.(move)
+    }
+  }
 
   const handleRoll = (roll: DiceRoll) => {
-    onRoll?.(roll);
-    setShowDiceRoller(false);
+    onRoll?.(roll)
+    setShowDiceRoller(false)
 
     // Trigger move use
-    onUse?.(move);
-  };
+    onUse?.(move)
+  }
 
   const getMoveTypeIcon = () => {
     switch (move.category) {
-      case 'basic': return '⚔️';
-      case 'class': return '🎯';
-      case 'advanced': return '⭐';
-      case 'master': return '👑';
-      case 'special': return '✨';
-      default: return '📜';
+      case 'basic': return '⚔️'
+      case 'class': return '🎯'
+      case 'advanced': return '⭐'
+      case 'master': return '👑'
+      case 'special': return '✨'
+      default: return '📜'
     }
-  };
+  }
 
   return (
     <div className={`move-card ${move.category} ${!canUse ? 'disabled' : ''} ${className}`}>
@@ -81,7 +83,9 @@ export const MoveCard: React.FC < MoveCardProps> = ({
             <h3 className="move-name">{move.name}</h3>
             {move.uses && (
               <span className="move-uses">
-                {move.uses.current}/{move.uses.max}
+                {move.uses.current}
+                /
+                {move.uses.max}
               </span>
             )}
           </div>
@@ -93,7 +97,9 @@ export const MoveCard: React.FC < MoveCardProps> = ({
             </span>
             {move.rollStat && (
               <span className="move-stat">
-                + {move.rollStat}
+                +
+                {' '}
+                {move.rollStat}
                 {hasStatSubstitution && (
                   <span className="stat-substitution-indicator" title="Has stat substitution options">
                     ⚡
@@ -109,8 +115,8 @@ export const MoveCard: React.FC < MoveCardProps> = ({
             <button
               className="roll-button"
               onClick={(e) => {
-                e.stopPropagation();
-                handleShowRoller();
+                e.stopPropagation()
+                handleShowRoller()
               }}
               disabled={!canUse}
             >
@@ -122,8 +128,8 @@ export const MoveCard: React.FC < MoveCardProps> = ({
             <button
               className="use-button"
               onClick={(e) => {
-                e.stopPropagation();
-                handleShowRoller();
+                e.stopPropagation()
+                handleShowRoller()
               }}
               disabled={!canUse}
             >
@@ -141,7 +147,9 @@ export const MoveCard: React.FC < MoveCardProps> = ({
       {isExpanded && (
         <div className="move-card__content">
           <div className="move-trigger">
-            <strong > When:</strong> {move.trigger}
+            <strong> When:</strong>
+            {' '}
+            {move.trigger}
           </div>
 
           <div className="move-description">
@@ -153,17 +161,23 @@ export const MoveCard: React.FC < MoveCardProps> = ({
             <div className="move-results">
               {move.onSuccess && (
                 <div className="result-item success">
-                  <strong > 10+:</strong> {move.onSuccess}
+                  <strong> 10+:</strong>
+                  {' '}
+                  {move.onSuccess}
                 </div>
               )}
               {move.onPartial && (
                 <div className="result-item partial">
-                  <strong > 7-9:</strong> {move.onPartial}
+                  <strong> 7-9:</strong>
+                  {' '}
+                  {move.onPartial}
                 </div>
               )}
               {move.onFailure && (
                 <div className="result-item failure">
-                  <strong > 6-:</strong> {move.onFailure}
+                  <strong> 6-:</strong>
+                  {' '}
+                  {move.onFailure}
                 </div>
               )}
             </div>
@@ -172,7 +186,10 @@ export const MoveCard: React.FC < MoveCardProps> = ({
           {/* Special Properties */}
           <div className="move-properties">
             {move.hold && (
-              <span className="property hold">Hold {move.hold}</span>
+              <span className="property hold">
+                Hold
+                {move.hold}
+              </span>
             )}
             {move.ongoing && (
               <span className="property ongoing">Ongoing</span>
@@ -181,7 +198,11 @@ export const MoveCard: React.FC < MoveCardProps> = ({
               <span className="property forward">Forward</span>
             )}
             {move.level && (
-              <span className="property level">Level {move.level}+</span>
+              <span className="property level">
+                Level
+                {move.level}
+                +
+              </span>
             )}
             {hasStatSubstitution && (
               <div className="stat-substitution-info">
@@ -189,7 +210,11 @@ export const MoveCard: React.FC < MoveCardProps> = ({
                 <div className="available-stats">
                   {availableStats.map(stat => (
                     <span key={stat} className="available-stat">
-                      {stat} ({character?.attributes[stat as keyof typeof character.attributes] || 0})
+                      {stat}
+                      {' '}
+                      (
+                      {character?.attributes[stat as keyof typeof character.attributes] || 0}
+                      )
                     </span>
                   ))}
                 </div>
@@ -200,8 +225,20 @@ export const MoveCard: React.FC < MoveCardProps> = ({
           {/* Source Info */}
           {(move.source || move.page) && (
             <div className="move-source">
-              {move.source && <span > Source: {move.source}</span>}
-              {move.page && <span > Page: {move.page}</span>}
+              {move.source && (
+                <span>
+                  {' '}
+                  Source:
+                  {move.source}
+                </span>
+              )}
+              {move.page && (
+                <span>
+                  {' '}
+                  Page:
+                  {move.page}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -213,7 +250,11 @@ export const MoveCard: React.FC < MoveCardProps> = ({
           <div className="modal-backdrop" onClick={() => setShowDiceRoller(false)} />
           <div className="modal-content">
             <div className="modal-header">
-              <h3 > Roll {move.name}</h3>
+              <h3>
+                {' '}
+                Roll
+                {move.name}
+              </h3>
               <button
                 className="close-button"
                 onClick={() => setShowDiceRoller(false)}
@@ -231,11 +272,7 @@ export const MoveCard: React.FC < MoveCardProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default MoveCard;
-
-
-
-
+export default MoveCard

@@ -37,7 +37,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,7 +72,8 @@
   border-collapse: collapse;
 }
 
-.compare-table th, .compare-table td {
+.compare-table th,
+.compare-table td {
   border: 1px solid var(--color-border);
   padding: 0.5rem;
   text-align: left;
@@ -105,7 +106,6 @@
   box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
 }
 
-
 /* Debug mode-add to body class to visualize layout */
 body.debug-layout .panel-router,
 body.debug-layout .content-area,
@@ -120,13 +120,27 @@ body.debug-layout .character-creation-assistant {
   outline-offset: -1px !important;
 }
 
-body.debug-layout .panel-router { outline-color: #ff0000 !important; } /* Red */
-body.debug-layout .content-area { outline-color: #00ff00 !important; } /* Green */
-body.debug-layout .content-area__body { outline-color: #0000ff !important; } /* Blue */
-body.debug-layout .character-creation-panel { outline-color: #ff00ff !important; } /* Magenta */
-body.debug-layout .wizard-content { outline-color: #ffff00 !important; } /* Yellow */
-body.debug-layout .wizard-step { outline-color: #00ffff !important; } /* Cyan */
-body.debug-layout .character-creation-assistant { outline-color: #ff8000 !important; } /* Orange */
+body.debug-layout .panel-router {
+  outline-color: #ff0000 !important;
+} /* Red */
+body.debug-layout .content-area {
+  outline-color: #00ff00 !important;
+} /* Green */
+body.debug-layout .content-area__body {
+  outline-color: #0000ff !important;
+} /* Blue */
+body.debug-layout .character-creation-panel {
+  outline-color: #ff00ff !important;
+} /* Magenta */
+body.debug-layout .wizard-content {
+  outline-color: #ffff00 !important;
+} /* Yellow */
+body.debug-layout .wizard-step {
+  outline-color: #00ffff !important;
+} /* Cyan */
+body.debug-layout .character-creation-assistant {
+  outline-color: #ff8000 !important;
+} /* Orange */
 
 /* Character Creation Panel Styles */
 .character-creation-panel {
@@ -529,7 +543,9 @@ body.debug-layout .character-creation-assistant { outline-color: #ff8000 !import
 .background-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 0 0 3px rgba(255, 215, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
 }
 
@@ -1106,22 +1122,42 @@ body.debug-layout .character-creation-assistant { outline-color: #ff8000 !import
   animation-fill-mode: both;
 }
 
-.move-card:nth-child(1) { animation-delay: 0.1s; }
-.move-card:nth-child(2) { animation-delay: 0.2s; }
-.move-card:nth-child(3) { animation-delay: 0.3s; }
-.move-card:nth-child(4) { animation-delay: 0.4s; }
-.move-card:nth-child(5) { animation-delay: 0.5s; }
+.move-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.move-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.move-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.move-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.move-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
 
 .bond-template {
   animation: slideIn 0.3s ease;
   animation-fill-mode: both;
 }
 
-.bond-template:nth-child(1) { animation-delay: 0.1s; }
-.bond-template:nth-child(2) { animation-delay: 0.15s; }
-.bond-template:nth-child(3) { animation-delay: 0.2s; }
-.bond-template:nth-child(4) { animation-delay: 0.25s; }
-.bond-template:nth-child(5) { animation-delay: 0.3s; }
+.bond-template:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.bond-template:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.bond-template:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.bond-template:nth-child(4) {
+  animation-delay: 0.25s;
+}
+.bond-template:nth-child(5) {
+  animation-delay: 0.3s;
+}
 
 /* Hover animations */
 .btn-primary {
@@ -1139,7 +1175,9 @@ body.debug-layout .character-creation-assistant { outline-color: #ff8000 !import
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   transform: translate(-50%, -50%);
-  transition: width 0.6s ease, height 0.6s ease;
+  transition:
+    width 0.6s ease,
+    height 0.6s ease;
 }
 
 .btn-primary:hover::before {
@@ -1281,7 +1319,7 @@ body.debug-layout .character-creation-assistant { outline-color: #ff8000 !import
 }
 
 .race-abilities li:before {
-  content: "•";
+  content: '•';
   color: var(--color-primary);
   font-weight: bold;
   position: absolute;
@@ -2576,7 +2614,7 @@ select:focus {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .character-preview {
     position: static;
     margin-top: 1rem;
@@ -2757,16 +2795,16 @@ select:focus {
   .portrait-name {
     font-size: 0.875rem;
   }
-  
+
   .wizard-step {
     height: 100%; /* use parent height instead of viewport calculations */
   }
-  
+
   .class-step,
   .moves-equipment-step {
     height: 100%; /* use parent height instead of viewport calculations */
   }
-  
+
   .step-content-scroll {
     padding-bottom: 0.5rem;
   }
@@ -2807,12 +2845,6 @@ select:focus {
 }
 
 /* Floating Action Bar styles removed-replaced by CharacterCreationAssistant */
-
-
-
-
-
-
 
 /* Validation Display-moved to CharacterCreationAssistant */
 
@@ -3166,15 +3198,15 @@ select:focus {
   .level-choice-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .benefits-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .progress-steps {
     gap: var(--spacing-md);
   }
-  
+
   .level-wizard {
     max-width: none;
   }

@@ -1,4 +1,1 @@
-export { default } from './EquipmentPanel';
-
-
-
+export { default } from './EquipmentPanel'

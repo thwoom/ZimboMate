@@ -1,4 +1,1 @@
-export { default } from './CharacterCreationPanel';
-
-
-
+export { default } from './CharacterCreationPanel'

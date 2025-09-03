@@ -2,73 +2,73 @@
  * Move data models for Dungeon World
  */
 
-import { Attribute } from './Character';
+import type { Attribute } from './Character'
 
 // Move categories
-export type MoveCategory =
-  | 'basic'      // Basic moves available to all
-  | 'class'      // Class-specific moves
-  | 'advanced'   // Advanced moves (level 2-5)
-  | 'master'     // Master moves (level 6-10)
-  | 'special'    // Special moves (Level Up, End of Session, etc.)
-  | 'custom';    // Player-created custom moves
+export type MoveCategory
+  = | 'basic' // Basic moves available to all
+    | 'class' // Class-specific moves
+    | 'advanced' // Advanced moves (level 2-5)
+    | 'master' // Master moves (level 6-10)
+    | 'special' // Special moves (Level Up, End of Session, etc.)
+    | 'custom' // Player-created custom moves
 
 // Move trigger types
-export type MoveTrigger =
-  | 'action'     // Triggered by player action
-  | 'roll'       // Requires a roll
-  | 'passive'    // Always active
-  | 'reactive'   // Triggered by events
-  | 'special';   // Special trigger conditions
+export type MoveTrigger
+  = | 'action' // Triggered by player action
+    | 'roll' // Requires a roll
+    | 'passive' // Always active
+    | 'reactive' // Triggered by events
+    | 'special' // Special trigger conditions
 
 // Roll result tiers
-export type RollResult =
-  | 'success'    // 10+
-  | 'partial'    // 7-9
-  | 'failure';   // 6-
+export type RollResult
+  = | 'success' // 10+
+    | 'partial' // 7-9
+    | 'failure' // 6-
 
 // Move interface
 export interface Move {
-  id: string;
-  name: string;
-  category: MoveCategory;
-  description: string;
-  trigger: string; // When the move triggers
-  triggerType: MoveTrigger;
+  id: string
+  name: string
+  category: MoveCategory
+  description: string
+  trigger: string // When the move triggers
+  triggerType: MoveTrigger
 
   // Roll requirements
-  rollStat?: Attribute; // Which stat to roll with
-  rollModifier?: number; // Additional modifier
+  rollStat?: Attribute // Which stat to roll with
+  rollModifier?: number // Additional modifier
 
   // Results
-  onSuccess?: string; // 10 + result
-  onPartial?: string; // 7-9 result
-  onFailure?: string; // 6-result (usually "mark XP")
+  onSuccess?: string // 10 + result
+  onPartial?: string // 7-9 result
+  onFailure?: string // 6-result (usually "mark XP")
 
   // Requirements
-  level?: number; // Minimum level required
-  requiresMove?: string; // ID of prerequisite move
-  requiresClass?: string; // Specific class requirement
-  replaces?: string; // ID of move this replaces
+  level?: number // Minimum level required
+  requiresMove?: string // ID of prerequisite move
+  requiresClass?: string // Specific class requirement
+  replaces?: string // ID of move this replaces
 
   // Special properties
-  ongoing?: boolean; // Provides ongoing modifier
-  hold?: number; // Generates hold
-  forward?: boolean; // Provides forward modifier
+  ongoing?: boolean // Provides ongoing modifier
+  hold?: number // Generates hold
+  forward?: boolean // Provides forward modifier
   uses?: {
-    current: number;
-    max: number;
-    perSession?: boolean;
-  };
+    current: number
+    max: number
+    perSession?: boolean
+  }
 
   // Metadata
-  source?: string; // Where this move comes from
-  page?: number; // Page reference
-  custom?: boolean; // Is this a custom move
+  source?: string // Where this move comes from
+  page?: number // Page reference
+  custom?: boolean // Is this a custom move
 }
 
 // Basic moves available to all characters
-export const BASIC_MOVES: Partial < Move>[] = [
+export const BASIC_MOVES: Partial <Move>[] = [
   {
     name: 'Hack and Slash',
     category: 'basic',
@@ -158,10 +158,10 @@ export const BASIC_MOVES: Partial < Move>[] = [
     onPartial: 'They still get + 1 or-2, but you also expose yourself to danger.',
     onFailure: 'Mark XP and the GM makes a move.',
   },
-];
+]
 
 // Special moves
-export const SPECIAL_MOVES: Partial < Move>[] = [
+export const SPECIAL_MOVES: Partial <Move>[] = [
   {
     name: 'Last Breath',
     category: 'special',
@@ -202,7 +202,7 @@ export const SPECIAL_MOVES: Partial < Move>[] = [
     trigger: 'When you settle in to rest',
     triggerType: 'action',
   },
-];
+]
 
 // Utility functions
 
@@ -210,16 +210,18 @@ export const SPECIAL_MOVES: Partial < Move>[] = [
  * Check if a move requires a roll
  */
 export function requiresRoll(move: Move): boolean {
-  return move.triggerType === 'roll' && move.rollStat !== undefined;
+  return move.triggerType === 'roll' && move.rollStat !== undefined
 }
 
 /**
  * Get roll result tier based on total
  */
 export function getRollResult(total: number): RollResult {
-  if (total >= 10) return 'success';
-  if (total >= 7) return 'partial';
-  return 'failure';
+  if (total >= 10)
+    return 'success'
+  if (total >= 7)
+    return 'partial'
+  return 'failure'
 }
 
 /**
@@ -228,11 +230,11 @@ export function getRollResult(total: number): RollResult {
 export function getMoveResult(move: Move, result: RollResult): string {
   switch (result) {
     case 'success':
-      return move.onSuccess || 'Success!';
+      return move.onSuccess || 'Success!'
     case 'partial':
-      return move.onPartial || 'Partial success.';
+      return move.onPartial || 'Partial success.'
     case 'failure':
-      return move.onFailure || 'Mark XP and the GM makes a move.';
+      return move.onFailure || 'Mark XP and the GM makes a move.'
   }
 }
 
@@ -247,26 +249,23 @@ export function canTakeMove(
 ): boolean {
   // Check level requirement
   if (move.level && characterLevel < move.level) {
-    return false;
+    return false
   }
 
   // Check class requirement
   if (move.requiresClass && characterClass !== move.requiresClass) {
-    return false;
+    return false
   }
 
   // Check prerequisite move
   if (move.requiresMove && !knownMoves.includes(move.requiresMove)) {
-    return false;
+    return false
   }
 
   // Check if this move replaces one they have
   if (move.replaces && !knownMoves.includes(move.replaces)) {
-    return false;
+    return false
   }
 
-  return true;
+  return true
 }
-
-
-

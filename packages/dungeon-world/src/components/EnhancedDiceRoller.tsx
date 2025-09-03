@@ -2,28 +2,30 @@
  * Enhanced Dice Roller Component * Supports all dice types, modifiers, and advanced rolling features
  */
 
-import './EnhancedDiceRoller.css';
-
-import React, { useState } from 'react';
-
-import {
-  diceRollingService,
+import type {
   EnhancedDiceRoll,
   RollType,
-} from '../services/DiceRollingService';
-import DiceAnimation from './DiceAnimation';
+} from '../services/DiceRollingService'
+
+import React, { useState } from 'react'
+import {
+  diceRollingService,
+} from '../services/DiceRollingService'
+
+import DiceAnimation from './DiceAnimation'
+import './EnhancedDiceRoller.css'
 
 interface EnhancedDiceRollerProps {
-  onRoll?: (roll: EnhancedDiceRoll) => void;
-  defaultExpression?: string;
-  showHistory?: boolean;
-  compact?: boolean;
-  showAnimation?: boolean;
-  animationTheme?: 'classic' | 'neon' | 'wood' | 'metal' | 'bone';
-  soundEnabled?: boolean;
+  onRoll?: (roll: EnhancedDiceRoll) => void
+  defaultExpression?: string
+  showHistory?: boolean
+  compact?: boolean
+  showAnimation?: boolean
+  animationTheme?: 'classic' | 'neon' | 'wood' | 'metal' | 'bone'
+  soundEnabled?: boolean
 }
 
-const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
+const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
   onRoll,
   defaultExpression = '2d6',
   showHistory = true,
@@ -32,18 +34,18 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
   animationTheme = 'classic',
   soundEnabled = true,
 }) => {
-  const [expression, setExpression] = useState(defaultExpression);
-  const [modifier, setModifier] = useState(0);
-  const [targetNumber, setTargetNumber] = useState < number | undefined>();
-  const [rollType, setRollType] = useState < RollType>('custom');
-  const [advantage, setAdvantage] = useState(false);
-  const [disadvantage, setDisadvantage] = useState(false);
-  const [lastRoll, setLastRoll] = useState < EnhancedDiceRoll | null>(null);
-  const [rollHistory, setRollHistory] = useState < EnhancedDiceRoll[]>([]);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [expression, setExpression] = useState(defaultExpression)
+  const [modifier, setModifier] = useState(0)
+  const [targetNumber, setTargetNumber] = useState <number | undefined>()
+  const [rollType, setRollType] = useState <RollType>('custom')
+  const [advantage, setAdvantage] = useState(false)
+  const [disadvantage, setDisadvantage] = useState(false)
+  const [lastRoll, setLastRoll] = useState <EnhancedDiceRoll | null>(null)
+  const [rollHistory, setRollHistory] = useState <EnhancedDiceRoll[]>([])
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   // Quick dice buttons
-  const quickDice: { label: string; expression: string; type: RollType }[] = [
+  const quickDice: { label: string, expression: string, type: RollType }[] = [
     { label: '2d6', expression: '2d6', type: 'move' },
     { label: '1d4', expression: '1d4', type: 'damage' },
     { label: '1d6', expression: '1d6', type: 'damage' },
@@ -51,21 +53,22 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
     { label: '1d10', expression: '1d10', type: 'damage' },
     { label: '1d12', expression: '1d12', type: 'damage' },
     { label: '1d20', expression: '1d20', type: 'target' },
-  ];
+  ]
 
   const handleRoll = () => {
     try {
-      let roll: EnhancedDiceRoll;
+      let roll: EnhancedDiceRoll
 
       if (rollType === 'target' && targetNumber !== undefined) {
         // Parse expression for target rolls
-        const diceExpr = diceRollingService.parseDiceExpression(expression);
+        const diceExpr = diceRollingService.parseDiceExpression(expression)
         roll = diceRollingService.rollTarget(targetNumber, diceExpr.type, diceExpr.count, modifier, {
           advantage,
           disadvantage,
           type: rollType,
-        });
-      } else {
+        })
+      }
+      else {
         // Regular roll
         roll = diceRollingService.rollFromString(expression, {
           modifier,
@@ -73,49 +76,51 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
           disadvantage,
           type: rollType,
           targetNumber,
-        });
+        })
       }
 
-      setLastRoll(roll);
-      setRollHistory(prev => [roll, ...prev.slice(0, 9)]); // Keep last 10 rolls
-      onRoll?.(roll);
-    } catch {
-      alert(`Invalid dice expression: ${expression}`);
+      setLastRoll(roll)
+      setRollHistory(prev => [roll, ...prev.slice(0, 9)]) // Keep last 10 rolls
+      onRoll?.(roll)
     }
-  };
+    catch {
+      alert(`Invalid dice expression: ${expression}`)
+    }
+  }
 
   const handleReroll = () => {
     if (lastRoll) {
-      const reroll = diceRollingService.rerollDice(lastRoll, { spendXP: true });
-      setLastRoll(reroll);
-      setRollHistory(prev => [reroll, ...prev.slice(0, 9)]);
-      onRoll?.(reroll);
+      const reroll = diceRollingService.rerollDice(lastRoll, { spendXP: true })
+      setLastRoll(reroll)
+      setRollHistory(prev => [reroll, ...prev.slice(0, 9)])
+      onRoll?.(reroll)
     }
-  };
+  }
 
-  const handleQuickDice = (quickDice: { expression: string; type: RollType }) => {
-    setExpression(quickDice.expression);
-    setRollType(quickDice.type);
+  const handleQuickDice = (quickDice: { expression: string, type: RollType }) => {
+    setExpression(quickDice.expression)
+    setRollType(quickDice.type)
     if (quickDice.type === 'target') {
-      setTargetNumber(targetNumber || 15);
-    } else {
-      setTargetNumber(undefined);
+      setTargetNumber(targetNumber || 15)
     }
-  };
+    else {
+      setTargetNumber(undefined)
+    }
+  }
 
   const _getRollResultColor = (roll: EnhancedDiceRoll): string => {
     if (roll.rollResult) {
       switch (roll.rollResult) {
-        case 'success': return 'var(--color-roll-success)';
-        case 'partial': return 'var(--color-roll-partial)';
-        case 'failure': return 'var(--color-roll-failure)';
+        case 'success': return 'var(--color-roll-success)'
+        case 'partial': return 'var(--color-roll-partial)'
+        case 'failure': return 'var(--color-roll-failure)'
       }
     }
     if (roll.success !== undefined) {
-      return roll.success ? 'var(--color-roll-success)' : 'var(--color-roll-failure)';
+      return roll.success ? 'var(--color-roll-success)' : 'var(--color-roll-failure)'
     }
-    return 'var(--color-text-primary)';
-  };
+    return 'var(--color-text-primary)'
+  }
 
   if (compact) {
     return (
@@ -138,8 +143,8 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
               key={index}
               className="quick-dice-btn"
               onClick={() => {
-                handleQuickDice(dice);
-                setTimeout(handleRoll, 100);
+                handleQuickDice(dice)
+                setTimeout(handleRoll, 100)
               }}
             >
               {dice.label}
@@ -154,7 +159,7 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
           </div>
         )}
       </div>
-    );
+    )
   }
 
   return (
@@ -171,7 +176,7 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
 
       {/* Quick Dice Buttons */}
       <div className="quick-dice-section">
-        <h4 > Quick Dice</h4>
+        <h4> Quick Dice</h4>
         <div className="quick-dice-grid">
           {quickDice.map((item, index) => (
             <button
@@ -188,32 +193,32 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
       {/* Main Roll Controls */}
       <div className="roll-controls">
         <div className="expression-input">
-          <label > Dice Expression:</label>
+          <label> Dice Expression:</label>
           <input
             type="text"
             value={expression}
-            onChange={(e) => setExpression(e.target.value)}
+            onChange={e => setExpression(e.target.value)}
             placeholder="e.g., 2d6, 1d8 + 2, 3d4"
           />
         </div>
 
         <div className="modifier-input">
-          <label > Modifier:</label>
+          <label> Modifier:</label>
           <input
             type="number"
             value={modifier}
-            onChange={(e) => setModifier(Number.parseInt(e.target.value) || 0)}
+            onChange={e => setModifier(Number.parseInt(e.target.value) || 0)}
             aria-label="Dice roll modifier"
           />
         </div>
 
         {rollType === 'target' && (
           <div className="target-input">
-            <label > Target Number:</label>
+            <label> Target Number:</label>
             <input
               type="number"
               value={targetNumber || ''}
-              onChange={(e) => setTargetNumber(Number.parseInt(e.target.value) || undefined)}
+              onChange={e => setTargetNumber(Number.parseInt(e.target.value) || undefined)}
               placeholder="15"
             />
           </div>
@@ -224,10 +229,10 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
       {showAdvanced && (
         <div className="advanced-options">
           <div className="roll-type-select">
-            <label > Roll Type:</label>
+            <label> Roll Type:</label>
             <select
               value={rollType}
-              onChange={(e) => setRollType(e.target.value as RollType)}
+              onChange={e => setRollType(e.target.value as RollType)}
               aria-label="Select roll type"
             >
               <option value="custom">Custom</option>
@@ -244,8 +249,9 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
                 type="checkbox"
                 checked={advantage}
                 onChange={(e) => {
-                  setAdvantage(e.target.checked);
-                  if (e.target.checked) setDisadvantage(false);
+                  setAdvantage(e.target.checked)
+                  if (e.target.checked)
+                    setDisadvantage(false)
                 }}
               />
               Advantage
@@ -255,8 +261,9 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
                 type="checkbox"
                 checked={disadvantage}
                 onChange={(e) => {
-                  setDisadvantage(e.target.checked);
-                  if (e.target.checked) setAdvantage(false);
+                  setDisadvantage(e.target.checked)
+                  if (e.target.checked)
+                    setAdvantage(false)
                 }}
               />
               Disadvantage
@@ -268,7 +275,11 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
       {/* Roll Button */}
       <div className="roll-actions">
         <button className="roll-btn primary" onClick={handleRoll}>
-          🎲 Roll {expression}{modifier !== 0 && (modifier > 0 ? '+' : '')}{modifier !== 0 && modifier}
+          🎲 Roll
+          {' '}
+          {expression}
+          {modifier !== 0 && (modifier > 0 ? '+' : '')}
+          {modifier !== 0 && modifier}
         </button>
         {lastRoll && (
           <button className="reroll-btn secondary" onClick={handleReroll}>
@@ -292,16 +303,23 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
       {/* Last Roll Display */}
       {lastRoll && (
         <div className="last-roll-display">
-          <h4 > Last Roll:</h4>
+          <h4> Last Roll:</h4>
           <div className={`roll-result roll-result-text ${lastRoll.rollResult || (lastRoll.success !== undefined ? (lastRoll.success ? 'success' : 'failure') : 'neutral')}`}>
             <div className="roll-expression">
-              {lastRoll.expression.count}{lastRoll.expression.type}
+              {lastRoll.expression.count}
+              {lastRoll.expression.type}
               {lastRoll.modifier !== 0 && ` ${lastRoll.modifier >= 0 ? '+' : ''}${lastRoll.modifier}`}
             </div>
             <div className="roll-breakdown">
-              Rolled: [{lastRoll.results.join(', ')}] = {lastRoll.total}
+              Rolled: [
+              {lastRoll.results.join(', ')}
+              ] =
+              {' '}
+              {lastRoll.total}
               {lastRoll.modifier !== 0 && ` ${lastRoll.modifier >= 0 ? '+' : ''}${lastRoll.modifier}`}
-              = <strong>{lastRoll.finalResult}</strong>
+              =
+              {' '}
+              <strong>{lastRoll.finalResult}</strong>
             </div>
             {lastRoll.rollResult && (
               <div className="roll-outcome">
@@ -323,13 +341,15 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
       {/* Roll History */}
       {showHistory && rollHistory.length > 0 && (
         <div className="roll-history">
-          <h4 > Recent Rolls:</h4>
+          <h4> Recent Rolls:</h4>
           <div className="history-list">
-            {rollHistory.slice(0, 5).map((roll) => (
+            {rollHistory.slice(0, 5).map(roll => (
               <div key={roll.id} className="history-item">
                 <span className="history-expression">
-                  {roll.expression.count}{roll.expression.type}
-                  {roll.modifier !== 0 && (roll.modifier > 0 ? '+' : '')}{roll.modifier !== 0 && roll.modifier}
+                  {roll.expression.count}
+                  {roll.expression.type}
+                  {roll.modifier !== 0 && (roll.modifier > 0 ? '+' : '')}
+                  {roll.modifier !== 0 && roll.modifier}
                 </span>
                 <span className={`history-result roll-result-text ${roll.rollResult || (roll.success !== undefined ? (roll.success ? 'success' : 'failure') : 'neutral')}`}>
                   {roll.finalResult}
@@ -347,10 +367,7 @@ const EnhancedDiceRoller: React.FC < EnhancedDiceRollerProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default EnhancedDiceRoller;
-
-
-
+export default EnhancedDiceRoller

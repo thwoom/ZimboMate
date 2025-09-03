@@ -1,5 +1,5 @@
-import { Panel } from '../../framework/Panel';
-import MoveLibraryPanel from './MoveLibraryPanel';
+import type { Panel } from '../../framework/Panel'
+import MoveLibraryPanel from './MoveLibraryPanel'
 
 const MoveLibraryPanelInstance: Panel = {
   metadata: {
@@ -10,9 +10,6 @@ const MoveLibraryPanelInstance: Panel = {
     priority: 5,
   },
   component: MoveLibraryPanel,
-};
+}
 
-export default MoveLibraryPanelInstance;
-
-
-
+export default MoveLibraryPanelInstance

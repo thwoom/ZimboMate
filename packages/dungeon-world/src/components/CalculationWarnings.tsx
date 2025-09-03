@@ -1,91 +1,108 @@
-import './CalculationWarnings.css';
+import type { CalculationWarning } from '../services/CalculationWarnings'
 
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 
-import { CalculationWarning } from '../services/CalculationWarnings';
+import './CalculationWarnings.css'
 
 interface CalculationWarningsProps {
-  warnings: CalculationWarning[];
-  suggestions?: string[];
-  onAction?: (warning: CalculationWarning) => void;
+  warnings: CalculationWarning[]
+  suggestions?: string[]
+  onAction?: (warning: CalculationWarning) => void
 }
 
-export const CalculationWarnings: React.FC < CalculationWarningsProps> = ({
+export const CalculationWarnings: React.FC <CalculationWarningsProps> = ({
   warnings,
   suggestions = [],
   onAction,
 }) => {
-  const [expandedWarnings, setExpandedWarnings] = useState < Set < string>>(new Set());
-  const [filter, setFilter] = useState < CalculationWarning['type'] | 'all'>('all');
+  const [expandedWarnings, setExpandedWarnings] = useState <Set <string>>(new Set())
+  const [filter, setFilter] = useState <CalculationWarning['type'] | 'all'>('all')
 
   const toggleExpanded = (id: string) => {
-    const newExpanded = new Set(expandedWarnings);
+    const newExpanded = new Set(expandedWarnings)
     if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
+      newExpanded.delete(id)
     }
-    setExpandedWarnings(newExpanded);
-  };
+    else {
+      newExpanded.add(id)
+    }
+    setExpandedWarnings(newExpanded)
+  }
 
   const getTypeIcon = (type: CalculationWarning['type']) => {
     switch (type) {
-      case 'info': return 'ℹ️';
-      case 'warning': return '⚠️';
-      case 'error': return '❌';
-      case 'critical': return '🚨';
+      case 'info': return 'ℹ️'
+      case 'warning': return '⚠️'
+      case 'error': return '❌'
+      case 'critical': return '🚨'
     }
-  };
+  }
 
   const getCategoryIcon = (category: CalculationWarning['category']) => {
     switch (category) {
-      case 'hp': return '❤️';
-      case 'load': return '🎒';
-      case 'equipment': return '⚔️';
-      case 'xp': return '⭐';
-      case 'attributes': return '💪';
-      case 'general': return '📋';
+      case 'hp': return '❤️'
+      case 'load': return '🎒'
+      case 'equipment': return '⚔️'
+      case 'xp': return '⭐'
+      case 'attributes': return '💪'
+      case 'general': return '📋'
     }
-  };
+  }
 
   const filteredWarnings = filter === 'all'
     ? warnings
-    : warnings.filter(w => w.type === filter);
+    : warnings.filter(w => w.type === filter)
 
   const warningCounts = {
     critical: warnings.filter(w => w.type === 'critical').length,
     error: warnings.filter(w => w.type === 'error').length,
     warning: warnings.filter(w => w.type === 'warning').length,
     info: warnings.filter(w => w.type === 'info').length,
-  };
+  }
 
   if (warnings.length === 0) {
     return (
       <div className="calculation-warnings">
         <div className="no-warnings">
           <span className="check-icon">✅</span>
-          <p > All calculations look good!</p>
+          <p> All calculations look good!</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="calculation-warnings">
       <div className="warnings-header">
-        <h3 > Calculation Analysis</h3>
+        <h3> Calculation Analysis</h3>
         <div className="warning-counts">
           {warningCounts.critical > 0 && (
-            <span className="count critical">{warningCounts.critical} Critical</span>
+            <span className="count critical">
+              {warningCounts.critical}
+              {' '}
+              Critical
+            </span>
           )}
           {warningCounts.error > 0 && (
-            <span className="count error">{warningCounts.error} Errors</span>
+            <span className="count error">
+              {warningCounts.error}
+              {' '}
+              Errors
+            </span>
           )}
           {warningCounts.warning > 0 && (
-            <span className="count warning">{warningCounts.warning} Warnings</span>
+            <span className="count warning">
+              {warningCounts.warning}
+              {' '}
+              Warnings
+            </span>
           )}
           {warningCounts.info > 0 && (
-            <span className="count info">{warningCounts.info} Info</span>
+            <span className="count info">
+              {warningCounts.info}
+              {' '}
+              Info
+            </span>
           )}
         </div>
       </div>
@@ -95,35 +112,45 @@ export const CalculationWarnings: React.FC < CalculationWarningsProps> = ({
           className={`filter-tab ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
-          All ({warnings.length})
+          All (
+          {warnings.length}
+          )
         </button>
         <button
           className={`filter-tab ${filter === 'critical' ? 'active' : ''}`}
           onClick={() => setFilter('critical')}
           disabled={warningCounts.critical === 0}
         >
-          Critical ({warningCounts.critical})
+          Critical (
+          {warningCounts.critical}
+          )
         </button>
         <button
           className={`filter-tab ${filter === 'error' ? 'active' : ''}`}
           onClick={() => setFilter('error')}
           disabled={warningCounts.error === 0}
         >
-          Errors ({warningCounts.error})
+          Errors (
+          {warningCounts.error}
+          )
         </button>
         <button
           className={`filter-tab ${filter === 'warning' ? 'active' : ''}`}
           onClick={() => setFilter('warning')}
           disabled={warningCounts.warning === 0}
         >
-          Warnings ({warningCounts.warning})
+          Warnings (
+          {warningCounts.warning}
+          )
         </button>
         <button
           className={`filter-tab ${filter === 'info' ? 'active' : ''}`}
           onClick={() => setFilter('info')}
           disabled={warningCounts.info === 0}
         >
-          Info ({warningCounts.info})
+          Info (
+          {warningCounts.info}
+          )
         </button>
       </div>
 
@@ -154,13 +181,15 @@ export const CalculationWarnings: React.FC < CalculationWarningsProps> = ({
               <div className="warning-details">
                 {warning.suggestion && (
                   <div className="suggestion">
-                    <strong > Suggestion:</strong> {warning.suggestion}
+                    <strong> Suggestion:</strong>
+                    {' '}
+                    {warning.suggestion}
                   </div>
                 )}
 
                 {warning.details && (
                   <div className="details">
-                    <strong > Details:</strong>
+                    <strong> Details:</strong>
                     <pre>{JSON.stringify(warning.details, null, 2)}</pre>
                   </div>
                 )}
@@ -181,17 +210,14 @@ export const CalculationWarnings: React.FC < CalculationWarningsProps> = ({
 
       {suggestions.length > 0 && (
         <div className="optimization-suggestions">
-          <h4 > Optimization Tips</h4>
+          <h4> Optimization Tips</h4>
           <ul>
             {suggestions.map((suggestion, index) => (
-              <li key={index}>{suggestion || "No suggestion"}</li>
+              <li key={index}>{suggestion || 'No suggestion'}</li>
             ))}
           </ul>
         </div>
       )}
     </div>
-  );
-};
-
-
-
+  )
+}

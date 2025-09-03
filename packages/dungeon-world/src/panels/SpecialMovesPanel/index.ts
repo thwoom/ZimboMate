@@ -1,4 +1,1 @@
-export { default as SpecialMovesPanel } from './SpecialMovesPanel';
-
-
-
+export { default as SpecialMovesPanel } from './SpecialMovesPanel'

@@ -1,4 +1,1 @@
-export { default } from './CampaignPanel';
-
-
-
+export { default } from './CampaignPanel'

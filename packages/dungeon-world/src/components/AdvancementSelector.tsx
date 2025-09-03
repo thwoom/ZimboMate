@@ -2,36 +2,38 @@
  * Official Dungeon World advancement selector-choose ONE move and ONE stat increase for EACH level
  */
 
-import './AdvancementSelector.css';
+import type { Character } from '../models/Character'
 
-import React, { useEffect,useState } from 'react';
-
-import { Character } from '../models/Character';
-import {
+import type {
   AdvancementChoice,
   AdvancementPlan,
+} from '../services/AdvancementService'
+
+import React, { useEffect, useState } from 'react'
+import {
   advancementService,
-} from '../services/AdvancementService';
+} from '../services/AdvancementService'
+import './AdvancementSelector.css'
 
 interface AdvancementSelectorProps {
-  character: Character;
-  targetLevel: number;
-  selectedMove?: AdvancementChoice;
-  selectedStat?: AdvancementChoice;
-  onAdvancementsChange: (move?: AdvancementChoice, stat?: AdvancementChoice, plan?: AdvancementPlan) => void;
-  disabled?: boolean;
+  character: Character
+  targetLevel: number
+  selectedMove?: AdvancementChoice
+  selectedStat?: AdvancementChoice
+  onAdvancementsChange: (move?: AdvancementChoice, stat?: AdvancementChoice, plan?: AdvancementPlan) => void
+  disabled?: boolean
 }
 
 // New interface for tracking advancements across multiple levels
 interface LevelAdvancement {
-  level: number;
-  selectedMove?: AdvancementChoice;
-  selectedStat?: AdvancementChoice;
-  isValid: boolean;
-  validationErrors: string[];
+  level: number
+  selectedMove?: AdvancementChoice
+  selectedStat?: AdvancementChoice
+  isValid: boolean
+  validationErrors: string[]
 }
 
-export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
+export const AdvancementSelector: React.FC <AdvancementSelectorProps> = ({
   character,
   targetLevel,
   selectedMove,
@@ -39,14 +41,14 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
   onAdvancementsChange,
   disabled = false,
 }) => {
-  const [levelAdvancements, setLevelAdvancements] = useState < LevelAdvancement[]>([]);
-  const [currentLevel, setCurrentLevel] = useState < number>(2);
-  const [availableMoves, setAvailableMoves] = useState < AdvancementChoice[]>([]);
-  const [availableStats, setAvailableStats] = useState < AdvancementChoice[]>([]);
-  const [activeTab, setActiveTab] = useState<'moves' | 'stats'>('moves');
+  const [levelAdvancements, setLevelAdvancements] = useState <LevelAdvancement[]>([])
+  const [currentLevel, setCurrentLevel] = useState <number>(2)
+  const [availableMoves, setAvailableMoves] = useState <AdvancementChoice[]>([])
+  const [availableStats, setAvailableStats] = useState <AdvancementChoice[]>([])
+  const [activeTab, setActiveTab] = useState<'moves' | 'stats'>('moves')
 
   // Calculate how many levels we need to advance through
-  const levelsToAdvance = targetLevel > 1 ? Array.from({ length: targetLevel-1 }, (_, i) => i + 2) : [];
+  const levelsToAdvance = targetLevel > 1 ? Array.from({ length: targetLevel - 1 }, (_, i) => i + 2) : []
 
   useEffect(() => {
     // Initialize level advancements for all levels from 2 to targetLevel
@@ -56,70 +58,72 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
       selectedStat: undefined,
       isValid: false,
       validationErrors: [],
-    }));
+    }))
 
-    setLevelAdvancements(initialAdvancements);
+    setLevelAdvancements(initialAdvancements)
 
     // Start with level 2
     if (levelsToAdvance.length > 0) {
-      setCurrentLevel(2);
+      setCurrentLevel(2)
     }
-  }, [targetLevel]);
+  }, [targetLevel])
 
   useEffect(() => {
-    if (currentLevel < 2 || currentLevel > targetLevel) return;
+    if (currentLevel < 2 || currentLevel > targetLevel)
+      return
 
     // Get all moves and stats that have been selected across all levels
     const allSelectedMoves = levelAdvancements
       .filter(adv => adv.selectedMove)
-      .map(adv => adv.selectedMove!.id);
+      .map(adv => adv.selectedMove!.id)
 
     const allSelectedStats = levelAdvancements
       .filter(adv => adv.selectedStat)
-      .map(adv => adv.selectedStat!.id);
+      .map(adv => adv.selectedStat!.id)
 
     // Create a temporary character with all stat improvements applied up to the current level
-    const tempCharacter = { ...character };
+    const tempCharacter = { ...character }
 
     // Apply stat improvements from previous levels
     for (const adv of levelAdvancements
       .filter(adv => adv.level < currentLevel && adv.selectedStat)) {
-        if (adv.selectedStat?.attribute) {
-          tempCharacter.attributes[adv.selectedStat.attribute]++;
-        }
+      if (adv.selectedStat?.attribute) {
+        tempCharacter.attributes[adv.selectedStat.attribute]++
       }
+    }
 
     // Add moves selected in previous levels to knownMoves
     const selectedMovesFromPreviousLevels = levelAdvancements
       .filter(adv => adv.level < currentLevel && adv.selectedMove && adv.selectedMove.moveId)
-      .map(adv => adv.selectedMove!.moveId!);
+      .map(adv => adv.selectedMove!.moveId!)
 
     tempCharacter.knownMoves = [
       ...(tempCharacter.knownMoves || []),
       ...selectedMovesFromPreviousLevels,
-    ];
+    ]
 
     // Get available choices for the current level
-    let moves = advancementService.getAvailableAdvancedMoves(tempCharacter, currentLevel);
-    let stats = advancementService.getAvailableStatImprovements(tempCharacter, currentLevel);
+    let moves = advancementService.getAvailableAdvancedMoves(tempCharacter, currentLevel)
+    let stats = advancementService.getAvailableStatImprovements(tempCharacter, currentLevel)
 
     // Filter out moves and stats that have already been selected in other levels
-    moves = moves.filter(move => !allSelectedMoves.includes(move.id));
-    stats = stats.filter(stat => !allSelectedStats.includes(stat.id));
+    moves = moves.filter(move => !allSelectedMoves.includes(move.id))
+    stats = stats.filter(stat => !allSelectedStats.includes(stat.id))
 
-    setAvailableMoves(moves);
-    setAvailableStats(stats);
-  }, [character, currentLevel, targetLevel, levelAdvancements]);
+    setAvailableMoves(moves)
+    setAvailableStats(stats)
+  }, [character, currentLevel, targetLevel, levelAdvancements])
 
   const handleMoveSelect = (move: AdvancementChoice) => {
-    if (disabled) return;
+    if (disabled)
+      return
 
-    const updatedAdvancements =  [...levelAdvancements];
-    const levelIndex = currentLevel-2;
+    const updatedAdvancements = [...levelAdvancements]
+    const levelIndex = currentLevel - 2
 
     if (levelIndex >= 0 && levelIndex < updatedAdvancements.length) {
-      const newMove = updatedAdvancements[levelIndex].selectedMove?.id === move.id ? undefined : move;
-      updatedAdvancements[levelIndex].selectedMove = newMove;
+      const newMove = updatedAdvancements[levelIndex].selectedMove?.id === move.id ? undefined : move
+      updatedAdvancements[levelIndex].selectedMove = newMove
 
       // Validate this level's advancement
       const plan = advancementService.createAdvancementPlan(
@@ -127,27 +131,28 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
         currentLevel,
         newMove,
         updatedAdvancements[levelIndex].selectedStat,
-      );
+      )
 
-      updatedAdvancements[levelIndex].isValid = plan.isValid;
-      updatedAdvancements[levelIndex].validationErrors = plan.validationErrors;
+      updatedAdvancements[levelIndex].isValid = plan.isValid
+      updatedAdvancements[levelIndex].validationErrors = plan.validationErrors
 
-      setLevelAdvancements(updatedAdvancements);
+      setLevelAdvancements(updatedAdvancements)
 
       // Update parent component with current level's choices
-      onAdvancementsChange(newMove, updatedAdvancements[levelIndex].selectedStat, plan);
+      onAdvancementsChange(newMove, updatedAdvancements[levelIndex].selectedStat, plan)
     }
-  };
+  }
 
   const handleStatSelect = (stat: AdvancementChoice) => {
-    if (disabled) return;
+    if (disabled)
+      return
 
-    const updatedAdvancements = [...levelAdvancements];
-    const levelIndex = currentLevel-2;
+    const updatedAdvancements = [...levelAdvancements]
+    const levelIndex = currentLevel - 2
 
     if (levelIndex >= 0 && levelIndex < updatedAdvancements.length) {
-      const newStat = updatedAdvancements[levelIndex].selectedStat?.id === stat.id ? undefined : stat;
-      updatedAdvancements[levelIndex].selectedStat = newStat;
+      const newStat = updatedAdvancements[levelIndex].selectedStat?.id === stat.id ? undefined : stat
+      updatedAdvancements[levelIndex].selectedStat = newStat
 
       // Validate this level's advancement
       const plan = advancementService.createAdvancementPlan(
@@ -155,35 +160,38 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
         currentLevel,
         updatedAdvancements[levelIndex].selectedMove,
         newStat,
-      );
+      )
 
-      updatedAdvancements[levelIndex].isValid = plan.isValid;
-      updatedAdvancements[levelIndex].validationErrors = plan.validationErrors;
+      updatedAdvancements[levelIndex].isValid = plan.isValid
+      updatedAdvancements[levelIndex].validationErrors = plan.validationErrors
 
-      setLevelAdvancements(updatedAdvancements);
+      setLevelAdvancements(updatedAdvancements)
 
       // Update parent component with current level's choices
-      onAdvancementsChange(updatedAdvancements[levelIndex].selectedMove, newStat, plan);
+      onAdvancementsChange(updatedAdvancements[levelIndex].selectedMove, newStat, plan)
     }
-  };
+  }
 
   const getCurrentLevelAdvancement = (): LevelAdvancement | undefined => {
-    return levelAdvancements.find(adv => adv.level === currentLevel);
-  };
+    return levelAdvancements.find(adv => adv.level === currentLevel)
+  }
 
   const isAllLevelsComplete = (): boolean => {
-    return levelAdvancements.every(adv => adv.isValid);
-  };
+    return levelAdvancements.every(adv => adv.isValid)
+  }
 
   const renderLevelNavigation = () => {
     return (
       <div className="level-navigation">
-        <h4>📈 Level Progression: 1 → {targetLevel}</h4>
+        <h4>
+          📈 Level Progression: 1 →
+          {targetLevel}
+        </h4>
         <div className="level-tabs">
-          {levelsToAdvance.map(level => {
-            const advancement = levelAdvancements.find(adv => adv.level === level);
-            const isComplete = advancement?.isValid;
-            const isCurrent = level === currentLevel;
+          {levelsToAdvance.map((level) => {
+            const advancement = levelAdvancements.find(adv => adv.level === level)
+            const isComplete = advancement?.isValid
+            const isCurrent = level === currentLevel
 
             return (
               <button
@@ -191,32 +199,51 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
                 className={`level-tab ${isCurrent ? 'active' : ''} ${isComplete ? 'complete' : 'incomplete'}`}
                 onClick={() => setCurrentLevel(level)}
               >
-                Level {level}
+                Level
+                {' '}
+                {level}
                 {isComplete && <span className="completion-indicator">✓</span>}
                 {isCurrent && <span className="current-indicator">→</span>}
               </button>
-            );
+            )
           })}
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderMoveTab = () => {
-    const classMoves = availableMoves.filter(move => !move.isMulticlass);
-    const multiclassMoves = availableMoves.filter(move => move.isMulticlass);
-    const _currentAdvancement = getCurrentLevelAdvancement();
+    const classMoves = availableMoves.filter(move => !move.isMulticlass)
+    const multiclassMoves = availableMoves.filter(move => move.isMulticlass)
+    const _currentAdvancement = getCurrentLevelAdvancement()
 
     return (
       <div className="advancement-tab-content">
         <div className="advancement-explanation">
-          <h4>🎯 Level {currentLevel}-Choose Your New Ability</h4>
-          <p > Select < strong > exactly one</strong > advanced move for level {currentLevel}. This represents new techniques, spells, or abilities your character has learned.</p>
+          <h4>
+            🎯 Level
+            {currentLevel}
+            -Choose Your New Ability
+          </h4>
+          <p>
+            {' '}
+            Select
+            <strong> exactly one</strong>
+            {' '}
+            advanced move for level
+            {currentLevel}
+            . This represents new techniques, spells, or abilities your character has learned.
+          </p>
         </div>
 
         {classMoves.length > 0 && (
           <div className="advancement-section">
-            <h5>🛡️ {character.class} Moves</h5>
+            <h5>
+              🛡️
+              {character.class}
+              {' '}
+              Moves
+            </h5>
             <div className="advancement-grid">
               {classMoves.map(move => (
                 <div
@@ -231,7 +258,11 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
                   <p className="advancement-description">{move.description}</p>
                   {move.prerequisites && move.prerequisites.length > 0 && (
                     <div className="prerequisites">
-                      <small > Prerequisites: {move.prerequisites.join(', ')}</small>
+                      <small>
+                        {' '}
+                        Prerequisites:
+                        {move.prerequisites.join(', ')}
+                      </small>
                     </div>
                   )}
                 </div>
@@ -265,21 +296,38 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
 
         {availableMoves.length === 0 && (
           <div className="no-choices">
-            <p > No moves available for level {currentLevel}.</p>
+            <p>
+              {' '}
+              No moves available for level
+              {currentLevel}
+              .
+            </p>
           </div>
         )}
       </div>
-    );
-  };
+    )
+  }
 
   const renderStatTab = () => {
-    const _currentAdvancement = getCurrentLevelAdvancement();
+    const _currentAdvancement = getCurrentLevelAdvancement()
 
     return (
       <div className="advancement-tab-content">
         <div className="advancement-explanation">
-          <h4>💪 Level {currentLevel}-Choose Your Ability Improvement</h4>
-          <p > Select < strong > exactly one</strong > ability score to increase by 1 for level {currentLevel}. Maximum is 18.</p>
+          <h4>
+            💪 Level
+            {currentLevel}
+            -Choose Your Ability Improvement
+          </h4>
+          <p>
+            {' '}
+            Select
+            <strong> exactly one</strong>
+            {' '}
+            ability score to increase by 1 for level
+            {currentLevel}
+            . Maximum is 18.
+          </p>
         </div>
 
         <div className="advancement-section">
@@ -307,17 +355,17 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
 
         {availableStats.length === 0 && (
           <div className="no-choices">
-            <p > All ability scores are at maximum (18).</p>
+            <p> All ability scores are at maximum (18).</p>
           </div>
         )}
       </div>
-    );
-  };
+    )
+  }
 
   const renderProgressSummary = () => {
-    const completedLevels = levelAdvancements.filter(adv => adv.isValid).length;
-    const totalLevels = levelAdvancements.length;
-    const _currentAdvancement = getCurrentLevelAdvancement();
+    const completedLevels = levelAdvancements.filter(adv => adv.isValid).length
+    const totalLevels = levelAdvancements.length
+    const _currentAdvancement = getCurrentLevelAdvancement()
 
     return (
       <div className="advancement-progress">
@@ -325,10 +373,16 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
           <h4>📊 Advancement Progress</h4>
           <div className="progress-stats">
             <span className="progress-text">
-              {completedLevels} of {totalLevels} levels complete
+              {completedLevels}
+              {' '}
+              of
+              {totalLevels}
+              {' '}
+              levels complete
             </span>
             <span className="progress-percentage">
-              {Math.round((completedLevels / totalLevels) * 100)}%
+              {Math.round((completedLevels / totalLevels) * 100)}
+              %
             </span>
           </div>
         </div>
@@ -336,7 +390,10 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
         <div className="level-summary">
           {levelAdvancements.map(adv => (
             <div key={adv.level} className={`level-summary-item ${adv.level === currentLevel ? 'current' : ''} ${adv.isValid ? 'complete' : 'incomplete'}`}>
-              <span className="level-number">Level {adv.level}</span>
+              <span className="level-number">
+                Level
+                {adv.level}
+              </span>
               <span className="level-move">{adv.selectedMove?.name || 'No move'}</span>
               <span className="level-stat">{adv.selectedStat?.name || 'No stat'}</span>
               <span className="level-status">
@@ -350,40 +407,52 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
         <div className="selected-items-summary">
           <h5>✅ Already Selected:</h5>
           <div className="selected-moves">
-            <strong > Moves:</strong> {levelAdvancements
+            <strong> Moves:</strong>
+            {' '}
+            {levelAdvancements
               .filter(adv => adv.selectedMove)
               .map(adv => `${adv.selectedMove!.name} (L${adv.level})`)
               .join(', ') || 'None'}
           </div>
           <div className="selected-stats">
-            <strong > Stats:</strong> {levelAdvancements
+            <strong> Stats:</strong>
+            {' '}
+            {levelAdvancements
               .filter(adv => adv.selectedStat)
               .map(adv => `${adv.selectedStat!.name} (L${adv.level})`)
               .join(', ') || 'None'}
           </div>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   // Don't render if no levels to advance
   if (levelsToAdvance.length === 0) {
     return (
       <div className="advancement-selector">
         <div className="advancement-header-section">
-          <h3 > Level 1 Character</h3>
-          <p > No advancement choices needed for level 1 characters.</p>
+          <h3> Level 1 Character</h3>
+          <p> No advancement choices needed for level 1 characters.</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="advancement-selector">
       <div className="advancement-header-section">
-        <h3 > Multi-Level Advancement: Level 1 → {targetLevel}</h3>
+        <h3>
+          {' '}
+          Multi-Level Advancement: Level 1 →
+          {targetLevel}
+        </h3>
         <p className="advancement-subtitle">
-          <strong > Official Dungeon World Rule:</strong > For each level from 2 to {targetLevel}, choose one advanced move AND increase one ability score by 1.
+          <strong> Official Dungeon World Rule:</strong>
+          {' '}
+          For each level from 2 to
+          {targetLevel}
+          , choose one advanced move AND increase one ability score by 1.
         </p>
       </div>
 
@@ -415,8 +484,9 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
 
       {/* Validation and Status */}
       {(() => {
-        const _currentAdvancement = getCurrentLevelAdvancement();
-        if (!currentAdvancement) return null;
+        const _currentAdvancement = getCurrentLevelAdvancement()
+        if (!currentAdvancement)
+          return null
 
         return (
           <div className="advancement-status">
@@ -424,7 +494,9 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
               <div className="validation-errors">
                 {currentAdvancement.validationErrors.map((item, index) => (
                   <div key={index} className="error-message">
-                    ⚠️ {error}
+                    ⚠️
+                    {' '}
+                    {error}
                   </div>
                 ))}
               </div>
@@ -432,19 +504,34 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
 
             <div className="selection-summary">
               <div className="summary-item">
-                <span className="summary-label">Level {currentLevel} Move:</span>
+                <span className="summary-label">
+                  Level
+                  {currentLevel}
+                  {' '}
+                  Move:
+                </span>
                 <span className={`summary-value ${currentAdvancement.selectedMove ? 'complete' : 'incomplete'}`}>
                   {currentAdvancement.selectedMove ? currentAdvancement.selectedMove.name : 'None'}
                 </span>
               </div>
               <div className="summary-item">
-                <span className="summary-label">Level {currentLevel} Stat:</span>
+                <span className="summary-label">
+                  Level
+                  {currentLevel}
+                  {' '}
+                  Stat:
+                </span>
                 <span className={`summary-value ${currentAdvancement.selectedStat ? 'complete' : 'incomplete'}`}>
                   {currentAdvancement.selectedStat ? currentAdvancement.selectedStat.name : 'None'}
                 </span>
               </div>
               <div className="summary-item">
-                <span className="summary-label">Level {currentLevel} Status:</span>
+                <span className="summary-label">
+                  Level
+                  {currentLevel}
+                  {' '}
+                  Status:
+                </span>
                 <span className={`summary-value ${currentAdvancement.isValid ? 'valid' : 'invalid'}`}>
                   {currentAdvancement.isValid ? '✅ Complete' : '❌ Incomplete'}
                 </span>
@@ -457,13 +544,10 @@ export const AdvancementSelector: React.FC < AdvancementSelectorProps> = ({
               </div>
             </div>
           </div>
-        );
+        )
       })()}
     </div>
-  );
-};
+  )
+}
 
-export default AdvancementSelector;
-
-
-
+export default AdvancementSelector

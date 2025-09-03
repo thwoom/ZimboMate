@@ -2,18 +2,18 @@
  * Advanced moves data for Dungeon World * Level 2 - 5 advanced moves and level 6 - 10 master moves
  */
 
-import { CharacterClass } from '../models/Character';
+import type { CharacterClass } from '../models/Character'
 
 export interface AdvancedMove {
-  id: string;
-  name: string;
-  description: string;
-  level: number;
-  class: CharacterClass;
-  category: 'advanced' | 'master';
-  prerequisites?: string[];
-  source?: string;
-  page?: number;
+  id: string
+  name: string
+  description: string
+  level: number
+  class: CharacterClass
+  category: 'advanced' | 'master'
+  prerequisites?: string[]
+  source?: string
+  page?: number
 }
 
 export const ADVANCED_MOVES: AdvancedMove[] = [
@@ -1104,7 +1104,7 @@ export const ADVANCED_MOVES: AdvancedMove[] = [
     source: 'Core Rules',
     page: 70,
   },
-];
+]
 
 /**
  * Get advanced moves for a specific class and level range
@@ -1115,10 +1115,10 @@ export function getAdvancedMovesForClass(
   maxLevel: number,
 ): AdvancedMove[] {
   return ADVANCED_MOVES.filter(move =>
-    move.class === characterClass &&
-    move.level >= minLevel &&
-    move.level <= maxLevel,
-  );
+    move.class === characterClass
+    && move.level >= minLevel
+    && move.level <= maxLevel,
+  )
 }
 
 /**
@@ -1129,9 +1129,9 @@ export function getAdvancedMovesAtLevel(
   level: number,
 ): AdvancedMove[] {
   return ADVANCED_MOVES.filter(move =>
-    move.class === characterClass &&
-    move.level === level,
-  );
+    move.class === characterClass
+    && move.level === level,
+  )
 }
 
 /**
@@ -1145,8 +1145,5 @@ export function getStartingMovesForClass(characterClass: CharacterClass): unknow
       name: `${characterClass} Starting Move`,
       description: `A starting move from ${characterClass}`,
     },
-  ];
+  ]
 }
-
-
-

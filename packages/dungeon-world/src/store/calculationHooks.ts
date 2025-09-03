@@ -2,20 +2,22 @@
  * React hooks for reactive calculations
  */
 
-import { useCallback,useMemo } from 'react';
+import type { Attribute } from '../models/Character'
 
-import { Attribute } from '../models/Character';
-import { COMMON_CONDITIONS } from '../models/Conditions';
-import {
+import type {
   CalculatedValues,
   CalculationContext,
+} from '../services/CalculationEngine'
+import { useCallback, useMemo } from 'react'
+import { COMMON_CONDITIONS } from '../models/Conditions'
+import {
   calculationEngine,
-} from '../services/CalculationEngine';
+} from '../services/CalculationEngine'
 import {
   getAttributeMoves,
   getTotalAttributeModifier,
   isAttributeDebilitated,
-} from '../utils/calculations/attributeCalculations';
+} from '../utils/calculations/attributeCalculations'
 import {
   calculateCombatArmor,
   calculateDamageOutput,
@@ -23,32 +25,33 @@ import {
   getCombatPenalties,
   getWeaponRanges,
   hasWeaponProperty,
-} from '../utils/calculations/combatCalculations';
+} from '../utils/calculations/combatCalculations'
 import {
   calculateCoinWeight,
   calculateDetailedLoad,
   suggestLoadOptimization,
-} from '../utils/calculations/loadCalculations';
+} from '../utils/calculations/loadCalculations'
 import {
   useCharacter,
   useGameStore,
   useInventory,
-} from './GameStore';
+} from './GameStore'
 
 /**
  * Main hook for reactive calculations
  */
 export function useCalculatedValues(): CalculatedValues | null {
-  const { state } = useGameStore();
-  const character = useCharacter();
+  const { state } = useGameStore()
+  const character = useCharacter()
 
   // Get active character's data
-  const activeCharId = state.activeCharacterId;
-  const activeChar = activeCharId ? state.characters[activeCharId] : null;
-  const inventory = activeCharId ? state.inventories[activeCharId] : null;
+  const activeCharId = state.activeCharacterId
+  const activeChar = activeCharId ? state.characters[activeCharId] : null
+  const inventory = activeCharId ? state.inventories[activeCharId] : null
 
   return useMemo(() => {
-    if (!activeChar || !inventory) return null;
+    if (!activeChar || !inventory)
+      return null
 
     const context: CalculationContext = {
       character: activeChar,
@@ -57,22 +60,23 @@ export function useCalculatedValues(): CalculatedValues | null {
       conditions: state.conditions,
       conditionDefinitions: COMMON_CONDITIONS as string[], // Type cast for now
       spellPreparation: activeCharId ? state.spellPreparations[activeCharId] : undefined,
-    };
+    }
 
-    return calculationEngine.calculate(context);
-  }, [activeChar, inventory, state.modifiers, state.conditions, state.spellPreparations, activeCharId]);
+    return calculationEngine.calculate(context)
+  }, [activeChar, inventory, state.modifiers, state.conditions, state.spellPreparations, activeCharId])
 }
 
 /**
  * Hook for armor calculations with detailed breakdown
  */
 export function useArmorCalculations() {
-  const { state } = useGameStore();
-  const character = useCharacter();
-  const inventory = useInventory();
+  const { state } = useGameStore()
+  const character = useCharacter()
+  const inventory = useInventory()
 
   return useMemo(() => {
-    if (!character || !inventory) return null;
+    if (!character || !inventory)
+      return null
 
     const calculation = calculateCombatArmor(
       character,
@@ -80,74 +84,77 @@ export function useArmorCalculations() {
       state.modifiers.modifiers,
       COMMON_CONDITIONS as string[],
       state.conditions,
-    );
+    )
 
     // Build breakdown array for tooltip
-    const breakdown =  [];
+    const breakdown = []
     if (calculation.total > 0) {
-      breakdown.push({ label: 'Total', value: calculation.total });
+      breakdown.push({ label: 'Total', value: calculation.total })
     }
 
     return {
       ...calculation,
       breakdown,
-    };
-  }, [character, inventory, state.modifiers, state.conditions]);
+    }
+  }, [character, inventory, state.modifiers, state.conditions])
 }
 
 /**
  * Hook for damage calculations with breakdown
  */
 export function useDamageCalculations() {
-  const { state } = useGameStore();
-  const character = useCharacter();
-  const inventory = useInventory();
+  const { state } = useGameStore()
+  const character = useCharacter()
+  const inventory = useInventory()
 
   return useMemo(() => {
-    if (!character || !inventory) return null;
+    if (!character || !inventory)
+      return null
 
     const calculation = calculateDamageOutput(
       character,
       inventory,
       state.modifiers.modifiers,
-    );
+    )
 
     // Build breakdown array for damage bonus
-    const breakdown = [];
+    const breakdown = []
     if (calculation.bonusDamage > 0) {
-      breakdown.push({ label: 'Bonus', value: calculation.bonusDamage });
+      breakdown.push({ label: 'Bonus', value: calculation.bonusDamage })
     }
 
     return {
       ...calculation,
       breakdown,
-    };
-  }, [character, inventory, state.modifiers]);
+    }
+  }, [character, inventory, state.modifiers])
 }
 
 /**
  * Hook for load calculations with detailed breakdown
  */
 export function useLoadCalculations() {
-  const character = useCharacter();
-  const inventory = useInventory();
+  const character = useCharacter()
+  const inventory = useInventory()
 
   return useMemo(() => {
-    if (!character || !inventory) return null;
+    if (!character || !inventory)
+      return null
 
-    return calculateDetailedLoad(character, inventory);
-  }, [character, inventory]);
+    return calculateDetailedLoad(character, inventory)
+  }, [character, inventory])
 }
 
 /**
  * Hook for combat information
  */
 export function useCombatInfo() {
-  const character = useCharacter();
-  const inventory = useInventory();
+  const character = useCharacter()
+  const inventory = useInventory()
 
   return useMemo(() => {
-    if (!character || !inventory) return null;
+    if (!character || !inventory)
+      return null
 
     return {
       penalties: getCombatPenalties(character, inventory),
@@ -156,20 +163,21 @@ export function useCombatInfo() {
       hasPrecise: hasWeaponProperty(inventory, 'precise'),
       hasForceful: hasWeaponProperty(inventory, 'forceful'),
       hasMessy: hasWeaponProperty(inventory, 'messy'),
-    };
-  }, [character, inventory]);
+    }
+  }, [character, inventory])
 }
 
 /**
  * Hook for attribute calculations with all modifiers
  */
 export function useAttributeCalculations(attribute: Attribute) {
-  const { state } = useGameStore();
-  const character = useCharacter();
-  const values = useCalculatedValues();
+  const { state } = useGameStore()
+  const character = useCharacter()
+  const values = useCalculatedValues()
 
   return useMemo(() => {
-    if (!character || !values) return null;
+    if (!character || !values)
+      return null
 
     return {
       base: values.attributeModifiers[attribute],
@@ -183,38 +191,40 @@ export function useAttributeCalculations(attribute: Attribute) {
       ),
       isDebilitated: isAttributeDebilitated(attribute, character.debilities),
       associatedMoves: getAttributeMoves(attribute),
-    };
-  }, [attribute, character, values, state.modifiers, state.conditions]);
+    }
+  }, [attribute, character, values, state.modifiers, state.conditions])
 }
 
 /**
  * Hook for optimization suggestions
  */
 export function useOptimizationSuggestions() {
-  const character = useCharacter();
-  const inventory = useInventory();
+  const character = useCharacter()
+  const inventory = useInventory()
 
   return useMemo(() => {
-    if (!character || !inventory) return [];
+    if (!character || !inventory)
+      return []
 
-    return suggestLoadOptimization(character, inventory);
-  }, [character, inventory]);
+    return suggestLoadOptimization(character, inventory)
+  }, [character, inventory])
 }
 
 /**
  * Hook that triggers recalculation on unknown relevant change
  */
 export function useAutoCalculate() {
-  const { state, dispatch } = useGameStore();
-  const character = useCharacter();
-  const inventory = useInventory();
-  const values = useCalculatedValues();
+  const { state, dispatch } = useGameStore()
+  const character = useCharacter()
+  const inventory = useInventory()
+  const values = useCalculatedValues()
 
   // Update max HP when it changes
   const updateMaxHP = useCallback(() => {
-    if (!character || !values) return;
+    if (!character || !values)
+      return
 
-    const newMaxHP = values.maxHP;
+    const newMaxHP = values.maxHP
     if (character.hp.max !== newMaxHP) {
       dispatch({
         type: 'UPDATE_CHARACTER',
@@ -229,15 +239,16 @@ export function useAutoCalculate() {
             },
           },
         },
-      });
+      })
     }
-  }, [character, values, dispatch]);
+  }, [character, values, dispatch])
 
   // Update armor value when it changes
   const updateArmor = useCallback(() => {
-    if (!character || !values) return;
+    if (!character || !values)
+      return
 
-    const newArmor = values.totalArmor;
+    const newArmor = values.totalArmor
     if (character.armor !== newArmor) {
       dispatch({
         type: 'UPDATE_CHARACTER',
@@ -245,16 +256,17 @@ export function useAutoCalculate() {
           id: character.id,
           updates: { armor: newArmor },
         },
-      });
+      })
     }
-  }, [character, values, dispatch]);
+  }, [character, values, dispatch])
 
   // Update load values when they change
   const updateLoad = useCallback(() => {
-    if (!character || !values) return;
+    if (!character || !values)
+      return
 
-    const newMaxLoad = values.maxLoad;
-    const newCurrentLoad = values.currentLoad;
+    const newMaxLoad = values.maxLoad
+    const newCurrentLoad = values.currentLoad
 
     if (character.load.max !== newMaxLoad || character.load.current !== newCurrentLoad) {
       dispatch({
@@ -268,42 +280,44 @@ export function useAutoCalculate() {
             },
           },
         },
-      });
+      })
     }
-  }, [character, values, dispatch]);
+  }, [character, values, dispatch])
 
   // Auto-update coin weight
   const updateCoinWeight = useCallback(() => {
-    if (!character || !inventory) return;
+    if (!character || !inventory)
+      return
 
-    const coinWeight = calculateCoinWeight(character.coin);
-    const coinItemId = 'coin-weight';
+    const coinWeight = calculateCoinWeight(character.coin)
+    const coinItemId = 'coin-weight'
 
     if (coinWeight > 0) {
       // Add or update coin weight item
       if (!inventory.items[coinItemId]) {
-              dispatch({
-        type: 'UPDATE_INVENTORY',
-        payload: {
-          characterId: character.id,
-          updates: {
-            items: {
-              ...inventory.items,
-              [coinItemId]: {
-                id: coinItemId,
-                name: 'Coins',
-                category: 'treasure',
-                tags: [],
-                weight: coinWeight,
-                quantity: 1,
-                equipped: false,
-                value: character.coin,
+        dispatch({
+          type: 'UPDATE_INVENTORY',
+          payload: {
+            characterId: character.id,
+            updates: {
+              items: {
+                ...inventory.items,
+                [coinItemId]: {
+                  id: coinItemId,
+                  name: 'Coins',
+                  category: 'treasure',
+                  tags: [],
+                  weight: coinWeight,
+                  quantity: 1,
+                  equipped: false,
+                  value: character.coin,
+                },
               },
             },
           },
-        },
-      });
-      } else if (inventory.items[coinItemId].weight !== coinWeight) {
+        })
+      }
+      else if (inventory.items[coinItemId].weight !== coinWeight) {
         dispatch({
           type: 'UPDATE_INVENTORY',
           payload: {
@@ -319,21 +333,22 @@ export function useAutoCalculate() {
               },
             },
           },
-        });
+        })
       }
-    } else if (inventory.items[coinItemId]) {
+    }
+    else if (inventory.items[coinItemId]) {
       // Remove coin weight item if no coins
-      const newItems = { ...inventory.items };
-      delete newItems[coinItemId];
+      const newItems = { ...inventory.items }
+      delete newItems[coinItemId]
       dispatch({
         type: 'UPDATE_INVENTORY',
         payload: {
           characterId: character.id,
           updates: { items: newItems },
         },
-      });
+      })
     }
-  }, [character, inventory, dispatch]);
+  }, [character, inventory, dispatch])
 
   return {
     updateMaxHP,
@@ -341,30 +356,33 @@ export function useAutoCalculate() {
     updateLoad,
     updateCoinWeight,
     values,
-  };
+  }
 }
 
 /**
  * Hook for reactive XP and leveling
  */
 export function useXPCalculations() {
-  const character = useCharacter();
-  const values = useCalculatedValues();
+  const character = useCharacter()
+  const values = useCalculatedValues()
 
   const checkLevelUp = useCallback(() => {
-    if (!character || !values) return false;
-    return values.canLevelUp;
-  }, [character, values]);
+    if (!character || !values)
+      return false
+    return values.canLevelUp
+  }, [character, values])
 
   const xpToNextLevel = useMemo(() => {
-    if (!character || !values) return 0;
-    return values.xpThreshold-character.xp;
-  }, [character, values]);
+    if (!character || !values)
+      return 0
+    return values.xpThreshold - character.xp
+  }, [character, values])
 
   const xpPercentage = useMemo(() => {
-    if (!character || !values) return 0;
-    return (character.xp / values.xpThreshold) * 100;
-  }, [character, values]);
+    if (!character || !values)
+      return 0
+    return (character.xp / values.xpThreshold) * 100
+  }, [character, values])
 
   return {
     canLevelUp: values?.canLevelUp || false,
@@ -372,8 +390,5 @@ export function useXPCalculations() {
     xpToNextLevel,
     xpPercentage,
     checkLevelUp,
-  };
+  }
 }
-
-
-

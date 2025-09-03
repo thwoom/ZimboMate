@@ -306,19 +306,19 @@
   .equipment-header {
     padding: var(--spacing-md);
   }
-  
+
   .equipment-list {
     padding: var(--spacing-md);
   }
-  
+
   .equipment-item {
     padding: var(--spacing-sm);
   }
-  
+
   .item-name {
     font-size: 1rem;
   }
-  
+
   .modal-content {
     max-width: 95%;
     max-height: 90vh;

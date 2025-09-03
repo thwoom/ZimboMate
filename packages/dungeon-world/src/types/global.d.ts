@@ -5,17 +5,17 @@
 
 declare global {
   interface Window {
-    performanceMonitor?: import('../utils/PerformanceMonitor').PerformanceMonitor;
-    panelDiagnostics?: import('../utils/panelDiagnostics').PanelDiagnostics;
+    performanceMonitor?: import('../utils/PerformanceMonitor').PerformanceMonitor
+    panelDiagnostics?: import('../utils/panelDiagnostics').PanelDiagnostics
   }
 
   interface Performance {
     memory?: {
-      usedJSHeapSize: number;
-      totalJSHeapSize: number;
-      jsHeapSizeLimit: number;
-    };
+      usedJSHeapSize: number
+      totalJSHeapSize: number
+      jsHeapSizeLimit: number
+    }
   }
 }
 
-export {};
+export {}

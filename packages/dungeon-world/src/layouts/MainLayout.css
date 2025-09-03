@@ -35,7 +35,9 @@
   right: 20px;
   z-index: 1000;
   /* Performance optimization: Smooth animations */
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 /* Enhanced Responsive Design */
@@ -49,7 +51,7 @@
   :root {
     --sidebar-width: 200px;
   }
-  
+
   .main-layout__autosave {
     top: 15px;
     right: 15px;
@@ -87,15 +89,15 @@
   :root {
     --sidebar-width: 100%;
   }
-  
+
   .main-layout__sidebar {
     max-height: 50vh;
   }
-  
+
   .main-layout__content {
     min-height: 50vh;
   }
-  
+
   .main-layout__autosave {
     top: 5px;
     right: 5px;
@@ -125,7 +127,7 @@
   .main-layout__sidebar {
     background-color: var(--color-surface-dark, #1a1a1a);
   }
-  
+
   .main-layout__content {
     background-color: var(--color-background-dark, #0d0d0d);
   }

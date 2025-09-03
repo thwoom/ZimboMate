@@ -1,73 +1,77 @@
-import './RealTimeValidation.css';
+import type { IntegratedValidation } from '../hooks/useIntegratedValidation'
 
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react'
 
-import { IntegratedValidation } from '../hooks/useIntegratedValidation';
+import './RealTimeValidation.css'
 
 interface RealTimeValidationProps {
-  validation: IntegratedValidation;
-  compact?: boolean;
-  showSuggestions?: boolean;
+  validation: IntegratedValidation
+  compact?: boolean
+  showSuggestions?: boolean
 }
 
-export const RealTimeValidation: React.FC < RealTimeValidationProps> = ({
+export const RealTimeValidation: React.FC <RealTimeValidationProps> = ({
   validation,
   compact = false,
   showSuggestions = true,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(!compact);
-  const [filter, setFilter] = useState<'all' | 'errors' | 'warnings' | 'info'>('all');
+  const [isExpanded, setIsExpanded] = useState(!compact)
+  const [filter, setFilter] = useState<'all' | 'errors' | 'warnings' | 'info'>('all')
 
   // Auto-collapse if no issues
   useEffect(() => {
     if (compact && !validation.hasErrors && !validation.hasWarnings) {
-      setIsExpanded(false);
+      setIsExpanded(false)
     }
-  }, [compact, validation.hasErrors, validation.hasWarnings]);
+  }, [compact, validation.hasErrors, validation.hasWarnings])
 
   const getStatusColor = () => {
-    if (validation.hasErrors) return 'error';
-    if (validation.hasWarnings) return 'warning';
-    return 'success';
-  };
+    if (validation.hasErrors)
+      return 'error'
+    if (validation.hasWarnings)
+      return 'warning'
+    return 'success'
+  }
 
   const getStatusIcon = () => {
-    if (validation.hasErrors) return '❌';
-    if (validation.hasWarnings) return '⚠️';
-    return '✅';
-  };
+    if (validation.hasErrors)
+      return '❌'
+    if (validation.hasWarnings)
+      return '⚠️'
+    return '✅'
+  }
 
   const getStatusText = () => {
-    const counts = [];
+    const counts = []
     if (validation.allErrors.length > 0) {
-      counts.push(`${validation.allErrors.length} error${validation.allErrors.length > 1 ? 's' : ''}`);
+      counts.push(`${validation.allErrors.length} error${validation.allErrors.length > 1 ? 's' : ''}`)
     }
     if (validation.allWarnings.length > 0) {
-      counts.push(`${validation.allWarnings.length} warning${validation.allWarnings.length > 1 ? 's' : ''}`);
+      counts.push(`${validation.allWarnings.length} warning${validation.allWarnings.length > 1 ? 's' : ''}`)
     }
     if (validation.allInfo.length > 0) {
-      counts.push(`${validation.allInfo.length} info`);
+      counts.push(`${validation.allInfo.length} info`)
     }
 
-    return counts.length > 0 ? counts.join(', ') : 'All validations passed';
-  };
+    return counts.length > 0 ? counts.join(', ') : 'All validations passed'
+  }
 
   const filteredItems = () => {
     switch (filter) {
       case 'errors':
-        return validation.allErrors.map(err => ({ type: 'error', message: err }));
+        return validation.allErrors.map(err => ({ type: 'error', message: err }))
       case 'warnings':
-        return validation.allWarnings.map(warn => ({ type: 'warning', message: warn }));
+        return validation.allWarnings.map(warn => ({ type: 'warning', message: warn }))
       case 'info':
-        return validation.allInfo.map(info => ({ type: 'info', message: info }));
+        return validation.allInfo.map(info => ({ type: 'info', message: info }))
       default:
         return [
           ...validation.allErrors.map(err => ({ type: 'error', message: err })),
           ...validation.allWarnings.map(warn => ({ type: 'warning', message: warn })),
           ...validation.allInfo.map(info => ({ type: 'info', message: info })),
-        ];
+        ]
     }
-  };
+  }
 
   if (compact && !isExpanded) {
     return (
@@ -79,7 +83,7 @@ export const RealTimeValidation: React.FC < RealTimeValidationProps> = ({
         <span className="status-text">{getStatusText()}</span>
         <button className="expand-btn">▶</button>
       </div>
-    );
+    )
   }
 
   return (
@@ -87,7 +91,7 @@ export const RealTimeValidation: React.FC < RealTimeValidationProps> = ({
       <div className="validation-header">
         <div className="header-content">
           <span className="status-icon">{getStatusIcon()}</span>
-          <h3 > Validation Status</h3>
+          <h3> Validation Status</h3>
           <span className="status-summary">{getStatusText()}</span>
         </div>
         {compact && (
@@ -114,21 +118,27 @@ export const RealTimeValidation: React.FC < RealTimeValidationProps> = ({
               onClick={() => setFilter('errors')}
               disabled={validation.allErrors.length === 0}
             >
-              Errors ({validation.allErrors.length})
+              Errors (
+              {validation.allErrors.length}
+              )
             </button>
             <button
               className={`filter-btn ${filter === 'warnings' ? 'active' : ''}`}
               onClick={() => setFilter('warnings')}
               disabled={validation.allWarnings.length === 0}
             >
-              Warnings ({validation.allWarnings.length})
+              Warnings (
+              {validation.allWarnings.length}
+              )
             </button>
             <button
               className={`filter-btn ${filter === 'info' ? 'active' : ''}`}
               onClick={() => setFilter('info')}
               disabled={validation.allInfo.length === 0}
             >
-              Info ({validation.allInfo.length})
+              Info (
+              {validation.allInfo.length}
+              )
             </button>
           </div>
 
@@ -147,17 +157,14 @@ export const RealTimeValidation: React.FC < RealTimeValidationProps> = ({
 
       {showSuggestions && validation.suggestions.length > 0 && (
         <div className="suggestions-section">
-          <h4 > Suggestions</h4>
+          <h4> Suggestions</h4>
           <ul className="suggestions-list">
             {validation.suggestions.map((suggestion, index) => (
-              <li key={index}>{suggestion || "No suggestion"}</li>
+              <li key={index}>{suggestion || 'No suggestion'}</li>
             ))}
           </ul>
         </div>
       )}
     </div>
-  );
-};
-
-
-
+  )
+}

@@ -13,14 +13,18 @@ const localStorageMock = {
   key: vi.fn(),
 };
 
-Object.defineProperty(window, 'localStorage', {
+// Mock window object for Node.js test environment
+Object.defineProperty(globalThis, 'localStorage', {
   value: localStorageMock,
+  writable: true,
 });
 
 describe('ConditionService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue(null);
+    // Ensure isolated state between tests
+    conditionService.clearAll();
   });
 
   describe('createCondition', () => {
@@ -35,7 +39,7 @@ describe('ConditionService', () => {
         source: 'move' as ConditionSource,
       };
 
-      const _condition = conditionService.createCondition(debilityOptions);
+      const condition = conditionService.createCondition(debilityOptions);
 
       expect(condition).toBeDefined();
       expect(condition.type).toBe('debility');
@@ -57,7 +61,7 @@ describe('ConditionService', () => {
         source: 'spell' as ConditionSource,
       };
 
-      const _condition = conditionService.createCondition(effectOptions);
+      const condition = conditionService.createCondition(effectOptions);
 
       expect(condition).toBeDefined();
       expect(condition.type).toBe('ongoing_effect');
@@ -78,7 +82,7 @@ describe('ConditionService', () => {
         statModifiers: { CHA: 1 },
       };
 
-      const _condition = conditionService.createCondition(tempOptions);
+      const condition = conditionService.createCondition(tempOptions);
 
       expect(condition).toBeDefined();
       expect(condition.type).toBe('temporary_condition');
@@ -86,7 +90,7 @@ describe('ConditionService', () => {
     });
 
     it('should throw error for debility without debilityType', () => {
-      const _invalidOptions = {
+      const invalidOptions = {
         characterId: 'test - character',
         name: 'Invalid',
         description: 'Invalid condition',
@@ -181,7 +185,7 @@ describe('ConditionService', () => {
 
   describe('resolveCondition', () => {
     it('should resolve a condition', () => {
-      const _condition = conditionService.createCondition({
+      const condition = conditionService.createCondition({
         characterId: 'test - character',
         name: 'Test Condition',
         description: 'Test condition',
@@ -190,23 +194,23 @@ describe('ConditionService', () => {
         source: 'manual',
       });
 
-      const _resolved = conditionService.resolveCondition(condition.id, 'player');
+      const resolved = conditionService.resolveCondition(condition.id, 'player');
 
       expect(resolved).toBe(true);
 
-      const _updatedCondition = conditionService.getCondition(condition.id);
+      const updatedCondition = conditionService.getCondition(condition.id);
       expect(updatedCondition?.isActive).toBe(false);
       expect(updatedCondition?.isResolved).toBe(true);
       expect(updatedCondition?.resolvedBy).toBe('player');
     });
 
     it('should return false for non - existent condition', () => {
-      const _resolved = conditionService.resolveCondition('non - existent - id');
+      const resolved = conditionService.resolveCondition('non - existent - id');
       expect(resolved).toBe(false);
     });
 
     it('should return false for already resolved condition', () => {
-      const _condition = conditionService.createCondition({
+      const condition = conditionService.createCondition({
         characterId: 'test - character',
         name: 'Test Condition',
         description: 'Test condition',
@@ -224,7 +228,7 @@ describe('ConditionService', () => {
 
   describe('deleteCondition', () => {
     it('should delete a condition', () => {
-      const _condition = conditionService.createCondition({
+      const condition = conditionService.createCondition({
         characterId: 'test - character',
         name: 'Test Condition',
         description: 'Test condition',
@@ -233,7 +237,7 @@ describe('ConditionService', () => {
         source: 'manual',
       });
 
-      const _deleted = conditionService.deleteCondition(condition.id);
+      const deleted = conditionService.deleteCondition(condition.id);
 
       expect(deleted).toBe(true);
 
@@ -249,7 +253,7 @@ describe('ConditionService', () => {
 
   describe('stackCondition', () => {
     it('should stack a condition that supports stacking', () => {
-      const _condition = conditionService.createCondition({
+      const condition = conditionService.createCondition({
         characterId: 'test - character',
         name: 'Stackable Condition',
         description: 'Stackable condition',
@@ -260,16 +264,16 @@ describe('ConditionService', () => {
         maxStacks: 3,
       });
 
-      const _stacked = conditionService.stackCondition(condition.id);
+      const stacked = conditionService.stackCondition(condition.id);
 
       expect(stacked).toBe(true);
 
-      const _updatedCondition = conditionService.getCondition(condition.id);
+      const updatedCondition = conditionService.getCondition(condition.id);
       expect(updatedCondition?.currentStacks).toBe(2);
     });
 
     it('should not stack a condition that does not support stacking', () => {
-      const _condition = conditionService.createCondition({
+      const condition = conditionService.createCondition({
         characterId: 'test - character',
         name: 'Non - stackable Condition',
         description: 'Non - stackable condition',
@@ -279,11 +283,11 @@ describe('ConditionService', () => {
         canStack: false,
       });
 
-      const _stacked = conditionService.stackCondition(condition.id);
+      const stacked = conditionService.stackCondition(condition.id);
 
       expect(stacked).toBe(false);
 
-      const _updatedCondition = conditionService.getCondition(condition.id);
+      const updatedCondition = conditionService.getCondition(condition.id);
       expect(updatedCondition?.currentStacks).toBe(1);
     });
 

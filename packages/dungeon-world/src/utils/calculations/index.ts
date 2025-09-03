@@ -3,13 +3,10 @@
  */
 
 // Attribute calculations
-export * from './attributeCalculations';
+export * from './attributeCalculations'
 
 // Combat calculations
-export * from './combatCalculations';
+export * from './combatCalculations'
 
 // Load calculations
-export * from './loadCalculations';
-
-
-
+export * from './loadCalculations'

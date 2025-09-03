@@ -1,60 +1,62 @@
-import './InventoryPanel.css';
+import type { PanelProps } from '../../framework/Panel'
 
-import React, { useMemo,useState } from 'react';
+import type { ItemCategory, Tag } from '../../models/Equipment'
 
-import TagDisplay from '../../components/TagDisplay';
-import { createPanel, PanelProps } from '../../framework/Panel';
-import { createPanelAPI } from '../../framework/PanelAPI';
-import { ItemCategory,Tag } from '../../models/Equipment';
-import { useGameStore } from '../../store/GameStore';
+import React, { useMemo, useState } from 'react'
+import TagDisplay from '../../components/TagDisplay'
+import LoadOptimizer from '../../components/LoadOptimizer'
+import { createPanel } from '../../framework/Panel'
+import { createPanelAPI } from '../../framework/PanelAPI'
+import { useGameStore } from '../../store/GameStore'
+import './InventoryPanel.css'
 
 // Item tags from Dungeon World
-export type ItemTag =
-  | 'awkward' | 'dangerous' | 'forceful' | 'messy' | 'piercing'
-  | 'precise' | 'reload' | 'stun' | 'thrown' | 'two-handed'
-  | 'armor' | 'clumsy' | 'worn' | 'shield'
-  | 'ration' | 'adventuring gear' | 'healing' | 'slow' | 'touch'
-  | 'near' | 'far' | 'reach' | 'hand' | 'close';
+export type ItemTag
+  = | 'awkward' | 'dangerous' | 'forceful' | 'messy' | 'piercing'
+    | 'precise' | 'reload' | 'stun' | 'thrown' | 'two-handed'
+    | 'armor' | 'clumsy' | 'worn' | 'shield'
+    | 'ration' | 'adventuring gear' | 'healing' | 'slow' | 'touch'
+    | 'near' | 'far' | 'reach' | 'hand' | 'close'
 
 export interface InventoryItem {
-  id: string;
-  name: string;
-  category: ItemCategory;
-  tags: Tag[];
-  weight: number;
-  value?: number;
-  quantity: number;
-  equipped: boolean;
-  description?: string;
-  customMove?: string;
+  id: string
+  name: string
+  category: ItemCategory
+  tags: Tag[]
+  weight: number
+  value?: number
+  quantity: number
+  equipped: boolean
+  description?: string
+  customMove?: string
   uses?: {
-    current: number;
-    max: number;
-  };
+    current: number
+    max: number
+  }
 }
 
 interface InventoryPanelState {
-  items: InventoryItem[];
-  showAddItemModal: boolean;
-  showEditItemModal: boolean;
-  editingItem: InventoryItem | null;
-  searchQuery: string;
-  filterCategory: ItemCategory | 'all';
-  sortBy: 'name' | 'weight' | 'value' | 'category';
-  sortOrder: 'asc' | 'desc';
-  showDetails: string | null; // ID of item to show details for
+  items: InventoryItem[]
+  showAddItemModal: boolean
+  showEditItemModal: boolean
+  editingItem: InventoryItem | null
+  searchQuery: string
+  filterCategory: ItemCategory | 'all'
+  sortBy: 'name' | 'weight' | 'value' | 'category'
+  sortOrder: 'asc' | 'desc'
+  showDetails: string | null // ID of item to show details for
 }
 
-const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState }> = ({
+const InventoryPanel: React.FC <PanelProps & { panelState?: InventoryPanelState }> = ({
   id,
   panelState,
   onStateChange,
 }) => {
-  const _api = createPanelAPI(id);
-  const { state: gameState, setCharacter } = useGameStore();
+  const _api = createPanelAPI(id)
+  const { state: gameState, setCharacter } = useGameStore()
 
   // Get the active character from the game state
-  const character = gameState.activeCharacterId ? gameState.characters[gameState.activeCharacterId] : null;
+  const character = gameState.activeCharacterId ? gameState.characters[gameState.activeCharacterId] : null
 
   // Default state
   const defaultState: InventoryPanelState = {
@@ -124,228 +126,232 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
     sortBy: 'name',
     sortOrder: 'asc',
     showDetails: null,
-  };
+  }
 
-  const [state, setState] = useState < InventoryPanelState>(panelState || defaultState);
+  const [state, setState] = useState <InventoryPanelState>(panelState || defaultState)
 
   // Calculate total weight of all items
   const totalWeight = useMemo(() => {
     return state.items.reduce((total, item) => {
-      return total + (item.weight * item.quantity);
-    }, 0);
-  }, [state.items]);
+      return total + (item.weight * item.quantity)
+    }, 0)
+  }, [state.items])
 
   // Calculate total value of all items
   const totalValue = useMemo(() => {
     return state.items.reduce((total, item) => {
-      return total + ((item.value || 0) * item.quantity);
-    }, 0);
-  }, [state.items]);
+      return total + ((item.value || 0) * item.quantity)
+    }, 0)
+  }, [state.items])
 
   // Get character's load capacity
-  const loadCapacity = character?.load?.max || 0;
-  const isEncumbered = totalWeight > loadCapacity;
-  const isHeavilyEncumbered = totalWeight > loadCapacity + 2;
+  const loadCapacity = character?.load?.max || 0
+  const isEncumbered = totalWeight > loadCapacity
+  const isHeavilyEncumbered = totalWeight > loadCapacity + 2
 
   // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
-    const items = state.items.filter(item => {
+    const items = state.items.filter((item) => {
       // Filter by search query
       if (state.searchQuery && !item.name.toLowerCase().includes(state.searchQuery.toLowerCase())) {
-        return false;
+        return false
       }
 
       // Filter by category
       if (state.filterCategory !== 'all' && item.category !== state.filterCategory) {
-        return false;
+        return false
       }
 
-      return true;
-    });
+      return true
+    })
 
     // Sort items
     items.sort((a, b) => {
-      let aValue: unknown, bValue: unknown;
+      let aValue: unknown, bValue: unknown
 
       switch (state.sortBy) {
         case 'name':
-          aValue = a.name;
-          bValue = b.name;
-          break;
+          aValue = a.name
+          bValue = b.name
+          break
         case 'weight':
-          aValue = a.weight;
-          bValue = b.weight;
-          break;
+          aValue = a.weight
+          bValue = b.weight
+          break
         case 'value':
-          aValue = a.value || 0;
-          bValue = b.value || 0;
-          break;
+          aValue = a.value || 0
+          bValue = b.value || 0
+          break
         case 'category':
-          aValue = a.category;
-          bValue = b.category;
-          break;
+          aValue = a.category
+          bValue = b.category
+          break
         default:
-          aValue = a.name;
-          bValue = b.name;
+          aValue = a.name
+          bValue = b.name
       }
 
       if (state.sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue>bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
       }
-    });
+      else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
 
-    return items;
-  }, [state.items, state.searchQuery, state.filterCategory, state.sortBy, state.sortOrder]);
+    return items
+  }, [state.items, state.searchQuery, state.filterCategory, state.sortBy, state.sortOrder])
 
   // Update state helper
-  const updateState = (updates: Partial < InventoryPanelState>) => {
-    const newState = { ...state, ...updates };
-    setState(newState);
+  const updateState = (updates: Partial <InventoryPanelState>) => {
+    const newState = { ...state, ...updates }
+    setState(newState)
     if (onStateChange) {
-      onStateChange(newState);
+      onStateChange(newState)
     }
-  };
+  }
 
   // Add new item
-  const addItem = (item: Omit < InventoryItem, 'id'>) => {
+  const addItem = (item: Omit <InventoryItem, 'id'>) => {
     const newItem: InventoryItem = {
       ...item,
       id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
-    };
+    }
 
     updateState({
       items: [...state.items, newItem],
       showAddItemModal: false,
-    });
+    })
 
     // Update character inventory if character exists
     if (character) {
       const updatedCharacter = {
         ...character,
         inventory: [...(character.inventory || []), newItem],
-      };
-      setCharacter(updatedCharacter);
+      }
+      setCharacter(updatedCharacter)
     }
-  };
+  }
 
   // Edit existing item
-  const editItem = (itemId: string, updates: Partial < InventoryItem>) => {
+  const editItem = (itemId: string, updates: Partial <InventoryItem>) => {
     const updatedItems = state.items.map(item =>
       item.id === itemId ? { ...item, ...updates } : item,
-    );
+    )
 
     updateState({
       items: updatedItems,
       showEditItemModal: false,
       editingItem: null,
-    });
+    })
 
     // Update character inventory if character exists
     if (character) {
       const updatedCharacter = {
         ...character,
         inventory: updatedItems,
-      };
-      setCharacter(updatedCharacter);
+      }
+      setCharacter(updatedCharacter)
     }
-  };
+  }
 
   // Remove item
   const removeItem = (itemId: string) => {
-    const updatedItems = state.items.filter(item => item.id !== itemId);
+    const updatedItems = state.items.filter(item => item.id !== itemId)
 
-    updateState({ items: updatedItems });
+    updateState({ items: updatedItems })
 
     // Update character inventory if character exists
     if (character) {
       const updatedCharacter = {
         ...character,
         inventory: updatedItems,
-      };
-      setCharacter(updatedCharacter);
+      }
+      setCharacter(updatedCharacter)
     }
-  };
+  }
 
   // Use item (decrement uses)
   const useItem = (itemId: string) => {
-    const item = state.items.find(i => i.id === itemId);
-    if (!item || !item.uses || item.uses.current <= 0) return;
+    const item = state.items.find(i => i.id === itemId)
+    if (!item || !item.uses || item.uses.current <= 0)
+      return
 
     const updatedItems = state.items.map(i =>
       i.id === itemId
         ? {
             ...i,
             uses: {
-              current: i.uses!.current-1,
+              current: i.uses!.current - 1,
               max: i.uses!.max,
             },
-            quantity: i.uses!.current-1 <= 0 ? i.quantity-1 : i.quantity,
+            quantity: i.uses!.current - 1 <= 0 ? i.quantity - 1 : i.quantity,
           }
         : i,
-    ).filter(i => i.quantity > 0); // Remove items with 0 quantity
+    ).filter(i => i.quantity > 0) // Remove items with 0 quantity
 
-    updateState({ items: updatedItems });
+    updateState({ items: updatedItems })
 
     // Update character inventory if character exists
     if (character) {
       const updatedCharacter = {
         ...character,
         inventory: updatedItems,
-      };
-      setCharacter(updatedCharacter);
+      }
+      setCharacter(updatedCharacter)
     }
-  };
+  }
 
   // Equip item
   const equipItem = (itemId: string) => {
     const updatedItems = state.items.map(item =>
       item.id === itemId ? { ...item, equipped: true } : item,
-    );
+    )
 
-    updateState({ items: updatedItems });
+    updateState({ items: updatedItems })
 
     // Update character inventory if character exists
     if (character) {
       const updatedCharacter = {
         ...character,
         inventory: updatedItems,
-      };
-      setCharacter(updatedCharacter);
+      }
+      setCharacter(updatedCharacter)
     }
-  };
+  }
 
   // Unequip item
   const unequipItem = (itemId: string) => {
     const updatedItems = state.items.map(item =>
       item.id === itemId ? { ...item, equipped: false } : item,
-    );
+    )
 
-    updateState({ items: updatedItems });
+    updateState({ items: updatedItems })
 
     // Update character inventory if character exists
     if (character) {
       const updatedCharacter = {
         ...character,
         inventory: updatedItems,
-      };
-      setCharacter(updatedCharacter);
+      }
+      setCharacter(updatedCharacter)
     }
-  };
+  }
 
   // Get weight status color
   const getWeightStatusColor = () => {
-    if (isHeavilyEncumbered) return 'red';
-    if (isEncumbered) return 'yellow';
-    return 'green';
-  };
+    if (isHeavilyEncumbered)
+      return 'red'
+    if (isEncumbered)
+      return 'yellow'
+    return 'green'
+  }
 
   // Render item card
   const renderItemCard = (item: InventoryItem) => {
-    const isSelected = state.showDetails === item.id;
-    const canUse = item.uses && item.uses.current > 0;
-    const canEquip = item.category === 'weapon' || item.category === 'armor';
+    const isSelected = state.showDetails === item.id
+    const canUse = item.uses && item.uses.current > 0
+    const canEquip = item.category === 'weapon' || item.category === 'armor'
 
     return (
       <div
@@ -363,17 +369,32 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
               <span className="badge equipped">Equipped</span>
             )}
             {item.value && (
-              <span className="badge value">{item.value} coins</span>
+              <span className="badge value">
+                {item.value}
+                {' '}
+                coins
+              </span>
             )}
           </div>
         </div>
 
         <div className="item-content">
           <div className="item-stats">
-            <span className="stat">Weight: {item.weight}</span>
-            <span className="stat">Quantity: {item.quantity}</span>
+            <span className="stat">
+              Weight:
+              {item.weight}
+            </span>
+            <span className="stat">
+              Quantity:
+              {item.quantity}
+            </span>
             {item.uses && (
-              <span className="stat">Uses: {item.uses.current}/{item.uses.max}</span>
+              <span className="stat">
+                Uses:
+                {item.uses.current}
+                /
+                {item.uses.max}
+              </span>
             )}
           </div>
 
@@ -389,7 +410,9 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
 
           {item.customMove && (
             <div className="item-custom-move">
-              <strong > Custom Move:</strong> {item.customMove}
+              <strong> Custom Move:</strong>
+              {' '}
+              {item.customMove}
             </div>
           )}
         </div>
@@ -399,8 +422,8 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
             <button
               className="btn btn-primary btn-sm"
               onClick={(e) => {
-                e.stopPropagation();
-                useItem(item.id);
+                e.stopPropagation()
+                useItem(item.id)
               }}
             >
               Use
@@ -411,8 +434,8 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
             <button
               className="btn btn-secondary btn-sm"
               onClick={(e) => {
-                e.stopPropagation();
-                equipItem(item.id);
+                e.stopPropagation()
+                equipItem(item.id)
               }}
             >
               Equip
@@ -423,8 +446,8 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
             <button
               className="btn btn-secondary btn-sm"
               onClick={(e) => {
-                e.stopPropagation();
-                unequipItem(item.id);
+                e.stopPropagation()
+                unequipItem(item.id)
               }}
             >
               Unequip
@@ -434,11 +457,11 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
           <button
             className="btn btn-outline btn-sm"
             onClick={(e) => {
-              e.stopPropagation();
+              e.stopPropagation()
               updateState({
                 showEditItemModal: true,
                 editingItem: item,
-              });
+              })
             }}
           >
             Edit
@@ -447,9 +470,9 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
           <button
             className="btn btn-danger btn-sm"
             onClick={(e) => {
-              e.stopPropagation();
+              e.stopPropagation()
               if (confirm(`Are you sure you want to remove ${item.name}?`)) {
-                removeItem(item.id);
+                removeItem(item.id)
               }
             }}
           >
@@ -457,18 +480,24 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="inventory-panel">
       <div className="inventory-header">
-        <h2 > Inventory</h2>
+        <h2> Inventory</h2>
+        <div style={{ marginTop: '0.5rem' }}>
+          <LoadOptimizer />
+        </div>
         <div className="inventory-summary">
           <div className={`weight-display ${getWeightStatusColor()}`}>
             <span className="weight-label">Weight:</span>
             <span className="weight-value">{totalWeight}</span>
-            <span className="weight-capacity">/ {loadCapacity}</span>
+            <span className="weight-capacity">
+              /
+              {loadCapacity}
+            </span>
             {isEncumbered && (
               <span className="encumbrance-warning">
                 {isHeavilyEncumbered ? 'Heavily Encumbered!' : 'Encumbered!'}
@@ -477,7 +506,11 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
           </div>
           <div className="value-display">
             <span className="value-label">Total Value:</span>
-            <span className="value-amount">{totalValue} coins</span>
+            <span className="value-amount">
+              {totalValue}
+              {' '}
+              coins
+            </span>
           </div>
         </div>
       </div>
@@ -488,7 +521,7 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
             type="text"
             placeholder="Search items..."
             value={state.searchQuery}
-            onChange={(e) => updateState({ searchQuery: e.target.value })}
+            onChange={e => updateState({ searchQuery: e.target.value })}
             className="search-input"
           />
 
@@ -496,7 +529,7 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
           <select
             id="filter-category"
             value={state.filterCategory}
-            onChange={(e) => updateState({ filterCategory: e.target.value as ItemCategory | 'all' })}
+            onChange={e => updateState({ filterCategory: e.target.value as ItemCategory | 'all' })}
             className="filter-select"
           >
             <option value="all">All Categories</option>
@@ -512,7 +545,7 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
           <select
             id="sort-by"
             value={state.sortBy}
-            onChange={(e) => updateState({ sortBy: e.target.value as string })}
+            onChange={e => updateState({ sortBy: e.target.value as string })}
             className="sort-select"
           >
             <option value="name">Sort by Name</option>
@@ -538,31 +571,33 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
       </div>
 
       <div className="inventory-content">
-        {filteredAndSortedItems.length === 0 ? (
-          <div className="empty-inventory">
-            <p > No items found matching your criteria.</p>
-            <button
-              className="btn btn-secondary"
-              onClick={() => updateState({
-                searchQuery: '',
-                filterCategory: 'all',
-              })}
-            >
-              Clear Filters
-            </button>
-          </div>
-        ) : (
-          <div className="inventory-grid">
-            {filteredAndSortedItems.map(renderItemCard)}
-          </div>
-        )}
+        {filteredAndSortedItems.length === 0
+          ? (
+              <div className="empty-inventory">
+                <p> No items found matching your criteria.</p>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => updateState({
+                    searchQuery: '',
+                    filterCategory: 'all',
+                  })}
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )
+          : (
+              <div className="inventory-grid">
+                {filteredAndSortedItems.map(renderItemCard)}
+              </div>
+            )}
       </div>
 
       {/* Add Item Modal */}
       {state.showAddItemModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3 > Add New Item</h3>
+            <h3> Add New Item</h3>
             <AddItemForm
               onAdd={addItem}
               onCancel={() => updateState({ showAddItemModal: false })}
@@ -575,10 +610,10 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
       {state.showEditItemModal && state.editingItem && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3 > Edit Item</h3>
+            <h3> Edit Item</h3>
             <EditItemForm
               item={state.editingItem}
-              onSave={(updates) => editItem(state.editingItem!.id, updates)}
+              onSave={updates => editItem(state.editingItem!.id, updates)}
               onCancel={() => updateState({
                 showEditItemModal: false,
                 editingItem: null,
@@ -588,16 +623,16 @@ const InventoryPanel: React.FC < PanelProps & { panelState?: InventoryPanelState
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 // Add Item Form Component
 interface AddItemFormProps {
-  onAdd: (item: Omit < InventoryItem, 'id'>) => void;
-  onCancel: () => void;
+  onAdd: (item: Omit <InventoryItem, 'id'>) => void
+  onCancel: () => void
 }
 
-const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
+const AddItemForm: React.FC <AddItemFormProps> = ({ onAdd, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
     category: 'gear' as ItemCategory,
@@ -606,18 +641,19 @@ const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
     quantity: 1,
     description: '',
     tags: [] as Tag[],
-  });
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return;
+    e.preventDefault()
+    if (!formData.name.trim())
+      return
 
     onAdd({
       ...formData,
       equipped: false,
       uses: formData.category === 'consumable' ? { current: 1, max: 1 } : undefined,
-    });
-  };
+    })
+  }
 
   return (
     <form onSubmit={handleSubmit} className="item-form">
@@ -627,7 +663,7 @@ const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
           id="name"
           type="text"
           value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          onChange={e => setFormData({ ...formData, name: e.target.value })}
           required
         />
       </div>
@@ -637,7 +673,7 @@ const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
         <select
           id="category"
           value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value as ItemCategory })}
+          onChange={e => setFormData({ ...formData, category: e.target.value as ItemCategory })}
         >
           <option value="weapon">Weapon</option>
           <option value="armor">Armor</option>
@@ -657,7 +693,7 @@ const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
             min="0"
             step="0.1"
             value={formData.weight}
-            onChange={(e) => setFormData({ ...formData, weight: Number.parseFloat(e.target.value) || 0 })}
+            onChange={e => setFormData({ ...formData, weight: Number.parseFloat(e.target.value) || 0 })}
           />
         </div>
 
@@ -668,7 +704,7 @@ const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
             type="number"
             min="0"
             value={formData.value}
-            onChange={(e) => setFormData({ ...formData, value: Number.parseInt(e.target.value) || 0 })}
+            onChange={e => setFormData({ ...formData, value: Number.parseInt(e.target.value) || 0 })}
           />
         </div>
 
@@ -679,7 +715,7 @@ const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
             type="number"
             min="1"
             value={formData.quantity}
-            onChange={(e) => setFormData({ ...formData, quantity: Number.parseInt(e.target.value) || 1 })}
+            onChange={e => setFormData({ ...formData, quantity: Number.parseInt(e.target.value) || 1 })}
           />
         </div>
       </div>
@@ -689,7 +725,7 @@ const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
         <textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={e => setFormData({ ...formData, description: e.target.value })}
           rows={3}
         />
       </div>
@@ -699,17 +735,17 @@ const AddItemForm: React.FC < AddItemFormProps> = ({ onAdd, onCancel }) => {
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
       </div>
     </form>
-  );
-};
+  )
+}
 
 // Edit Item Form Component
 interface EditItemFormProps {
-  item: InventoryItem;
-  onSave: (updates: Partial < InventoryItem>) => void;
-  onCancel: () => void;
+  item: InventoryItem
+  onSave: (updates: Partial <InventoryItem>) => void
+  onCancel: () => void
 }
 
-const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel }) => {
+const EditItemForm: React.FC <EditItemFormProps> = ({ item, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: item.name,
     category: item.category,
@@ -718,17 +754,18 @@ const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel })
     quantity: item.quantity,
     description: item.description || '',
     tags: item.tags,
-  });
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return;
+    e.preventDefault()
+    if (!formData.name.trim())
+      return
 
     onSave({
       ...formData,
       value: formData.value || undefined,
-    });
-  };
+    })
+  }
 
   return (
     <form onSubmit={handleSubmit} className="item-form">
@@ -738,7 +775,7 @@ const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel })
           id="edit-name"
           type="text"
           value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          onChange={e => setFormData({ ...formData, name: e.target.value })}
           required
         />
       </div>
@@ -748,7 +785,7 @@ const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel })
         <select
           id="edit-category"
           value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value as ItemCategory })}
+          onChange={e => setFormData({ ...formData, category: e.target.value as ItemCategory })}
         >
           <option value="weapon">Weapon</option>
           <option value="armor">Armor</option>
@@ -768,7 +805,7 @@ const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel })
             min="0"
             step="0.1"
             value={formData.weight}
-            onChange={(e) => setFormData({ ...formData, weight: Number.parseFloat(e.target.value) || 0 })}
+            onChange={e => setFormData({ ...formData, weight: Number.parseFloat(e.target.value) || 0 })}
           />
         </div>
 
@@ -779,7 +816,7 @@ const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel })
             type="number"
             min="0"
             value={formData.value}
-            onChange={(e) => setFormData({ ...formData, value: Number.parseInt(e.target.value) || 0 })}
+            onChange={e => setFormData({ ...formData, value: Number.parseInt(e.target.value) || 0 })}
           />
         </div>
 
@@ -790,7 +827,7 @@ const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel })
             type="number"
             min="1"
             value={formData.quantity}
-            onChange={(e) => setFormData({ ...formData, quantity: Number.parseInt(e.target.value) || 1 })}
+            onChange={e => setFormData({ ...formData, quantity: Number.parseInt(e.target.value) || 1 })}
           />
         </div>
       </div>
@@ -800,7 +837,7 @@ const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel })
         <textarea
           id="edit-description"
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={e => setFormData({ ...formData, description: e.target.value })}
           rows={3}
         />
       </div>
@@ -810,8 +847,8 @@ const EditItemForm: React.FC < EditItemFormProps> = ({ item, onSave, onCancel })
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
       </div>
     </form>
-  );
-};
+  )
+}
 
 // Create and export the panel
 export default createPanel(
@@ -836,7 +873,4 @@ export default createPanel(
       showDetails: null,
     }),
   },
-);
-
-
-
+)

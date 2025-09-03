@@ -1,28 +1,28 @@
-import './ContentArea.css';
+import React from 'react'
 
-import React from 'react';
+import { panelRegistry } from '../framework/PanelRegistry'
 
-import { panelRegistry } from '../framework/PanelRegistry';
-import { PanelRouter } from '../framework/PanelRouter';
+import { PanelRouter } from '../framework/PanelRouter'
+import './ContentArea.css'
 
 interface ContentAreaProps {
-  activePanelId: string;
+  activePanelId: string
 }
 
-const ContentArea: React.FC < ContentAreaProps> = ({ activePanelId }) => {
-  const activePanel = panelRegistry.getPanel(activePanelId);
-  const panelTitle = activePanel?.metadata.name || 'Unknown Panel';
-  const panelCount = panelRegistry.getAllPanels().length;
+const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
+  const activePanel = panelRegistry.getPanel(activePanelId)
+  const panelTitle = activePanel?.metadata.name || 'Unknown Panel'
+  const panelCount = panelRegistry.getAllPanels().length
 
   // Debug logging (commented out)
   // // Debug: Log when character creation is active
   if (process.env.NODE_ENV === 'development' && activePanelId === 'character-creation') {
-    }
+  }
 
   // Debug function to toggle layout visualization
   const toggleLayoutDebug = () => {
-    document.body.classList.toggle('debug-layout');
-  };
+    document.body.classList.toggle('debug-layout')
+  }
 
   return (
     <div className="content-area">
@@ -40,23 +40,22 @@ const ContentArea: React.FC < ContentAreaProps> = ({ activePanelId }) => {
       </header>
 
       <div className={`content-area__body ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
-        {panelCount > 0 ? (
-          <PanelRouter
-            activePanelId={activePanelId}
-            enableTransitions={true}
-          />
-        ) : (
-          <div className="content-area__placeholder">
-            <p > No panels registered</p>
-            <p > Panels will appear here once they are registered in the system</p>
-          </div>
-        )}
+        {panelCount > 0
+          ? (
+              <PanelRouter
+                activePanelId={activePanelId}
+                enableTransitions={true}
+              />
+            )
+          : (
+              <div className="content-area__placeholder">
+                <p> No panels registered</p>
+                <p> Panels will appear here once they are registered in the system</p>
+              </div>
+            )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ContentArea;
-
-
-
+export default ContentArea

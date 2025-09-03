@@ -1,27 +1,27 @@
-import { Alignment,Character, CharacterClass, Race } from '../models/Character';
-import { Bond } from '../models/Character';
-import { Item } from '../models/Equipment';
+import type { Alignment, Bond, Character, CharacterClass, Race } from '../models/Character'
+
+import type { Item } from '../models/Equipment'
 
 export interface CharacterTemplate {
-  id: string;
-  name: string;
-  description: string;
-  category: 'quick-start' | 'custom' | 'shared';
-  characterData: Partial < Character>;
-  selectedEquipment?: (Partial < Item> | Partial < unknown>)[];
-  selectedMoves?: string[];
-  bonds?: Partial < Bond>[];
-  equipmentChoices?: Record < number, number>;
-  personalityTraits?: string[];
-  knownSpells?: string[];
-  preparedSpells?: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  id: string
+  name: string
+  description: string
+  category: 'quick-start' | 'custom' | 'shared'
+  characterData: Partial <Character>
+  selectedEquipment?: (Partial <Item> | Partial <unknown>)[]
+  selectedMoves?: string[]
+  bonds?: Partial <Bond>[]
+  equipmentChoices?: Record <number, number>
+  personalityTraits?: string[]
+  knownSpells?: string[]
+  preparedSpells?: string[]
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface QuickStartTemplate extends CharacterTemplate {
-  category: 'quick-start';
-  icon?: string;
+  category: 'quick-start'
+  icon?: string
 }
 
 // Pre-made Quick Start Templates
@@ -207,87 +207,91 @@ export const QUICK_START_TEMPLATES: QuickStartTemplate[] = [
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-];
+]
 
 class CharacterTemplateService {
-  private static instance: CharacterTemplateService;
-  private readonly STORAGE_KEY = 'zimbomate_character_templates';
+  private static instance: CharacterTemplateService
+  private readonly STORAGE_KEY = 'zimbomate_character_templates'
 
   private constructor() {}
 
   static getInstance(): CharacterTemplateService {
     if (!CharacterTemplateService.instance) {
-      CharacterTemplateService.instance = new CharacterTemplateService();
+      CharacterTemplateService.instance = new CharacterTemplateService()
     }
-    return CharacterTemplateService.instance;
+    return CharacterTemplateService.instance
   }
 
   // Get all templates (quick-start + custom)
   getAllTemplates(): CharacterTemplate[] {
-    const customTemplates = this.getCustomTemplates();
-    return [...QUICK_START_TEMPLATES, ...customTemplates];
+    const customTemplates = this.getCustomTemplates()
+    return [...QUICK_START_TEMPLATES, ...customTemplates]
   }
 
   // Get only custom templates
   getCustomTemplates(): CharacterTemplate[] {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (!stored) return [];
+      const stored = localStorage.getItem(this.STORAGE_KEY)
+      if (!stored)
+        return []
 
-      const templates = JSON.parse(stored);
+      const templates = JSON.parse(stored)
       // Convert date strings back to Date objects
       return templates.map((t: any) => ({
         ...t,
         createdAt: new Date(t.createdAt),
         updatedAt: new Date(t.updatedAt),
-      }));
-    } catch {
-      return [];
+      }))
+    }
+    catch {
+      return []
     }
   }
 
   // Save a new custom template
-  saveTemplate(template: Omit < CharacterTemplate, 'id' | 'createdAt' | 'updatedAt'>): CharacterTemplate {
+  saveTemplate(template: Omit <CharacterTemplate, 'id' | 'createdAt' | 'updatedAt'>): CharacterTemplate {
     const newTemplate: CharacterTemplate = {
       ...template,
       id: `template_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
       createdAt: new Date(),
       updatedAt: new Date(),
-    };
+    }
 
-    const templates = this.getCustomTemplates();
-    templates.push(newTemplate);
-    this.saveToStorage(templates);
+    const templates = this.getCustomTemplates()
+    templates.push(newTemplate)
+    this.saveToStorage(templates)
 
-    return newTemplate;
+    return newTemplate
   }
 
   // Update an existing template
-  updateTemplate(id: string, updates: Partial < CharacterTemplate>): CharacterTemplate | null {
-    const templates = this.getCustomTemplates();
-    const index = templates.findIndex(t => t.id === id);
+  updateTemplate(id: string, updates: Partial <CharacterTemplate>): CharacterTemplate | null {
+    const templates = this.getCustomTemplates()
+    const index = templates.findIndex(t => t.id === id)
 
-    if (index === -1) return null;
+    if (index === -1)
+      return null
 
     templates[index] = {
       ...templates[index],
       ...updates,
       updatedAt: new Date(),
-    };
+    }
 
-    this.saveToStorage(templates);
-    return templates[index];
+    this.saveToStorage(templates)
+    return templates[index]
   }
 
   // Delete a template
   deleteTemplate(id: string): boolean {
-    const templates = this.getCustomTemplates();
-    const filtered = templates.filter(t => t.id !== id);
+    const templates = this.getCustomTemplates()
+    const filtered = templates.filter(t => t.id !== id)
 
-    if (filtered.length === templates.length) return false;
+    if (filtered.length === templates.length)
+      return false
 
-    this.saveToStorage(filtered);
-    return true;
+    this.saveToStorage(filtered)
+    return true
   }
 
   // Export template to JSON
@@ -296,41 +300,41 @@ class CharacterTemplateService {
       ...template,
       exportedAt: new Date().toISOString(),
       version: '1.0',
-    };
-    return JSON.stringify(exportData, null, 2);
+    }
+    return JSON.stringify(exportData, null, 2)
   }
 
   // Import template from JSON
   importTemplate(jsonString: string): CharacterTemplate {
     try {
-      const imported = JSON.parse(jsonString);
+      const imported = JSON.parse(jsonString)
 
       // Validate required fields
       if (!imported.name || typeof imported.name !== 'string') {
-        throw new Error('Template must have a valid name');
+        throw new Error('Template must have a valid name')
       }
 
       if (!imported.characterData || typeof imported.characterData !== 'object') {
-        throw new Error('Template must contain character data');
+        throw new Error('Template must contain character data')
       }
 
       // Validate character data has minimum required fields
-      const charData = imported.characterData;
+      const charData = imported.characterData
       if (!charData.class || !charData.race) {
-        throw new Error('Template character data must include class and race');
+        throw new Error('Template character data must include class and race')
       }
 
       // Validate arrays if present
       if (imported.selectedEquipment && !Array.isArray(imported.selectedEquipment)) {
-        throw new Error('Selected equipment must be an array');
+        throw new Error('Selected equipment must be an array')
       }
 
       if (imported.selectedMoves && !Array.isArray(imported.selectedMoves)) {
-        throw new Error('Selected moves must be an array');
+        throw new Error('Selected moves must be an array')
       }
 
       if (imported.bonds && !Array.isArray(imported.bonds)) {
-        throw new Error('Bonds must be an array');
+        throw new Error('Bonds must be an array')
       }
 
       // Create new template with imported data
@@ -342,38 +346,37 @@ class CharacterTemplateService {
         selectedEquipment: imported.selectedEquipment || [],
         selectedMoves: imported.selectedMoves || [],
         bonds: imported.bonds || [],
-      });
-    } catch {
+      })
+    }
+    catch {
       if (error instanceof SyntaxError) {
-        throw new Error('Invalid JSON format. Please check the file and try again.');
+        throw new TypeError('Invalid JSON format. Please check the file and try again.')
       }
-      throw new Error(`Failed to import template: ${(error as Error).message}`);
+      throw new Error(`Failed to import template: ${(error as Error).message}`)
     }
   }
 
   // Download template as file
   downloadTemplate(template: CharacterTemplate): void {
-    const json = this.exportTemplate(template);
-    const blob = new Blob([json], { type: 'application / json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}template.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const json = this.exportTemplate(template)
+    const blob = new Blob([json], { type: 'application / json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}template.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   private saveToStorage(templates: CharacterTemplate[]): void {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(templates));
-    } catch {
-      }
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(templates))
+    }
+    catch {
+    }
   }
 }
 
-export const characterTemplateService = CharacterTemplateService.getInstance();
-
-
-
+export const characterTemplateService = CharacterTemplateService.getInstance()

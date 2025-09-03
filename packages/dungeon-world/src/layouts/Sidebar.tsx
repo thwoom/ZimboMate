@@ -1,51 +1,51 @@
-import './Sidebar.css';
+import type { PanelMetadata } from '../framework/Panel'
 
-import React, { useEffect, useMemo,useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react'
 
-import { PanelMetadata } from '../framework/Panel';
-import { panelRegistry } from '../framework/PanelRegistry';
+import { panelRegistry } from '../framework/PanelRegistry'
+import './Sidebar.css'
 
 interface SidebarProps {
-  activePanelId?: string;
-  onPanelSelect?: (panelId: string) => void;
+  activePanelId?: string
+  onPanelSelect?: (panelId: string) => void
 }
 
-const Sidebar: React.FC < SidebarProps> = ({ activePanelId, onPanelSelect }) => {
-  const [panels, setPanels] = useState < PanelMetadata[]>([]);
+const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
+  const [panels, setPanels] = useState <PanelMetadata[]>([])
 
   useEffect(() => {
     // Get initial panels sorted by priority
     const updatePanels = () => {
-      const sortedPanels = panelRegistry.getPanelsByPriority().map(p => p.metadata);
+      const sortedPanels = panelRegistry.getPanelsByPriority().map(p => p.metadata)
 
       // Ensure unique IDs (defensive programming)
       const uniquePanels = sortedPanels.filter((panel, index, array) =>
         array.findIndex(p => p.id === panel.id) === index,
-      );
+      )
 
       // Debug logging in development
       if (process.env.NODE_ENV === 'development') {
-        const panelIds = uniquePanels.map(p => p.id);
-        const duplicates = panelIds.filter((id, index) => panelIds.indexOf(id) !== index);
+        const panelIds = uniquePanels.map(p => p.id)
+        const duplicates = panelIds.filter((id, index) => panelIds.indexOf(id) !== index)
         if (duplicates.length > 0) {
-          }
+        }
       }
 
-      setPanels(uniquePanels);
-    };
+      setPanels(uniquePanels)
+    }
 
-    updatePanels();
+    updatePanels()
 
     // Listen for registry changes
     const unsubscribe = panelRegistry.addListener(() => {
-      updatePanels();
-    });
+      updatePanels()
+    })
 
-    return unsubscribe;
-  }, []);
+    return unsubscribe
+  }, [])
 
   // Memoize the panel list to prevent unnecessary re-renders
-  const memoizedPanels = useMemo(() => panels, [panels]);
+  const memoizedPanels = useMemo(() => panels, [panels])
 
   return (
     <div className="sidebar">
@@ -55,7 +55,7 @@ const Sidebar: React.FC < SidebarProps> = ({ activePanelId, onPanelSelect }) => 
 
       <nav className="sidebar__nav">
         <ul className="sidebar__nav-list">
-          {memoizedPanels.map((panel) => (
+          {memoizedPanels.map(panel => (
             <li key={`panel-${panel.id}`} className="sidebar__nav-item">
               <button
                 className={`sidebar__nav-button 
@@ -78,10 +78,7 @@ const Sidebar: React.FC < SidebarProps> = ({ activePanelId, onPanelSelect }) => 
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Sidebar;
-
-
-
+export default Sidebar

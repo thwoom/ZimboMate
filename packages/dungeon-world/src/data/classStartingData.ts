@@ -1,22 +1,22 @@
-import { CharacterClass } from '../models/Character';
-import { Armor, Item, ItemCategory,Weapon } from '../models/Equipment';
+import type { CharacterClass } from '../models/Character'
+import type { Armor, Item, ItemCategory, Weapon } from '../models/Equipment'
 
 export interface ClassStartingData {
-  equipment: (Partial < Item> | Partial < Weapon> | Partial < Armor>)[];
-  moves: string[];
+  equipment: (Partial <Item> | Partial <Weapon> | Partial <Armor>)[]
+  moves: string[]
   choices?: {
     equipment?: {
-      prompt: string;
-      options: (Partial < Item> | Partial < Weapon> | Partial < Armor>)[][];
-    }[];
+      prompt: string
+      options: (Partial <Item> | Partial <Weapon> | Partial <Armor>)[][]
+    }[]
     moves?: {
-      prompt: string;
-      options: string[];
-    }[];
-  };
+      prompt: string
+      options: string[]
+    }[]
+  }
 }
 
-export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = {
+export const CLASS_STARTING_DATA: Record <CharacterClass, ClassStartingData> = {
   Fighter: {
     equipment: [
       {
@@ -26,7 +26,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 3,
         armorValue: 2,
         description: 'Overlapping metal scales that provide good protection',
-      } as Partial < Armor>,
+      } as Partial <Armor>,
       {
         name: 'Adventuring Gear',
         category: 'gear' as ItemCategory,
@@ -57,7 +57,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: 'b[2d10]',
               description: 'A versatile blade',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Battle Axe',
               category: 'weapon' as ItemCategory,
@@ -65,7 +65,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: 'b[2d10]',
               description: 'A brutal chopping weapon',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
         {
@@ -78,7 +78,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 2,
               armorValue: 1,
               description: 'Provides additional defense',
-            } as Partial < Armor>],
+            } as Partial <Armor>],
             [{
               name: 'Two-handed Sword',
               category: 'weapon' as ItemCategory,
@@ -86,7 +86,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 2,
               damage: '1d6',
               description: 'A massive blade that requires both hands',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
       ],
@@ -102,7 +102,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 5,
         armorValue: 3,
         description: 'Full plate protection blessed by the church',
-      } as Partial < Armor>,
+      } as Partial <Armor>,
       {
         name: 'Adventuring Gear',
         category: 'gear' as ItemCategory,
@@ -124,7 +124,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         category: 'gear' as ItemCategory,
         tags: [{ name: 'holy' }],
         weight: 0,
-        description: "Your deity's sacred symbol",
+        description: 'Your deity\'s sacred symbol',
       },
     ],
     moves: ['Lay on Hands', 'Armored', 'Quest'],
@@ -140,7 +140,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 2,
               damage: 'b[2d10]+1',
               description: 'A holy polearm',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Long Sword',
               category: 'weapon' as ItemCategory,
@@ -148,7 +148,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: 'b[2d10]',
               description: 'A blessed blade',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
       ],
@@ -163,16 +163,16 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         tags: [{ name: 'armor' }, { name: 'worn' }],
         weight: 1,
         armorValue: 1,
-        description: "Light protection that doesn't hinder movement",
-      } as Partial < Armor>,
+        description: 'Light protection that doesn\'t hinder movement',
+      } as Partial <Armor>,
       {
-        name: "Hunter's Bow",
+        name: 'Hunter\'s Bow',
         category: 'weapon' as ItemCategory,
         tags: [{ name: 'near' }, { name: 'far' }],
         weight: 1,
         damage: '1d8',
         description: 'A well-crafted bow',
-      } as Partial < Weapon>,
+      } as Partial <Weapon>,
       {
         name: 'Bundle of Arrows',
         category: 'gear' as ItemCategory,
@@ -211,7 +211,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d8',
               description: 'Versatile for hunting and combat',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Short Sword',
               category: 'weapon' as ItemCategory,
@@ -219,7 +219,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d8',
               description: 'A quick blade for close encounters',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
       ],
@@ -234,8 +234,8 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         tags: [{ name: 'armor' }, { name: 'worn' }],
         weight: 1,
         armorValue: 1,
-        description: "Light protection that doesn't interfere with spellcasting",
-      } as Partial < Armor>,
+        description: 'Light protection that doesn\'t interfere with spellcasting',
+      } as Partial <Armor>,
       {
         name: 'Spellbook',
         category: 'gear' as ItemCategory,
@@ -250,7 +250,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         damage: '1d4',
         description: 'A last resort',
-      } as Partial < Weapon>,
+      } as Partial <Weapon>,
       {
         name: 'Staff',
         category: 'weapon' as ItemCategory,
@@ -258,7 +258,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         damage: '1d4',
         description: 'A focus for your magic',
-      } as Partial < Weapon>,
+      } as Partial <Weapon>,
       {
         name: 'Adventuring Gear',
         category: 'gear' as ItemCategory,
@@ -305,7 +305,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         armorValue: 1,
         description: 'Light protection blessed by your deity',
-      } as Partial < Armor>,
+      } as Partial <Armor>,
       {
         name: 'Dungeon Rations',
         category: 'consumable' as ItemCategory,
@@ -343,7 +343,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d4',
               description: 'A simple weapon',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Mace',
               category: 'weapon' as ItemCategory,
@@ -351,7 +351,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d8',
               description: 'A blessed bludgeon',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
       ],
@@ -367,7 +367,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         armorValue: 1,
         description: 'Natural protection from animal hides',
-      } as Partial < Armor>,
+      } as Partial <Armor>,
       {
         name: 'Wooden Shield',
         category: 'armor' as ItemCategory,
@@ -375,7 +375,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         armorValue: 1,
         description: 'Carved from ancient wood',
-      } as Partial < Armor>,
+      } as Partial <Armor>,
       {
         name: 'Adventuring Gear',
         category: 'gear' as ItemCategory,
@@ -413,7 +413,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d10',
               description: 'A living wooden club',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Staff',
               category: 'weapon' as ItemCategory,
@@ -421,7 +421,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d8',
               description: 'A natural walking stick',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Spear',
               category: 'weapon' as ItemCategory,
@@ -429,7 +429,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d8',
               description: 'Simple and effective',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
       ],
@@ -445,7 +445,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         armorValue: 1,
         description: 'Stylish and practical',
-      } as Partial < Armor>,
+      } as Partial <Armor>,
       {
         name: 'Dueling Rapier',
         category: 'weapon' as ItemCategory,
@@ -453,7 +453,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         damage: '1d8',
         description: 'An elegant weapon',
-      } as Partial < Weapon>,
+      } as Partial <Weapon>,
       {
         name: 'Adventuring Gear',
         category: 'gear' as ItemCategory,
@@ -513,7 +513,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         armorValue: 1,
         description: 'Silent and flexible',
-      } as Partial < Armor>,
+      } as Partial <Armor>,
       {
         name: 'Adventuring Gear',
         category: 'gear' as ItemCategory,
@@ -544,7 +544,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d4',
               description: 'Quick and concealable',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Rapier',
               category: 'weapon' as ItemCategory,
@@ -552,7 +552,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d8',
               description: 'For when stealth fails',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
         {
@@ -566,7 +566,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               quantity: 3,
               damage: '1d4',
               description: 'Silent and deadly',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Short Bow',
               category: 'weapon' as ItemCategory,
@@ -574,8 +574,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d6',
               description: 'Strike from the shadows',
-            } as Partial < Weapon>,
-            {
+            } as Partial <Weapon>, {
               name: 'Bundle of Arrows',
               category: 'gear' as ItemCategory,
               tags: [{ name: 'ammo' }],
@@ -618,7 +617,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 1,
         damage: '1d4',
         description: 'A simple blade',
-      } as Partial < Weapon>,
+      } as Partial <Weapon>,
       {
         name: 'Adventuring Gear',
         category: 'gear' as ItemCategory,
@@ -656,7 +655,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 2,
               damage: 'b[2d10]+1',
               description: 'A massive blade',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Battleaxe',
               category: 'weapon' as ItemCategory,
@@ -664,7 +663,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: 'b[2d10]+1',
               description: 'For cleaving enemies',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
       ],
@@ -680,7 +679,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
         weight: 2,
         armorValue: 2,
         description: 'Scales that resist flame',
-      } as Partial < Armor>,
+      } as Partial <Armor>,
       {
         name: 'Adventuring Gear',
         category: 'gear' as ItemCategory,
@@ -710,7 +709,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d10',
               description: 'Wreathed in flame',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Flaming Spear',
               category: 'weapon' as ItemCategory,
@@ -718,7 +717,7 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d8',
               description: 'Burns as it strikes',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
             [{
               name: 'Ritual Dagger',
               category: 'weapon' as ItemCategory,
@@ -726,15 +725,15 @@ export const CLASS_STARTING_DATA: Record < CharacterClass, ClassStartingData> = 
               weight: 1,
               damage: '1d8',
               description: 'For blood and flame',
-            } as Partial < Weapon>],
+            } as Partial <Weapon>],
           ],
         },
       ],
     },
   },
-};
+}
 
-export const CLASS_BOND_TEMPLATES: Record < CharacterClass, string[]> = {
+export const CLASS_BOND_TEMPLATES: Record <CharacterClass, string[]> = {
   Fighter: [
     '___ owes me their life, whether they admit it or not.',
     'I have sworn to protect ___.',
@@ -757,7 +756,7 @@ export const CLASS_BOND_TEMPLATES: Record < CharacterClass, string[]> = {
     '___ will play an important role in the events to come. I have foreseen it!',
     '___ is keeping an important secret from me.',
     '___ has been my apprentice. I taught them the basics of magic.',
-    "___ witnessed me breaking the fundamental laws of magic. They saw me summon something I shouldn't have.",
+    '___ witnessed me breaking the fundamental laws of magic. They saw me summon something I shouldn\'t have.',
   ],
   Cleric: [
     '___ has insulted my deity; I must show them the true way.',
@@ -785,7 +784,7 @@ export const CLASS_BOND_TEMPLATES: Record < CharacterClass, string[]> = {
   ],
   Barbarian: [
     '___ is puny and foolish, but amusing to me.',
-    "___'s ways are strange and confusing.",
+    '___\'s ways are strange and confusing.',
     '___ is always getting into trouble-I must protect them from themselves.',
     '___ shares my hunger for glory; the earth will tremble at our deeds!',
   ],
@@ -795,7 +794,4 @@ export const CLASS_BOND_TEMPLATES: Record < CharacterClass, string[]> = {
     'I cast something into the fire for ___ and the ashes still sing their name.',
     '___ will be the first sacrifice to the conflagration.',
   ],
-};
-
-
-
+}

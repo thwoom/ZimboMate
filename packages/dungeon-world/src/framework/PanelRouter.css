@@ -44,8 +44,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Performance-optimized error component */
@@ -99,13 +103,13 @@
     min-height: 150px;
     padding: 1rem;
   }
-  
+
   .panel-loading__spinner {
     width: 24px;
     height: 24px;
     border-width: 2px;
   }
-  
+
   .panel-error__icon {
     font-size: 1.5rem;
   }
@@ -116,7 +120,7 @@
   .panel-loading__spinner {
     animation: none;
   }
-  
+
   .panel-router,
   .panel-router--transitioning {
     transition: none;

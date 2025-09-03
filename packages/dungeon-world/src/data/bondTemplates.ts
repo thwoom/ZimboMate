@@ -2,7 +2,7 @@
  * Bond Templates * Pre-defined bond templates for Dungeon World characters
  */
 
-import { BondTemplate } from '../types/Bond';
+import type { BondTemplate } from '../types/Bond'
 
 export const bondTemplates: BondTemplate[] = [
   // Fighter Bonds
@@ -386,7 +386,7 @@ export const bondTemplates: BondTemplate[] = [
     tags: ['debt', 'honor', 'obligation'],
     xpTrigger: 'When I successfully repay my life debt to {target}',
   },
-];
+]
 
 /**
  * Get bond templates for a specific character class
@@ -394,7 +394,7 @@ export const bondTemplates: BondTemplate[] = [
 export function getBondTemplatesForClass(characterClass: string): BondTemplate[] {
   return bondTemplates.filter(template =>
     template.characterClasses.includes(characterClass),
-  );
+  )
 }
 
 /**
@@ -403,7 +403,7 @@ export function getBondTemplatesForClass(characterClass: string): BondTemplate[]
 export function getBondTemplatesForAlignment(alignment: string): BondTemplate[] {
   return bondTemplates.filter(template =>
     template.alignmentPreferences?.includes(alignment),
-  );
+  )
 }
 
 /**
@@ -412,23 +412,20 @@ export function getBondTemplatesForAlignment(alignment: string): BondTemplate[] 
 export function getBondTemplatesByTags(tags: string[]): BondTemplate[] {
   return bondTemplates.filter(template =>
     tags.some(tag => template.tags.includes(tag)),
-  );
+  )
 }
 
 /**
  * Get random bond template
  */
 export function getRandomBondTemplate(): BondTemplate {
-  const randomIndex = Math.floor(Math.random() * bondTemplates.length);
-  return bondTemplates[randomIndex];
+  const randomIndex = Math.floor(Math.random() * bondTemplates.length)
+  return bondTemplates[randomIndex]
 }
 
 /**
  * Get bond template by ID
  */
 export function getBondTemplateById(id: string): BondTemplate | undefined {
-  return bondTemplates.find(template => template.id === id);
+  return bondTemplates.find(template => template.id === id)
 }
-
-
-

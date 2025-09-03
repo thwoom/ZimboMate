@@ -1,112 +1,116 @@
-import { Item, ItemTag,Tag } from '../models/Equipment';
+import type { Item, ItemTag, Tag } from '../models/Equipment'
 
 /**
  * Tag mechanics utility for Dungeon World * Handles uses tracking, ammo management, and tag-based effects
  */
 
 export interface TagEffect {
-  type: 'damage' | 'armor' | 'piercing' | 'bonus' | 'penalty';
-  value: number;
-  source: string;
-  description: string;
+  type: 'damage' | 'armor' | 'piercing' | 'bonus' | 'penalty'
+  value: number
+  source: string
+  description: string
 }
 
 export interface UsesTracker {
-  itemId: string;
-  tagName: string;
-  current: number;
-  max: number;
-  lastUsed?: Date;
+  itemId: string
+  tagName: string
+  current: number
+  max: number
+  lastUsed?: Date
 }
 
 /**
  * Get all numeric tag values from an item
  */
 export function getNumericTagValues(item: Item): Record<string, number> {
-  const values: Record<string, number> = {};
+  const values: Record<string, number> = {}
 
   for (const tag of item.tags) {
     if (typeof tag.value === 'number') {
-      values[tag.name] = tag.value;
+      values[tag.name] = tag.value
     }
   }
 
-  return values;
+  return values
 }
 
 /**
  * Check if an item has a specific tag
  */
 export function hasTag(item: Item, tagName: ItemTag | string): boolean {
-  return item.tags.some(tag => tag.name === tagName);
+  return item.tags.some(tag => tag.name === tagName)
 }
 
 /**
  * Get the value of a specific tag
  */
 export function getTagValue(item: Item, tagName: ItemTag | string): number | string | undefined {
-  return tag?.value;
+  return tag?.value
 }
 
 /**
  * Calculate total armor from equipped items
  */
 export function calculateTotalArmor(items: Item[]): number {
-  let totalArmor = 0;
-  let armorPlus = 0;
+  let totalArmor = 0
+  let armorPlus = 0
 
   for (const item of items) {
-    if (!item.equipped) continue;
+    if (!item.equipped)
+      continue
     if (typeof armorValue === 'number') {
-      totalArmor = Math.max(totalArmor, armorValue); // Highest armor value only
+      totalArmor = Math.max(totalArmor, armorValue) // Highest armor value only
     }
 
     if (typeof armorPlusValue === 'number') {
-      armorPlus += armorPlusValue; // Armor-plus stacks
+      armorPlus += armorPlusValue // Armor-plus stacks
     }
   }
 
-  return totalArmor + armorPlus;
+  return totalArmor + armorPlus
 }
 
 /**
  * Calculate damage bonus from equipped weapons
  */
 export function calculateDamageBonus(items: Item[]): number {
-  let damageBonus = 0;
+  let damageBonus = 0
 
   for (const item of items) {
-    if (!item.equipped || item.category !== 'weapon') continue;
+    if (!item.equipped || item.category !== 'weapon')
+      continue
     if (typeof damageValue === 'number') {
-      damageBonus += damageValue;
+      damageBonus += damageValue
     }
   }
 
-  return damageBonus;
+  return damageBonus
 }
 
 /**
  * Calculate piercing bonus from equipped weapons
  */
 export function calculatePiercingBonus(items: Item[]): number {
-  let piercingBonus = 0;
+  let piercingBonus = 0
 
   for (const item of items) {
-    if (!item.equipped || item.category !== 'weapon') continue;
+    if (!item.equipped || item.category !== 'weapon')
+      continue
     if (typeof piercingValue === 'number') {
-      piercingBonus += piercingValue;
+      piercingBonus += piercingValue
     }
   }
 
-  return piercingBonus;
+  return piercingBonus
 }
 
 /**
  * Check if an item can be used (has uses remaining)
  */
 export function canUseItem(item: Item): boolean {
-  if (!item.uses) return true; // No uses limit
-  return item.uses.current > 0;
+  if (!item.uses)
+    return true // No uses limit
+  return item.uses.current > 0
 }
 
 /**
@@ -114,120 +118,122 @@ export function canUseItem(item: Item): boolean {
  */
 export function useItem(item: Item): Item | null {
   if (!item.uses || item.uses.current <= 0) {
-    return null; // Cannot use
+    return null // Cannot use
   }
 
   return {
     ...item,
     uses: {
       ...item.uses,
-      current: item.uses.current-1,
+      current: item.uses.current - 1,
     },
-  };
+  }
 }
 
 /**
  * Check if an item has ammo
  */
 export function hasAmmo(items: Item[], weapon: Item): boolean {
-  if (typeof ammoValue !== 'number') return true; // No ammo requirement
+  if (typeof ammoValue !== 'number')
+    return true // No ammo requirement
 
   // Check for ammo items in inventory
   return items.some(item =>
-    hasTag(item, 'ammo') &&
-    item.uses &&
-    item.uses.current > 0,
-  );
+    hasTag(item, 'ammo')
+    && item.uses
+    && item.uses.current > 0,
+  )
 }
 
 /**
  * Use ammo for a weapon
  */
 export function useAmmo(items: Item[], weapon: Item): { items: Item[], ammoUsed: boolean } {
-  const ammoValue = getTagValue(weapon, 'ammo');
+  const ammoValue = getTagValue(weapon, 'ammo')
   if (typeof ammoValue !== 'number') {
-    return { items, ammoUsed: false }; // No ammo requirement
+    return { items, ammoUsed: false } // No ammo requirement
   }
 
   // Find ammo item to use
   const ammoItemIndex = items.findIndex(item =>
-    hasTag(item, 'ammo') &&
-    item.uses &&
-    item.uses.current > 0,
-  );
+    hasTag(item, 'ammo')
+    && item.uses
+    && item.uses.current > 0,
+  )
 
   if (ammoItemIndex === -1) {
-    return { items, ammoUsed: false }; // No ammo available
+    return { items, ammoUsed: false } // No ammo available
   }
 
   // Use ammo
-  const updatedItems = [...items];
-  const ammoItem = updatedItems[ammoItemIndex];
+  const updatedItems = [...items]
+  const ammoItem = updatedItems[ammoItemIndex]
 
   if (ammoItem.uses) {
     updatedItems[ammoItemIndex] = {
       ...ammoItem,
       uses: {
         ...ammoItem.uses,
-        current: ammoItem.uses.current-1,
+        current: ammoItem.uses.current - 1,
       },
-    };
+    }
   }
 
-  return { items: updatedItems, ammoUsed: true };
+  return { items: updatedItems, ammoUsed: true }
 }
 
 /**
  * Get all active tag effects from equipped items
  */
 export function getActiveTagEffects(items: Item[]): TagEffect[] {
-  const effects: TagEffect[] = [];
+  const effects: TagEffect[] = []
 
   for (const item of items) {
-    if (!item.equipped) continue;
+    if (!item.equipped)
+      continue
 
     // Damage bonus
-    const damageValue = getTagValue(item, 'damage');
+    const damageValue = getTagValue(item, 'damage')
     if (typeof damageValue === 'number' && damageValue > 0) {
       effects.push({
         type: 'damage',
         value: damageValue,
         source: item.name,
         description: `+${damageValue} damage from ${item.name}`,
-      });
+      })
     }
 
     // Armor
-    const armorValue = getTagValue(item, 'armor');
+    const armorValue = getTagValue(item, 'armor')
     if (typeof armorValue === 'number' && armorValue > 0) {
       effects.push({
         type: 'armor',
         value: armorValue,
         source: item.name,
         description: `${armorValue} armor from ${item.name}`,
-      });
+      })
     }
 
     // Armor-plus
-    const armorPlusValue = getTagValue(item, 'armor-plus');
+    const armorPlusValue = getTagValue(item, 'armor-plus')
     if (typeof armorPlusValue === 'number' && armorPlusValue > 0) {
       effects.push({
         type: 'armor',
         value: armorPlusValue,
         source: item.name,
         description: `+${armorPlusValue} armor from ${item.name}`,
-      });
+      })
     }
 
     // Piercing
-    const piercingValue = getTagValue(item, 'piercing');
+    const piercingValue = getTagValue(item, 'piercing')
     if (typeof piercingValue === 'number' && piercingValue > 0) {
       effects.push({
         type: 'piercing',
         value: piercingValue,
         source: item.name,
         description: `${piercingValue} piercing from ${item.name}`,
-      });
+      })
     }
 
     // Clumsy penalty
@@ -237,11 +243,11 @@ export function getActiveTagEffects(items: Item[]): TagEffect[] {
         value: -1,
         source: item.name,
         description: `-1 ongoing from ${item.name} (clumsy)`,
-      });
+      })
     }
   }
 
-  return effects;
+  return effects
 }
 
 /**
@@ -249,17 +255,17 @@ export function getActiveTagEffects(items: Item[]): TagEffect[] {
  */
 export function calculateTotalWeight(items: Item[]): number {
   return items.reduce((total, item) => {
-    const weightValue = getTagValue(item, 'weight');
-    const weight = typeof weightValue === 'number' ? weightValue : item.weight;
-    return total + (weight * item.quantity);
-  }, 0);
+    const weightValue = getTagValue(item, 'weight')
+    const weight = typeof weightValue === 'number' ? weightValue : item.weight
+    return total + (weight * item.quantity)
+  }, 0)
 }
 
 /**
  * Check if an item is consumable
  */
 export function isConsumable(item: Item): boolean {
-  return item.category === 'consumable' || hasTag(item, 'uses') || hasTag(item, 'ammo');
+  return item.category === 'consumable' || hasTag(item, 'uses') || hasTag(item, 'ammo')
 }
 
 /**
@@ -267,10 +273,10 @@ export function isConsumable(item: Item): boolean {
  */
 export function getLowUsesItems(items: Item[], threshold = 2): Item[] {
   return items.filter(item =>
-    item.uses &&
-    item.uses.current <= threshold &&
-    item.uses.current > 0,
-  );
+    item.uses
+    && item.uses.current <= threshold
+    && item.uses.current > 0,
+  )
 }
 
 /**
@@ -278,16 +284,17 @@ export function getLowUsesItems(items: Item[], threshold = 2): Item[] {
  */
 export function getDepletedItems(items: Item[]): Item[] {
   return items.filter(item =>
-    item.uses &&
-    item.uses.current === 0,
-  );
+    item.uses
+    && item.uses.current === 0,
+  )
 }
 
 /**
  * Restore uses to an item
  */
 export function restoreItemUses(item: Item, amount = 1): Item {
-  if (!item.uses) return item;
+  if (!item.uses)
+    return item
 
   return {
     ...item,
@@ -295,15 +302,16 @@ export function restoreItemUses(item: Item, amount = 1): Item {
       ...item.uses,
       current: Math.min(item.uses.current + amount, item.uses.max),
     },
-  };
+  }
 }
 
 /**
  * Reset all uses to maximum
  */
 export function resetAllUses(items: Item[]): Item[] {
-  return items.map(item => {
-    if (!item.uses) return item;
+  return items.map((item) => {
+    if (!item.uses)
+      return item
 
     return {
       ...item,
@@ -311,32 +319,33 @@ export function resetAllUses(items: Item[]): Item[] {
         ...item.uses,
         current: item.uses.max,
       },
-    };
-  });
+    }
+  })
 }
 
 /**
  * Parse tag string into Tag objects
  */
 export function parseTagString(tagString: string): Tag[] {
-  const tags: Tag[] = [];
-  const parts = tagString.split(',').map(s => s.trim());
+  const tags: Tag[] = []
+  const parts = tagString.split(',').map(s => s.trim())
 
   for (const part of parts) {
-    const match = part.match(/^(\w+)\s+(.+)$/);
+    const match = part.match(/^(\w+)\s+(.+)$/)
     if (match) {
-      const [, name, value] = match;
-      const numValue = Number.parseInt(value, 10);
+      const [, name, value] = match
+      const numValue = Number.parseInt(value, 10)
       tags.push({
         name: name as ItemTag,
         value: isNaN(numValue) ? value : numValue,
-      });
-    } else {
-      tags.push({ name: part as ItemTag });
+      })
+    }
+    else {
+      tags.push({ name: part as ItemTag })
     }
   }
 
-  return tags;
+  return tags
 }
 
 /**
@@ -345,14 +354,14 @@ export function parseTagString(tagString: string): Tag[] {
 export function formatTags(tags: Tag[]): string {
   return tags
     .map(tag => tag.value !== undefined ? `${tag.name} ${tag.value}` : tag.name)
-    .join(', ');
+    .join(', ')
 }
 
 /**
  * Get tag description for tooltips
  */
 export function getTagDescription(tag: Tag): string {
-  const descriptions: Record < ItemTag, string> = {
+  const descriptions: Record <ItemTag, string> = {
     // Weapon range tags
     'hand': 'Useful for attacking within reach',
     'close': 'Useful at arm\'s reach plus a foot or two',
@@ -402,14 +411,11 @@ export function getTagDescription(tag: Tag): string {
     'magical': 'Has magical properties',
     'holy': 'Blessed or divine',
     'unholy': 'Cursed or profane',
-  };
-
-  const baseDesc = descriptions[tag.name as ItemTag] || tag.name;
-  if (tag.value !== undefined) {
-    return `${baseDesc} (${tag.value})`;
   }
-  return baseDesc;
+
+  const baseDesc = descriptions[tag.name as ItemTag] || tag.name
+  if (tag.value !== undefined) {
+    return `${baseDesc} (${tag.value})`
+  }
+  return baseDesc
 }
-
-
-

@@ -370,7 +370,7 @@
   min-height: 80px;
 }
 
-.form-group label input[type="checkbox"] {
+.form-group label input[type='checkbox'] {
   width: auto;
   margin-right: var(--spacing-xs);
 }
@@ -413,30 +413,30 @@
   .campaign-panel {
     padding: var(--spacing-md);
   }
-  
+
   .campaign-panel__header {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-sm);
   }
-  
+
   .campaign-selector {
     width: 100%;
   }
-  
+
   .campaign-selector select {
     flex: 1;
   }
-  
+
   .campaign-controls {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .items-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .modal {
     width: 95%;
     margin: var(--spacing-md);

@@ -1,4 +1,1 @@
-export { default as InventoryPanel } from './InventoryPanel';
-
-
-
+export { default as InventoryPanel } from './InventoryPanel'

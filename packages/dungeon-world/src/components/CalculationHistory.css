@@ -34,7 +34,8 @@
   font-size: 0.875rem;
 }
 
-.export-btn, .clear-btn {
+.export-btn,
+.clear-btn {
   padding: 4px 12px;
   border: 1px solid var(--border-color, #ccc);
   border-radius: 4px;

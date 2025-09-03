@@ -2,73 +2,72 @@
  * Enhanced character template service with presets and custom templates
  */
 
-import { Alignment, Attributes,Character, CharacterClass, Race } from '../models/Character';
-import { Item } from '../models/Equipment';
-import { characterValidationService } from './CharacterValidation';
+import type { Alignment, Attributes, Character, CharacterClass, Race } from '../models/Character'
+import type { Item } from '../models/Equipment'
+import { characterValidationService } from './CharacterValidation'
 
 export interface CharacterTemplate {
-  id: string;
-  name: string;
-  description: string;
-  category: 'official' | 'community' | 'custom';
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  tags: string[];
+  id: string
+  name: string
+  description: string
+  category: 'official' | 'community' | 'custom'
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  tags: string[]
 
   // Character data
-  characterClass: CharacterClass;
-  race: Race;
-  alignment: Alignment;
-  attributes: Attributes;
+  characterClass: CharacterClass
+  race: Race
+  alignment: Alignment
+  attributes: Attributes
 
   // Optional customizations
-  suggestedName?: string;
-  suggestedLook?: string;
-  suggestedBackground?: string;
-  suggestedPersonality?: string[];
-  suggestedVoice?: string;
+  suggestedName?: string
+  suggestedLook?: string
+  suggestedBackground?: string
+  suggestedPersonality?: string[]
+  suggestedVoice?: string
 
   // Equipment and moves
-  startingEquipment: Item[];
-  recommendedMoves?: string[];
+  startingEquipment: Item[]
+  recommendedMoves?: string[]
 
   // Metadata
-  author?: string;
-  version: string;
-  createdAt: Date;
-  updatedAt: Date;
+  author?: string
+  version: string
+  createdAt: Date
+  updatedAt: Date
 
   // Build info
-  buildNotes?: string;
-  playstyle: string[];
-  strengths: string[];
-  weaknesses: string[];
+  buildNotes?: string
+  playstyle: string[]
+  strengths: string[]
+  weaknesses: string[]
 
   // Validation
-  isValid?: boolean;
-  validationNotes?: string[];
+  isValid?: boolean
+  validationNotes?: string[]
 }
 
 export interface TemplateCategory {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  templates: CharacterTemplate[];
+  id: string
+  name: string
+  description: string
+  icon: string
+  templates: CharacterTemplate[]
 }
 
 export interface QuickStartTemplate {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  characterClass: CharacterClass;
-  race: Race;
-  concept: string;
-  difficulty: 'beginner' | 'intermediate';
+  id: string
+  name: string
+  description: string
+  icon: string
+  characterClass: CharacterClass
+  race: Race
+  concept: string
+  difficulty: 'beginner' | 'intermediate'
 }
 
 class CharacterTemplateService {
-
   /**
    * Get all available template categories
    */
@@ -109,7 +108,7 @@ class CharacterTemplateService {
         icon: '💾',
         templates: this.getCustomTemplates(),
       },
-    ];
+    ]
   }
 
   /**
@@ -157,13 +156,13 @@ class CharacterTemplateService {
         concept: 'Ranged combat and tracking',
         difficulty: 'intermediate',
       },
-    ];
+    ]
   }
 
   /**
    * Create a character from a template
    */
-  createCharacterFromTemplate(template: CharacterTemplate): Partial < Character> {
+  createCharacterFromTemplate(template: CharacterTemplate): Partial <Character> {
     return {
       name: template.suggestedName || this.generateNameForTemplate(template),
       class: template.characterClass,
@@ -180,16 +179,16 @@ class CharacterTemplateService {
       xp: 0,
       coin: this.calculateStartingCoin(template),
       notes: template.buildNotes || '',
-    };
+    }
   }
 
   /**
    * Create a character from a quick start template
    */
-  createCharacterFromQuickStart(quickStart: QuickStartTemplate): Partial < Character> {
-    const fullTemplate = this.getTemplateByClassAndRace(quickStart.characterClass, quickStart.race);
+  createCharacterFromQuickStart(quickStart: QuickStartTemplate): Partial <Character> {
+    const fullTemplate = this.getTemplateByClassAndRace(quickStart.characterClass, quickStart.race)
     if (fullTemplate) {
-      return this.createCharacterFromTemplate(fullTemplate);
+      return this.createCharacterFromTemplate(fullTemplate)
     }
 
     // Fallback: create basic character
@@ -202,18 +201,18 @@ class CharacterTemplateService {
       inventory: this.getBasicStartingEquipment(quickStart.characterClass),
       level: 1,
       xp: 0,
-    };
+    }
   }
 
   /**
    * Save a custom template
    */
-  saveCustomTemplate(character: Partial < Character>, templateData: {
-    name: string;
-    description: string;
-    buildNotes?: string;
-    playstyle: string[];
-    tags: string[];
+  saveCustomTemplate(character: Partial <Character>, templateData: {
+    name: string
+    description: string
+    buildNotes?: string
+    playstyle: string[]
+    tags: string[]
   }): CharacterTemplate {
     const template: CharacterTemplate = {
       id: `custom-${Date.now()}`,
@@ -246,17 +245,17 @@ class CharacterTemplateService {
       playstyle: templateData.playstyle,
       strengths: this.calculateStrengths(character),
       weaknesses: this.calculateWeaknesses(character),
-    };
+    }
 
     // Validate template
-    const validation = characterValidationService.validateCharacter(character);
-    template.isValid = validation.isValid;
-    template.validationNotes = validation.errors.map(e => e.message);
+    const validation = characterValidationService.validateCharacter(character)
+    template.isValid = validation.isValid
+    template.validationNotes = validation.errors.map(e => e.message)
 
     // Save to localStorage
-    this.saveTemplateToStorage(template);
+    this.saveTemplateToStorage(template)
 
-    return template;
+    return template
   }
 
   /**
@@ -328,7 +327,7 @@ class CharacterTemplateService {
 
         isValid: true,
       },
-    ];
+    ]
   }
 
   /**
@@ -368,7 +367,7 @@ class CharacterTemplateService {
 
         isValid: true,
       },
-    ];
+    ]
   }
 
   /**
@@ -408,7 +407,7 @@ class CharacterTemplateService {
 
         isValid: true,
       },
-    ];
+    ]
   }
 
   /**
@@ -448,7 +447,7 @@ class CharacterTemplateService {
 
         isValid: true,
       },
-    ];
+    ]
   }
 
   /**
@@ -456,10 +455,11 @@ class CharacterTemplateService {
    */
   private getCustomTemplates(): CharacterTemplate[] {
     try {
-      const stored = localStorage.getItem('zimbomate_custom_templates');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
+      const stored = localStorage.getItem('zimbomate_custom_templates')
+      return stored ? JSON.parse(stored) : []
+    }
+    catch {
+      return []
     }
   }
 
@@ -468,11 +468,12 @@ class CharacterTemplateService {
    */
   private saveTemplateToStorage(template: CharacterTemplate): void {
     try {
-      const existing = this.getCustomTemplates();
-      const updated = [...existing.filter(t => t.id !== template.id), template];
-      localStorage.setItem('zimbomate_custom_templates', JSON.stringify(updated));
-    } catch {
-      }
+      const existing = this.getCustomTemplates()
+      const updated = [...existing.filter(t => t.id !== template.id), template]
+      localStorage.setItem('zimbomate_custom_templates', JSON.stringify(updated))
+    }
+    catch {
+    }
   }
 
   /**
@@ -484,77 +485,77 @@ class CharacterTemplateService {
       ...this.getClassicTemplates(),
       ...this.getSpecializedTemplates(),
       ...this.getCreativeTemplates(),
-    ];
+    ]
 
-    return allTemplates.find(t => t.characterClass === characterClass && t.race === race) || null;
+    return allTemplates.find(t => t.characterClass === characterClass && t.race === race) || null
   }
 
   /**
    * Generate appropriate name for template
    */
   private generateNameForTemplate(template: CharacterTemplate): string {
-    return template.suggestedName || this.generateNameForClass(template.characterClass, template.race);
+    return template.suggestedName || this.generateNameForClass(template.characterClass, template.race)
   }
 
   /**
    * Generate name based on class and race
    */
   private generateNameForClass(characterClass: CharacterClass, race: Race): string {
-    const names: Record < string, string[]> = {
-      'Fighter': ['Marcus', 'Gareth', 'Thora', 'Bjorn'],
-      'Thief': ['Raven', 'Sly', 'Whisper', 'Shadow'],
-      'Cleric': ['Mara', 'Benedict', 'Seraphina', 'Aldric'],
-      'Wizard': ['Erasmus', 'Morgana', 'Zephyr', 'Sage'],
-      'Ranger': ['Lyralei', 'Strider', 'Willow', 'Hunter'],
-      'Paladin': ['Gareth', 'Celestine', 'Righteous', 'Dawn'],
-      'Bard': ['Melody', 'Verse', 'Harmony', 'Ballad'],
-      'Druid': ['Oakenheart', 'Moonwhisper', 'Thornwick', 'Sage'],
-      'Barbarian': ['Grok', 'Thunderfist', 'Wildmane', 'Rage'],
-      'Immolator': ['Blaze', 'Ember', 'Inferno', 'Ash'],
-    };
+    const names: Record <string, string[]> = {
+      Fighter: ['Marcus', 'Gareth', 'Thora', 'Bjorn'],
+      Thief: ['Raven', 'Sly', 'Whisper', 'Shadow'],
+      Cleric: ['Mara', 'Benedict', 'Seraphina', 'Aldric'],
+      Wizard: ['Erasmus', 'Morgana', 'Zephyr', 'Sage'],
+      Ranger: ['Lyralei', 'Strider', 'Willow', 'Hunter'],
+      Paladin: ['Gareth', 'Celestine', 'Righteous', 'Dawn'],
+      Bard: ['Melody', 'Verse', 'Harmony', 'Ballad'],
+      Druid: ['Oakenheart', 'Moonwhisper', 'Thornwick', 'Sage'],
+      Barbarian: ['Grok', 'Thunderfist', 'Wildmane', 'Rage'],
+      Immolator: ['Blaze', 'Ember', 'Inferno', 'Ash'],
+    }
 
-    const classNames = names[characterClass] || ['Hero'];
-    return classNames[Math.floor(Math.random() * classNames.length)];
+    const classNames = names[characterClass] || ['Hero']
+    return classNames[Math.floor(Math.random() * classNames.length)]
   }
 
   /**
    * Get default alignment for class
    */
   private getDefaultAlignment(characterClass: CharacterClass): Alignment {
-    const defaults: Record < CharacterClass, Alignment> = {
-      'Fighter': 'Good',
-      'Paladin': 'Lawful',
-      'Ranger': 'Good',
-      'Thief': 'Chaotic',
-      'Bard': 'Chaotic',
-      'Cleric': 'Good',
-      'Druid': 'Neutral',
-      'Wizard': 'Neutral',
-      'Barbarian': 'Chaotic',
-      'Immolator': 'Neutral',
-    };
+    const defaults: Record <CharacterClass, Alignment> = {
+      Fighter: 'Good',
+      Paladin: 'Lawful',
+      Ranger: 'Good',
+      Thief: 'Chaotic',
+      Bard: 'Chaotic',
+      Cleric: 'Good',
+      Druid: 'Neutral',
+      Wizard: 'Neutral',
+      Barbarian: 'Chaotic',
+      Immolator: 'Neutral',
+    }
 
-    return defaults[characterClass] || 'Neutral';
+    return defaults[characterClass] || 'Neutral'
   }
 
   /**
    * Get optimal attributes for class
    */
   private getOptimalAttributes(characterClass: CharacterClass): Attributes {
-    const optimal: Record < CharacterClass, Attributes> = {
-      'Fighter': { STR: 16, DEX: 13, CON: 15, INT: 8, WIS: 12, CHA: 9 },
-      'Paladin': { STR: 16, DEX: 9, CON: 15, INT: 12, WIS: 13, CHA: 8 },
-      'Ranger': { STR: 12, DEX: 16, CON: 13, INT: 9, WIS: 15, CHA: 8 },
-      'Thief': { STR: 9, DEX: 16, CON: 12, INT: 15, WIS: 13, CHA: 8 },
-      'Bard': { STR: 8, DEX: 13, CON: 12, INT: 15, WIS: 9, CHA: 16 },
-      'Cleric': { STR: 12, DEX: 9, CON: 13, INT: 8, WIS: 16, CHA: 15 },
-      'Druid': { STR: 8, DEX: 13, CON: 15, INT: 12, WIS: 16, CHA: 9 },
-      'Wizard': { STR: 8, DEX: 12, CON: 9, INT: 16, WIS: 13, CHA: 15 },
-      'Barbarian': { STR: 16, DEX: 12, CON: 15, INT: 8, WIS: 13, CHA: 9 },
-      'Immolator': { STR: 12, DEX: 13, CON: 16, INT: 15, WIS: 9, CHA: 8 },
-    };
+    const optimal: Record <CharacterClass, Attributes> = {
+      Fighter: { STR: 16, DEX: 13, CON: 15, INT: 8, WIS: 12, CHA: 9 },
+      Paladin: { STR: 16, DEX: 9, CON: 15, INT: 12, WIS: 13, CHA: 8 },
+      Ranger: { STR: 12, DEX: 16, CON: 13, INT: 9, WIS: 15, CHA: 8 },
+      Thief: { STR: 9, DEX: 16, CON: 12, INT: 15, WIS: 13, CHA: 8 },
+      Bard: { STR: 8, DEX: 13, CON: 12, INT: 15, WIS: 9, CHA: 16 },
+      Cleric: { STR: 12, DEX: 9, CON: 13, INT: 8, WIS: 16, CHA: 15 },
+      Druid: { STR: 8, DEX: 13, CON: 15, INT: 12, WIS: 16, CHA: 9 },
+      Wizard: { STR: 8, DEX: 12, CON: 9, INT: 16, WIS: 13, CHA: 15 },
+      Barbarian: { STR: 16, DEX: 12, CON: 15, INT: 8, WIS: 13, CHA: 9 },
+      Immolator: { STR: 12, DEX: 13, CON: 16, INT: 15, WIS: 9, CHA: 8 },
+    }
 
-    return optimal[characterClass] || { STR: 13, DEX: 13, CON: 13, INT: 13, WIS: 13, CHA: 13 };
+    return optimal[characterClass] || { STR: 13, DEX: 13, CON: 13, INT: 13, WIS: 13, CHA: 13 }
   }
 
   /**
@@ -563,7 +564,7 @@ class CharacterTemplateService {
   private getBasicStartingEquipment(characterClass: CharacterClass): Item[] {
     // This would return appropriate starting equipment based on class
     // For now, returning empty array-would be populated with actual equipment data
-    return [];
+    return []
   }
 
   /**
@@ -571,7 +572,7 @@ class CharacterTemplateService {
    */
   private getArcherEquipment(): Item[] {
     // Specialized equipment for archer build
-    return [];
+    return []
   }
 
   /**
@@ -579,7 +580,7 @@ class CharacterTemplateService {
    */
   private getScholarEquipment(): Item[] {
     // Books, scrolls, writing materials, etc.
-    return [];
+    return []
   }
 
   /**
@@ -587,86 +588,108 @@ class CharacterTemplateService {
    */
   private calculateStartingCoin(template: CharacterTemplate): number {
     // Base coin varies by class and background
-    const baseCoin: Record < CharacterClass, number> = {
-      'Fighter': 20, 'Paladin': 15, 'Ranger': 10, 'Thief': 25, 'Bard': 20,
-      'Cleric': 15, 'Druid': 5, 'Wizard': 10, 'Barbarian': 15, 'Immolator': 10,
-    };
+    const baseCoin: Record <CharacterClass, number> = {
+      Fighter: 20,
+      Paladin: 15,
+      Ranger: 10,
+      Thief: 25,
+      Bard: 20,
+      Cleric: 15,
+      Druid: 5,
+      Wizard: 10,
+      Barbarian: 15,
+      Immolator: 10,
+    }
 
-    return baseCoin[template.characterClass] || 15;
+    return baseCoin[template.characterClass] || 15
   }
 
   /**
    * Calculate character strengths
    */
-  private calculateStrengths(character: Partial < Character>): string[] {
-    const strengths: string[] = [];
+  private calculateStrengths(character: Partial <Character>): string[] {
+    const strengths: string[] = []
 
-    if (!character.attributes || !character.class) return strengths;
+    if (!character.attributes || !character.class)
+      return strengths
 
-    const attrs = character.attributes;
+    const attrs = character.attributes
 
     // High attribute bonuses
-    if (attrs.STR >= 16) strengths.push('High Strength');
-    if (attrs.DEX >= 16) strengths.push('High Dexterity');
-    if (attrs.CON >= 16) strengths.push('High Constitution');
-    if (attrs.INT >= 16) strengths.push('High Intelligence');
-    if (attrs.WIS >= 16) strengths.push('High Wisdom');
-    if (attrs.CHA >= 16) strengths.push('High Charisma');
+    if (attrs.STR >= 16)
+      strengths.push('High Strength')
+    if (attrs.DEX >= 16)
+      strengths.push('High Dexterity')
+    if (attrs.CON >= 16)
+      strengths.push('High Constitution')
+    if (attrs.INT >= 16)
+      strengths.push('High Intelligence')
+    if (attrs.WIS >= 16)
+      strengths.push('High Wisdom')
+    if (attrs.CHA >= 16)
+      strengths.push('High Charisma')
 
     // Class-specific strengths
-    const classStrengths: Record < CharacterClass, string[]> = {
-      'Fighter': ['Combat prowess', 'Heavy armor'],
-      'Paladin': ['Divine magic', 'Healing'],
-      'Ranger': ['Tracking', 'Nature magic'],
-      'Thief': ['Stealth', 'Utility'],
-      'Bard': ['Social skills', 'Versatility'],
-      'Cleric': ['Healing magic', 'Divine protection'],
-      'Druid': ['Shapeshifting', 'Nature magic'],
-      'Wizard': ['Powerful magic', 'Utility spells'],
-      'Barbarian': ['High damage', 'Rage'],
-      'Immolator': ['Fire magic', 'Damage'],
-    };
+    const classStrengths: Record <CharacterClass, string[]> = {
+      Fighter: ['Combat prowess', 'Heavy armor'],
+      Paladin: ['Divine magic', 'Healing'],
+      Ranger: ['Tracking', 'Nature magic'],
+      Thief: ['Stealth', 'Utility'],
+      Bard: ['Social skills', 'Versatility'],
+      Cleric: ['Healing magic', 'Divine protection'],
+      Druid: ['Shapeshifting', 'Nature magic'],
+      Wizard: ['Powerful magic', 'Utility spells'],
+      Barbarian: ['High damage', 'Rage'],
+      Immolator: ['Fire magic', 'Damage'],
+    }
 
-    strengths.push(...(classStrengths[character.class] || []));
+    strengths.push(...(classStrengths[character.class] || []))
 
-    return strengths;
+    return strengths
   }
 
   /**
    * Calculate character weaknesses
    */
-  private calculateWeaknesses(character: Partial < Character>): string[] {
-    const weaknesses: string[] = [];
+  private calculateWeaknesses(character: Partial <Character>): string[] {
+    const weaknesses: string[] = []
 
-    if (!character.attributes || !character.class) return weaknesses;
+    if (!character.attributes || !character.class)
+      return weaknesses
 
-    const attrs = character.attributes;
+    const attrs = character.attributes
 
     // Low attribute penalties
-    if (attrs.STR <= 8) weaknesses.push('Low Strength');
-    if (attrs.DEX <= 8) weaknesses.push('Low Dexterity');
-    if (attrs.CON <= 8) weaknesses.push('Low Constitution');
-    if (attrs.INT <= 8) weaknesses.push('Low Intelligence');
-    if (attrs.WIS <= 8) weaknesses.push('Low Wisdom');
-    if (attrs.CHA <= 8) weaknesses.push('Low Charisma');
+    if (attrs.STR <= 8)
+      weaknesses.push('Low Strength')
+    if (attrs.DEX <= 8)
+      weaknesses.push('Low Dexterity')
+    if (attrs.CON <= 8)
+      weaknesses.push('Low Constitution')
+    if (attrs.INT <= 8)
+      weaknesses.push('Low Intelligence')
+    if (attrs.WIS <= 8)
+      weaknesses.push('Low Wisdom')
+    if (attrs.CHA <= 8)
+      weaknesses.push('Low Charisma')
 
     // Class-specific weaknesses
-    const classWeaknesses: Record < CharacterClass, string[]> = {
-      'Fighter': ['Limited utility', 'Poor social skills'],
-      'Paladin': ['Alignment restrictions'],
-      'Ranger': ['Limited armor'],
-      'Thief': ['Low HP', 'Poor armor'],
-      'Bard': ['Jack of all trades'],
-      'Cleric': ['Spell dependency'],
-      'Druid': ['No metal equipment'],
-      'Wizard': ['Very fragile', 'Spell dependency'],
-      'Barbarian': ['Poor social skills', 'Limited utility'],
-      'Immolator': ['Self-damage risk'],
-    };
+    const classWeaknesses: Record <CharacterClass, string[]> = {
+      Fighter: ['Limited utility', 'Poor social skills'],
+      Paladin: ['Alignment restrictions'],
+      Ranger: ['Limited armor'],
+      Thief: ['Low HP', 'Poor armor'],
+      Bard: ['Jack of all trades'],
+      Cleric: ['Spell dependency'],
+      Druid: ['No metal equipment'],
+      Wizard: ['Very fragile', 'Spell dependency'],
+      Barbarian: ['Poor social skills', 'Limited utility'],
+      Immolator: ['Self-damage risk'],
+    }
 
-    weaknesses.push(...(classWeaknesses[character.class] || []));
+    weaknesses.push(...(classWeaknesses[character.class] || []))
 
-    return weaknesses;
+    return weaknesses
   }
 
   /**
@@ -674,51 +697,49 @@ class CharacterTemplateService {
    */
   deleteCustomTemplate(templateId: string): void {
     try {
-      const existing = this.getCustomTemplates();
-      const updated = existing.filter(t => t.id !== templateId);
-      localStorage.setItem('zimbomate_custom_templates', JSON.stringify(updated));
-    } catch {
-      }
+      const existing = this.getCustomTemplates()
+      const updated = existing.filter(t => t.id !== templateId)
+      localStorage.setItem('zimbomate_custom_templates', JSON.stringify(updated))
+    }
+    catch {
+    }
   }
 
   /**
    * Search templates by criteria
    */
   searchTemplates(query: string, filters: {
-    category?: string;
-    difficulty?: string;
-    characterClass?: CharacterClass;
-    tags?: string[];
+    category?: string
+    difficulty?: string
+    characterClass?: CharacterClass
+    tags?: string[]
   } = {}): CharacterTemplate[] {
-    const allCategories = this.getTemplateCategories();
-    const allTemplates = allCategories.flatMap(cat => cat.templates);
+    const allCategories = this.getTemplateCategories()
+    const allTemplates = allCategories.flatMap(cat => cat.templates)
 
-    return allTemplates.filter(template => {
+    return allTemplates.filter((template) => {
       // Text search
-      const matchesQuery = !query ||
-        template.name.toLowerCase().includes(query.toLowerCase()) ||
-        template.description.toLowerCase().includes(query.toLowerCase()) ||
-        template.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()));
+      const matchesQuery = !query
+        || template.name.toLowerCase().includes(query.toLowerCase())
+        || template.description.toLowerCase().includes(query.toLowerCase())
+        || template.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
 
       // Category filter
-      const matchesCategory = !filters.category || template.category === filters.category;
+      const matchesCategory = !filters.category || template.category === filters.category
 
       // Difficulty filter
-      const matchesDifficulty = !filters.difficulty || template.difficulty === filters.difficulty;
+      const matchesDifficulty = !filters.difficulty || template.difficulty === filters.difficulty
 
       // Class filter
-      const matchesClass = !filters.characterClass || template.characterClass === filters.characterClass;
+      const matchesClass = !filters.characterClass || template.characterClass === filters.characterClass
 
       // Tags filter
-      const matchesTags = !filters.tags?.length ||
-        filters.tags.some(tag => template.tags.includes(tag));
+      const matchesTags = !filters.tags?.length
+        || filters.tags.some(tag => template.tags.includes(tag))
 
-      return matchesQuery && matchesCategory && matchesDifficulty && matchesClass && matchesTags;
-    });
+      return matchesQuery && matchesCategory && matchesDifficulty && matchesClass && matchesTags
+    })
   }
 }
 
-export const characterTemplateService = new CharacterTemplateService();
-
-
-
+export const characterTemplateService = new CharacterTemplateService()

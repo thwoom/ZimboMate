@@ -1,4 +1,1 @@
-export { default } from './CharacterStatsPanel';
-
-
-
+export { default } from './CharacterStatsPanel'

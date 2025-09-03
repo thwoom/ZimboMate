@@ -1,135 +1,146 @@
-import './SpellPanel.css';
+import type { PanelProps } from '../../framework/Panel'
 
-import React, {useState } from 'react';
+import type { Spell as ServiceSpell, SpellClass } from '../../services/Spells'
 
-import SpellConsequenceModal from '../../components/SpellConsequenceModal';
-import { createPanel, PanelProps } from '../../framework/Panel';
-import { createPanelAPI } from '../../framework/PanelAPI';
-import { spellCastingService } from '../../services/SpellCastingService';
-import { getSpellsForClass, Spell as ServiceSpell, SpellClass } from '../../services/Spells';
-import { useGameStore } from '../../store/GameStore';
+import React, { useState } from 'react'
+import SpellConsequenceModal from '../../components/SpellConsequenceModal'
+import { createPanel } from '../../framework/Panel'
+import { createPanelAPI } from '../../framework/PanelAPI'
+import { spellCastingService } from '../../services/SpellCastingService'
+import { getSpellsForClass } from '../../services/Spells'
+import { useGameStore } from '../../store/GameStore'
+import './SpellPanel.css'
 
 interface SpellPanelState {
-  selectedCategory: 'all' | 'prepared' | 'available' | 'cantrips';
-  searchTerm: string;
-  showSpellDetails: boolean;
+  selectedCategory: 'all' | 'prepared' | 'available' | 'cantrips'
+  searchTerm: string
+  showSpellDetails: boolean
 }
 
-const SpellPanel: React.FC < PanelProps> = ({ id }) => {
-  const _api = createPanelAPI(id);
-  const { state: gameState, updateCharacter } = useGameStore();
-  const [panelState, setPanelState] = useState < SpellPanelState>({
+const SpellPanel: React.FC <PanelProps> = ({ id }) => {
+  const _api = createPanelAPI(id)
+  const { state: gameState, updateCharacter } = useGameStore()
+  const [panelState, setPanelState] = useState <SpellPanelState>({
     selectedCategory: 'all',
     searchTerm: '',
     showSpellDetails: false,
-  });
+  })
 
-  const [spellModal, setSpellModal] = useState<{ open: boolean; spell?: ServiceSpell }>({ open: false });
+  const [spellModal, setSpellModal] = useState<{ open: boolean, spell?: ServiceSpell }>({ open: false })
 
   // Get active character
-  const character = gameState.activeCharacterId ?
-    gameState.characters[gameState.activeCharacterId] : null;
+  const character = gameState.activeCharacterId
+    ? gameState.characters[gameState.activeCharacterId]
+    : null
 
   // Spellcasting context
-  const isCaster = Boolean(character && (character.class === 'Wizard' || character.class === 'Cleric' || character.class === 'Immolator'));
-  const knownSpells: ServiceSpell[] = character && isCaster ? getSpellsForClass(character.class as SpellClass) : [];
-  const preparedIds = (character?.preparedSpells || []);
-  const preparedSpells = knownSpells.filter(s => preparedIds.includes(s.id));
-  const cantrips = knownSpells.filter(s => s.level === 0);
-  const leveledSpells = knownSpells.filter(s => s.level > 0);
+  const isCaster = Boolean(character && (character.class === 'Wizard' || character.class === 'Cleric' || character.class === 'Immolator'))
+  const knownSpells: ServiceSpell[] = character && isCaster ? getSpellsForClass(character.class as SpellClass) : []
+  const preparedIds = (character?.preparedSpells || [])
+  const preparedSpells = knownSpells.filter(s => preparedIds.includes(s.id))
+  const cantrips = knownSpells.filter(s => s.level === 0)
+  const leveledSpells = knownSpells.filter(s => s.level > 0)
 
   // Calculate spell budget and usage
-  const budget = character ? spellCastingService.getPreparationBudget(character) : 0;
-  const current = character ? spellCastingService.calculatePreparedLevels(preparedSpells) : 0;
-  const hasStrain = character ? (character.conditions || []).includes('spellcasting-strain') : false;
+  const budget = character ? spellCastingService.getPreparationBudget(character) : 0
+  const current = character ? spellCastingService.calculatePreparedLevels(preparedSpells) : 0
+  const hasStrain = character ? (character.conditions || []).includes('spellcasting-strain') : false
 
-  const levelCost = (spell: ServiceSpell) => spell.level === 0 ? 0 : spell.level;
+  const levelCost = (spell: ServiceSpell) => spell.level === 0 ? 0 : spell.level
 
-  const updateState = (updates: Partial < SpellPanelState>) => {
-    setPanelState(prev => ({ ...prev, ...updates }));
-  };
+  const updateState = (updates: Partial <SpellPanelState>) => {
+    setPanelState(prev => ({ ...prev, ...updates }))
+  }
 
   const onTogglePrepare = (spellId: string) => {
-    if (!character) return;
+    if (!character)
+      return
     const next = preparedIds.includes(spellId)
       ? preparedIds.filter(id => id !== spellId)
-      : [...preparedIds, spellId];
+      : [...preparedIds, spellId]
     try {
       const updated = spellCastingService.prepareSpells(character, next);
-      (updateCharacter as string)(character.id, { preparedSpells: updated.preparedSpells, conditions: updated.conditions });
-    } catch (e) {
-      alert((e as Error).message);
+      (updateCharacter as string)(character.id, { preparedSpells: updated.preparedSpells, conditions: updated.conditions })
     }
-  };
+    catch (e) {
+      alert((e as Error).message)
+    }
+  }
 
   const onPrepareSpells = () => {
-    if (!character) return;
+    if (!character)
+      return
     // This is the explicit "Prepare Spells" action that clears strain
     const updated = spellCastingService.prepareSpells(character, preparedIds);
-    (updateCharacter as string)(character.id, { conditions: updated.conditions });
-  };
+    (updateCharacter as string)(character.id, { conditions: updated.conditions })
+  }
 
   const onCommune = () => {
-    if (!character) return;
+    if (!character)
+      return
     // This is the explicit "Commune" action that clears strain
     const updated = spellCastingService.prepareSpells(character, preparedIds);
-    (updateCharacter as string)(character.id, { conditions: updated.conditions });
-  };
+    (updateCharacter as string)(character.id, { conditions: updated.conditions })
+  }
 
   const onCast = (spell: ServiceSpell) => {
-    if (!character) return;
+    if (!character)
+      return
     try {
-      const { roll, updated, tier } = spellCastingService.castPreparedSpell(character, spell);
+      const { roll, updated, tier } = spellCastingService.castPreparedSpell(character, spell)
       if (tier === '7-9') {
         setSpellModal({ open: true, spell });
-        (updateCharacter as string)(character.id, { xp: updated.xp });
-      } else {
-        (updateCharacter as string)(character.id, { xp: updated.xp });
+        (updateCharacter as string)(character.id, { xp: updated.xp })
       }
-    } catch (e) {
-      alert((e as Error).message);
+      else {
+        (updateCharacter as string)(character.id, { xp: updated.xp })
+      }
     }
-  };
+    catch (e) {
+      alert((e as Error).message)
+    }
+  }
 
   const onConsequenceConfirm = (consequence: 'unwelcome-attention' | 'forget' | 'strain') => {
-    if (!character || !spellModal.spell) return;
+    if (!character || !spellModal.spell)
+      return
     const updated = spellCastingService.applySevenToNineConsequence(character, spellModal.spell, consequence);
     (updateCharacter as string)(character.id, {
       preparedSpells: updated.preparedSpells,
       conditions: updated.conditions,
-    });
-    setSpellModal({ open: false });
-  };
+    })
+    setSpellModal({ open: false })
+  }
 
   const getFilteredSpells = () => {
-    let spells = knownSpells;
+    let spells = knownSpells
 
     // Filter by category
     switch (panelState.selectedCategory) {
       case 'prepared':
-        spells = preparedSpells;
-        break;
+        spells = preparedSpells
+        break
       case 'available':
-        spells = leveledSpells.filter(s => !preparedIds.includes(s.id));
-        break;
+        spells = leveledSpells.filter(s => !preparedIds.includes(s.id))
+        break
       case 'cantrips':
-        spells = cantrips;
-        break;
+        spells = cantrips
+        break
       default:
-        spells = knownSpells;
+        spells = knownSpells
     }
 
     // Filter by search
     if (panelState.searchTerm) {
-      const searchLower = panelState.searchTerm.toLowerCase();
+      const searchLower = panelState.searchTerm.toLowerCase()
       spells = spells.filter(spell =>
-        spell.name.toLowerCase().includes(searchLower) ||
-        spell.description.toLowerCase().includes(searchLower),
-      );
+        spell.name.toLowerCase().includes(searchLower)
+        || spell.description.toLowerCase().includes(searchLower),
+      )
     }
 
-    return spells;
-  };
+    return spells
+  }
 
   if (!character) {
     return (
@@ -138,10 +149,10 @@ const SpellPanel: React.FC < PanelProps> = ({ id }) => {
           <h2>✨ Spells</h2>
         </div>
         <div className="no-character">
-          <p > No character selected. Create or select a character to manage spells.</p>
+          <p> No character selected. Create or select a character to manage spells.</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (!isCaster) {
@@ -151,13 +162,19 @@ const SpellPanel: React.FC < PanelProps> = ({ id }) => {
           <h2>✨ Spells</h2>
         </div>
         <div className="no-spells">
-          <p>{character.name} ({character.class}) does not cast spells.</p>
+          <p>
+            {character.name}
+            {' '}
+            (
+            {character.class}
+            ) does not cast spells.
+          </p>
         </div>
       </div>
-    );
+    )
   }
 
-  const filteredSpells = getFilteredSpells();
+  const filteredSpells = getFilteredSpells()
 
   return (
     <div className="spell-panel">
@@ -165,14 +182,26 @@ const SpellPanel: React.FC < PanelProps> = ({ id }) => {
         <h2>✨ Spells</h2>
         <div className="character-info">
           <span className="character-name">{character.name}</span>
-          <span className="character-class">({character.class})</span>
+          <span className="character-class">
+            (
+            {character.class}
+            )
+          </span>
         </div>
       </div>
 
       {/* Spell Budget */}
       <div className="spell-budget">
         <div className="spell-budget__label">
-          Prepared levels: {current} / {budget} (cantrips / rotes don't count)
+          Prepared levels:
+          {' '}
+          {current}
+          {' '}
+          /
+          {' '}
+          {budget}
+          {' '}
+          (cantrips / rotes don't count)
         </div>
         <div className="spell-budget__bar" aria-label={`Prepared ${current} of ${budget}`}>
           <div
@@ -181,7 +210,16 @@ const SpellPanel: React.FC < PanelProps> = ({ id }) => {
           />
         </div>
         <div className="spell-budget__details">
-          <span > Level {character.level} + 1 = {budget} total levels</span>
+          <span>
+            {' '}
+            Level
+            {character.level}
+            {' '}
+            + 1 =
+            {budget}
+            {' '}
+            total levels
+          </span>
         </div>
       </div>
 
@@ -234,7 +272,7 @@ const SpellPanel: React.FC < PanelProps> = ({ id }) => {
             type="text"
             placeholder="Search spells..."
             value={panelState.searchTerm}
-            onChange={(e) => updateState({ searchTerm: e.target.value })}
+            onChange={e => updateState({ searchTerm: e.target.value })}
             className="search-input"
           />
         </div>
@@ -254,63 +292,65 @@ const SpellPanel: React.FC < PanelProps> = ({ id }) => {
 
       {/* Spell List */}
       <div className="spell-list">
-        {filteredSpells.length === 0 ? (
-          <div className="no-spells-found">
-            <p > No spells found matching your criteria.</p>
-          </div>
-        ) : (
-          filteredSpells.map(spell => {
-            const isPrepared = preparedIds.includes(spell.id);
-            const wouldExceed = !isPrepared && (current + levelCost(spell) > budget);
-            const prepareDisabled = !isPrepared && wouldExceed;
-            const prepareTitle = prepareDisabled
-              ? `Preparing this would exceed your budget (${current}+${levelCost(spell)} > ${budget})`
-              : undefined;
-            const castDisabled = spell.level !== 0 && !isPrepared;
-            const castTitle = castDisabled
-              ? 'You must prepare this spell before casting (DW rule)'
-              : undefined;
-
-            return (
-              <div key={spell.id} className={`spell-card ${isPrepared ? 'prepared' : ''}`}>
-                <div className="spell-header">
-                  <div className="spell-name">{spell.name}</div>
-                  <div className="spell-level">
-                    {spell.level === 0 ? 'Cantrip / Rote' : `Level ${spell.level}`}
-                  </div>
-                </div>
-
-                <div className="spell-description">{spell.description}</div>
-
-                <div className="spell-actions">
-                  <button
-                    className={`action-button prepare-button ${isPrepared ? 'prepared' : ''}`}
-                    onClick={() => !prepareDisabled && onTogglePrepare(spell.id)}
-                    disabled={prepareDisabled}
-                    title={prepareTitle}
-                  >
-                    {isPrepared ? '✓ Prepared' : 'Prepare'}
-                  </button>
-
-                  <button
-                    className="action-button cast-button"
-                    onClick={() => onCast(spell)}
-                    disabled={castDisabled}
-                    title={castTitle}
-                  >
-                    Cast
-                  </button>
-                </div>
-
-                {isPrepared && (
-                  <div className="spell-status">
-                    <span className="status-badge prepared">Prepared</span>
-                  </div>
-                )}
+        {filteredSpells.length === 0
+          ? (
+              <div className="no-spells-found">
+                <p> No spells found matching your criteria.</p>
               </div>
-            );
-          })
-        )}
+            )
+          : (
+              filteredSpells.map((spell) => {
+                const isPrepared = preparedIds.includes(spell.id)
+                const wouldExceed = !isPrepared && (current + levelCost(spell) > budget)
+                const prepareDisabled = !isPrepared && wouldExceed
+                const prepareTitle = prepareDisabled
+                  ? `Preparing this would exceed your budget (${current}+${levelCost(spell)} > ${budget})`
+                  : undefined
+                const castDisabled = spell.level !== 0 && !isPrepared
+                const castTitle = castDisabled
+                  ? 'You must prepare this spell before casting (DW rule)'
+                  : undefined
+
+                return (
+                  <div key={spell.id} className={`spell-card ${isPrepared ? 'prepared' : ''}`}>
+                    <div className="spell-header">
+                      <div className="spell-name">{spell.name}</div>
+                      <div className="spell-level">
+                        {spell.level === 0 ? 'Cantrip / Rote' : `Level ${spell.level}`}
+                      </div>
+                    </div>
+
+                    <div className="spell-description">{spell.description}</div>
+
+                    <div className="spell-actions">
+                      <button
+                        className={`action-button prepare-button ${isPrepared ? 'prepared' : ''}`}
+                        onClick={() => !prepareDisabled && onTogglePrepare(spell.id)}
+                        disabled={prepareDisabled}
+                        title={prepareTitle}
+                      >
+                        {isPrepared ? '✓ Prepared' : 'Prepare'}
+                      </button>
+
+                      <button
+                        className="action-button cast-button"
+                        onClick={() => onCast(spell)}
+                        disabled={castDisabled}
+                        title={castTitle}
+                      >
+                        Cast
+                      </button>
+                    </div>
+
+                    {isPrepared && (
+                      <div className="spell-status">
+                        <span className="status-badge prepared">Prepared</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
       </div>
 
       {/* Spell Consequence Modal */}
@@ -322,8 +362,8 @@ const SpellPanel: React.FC < PanelProps> = ({ id }) => {
         onCancel={() => setSpellModal({ open: false })}
       />
     </div>
-  );
-};
+  )
+}
 
 export default createPanel(
   {
@@ -334,7 +374,4 @@ export default createPanel(
     priority: 4,
   },
   SpellPanel,
-);
-
-
-
+)

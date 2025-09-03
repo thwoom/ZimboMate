@@ -1,88 +1,94 @@
-import './CharacterCreationPanel.css';
+import type { PanelProps } from '../../framework/Panel'
 
-import React, { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-
-import AdvancedOptionsStep from '../../components/AdvancedOptionsStep';
-import AdvancementSelector from '../../components/AdvancementSelector';
-import CharacterCreationAssistant from '../../components/CharacterCreationAssistant';
-import TagDisplay from '../../components/TagDisplay';
-import { CLASS_BOND_TEMPLATES,CLASS_STARTING_DATA } from '../../data/classStartingData';
-import { createPanel,PanelProps } from '../../framework/Panel';
-import {
+import type {
   Alignment,
   Attributes,
-  calculateMaxHP,
-  calculateMaxLoad,
+  Bond,
   Character,
   CharacterClass,
+  Race,
+} from '../../models/Character'
+import type { Armor, Item, Weapon } from '../../models/Equipment'
+
+import type { AdvancementChoice, AdvancementPlan, LevelProgression } from '../../services/AdvancementService'
+import type { CharacterTemplate } from '../../services/CharacterTemplates'
+import React, { useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
+import AdvancedOptionsStep from '../../components/AdvancedOptionsStep'
+import AdvancementSelector from '../../components/AdvancementSelector'
+
+import CharacterCreationAssistant from '../../components/CharacterCreationAssistant'
+import TagDisplay from '../../components/TagDisplay'
+import { CLASS_BOND_TEMPLATES, CLASS_STARTING_DATA } from '../../data/classStartingData'
+import { createPanel } from '../../framework/Panel'
+import {
+  calculateMaxHP,
+  calculateMaxLoad,
   generateRolledScores,
   getClassBaseLoad,
   getClassDamageDie,
   getStandardArray,
-  Race,
-} from '../../models/Character';
-import { Bond } from '../../models/Character';
-import { Armor, Item,Weapon } from '../../models/Equipment';
-import { AdvancementChoice, AdvancementPlan,advancementService, LevelProgression } from '../../services/AdvancementService';
-import { portraitService } from '../../services/CharacterPortraits';
-import { CharacterTemplate,characterTemplateService } from '../../services/CharacterTemplates';
-import { randomGeneratorService } from '../../services/RandomGenerators';
-import { getSpellsForClass } from '../../services/Spells';
-import { useGameStore } from '../../store/GameStore';
+} from '../../models/Character'
+import { advancementService } from '../../services/AdvancementService'
+import { portraitService } from '../../services/CharacterPortraits'
+import { characterTemplateService } from '../../services/CharacterTemplates'
+import { randomGeneratorService } from '../../services/RandomGenerators'
+import { getSpellsForClass } from '../../services/Spells'
+import { useGameStore } from '../../store/GameStore'
+import './CharacterCreationPanel.css'
 
 // Wizard steps-using the same type as CharacterCreationAssistant
-type WizardStep =
-  | 'intro'
-  | 'templates'
-  | 'name-look'
-  | 'background'
-  | 'portrait'
-  | 'class'
-  | 'race'
-  | 'level'
-  | 'personality'
-  | 'spells'
-  | 'attributes'
-  | 'moves-equipment'
-  | 'bonds'
-  | 'alignment'
-  | 'advanced-options'
-  | 'review'
-  | 'advancement';
+type WizardStep
+  = | 'intro'
+    | 'templates'
+    | 'name-look'
+    | 'background'
+    | 'portrait'
+    | 'class'
+    | 'race'
+    | 'level'
+    | 'personality'
+    | 'spells'
+    | 'attributes'
+    | 'moves-equipment'
+    | 'bonds'
+    | 'alignment'
+    | 'advanced-options'
+    | 'review'
+    | 'advancement'
 
 interface CharacterCreationPanelState {
-  currentStep: WizardStep;
-  characterData: Partial < Character>;
-  attributeMethod: 'roll' | 'array';
-  rolledScores?: number[];
-  assignedAttributes?: Partial < Attributes>;
-  selectedEquipment?: Partial < Item>[];
-  equipmentChoices?: Record < number, number>;
-  selectedMoves?: string[];
-  createdBonds?: Bond[];
-  showTemplateImport?: boolean;
-  templateImportError?: string;
-  bondPartyTarget?: string;
-  humanBonusStat?: keyof Attributes;
-  otherRaceBonusStat?: keyof Attributes;
-  selectedLevel: number;
-  levelProgression?: LevelProgression;
-  selectedMove?: AdvancementChoice;
-  selectedStat?: AdvancementChoice;
-  advancementPlan?: AdvancementPlan;
+  currentStep: WizardStep
+  characterData: Partial <Character>
+  attributeMethod: 'roll' | 'array'
+  rolledScores?: number[]
+  assignedAttributes?: Partial <Attributes>
+  selectedEquipment?: Partial <Item>[]
+  equipmentChoices?: Record <number, number>
+  selectedMoves?: string[]
+  createdBonds?: Bond[]
+  showTemplateImport?: boolean
+  templateImportError?: string
+  bondPartyTarget?: string
+  humanBonusStat?: keyof Attributes
+  otherRaceBonusStat?: keyof Attributes
+  selectedLevel: number
+  levelProgression?: LevelProgression
+  selectedMove?: AdvancementChoice
+  selectedStat?: AdvancementChoice
+  advancementPlan?: AdvancementPlan
 }
 
 // Class descriptions for player-friendly selection
-const CLASS_DESCRIPTIONS: Record < CharacterClass, {
-  tagline: string;
-  description: string;
-  playstyle: string;
-  primaryStat: keyof Attributes;
+const CLASS_DESCRIPTIONS: Record <CharacterClass, {
+  tagline: string
+  description: string
+  playstyle: string
+  primaryStat: keyof Attributes
 }> = {
   Fighter: {
     tagline: 'Master of weapons and armor',
-    description: "You're a warrior through and through. Whether you're defending the innocent or conquering for glory, you know how to use every weapon and piece of armor.",
+    description: 'You\'re a warrior through and through. Whether you\'re defending the innocent or conquering for glory, you know how to use every weapon and piece of armor.',
     playstyle: 'Direct combat, protecting allies, and leading from the front',
     primaryStat: 'STR',
   },
@@ -124,7 +130,7 @@ const CLASS_DESCRIPTIONS: Record < CharacterClass, {
   },
   Wizard: {
     tagline: 'Master of arcane magic',
-    description: "You've studied the arcane arts and can bend reality to your will. Your spellbook holds incredible power.",
+    description: 'You\'ve studied the arcane arts and can bend reality to your will. Your spellbook holds incredible power.',
     playstyle: 'Powerful spells, ritual magic, and magical problem solving',
     primaryStat: 'INT',
   },
@@ -140,10 +146,10 @@ const CLASS_DESCRIPTIONS: Record < CharacterClass, {
     playstyle: 'Fire magic, area damage, and risk / reward mechanics',
     primaryStat: 'INT',
   },
-};
+}
 
 // Race options per class
-const CLASS_RACES: Record < CharacterClass, Race[]> = {
+const CLASS_RACES: Record <CharacterClass, Race[]> = {
   Fighter: ['Human', 'Dwarf', 'Elf', 'Halfling'],
   Paladin: ['Human'],
   Ranger: ['Human', 'Elf'],
@@ -154,109 +160,110 @@ const CLASS_RACES: Record < CharacterClass, Race[]> = {
   Wizard: ['Human', 'Elf'],
   Barbarian: ['Human'],
   Immolator: ['Human'],
-};
+}
 
 // Use official DW standard array
-const STANDARD_ARRAY = getStandardArray();
+const STANDARD_ARRAY = getStandardArray()
 
-const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCreationPanelState }> = ({
+const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCreationPanelState }> = ({
   panelState,
   onStateChange,
 }) => {
-  const { setCharacter, state } = useGameStore();
-  const [showSuccess, setShowSuccess] = useState(false);
+  const { setCharacter, state } = useGameStore()
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const defaultState: CharacterCreationPanelState = {
     currentStep: 'intro',
     characterData: {},
     attributeMethod: 'array',
     selectedLevel: 1,
-  };
+  }
 
-  const currentState = { ...defaultState, ...panelState };
+  const currentState = { ...defaultState, ...panelState }
 
-  const updateState = (updates: Partial < CharacterCreationPanelState>) => {
-    onStateChange?.({ ...currentState, ...updates });
-  };
+  const updateState = (updates: Partial <CharacterCreationPanelState>) => {
+    onStateChange?.({ ...currentState, ...updates })
+  }
 
   // Racial bonus system
-  const getRacialBonuses = (race: Race, humanBonusStat?: keyof Attributes): { attributes: Partial < Attributes>; hp: number; abilities: string[] } => {
+  const getRacialBonuses = (race: Race, humanBonusStat?: keyof Attributes): { attributes: Partial <Attributes>, hp: number, abilities: string[] } => {
     switch (race) {
       case 'Human': {
-        const humanAttributes: Partial < Attributes> = {};
+        const humanAttributes: Partial <Attributes> = {}
         if (humanBonusStat) {
-          humanAttributes[humanBonusStat] = 1;
+          humanAttributes[humanBonusStat] = 1
         }
-        return { attributes: humanAttributes, hp: 0, abilities: ['versatile', 'ambitious'] };
+        return { attributes: humanAttributes, hp: 0, abilities: ['versatile', 'ambitious'] }
       }
       case 'Elf':
-        return { attributes: { DEX: 1 }, hp: 0, abilities: ['keen_senses', 'ancient_wisdom'] };
+        return { attributes: { DEX: 1 }, hp: 0, abilities: ['keen_senses', 'ancient_wisdom'] }
       case 'Dwarf':
-        return { attributes: { CON: 1 }, hp: 2, abilities: ['stone_sense'] };
+        return { attributes: { CON: 1 }, hp: 2, abilities: ['stone_sense'] }
       case 'Halfling':
-        return { attributes: { DEX: 1 }, hp: 0, abilities: ['blessed_fortune', 'brave_heart'] };
+        return { attributes: { DEX: 1 }, hp: 0, abilities: ['blessed_fortune', 'brave_heart'] }
       case 'Other': {
-        const otherAttributes: Partial < Attributes> = {};
+        const otherAttributes: Partial <Attributes> = {}
         if (humanBonusStat) { // Other race can also choose a stat like humans
-          otherAttributes[humanBonusStat] = 1;
+          otherAttributes[humanBonusStat] = 1
         }
-        return { attributes: otherAttributes, hp: 0, abilities: ['unique_heritage', 'cultural_wisdom'] };
+        return { attributes: otherAttributes, hp: 0, abilities: ['unique_heritage', 'cultural_wisdom'] }
       }
       default:
-        return { attributes: {}, hp: 0, abilities: [] };
+        return { attributes: {}, hp: 0, abilities: [] }
     }
-  };
+  }
 
   const applyRacialBonuses = (baseAttributes: Attributes, race: Race): Attributes => {
-    const chosenStat = race === 'Human' ? currentState.humanBonusStat :
-                     race === 'Other' ? currentState.otherRaceBonusStat : undefined;
-    const bonuses = getRacialBonuses(race, chosenStat);
-    const result = { ...baseAttributes };
+    const chosenStat = race === 'Human'
+      ? currentState.humanBonusStat
+      : race === 'Other' ? currentState.otherRaceBonusStat : undefined
+    const bonuses = getRacialBonuses(race, chosenStat)
+    const result = { ...baseAttributes }
 
     for (const [attr, bonus] of Object.entries(bonuses.attributes)) {
       if (bonus && attr in result) {
-        result[attr as keyof Attributes] += bonus;
+        result[attr as keyof Attributes] += bonus
       }
     }
 
-    return result;
-  };
+    return result
+  }
 
   const nextStep = () => {
-    const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'level', 'moves-equipment', 'bonds', 'alignment', 'advanced-options', 'review'];
-    const currentIndex = steps.indexOf(currentState.currentStep);
-    if (currentIndex < steps.length-1) {
-      updateState({ currentStep: steps[currentIndex + 1] });
+    const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'level', 'moves-equipment', 'bonds', 'alignment', 'advanced-options', 'review']
+    const currentIndex = steps.indexOf(currentState.currentStep)
+    if (currentIndex < steps.length - 1) {
+      updateState({ currentStep: steps[currentIndex + 1] })
     }
-  };
+  }
 
   const previousStep = () => {
-    const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'level', 'moves-equipment', 'bonds', 'alignment', 'advanced-options', 'review'];
-    const currentIndex = steps.indexOf(currentState.currentStep);
+    const steps: WizardStep[] = ['intro', 'templates', 'name-look', 'background', 'portrait', 'class', 'race', 'personality', 'spells', 'attributes', 'level', 'moves-equipment', 'bonds', 'alignment', 'advanced-options', 'review']
+    const currentIndex = steps.indexOf(currentState.currentStep)
     if (currentIndex > 0) {
-      updateState({ currentStep: steps[currentIndex-1] });
+      updateState({ currentStep: steps[currentIndex - 1] })
     }
-  };
+  }
 
   const rollAbilityScores = () => {
     // Use official DW rule: roll 3d6 for each ability score
-    const rolls = generateRolledScores();
-    updateState({ rolledScores: rolls });
-  };
+    const rolls = generateRolledScores()
+    updateState({ rolledScores: rolls })
+  }
 
   const finalizeCharacter = () => {
-    if (!currentState.characterData.name ||
-        !currentState.characterData.class ||
-        !currentState.characterData.race ||
-        !currentState.characterData.alignment ||
-        !currentState.assignedAttributes) {
-      return;
+    if (!currentState.characterData.name
+      || !currentState.characterData.class
+      || !currentState.characterData.race
+      || !currentState.characterData.alignment
+      || !currentState.assignedAttributes) {
+      return
     }
 
     // Apply racial bonuses to base attributes
-    const baseAttributes = currentState.assignedAttributes as Attributes;
-    let finalAttributes = applyRacialBonuses(baseAttributes, currentState.characterData.race);
-    const racialBonuses = getRacialBonuses(currentState.characterData.race);
+    const baseAttributes = currentState.assignedAttributes as Attributes
+    let finalAttributes = applyRacialBonuses(baseAttributes, currentState.characterData.race)
+    const racialBonuses = getRacialBonuses(currentState.characterData.race)
 
     // Apply advancement improvements for higher level characters
     if (currentState.selectedLevel > 1 && currentState.advancementPlan) {
@@ -266,13 +273,13 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         level: 1, // Start at level 1, then apply advancements
         advancements: [],
         knownMoves: currentState.selectedMoves || [],
-      } as Character;
+      } as Character
 
       const characterWithAdvancements = advancementService.applyAdvancementPlan(
         tempCharacter,
         currentState.advancementPlan,
-      );
-      finalAttributes = characterWithAdvancements.attributes || finalAttributes;
+      )
+      finalAttributes = characterWithAdvancements.attributes || finalAttributes
     }
 
     const newCharacter: Character = {
@@ -312,22 +319,22 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
       notes: '',
       createdAt: new Date(),
       updatedAt: new Date(),
-    };
+    }
 
     // Calculate HP and Load (including racial bonuses)
-    newCharacter.hp.max = calculateMaxHP(newCharacter) + racialBonuses.hp;
-    newCharacter.hp.current = newCharacter.hp.max;
-    newCharacter.load.max = calculateMaxLoad(newCharacter);
+    newCharacter.hp.max = calculateMaxHP(newCharacter) + racialBonuses.hp
+    newCharacter.hp.current = newCharacter.hp.max
+    newCharacter.load.max = calculateMaxLoad(newCharacter)
 
     // Save the character
-    setCharacter(newCharacter);
+    setCharacter(newCharacter)
 
     // Show success message
-    setShowSuccess(true);
+    setShowSuccess(true)
 
     // Hide success and reset after delay
     setTimeout(() => {
-      setShowSuccess(false);
+      setShowSuccess(false)
       // Reset the wizard
       updateState({
         currentStep: 'intro',
@@ -339,9 +346,9 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         equipmentChoices: undefined,
         selectedMoves: undefined,
         createdBonds: undefined,
-      });
-    }, 2000);
-  };
+      })
+    }, 2000)
+  }
 
   const renderProgressBar = () => {
     const steps = [
@@ -361,9 +368,9 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
       { id: 'alignment', emoji: '⚖️', label: 'Alignment' },
       { id: 'advanced-options', emoji: '🔧', label: 'Advanced' },
       { id: 'review', emoji: '👁️', label: 'Review' },
-    ];
+    ]
 
-    const currentIndex = steps.findIndex(step => step.id === currentState.currentStep);
+    const currentIndex = steps.findIndex(step => step.id === currentState.currentStep)
 
     return (
       <div className="wizard-progress">
@@ -374,7 +381,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
             onClick={() => {
               // Allow navigation to completed steps or current step
               if (index <= currentIndex) {
-                updateState({ currentStep: step.id as WizardStep });
+                updateState({ currentStep: step.id as WizardStep })
               }
             }}
           >
@@ -383,12 +390,12 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </div>
         ))}
       </div>
-    );
-  };
+    )
+  }
 
   const renderIntroStep = () => (
     <div className="wizard-step intro-step">
-      <h1 > Create Your Hero</h1>
+      <h1> Create Your Hero</h1>
       <div className="intro-content">
         <p className="intro-text">
           Welcome, adventurer ! You're about to create a character for Dungeon World,
@@ -396,7 +403,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           fight monsters, and uncover ancient treasures.
         </p>
         <div className="intro-tips">
-          <h3 > What you'll need to decide:</h3>
+          <h3> What you'll need to decide:</h3>
           <ul>
             <li>🎭 Your character's name and appearance</li>
             <li>⚔️ Your class-what kind of adventurer you are</li>
@@ -413,20 +420,23 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         <button className="btn btn-primary btn-large" onClick={nextStep}>
           Choose a Template →
         </button>
-        <button className="btn btn-secondary" onClick={() => {
+        <button
+          className="btn btn-secondary"
+          onClick={() => {
           // Skip templates and go straight to name
-          updateState({ currentStep: 'name-look' });
-        }}>
+            updateState({ currentStep: 'name-look' })
+          }}
+        >
           Create from Scratch
         </button>
       </div>
     </div>
-  );
+  )
 
   const renderTemplatesStep = () => {
-    const allTemplates = characterTemplateService.getAllTemplates();
-    const quickStartTemplates = allTemplates.filter(t => t.category === 'quick-start');
-    const customTemplates = allTemplates.filter(t => t.category === 'custom');
+    const allTemplates = characterTemplateService.getAllTemplates()
+    const quickStartTemplates = allTemplates.filter(t => t.category === 'quick-start')
+    const customTemplates = allTemplates.filter(t => t.category === 'custom')
 
     const handleTemplateSelect = (template: CharacterTemplate) => {
       updateState({
@@ -441,31 +451,33 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           resolved: false,
         })),
         currentStep: 'level', // Jump to level selection to customize character level
-      });
-    };
+      })
+    }
 
     const handleImportTemplate = () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json';
-      input.onchange = async(e) => {
-        const file =  (e.target as HTMLInputElement).files?.[0];
-        if (!file) return;
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.json'
+      input.onchange = async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0]
+        if (!file)
+          return
 
         try {
-          const text = await file.text();
-          const imported = characterTemplateService.importTemplate(text);
-          handleTemplateSelect(imported);
-        } catch (error: any) {
-          updateState({ templateImportError: error instanceof Error ? error.message : 'Import failed' });
+          const text = await file.text()
+          const imported = characterTemplateService.importTemplate(text)
+          handleTemplateSelect(imported)
         }
-      };
-      input.click();
-    };
+        catch (error: any) {
+          updateState({ templateImportError: error instanceof Error ? error.message : 'Import failed' })
+        }
+      }
+      input.click()
+    }
 
     return (
       <div className="wizard-step templates-step">
-        <h2 > Choose a Starting Template</h2>
+        <h2> Choose a Starting Template</h2>
         <p className="step-intro">
           Start with a pre-made template for quick play, or create your own from scratch.
         </p>
@@ -491,7 +503,10 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                   <h4>{template.name}</h4>
                   <p>{template.description}</p>
                   <div className="template-class">
-                    {template.characterData.class} • {template.characterData.race}
+                    {template.characterData.class}
+                    {' '}
+                    •
+                    {template.characterData.race}
                   </div>
                 </div>
               ))}
@@ -526,8 +541,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                         className="btn btn-small btn-danger"
                         onClick={() => {
                           if (confirm('Delete this template?')) {
-                            characterTemplateService.deleteTemplate(template.id);
-                            updateState({}); // Force re-render
+                            characterTemplateService.deleteTemplate(template.id)
+                            updateState({}) // Force re-render
                           }
                         }}
                       >
@@ -551,11 +566,11 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <button
             className="btn btn-secondary"
             onClick={() => {
-              const randomChar = randomGeneratorService.generateRandomCharacter();
+              const randomChar = randomGeneratorService.generateRandomCharacter()
               updateState({
                 characterData: randomChar,
                 currentStep: 'portrait',
-              });
+              })
             }}
           >
             🎲 Surprise Me!
@@ -565,21 +580,24 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderNameLookStep = () => (
     <div className="wizard-step name-look-step">
-      <h2 > Who Are You?</h2>
+      <h2> Who Are You?</h2>
       <div className="form-container">
         <div className="form-group">
-          <label htmlFor="character-name">Character Name < span className="tooltip" aria-label="Pick unknown fantasy-style name. You can randomize it if you're unsure.">?</span></label>
+          <label htmlFor="character-name">
+            Character Name
+            <span className="tooltip" aria-label="Pick unknown fantasy-style name. You can randomize it if you're unsure.">?</span>
+          </label>
           <input
             id="character-name"
             type="text"
             placeholder="Enter your character's name..."
             value={currentState.characterData.name || ''}
-            onChange={(e) => updateState({
+            onChange={e => updateState({
               characterData: { ...currentState.characterData, name: e.target.value },
             })}
             className="name-input"
@@ -588,12 +606,15 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         </div>
 
         <div className="form-group">
-          <label htmlFor="character-looks">Appearance < span className="tooltip" aria-label="A short description others would notice at a glance.">?</span></label>
+          <label htmlFor="character-looks">
+            Appearance
+            <span className="tooltip" aria-label="A short description others would notice at a glance.">?</span>
+          </label>
           <textarea
             id="character-looks"
             placeholder="Describe how your character looks..."
             value={currentState.characterData.look || ''}
-            onChange={(e) => updateState({
+            onChange={e => updateState({
               characterData: { ...currentState.characterData, look: e.target.value },
             })}
             rows={4}
@@ -612,11 +633,11 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         <button
           className="btn btn-secondary"
           onClick={() => {
-            const race = currentState.characterData.race as Race | undefined;
-            const name = randomGeneratorService.generateName(race);
+            const race = currentState.characterData.race as Race | undefined
+            const name = randomGeneratorService.generateName(race)
             updateState({
               characterData: { ...currentState.characterData, name },
-            });
+            })
           }}
         >
           🎲 Random Name
@@ -624,12 +645,12 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         <button
           className="btn btn-secondary"
           onClick={() => {
-            const race = currentState.characterData.race as Race | undefined;
-            const cls = currentState.characterData.class as CharacterClass | undefined;
-            const look = randomGeneratorService.generateAppearance(race, cls);
+            const race = currentState.characterData.race as Race | undefined
+            const cls = currentState.characterData.class as CharacterClass | undefined
+            const look = randomGeneratorService.generateAppearance(race, cls)
             updateState({
               characterData: { ...currentState.characterData, look },
-            });
+            })
           }}
         >
           🎲 Random Appearance
@@ -643,30 +664,30 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         </button>
       </div>
     </div>
-  );
+  )
 
   const renderBackgroundStep = () => {
-    const current = currentState.characterData.background || '';
+    const current = currentState.characterData.background || ''
     return (
       <div className="wizard-step background-step">
-        <h2 > Background</h2>
+        <h2> Background</h2>
         <p className="step-intro">
           Add a short backstory or motivation for your character. This helps roleplay and GM hooks.
         </p>
         <div className="form-container">
           <div className="form-group">
-          <label htmlFor="character-background">Your Story</label>
-          <textarea
-            id="character-background"
-            placeholder="Why do you adventure? Where are you from? What drives you?"
-            value={current}
-            onChange={(e) => updateState({
-              characterData: { ...currentState.characterData, background: e.target.value },
-            })}
-            rows={6}
-            className="background-input"
-          />
-          <p className="field-help">Keep it to a few sentences. You can always expand later.</p>
+            <label htmlFor="character-background">Your Story</label>
+            <textarea
+              id="character-background"
+              placeholder="Why do you adventure? Where are you from? What drives you?"
+              value={current}
+              onChange={e => updateState({
+                characterData: { ...currentState.characterData, background: e.target.value },
+              })}
+              rows={6}
+              className="background-input"
+            />
+            <p className="field-help">Keep it to a few sentences. You can always expand later.</p>
           </div>
         </div>
         <div className="wizard-actions">
@@ -680,8 +701,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                 class: currentState.characterData.class as CharacterClass | undefined,
                 race: currentState.characterData.race as Race | undefined,
                 alignment: currentState.characterData.alignment as Alignment | undefined,
-              });
-              updateState({ characterData: { ...currentState.characterData, background: bg } });
+              })
+              updateState({ characterData: { ...currentState.characterData, background: bg } })
             }}
           >
             🎲 Random Background
@@ -694,28 +715,29 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderPersonalityStep = () => {
-    const traits = currentState.characterData.personalityTraits || [];
-    const voice = currentState.characterData.voice || '';
+    const traits = currentState.characterData.personalityTraits || []
+    const voice = currentState.characterData.voice || ''
 
-    const presetTraits = ['brave', 'cautious', 'curious', 'stoic', 'hot-headed', 'compassionate', 'reckless', 'loyal', 'pragmatic', 'idealistic', 'sarcastic', 'cheerful', 'brooding', 'superstitious', 'methodical', 'impulsive'];
+    const presetTraits = ['brave', 'cautious', 'curious', 'stoic', 'hot-headed', 'compassionate', 'reckless', 'loyal', 'pragmatic', 'idealistic', 'sarcastic', 'cheerful', 'brooding', 'superstitious', 'methodical', 'impulsive']
 
     const toggleTrait = (t: string) => {
-      const set = new Set(traits);
-      if (set.has(t)) set.delete(t); else set.add(t);
-      updateState({ characterData: { ...currentState.characterData, personalityTraits: [...set] } });
-    };
+      const set = new Set(traits)
+      if (set.has(t))
+        set.delete(t); else set.add(t)
+      updateState({ characterData: { ...currentState.characterData, personalityTraits: [...set] } })
+    }
 
     return (
       <div className="wizard-step personality-step">
-        <h2 > Personality & Voice</h2>
+        <h2> Personality & Voice</h2>
         <p className="step-intro">Choose a few traits and describe how your character speaks.</p>
 
         <div className="form-group">
-          <h3 > Traits</h3>
+          <h3> Traits</h3>
           <div className="traits-grid">
             {presetTraits.map(t => (
               <label key={t} className={`trait-chip ${traits.includes(t) ? 'selected' : ''}`}>
@@ -745,7 +767,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
             type="text"
             placeholder="e.g., raspy, measured cadence, northern accent"
             value={voice}
-            onChange={(e) => updateState({ characterData: { ...currentState.characterData, voice: e.target.value } })}
+            onChange={e => updateState({ characterData: { ...currentState.characterData, voice: e.target.value } })}
           />
           <div className="margin-top-05">
             <button className="btn btn-small btn-secondary" onClick={() => updateState({ characterData: { ...currentState.characterData, voice: randomGeneratorService.generateVoice() } })}>
@@ -756,53 +778,61 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
 
         <div className="wizard-actions">
           <button className="btn btn-secondary" onClick={previousStep}>← Back</button>
-          <button className="btn btn-primary" onClick={() => {
-            const caster: CharacterClass[] = ['Wizard', 'Cleric', 'Immolator'];
-            if (currentState.characterData.class && caster.includes(currentState.characterData.class as CharacterClass)) {
-              updateState({ currentStep: 'spells' });
-            } else {
-              updateState({ currentStep: 'attributes' });
-            }
-          }}>Next →</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              const caster: CharacterClass[] = ['Wizard', 'Cleric', 'Immolator']
+              if (currentState.characterData.class && caster.includes(currentState.characterData.class as CharacterClass)) {
+                updateState({ currentStep: 'spells' })
+              }
+              else {
+                updateState({ currentStep: 'attributes' })
+              }
+            }}
+          >
+            Next →
+          </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderSpellsStep = () => {
-    const cls = currentState.characterData.class as CharacterClass | undefined;
+    const cls = currentState.characterData.class as CharacterClass | undefined
     if (!cls || !['Wizard', 'Cleric', 'Immolator'].includes(cls)) {
-      nextStep();
-      return null;
+      nextStep()
+      return null
     }
-    const allSpells = getSpellsForClass(cls as 'Wizard' | 'Cleric' | 'Immolator');
-    const rotes = allSpells.filter(s => s.level === 0);
-    const level1 = allSpells.filter(s => s.level === 1);
+    const allSpells = getSpellsForClass(cls as 'Wizard' | 'Cleric' | 'Immolator')
+    const rotes = allSpells.filter(s => s.level === 0)
+    const level1 = allSpells.filter(s => s.level === 1)
 
     // Defaults for selection if not set
-    const selectedKnown = (currentState.characterData.knownSpells as string[]) || rotes.map(s => s.id);
-    const selectedPrepared = (currentState.characterData.preparedSpells as string[]) || [];
+    const selectedKnown = (currentState.characterData.knownSpells as string[]) || rotes.map(s => s.id)
+    const selectedPrepared = (currentState.characterData.preparedSpells as string[]) || []
 
     const togglePrepared = (id: string) => {
-      const set = new Set(selectedPrepared);
-      if (set.has(id)) set.delete(id); else set.add(id);
-      updateState({ characterData: { ...currentState.characterData, preparedSpells: [...set] } });
-    };
+      const set = new Set(selectedPrepared)
+      if (set.has(id))
+        set.delete(id); else set.add(id)
+      updateState({ characterData: { ...currentState.characterData, preparedSpells: [...set] } })
+    }
 
     const toggleKnown = (id: string) => {
-      const set = new Set(selectedKnown);
-      if (set.has(id)) set.delete(id); else set.add(id);
-      updateState({ characterData: { ...currentState.characterData, knownSpells: [...set] } });
-    };
+      const set = new Set(selectedKnown)
+      if (set.has(id))
+        set.delete(id); else set.add(id)
+      updateState({ characterData: { ...currentState.characterData, knownSpells: [...set] } })
+    }
 
     return (
       <div className="wizard-step spells-step">
-        <h2 > Choose Your Spells</h2>
+        <h2> Choose Your Spells</h2>
         <p className="step-intro">Select your rotes / cantrips and level 1 spells.</p>
 
         {rotes.length > 0 && (
           <div className="spells-section">
-            <h3 > Rotes / Cantrips (always known)</h3>
+            <h3> Rotes / Cantrips (always known)</h3>
             <div className="spells-grid">
               {rotes.map(spell => (
                 <label key={spell.id} className="spell-card">
@@ -820,7 +850,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         )}
 
         <div className="spells-section">
-          <h3 > Level 1 Spells</h3>
+          <h3> Level 1 Spells</h3>
           <p className="field-help">Pick a few to prepare now; you can change after making camp.</p>
           <div className="spells-grid">
             {level1.map(spell => (
@@ -842,37 +872,39 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <button className="btn btn-primary" onClick={nextStep}>Next: Level →</button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderPortraitStep = () => {
     const portraits = currentState.characterData.class && currentState.characterData.race
       ? portraitService.getSuggestedPortraits(currentState.characterData.class, currentState.characterData.race)
-      : portraitService.getAllPortraits();
+      : portraitService.getAllPortraits()
 
-    const handleFileUpload = async(event: React.ChangeEvent < HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
+    const handleFileUpload = async (event: React.ChangeEvent <HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      if (!file)
+        return
 
       try {
-        const name = prompt('Name your portrait:') || 'Custom Portrait';
-        const portrait = await portraitService.addCustomPortrait(file, name);
+        const name = prompt('Name your portrait:') || 'Custom Portrait'
+        const portrait = await portraitService.addCustomPortrait(file, name)
         updateState({
           characterData: { ...currentState.characterData, portraitId: portrait.id },
-        });
-      } catch (error) {
-        console.error('Portrait upload failed:', error);
-        alert('Failed to upload portrait. Please try again.');
+        })
       }
-    };
+      catch (error) {
+        console.error('Portrait upload failed:', error)
+        alert('Failed to upload portrait. Please try again.')
+      }
+    }
 
     return (
       <div className="wizard-step portrait-step">
-        <h2 > Choose Your Portrait</h2>
+        <h2> Choose Your Portrait</h2>
         <p className="step-intro">
           Select a portrait that represents your character.
-          {currentState.characterData.class && currentState.characterData.race &&
-            ` Showing suggestions for ${currentState.characterData.race} ${currentState.characterData.class}.`}
+          {currentState.characterData.class && currentState.characterData.race
+            && ` Showing suggestions for ${currentState.characterData.race} ${currentState.characterData.class}.`}
         </p>
 
         <div className="portrait-grid">
@@ -891,13 +923,13 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                 <button
                   className="remove-portrait"
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.stopPropagation()
                     if (confirm('Remove this portrait?')) {
-                      portraitService.removeCustomPortrait(portrait.id);
+                      portraitService.removeCustomPortrait(portrait.id)
                       if (currentState.characterData.portraitId === portrait.id) {
                         updateState({
                           characterData: { ...currentState.characterData, portraitId: undefined },
-                        });
+                        })
                       }
                     }
                   }}
@@ -932,13 +964,13 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderClassStep = () => (
     <div className="wizard-step class-step">
       <div className="step-content-container">
-        <h2 > Choose Your Class</h2>
+        <h2> Choose Your Class</h2>
         <p className="step-intro">Your class defines your role in the party and the kinds of things you're good at.</p>
         <div className="class-grid">
           {(Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]).map(cls => (
@@ -953,8 +985,14 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
               <p className="class-tagline">{CLASS_DESCRIPTIONS[cls].tagline}</p>
               <p className="class-description">{CLASS_DESCRIPTIONS[cls].description}</p>
               <div className="class-details">
-                <span className="playstyle">🎮 {CLASS_DESCRIPTIONS[cls].playstyle}</span>
-                <span className="primary-stat">📊 Primary: {CLASS_DESCRIPTIONS[cls].primaryStat}</span>
+                <span className="playstyle">
+                  🎮
+                  {CLASS_DESCRIPTIONS[cls].playstyle}
+                </span>
+                <span className="primary-stat">
+                  📊 Primary:
+                  {CLASS_DESCRIPTIONS[cls].primaryStat}
+                </span>
               </div>
             </div>
           ))}
@@ -971,11 +1009,11 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <button
             className="btn btn-secondary"
             onClick={() => {
-              const classes = (Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]);
-              const randomCls = classes[Math.floor(Math.random() * classes.length)];
+              const classes = Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]
+              const randomCls = classes[Math.floor(Math.random() * classes.length)]
               updateState({
                 characterData: { ...currentState.characterData, class: randomCls },
-              });
+              })
             }}
           >
             🎲 Random Class
@@ -990,17 +1028,17 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         </div>
       </div>
     </div>
-  );
+  )
 
   const renderLevelStep = () => {
-    const { characterData, selectedLevel, selectedMove, selectedStat } = currentState;
+    const { characterData, selectedLevel, selectedMove, selectedStat } = currentState
 
     if (!characterData.class) {
       return (
         <div className="step-content">
           <p className="error-message">Please select a class first.</p>
         </div>
-      );
+      )
     }
 
     const handleLevelChange = (level: number, progression: LevelProgression) => {
@@ -1010,8 +1048,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         selectedMove: undefined, // Reset advancements when level changes
         selectedStat: undefined,
         advancementPlan: undefined,
-      });
-    };
+      })
+    }
 
     const handleAdvancementsChange = (move?: AdvancementChoice, stat?: AdvancementChoice, plan?: AdvancementPlan) => {
       // For multi-level advancement, we need to track all advancements
@@ -1020,11 +1058,11 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         selectedMove: move,
         selectedStat: stat,
         advancementPlan: plan,
-      });
-    };
+      })
+    }
 
-    const needsAdvancements = selectedLevel > 1;
-    const hasValidAdvancements = needsAdvancements && currentState.advancementPlan?.isValid;
+    const needsAdvancements = selectedLevel > 1
+    const hasValidAdvancements = needsAdvancements && currentState.advancementPlan?.isValid
 
     return (
       <div className="step-content">
@@ -1032,10 +1070,14 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <h2>🎯 Choose Your Character's Power Level</h2>
           <div className="level-explanation">
             <p className="step-intro">
-              <strong > New to Dungeon World?</strong > Start at Level 1-it's perfect for learning!
+              <strong> New to Dungeon World?</strong>
+              {' '}
+              Start at Level 1-it's perfect for learning!
             </p>
             <p className="step-intro">
-              <strong > Experienced player?</strong > Higher levels give you more abilities but require advancement choices.
+              <strong> Experienced player?</strong>
+              {' '}
+              Higher levels give you more abilities but require advancement choices.
             </p>
           </div>
         </div>
@@ -1045,7 +1087,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <div className="level-wizard-step">
             <div className="wizard-step-header">
               <span className="step-number">1</span>
-              <h3 > Select Starting Level</h3>
+              <h3> Select Starting Level</h3>
             </div>
 
             <div className="level-choice-cards">
@@ -1058,8 +1100,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                   <span className="level-badge beginner">Beginner Friendly</span>
                 </div>
                 <div className="level-card-content">
-                  <p><strong > Perfect for new players!</strong></p>
-                  <p > Start with your class basics and learn the game naturally.</p>
+                  <p><strong> Perfect for new players!</strong></p>
+                  <p> Start with your class basics and learn the game naturally.</p>
                   <div className="level-benefits">
                     <span>✨ No complex choices</span>
                     <span>📚 Learn as you play</span>
@@ -1077,8 +1119,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                   <span className="level-badge advanced">Advanced</span>
                 </div>
                 <div className="level-card-content">
-                  <p><strong > For experienced players</strong></p>
-                  <p > More powerful, but requires advancement choices.</p>
+                  <p><strong> For experienced players</strong></p>
+                  <p> More powerful, but requires advancement choices.</p>
                   <div className="level-benefits">
                     <span>⚡ More abilities</span>
                     <span>🎯 Customization options</span>
@@ -1091,7 +1133,12 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
             {selectedLevel > 1 && (
               <div className="level-fine-tuning">
                 <label htmlFor="level-slider" className="level-label">
-                  Fine-tune level: <span className="level-value">Level {selectedLevel}</span>
+                  Fine-tune level:
+                  {' '}
+                  <span className="level-value">
+                    Level
+                    {selectedLevel}
+                  </span>
                 </label>
                 <input
                   id="level-slider"
@@ -1099,7 +1146,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                   min={2}
                   max={10}
                   value={selectedLevel}
-                  onChange={(e) => handleLevelChange(Number.parseInt(e.target.value), advancementService.getLevelProgression(Number.parseInt(e.target.value), characterData.class))}
+                  onChange={e => handleLevelChange(Number.parseInt(e.target.value), advancementService.getLevelProgression(Number.parseInt(e.target.value), characterData.class))}
                   className="level-slider"
                 />
                 <div className="level-markers">
@@ -1116,12 +1163,21 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           {/* Level Benefits Preview */}
           {currentState.levelProgression && (
             <div className="level-benefits-preview">
-              <h4>📊 Level {selectedLevel} Benefits</h4>
+              <h4>
+                📊 Level
+                {selectedLevel}
+                {' '}
+                Benefits
+              </h4>
               <div className="benefits-grid">
                 <div className="benefit-item">
                   <span className="benefit-icon">❤️</span>
                   <span className="benefit-label">Hit Points</span>
-                  <span className="benefit-value">{currentState.levelProgression.baseHP} HP</span>
+                  <span className="benefit-value">
+                    {currentState.levelProgression.baseHP}
+                    {' '}
+                    HP
+                  </span>
                 </div>
                 <div className="benefit-item">
                   <span className="benefit-icon">💰</span>
@@ -1131,7 +1187,11 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                 <div className="benefit-item">
                   <span className="benefit-icon">⭐</span>
                   <span className="benefit-label">Experience</span>
-                  <span className="benefit-value">{currentState.levelProgression.xp} XP</span>
+                  <span className="benefit-value">
+                    {currentState.levelProgression.xp}
+                    {' '}
+                    XP
+                  </span>
                 </div>
                 {currentState.levelProgression.totalAdvancementPoints > 0 && (
                   <div className="benefit-item">
@@ -1149,20 +1209,36 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
             <div className="level-wizard-step">
               <div className="wizard-step-header">
                 <span className="step-number">2</span>
-                <h3 > Choose Your Character Improvements</h3>
+                <h3> Choose Your Character Improvements</h3>
                 <div className="step-explanation">
                   <p>
-                    <strong > How did your character grow from Level 1 to Level {selectedLevel}?</strong > You get to make {currentState.levelProgression.totalAdvancementPoints} advancement choices.
+                    <strong>
+                      {' '}
+                      How did your character grow from Level 1 to Level
+                      {selectedLevel}
+                      ?
+                    </strong>
+                    {' '}
+                    You get to make
+                    {currentState.levelProgression.totalAdvancementPoints}
+                    {' '}
+                    advancement choices.
                   </p>
                   <div className="improvement-breakdown">
                     <div className="improvement-type">
                       <span className="improvement-icon">🎯</span>
                       <span className="improvement-text">
-                        <strong > Each advancement</strong > lets you choose ONE of:
+                        <strong> Each advancement</strong>
+                        {' '}
+                        lets you choose ONE of:
                         <small>
-                          • +1 to unknown ability score (STR, DEX, CON, INT, WIS, or CHA)<br/>
-                          • A new class move or advanced move < br/>
-                          • A move from another class (multiclass)<br/>
+                          • +1 to unknown ability score (STR, DEX, CON, INT, WIS, or CHA)
+                          <br />
+                          • A new class move or advanced move
+                          {' '}
+                          <br />
+                          • A move from another class (multiclass)
+                          <br />
                           • New spells (for spellcasters)
                         </small>
                       </span>
@@ -1170,17 +1246,31 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                     <div className="improvement-type">
                       <span className="improvement-icon">⚖️</span>
                       <span className="improvement-text">
-                        <strong > Your choice!</strong > You can focus on attributes, abilities, or mix them.
-                        <small > Want a strong fighter? Take + 1 STR every level. Want versatility? Mix moves and stats.</small>
+                        <strong> Your choice!</strong>
+                        {' '}
+                        You can focus on attributes, abilities, or mix them.
+                        <small> Want a strong fighter? Take + 1 STR every level. Want versatility? Mix moves and stats.</small>
                       </span>
                     </div>
                   </div>
                   <div className="advancement-instructions">
                     <p><strong>📋 Instructions:</strong></p>
                     <ol>
-                      <li > Click the < strong>"Advanced Moves"</strong > tab and select one move</li>
-                      <li > Click the < strong>"Ability Scores"</strong > tab and select one stat to increase</li>
-                      <li > Both selections are required to proceed</li>
+                      <li>
+                        {' '}
+                        Click the
+                        <strong>"Advanced Moves"</strong>
+                        {' '}
+                        tab and select one move
+                      </li>
+                      <li>
+                        {' '}
+                        Click the
+                        <strong>"Ability Scores"</strong>
+                        {' '}
+                        tab and select one stat to increase
+                      </li>
+                      <li> Both selections are required to proceed</li>
                     </ol>
                   </div>
                 </div>
@@ -1237,15 +1327,15 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderRaceStep = () => {
     const availableRaces = currentState.characterData.class
       ? CLASS_RACES[currentState.characterData.class as CharacterClass]
-      : [];
+      : []
 
-    const raceInfo: Record < Race, { description: string; abilities: string[]; mechanics: string }> = {
+    const raceInfo: Record <Race, { description: string, abilities: string[], mechanics: string }> = {
       Human: {
         description: 'Ambitious and diverse, humans are the most common people in the world. They adapt quickly to unknown situation and push themselves to excel at whatever they set their minds to.',
         abilities: [
@@ -1273,7 +1363,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         mechanics: 'Dwarves are naturally hardy and tough, with an instinctive knowledge of craftsmanship and stonework.',
       },
       Halfling: {
-        description: "Small in stature but large in courage, halflings are naturally nimble and seem to have fortune smile upon them. They value comfort and community, but don't hesitate when adventure calls.",
+        description: 'Small in stature but large in courage, halflings are naturally nimble and seem to have fortune smile upon them. They value comfort and community, but don\'t hesitate when adventure calls.',
         abilities: [
           'Blessed Fortune: You can call upon your natural luck in dire moments (3 luck points to reroll dice)',
           'Brave Heart: Your courage grows stronger when facing overwhelming odds',
@@ -1290,18 +1380,18 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         ],
         mechanics: 'Your unique heritage provides distinctive advantages and knowledge that others lack.',
       },
-    };
+    }
 
     return (
       <div className="wizard-step race-step">
-        <h2 > Choose Your Heritage</h2>
+        <h2> Choose Your Heritage</h2>
         <p className="step-intro">
           Your race affects how you interact with the world and may provide special abilities.
           <span className="tooltip" aria-label="Some classes have limited race choices based on the setting.">?</span>
         </p>
         <div className="race-options">
           {availableRaces.map((race: Race) => {
-            const info = raceInfo[race as Race];
+            const info = raceInfo[race as Race]
             return (
               <div
                 key={race}
@@ -1316,7 +1406,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                 </div>
                 <p className="race-description">{info.description}</p>
                 <div className="race-abilities">
-                  <h4 > Racial Abilities:</h4>
+                  <h4> Racial Abilities:</h4>
                   <ul>
                     {info.abilities.map((item, index) => (
                       <li key={index}>{ability}</li>
@@ -1324,7 +1414,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                   </ul>
                 </div>
               </div>
-            );
+            )
           })}
         </div>
         <div className="wizard-actions">
@@ -1334,12 +1424,13 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <button
             className="btn btn-secondary"
             onClick={() => {
-              const available =  (availableRaces as Race[]);
-              if (!available || available.length === 0) return;
-              const race = available[Math.floor(Math.random() * available.length)];
+              const available = availableRaces as Race[]
+              if (!available || available.length === 0)
+                return
+              const race = available[Math.floor(Math.random() * available.length)]
               updateState({
                 characterData: { ...currentState.characterData, race },
-              });
+              })
             }}
           >
             🎲 Random Race
@@ -1347,29 +1438,30 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <button
             className="btn btn-primary"
             onClick={() => {
-              const caster: CharacterClass[] = ['Wizard', 'Cleric', 'Immolator'];
+              const caster: CharacterClass[] = ['Wizard', 'Cleric', 'Immolator']
               if (currentState.characterData.class && caster.includes(currentState.characterData.class as CharacterClass)) {
-                updateState({ currentStep: 'personality' });
-              } else {
-                nextStep();
+                updateState({ currentStep: 'personality' })
+              }
+              else {
+                nextStep()
               }
             }}
             disabled={!currentState.characterData.race}
           >
             {(() => {
-              const caster: CharacterClass[] = ['Wizard', 'Cleric', 'Immolator'];
+              const caster: CharacterClass[] = ['Wizard', 'Cleric', 'Immolator']
               return currentState.characterData.class && caster.includes(currentState.characterData.class as CharacterClass)
                 ? 'Next: Personality →'
-                : 'Next: Assign Abilities →';
+                : 'Next: Assign Abilities →'
             })()}
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderAttributesStep = () => {
-    const attributeNames: (keyof Attributes)[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+    const attributeNames: (keyof Attributes)[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA']
     const attributeDescriptions = {
       STR: 'Strength-Physical power, melee damage, carrying capacity',
       DEX: 'Dexterity-Agility, reflexes, ranged attacks, dodging',
@@ -1377,22 +1469,22 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
       INT: 'Intelligence-Reasoning, knowledge, spell power for wizards',
       WIS: 'Wisdom-Perception, willpower, divine magic',
       CHA: 'Charisma-Force of personality, leadership, social skills',
-    };
+    }
 
     const scores = currentState.attributeMethod === 'roll'
       ? currentState.rolledScores || []
-      : STANDARD_ARRAY;
+      : STANDARD_ARRAY
 
-    const assignedCount = Object.keys(currentState.assignedAttributes || {}).length;
+    const assignedCount = Object.keys(currentState.assignedAttributes || {}).length
     const remainingScores = scores.filter((score: number, index: number) => {
-      const assigned = Object.values(currentState.assignedAttributes || {}) as number[];
-      return ! assigned.includes(score) ||
-        assigned.filter((s: number) => s === score).length <= scores.filter((s: number) => s === score).slice(0, index + 1).length-1;
-    });
+      const assigned = Object.values(currentState.assignedAttributes || {}) as number[]
+      return !assigned.includes(score)
+        || assigned.filter((s: number) => s === score).length <= scores.filter((s: number) => s === score).slice(0, index + 1).length - 1
+    })
 
     return (
       <div className="wizard-step attributes-step">
-        <h2 > Assign Your Abilities</h2>
+        <h2> Assign Your Abilities</h2>
         <p className="step-intro">
           Choose how to determine your character's core abilities. Each method offers a different experience.
         </p>
@@ -1411,8 +1503,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
               >
                 <div className="method-icon">📊</div>
                 <div className="method-content">
-                  <h4 > Standard Array</h4>
-                  <p > Balanced and fair-use predetermined values</p>
+                  <h4> Standard Array</h4>
+                  <p> Balanced and fair-use predetermined values</p>
                   <div className="method-values">16, 15, 13, 12, 9, 8</div>
                 </div>
               </div>
@@ -1422,8 +1514,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
               >
                 <div className="method-icon">🎲</div>
                 <div className="method-content">
-                  <h4 > Roll for Stats</h4>
-                  <p > Random and exciting-roll 3d6 for each ability</p>
+                  <h4> Roll for Stats</h4>
+                  <p> Random and exciting-roll 3d6 for each ability</p>
                   <div className="method-values">Unpredictable results!</div>
                 </div>
               </div>
@@ -1438,25 +1530,27 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                 <p className="card-subtitle">Generate your ability scores</p>
               </div>
               <div className="roll-controls">
-                {!currentState.rolledScores ? (
-                  <button className="btn btn-primary btn-large" onClick={rollAbilityScores}>
-                    🎲 Roll Ability Scores
-                  </button>
-                ) : (
-                  <div className="roll-results">
-                    <div className="rolled-scores">
-                      <span className="scores-label">Your rolls:</span>
-                      <div className="scores-display">
-                        {currentState.rolledScores.map((score: number, index: number) => (
-                          <span key={index} className="score-value">{score}</span>
-                        ))}
+                {!currentState.rolledScores
+                  ? (
+                      <button className="btn btn-primary btn-large" onClick={rollAbilityScores}>
+                        🎲 Roll Ability Scores
+                      </button>
+                    )
+                  : (
+                      <div className="roll-results">
+                        <div className="rolled-scores">
+                          <span className="scores-label">Your rolls:</span>
+                          <div className="scores-display">
+                            {currentState.rolledScores.map((score: number, index: number) => (
+                              <span key={index} className="score-value">{score}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <button className="btn btn-secondary" onClick={rollAbilityScores}>
+                          🎲 Reroll All
+                        </button>
                       </div>
-                    </div>
-                    <button className="btn btn-secondary" onClick={rollAbilityScores}>
-                      🎲 Reroll All
-                    </button>
-                  </div>
-                )}
+                    )}
               </div>
             </div>
           )}
@@ -1470,7 +1564,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
               </div>
 
               <div className="available-scores">
-                <h4 > Available Scores:</h4>
+                <h4> Available Scores:</h4>
                 <div className="score-chips">
                   {remainingScores.map((score: number, index: number) => (
                     <span key={index} className="score-chip">
@@ -1481,12 +1575,12 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
               </div>
 
               <div className="attributes-grid">
-                {attributeNames.map(attr => {
-                  const isRecommended = currentState.characterData.class &&
-                    CLASS_DESCRIPTIONS[currentState.characterData.class as CharacterClass].primaryStat === attr;
-                  const racialBonus = currentState.characterData.race ? getRacialBonuses(currentState.characterData.race).attributes[attr] || 0 : 0;
-                  const baseValue = currentState.assignedAttributes?.[attr] || 0;
-                  const finalValue = baseValue + racialBonus;
+                {attributeNames.map((attr) => {
+                  const isRecommended = currentState.characterData.class
+                    && CLASS_DESCRIPTIONS[currentState.characterData.class as CharacterClass].primaryStat === attr
+                  const racialBonus = currentState.characterData.race ? getRacialBonuses(currentState.characterData.race).attributes[attr] || 0 : 0
+                  const baseValue = currentState.assignedAttributes?.[attr] || 0
+                  const finalValue = baseValue + racialBonus
 
                   return (
                     <div key={attr} className={`attribute-card ${isRecommended ? 'recommended' : ''}`}>
@@ -1498,11 +1592,23 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                         <div className="attr-value-section">
                           {baseValue > 0 && (
                             <div className="final-value">
-                              {racialBonus > 0 ? (
-                                <span>{baseValue} + {racialBonus} = <strong>{finalValue}</strong></span>
-                              ) : (
-                                <strong>{baseValue}</strong>
-                              )}
+                              {racialBonus > 0
+                                ? (
+                                    <span>
+                                      {baseValue}
+                                      {' '}
+                                      +
+                                      {' '}
+                                      {racialBonus}
+                                      {' '}
+                                      =
+                                      {' '}
+                                      <strong>{finalValue}</strong>
+                                    </span>
+                                  )
+                                : (
+                                    <strong>{baseValue}</strong>
+                                  )}
                             </div>
                           )}
                         </div>
@@ -1513,37 +1619,41 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                         aria-label={`Select score for ${attr}`}
                         className="attribute-select"
                         onChange={(e) => {
-                          const value = e.target.value ? Number.parseInt(e.target.value) : undefined;
-                          const newAssigned = { ...currentState.assignedAttributes };
+                          const value = e.target.value ? Number.parseInt(e.target.value) : undefined
+                          const newAssigned = { ...currentState.assignedAttributes }
                           if (value) {
-                            newAssigned[attr] = value;
-                          } else {
-                            delete newAssigned[attr];
+                            newAssigned[attr] = value
                           }
-                          updateState({ assignedAttributes: newAssigned });
+                          else {
+                            delete newAssigned[attr]
+                          }
+                          updateState({ assignedAttributes: newAssigned })
                         }}
                       >
                         <option value="">Select score...</option>
-                      {scores.map((score: number, index: number) => {
-                        const timesUsed = Object.values(currentState.assignedAttributes || {})
-                          .filter(s => s === score).length;
-                        const timesAvailable = scores.filter((s: number) => s === score).length;
-                        const isAvailable = timesUsed < timesAvailable ||
-                          currentState.assignedAttributes?.[attr] === score;
+                        {scores.map((score: number, index: number) => {
+                          const timesUsed = Object.values(currentState.assignedAttributes || {})
+                            .filter(s => s === score)
+                            .length
+                          const timesAvailable = scores.filter((s: number) => s === score).length
+                          const isAvailable = timesUsed < timesAvailable
+                            || currentState.assignedAttributes?.[attr] === score
 
-                        return (
-                          <option
-                            key={index}
-                            value={score}
-                            disabled={!isAvailable}
-                          >
-                            {score} {!isAvailable && '(already assigned)'}
-                          </option>
-                        );
-                      })}
+                          return (
+                            <option
+                              key={index}
+                              value={score}
+                              disabled={!isAvailable}
+                            >
+                              {score}
+                              {' '}
+                              {!isAvailable && '(already assigned)'}
+                            </option>
+                          )
+                        })}
                       </select>
                     </div>
-                  );
+                  )
                 })}
               </div>
 
@@ -1551,14 +1661,18 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                 <button
                   className="btn btn-secondary"
                   onClick={() => {
-                    const cls = currentState.characterData.class as CharacterClass;
-                    if (!cls) return;
-                    const assigned = randomGeneratorService.assignAttributesForClass(scores, cls);
-                    updateState({ assignedAttributes: assigned });
+                    const cls = currentState.characterData.class as CharacterClass
+                    if (!cls)
+                      return
+                    const assigned = randomGeneratorService.assignAttributesForClass(scores, cls)
+                    updateState({ assignedAttributes: assigned })
                   }}
                   disabled={!currentState.characterData.class}
                 >
-                  ⚡ Auto-Assign (Recommended for {currentState.characterData.class})
+                  ⚡ Auto-Assign (Recommended for
+                  {' '}
+                  {currentState.characterData.class}
+                  )
                 </button>
               </div>
             </div>
@@ -1572,20 +1686,21 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <button
             className="btn btn-secondary"
             onClick={() => {
-              const method = currentState.attributeMethod;
+              const method = currentState.attributeMethod
               const scores = method === 'roll'
                 ? (currentState.rolledScores && currentState.rolledScores.length === 6
                     ? currentState.rolledScores
                     : ((): number[] => {
-                        const rs = randomGeneratorService.generateAttributes('roll');
-                        updateState({ rolledScores: rs });
-                        return rs;
+                        const rs = randomGeneratorService.generateAttributes('roll')
+                        updateState({ rolledScores: rs })
+                        return rs
                       })())
-                : STANDARD_ARRAY;
-              const cls = currentState.characterData.class as CharacterClass | undefined;
-              if (!cls) return;
-              const assigned = randomGeneratorService.assignAttributesForClass(scores, cls);
-              updateState({ assignedAttributes: assigned });
+                : STANDARD_ARRAY
+              const cls = currentState.characterData.class as CharacterClass | undefined
+              if (!cls)
+                return
+              const assigned = randomGeneratorService.assignAttributesForClass(scores, cls)
+              updateState({ assignedAttributes: assigned })
             }}
             disabled={!currentState.characterData.class}
           >
@@ -1600,20 +1715,20 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderAlignmentStep = () => {
-    const alignmentDescriptions: Record < Alignment, string> = {
+    const alignmentDescriptions: Record <Alignment, string> = {
       Good: 'You help others and protect the innocent',
       Lawful: 'You follow rules, traditions, and keep your word',
       Neutral: 'You act according to the situation and your needs',
       Chaotic: 'You value freedom and reject restrictions',
-      Evil: "You pursue power and don't care who gets hurt",
-    };
+      Evil: 'You pursue power and don\'t care who gets hurt',
+    }
 
     // Class-specific alignment moves would go here
-    const classAlignments: Record < CharacterClass, Alignment[]> = {
+    const classAlignments: Record <CharacterClass, Alignment[]> = {
       Fighter: ['Good', 'Neutral', 'Evil'],
       Paladin: ['Lawful', 'Good'],
       Ranger: ['Good', 'Neutral', 'Chaotic'],
@@ -1624,15 +1739,15 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
       Wizard: ['Good', 'Neutral', 'Evil'],
       Barbarian: ['Chaotic', 'Neutral'],
       Immolator: ['Neutral', 'Evil'],
-    };
+    }
 
     const availableAlignments = currentState.characterData.class
       ? classAlignments[currentState.characterData.class as CharacterClass]
-      : [];
+      : []
 
     return (
       <div className="wizard-step alignment-step">
-        <h2 > Choose Your Alignment</h2>
+        <h2> Choose Your Alignment</h2>
         <p className="step-intro">
           Your alignment guides your character's moral compass and grants you special XP triggers.
         </p>
@@ -1657,12 +1772,13 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <button
             className="btn btn-secondary"
             onClick={() => {
-              const alignments = availableAlignments as Alignment[];
-              if (!alignments || alignments.length === 0) return;
-              const a = alignments[Math.floor(Math.random() * alignments.length)];
+              const alignments = availableAlignments as Alignment[]
+              if (!alignments || alignments.length === 0)
+                return
+              const a = alignments[Math.floor(Math.random() * alignments.length)]
               updateState({
                 characterData: { ...currentState.characterData, alignment: a },
-              });
+              })
             }}
           >
             🎲 Random Alignment
@@ -1676,26 +1792,27 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderAdvancedOptionsStep = () => {
     return (
       <AdvancedOptionsStep
         character={currentState.characterData}
-        onUpdate={(updates) => updateState({ characterData: { ...currentState.characterData, ...updates } })}
+        onUpdate={updates => updateState({ characterData: { ...currentState.characterData, ...updates } })}
         onNext={nextStep}
         onBack={previousStep}
       />
-    );
-  };
+    )
+  }
 
   const renderMovesEquipmentStep = () => {
     const classData = currentState.characterData.class
       ? CLASS_STARTING_DATA[currentState.characterData.class as CharacterClass]
-      : null;
+      : null
 
-    if (!classData) return null;
+    if (!classData)
+      return null
 
     // Initialize equipment if not set
     if (!currentState.selectedEquipment) {
@@ -1703,36 +1820,37 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         selectedEquipment: classData.equipment,
         selectedMoves: classData.moves,
         equipmentChoices: {},
-      });
+      })
     }
 
     const handleEquipmentChoice = (choiceIndex: number, optionIndex: number) => {
-      const choice = classData.choices?.equipment?.[choiceIndex];
-      if (!choice) return;
+      const choice = classData.choices?.equipment?.[choiceIndex]
+      if (!choice)
+        return
 
-      const newChoices = { ...currentState.equipmentChoices, [choiceIndex]: optionIndex };
+      const newChoices = { ...currentState.equipmentChoices, [choiceIndex]: optionIndex }
 
       // Rebuild equipment list with choices
-      let newEquipment = [...classData.equipment];
+      let newEquipment = [...classData.equipment]
 
       // Add all selected choice items
       for (const [idx, optIdx] of Object.entries(newChoices)) {
-        const choiceData = classData.choices?.equipment?.[Number.parseInt(idx)];
+        const choiceData = classData.choices?.equipment?.[Number.parseInt(idx)]
         if (choiceData && typeof optIdx === 'number') {
-          newEquipment = [...newEquipment, ...choiceData.options[optIdx as number]];
+          newEquipment = [...newEquipment, ...choiceData.options[optIdx as number]]
         }
       }
 
       updateState({
         equipmentChoices: newChoices,
         selectedEquipment: newEquipment,
-      });
-    };
+      })
+    }
 
     return (
       <div className="wizard-step moves-equipment-step">
         <div className="step-content-container">
-          <h2 > Starting Moves & Equipment</h2>
+          <h2> Starting Moves & Equipment</h2>
           <p className="step-intro">
             Your class grants you special moves and starting gear for your adventures.
           </p>
@@ -1766,13 +1884,28 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                 <p className="card-subtitle">Your guaranteed gear</p>
               </div>
               <div className="equipment-grid-multi-column">
-                {classData.equipment.map((item: Partial < Item> | Partial < Weapon> | Partial < Armor>, index: number) => (
+                {classData.equipment.map((item: Partial <Item> | Partial <Weapon> | Partial <Armor>, index: number) => (
                   <div key={index} className="equipment-pill">
                     <span className="item-name">{item.name}</span>
                     <div className="item-details">
-                      {item.weight !== undefined && <span className="detail">⚖️ {item.weight}</span>}
-                      {'armor' in item && 'armor' in item && <span className="detail">🛡️ {(item as { armor: number }).armor}</span>}
-                      {'damage' in item && 'damage' in item && <span className="detail">⚔️ {(item as { damage: string }).damage}</span>}
+                      {item.weight !== undefined && (
+                        <span className="detail">
+                          ⚖️
+                          {item.weight}
+                        </span>
+                      )}
+                      {'armor' in item && 'armor' in item && (
+                        <span className="detail">
+                          🛡️
+                          {(item as { armor: number }).armor}
+                        </span>
+                      )}
+                      {'damage' in item && 'damage' in item && (
+                        <span className="detail">
+                          ⚔️
+                          {(item as { damage: string }).damage}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1787,11 +1920,11 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                   <p className="card-subtitle">Select your preferred equipment</p>
                 </div>
                 <div className="choices-container-wide">
-                  {classData.choices.equipment.map((choice: { prompt: string; options: (Partial < Item> | Partial < Weapon> | Partial < Armor>)[][] }, choiceIndex: number) => (
+                  {classData.choices.equipment.map((choice: { prompt: string, options: (Partial <Item> | Partial <Weapon> | Partial <Armor>)[][] }, choiceIndex: number) => (
                     <div key={choiceIndex} className="choice-group-wide">
                       <h4 className="choice-prompt">{choice.prompt}</h4>
                       <div className="choice-comparison-side-by-side">
-                        {choice.options.map((option: (Partial < Item> | Partial < Weapon> | Partial < Armor>)[], optionIndex: number) => (
+                        {choice.options.map((option: (Partial <Item> | Partial <Weapon> | Partial <Armor>)[], optionIndex: number) => (
                           <div
                             key={optionIndex}
                             className={`comparison-card-wide 
@@ -1803,83 +1936,104 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                               {currentState.equipmentChoices?.[choiceIndex] === optionIndex && <span className="checkmark">✓</span>}
                             </div>
                             <div className="option-content">
-                              {option.map((item: Partial < Item> | Partial < Weapon> | Partial < Armor>, itemIndex: number) => (
+                              {option.map((item: Partial <Item> | Partial <Weapon> | Partial <Armor>, itemIndex: number) => (
                                 <div key={itemIndex} className="option-item">
                                   <h5 className="item-title">{item.name}</h5>
                                   {item.description && <p className="item-desc">{item.description}</p>}
-                                <div className="item-stats-grid">
-                                  {item.weight !== undefined && <div className="stat">⚖️ {item.weight} weight</div>}
-                                  {'armor' in item && 'armor' in item && <div className="stat">🛡️ {(item as { armor: number }).armor} armor</div>}
-                                  {'damage' in item && 'damage' in item && <div className="stat">⚔️ {(item as { damage: string }).damage} damage</div>}
-                                  {item.tags && (
-                                    <div className="stat tags">
-                                      <TagDisplay
-                                        tags={item.tags}
-                                        showTooltips={true}
-                                        className="item-tags-compact"
-                                      />
-                                    </div>
-                                  )}
+                                  <div className="item-stats-grid">
+                                    {item.weight !== undefined && (
+                                      <div className="stat">
+                                        ⚖️
+                                        {item.weight}
+                                        {' '}
+                                        weight
+                                      </div>
+                                    )}
+                                    {'armor' in item && 'armor' in item && (
+                                      <div className="stat">
+                                        🛡️
+                                        {(item as { armor: number }).armor}
+                                        {' '}
+                                        armor
+                                      </div>
+                                    )}
+                                    {'damage' in item && 'damage' in item && (
+                                      <div className="stat">
+                                        ⚔️
+                                        {(item as { damage: string }).damage}
+                                        {' '}
+                                        damage
+                                      </div>
+                                    )}
+                                    {item.tags && (
+                                      <div className="stat tags">
+                                        <TagDisplay
+                                          tags={item.tags}
+                                          showTooltips={true}
+                                          className="item-tags-compact"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Card 4: Starting Coin-Wide Bar Format */}
-          <div className="step-card coin-card-wide">
-            <div className="card-header">
-              <h3>💰 Starting Coin</h3>
-              <p className="card-subtitle">Your initial wealth</p>
-            </div>
-            <div className="coin-controls-wide">
-              <div className="coin-display-large">
-                <div className="coin-icon">💰</div>
-                <div className="coin-amount">
-                  <span className="coin-number">{currentState.characterData.coin ?? 0}</span>
-                  <span className="coin-unit">coin</span>
+                  ))}
                 </div>
               </div>
-              <div className="coin-buttons-horizontal">
-                <button
-                  className="btn btn-secondary coin-btn-wide"
-                  onClick={() => updateState({ characterData: { ...currentState.characterData, coin: 10 } })}
-                >
-                  📋 Use Standard (10)
-                </button>
-                <button
-                  className="btn btn-secondary coin-btn-wide"
-                  onClick={() => updateState({ characterData: { ...currentState.characterData, coin: (currentState.characterData.coin ?? 0) + 5 } })}
-                >
-                  +5 Coin
-                </button>
-                <button
-                  className="btn btn-secondary coin-btn-wide"
-                  onClick={() => updateState({ characterData: { ...currentState.characterData, coin: (currentState.characterData.coin ?? 0) + 10 } })}
-                >
-                  +10 Coin
-                </button>
-                <button
-                  className="btn btn-primary coin-btn-wide"
-                  onClick={() => {
-                    const d6 = () => Math.floor(Math.random() * 6) + 1;
-                    const roll = (d6() + d6()) * 10;
-                    updateState({ characterData: { ...currentState.characterData, coin: roll } });
-                  }}
-                >
-                  🎲 Roll 2d6×10
-                </button>
+            )}
+
+            {/* Card 4: Starting Coin-Wide Bar Format */}
+            <div className="step-card coin-card-wide">
+              <div className="card-header">
+                <h3>💰 Starting Coin</h3>
+                <p className="card-subtitle">Your initial wealth</p>
+              </div>
+              <div className="coin-controls-wide">
+                <div className="coin-display-large">
+                  <div className="coin-icon">💰</div>
+                  <div className="coin-amount">
+                    <span className="coin-number">{currentState.characterData.coin ?? 0}</span>
+                    <span className="coin-unit">coin</span>
+                  </div>
+                </div>
+                <div className="coin-buttons-horizontal">
+                  <button
+                    className="btn btn-secondary coin-btn-wide"
+                    onClick={() => updateState({ characterData: { ...currentState.characterData, coin: 10 } })}
+                  >
+                    📋 Use Standard (10)
+                  </button>
+                  <button
+                    className="btn btn-secondary coin-btn-wide"
+                    onClick={() => updateState({ characterData: { ...currentState.characterData, coin: (currentState.characterData.coin ?? 0) + 5 } })}
+                  >
+                    +5 Coin
+                  </button>
+                  <button
+                    className="btn btn-secondary coin-btn-wide"
+                    onClick={() => updateState({ characterData: { ...currentState.characterData, coin: (currentState.characterData.coin ?? 0) + 10 } })}
+                  >
+                    +10 Coin
+                  </button>
+                  <button
+                    className="btn btn-primary coin-btn-wide"
+                    onClick={() => {
+                      const d6 = () => Math.floor(Math.random() * 6) + 1
+                      const roll = (d6() + d6()) * 10
+                      updateState({ characterData: { ...currentState.characterData, coin: roll } })
+                    }}
+                  >
+                    🎲 Roll 2d6×10
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </div>
 
         {/* Full-Width Sticky Footer */}
@@ -1894,65 +2048,65 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
             className="btn btn-primary"
             onClick={nextStep}
             disabled={
-              classData.choices?.equipment &&
-              Object.keys(currentState.equipmentChoices || {}).length < classData.choices.equipment.length
+              classData.choices?.equipment
+              && Object.keys(currentState.equipmentChoices || {}).length < classData.choices.equipment.length
             }
           >
             Next: Create Bonds →
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderBondsStep = () => {
     const bondTemplates = currentState.characterData.class
       ? CLASS_BOND_TEMPLATES[currentState.characterData.class as CharacterClass]
-      : [];
+      : []
 
-    const bonds = currentState.createdBonds || [];
+    const bonds = currentState.createdBonds || []
     const partyNames = Object.values(state.characters || {})
       .map((c: Character) => c.name)
-      .filter((n: string | undefined): n is string => n !== undefined && n.trim().length > 0);
+      .filter((n: string | undefined): n is string => n !== undefined && n.trim().length > 0)
 
     const addBond = () => {
       const newBond: Bond = {
         id: uuidv4(),
         text: '',
         resolved: false,
-      };
-      updateState({ createdBonds: [...bonds, newBond] });
-    };
+      }
+      updateState({ createdBonds: [...bonds, newBond] })
+    }
 
     const updateBond = (bondId: string, text: string) => {
       const updatedBonds = bonds.map((bond: Bond) =>
         bond.id === bondId ? { ...bond, text } : bond,
-      );
-      updateState({ createdBonds: updatedBonds });
-    };
+      )
+      updateState({ createdBonds: updatedBonds })
+    }
 
     const removeBond = (bondId: string) => {
-      const updatedBonds = bonds.filter((bond: Bond) => bond.id !== bondId);
-      updateState({ createdBonds: updatedBonds });
-    };
+      const updatedBonds = bonds.filter((bond: Bond) => bond.id !== bondId)
+      updateState({ createdBonds: updatedBonds })
+    }
 
     return (
       <div className="wizard-step bonds-step">
-        <h2 > Create Your Bonds</h2>
+        <h2> Create Your Bonds</h2>
         <p className="step-intro">
           Bonds represent your character's relationships with other party members.
           Fill in the blanks with character names or create your own bonds.
         </p>
 
         <div className="bond-templates">
-          <h3 > Bond Templates</h3>
+          <h3> Bond Templates</h3>
           {partyNames.length > 0 && (
             <div className="form-group margin-bottom-1">
               <label htmlFor="bond-party-target">Fill blanks with party member:</label>
               <select
                 id="bond-party-target"
                 value={currentState.bondPartyTarget || ''}
-                onChange={(e) => updateState({ bondPartyTarget: e.target.value })}
+                onChange={e => updateState({ bondPartyTarget: e.target.value })}
               >
                 <option value="">(none)</option>
                 {partyNames.map((n: string) => (
@@ -1974,8 +2128,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                     id: uuidv4(),
                     text: currentState.bondPartyTarget ? template.replace('___', currentState.bondPartyTarget) : template,
                     resolved: false,
-                  };
-                  updateState({ createdBonds: [...bonds, newBond] });
+                  }
+                  updateState({ createdBonds: [...bonds, newBond] })
                 }}
               >
                 <span className="template-text">{template}</span>
@@ -1986,32 +2140,37 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         </div>
 
         <div className="active-bonds">
-          <h3 > Your Bonds</h3>
-          {bonds.length === 0 ? (
-            <p className="no-bonds">No bonds created yet. Click templates above or create custom bonds.</p>
-          ) : (
-            <div className="bonds-list">
-              {bonds.map((bond: Bond, index: number) => (
-                <div key={bond.id} className="bond-item">
-                  <span className="bond-number">{index + 1}.</span>
-                  <textarea
-                    value={bond.text}
-                    onChange={(e) => updateBond(bond.id, e.target.value)}
-                    placeholder="Enter your bond here..."
-                    rows={2}
-                    className="bond-input"
-                  />
-                  <button
-                    className="remove-bond"
-                    onClick={() => removeBond(bond.id)}
-                    aria-label="Remove bond"
-                  >
-                    ×
-                  </button>
+          <h3> Your Bonds</h3>
+          {bonds.length === 0
+            ? (
+                <p className="no-bonds">No bonds created yet. Click templates above or create custom bonds.</p>
+              )
+            : (
+                <div className="bonds-list">
+                  {bonds.map((bond: Bond, index: number) => (
+                    <div key={bond.id} className="bond-item">
+                      <span className="bond-number">
+                        {index + 1}
+                        .
+                      </span>
+                      <textarea
+                        value={bond.text}
+                        onChange={e => updateBond(bond.id, e.target.value)}
+                        placeholder="Enter your bond here..."
+                        rows={2}
+                        className="bond-input"
+                      />
+                      <button
+                        className="remove-bond"
+                        onClick={() => removeBond(bond.id)}
+                        aria-label="Remove bond"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
           <button className="btn btn-secondary add-bond-btn" onClick={addBond}>
             + Add Custom Bond
@@ -2021,10 +2180,10 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         <div className="bonds-tips">
           <h4>💡 Tips:</h4>
           <ul>
-            <li > Replace "___ " with another player character's name</li>
-            <li > You can modify templates to better fit your character</li>
-            <li > Create 2-3 bonds to start; you can add more during play</li>
-            <li > Bonds drive character interaction and grant XP when resolved</li>
+            <li> Replace "___ " with another player character's name</li>
+            <li> You can modify templates to better fit your character</li>
+            <li> Create 2-3 bonds to start; you can add more during play</li>
+            <li> Bonds drive character interaction and grant XP when resolved</li>
           </ul>
         </div>
 
@@ -2041,42 +2200,64 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   const renderReviewStep = () => {
-    const attrs = currentState.assignedAttributes as Attributes;
-    const character = currentState.characterData;
+    const attrs = currentState.assignedAttributes as Attributes
+    const character = currentState.characterData
 
     return (
       <div className="wizard-step review-step">
-        <h2 > Review Your Character</h2>
+        <h2> Review Your Character</h2>
         <div className="character-summary">
           <div className="summary-section">
-            <h3 > Basic Information</h3>
-            <p><strong > Name:</strong> {character.name}</p>
-            <p><strong > Class:</strong> {character.class}</p>
-            <p><strong > Race:</strong> {character.race}</p>
-            <p><strong > Alignment:</strong> {character.alignment}</p>
-            <p><strong > Coin:</strong> {currentState.characterData.coin ?? 0}</p>
+            <h3> Basic Information</h3>
+            <p>
+              <strong> Name:</strong>
+              {' '}
+              {character.name}
+            </p>
+            <p>
+              <strong> Class:</strong>
+              {' '}
+              {character.class}
+            </p>
+            <p>
+              <strong> Race:</strong>
+              {' '}
+              {character.race}
+            </p>
+            <p>
+              <strong> Alignment:</strong>
+              {' '}
+              {character.alignment}
+            </p>
+            <p>
+              <strong> Coin:</strong>
+              {' '}
+              {currentState.characterData.coin ?? 0}
+            </p>
           </div>
 
           {character.look && (
             <div className="summary-section">
-              <h3 > Appearance</h3>
+              <h3> Appearance</h3>
               <p>{character.look}</p>
             </div>
           )}
 
           <div className="summary-section">
-            <h3 > Abilities</h3>
+            <h3> Abilities</h3>
             <div className="ability-summary">
               {attrs && Object.entries(attrs).map(([key, value]) => (
                 <div key={key} className="ability-score">
                   <span className="ability-name">{key}</span>
                   <span className="ability-value">{value}</span>
                   <span className="ability-modifier">
-                    ({value >= 16 ? '+2' : value >= 13 ? '+1' : value >= 9 ? '+0' : value >= 6 ? '-1' : value >= 4 ? '-2' : '-3'})
+                    (
+                    {value >= 16 ? '+2' : value >= 13 ? '+1' : value >= 9 ? '+0' : value >= 6 ? '-1' : value >= 4 ? '-2' : '-3'}
+                    )
                   </span>
                 </div>
               ))}
@@ -2085,19 +2266,27 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
 
           {character.background && (
             <div className="summary-section">
-              <h3 > Background</h3>
+              <h3> Background</h3>
               <p>{character.background}</p>
             </div>
           )}
 
           {(currentState.characterData.personalityTraits || currentState.characterData.voice) && (
             <div className="summary-section">
-              <h3 > Personality</h3>
+              <h3> Personality</h3>
               {currentState.characterData.personalityTraits && currentState.characterData.personalityTraits.length > 0 && (
-                <p><strong > Traits:</strong> {currentState.characterData.personalityTraits.join(', ')}</p>
+                <p>
+                  <strong> Traits:</strong>
+                  {' '}
+                  {currentState.characterData.personalityTraits.join(', ')}
+                </p>
               )}
               {currentState.characterData.voice && (
-                <p><strong > Voice:</strong> {currentState.characterData.voice}</p>
+                <p>
+                  <strong> Voice:</strong>
+                  {' '}
+                  {currentState.characterData.voice}
+                </p>
               )}
             </div>
           )}
@@ -2110,7 +2299,7 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           <button
             className="btn btn-secondary"
             onClick={() => {
-              const templateName = prompt('Template name:');
+              const templateName = prompt('Template name:')
               if (templateName) {
                 characterTemplateService.saveTemplate({
                   name: templateName,
@@ -2120,8 +2309,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
                   selectedEquipment: currentState.selectedEquipment,
                   selectedMoves: currentState.selectedMoves,
                   bonds: currentState.createdBonds,
-                });
-                alert('Template saved successfully!');
+                })
+                alert('Template saved successfully!')
               }
             }}
           >
@@ -2135,48 +2324,54 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
           </button>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   // Render the appropriate step
   const renderCurrentStep = () => {
     switch (currentState.currentStep) {
       case 'intro':
-        return renderIntroStep();
+        return renderIntroStep()
       case 'templates':
-        return renderTemplatesStep();
+        return renderTemplatesStep()
       case 'name-look':
-        return renderNameLookStep();
+        return renderNameLookStep()
       case 'background':
-        return renderBackgroundStep();
+        return renderBackgroundStep()
       case 'portrait':
-        return renderPortraitStep();
+        return renderPortraitStep()
       case 'class':
-        return renderClassStep();
+        return renderClassStep()
       case 'race':
-        return renderRaceStep();
+        return renderRaceStep()
       case 'level':
-        return renderLevelStep();
+        return renderLevelStep()
       case 'personality':
-        return renderPersonalityStep();
+        return renderPersonalityStep()
       case 'spells':
-        return renderSpellsStep();
+        return renderSpellsStep()
       case 'attributes':
-        return renderAttributesStep();
+        return renderAttributesStep()
       case 'alignment':
-        return renderAlignmentStep();
+        return renderAlignmentStep()
       case 'advanced-options':
-        return renderAdvancedOptionsStep();
+        return renderAdvancedOptionsStep()
       case 'review':
-        return renderReviewStep();
+        return renderReviewStep()
       case 'moves-equipment':
-        return renderMovesEquipmentStep();
+        return renderMovesEquipmentStep()
       case 'bonds':
-        return renderBondsStep();
+        return renderBondsStep()
       default:
-        return < div > Step not implemented yet: {currentState.currentStep}</div>;
+        return (
+          <div>
+            {' '}
+            Step not implemented yet:
+            {currentState.currentStep}
+          </div>
+        )
     }
-  };
+  }
 
   return (
     <div className="character-creation-panel">
@@ -2202,8 +2397,8 @@ const CharacterCreationPanel: React.FC < PanelProps & { panelState?: CharacterCr
         position="bottom-right"
       />
     </div>
-  );
-};
+  )
+}
 
 export default createPanel(
   {
@@ -2223,39 +2418,38 @@ export default createPanel(
         attributes: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
         // Known moves starts empty to avoid undefined access during advancement
         knownMoves: [],
-      } as Partial < Character>,
+      } as Partial <Character>,
       attributeMethod: 'array',
       selectedLevel: 1,
     }),
     onMount: () => {
       // Clear unknown potentially corrupted state from previous sessions
       try {
-        const corruptedState = localStorage.getItem('panel-state-character-creation');
+        const corruptedState = localStorage.getItem('panel-state-character-creation')
         if (corruptedState) {
-          const parsed = JSON.parse(corruptedState);
+          const parsed = JSON.parse(corruptedState)
           if (parsed && typeof parsed === 'object' && !parsed.currentStep) {
-            localStorage.removeItem('panel-state-character-creation');
+            localStorage.removeItem('panel-state-character-creation')
           }
         }
-      } catch (error) {
-        console.error('State cleanup error:', error);
-        }
+      }
+      catch (error) {
+        console.error('State cleanup error:', error)
+      }
     },
     onUnmount: () => {
       // Clean up unknown resources or event listeners
     },
     onActivate: () => {
-      },
+    },
     onDeactivate: () => {
       // Save current state before deactivating
       try {
         // This will be handled by the panel state manager
-      } catch (error) {
-        console.error('Panel deactivation error:', error);
-        }
+      }
+      catch (error) {
+        console.error('Panel deactivation error:', error)
+      }
     },
   },
-);
-
-
-
+)

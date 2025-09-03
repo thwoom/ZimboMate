@@ -1,4 +1,1 @@
-export { default as SpellPanel } from './SpellPanel';
-
-
-
+export { default as SpellPanel } from './SpellPanel'

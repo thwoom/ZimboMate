@@ -5,51 +5,51 @@
  * properly categorized and formatted for the control panel.
  */
 
-import { CharacterClass } from '../models/Character';
+import type { CharacterClass } from '../models/Character'
 
 // Spell levels in Dungeon World (official: 0 = cantrips / rotes, then 1,3,5,7,9)
-export type SpellLevel = 0 | 1 | 3 | 5 | 7 | 9;
+export type SpellLevel = 0 | 1 | 3 | 5 | 7 | 9
 
 // Spell categories for filtering and organization
-export type SpellCategory =
-  | 'wizard'     // Wizard spells
-  | 'cleric'     // Cleric spells
-  | 'immolator'  // Immolator spells
-  | 'divine'     // Divine spells
-  | 'arcane'     // Arcane spells
-  | 'nature'     // Druid / nature spells
-  | 'custom';    // Custom spells
+export type SpellCategory
+  = | 'wizard' // Wizard spells
+    | 'cleric' // Cleric spells
+    | 'immolator' // Immolator spells
+    | 'divine' // Divine spells
+    | 'arcane' // Arcane spells
+    | 'nature' // Druid / nature spells
+    | 'custom' // Custom spells
 
 // Spell schools for organization
-export type SpellSchool =
-  | 'abjuration'   // Protection and barriers
-  | 'conjuration'  // Summoning and creation
-  | 'divination'   // Knowledge and insight
-  | 'enchantment'  // Mind-affecting magic
-  | 'evocation'    // Energy and elemental magic
-  | 'illusion'     // Deception and misdirection
-  | 'necromancy'   // Death and undeath
-  | 'transmutation'; // Transformation and change
+export type SpellSchool
+  = | 'abjuration' // Protection and barriers
+    | 'conjuration' // Summoning and creation
+    | 'divination' // Knowledge and insight
+    | 'enchantment' // Mind-affecting magic
+    | 'evocation' // Energy and elemental magic
+    | 'illusion' // Deception and misdirection
+    | 'necromancy' // Death and undeath
+    | 'transmutation' // Transformation and change
 
 // Enhanced spell interface with comprehensive data
 export interface CompendiumSpell {
-  id: string;
-  name: string;
-  level: SpellLevel;
-  category: SpellCategory;
-  school: SpellSchool;
-  description: string;
-  effect: string;
-  castingTime?: string;
-  duration?: string;
-  range?: string;
-  components?: string[];
-  ongoing?: boolean;
-  tags: string[];
-  source?: string; // Book / page reference
-  prerequisites?: string[];
-  consequences?: string[]; // For 7-9 results
-  notes?: string; // Additional GM notes
+  id: string
+  name: string
+  level: SpellLevel
+  category: SpellCategory
+  school: SpellSchool
+  description: string
+  effect: string
+  castingTime?: string
+  duration?: string
+  range?: string
+  components?: string[]
+  ongoing?: boolean
+  tags: string[]
+  source?: string // Book / page reference
+  prerequisites?: string[]
+  consequences?: string[] // For 7-9 results
+  notes?: string // Additional GM notes
 }
 
 // Wizard Spells (Cantrips and Leveled Spells)
@@ -260,7 +260,7 @@ export const WIZARD_SPELLS: CompendiumSpell[] = [
     tags: ['time', 'reality', 'powerful'],
     source: 'DW Core p.XX',
   },
-];
+]
 
 // Cleric Spells (Rotes and Leveled Spells)
 export const CLERIC_SPELLS: CompendiumSpell[] = [
@@ -418,7 +418,7 @@ export const CLERIC_SPELLS: CompendiumSpell[] = [
     tags: ['miracle', 'divine', 'powerful'],
     source: 'DW Core p.XX',
   },
-];
+]
 
 // Immolator Spells
 export const IMMOLATOR_SPELLS: CompendiumSpell[] = [
@@ -524,50 +524,47 @@ export const IMMOLATOR_SPELLS: CompendiumSpell[] = [
     tags: ['fire', 'destruction', 'powerful'],
     source: 'DW Core p.XX',
   },
-];
+]
 
 // Combined spell compendium
 export const SPELL_COMPENDIUM: CompendiumSpell[] = [
   ...WIZARD_SPELLS,
   ...CLERIC_SPELLS,
   ...IMMOLATOR_SPELLS,
-];
+]
 
 // Helper functions for spell management
 export function getSpellsByClass(characterClass: CharacterClass): CompendiumSpell[] {
   switch (characterClass) {
     case 'Wizard':
-      return WIZARD_SPELLS;
+      return WIZARD_SPELLS
     case 'Cleric':
-      return CLERIC_SPELLS;
+      return CLERIC_SPELLS
     case 'Immolator':
-      return IMMOLATOR_SPELLS;
+      return IMMOLATOR_SPELLS
     default:
-      return [];
+      return []
   }
 }
 
 export function getSpellsByLevel(level: SpellLevel): CompendiumSpell[] {
-  return SPELL_COMPENDIUM.filter(spell => spell.level === level);
+  return SPELL_COMPENDIUM.filter(spell => spell.level === level)
 }
 
 export function getSpellsBySchool(school: SpellSchool): CompendiumSpell[] {
-  return SPELL_COMPENDIUM.filter(spell => spell.school === school);
+  return SPELL_COMPENDIUM.filter(spell => spell.school === school)
 }
 
 export function searchSpells(query: string): CompendiumSpell[] {
-  const lowerQuery = query.toLowerCase();
+  const lowerQuery = query.toLowerCase()
   return SPELL_COMPENDIUM.filter(spell =>
-    spell.name.toLowerCase().includes(lowerQuery) ||
-    spell.description.toLowerCase().includes(lowerQuery) ||
-    spell.effect.toLowerCase().includes(lowerQuery) ||
-    spell.tags.some(tag => tag.toLowerCase().includes(lowerQuery)),
-  );
+    spell.name.toLowerCase().includes(lowerQuery)
+    || spell.description.toLowerCase().includes(lowerQuery)
+    || spell.effect.toLowerCase().includes(lowerQuery)
+    || spell.tags.some(tag => tag.toLowerCase().includes(lowerQuery)),
+  )
 }
 
 export function getSpellById(id: string): CompendiumSpell | undefined {
-  return SPELL_COMPENDIUM.find(spell => spell.id === id);
+  return SPELL_COMPENDIUM.find(spell => spell.id === id)
 }
-
-
-

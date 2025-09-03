@@ -52,7 +52,7 @@
   margin-bottom: 16px;
 }
 
-.option input[type="checkbox"] {
+.option input[type='checkbox'] {
   margin-right: 8px;
 }
 
@@ -170,7 +170,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .processing p {
@@ -245,12 +247,12 @@
   .export-import-panel {
     padding: 16px;
   }
-  
+
   .export-actions,
   .import-actions {
     flex-direction: column;
   }
-  
+
   .primary-btn,
   .secondary-btn {
     width: 100%;

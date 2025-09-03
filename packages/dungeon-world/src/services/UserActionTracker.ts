@@ -1,41 +1,43 @@
 // User Action Tracking Service for Enhanced Error Context
 export interface UserAction {
-  id: string;
-  type: 'click' | 'navigation' | 'input' | 'api-call' | 'error' | 'custom';
-  timestamp: number;
-  description: string;
-  element?: string;
-  data?: Record < string, unknown>;
-  sessionId: string;
+  id: string
+  type: 'click' | 'navigation' | 'input' | 'api-call' | 'error' | 'custom'
+  timestamp: number
+  description: string
+  element?: string
+  data?: Record <string, unknown>
+  sessionId: string
 }
 
 class UserActionTracker {
-  private static instance: UserActionTracker;
-  private actions: UserAction[] = [];
-  private maxActions = 50; // Keep last 50 actions
-  private isTracking = true;
+  private static instance: UserActionTracker
+  private actions: UserAction[] = []
+  private maxActions = 50 // Keep last 50 actions
+  private isTracking = true
 
   private constructor() {
-    this.initializeTracking();
-    this.loadStoredActions();
+    this.initializeTracking()
+    this.loadStoredActions()
   }
 
   public static getInstance(): UserActionTracker {
     if (!UserActionTracker.instance) {
-      UserActionTracker.instance = new UserActionTracker();
+      UserActionTracker.instance = new UserActionTracker()
     }
-    return UserActionTracker.instance;
+    return UserActionTracker.instance
   }
 
   private initializeTracking(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined')
+      return
 
     // Track clicks
     document.addEventListener('click', (event) => {
-      if (!this.isTracking) return;
+      if (!this.isTracking)
+        return
 
-      const target = event.target as HTMLElement;
-      const description = this.getElementDescription(target);
+      const target = event.target as HTMLElement
+      const description = this.getElementDescription(target)
 
       this.recordAction({
         type: 'click',
@@ -46,39 +48,40 @@ class UserActionTracker {
           y: event.clientY,
           button: event.button,
         },
-      });
-    });
+      })
+    })
 
     // Track navigation
-    const originalPushState = history.pushState;
-    const originalReplaceState = history.replaceState;
+    const originalPushState = history.pushState
+    const originalReplaceState = history.replaceState
 
-    history.pushState = function(...args) {
+    history.pushState = function (...args) {
       UserActionTracker.getInstance().recordAction({
         type: 'navigation',
         description: `Navigated to: ${args[2] || window.location.pathname}`,
         data: { url: args[2] || window.location.pathname },
-      });
-      return originalPushState.apply(history, args);
-    };
+      })
+      return originalPushState.apply(history, args)
+    }
 
-    history.replaceState = function(...args) {
+    history.replaceState = function (...args) {
       UserActionTracker.getInstance().recordAction({
         type: 'navigation',
         description: `Replaced state: ${args[2] || window.location.pathname}`,
         data: { url: args[2] || window.location.pathname },
-      });
-      return originalReplaceState.apply(history, args);
-    };
+      })
+      return originalReplaceState.apply(history, args)
+    }
 
     // Track form inputs (debounced)
-    let inputTimeout: NodeJS.Timeout;
+    let inputTimeout: NodeJS.Timeout
     document.addEventListener('input', (event) => {
-      if (!this.isTracking) return;
+      if (!this.isTracking)
+        return
 
-      clearTimeout(inputTimeout);
+      clearTimeout(inputTimeout)
       inputTimeout = setTimeout(() => {
-        const target = event.target as HTMLInputElement;
+        const target = event.target as HTMLInputElement
         if (target.type !== 'password') { // Don't track passwords
           this.recordAction({
             type: 'input',
@@ -89,10 +92,10 @@ class UserActionTracker {
               name: target.name,
               id: target.id,
             },
-          });
+          })
         }
-      }, 1000);
-    });
+      }, 1000)
+    })
 
     // Track errors
     window.addEventListener('error', (event) => {
@@ -104,8 +107,8 @@ class UserActionTracker {
           lineno: event.lineno,
           colno: event.colno,
         },
-      });
-    });
+      })
+    })
 
     // Track unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
@@ -115,122 +118,127 @@ class UserActionTracker {
         data: {
           reason: String(event.reason),
         },
-      });
-    });
+      })
+    })
   }
 
   private getElementDescription(element: HTMLElement): string {
     // Try to get a meaningful description of the element
-    if (element.id) return `#${element.id}`;
-    if (element.className) return `.${element.className.split(' ')[0]}`;
+    if (element.id)
+      return `#${element.id}`
+    if (element.className)
+      return `.${element.className.split(' ')[0]}`
     if (element.textContent && element.textContent.length < 50) {
-      return `"${element.textContent.trim()}"`;
+      return `"${element.textContent.trim()}"`
     }
     if (element.getAttribute('aria-label')) {
-      return `[${element.getAttribute('aria-label')}]`;
+      return `[${element.getAttribute('aria-label')}]`
     }
     if (element.getAttribute('data-testid')) {
-      return `[data-testid="${element.getAttribute('data-testid')}"]`;
+      return `[data-testid="${element.getAttribute('data-testid')}"]`
     }
 
-    return element.tagName.toLowerCase();
+    return element.tagName.toLowerCase()
   }
 
-  public recordAction(action: Omit < UserAction, 'id' | 'timestamp' | 'sessionId'>): void {
-    if (!this.isTracking) return;
+  public recordAction(action: Omit <UserAction, 'id' | 'timestamp' | 'sessionId'>): void {
+    if (!this.isTracking)
+      return
 
     const fullAction: UserAction = {
       ...action,
       id: `action-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       timestamp: Date.now(),
       sessionId: this.getSessionId(),
-    };
+    }
 
-    this.actions.push(fullAction);
+    this.actions.push(fullAction)
 
     // Keep only the last N actions
     if (this.actions.length > this.maxActions) {
-      this.actions = this.actions.slice(-this.maxActions);
+      this.actions = this.actions.slice(-this.maxActions)
     }
 
-    this.saveActions();
+    this.saveActions()
   }
 
   public getRecentActions(limit = 10): UserAction[] {
-    return this.actions.slice(-limit).reverse(); // Most recent first
+    return this.actions.slice(-limit).reverse() // Most recent first
   }
 
   public getActionsForTimeRange(start: number, end: number): UserAction[] {
     return this.actions.filter(action =>
       action.timestamp >= start && action.timestamp <= end,
-    );
+    )
   }
 
   public getActionsByType(type: UserAction['type']): UserAction[] {
-    return this.actions.filter(action => action.type === type);
+    return this.actions.filter(action => action.type === type)
   }
 
   public getActionsBeforeError(errorTimestamp: number, lookbackMs = 30000): UserAction[] {
-    const _startTime = errorTimestamp-lookbackMs;
+    const _startTime = errorTimestamp - lookbackMs
     return this.actions.filter(action =>
       action.timestamp >= startTime && action.timestamp <= errorTimestamp,
-    );
+    )
   }
 
   public generateUserJourney(): string[] {
-    const recentActions = this.getRecentActions(20);
-    return recentActions.map(action => {
-      const time = new Date(action.timestamp).toLocaleTimeString();
-      return `${time}: ${action.description}`;
-    });
+    const recentActions = this.getRecentActions(20)
+    return recentActions.map((action) => {
+      const time = new Date(action.timestamp).toLocaleTimeString()
+      return `${time}: ${action.description}`
+    })
   }
 
   public startTracking(): void {
-    this.isTracking = true;
+    this.isTracking = true
   }
 
   public stopTracking(): void {
-    this.isTracking = false;
+    this.isTracking = false
   }
 
   public clearActions(): void {
-    this.actions = [];
-    this.saveActions();
+    this.actions = []
+    this.saveActions()
   }
 
   private loadStoredActions(): void {
     try {
-      const stored = localStorage.getItem('zimbomate_user_actions');
+      const stored = localStorage.getItem('zimbomate_user_actions')
       if (stored) {
-        this.actions = JSON.parse(stored).slice(-this.maxActions);
+        this.actions = JSON.parse(stored).slice(-this.maxActions)
       }
-    } catch {
-      }
+    }
+    catch {
+    }
   }
 
   private saveActions(): void {
     try {
-      localStorage.setItem('zimbomate_user_actions', JSON.stringify(this.actions));
-    } catch {
-      }
+      localStorage.setItem('zimbomate_user_actions', JSON.stringify(this.actions))
+    }
+    catch {
+    }
   }
 
   private getSessionId(): string {
-    let sessionId = sessionStorage.getItem('sessionId');
+    let sessionId = sessionStorage.getItem('sessionId')
     if (!sessionId) {
-      sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-      sessionStorage.setItem('sessionId', sessionId);
+      sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+      sessionStorage.setItem('sessionId', sessionId)
     }
-    return sessionId;
+    return sessionId
   }
 
   // React-specific tracking methods
-  public trackComponentMount(componentName: string, props?: Record < string, unknown>): void {
+  public trackComponentMount(componentName: string, props?: Record <string, unknown>): void {
     this.recordAction({
       type: 'custom',
       description: `Component mounted: ${componentName}`,
       data: { componentName, props },
-    });
+    })
   }
 
   public trackComponentUnmount(componentName: string): void {
@@ -238,7 +246,7 @@ class UserActionTracker {
       type: 'custom',
       description: `Component unmounted: ${componentName}`,
       data: { componentName },
-    });
+    })
   }
 
   public trackApiCall(url: string, method: string, status?: number): void {
@@ -246,36 +254,33 @@ class UserActionTracker {
       type: 'api-call',
       description: `API ${method} ${url}${status ? ` (${status})` : ''}`,
       data: { url, method, status },
-    });
+    })
   }
 
-  public trackCustomEvent(description: string, data?: Record < string, unknown>): void {
+  public trackCustomEvent(description: string, data?: Record <string, unknown>): void {
     this.recordAction({
       type: 'custom',
       description,
       data,
-    });
+    })
   }
 
   // Hook for React components
   public useActionTracker() {
     return {
-      trackClick: (description: string, data?: Record < string, unknown>) =>
+      trackClick: (description: string, data?: Record <string, unknown>) =>
         this.recordAction({ type: 'click', description, data }),
-      trackNavigation: (description: string, data?: Record < string, unknown>) =>
+      trackNavigation: (description: string, data?: Record <string, unknown>) =>
         this.recordAction({ type: 'navigation', description, data }),
-      trackCustom: (description: string, data?: Record < string, unknown>) =>
+      trackCustom: (description: string, data?: Record <string, unknown>) =>
         this.recordAction({ type: 'custom', description, data }),
-    };
+    }
   }
 }
 
-export const userActionTracker = UserActionTracker.getInstance();
+export const userActionTracker = UserActionTracker.getInstance()
 
 // React Hook
 export function useUserActionTracker() {
-  return userActionTracker.useActionTracker();
+  return userActionTracker.useActionTracker()
 }
-
-
-

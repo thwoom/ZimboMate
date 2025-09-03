@@ -2,15 +2,15 @@
  * Service for managing advanced character options * Handles compendium classes, race moves, multiclassing, and validation
  */
 
-import {
+import type {
   AdvancedCharacterTemplate,
   AdvancedOption,
   CompendiumClass,
   MulticlassConfig,
   RaceMove,
   ValidationResult,
-} from '../models/AdvancedCharacterOptions';
-import { Attribute,Character, Race } from '../models/Character';
+} from '../models/AdvancedCharacterOptions'
+import type { Attribute, Character, Race } from '../models/Character'
 
 // Sample compendium classes (these would come from official supplements)
 export const COMPENDIUM_CLASSES: CompendiumClass[] = [
@@ -62,7 +62,7 @@ export const COMPENDIUM_CLASSES: CompendiumClass[] = [
       level4: ['dragon-form'],
     },
   },
-];
+]
 
 // Sample race moves
 export const RACE_MOVES: RaceMove[] = [
@@ -114,7 +114,7 @@ export const RACE_MOVES: RaceMove[] = [
       specialAbilities: ['Lucky (reroll 1s on damage dice)', 'Nimble (advantage on DEX saves)'],
     },
   },
-];
+]
 
 // Sample advanced character templates
 export const ADVANCED_TEMPLATES: AdvancedCharacterTemplate[] = [
@@ -172,56 +172,56 @@ export const ADVANCED_TEMPLATES: AdvancedCharacterTemplate[] = [
     difficulty: 'advanced',
     estimatedPlaytime: '5 + sessions to master',
   },
-];
+]
 
 class AdvancedCharacterOptionsService {
   /**
    * Get all available compendium classes
    */
   getAllCompendiumClasses(): CompendiumClass[] {
-    return COMPENDIUM_CLASSES;
+    return COMPENDIUM_CLASSES
   }
 
   /**
    * Get compendium class by ID
    */
   getCompendiumClass(id: string): CompendiumClass | undefined {
-    return COMPENDIUM_CLASSES.find(cc => cc.id === id);
+    return COMPENDIUM_CLASSES.find(cc => cc.id === id)
   }
 
   /**
    * Get all race moves for a specific race
    */
   getRaceMoves(race: Race): RaceMove[] {
-    return RACE_MOVES.filter(rm => rm.race === race);
+    return RACE_MOVES.filter(rm => rm.race === race)
   }
 
   /**
    * Get race move by ID
    */
   getRaceMove(id: string): RaceMove | undefined {
-    return RACE_MOVES.find(rm => rm.id === id);
+    return RACE_MOVES.find(rm => rm.id === id)
   }
 
   /**
    * Get all advanced character templates
    */
   getAllTemplates(): AdvancedCharacterTemplate[] {
-    return ADVANCED_TEMPLATES;
+    return ADVANCED_TEMPLATES
   }
 
   /**
    * Get template by ID
    */
   getTemplate(id: string): AdvancedCharacterTemplate | undefined {
-    return ADVANCED_TEMPLATES.find(t => t.id === id);
+    return ADVANCED_TEMPLATES.find(t => t.id === id)
   }
 
   /**
    * Get templates by difficulty level
    */
   getTemplatesByDifficulty(difficulty: 'beginner' | 'intermediate' | 'advanced'): AdvancedCharacterTemplate[] {
-    return ADVANCED_TEMPLATES.filter(t => t.difficulty === difficulty);
+    return ADVANCED_TEMPLATES.filter(t => t.difficulty === difficulty)
   }
 
   /**
@@ -230,7 +230,7 @@ class AdvancedCharacterOptionsService {
   getTemplatesByTags(tags: string[]): AdvancedCharacterTemplate[] {
     return ADVANCED_TEMPLATES.filter(t =>
       tags.some(tag => t.tags.includes(tag)),
-    );
+    )
   }
 
   /**
@@ -240,32 +240,32 @@ class AdvancedCharacterOptionsService {
     character: Character,
     compendiumClass: CompendiumClass,
   ): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const conflicts: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const conflicts: string[] = []
 
     // Check level requirement
     if (character.level < compendiumClass.requirements.level) {
-      errors.push(`Requires level ${compendiumClass.requirements.level}, character is level ${character.level}`);
+      errors.push(`Requires level ${compendiumClass.requirements.level}, character is level ${character.level}`)
     }
 
     // Check class requirements
-    if (compendiumClass.requirements.class &&
-        !compendiumClass.requirements.class.includes(character.class)) {
-      errors.push(`Requires one of: ${compendiumClass.requirements.class.join(', ')}`);
+    if (compendiumClass.requirements.class
+      && !compendiumClass.requirements.class.includes(character.class)) {
+      errors.push(`Requires one of: ${compendiumClass.requirements.class.join(', ')}`)
     }
 
     // Check race requirements
-    if (compendiumClass.requirements.race &&
-        !compendiumClass.requirements.race.includes(character.race)) {
-      errors.push(`Requires one of: ${compendiumClass.requirements.race.join(', ')}`);
+    if (compendiumClass.requirements.race
+      && !compendiumClass.requirements.race.includes(character.race)) {
+      errors.push(`Requires one of: ${compendiumClass.requirements.race.join(', ')}`)
     }
 
     // Check attribute requirements
     if (compendiumClass.requirements.attributes) {
       for (const [attr, minValue] of Object.entries(compendiumClass.requirements.attributes)) {
         if (character.attributes[attr as Attribute] < minValue) {
-          errors.push(`Requires ${attr} ${minValue}+`);
+          errors.push(`Requires ${attr} ${minValue}+`)
         }
       }
     }
@@ -274,14 +274,14 @@ class AdvancedCharacterOptionsService {
     if (compendiumClass.requirements.moves) {
       for (const moveId of compendiumClass.requirements.moves) {
         if (!character.knownMoves.includes(moveId)) {
-          errors.push(`Requires move: ${moveId}`);
+          errors.push(`Requires move: ${moveId}`)
         }
       }
     }
 
     // Check conflicts
     if (compendiumClass.conflicts?.classes?.includes(character.class)) {
-      conflicts.push(`Conflicts with class: ${character.class}`);
+      conflicts.push(`Conflicts with class: ${character.class}`)
     }
 
     return {
@@ -289,7 +289,7 @@ class AdvancedCharacterOptionsService {
       errors,
       warnings,
       conflicts,
-    };
+    }
   }
 
   /**
@@ -299,25 +299,25 @@ class AdvancedCharacterOptionsService {
     character: Character,
     raceMove: RaceMove,
   ): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const conflicts: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const conflicts: string[] = []
 
     // Check race requirement
     if (character.race !== raceMove.race) {
-      errors.push(`Requires race: ${raceMove.race}`);
+      errors.push(`Requires race: ${raceMove.race}`)
     }
 
     // Check level requirement
     if (raceMove.requirements?.level && character.level < raceMove.requirements.level) {
-      errors.push(`Requires level ${raceMove.requirements.level}`);
+      errors.push(`Requires level ${raceMove.requirements.level}`)
     }
 
     // Check attribute requirements
     if (raceMove.requirements?.attributes) {
       for (const [attr, minValue] of Object.entries(raceMove.requirements.attributes)) {
         if (character.attributes[attr as Attribute] < minValue) {
-          errors.push(`Requires ${attr} ${minValue}+`);
+          errors.push(`Requires ${attr} ${minValue}+`)
         }
       }
     }
@@ -327,70 +327,70 @@ class AdvancedCharacterOptionsService {
       errors,
       warnings,
       conflicts,
-    };
+    }
   }
 
   /**
    * Validate a character's advanced options
    */
   validateAdvancedCharacter(character: Character & {
-    compendiumClasses?: string[];
-    raceMoves?: string[];
-    multiclassConfig?: MulticlassConfig;
+    compendiumClasses?: string[]
+    raceMoves?: string[]
+    multiclassConfig?: MulticlassConfig
   }): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const conflicts: string[] = [];
+    const errors: string[] = []
+    const warnings: string[] = []
+    const conflicts: string[] = []
 
     // Validate compendium classes
     if (character.compendiumClasses) {
       for (const ccId of character.compendiumClasses) {
-        const cc = this.getCompendiumClass(ccId);
+        const cc = this.getCompendiumClass(ccId)
         if (!cc) {
-          errors.push(`Unknown compendium class: ${ccId}`);
-          continue;
+          errors.push(`Unknown compendium class: ${ccId}`)
+          continue
         }
 
-        const validation = this.canTakeCompendiumClass(character, cc);
-        errors.push(...validation.errors);
-        warnings.push(...validation.warnings);
-        conflicts.push(...validation.conflicts);
+        const validation = this.canTakeCompendiumClass(character, cc)
+        errors.push(...validation.errors)
+        warnings.push(...validation.warnings)
+        conflicts.push(...validation.conflicts)
       }
     }
 
     // Validate race moves
     if (character.raceMoves) {
       for (const rmId of character.raceMoves) {
-        const rm = this.getRaceMove(rmId);
+        const rm = this.getRaceMove(rmId)
         if (!rm) {
-          errors.push(`Unknown race move: ${rmId}`);
-          continue;
+          errors.push(`Unknown race move: ${rmId}`)
+          continue
         }
 
-        const validation = this.canTakeRaceMove(character, rm);
-        errors.push(...validation.errors);
-        warnings.push(...validation.warnings);
-        conflicts.push(...validation.conflicts);
+        const validation = this.canTakeRaceMove(character, rm)
+        errors.push(...validation.errors)
+        warnings.push(...validation.warnings)
+        conflicts.push(...validation.conflicts)
       }
     }
 
     // Validate multiclass configuration
     if (character.multiclassConfig) {
-      const mc = character.multiclassConfig;
+      const mc = character.multiclassConfig
 
       if (character.level < mc.rules.levelRequirement) {
-        errors.push(`Multiclassing requires level ${mc.rules.levelRequirement}`);
+        errors.push(`Multiclassing requires level ${mc.rules.levelRequirement}`)
       }
 
       if (mc.primaryClass === mc.secondaryClass) {
-        errors.push('Primary and secondary classes must be different');
+        errors.push('Primary and secondary classes must be different')
       }
 
       // Check attribute requirements
       if (mc.rules.attributeRequirements) {
         for (const [attr, minValue] of Object.entries(mc.rules.attributeRequirements)) {
           if (character.attributes[attr as Attribute] < minValue) {
-            errors.push(`Multiclassing requires ${attr} ${minValue}+`);
+            errors.push(`Multiclassing requires ${attr} ${minValue}+`)
           }
         }
       }
@@ -401,18 +401,18 @@ class AdvancedCharacterOptionsService {
       errors,
       warnings,
       conflicts,
-    };
+    }
   }
 
   /**
    * Get available advanced options for a character
    */
   getAvailableOptions(character: Character): AdvancedOption[] {
-    const options: AdvancedOption[] = [];
+    const options: AdvancedOption[] = []
 
     // Get available compendium classes
     for (const cc of COMPENDIUM_CLASSES) {
-      const validation = this.canTakeCompendiumClass(character, cc);
+      const validation = this.canTakeCompendiumClass(character, cc)
       if (validation.valid) {
         options.push({
           type: 'compendium-class',
@@ -422,13 +422,13 @@ class AdvancedCharacterOptionsService {
           requirements: cc.requirements,
           benefits: cc.benefits,
           conflicts: cc.conflicts,
-        });
+        })
       }
     }
 
     // Get available race moves
     for (const rm of RACE_MOVES) {
-      const validation = this.canTakeRaceMove(character, rm);
+      const validation = this.canTakeRaceMove(character, rm)
       if (validation.valid) {
         options.push({
           type: 'race-move',
@@ -438,90 +438,87 @@ class AdvancedCharacterOptionsService {
           requirements: rm.requirements,
           benefits: rm.benefits,
           conflicts: rm.conflicts,
-        });
+        })
       }
     }
 
-    return options;
+    return options
   }
 
   /**
    * Apply a compendium class to a character
    */
   applyCompendiumClass(character: Character, compendiumClassId: string): Character {
-    const cc = this.getCompendiumClass(compendiumClassId);
+    const cc = this.getCompendiumClass(compendiumClassId)
     if (!cc) {
-      throw new Error(`Unknown compendium class: ${compendiumClassId}`);
+      throw new Error(`Unknown compendium class: ${compendiumClassId}`)
     }
 
-    const validation = this.canTakeCompendiumClass(character, cc);
+    const validation = this.canTakeCompendiumClass(character, cc)
     if (!validation.valid) {
-      throw new Error(`Cannot take compendium class: ${validation.errors.join(', ')}`);
+      throw new Error(`Cannot take compendium class: ${validation.errors.join(', ')}`)
     }
 
     // Apply benefits
-    const updatedCharacter =  { ...character };
+    const updatedCharacter = { ...character }
 
     // Add moves
-    updatedCharacter.knownMoves = [...updatedCharacter.knownMoves, ...cc.benefits.moves];
+    updatedCharacter.knownMoves = [...updatedCharacter.knownMoves, ...cc.benefits.moves]
 
     // Apply attribute bonuses
     if (cc.benefits.attributeBonuses) {
       for (const [attr, bonus] of Object.entries(cc.benefits.attributeBonuses)) {
-        updatedCharacter.attributes[attr as Attribute] += bonus;
+        updatedCharacter.attributes[attr as Attribute] += bonus
       }
     }
 
     // Add to compendium classes list
     if (!updatedCharacter.compendiumClasses) {
-      updatedCharacter.compendiumClasses = [];
+      updatedCharacter.compendiumClasses = []
     }
-    updatedCharacter.compendiumClasses.push(compendiumClassId);
+    updatedCharacter.compendiumClasses.push(compendiumClassId)
 
-    return updatedCharacter;
+    return updatedCharacter
   }
 
   /**
    * Apply a race move to a character
    */
   applyRaceMove(character: Character, raceMoveId: string): Character {
-    const rm = this.getRaceMove(raceMoveId);
+    const rm = this.getRaceMove(raceMoveId)
     if (!rm) {
-      throw new Error(`Unknown race move: ${raceMoveId}`);
+      throw new Error(`Unknown race move: ${raceMoveId}`)
     }
 
-    const validation = this.canTakeRaceMove(character, rm);
+    const validation = this.canTakeRaceMove(character, rm)
     if (!validation.valid) {
-      throw new Error(`Cannot take race move: ${validation.errors.join(', ')}`);
+      throw new Error(`Cannot take race move: ${validation.errors.join(', ')}`)
     }
 
     // Apply benefits
-    const updatedCharacter = { ...character };
+    const updatedCharacter = { ...character }
 
     // Add move if specified
     if (rm.benefits.moveId) {
-      updatedCharacter.knownMoves = [...updatedCharacter.knownMoves, rm.benefits.moveId];
+      updatedCharacter.knownMoves = [...updatedCharacter.knownMoves, rm.benefits.moveId]
     }
 
     // Apply attribute bonuses
     if (rm.benefits.attributeBonuses) {
       for (const [attr, bonus] of Object.entries(rm.benefits.attributeBonuses)) {
-        updatedCharacter.attributes[attr as Attribute] += bonus;
+        updatedCharacter.attributes[attr as Attribute] += bonus
       }
     }
 
     // Add to race moves list
     if (!updatedCharacter.raceMoves) {
-      updatedCharacter.raceMoves = [];
+      updatedCharacter.raceMoves = []
     }
-    updatedCharacter.raceMoves.push(raceMoveId);
+    updatedCharacter.raceMoves.push(raceMoveId)
 
-    return updatedCharacter;
+    return updatedCharacter
   }
 }
 
 // Export singleton instance
-export const advancedCharacterOptionsService = new AdvancedCharacterOptionsService();
-
-
-
+export const advancedCharacterOptionsService = new AdvancedCharacterOptionsService()

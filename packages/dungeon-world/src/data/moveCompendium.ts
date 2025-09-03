@@ -5,91 +5,91 @@
  * properly categorized and formatted for the control panel.
  */
 
-import { Attribute,CharacterClass } from '../models/Character';
+import type { Attribute, CharacterClass } from '../models/Character'
 
 // Move categories for filtering and organization
-export type MoveCategory =
-  | 'basic'      // Basic moves available to all
-  | 'class'      // Class-specific moves
-  | 'advanced'   // Advanced moves (level 2-5)
-  | 'master'     // Master moves (level 6-10)
-  | 'special'    // Special moves (Level Up, End of Session, etc.)
-  | 'custom';    // Player-created custom moves
+export type MoveCategory
+  = | 'basic' // Basic moves available to all
+    | 'class' // Class-specific moves
+    | 'advanced' // Advanced moves (level 2-5)
+    | 'master' // Master moves (level 6-10)
+    | 'special' // Special moves (Level Up, End of Session, etc.)
+    | 'custom' // Player-created custom moves
 
 // Move trigger types
-export type MoveTrigger =
-  | 'action'     // Triggered by player action
-  | 'roll'       // Requires a roll
-  | 'passive'    // Always active
-  | 'reactive'   // Triggered by events
-  | 'special';   // Special trigger conditions
+export type MoveTrigger
+  = | 'action' // Triggered by player action
+    | 'roll' // Requires a roll
+    | 'passive' // Always active
+    | 'reactive' // Triggered by events
+    | 'special' // Special trigger conditions
 
 // Roll result tiers
-export type RollResult =
-  | 'success'    // 10+
-  | 'partial'    // 7-9
-  | 'failure';   // 6-
+export type RollResult
+  = | 'success' // 10+
+    | 'partial' // 7-9
+    | 'failure' // 6-
 
 // Move types for organization
-export type MoveType =
-  | 'combat'     // Combat-related moves
-  | 'social'     // Social interaction moves
-  | 'exploration' // Exploration and discovery moves
-  | 'utility'    // Utility and support moves
-  | 'defensive'  // Defensive and protective moves
-  | 'offensive'  // Offensive and aggressive moves
-  | 'movement'   // Movement and positioning moves
-  | 'magical'    // Magical and supernatural moves
-  | 'ritual'     // Ritual and ceremonial moves
-  | 'special';   // Special and unique moves
+export type MoveType
+  = | 'combat' // Combat-related moves
+    | 'social' // Social interaction moves
+    | 'exploration' // Exploration and discovery moves
+    | 'utility' // Utility and support moves
+    | 'defensive' // Defensive and protective moves
+    | 'offensive' // Offensive and aggressive moves
+    | 'movement' // Movement and positioning moves
+    | 'magical' // Magical and supernatural moves
+    | 'ritual' // Ritual and ceremonial moves
+    | 'special' // Special and unique moves
 
 // Enhanced move interface with comprehensive data
 export interface CompendiumMove {
-  id: string;
-  name: string;
-  category: MoveCategory;
-  type: MoveType;
-  description: string;
-  trigger: string; // When the move triggers
-  triggerType: MoveTrigger;
+  id: string
+  name: string
+  category: MoveCategory
+  type: MoveType
+  description: string
+  trigger: string // When the move triggers
+  triggerType: MoveTrigger
 
   // Roll requirements
-  rollStat?: Attribute; // Which stat to roll with
-  rollModifier?: number; // Additional modifier
-  rollTarget?: number; // Target number (if not standard)
+  rollStat?: Attribute // Which stat to roll with
+  rollModifier?: number // Additional modifier
+  rollTarget?: number // Target number (if not standard)
 
   // Results
-  onSuccess?: string; // 10 + result
-  onPartial?: string; // 7-9 result
-  onFailure?: string; // 6-result (usually "mark XP")
+  onSuccess?: string // 10 + result
+  onPartial?: string // 7-9 result
+  onFailure?: string // 6-result (usually "mark XP")
 
   // Requirements
-  level?: number; // Minimum level required
-  requiresMove?: string[]; // IDs of prerequisite moves
-  requiresClass?: CharacterClass; // Specific class requirement
-  requiresStat?: { stat: Attribute; value: number }; // Stat requirement
-  replaces?: string; // ID of move this replaces
+  level?: number // Minimum level required
+  requiresMove?: string[] // IDs of prerequisite moves
+  requiresClass?: CharacterClass // Specific class requirement
+  requiresStat?: { stat: Attribute, value: number } // Stat requirement
+  replaces?: string // ID of move this replaces
 
   // Special properties
-  ongoing?: boolean; // Provides ongoing modifier
-  hold?: number; // Generates hold
-  forward?: boolean; // Provides forward modifier
-  armor?: number; // Provides armor
-  damage?: string; // Damage modification
+  ongoing?: boolean // Provides ongoing modifier
+  hold?: number // Generates hold
+  forward?: boolean // Provides forward modifier
+  armor?: number // Provides armor
+  damage?: string // Damage modification
   uses?: {
-    current: number;
-    max: number;
-    perSession?: boolean;
-    perDay?: boolean;
-  };
+    current: number
+    max: number
+    perSession?: boolean
+    perDay?: boolean
+  }
 
   // Effects and mechanics
-  effects?: string[]; // List of mechanical effects
-  tags?: string[]; // Move tags for filtering
-  source?: string; // Where this move comes from
-  page?: number; // Page reference
-  custom?: boolean; // Is this a custom move
-  notes?: string; // Additional GM notes
+  effects?: string[] // List of mechanical effects
+  tags?: string[] // Move tags for filtering
+  source?: string // Where this move comes from
+  page?: number // Page reference
+  custom?: boolean // Is this a custom move
+  notes?: string // Additional GM notes
 }
 
 // Basic moves available to all characters
@@ -190,7 +190,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 56,
   },
-];
+]
 
 // Fighter moves
 export const FIGHTER_MOVES: CompendiumMove[] = [
@@ -361,7 +361,7 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 25,
   },
-];
+]
 
 // Wizard moves
 export const WIZARD_MOVES: CompendiumMove[] = [
@@ -520,7 +520,7 @@ export const WIZARD_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 35,
   },
-];
+]
 
 // Cleric moves
 export const CLERIC_MOVES: CompendiumMove[] = [
@@ -685,7 +685,7 @@ export const CLERIC_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 30,
   },
-];
+]
 
 // Barbarian moves
 export const BARBARIAN_MOVES: CompendiumMove[] = [
@@ -733,7 +733,7 @@ export const BARBARIAN_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 27,
   },
-];
+]
 
 // Paladin moves
 export const PALADIN_MOVES: CompendiumMove[] = [
@@ -782,7 +782,7 @@ export const PALADIN_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 28,
   },
-];
+]
 
 // Ranger moves
 export const RANGER_MOVES: CompendiumMove[] = [
@@ -834,7 +834,7 @@ export const RANGER_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 32,
   },
-];
+]
 
 // Thief moves
 export const THIEF_MOVES: CompendiumMove[] = [
@@ -890,7 +890,7 @@ export const THIEF_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 34,
   },
-];
+]
 
 // Bard moves
 export const BARD_MOVES: CompendiumMove[] = [
@@ -938,7 +938,7 @@ export const BARD_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 26,
   },
-];
+]
 
 // Druid moves
 export const DRUID_MOVES: CompendiumMove[] = [
@@ -987,7 +987,7 @@ export const DRUID_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 29,
   },
-];
+]
 
 // Immolator moves
 export const IMMOLATOR_MOVES: CompendiumMove[] = [
@@ -1037,7 +1037,7 @@ export const IMMOLATOR_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 31,
   },
-];
+]
 
 // Special moves
 export const SPECIAL_MOVES: CompendiumMove[] = [
@@ -1080,7 +1080,7 @@ export const SPECIAL_MOVES: CompendiumMove[] = [
     source: 'DW Core',
     page: 56,
   },
-];
+]
 
 // Combined move compendium
 export const MOVE_COMPENDIUM: CompendiumMove[] = [
@@ -1096,58 +1096,58 @@ export const MOVE_COMPENDIUM: CompendiumMove[] = [
   ...DRUID_MOVES,
   ...IMMOLATOR_MOVES,
   ...SPECIAL_MOVES,
-];
+]
 
 // Helper functions for move management
 export function getMovesByClass(characterClass: CharacterClass): CompendiumMove[] {
   return MOVE_COMPENDIUM.filter(move =>
-    move.requiresClass === characterClass ||
-    (move.category === 'basic' && !move.requiresClass),
-  );
+    move.requiresClass === characterClass
+    || (move.category === 'basic' && !move.requiresClass),
+  )
 }
 
 export function getMovesByLevel(level: number): CompendiumMove[] {
   return MOVE_COMPENDIUM.filter(move =>
     !move.level || move.level <= level,
-  );
+  )
 }
 
 export function getMovesByCategory(category: MoveCategory): CompendiumMove[] {
-  return MOVE_COMPENDIUM.filter(move => move.category === category);
+  return MOVE_COMPENDIUM.filter(move => move.category === category)
 }
 
 export function getMovesByType(type: MoveType): CompendiumMove[] {
-  return MOVE_COMPENDIUM.filter(move => move.type === type);
+  return MOVE_COMPENDIUM.filter(move => move.type === type)
 }
 
 export function searchMoves(query: string): CompendiumMove[] {
-  const lowerQuery = query.toLowerCase();
+  const lowerQuery = query.toLowerCase()
   return MOVE_COMPENDIUM.filter(move =>
-    move.name.toLowerCase().includes(lowerQuery) ||
-    move.description.toLowerCase().includes(lowerQuery) ||
-    move.trigger.toLowerCase().includes(lowerQuery) ||
-    (move.tags && move.tags.some(tag => tag.toLowerCase().includes(lowerQuery))),
-  );
+    move.name.toLowerCase().includes(lowerQuery)
+    || move.description.toLowerCase().includes(lowerQuery)
+    || move.trigger.toLowerCase().includes(lowerQuery)
+    || (move.tags && move.tags.some(tag => tag.toLowerCase().includes(lowerQuery))),
+  )
 }
 
 export function getMoveById(id: string): CompendiumMove | undefined {
-  return MOVE_COMPENDIUM.find(move => move.id === id);
+  return MOVE_COMPENDIUM.find(move => move.id === id)
 }
 
 export function getAvailableMoves(characterClass: CharacterClass, level: number): CompendiumMove[] {
-  return MOVE_COMPENDIUM.filter(move => {
+  return MOVE_COMPENDIUM.filter((move) => {
     // Basic moves are always available
-    if (move.category === 'basic') return true;
+    if (move.category === 'basic')
+      return true
 
     // Class-specific moves
-    if (move.requiresClass && move.requiresClass !== characterClass) return false;
+    if (move.requiresClass && move.requiresClass !== characterClass)
+      return false
 
     // Level requirements
-    if (move.level && move.level > level) return false;
+    if (move.level && move.level > level)
+      return false
 
-    return true;
-  });
+    return true
+  })
 }
-
-
-

@@ -1,128 +1,132 @@
-import './BondTracker.css';
+import type { Character } from '../models/Character'
 
-import React, { useCallback,useEffect, useState } from 'react';
+import type { Bond } from '../types/Bond'
 
-import { Character } from '../models/Character';
-import { bondService } from '../services/BondService';
-import { useCharacter,useGameStore } from '../store/GameStore';
-import { Bond, BondResolutionType,BondStatus } from '../types/Bond';
+import React, { useCallback, useEffect, useState } from 'react'
+import { bondService } from '../services/BondService'
+import { useCharacter, useGameStore } from '../store/GameStore'
+import { BondResolutionType, BondStatus } from '../types/Bond'
+import './BondTracker.css'
 
 interface BondTrackerProps {
-  characterId?: string;
-  onBondResolved?: (bondId: string, xpGained: number) => void;
+  characterId?: string
+  onBondResolved?: (bondId: string, xpGained: number) => void
 }
 
-export const BondTracker: React.FC < BondTrackerProps> = ({
+export const BondTracker: React.FC <BondTrackerProps> = ({
   characterId,
   onBondResolved,
 }) => {
-  const { state } = useGameStore();
-  const currentCharacter = useCharacter();
-  const [bonds, setBonds] = useState < Bond[]>([]);
-  const [targetBonds, setTargetBonds] = useState < Bond[]>([]);
-  const [selectedBond, setSelectedBond] = useState < Bond | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showResolveForm, setShowResolveForm] = useState(false);
-  const [filter, setFilter] = useState < BondStatus | 'all'>('all');
-  const [bondStats, setBondStats] = useState < unknown>(null);
+  const { state } = useGameStore()
+  const currentCharacter = useCharacter()
+  const [bonds, setBonds] = useState <Bond[]>([])
+  const [targetBonds, setTargetBonds] = useState <Bond[]>([])
+  const [selectedBond, setSelectedBond] = useState <Bond | null>(null)
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [showResolveForm, setShowResolveForm] = useState(false)
+  const [filter, setFilter] = useState <BondStatus | 'all'>('all')
+  const [bondStats, setBondStats] = useState <unknown>(null)
 
-  const activeCharacterId = characterId || currentCharacter?.id;
+  const activeCharacterId = characterId || currentCharacter?.id
 
   // Load bonds when character changes
   useEffect(() => {
     if (activeCharacterId) {
-      loadBonds();
-      loadBondStats();
+      loadBonds()
+      loadBondStats()
     }
-  }, [activeCharacterId]);
+  }, [activeCharacterId])
 
   const loadBonds = useCallback(() => {
-    if (!activeCharacterId) return;
+    if (!activeCharacterId)
+      return
 
-    const characterBonds = bondService.getBondsForCharacter(activeCharacterId);
-    const targetingBonds = bondService.getBondsTargetingCharacter(activeCharacterId);
+    const characterBonds = bondService.getBondsForCharacter(activeCharacterId)
+    const targetingBonds = bondService.getBondsTargetingCharacter(activeCharacterId)
 
-    setBonds(characterBonds);
-    setTargetBonds(targetingBonds);
-  }, [activeCharacterId]);
+    setBonds(characterBonds)
+    setTargetBonds(targetingBonds)
+  }, [activeCharacterId])
 
   const loadBondStats = useCallback(() => {
-    if (!activeCharacterId) return;
+    if (!activeCharacterId)
+      return
 
-    const stats = bondService.getBondStats(activeCharacterId);
-    setBondStats(stats);
-  }, [activeCharacterId]);
+    const stats = bondService.getBondStats(activeCharacterId)
+    setBondStats(stats)
+  }, [activeCharacterId])
 
   const handleCreateBond = useCallback((targetCharacterId: string, description: string, template?: any) => {
-    if (!activeCharacterId) return;
+    if (!activeCharacterId)
+      return
 
-    const newBond = bondService.createBond(activeCharacterId, targetCharacterId, description, template);
-    loadBonds();
-    setShowCreateForm(false);
-  }, [activeCharacterId, loadBonds]);
+    const newBond = bondService.createBond(activeCharacterId, targetCharacterId, description, template)
+    loadBonds()
+    setShowCreateForm(false)
+  }, [activeCharacterId, loadBonds])
 
   const handleResolveBond = useCallback((bondId: string, resolution: any) => {
-    const xpTrigger = bondService.resolveBond(bondId, resolution);
+    const xpTrigger = bondService.resolveBond(bondId, resolution)
     if (xpTrigger) {
-      onBondResolved?.(bondId, xpTrigger.amount);
+      onBondResolved?.(bondId, xpTrigger.amount)
     }
-    loadBonds();
-    loadBondStats();
-    setShowResolveForm(false);
-    setSelectedBond(null);
-  }, [loadBonds, loadBondStats, onBondResolved]);
+    loadBonds()
+    loadBondStats()
+    setShowResolveForm(false)
+    setSelectedBond(null)
+  }, [loadBonds, loadBondStats, onBondResolved])
 
   const handleDeleteBond = useCallback((bondId: string) => {
     if (confirm('Are you sure you want to delete this bond?')) {
-      bondService.deleteBond(bondId);
-      loadBonds();
-      loadBondStats();
+      bondService.deleteBond(bondId)
+      loadBonds()
+      loadBondStats()
     }
-  }, [loadBonds, loadBondStats]);
+  }, [loadBonds, loadBondStats])
 
   const filteredBonds = bonds.filter(bond =>
     filter === 'all' || bond.status === filter,
-  );
+  )
 
   const getCharacterName = (characterId: string) => {
-    const character = state.characters[characterId];
-    return character?.name || 'Unknown Character';
-  };
+    const character = state.characters[characterId]
+    return character?.name || 'Unknown Character'
+  }
 
   const getStatusColor = (status: BondStatus) => {
     switch (status) {
-      case BondStatus.ACTIVE: return 'status-active';
-      case BondStatus.RESOLVED: return 'status-resolved';
-      case BondStatus.BROKEN: return 'status-broken';
-      default: return '';
+      case BondStatus.ACTIVE: return 'status-active'
+      case BondStatus.RESOLVED: return 'status-resolved'
+      case BondStatus.BROKEN: return 'status-broken'
+      default: return ''
     }
-  };
+  }
 
   const getStatusIcon = (status: BondStatus) => {
     switch (status) {
-      case BondStatus.ACTIVE: return '🔗';
-      case BondStatus.RESOLVED: return '✅';
-      case BondStatus.BROKEN: return '❌';
-      default: return '❓';
+      case BondStatus.ACTIVE: return '🔗'
+      case BondStatus.RESOLVED: return '✅'
+      case BondStatus.BROKEN: return '❌'
+      default: return '❓'
     }
-  };
+  }
 
   if (!activeCharacterId) {
     return (
       <div className="bond-tracker">
         <div className="bond-tracker__empty">
-          <h3 > No Character Selected</h3>
-          <p > Please select a character to view their bonds.</p>
+          <h3> No Character Selected</h3>
+          <p> Please select a character to view their bonds.</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="bond-tracker">
       {/* Header with Stats */}
       <div className="bond-tracker__header">
-        <h2 > Bond Tracker</h2>
+        <h2> Bond Tracker</h2>
         {bondStats && (
           <div className="bond-tracker__stats">
             <div className="stat">
@@ -146,7 +150,7 @@ export const BondTracker: React.FC < BondTrackerProps> = ({
         <div className="bond-tracker__filters">
           <select
             value={filter}
-            onChange={(e) => setFilter(e.target.value as BondStatus | 'all')}
+            onChange={e => setFilter(e.target.value as BondStatus | 'all')}
             className="bond-tracker__filter"
             aria-label="Filter bonds by status"
           >
@@ -169,83 +173,105 @@ export const BondTracker: React.FC < BondTrackerProps> = ({
       {/* Bonds List */}
       <div className="bond-tracker__content">
         <div className="bond-tracker__bonds">
-          <h3 > My Bonds ({filteredBonds.length})</h3>
+          <h3>
+            {' '}
+            My Bonds (
+            {filteredBonds.length}
+            )
+          </h3>
 
-          {filteredBonds.length === 0 ? (
-            <div className="bond-tracker__empty">
-              <p > No bonds found. Create your first bond to start earning XP!</p>
-            </div>
-          ) : (
-            <div className="bond-tracker__bonds-list">
-              {filteredBonds.map(bond => (
-                <div key={bond.id} className="bond-tracker__bond">
-                  <div className="bond-tracker__bond-header">
-                    <span className={`bond-tracker__status ${getStatusColor(bond.status)}`}>
-                      {getStatusIcon(bond.status)}
-                    </span>
-                    <span className="bond-tracker__target">
-                      {getCharacterName(bond.targetCharacterId)}
-                    </span>
-                    <div className="bond-tracker__bond-actions">
-                      {bond.status === BondStatus.ACTIVE && (
-                        <>
-                          <button
-                            onClick={() => {
-                              setSelectedBond(bond);
-                              setShowResolveForm(true);
-                            }}
-                            className="bond-tracker__action-btn bond-tracker__action-btn--resolve"
-                          >
-                            Resolve
-                          </button>
-                          <button
-                            onClick={() => handleDeleteBond(bond.id)}
-                            className="bond-tracker__action-btn bond-tracker__action-btn--delete"
-                          >
-                            Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="bond-tracker__bond-description">
-                    {bond.description}
-                  </div>
-
-                  {bond.notes && (
-                    <div className="bond-tracker__bond-notes">
-                      <strong > Notes:</strong> {bond.notes}
-                    </div>
-                  )}
-
-                  {bond.tags.length > 0 && (
-                    <div className="bond-tracker__bond-tags">
-                      {bond.tags.map(tag => (
-                        <span key={tag} className="bond-tracker__tag">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="bond-tracker__bond-meta">
-                    <span > Created: {bond.createdAt.toLocaleDateString()}</span>
-                    {bond.resolvedAt && (
-                      <span > Resolved: {bond.resolvedAt.toLocaleDateString()}</span>
-                    )}
-                    {bond.xpAwarded && <span className="bond-tracker__xp-awarded">✨ XP Awarded</span>}
-                  </div>
+          {filteredBonds.length === 0
+            ? (
+                <div className="bond-tracker__empty">
+                  <p> No bonds found. Create your first bond to start earning XP!</p>
                 </div>
-              ))}
-            </div>
-          )}
+              )
+            : (
+                <div className="bond-tracker__bonds-list">
+                  {filteredBonds.map(bond => (
+                    <div key={bond.id} className="bond-tracker__bond">
+                      <div className="bond-tracker__bond-header">
+                        <span className={`bond-tracker__status ${getStatusColor(bond.status)}`}>
+                          {getStatusIcon(bond.status)}
+                        </span>
+                        <span className="bond-tracker__target">
+                          {getCharacterName(bond.targetCharacterId)}
+                        </span>
+                        <div className="bond-tracker__bond-actions">
+                          {bond.status === BondStatus.ACTIVE && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setSelectedBond(bond)
+                                  setShowResolveForm(true)
+                                }}
+                                className="bond-tracker__action-btn bond-tracker__action-btn--resolve"
+                              >
+                                Resolve
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBond(bond.id)}
+                                className="bond-tracker__action-btn bond-tracker__action-btn--delete"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="bond-tracker__bond-description">
+                        {bond.description}
+                      </div>
+
+                      {bond.notes && (
+                        <div className="bond-tracker__bond-notes">
+                          <strong> Notes:</strong>
+                          {' '}
+                          {bond.notes}
+                        </div>
+                      )}
+
+                      {bond.tags.length > 0 && (
+                        <div className="bond-tracker__bond-tags">
+                          {bond.tags.map(tag => (
+                            <span key={tag} className="bond-tracker__tag">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="bond-tracker__bond-meta">
+                        <span>
+                          {' '}
+                          Created:
+                          {bond.createdAt.toLocaleDateString()}
+                        </span>
+                        {bond.resolvedAt && (
+                          <span>
+                            {' '}
+                            Resolved:
+                            {bond.resolvedAt.toLocaleDateString()}
+                          </span>
+                        )}
+                        {bond.xpAwarded && <span className="bond-tracker__xp-awarded">✨ XP Awarded</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
         </div>
 
         {/* Bonds Targeting This Character */}
         {targetBonds.length > 0 && (
           <div className="bond-tracker__targeting">
-            <h3 > Bonds Targeting Me ({targetBonds.length})</h3>
+            <h3>
+              {' '}
+              Bonds Targeting Me (
+              {targetBonds.length}
+              )
+            </h3>
             <div className="bond-tracker__bonds-list">
               {targetBonds.map(bond => (
                 <div key={bond.id} className="bond-tracker__bond bond-tracker__bond--targeting">
@@ -254,7 +280,9 @@ export const BondTracker: React.FC < BondTrackerProps> = ({
                       {getStatusIcon(bond.status)}
                     </span>
                     <span className="bond-tracker__target">
-                      {getCharacterName(bond.characterId)} → Me
+                      {getCharacterName(bond.characterId)}
+                      {' '}
+                      → Me
                     </span>
                   </div>
 
@@ -284,86 +312,90 @@ export const BondTracker: React.FC < BondTrackerProps> = ({
           bond={selectedBond}
           onResolve={handleResolveBond}
           onCancel={() => {
-            setShowResolveForm(false);
-            setSelectedBond(null);
+            setShowResolveForm(false)
+            setSelectedBond(null)
           }}
         />
       )}
     </div>
-  );
-};
+  )
+}
 
 // Create Bond Form Component
 interface CreateBondFormProps {
-  characterId: string;
-  characters: { [key: string]: Character };
-  onCreate: (targetCharacterId: string, description: string, template?: any) => void;
-  onCancel: () => void;
+  characterId: string
+  characters: { [key: string]: Character }
+  onCreate: (targetCharacterId: string, description: string, template?: any) => void
+  onCancel: () => void
 }
 
-const CreateBondForm: React.FC < CreateBondFormProps> = ({
+const CreateBondForm: React.FC <CreateBondFormProps> = ({
   characterId,
   characters,
   onCreate,
   onCancel,
 }) => {
-  const [targetCharacterId, setTargetCharacterId] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState < unknown>(null);
-  const [templates, setTemplates] = useState < unknown[]>([]);
+  const [targetCharacterId, setTargetCharacterId] = useState('')
+  const [description, setDescription] = useState('')
+  const [selectedTemplate, setSelectedTemplate] = useState <unknown>(null)
+  const [templates, setTemplates] = useState <unknown[]>([])
 
   useEffect(() => {
-    const character = characters[characterId];
+    const character = characters[characterId]
     if (character) {
-      const availableTemplates = bondService.getBondTemplates(character.class);
-      setTemplates(availableTemplates);
+      const availableTemplates = bondService.getBondTemplates(character.class)
+      setTemplates(availableTemplates)
     }
-  }, [characterId, characters]);
+  }, [characterId, characters])
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (targetCharacterId && description) {
-      onCreate(targetCharacterId, description, selectedTemplate);
+      onCreate(targetCharacterId, description, selectedTemplate)
     }
-  };
+  }
 
   const handleTemplateSelect = (template: any) => {
-    setSelectedTemplate(template);
-    setDescription(template.description);
-  };
+    setSelectedTemplate(template)
+    setDescription(template.description)
+  }
 
-  const availableTargets = Object.values(characters).filter(c => c.id !== characterId);
+  const availableTargets = Object.values(characters).filter(c => c.id !== characterId)
 
   return (
     <div className="bond-tracker__modal">
       <div className="bond-tracker__modal-content">
-        <h3 > Create New Bond</h3>
+        <h3> Create New Bond</h3>
 
         <form onSubmit={handleSubmit} className="bond-tracker__form">
           <div className="bond-tracker__form-group">
-            <label > Target Character:</label>
+            <label> Target Character:</label>
             <select
               value={targetCharacterId}
-              onChange={(e) => setTargetCharacterId(e.target.value)}
+              onChange={e => setTargetCharacterId(e.target.value)}
               required
               aria-label="Select target character for bond"
             >
               <option value="">Select a character...</option>
               {availableTargets.map(char => (
                 <option key={char.id} value={char.id}>
-                  {char.name} ({char.class})
+                  {char.name}
+                  {' '}
+                  (
+                  {char.class}
+                  )
                 </option>
               ))}
             </select>
           </div>
 
           <div className="bond-tracker__form-group">
-            <label > Bond Template (Optional):</label>
+            <label> Bond Template (Optional):</label>
             <select
               value={selectedTemplate?.id || ''}
               onChange={(e) => {
-                const template = templates.find(t => t.id === e.target.value);
-                setSelectedTemplate(template || null);
+                const template = templates.find(t => t.id === e.target.value)
+                setSelectedTemplate(template || null)
               }}
               aria-label="Select bond template (optional)"
             >
@@ -380,15 +412,19 @@ const CreateBondForm: React.FC < CreateBondFormProps> = ({
             <div className="bond-tracker__template-info">
               <h4>{selectedTemplate.name}</h4>
               <p>{selectedTemplate.description}</p>
-              <p><strong > XP Trigger:</strong> {selectedTemplate.xpTrigger}</p>
+              <p>
+                <strong> XP Trigger:</strong>
+                {' '}
+                {selectedTemplate.xpTrigger}
+              </p>
             </div>
           )}
 
           <div className="bond-tracker__form-group">
-            <label > Bond Description:</label>
+            <label> Bond Description:</label>
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               placeholder="Describe the bond between your characters..."
               required
               rows={3}
@@ -406,23 +442,23 @@ const CreateBondForm: React.FC < CreateBondFormProps> = ({
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Resolve Bond Form Component
 interface ResolveBondFormProps {
-  bond: Bond;
-  onResolve: (bondId: string, resolution: any) => void;
-  onCancel: () => void;
+  bond: Bond
+  onResolve: (bondId: string, resolution: any) => void
+  onCancel: () => void
 }
 
-const ResolveBondForm: React.FC < ResolveBondFormProps> = ({ bond, onResolve, onCancel }) => {
-  const [resolutionType, setResolutionType] = useState < BondResolutionType>(BondResolutionType.FULFILLED);
-  const [description, setDescription] = useState('');
-  const [notes, setNotes] = useState('');
+const ResolveBondForm: React.FC <ResolveBondFormProps> = ({ bond, onResolve, onCancel }) => {
+  const [resolutionType, setResolutionType] = useState <BondResolutionType>(BondResolutionType.FULFILLED)
+  const [description, setDescription] = useState('')
+  const [notes, setNotes] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (description) {
       onResolve(bond.id, {
         type: resolutionType,
@@ -430,25 +466,27 @@ const ResolveBondForm: React.FC < ResolveBondFormProps> = ({ bond, onResolve, on
         timestamp: new Date(),
         xpAwarded: true,
         notes: notes || undefined,
-      });
+      })
     }
-  };
+  }
 
   return (
     <div className="bond-tracker__modal">
       <div className="bond-tracker__modal-content">
-        <h3 > Resolve Bond</h3>
+        <h3> Resolve Bond</h3>
 
         <div className="bond-tracker__bond-preview">
-          <strong > Bond:</strong> {bond.description}
+          <strong> Bond:</strong>
+          {' '}
+          {bond.description}
         </div>
 
         <form onSubmit={handleSubmit} className="bond-tracker__form">
           <div className="bond-tracker__form-group">
-            <label > Resolution Type:</label>
+            <label> Resolution Type:</label>
             <select
               value={resolutionType}
-              onChange={(e) => setResolutionType(e.target.value as BondResolutionType)}
+              onChange={e => setResolutionType(e.target.value as BondResolutionType)}
               aria-label="Select bond resolution type"
             >
               <option value={BondResolutionType.FULFILLED}>Fulfilled</option>
@@ -459,10 +497,10 @@ const ResolveBondForm: React.FC < ResolveBondFormProps> = ({ bond, onResolve, on
           </div>
 
           <div className="bond-tracker__form-group">
-            <label > Resolution Description:</label>
+            <label> Resolution Description:</label>
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               placeholder="Describe how this bond was resolved..."
               required
               rows={3}
@@ -470,10 +508,10 @@ const ResolveBondForm: React.FC < ResolveBondFormProps> = ({ bond, onResolve, on
           </div>
 
           <div className="bond-tracker__form-group">
-            <label > Notes (Optional):</label>
+            <label> Notes (Optional):</label>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={e => setNotes(e.target.value)}
               placeholder="Additional notes about the resolution..."
               rows={2}
             />
@@ -490,10 +528,7 @@ const ResolveBondForm: React.FC < ResolveBondFormProps> = ({ bond, onResolve, on
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default BondTracker;
-
-
-
+export default BondTracker

@@ -76,7 +76,7 @@
   cursor: pointer;
 }
 
-.question-label input[type="checkbox"] {
+.question-label input[type='checkbox'] {
   margin-right: var(--spacing-md);
   accent-color: var(--color-primary);
   transform: scale(1.1);
@@ -249,17 +249,17 @@
     width: 95%;
     margin: var(--spacing-md);
   }
-  
+
   .result-summary {
     grid-template-columns: 1fr;
   }
-  
+
   .question-item {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-sm);
   }
-  
+
   .question-xp {
     align-self: flex-end;
   }

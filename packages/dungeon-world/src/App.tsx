@@ -25,6 +25,7 @@ import { panelDiagnostics } from './utils/panelDiagnostics'
 import { panelRecoveryManager } from './utils/panelRecovery'
 // import { PanelDebugger, testPanel } from './debug/PanelDebugger';
 import './App.css'
+import EquipmentCompendiumPanel from './panels/EquipmentCompendiumPanel/EquipmentCompendiumPanel'
 
 function App() {
   useEffect(() => {
@@ -48,6 +49,7 @@ function App() {
       TestPlaygroundPanel,
       MoveLibraryPanel,
       ContentStudioPanelInstance,
+      EquipmentCompendiumPanel,
       // Bond & Alignment XP Tracker panels
       BondTrackerPanel,
       AlignmentXPTrackerPanel,
@@ -63,7 +65,8 @@ function App() {
     for (const [index, panel] of panelsToRegister.entries()) {
       try {
         panelRegistry.register(panel)
-      } catch (error) {
+      }
+      catch (error) {
         // In development, provide recovery option
         if (process.env.NODE_ENV === 'development') {
           console.warn('Panel registration failed:', error)

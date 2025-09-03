@@ -1,17 +1,18 @@
-import './ConditionTrackerPanel.css';
+import type { PanelProps } from '../../framework/Panel'
 
-import React from 'react';
-import { ConditionTracker } from '../../components/ConditionTracker';
-import { createPanel, PanelProps } from '../../framework/Panel';
-import { createPanelAPI } from '../../framework/PanelAPI';
-import { useCharacter } from '../../store/GameStore';
+import React from 'react'
+import { ConditionTracker } from '../../components/ConditionTracker'
+import { createPanel } from '../../framework/Panel'
+import { createPanelAPI } from '../../framework/PanelAPI'
+import { useCharacter } from '../../store/GameStore'
+import './ConditionTrackerPanel.css'
 
-const _id = 'condition-tracker';
+const _id = 'condition-tracker'
 
-const _api = createPanelAPI(_id);
+const _api = createPanelAPI(_id)
 
-const ConditionTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, onStateChange }) => {
-  const currentCharacter = useCharacter();
+const ConditionTrackerPanelComponent: React.FC <PanelProps> = ({ isActive, onStateChange }) => {
+  const currentCharacter = useCharacter()
 
   const handleConditionResolved = (conditionId: string) => {
     // Notify the game system that a condition was resolved
@@ -20,9 +21,9 @@ const ConditionTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, onSt
 
     // Update panel state if needed
     if (onStateChange) {
-      onStateChange({ lastConditionResolved: conditionId, resolvedAt: new Date() });
+      onStateChange({ lastConditionResolved: conditionId, resolvedAt: new Date() })
     }
-  };
+  }
 
   return (
     <div className="condition-tracker-panel">
@@ -40,8 +41,8 @@ const ConditionTrackerPanelComponent: React.FC < PanelProps> = ({ isActive, onSt
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
 const conditionTrackerPanelConfig = createPanel(
   {
@@ -55,18 +56,14 @@ const conditionTrackerPanelConfig = createPanel(
   ConditionTrackerPanelComponent,
   {
     onMount: () => {
-      },
+    },
     onUnmount: () => {
-      },
+    },
     onActivate: () => {
-      },
+    },
     onDeactivate: () => {
-      },
+    },
   },
-);
+)
 
-export default conditionTrackerPanelConfig;
-
-
-
-
+export default conditionTrackerPanelConfig

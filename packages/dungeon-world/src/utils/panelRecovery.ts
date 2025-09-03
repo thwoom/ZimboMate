@@ -3,26 +3,26 @@
  * Handles recovery from panel loading issues and provides debugging tools
  */
 
-import { panelRegistry } from '../framework/PanelRegistry';
+import { panelRegistry } from '../framework/PanelRegistry'
 
 export interface PanelRecoveryOptions {
-  clearAllStates?: boolean;
-  resetRegistry?: boolean;
-  clearLocalStorage?: boolean;
-  enableDebugMode?: boolean;
+  clearAllStates?: boolean
+  resetRegistry?: boolean
+  clearLocalStorage?: boolean
+  enableDebugMode?: boolean
 }
 
 export class PanelRecoveryManager {
-  private static instance: PanelRecoveryManager;
-  private debugMode = false;
+  private static instance: PanelRecoveryManager
+  private debugMode = false
 
   private constructor() {}
 
   static getInstance(): PanelRecoveryManager {
     if (!PanelRecoveryManager.instance) {
-      PanelRecoveryManager.instance = new PanelRecoveryManager();
+      PanelRecoveryManager.instance = new PanelRecoveryManager()
     }
-    return PanelRecoveryManager.instance;
+    return PanelRecoveryManager.instance
   }
 
   /**
@@ -32,13 +32,14 @@ export class PanelRecoveryManager {
     try {
       // Clear all React state by forcing a complete reload
       // Clear all localStorage to prevent corrupted state from persisting
-      this.clearPanelRelatedLocalStorage();
+      this.clearPanelRelatedLocalStorage()
 
       // Force a hard reload
-      window.location.reload();
-    } catch {
+      window.location.reload()
+    }
+    catch {
       // Last resort - try to reload anyway
-      window.location.reload();
+      window.location.reload()
     }
   }
 
@@ -51,12 +52,12 @@ export class PanelRecoveryManager {
       resetRegistry = true,
       clearLocalStorage = false,
       enableDebugMode = true,
-    } = options;
+    } = options
 
     try {
       // Enable debug mode
       if (enableDebugMode) {
-        this.debugMode = true;
+        this.debugMode = true
       }
 
       // Clear panel states if requested
@@ -73,8 +74,9 @@ export class PanelRecoveryManager {
       if (resetRegistry) {
         // panelRegistry.clear();
       }
-    } catch (error) {
-      throw error;
+    }
+    catch (error) {
+      throw error
     }
   }
 
@@ -82,28 +84,29 @@ export class PanelRecoveryManager {
    * Clear all panel-related localStorage entries
    */
   private clearPanelRelatedLocalStorage(): void {
-    const keysToRemove: string[] = [];
+    const keysToRemove: string[] = []
 
     for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
+      const key = localStorage.key(i)
       if (key && (
-        key.startsWith('panel-state-') ||
-        key.startsWith('zimbomate-') ||
-        key.includes('character') ||
-        key.includes('game')
+        key.startsWith('panel-state-')
+        || key.startsWith('zimbomate-')
+        || key.includes('character')
+        || key.includes('game')
       )) {
-        keysToRemove.push(key);
+        keysToRemove.push(key)
       }
     }
 
     for (const key of keysToRemove) {
       try {
-        localStorage.removeItem(key);
+        localStorage.removeItem(key)
         if (this.debugMode) {
-          console.log(`Removed localStorage key: ${key}`);
+          console.log(`Removed localStorage key: ${key}`)
         }
-      } catch (error) {
-        console.error("Failed to remove localStorage key:", key, error);
+      }
+      catch (error) {
+        console.error('Failed to remove localStorage key:', key, error)
       }
     }
   }
@@ -112,31 +115,31 @@ export class PanelRecoveryManager {
    * Check panel registry health
    */
   checkRegistryHealth(): {
-    totalPanels: number;
-    panelIds: string[];
-    hasCharacterCreation: boolean;
-    hasCharacterStats: boolean;
-    issues: string[];
+    totalPanels: number
+    panelIds: string[]
+    hasCharacterCreation: boolean
+    hasCharacterStats: boolean
+    issues: string[]
   } {
-    const allPanels = panelRegistry.getAllPanels();
-    const panelIds = allPanels.map(p => p.metadata.id);
-    const issues: string[] = [];
+    const allPanels = panelRegistry.getAllPanels()
+    const panelIds = allPanels.map(p => p.metadata.id)
+    const issues: string[] = []
 
     // Check for required panels
-    const hasCharacterCreation = panelIds.includes('character-creation');
-    const hasCharacterStats = panelIds.includes('character-stats');
+    const hasCharacterCreation = panelIds.includes('character-creation')
+    const hasCharacterStats = panelIds.includes('character-stats')
 
     if (!hasCharacterCreation) {
-      issues.push('Character creation panel is missing');
+      issues.push('Character creation panel is missing')
     }
     if (!hasCharacterStats) {
-      issues.push('Character stats panel is missing');
+      issues.push('Character stats panel is missing')
     }
 
     // Check for duplicate IDs
-    const duplicates = panelIds.filter((id, index) => panelIds.indexOf(id) !== index);
+    const duplicates = panelIds.filter((id, index) => panelIds.indexOf(id) !== index)
     if (duplicates.length > 0) {
-      issues.push(`Duplicate panel IDs found: ${duplicates.join(', ')}`);
+      issues.push(`Duplicate panel IDs found: ${duplicates.join(', ')}`)
     }
 
     return {
@@ -145,61 +148,61 @@ export class PanelRecoveryManager {
       hasCharacterCreation,
       hasCharacterStats,
       issues,
-    };
+    }
   }
 
   /**
    * Get comprehensive diagnostics
    */
   getDiagnostics(): {
-    timestamp: string;
-    userAgent: string;
-    localStorageKeys: string[];
-    panelStateKeys: string[];
-    gameStateKeys: string[];
+    timestamp: string
+    userAgent: string
+    localStorageKeys: string[]
+    panelStateKeys: string[]
+    gameStateKeys: string[]
     memoryInfo: {
-      usedJSHeapSize?: number;
-      totalJSHeapSize?: number;
-      jsHeapSizeLimit?: number;
-    };
+      usedJSHeapSize?: number
+      totalJSHeapSize?: number
+      jsHeapSizeLimit?: number
+    }
     registryHealth: {
-      totalPanels: number;
-      panelIds: string[];
-      hasCharacterCreation: boolean;
-      hasCharacterStats: boolean;
-      issues: string[];
-    };
+      totalPanels: number
+      panelIds: string[]
+      hasCharacterCreation: boolean
+      hasCharacterStats: boolean
+      issues: string[]
+    }
   } {
-    const localStorageKeys: string[] = [];
-    const panelStateKeys: string[] = [];
-    const gameStateKeys: string[] = [];
+    const localStorageKeys: string[] = []
+    const panelStateKeys: string[] = []
+    const gameStateKeys: string[] = []
 
     // Collect localStorage keys
     for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
+      const key = localStorage.key(i)
       if (key) {
-        localStorageKeys.push(key);
+        localStorageKeys.push(key)
         if (key.startsWith('panel-state-')) {
-          panelStateKeys.push(key);
+          panelStateKeys.push(key)
         }
         if (key.includes('game') || key.includes('character')) {
-          gameStateKeys.push(key);
+          gameStateKeys.push(key)
         }
       }
     }
 
     // Get memory info if available
     const memoryInfo: {
-      usedJSHeapSize?: number;
-      totalJSHeapSize?: number;
-      jsHeapSizeLimit?: number;
-    } = {};
+      usedJSHeapSize?: number
+      totalJSHeapSize?: number
+      jsHeapSizeLimit?: number
+    } = {}
 
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      memoryInfo.usedJSHeapSize = memory.usedJSHeapSize;
-      memoryInfo.totalJSHeapSize = memory.totalJSHeapSize;
-      memoryInfo.jsHeapSizeLimit = memory.jsHeapSizeLimit;
+      const memory = (performance as any).memory
+      memoryInfo.usedJSHeapSize = memory.usedJSHeapSize
+      memoryInfo.totalJSHeapSize = memory.totalJSHeapSize
+      memoryInfo.jsHeapSizeLimit = memory.jsHeapSizeLimit
     }
 
     return {
@@ -210,7 +213,7 @@ export class PanelRecoveryManager {
       gameStateKeys,
       memoryInfo,
       registryHealth: this.checkRegistryHealth(),
-    };
+    }
   }
 
   /**
@@ -218,17 +221,17 @@ export class PanelRecoveryManager {
    */
   forceReload(): void {
     if (this.debugMode) {
-      console.log('🔄 Force reloading application...');
+      console.log('🔄 Force reloading application...')
     }
-    window.location.reload();
+    window.location.reload()
   }
 
   /**
    * Create a recovery button for manual recovery
    */
   createRecoveryButton(): HTMLButtonElement {
-    const button = document.createElement('button');
-    button.textContent = '🔧 Panel Recovery';
+    const button = document.createElement('button')
+    button.textContent = '🔧 Panel Recovery'
     button.style.cssText = `
       position: fixed;
       top: 10px;
@@ -242,7 +245,7 @@ export class PanelRecoveryManager {
       cursor: pointer;
       font-size: 12px;
       font-family: monospace;
-    `;
+    `
 
     button.addEventListener('click', () => {
       if (confirm('Perform panel recovery? This will clear all panel states and reload.')) {
@@ -251,19 +254,19 @@ export class PanelRecoveryManager {
           resetRegistry: true,
           clearLocalStorage: true,
           enableDebugMode: true,
-        });
+        })
       }
-    });
+    })
 
-    return button;
+    return button
   }
 
   /**
    * Create an emergency button for critical recovery
    */
   createEmergencyButton(): HTMLButtonElement {
-    const button = document.createElement('button');
-    button.textContent = '🚨 Emergency Recovery';
+    const button = document.createElement('button')
+    button.textContent = '🚨 Emergency Recovery'
     button.style.cssText = `
       position: fixed;
       top: 50px;
@@ -277,15 +280,15 @@ export class PanelRecoveryManager {
       cursor: pointer;
       font-size: 12px;
       font-family: monospace;
-    `;
+    `
 
     button.addEventListener('click', () => {
       if (confirm('EMERGENCY RECOVERY: This will force reload and clear everything. Continue?')) {
-        this.emergencyRecovery();
+        this.emergencyRecovery()
       }
-    });
+    })
 
-    return button;
+    return button
   }
 
   /**
@@ -293,35 +296,32 @@ export class PanelRecoveryManager {
    */
   injectRecoveryTools(): void {
     // Only inject when explicitly enabled via debug mode
-    const isDebugMode = localStorage.getItem('zimbomate-debug-mode') === 'true';
-    
+    const isDebugMode = localStorage.getItem('zimbomate-debug-mode') === 'true'
+
     if (!isDebugMode) {
-      console.log('🔧 Panel Recovery Tools disabled. To enable: localStorage.setItem("zimbomate-debug-mode", "true")');
-      return;
+      console.log('🔧 Panel Recovery Tools disabled. To enable: localStorage.setItem("zimbomate-debug-mode", "true")')
+      return
     }
 
     // Create recovery button
-    const recoveryButton = this.createRecoveryButton();
-    document.body.appendChild(recoveryButton);
+    const recoveryButton = this.createRecoveryButton()
+    document.body.appendChild(recoveryButton)
 
     // Create emergency button
-    const emergencyButton = this.createEmergencyButton();
-    document.body.appendChild(emergencyButton);
+    const emergencyButton = this.createEmergencyButton()
+    document.body.appendChild(emergencyButton)
 
     // Log availability
-    console.group('🔧 Panel Recovery Tools Available');
-    console.log('Recovery Button: Top-right corner');
-    console.log('Emergency Button: Below recovery button');
-    console.log('Use recovery for normal issues, emergency for critical failures');
-    console.log('To disable: localStorage.setItem("zimbomate-debug-mode", "false")');
-    console.groupEnd();
+    console.group('🔧 Panel Recovery Tools Available')
+    console.log('Recovery Button: Top-right corner')
+    console.log('Emergency Button: Below recovery button')
+    console.log('Use recovery for normal issues, emergency for critical failures')
+    console.log('To disable: localStorage.setItem("zimbomate-debug-mode", "false")')
+    console.groupEnd()
 
-    console.log('🔧 Panel Recovery Tools enabled via debug mode');
+    console.log('🔧 Panel Recovery Tools enabled via debug mode')
   }
 }
 
 // Export a singleton instance
-export const panelRecoveryManager = PanelRecoveryManager.getInstance();
-
-
-
+export const panelRecoveryManager = PanelRecoveryManager.getInstance()

@@ -1,37 +1,38 @@
-import './ErrorBoundary.css';
+import type { ErrorInfo, ReactNode } from 'react'
+import React, { Component } from 'react'
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import './ErrorBoundary.css'
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
-  resetKeys?: Array < string | number>;
-  resetOnPropsChange?: boolean;
+  children: ReactNode
+  fallback?: ReactNode
+  onError?: (error: Error, errorInfo: ErrorInfo) => void
+  resetKeys?: Array <string | number>
+  resetOnPropsChange?: boolean
 }
 
 interface State {
-  hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
-  eventId: string | null;
-  copied: boolean;
-  showAdvancedDetails: boolean;
-  copyFormat: 'cursor-ai' | 'technical' | 'github';
-  showCopyDropdown: boolean;
+  hasError: boolean
+  error: Error | null
+  errorInfo: ErrorInfo | null
+  eventId: string | null
+  copied: boolean
+  showAdvancedDetails: boolean
+  copyFormat: 'cursor-ai' | 'technical' | 'github'
+  showCopyDropdown: boolean
   errorHistory: Array<{
-    error: Error;
-    timestamp: number;
-    eventId: string;
-    userActions?: string[];
-  }>;
+    error: Error
+    timestamp: number
+    eventId: string
+    userActions?: string[]
+  }>
 }
 
-class ErrorBoundary extends Component < Props, State> {
-  private resetTimeoutId: number | null = null;
+class ErrorBoundary extends Component <Props, State> {
+  private resetTimeoutId: number | null = null
 
   constructor(props: Props) {
-    super(props);
+    super(props)
     this.state = {
       hasError: false,
       error: null,
@@ -42,21 +43,21 @@ class ErrorBoundary extends Component < Props, State> {
       copyFormat: 'cursor-ai',
       showCopyDropdown: false,
       errorHistory: [],
-    };
+    }
   }
 
-  static getDerivedStateFromError(error: Error): Partial < State> {
+  static getDerivedStateFromError(error: Error): Partial <State> {
     // Update state so the next render will show the fallback UI
     return {
       hasError: true,
       error,
       eventId: `error-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-    };
+    }
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error details
-    const eventId = this.state.eventId || `error-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    const eventId = this.state.eventId || `error-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 
     // Add to error history
     const errorEntry = {
@@ -64,48 +65,48 @@ class ErrorBoundary extends Component < Props, State> {
       timestamp: Date.now(),
       eventId,
       userActions: this.getUserActionHistory(),
-    };
+    }
 
     this.setState(prevState => ({
       error,
       errorInfo,
       eventId,
       errorHistory: [...prevState.errorHistory, errorEntry].slice(-5), // Keep last 5 errors
-    }));
+    }))
 
     // Call custom error handler if provided
     if (this.props.onError) {
-      this.props.onError(error, errorInfo);
+      this.props.onError(error, errorInfo)
     }
 
     // In a real app, you might want to log this to an error reporting service
-    this.logErrorToService(error, errorInfo);
+    this.logErrorToService(error, errorInfo)
   }
 
   componentDidUpdate(prevProps: Props) {
-    const { resetKeys, resetOnPropsChange } = this.props;
-    const { hasError } = this.state;
+    const { resetKeys, resetOnPropsChange } = this.props
+    const { hasError } = this.state
 
     // Reset error boundary when resetKeys change
     if (hasError && resetKeys) {
       const hasResetKeyChanged = resetKeys.some((resetKey, idx) =>
         prevProps.resetKeys?.[idx] !== resetKey,
-      );
+      )
 
       if (hasResetKeyChanged) {
-        this.resetErrorBoundary();
+        this.resetErrorBoundary()
       }
     }
 
     // Reset error boundary when unknown props change (if enabled)
     if (hasError && resetOnPropsChange && prevProps !== this.props) {
-      this.resetErrorBoundary();
+      this.resetErrorBoundary()
     }
   }
 
   resetErrorBoundary = () => {
     if (this.resetTimeoutId) {
-      clearTimeout(this.resetTimeoutId);
+      clearTimeout(this.resetTimeoutId)
     }
 
     this.setState({
@@ -117,54 +118,55 @@ class ErrorBoundary extends Component < Props, State> {
       showAdvancedDetails: false,
       showCopyDropdown: false,
       // Keep errorHistory for debugging
-    });
-  };
+    })
+  }
 
   handleRetry = () => {
-    this.resetErrorBoundary();
-  };
+    this.resetErrorBoundary()
+  }
 
   handleReload = () => {
-    window.location.reload();
-  };
+    window.location.reload()
+  }
 
-  copyErrorToClipboard = async(format?: 'cursor-ai' | 'technical' | 'github') => {
-    const selectedFormat = format || this.state.copyFormat;
-    let content: string;
+  copyErrorToClipboard = async (format?: 'cursor-ai' | 'technical' | 'github') => {
+    const selectedFormat = format || this.state.copyFormat
+    let content: string
 
     switch (selectedFormat) {
       case 'cursor-ai':
-        content = this.generateCursorAIPrompt();
-        break;
+        content = this.generateCursorAIPrompt()
+        break
       case 'github':
-        content = this.generateGitHubIssueBody();
-        break;
+        content = this.generateGitHubIssueBody()
+        break
       case 'technical':
       default:
-        content = this.generateErrorReport();
-        break;
+        content = this.generateErrorReport()
+        break
     }
 
     try {
-      await navigator.clipboard.writeText(content);
-      this.setState({ copied: true });
-      setTimeout(() => this.setState({ copied: false }), 2000);
-    } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = content;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      this.setState({ copied: true });
-      setTimeout(() => this.setState({ copied: false }), 2000);
+      await navigator.clipboard.writeText(content)
+      this.setState({ copied: true })
+      setTimeout(() => this.setState({ copied: false }), 2000)
     }
-  };
+    catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = content
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      this.setState({ copied: true })
+      setTimeout(() => this.setState({ copied: false }), 2000)
+    }
+  }
 
   generateGitHubIssueBody = (): string => {
-    const { error, errorInfo, eventId } = this.state;
-    const userActions = this.getUserActionHistory();
+    const { error, errorInfo, eventId } = this.state
+    const userActions = this.getUserActionHistory()
 
     return `## 🐛 Bug Report
 
@@ -175,7 +177,7 @@ class ErrorBoundary extends Component < Props, State> {
 - **URL:** ${window.location.href}
 
 ### Steps to Reproduce
-${userActions.length > 0 ? userActions.map((action, index) => `${index + 1}. ${action || "No action"}`).join('\n') : '1. [Please describe the steps to reproduce]'}
+${userActions.length > 0 ? userActions.map((action, index) => `${index + 1}. ${action || 'No action'}`).join('\n') : '1. [Please describe the steps to reproduce]'}
 
 ### Expected Behavior
 [Describe what you expected to happen]
@@ -199,12 +201,12 @@ ${errorInfo?.componentStack || 'No component stack available'}
 - **Timestamp:** ${new Date().toISOString()}
 
 ### Additional Context
-[Add unknown other context about the problem here]`;
-  };
+[Add unknown other context about the problem here]`
+  }
 
   generateErrorReport = (): string => {
-    const { error, errorInfo, eventId } = this.state;
-    const timestamp = new Date().toISOString();
+    const { error, errorInfo, eventId } = this.state
+    const timestamp = new Date().toISOString()
 
     return `# Error Report-ZimboMate
 
@@ -229,7 +231,7 @@ ${errorInfo?.componentStack || 'No component stack available'}
 \`\`\`
 
 ## Recent User Actions
-${this.getUserActionHistory().map(action => `- ${action || "No action"}`).join('\n')}
+${this.getUserActionHistory().map(action => `- ${action || 'No action'}`).join('\n')}
 
 ## Browser Information
 - **Platform:** ${navigator.platform}
@@ -238,13 +240,13 @@ ${this.getUserActionHistory().map(action => `- ${action || "No action"}`).join('
 - **Online:** ${navigator.onLine}
 
 ---
-*Generated by ZimboMate Error Boundary*`;
-  };
+*Generated by ZimboMate Error Boundary*`
+  }
 
   generateCursorAIPrompt = (): string => {
-    const { error, errorInfo } = this.state;
-    const userActions = this.getUserActionHistory();
-    const suggestions = this.getErrorSuggestions();
+    const { error, errorInfo } = this.state
+    const userActions = this.getUserActionHistory()
+    const suggestions = this.getErrorSuggestions()
 
     return `I'm getting a React error in my ZimboMate application and need help debugging it. Here are the details:
 
@@ -264,10 +266,10 @@ ${errorInfo?.componentStack || 'No component stack available'}
 \`\`\`
 
 ## 👤 What I Was Doing (Recent Actions)
-${userActions.length > 0 ? userActions.map(action => `- ${action || "No action"}`).join('\n') : '- No recent actions recorded'}
+${userActions.length > 0 ? userActions.map(action => `- ${action || 'No action'}`).join('\n') : '- No recent actions recorded'}
 
 ## 🤔 What I Think Might Be Wrong
-${suggestions.length > 0 ? suggestions.map(suggestion => `- ${suggestion || "No suggestion"}`).join('\n') : '- Not sure what\'s causing this'}
+${suggestions.length > 0 ? suggestions.map(suggestion => `- ${suggestion || 'No suggestion'}`).join('\n') : '- Not sure what\'s causing this'}
 
 ## 🛠️ My Setup
 - **Framework:** React with TypeScript
@@ -282,68 +284,69 @@ Please help me:
 3. Prevent similar errors in the future
 4. Improve error handling if needed
 
-Can you analyze this error and provide a solution? If you need to see specific files or more context, just let me know what to share.`;
-  };
+Can you analyze this error and provide a solution? If you need to see specific files or more context, just let me know what to share.`
+  }
 
   getUserActionHistory = (): string[] => {
     // Get recent user actions from localStorage or a tracking service
-    const actions = JSON.parse(localStorage.getItem('userActions') || '[]');
-    return actions.slice(-10); // Last 10 actions
-  };
+    const actions = JSON.parse(localStorage.getItem('userActions') || '[]')
+    return actions.slice(-10) // Last 10 actions
+  }
 
   createGitHubIssue = () => {
-    const errorReport = this.generateErrorReport();
-    const title = encodeURIComponent(`Bug: ${this.state.error?.message || 'Unhandled Error'}`);
-    const body = encodeURIComponent(`## Bug Report\n\n${errorReport}\n\n## Steps to Reproduce\n1. \n2. \n3. \n\n## Expected Behavior\n\n\n## Actual Behavior\n\n`);
+    const errorReport = this.generateErrorReport()
+    const title = encodeURIComponent(`Bug: ${this.state.error?.message || 'Unhandled Error'}`)
+    const body = encodeURIComponent(`## Bug Report\n\n${errorReport}\n\n## Steps to Reproduce\n1. \n2. \n3. \n\n## Expected Behavior\n\n\n## Actual Behavior\n\n`)
 
-    const githubUrl = `https://github.com / YOUR_USERNAME / ZimboMate / issues / new?title=${title}&body=${body}&labels = bug,error-boundary`;
-    window.open(githubUrl, 'blank');
-  };
+    const githubUrl = `https://github.com / YOUR_USERNAME / ZimboMate / issues / new?title=${title}&body=${body}&labels = bug,error-boundary`
+    window.open(githubUrl, 'blank')
+  }
 
   toggleAdvancedDetails = () => {
     this.setState(prevState => ({
       showAdvancedDetails: !prevState.showAdvancedDetails,
-    }));
-  };
+    }))
+  }
 
   searchStackOverflow = () => {
-    const query = encodeURIComponent(`${this.state.error?.name || 'React Error'} ${this.state.error?.message || ''}`);
-    const url = `https://stackoverflow.com / search?q=${query}`;
-    window.open(url, 'blank');
-  };
+    const query = encodeURIComponent(`${this.state.error?.name || 'React Error'} ${this.state.error?.message || ''}`)
+    const url = `https://stackoverflow.com / search?q=${query}`
+    window.open(url, 'blank')
+  }
 
   getErrorSuggestions = (): string[] => {
-    const error = this.state.error;
-    if (!error) return [];
+    const error = this.state.error
+    if (!error)
+      return []
 
-    const suggestions: string[] = [];
+    const suggestions: string[] = []
 
     if (error.message.includes('Cannot read property')) {
-      suggestions.push('Check for null / undefined values before accessing properties');
-      suggestions.push('Use optional chaining (?.) operator');
-      suggestions.push('Add proper null checks or default values');
+      suggestions.push('Check for null / undefined values before accessing properties')
+      suggestions.push('Use optional chaining (?.) operator')
+      suggestions.push('Add proper null checks or default values')
     }
 
     if (error.message.includes('is not a function')) {
-      suggestions.push('Verify the function exists and is properly imported');
-      suggestions.push('Check if the variable is actually a function');
-      suggestions.push('Ensure proper binding of class methods');
+      suggestions.push('Verify the function exists and is properly imported')
+      suggestions.push('Check if the variable is actually a function')
+      suggestions.push('Ensure proper binding of class methods')
     }
 
     if (error.message.includes('Maximum update depth exceeded')) {
-      suggestions.push('Check for infinite re-renders in useEffect or setState');
-      suggestions.push('Add proper dependencies to useEffect');
-      suggestions.push('Avoid calling setState in render methods');
+      suggestions.push('Check for infinite re-renders in useEffect or setState')
+      suggestions.push('Add proper dependencies to useEffect')
+      suggestions.push('Avoid calling setState in render methods')
     }
 
     if (error.stack?.includes('hooks')) {
-      suggestions.push('Ensure hooks are called at the top level of components');
-      suggestions.push('Don\'t call hooks inside loops, conditions, or nested functions');
-      suggestions.push('Check React hooks rules');
+      suggestions.push('Ensure hooks are called at the top level of components')
+      suggestions.push('Don\'t call hooks inside loops, conditions, or nested functions')
+      suggestions.push('Check React hooks rules')
     }
 
-    return suggestions;
-  };
+    return suggestions
+  }
 
   logErrorToService = (error: Error, errorInfo: ErrorInfo) => {
     // In a production app, you would send this to your error tracking service
@@ -356,21 +359,21 @@ Can you analyze this error and provide a solution? If you need to see specific f
       userAgent: navigator.userAgent,
       url: window.location.href,
       eventId: this.state.eventId,
-    };
+    }
 
     // For now, just log to console
-    console.group('🚨 Error Report');
-    console.groupEnd();
+    console.group('🚨 Error Report')
+    console.groupEnd()
 
     // TODO: Replace with actual error service
     // errorTrackingService.captureException(error, { extra: errorReport });
-  };
+  }
 
   render() {
     if (this.state.hasError) {
       // Custom fallback UI
       if (this.props.fallback) {
-        return this.props.fallback;
+        return this.props.fallback
       }
 
       // Default error UI
@@ -427,31 +430,37 @@ Can you analyze this error and provide a solution? If you need to see specific f
                     <button
                       className={`copy-option ${this.state.copyFormat === 'cursor-ai' ? 'active' : ''}`}
                       onClick={() => {
-                        this.setState({ copyFormat: 'cursor-ai', showCopyDropdown: false });
-                        this.copyErrorToClipboard('cursor-ai');
+                        this.setState({ copyFormat: 'cursor-ai', showCopyDropdown: false })
+                        this.copyErrorToClipboard('cursor-ai')
                       }}
                     >
-                      🤖 Cursor AI Prompt < span className="copy-option-desc">Perfect for pasting into AI assistants</span>
+                      🤖 Cursor AI Prompt
+                      {' '}
+                      <span className="copy-option-desc">Perfect for pasting into AI assistants</span>
                     </button>
 
                     <button
                       className={`copy-option ${this.state.copyFormat === 'github' ? 'active' : ''}`}
                       onClick={() => {
-                        this.setState({ copyFormat: 'github', showCopyDropdown: false });
-                        this.copyErrorToClipboard('github');
+                        this.setState({ copyFormat: 'github', showCopyDropdown: false })
+                        this.copyErrorToClipboard('github')
                       }}
                     >
-                      🐛 GitHub Issue < span className="copy-option-desc">Formatted for bug reports</span>
+                      🐛 GitHub Issue
+                      {' '}
+                      <span className="copy-option-desc">Formatted for bug reports</span>
                     </button>
 
                     <button
                       className={`copy-option ${this.state.copyFormat === 'technical' ? 'active' : ''}`}
                       onClick={() => {
-                        this.setState({ copyFormat: 'technical', showCopyDropdown: false });
-                        this.copyErrorToClipboard('technical');
+                        this.setState({ copyFormat: 'technical', showCopyDropdown: false })
+                        this.copyErrorToClipboard('technical')
                       }}
                     >
-                      🔧 Technical Report < span className="copy-option-desc">Detailed technical information</span>
+                      🔧 Technical Report
+                      {' '}
+                      <span className="copy-option-desc">Detailed technical information</span>
                     </button>
                   </div>
                 )}
@@ -481,7 +490,11 @@ Can you analyze this error and provide a solution? If you need to see specific f
                 onClick={this.toggleAdvancedDetails}
                 title="Toggle advanced debugging info"
               >
-                🔧 {this.state.showAdvancedDetails ? 'Hide' : 'Show'} Debug
+                🔧
+                {' '}
+                {this.state.showAdvancedDetails ? 'Hide' : 'Show'}
+                {' '}
+                Debug
               </button>
             </div>
 
@@ -491,7 +504,7 @@ Can you analyze this error and provide a solution? If you need to see specific f
                 <h3>💡 Possible Solutions:</h3>
                 <ul>
                   {this.getErrorSuggestions().map((suggestion, index) => (
-                    <li key={index}>{suggestion || "No suggestion"}</li>
+                    <li key={index}>{suggestion || 'No suggestion'}</li>
                   ))}
                 </ul>
               </div>
@@ -506,19 +519,23 @@ Can you analyze this error and provide a solution? If you need to see specific f
                       <h3>🔍 Error Analysis:</h3>
                       <div className="error-boundary__analysis">
                         <div className="analysis-item">
-                          <strong > Error Type:</strong> {this.state.error?.name || 'Unknown'}
+                          <strong> Error Type:</strong>
+                          {' '}
+                          {this.state.error?.name || 'Unknown'}
                         </div>
                         <div className="analysis-item">
-                          <strong > Severity:</strong>
+                          <strong> Severity:</strong>
                           <span className={`severity ${this.state.error?.stack?.includes('TypeError') ? 'high' : 'medium'}`}>
                             {this.state.error?.stack?.includes('TypeError') ? 'High' : 'Medium'}
                           </span>
                         </div>
                         <div className="analysis-item">
-                          <strong > Likely Cause:</strong>
-                          {this.state.error?.message.includes('Cannot read property') ? 'Null / Undefined Access' :
-                           this.state.error?.message.includes('is not a function') ? 'Function Call Error' :
-                           'Runtime Error'}
+                          <strong> Likely Cause:</strong>
+                          {this.state.error?.message.includes('Cannot read property')
+                            ? 'Null / Undefined Access'
+                            : this.state.error?.message.includes('is not a function')
+                              ? 'Function Call Error'
+                              : 'Runtime Error'}
                         </div>
                       </div>
                     </div>
@@ -527,16 +544,26 @@ Can you analyze this error and provide a solution? If you need to see specific f
                       <h3>📊 Error Context:</h3>
                       <div className="error-boundary__context-grid">
                         <div className="context-item">
-                          <strong > Timestamp:</strong> {new Date().toLocaleString()}
+                          <strong> Timestamp:</strong>
+                          {' '}
+                          {new Date().toLocaleString()}
                         </div>
                         <div className="context-item">
-                          <strong > Page:</strong> {window.location.pathname}
+                          <strong> Page:</strong>
+                          {' '}
+                          {window.location.pathname}
                         </div>
                         <div className="context-item">
-                          <strong > User Agent:</strong> {navigator.userAgent.split(' ')[0]}
+                          <strong> User Agent:</strong>
+                          {' '}
+                          {navigator.userAgent.split(' ')[0]}
                         </div>
                         <div className="context-item">
-                          <strong > Viewport:</strong> {window.innerWidth}x{window.innerHeight}
+                          <strong> Viewport:</strong>
+                          {' '}
+                          {window.innerWidth}
+                          x
+                          {window.innerHeight}
                         </div>
                       </div>
                     </div>
@@ -548,7 +575,10 @@ Can you analyze this error and provide a solution? If you need to see specific f
                           {this.state.errorHistory.map((entry, index) => (
                             <div key={entry.eventId} className="history-item">
                               <div className="history-header">
-                                <span className="history-index">#{index + 1}</span>
+                                <span className="history-index">
+                                  #
+                                  {index + 1}
+                                </span>
                                 <span className="history-time">
                                   {new Date(entry.timestamp).toLocaleTimeString()}
                                 </span>
@@ -573,14 +603,14 @@ Can you analyze this error and provide a solution? If you need to see specific f
 
                 <div className="error-boundary__error-info">
                   <div className="error-boundary__error-section">
-                    <h3 > Error Message:</h3>
+                    <h3> Error Message:</h3>
                     <pre className="error-boundary__code">
                       {this.state.error?.message}
                     </pre>
                   </div>
 
                   <div className="error-boundary__error-section">
-                    <h3 > Stack Trace:</h3>
+                    <h3> Stack Trace:</h3>
                     <pre className="error-boundary__code">
                       {this.state.error?.stack}
                     </pre>
@@ -588,7 +618,7 @@ Can you analyze this error and provide a solution? If you need to see specific f
 
                   {this.state.errorInfo && (
                     <div className="error-boundary__error-section">
-                      <h3 > Component Stack:</h3>
+                      <h3> Component Stack:</h3>
                       <pre className="error-boundary__code">
                         {this.state.errorInfo.componentStack}
                       </pre>
@@ -596,14 +626,14 @@ Can you analyze this error and provide a solution? If you need to see specific f
                   )}
 
                   <div className="error-boundary__error-section">
-                    <h3 > Event ID:</h3>
+                    <h3> Event ID:</h3>
                     <code className="error-boundary__event-id">
                       {this.state.eventId}
                     </code>
                   </div>
 
                   <div className="error-boundary__error-section">
-                    <h3 > Full Error Report:</h3>
+                    <h3> Full Error Report:</h3>
                     <textarea
                       className="error-boundary__report-text"
                       value={this.generateErrorReport()}
@@ -625,14 +655,14 @@ Can you analyze this error and provide a solution? If you need to see specific f
             </div>
           </div>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
-export default ErrorBoundary;
+export default ErrorBoundary
 
 // Hook version for functional components (React 16.8+)
 export function useErrorHandler() {
@@ -641,25 +671,22 @@ export function useErrorHandler() {
     // errorTrackingService.captureException(error, { extra: errorInfo });
 
     // You could also trigger a state update to show an error message
-    throw error; // Re-throw to trigger error boundary
-  };
+    throw error // Re-throw to trigger error boundary
+  }
 }
 
 // Higher-order component version
-export function withErrorBoundary < P extends object>(
-  Component: React.ComponentType < P>,
-  errorBoundaryProps?: Omit < Props, 'children'>,
+export function withErrorBoundary<P extends object>(
+  Component: React.ComponentType <P>,
+  errorBoundaryProps?: Omit <Props, 'children'>,
 ) {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary {...errorBoundaryProps}>
       <Component {...props} />
     </ErrorBoundary>
-  );
+  )
 
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
 
-  return WrappedComponent;
+  return WrappedComponent
 }
-
-
-

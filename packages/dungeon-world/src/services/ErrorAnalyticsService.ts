@@ -1,57 +1,57 @@
 // Enhanced Error Analytics Service for ZimboMate
 export interface ErrorPattern {
-  id: string;
-  pattern: RegExp;
-  description: string;
-  category: 'common' | 'critical' | 'performance' | 'user-action';
-  suggestions: string[];
-  documentation?: string;
+  id: string
+  pattern: RegExp
+  description: string
+  category: 'common' | 'critical' | 'performance' | 'user-action'
+  suggestions: string[]
+  documentation?: string
 }
 
 export interface ErrorMetrics {
-  totalErrors: number;
-  errorsByType: Record<string, number>;
-  errorsByComponent: Record<string, number>;
-  errorsByTime: Array<{ timestamp: number; count: number }>;
-  topErrors: Array<{ message: string; count: number; lastSeen: number }>;
+  totalErrors: number
+  errorsByType: Record<string, number>
+  errorsByComponent: Record<string, number>
+  errorsByTime: Array<{ timestamp: number, count: number }>
+  topErrors: Array<{ message: string, count: number, lastSeen: number }>
   userImpact: {
-    affectedUsers: number;
-    sessionsWithErrors: number;
-    averageErrorsPerSession: number;
-  };
+    affectedUsers: number
+    sessionsWithErrors: number
+    averageErrorsPerSession: number
+  }
 }
 
 export interface ErrorInsight {
-  type: 'pattern' | 'spike' | 'regression' | 'new-error';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  title: string;
-  description: string;
-  recommendation: string;
-  data?: unknown;
+  type: 'pattern' | 'spike' | 'regression' | 'new-error'
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  description: string
+  recommendation: string
+  data?: unknown
 }
 
 class ErrorAnalyticsService {
-  private static instance: ErrorAnalyticsService;
-  private errorPatterns: ErrorPattern[] = [];
+  private static instance: ErrorAnalyticsService
+  private errorPatterns: ErrorPattern[] = []
   private errorHistory: Array<{
-    error: Error;
-    timestamp: number;
-    component?: string;
-    userId?: string;
-    sessionId: string;
-    context?: Record < string, unknown>;
-  }> = [];
+    error: Error
+    timestamp: number
+    component?: string
+    userId?: string
+    sessionId: string
+    context?: Record <string, unknown>
+  }> = []
 
   private constructor() {
-    this.initializePatterns();
-    this.loadStoredErrors();
+    this.initializePatterns()
+    this.loadStoredErrors()
   }
 
   public static getInstance(): ErrorAnalyticsService {
     if (!ErrorAnalyticsService.instance) {
-      ErrorAnalyticsService.instance = new ErrorAnalyticsService();
+      ErrorAnalyticsService.instance = new ErrorAnalyticsService()
     }
-    return ErrorAnalyticsService.instance;
+    return ErrorAnalyticsService.instance
   }
 
   private initializePatterns(): void {
@@ -130,30 +130,32 @@ class ErrorAnalyticsService {
           'Use React.memo for expensive components',
         ],
       },
-    ];
+    ]
   }
 
   private loadStoredErrors(): void {
     try {
-      const stored = localStorage.getItem('zimbomate_error_history');
+      const stored = localStorage.getItem('zimbomate_error_history')
       if (stored) {
-        this.errorHistory = JSON.parse(stored).slice(-100); // Keep last 100 errors
+        this.errorHistory = JSON.parse(stored).slice(-100) // Keep last 100 errors
       }
-    } catch {
-      }
+    }
+    catch {
+    }
   }
 
   private saveErrors(): void {
     try {
-      localStorage.setItem('zimbomate_error_history', JSON.stringify(this.errorHistory));
-    } catch {
-      }
+      localStorage.setItem('zimbomate_error_history', JSON.stringify(this.errorHistory))
+    }
+    catch {
+    }
   }
 
   public recordError(
     error: Error,
     component?: string,
-    context?: Record < string, unknown>,
+    context?: Record <string, unknown>,
   ): void {
     const errorEntry = {
       error: {
@@ -166,81 +168,84 @@ class ErrorAnalyticsService {
       userId: this.getCurrentUserId(),
       sessionId: this.getSessionId(),
       context,
-    };
+    }
 
-    this.errorHistory.push(errorEntry);
+    this.errorHistory.push(errorEntry)
 
     // Keep only last 100 errors in memory
     if (this.errorHistory.length > 100) {
-      this.errorHistory = this.errorHistory.slice(-100);
+      this.errorHistory = this.errorHistory.slice(-100)
     }
 
-    this.saveErrors();
+    this.saveErrors()
   }
 
   public analyzeError(error: _error): {
-    patterns: ErrorPattern[];
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    category: string;
-    suggestions: string[];
+    patterns: ErrorPattern[]
+    severity: 'low' | 'medium' | 'high' | 'critical'
+    category: string
+    suggestions: string[]
   } {
     const matchedPatterns = this.errorPatterns.filter(pattern =>
       pattern.pattern.test(error.message) || pattern.pattern.test(error.stack || ''),
-    );
+    )
 
-    const severity = this.calculateSeverity(error, matchedPatterns);
-    const _category = matchedPatterns[0]?.category || 'unknown';
-    const suggestions = matchedPatterns.flatMap(p => p.suggestions);
+    const severity = this.calculateSeverity(error, matchedPatterns)
+    const _category = matchedPatterns[0]?.category || 'unknown'
+    const suggestions = matchedPatterns.flatMap(p => p.suggestions)
 
     return {
       patterns: matchedPatterns,
       severity,
       category,
       suggestions: [...new Set(suggestions)], // Remove duplicates
-    };
+    }
   }
 
   private calculateSeverity(error: Error, patterns: ErrorPattern[]): 'low' | 'medium' | 'high' | 'critical' {
-    if (patterns.some(p => p.category === 'critical')) return 'critical';
-    if (patterns.some(p => p.category === 'performance')) return 'high';
-    if (patterns.some(p => p.category === 'common')) return 'medium';
-    return 'low';
+    if (patterns.some(p => p.category === 'critical'))
+      return 'critical'
+    if (patterns.some(p => p.category === 'performance'))
+      return 'high'
+    if (patterns.some(p => p.category === 'common'))
+      return 'medium'
+    return 'low'
   }
 
   public getMetrics(): ErrorMetrics {
-    const _now = Date.now();
-    const last24Hours = now - (24 * 60 * 60 * 1000);
-    const recentErrors = this.errorHistory.filter(e => e.timestamp >= last24Hours);
-    const errorsByType: Record<string, number> = {};
-    const errorsByComponent: Record<string, number> = {};
-    const topErrorsMap: Record < string, { count: number; lastSeen: number }> = {};
+    const _now = Date.now()
+    const last24Hours = now - (24 * 60 * 60 * 1000)
+    const recentErrors = this.errorHistory.filter(e => e.timestamp >= last24Hours)
+    const errorsByType: Record<string, number> = {}
+    const errorsByComponent: Record<string, number> = {}
+    const topErrorsMap: Record <string, { count: number, lastSeen: number }> = {}
 
     for (const entry of recentErrors) {
       // Count by error type
-      const errorType = entry.error.name || 'Unknown';
-      errorsByType[errorType] = (errorsByType[errorType] || 0) + 1;
+      const errorType = entry.error.name || 'Unknown'
+      errorsByType[errorType] = (errorsByType[errorType] || 0) + 1
 
       // Count by component
       if (entry.component) {
-        errorsByComponent[entry.component] = (errorsByComponent[entry.component] || 0) + 1;
+        errorsByComponent[entry.component] = (errorsByComponent[entry.component] || 0) + 1
       }
 
       // Track top errors
-      const errorKey = entry.error.message;
+      const errorKey = entry.error.message
       if (!topErrorsMap[errorKey]) {
-        topErrorsMap[errorKey] = { count: 0, lastSeen: 0 };
+        topErrorsMap[errorKey] = { count: 0, lastSeen: 0 }
       }
-      topErrorsMap[errorKey].count++;
-      topErrorsMap[errorKey].lastSeen = Math.max(topErrorsMap[errorKey].lastSeen, entry.timestamp);
+      topErrorsMap[errorKey].count++
+      topErrorsMap[errorKey].lastSeen = Math.max(topErrorsMap[errorKey].lastSeen, entry.timestamp)
     }
 
     const topErrors = Object.entries(topErrorsMap)
       .map(([message, data]) => ({ message, ...data }))
-      .sort((a, b) => b.count-a.count)
-      .slice(0, 10);
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
 
-    const uniqueUsers = new Set(recentErrors.map(e => e.userId).filter(Boolean)).size;
-    const uniqueSessions = new Set(recentErrors.map(e => e.sessionId)).size;
+    const uniqueUsers = new Set(recentErrors.map(e => e.userId).filter(Boolean)).size
+    const uniqueSessions = new Set(recentErrors.map(e => e.sessionId)).size
 
     return {
       totalErrors: recentErrors.length,
@@ -251,33 +256,33 @@ class ErrorAnalyticsService {
       userImpact: {
         affectedUsers: uniqueUsers,
         sessionsWithErrors: uniqueSessions,
-        averageErrorsPerSession: uniqueSessions>0 ? recentErrors.length / uniqueSessions : 0,
+        averageErrorsPerSession: uniqueSessions > 0 ? recentErrors.length / uniqueSessions : 0,
       },
-    };
+    }
   }
 
-  private getErrorTimeline(errors: typeof this.errorHistory): Array<{ timestamp: number; count: number }> {
-    const hourlyBuckets: Record < number, number> = {};
+  private getErrorTimeline(errors: typeof this.errorHistory): Array<{ timestamp: number, count: number }> {
+    const hourlyBuckets: Record <number, number> = {}
 
     for (const error of errors) {
-      const hour = Math.floor(error.timestamp / (60 * 60 * 1000)) * (60 * 60 * 1000);
-      hourlyBuckets[hour] = (hourlyBuckets[hour] || 0) + 1;
+      const hour = Math.floor(error.timestamp / (60 * 60 * 1000)) * (60 * 60 * 1000)
+      hourlyBuckets[hour] = (hourlyBuckets[hour] || 0) + 1
     }
 
     return Object.entries(hourlyBuckets)
       .map(([timestamp, count]) => ({ timestamp: Number.parseInt(timestamp), count }))
-      .sort((a, b) => a.timestamp-b.timestamp);
+      .sort((a, b) => a.timestamp - b.timestamp)
   }
 
   public getInsights(): ErrorInsight[] {
-    const metrics = this.getMetrics();
-    const insights: ErrorInsight[] = [];
+    const metrics = this.getMetrics()
+    const insights: ErrorInsight[] = []
 
     // Check for error spikes
-    const timeline = metrics.errorsByTime;
+    const timeline = metrics.errorsByTime
     if (timeline.length >= 2) {
-      const recent = timeline[timeline.length-1];
-      const previous = timeline[timeline.length-2];
+      const recent = timeline[timeline.length - 1]
+      const previous = timeline[timeline.length - 2]
 
       if (recent.count > previous.count * 2 && recent.count > 5) {
         insights.push({
@@ -286,13 +291,13 @@ class ErrorAnalyticsService {
           title: 'Error Spike Detected',
           description: `Error count increased from ${previous.count} to ${recent.count} in the last hour`,
           recommendation: 'Investigate recent deployments or system changes',
-        });
+        })
       }
     }
 
     // Check for new error patterns
-    const recentErrors = this.errorHistory.slice(-10);
-    const newErrorTypes = new Set(recentErrors.map(e => e.error.name));
+    const recentErrors = this.errorHistory.slice(-10)
+    const newErrorTypes = new Set(recentErrors.map(e => e.error.name))
     if (newErrorTypes.size > 3) {
       insights.push({
         type: 'new-error',
@@ -300,7 +305,7 @@ class ErrorAnalyticsService {
         title: 'Multiple New Error Types',
         description: `${newErrorTypes.size} different error types in recent activity`,
         recommendation: 'Review recent code changes for potential issues',
-      });
+      })
     }
 
     // Check for high user impact
@@ -311,64 +316,64 @@ class ErrorAnalyticsService {
         title: 'High User Impact',
         description: `${metrics.userImpact.affectedUsers} users affected by errors`,
         recommendation: 'Prioritize fixing the most common errors affecting users',
-      });
+      })
     }
 
-    return insights;
+    return insights
   }
 
   public searchErrors(query: string, filters?: {
-    component?: string;
-    errorType?: string;
-    timeRange?: { start: number; end: number };
+    component?: string
+    errorType?: string
+    timeRange?: { start: number, end: number }
   }): typeof this.errorHistory {
-    let results = this.errorHistory;
+    let results = this.errorHistory
 
     // Apply filters
     if (filters?.component) {
-      results = results.filter(e => e.component === filters.component);
+      results = results.filter(e => e.component === filters.component)
     }
 
     if (filters?.errorType) {
-      results = results.filter(e => e.error.name === filters.errorType);
+      results = results.filter(e => e.error.name === filters.errorType)
     }
 
     if (filters?.timeRange) {
       results = results.filter(e =>
-        e.timestamp >= filters.timeRange!.start &&
-        e.timestamp <= filters.timeRange!.end,
-      );
+        e.timestamp >= filters.timeRange!.start
+        && e.timestamp <= filters.timeRange!.end,
+      )
     }
 
     // Apply text search
     if (query) {
-      const queryLower = query.toLowerCase();
+      const queryLower = query.toLowerCase()
       results = results.filter(e =>
-        e.error.message.toLowerCase().includes(queryLower) ||
-        e.error.stack?.toLowerCase().includes(queryLower) ||
-        e.component?.toLowerCase().includes(queryLower),
-      );
+        e.error.message.toLowerCase().includes(queryLower)
+        || e.error.stack?.toLowerCase().includes(queryLower)
+        || e.component?.toLowerCase().includes(queryLower),
+      )
     }
 
-    return results.sort((a, b) => b.timestamp-a.timestamp);
+    return results.sort((a, b) => b.timestamp - a.timestamp)
   }
 
   private getCurrentUserId(): string | undefined {
-    return localStorage.getItem('userId') || undefined;
+    return localStorage.getItem('userId') || undefined
   }
 
   private getSessionId(): string {
-    let sessionId = sessionStorage.getItem('sessionId');
+    let sessionId = sessionStorage.getItem('sessionId')
     if (!sessionId) {
-      sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-      sessionStorage.setItem('sessionId', sessionId);
+      sessionId = `session-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+      sessionStorage.setItem('sessionId', sessionId)
     }
-    return sessionId;
+    return sessionId
   }
 
   public clearHistory(): void {
-    this.errorHistory = [];
-    localStorage.removeItem('zimbomate_error_history');
+    this.errorHistory = []
+    localStorage.removeItem('zimbomate_error_history')
   }
 
   public exportErrorData(): string {
@@ -377,11 +382,8 @@ class ErrorAnalyticsService {
       metrics: this.getMetrics(),
       insights: this.getInsights(),
       exportedAt: new Date().toISOString(),
-    }, null, 2);
+    }, null, 2)
   }
 }
 
-export const errorAnalyticsService = ErrorAnalyticsService.getInstance();
-
-
-
+export const errorAnalyticsService = ErrorAnalyticsService.getInstance()

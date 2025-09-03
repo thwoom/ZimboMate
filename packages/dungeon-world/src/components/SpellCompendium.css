@@ -1,11 +1,15 @@
 /**
  * Spell Compendium Component Styles
- * 
+ *
  * Modern, responsive styling for the enhanced spell compendium interface.
  */
 
 .spell-compendium {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;

@@ -203,7 +203,7 @@
 
 .requirements li::before,
 .benefits li::before {
-  content: "•";
+  content: '•';
   color: var(--rp-rose);
   position: absolute;
   left: 0;

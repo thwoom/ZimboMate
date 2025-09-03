@@ -1,35 +1,35 @@
-import './AuxiliaryDrawer.css';
+import React, { useEffect, useState } from 'react'
 
-import React, { useEffect,useState } from 'react';
+import { panelEventBus } from '../framework/PanelAPI'
 
-import { panelEventBus } from '../framework/PanelAPI';
+import './AuxiliaryDrawer.css'
 
 interface AuxiliaryDrawerProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 interface RollResult {
-  type: 'basic' | 'attribute';
-  total: number;
-  details?: string;
+  type: 'basic' | 'attribute'
+  total: number
+  details?: string
 }
 
-const AuxiliaryDrawer: React.FC < AuxiliaryDrawerProps> = ({ onClose }) => {
-  const [lastRoll, setLastRoll] = useState < RollResult | null>(null);
+const AuxiliaryDrawer: React.FC <AuxiliaryDrawerProps> = ({ onClose }) => {
+  const [lastRoll, setLastRoll] = useState <RollResult | null>(null)
 
   useEffect(() => {
     // Listen for attribute rolls from panels
     const unsubscribe = panelEventBus.on('attribute-rolled', (event) => {
-      const { attribute, roll1, roll2, modifier, total } = event.data;
+      const { attribute, roll1, roll2, modifier, total } = event.data
       setLastRoll({
         type: 'attribute',
         total,
         details: `${attribute}: ${roll1}+${roll2}${modifier >= 0 ? '+' : ''}${modifier} = ${total}`,
-      });
-    });
+      })
+    })
 
-    return unsubscribe;
-  }, []);
+    return unsubscribe
+  }, [])
   return (
     <div className="auxiliary-drawer">
       <header className="auxiliary-drawer__header">
@@ -45,19 +45,19 @@ const AuxiliaryDrawer: React.FC < AuxiliaryDrawerProps> = ({ onClose }) => {
 
       <div className="auxiliary-drawer__content">
         <section className="auxiliary-drawer__section">
-          <h4 > Dice Roller</h4>
+          <h4> Dice Roller</h4>
           <div className="dice-roller-placeholder">
             <button
               className="dice-button"
               onClick={() => {
-                const roll1 = Math.floor(Math.random() * 6) + 1;
-                const roll2 = Math.floor(Math.random() * 6) + 1;
-                const total = roll1 + roll2;
+                const roll1 = Math.floor(Math.random() * 6) + 1
+                const roll2 = Math.floor(Math.random() * 6) + 1
+                const total = roll1 + roll2
                 setLastRoll({
                   type: 'basic',
                   total,
                   details: `${roll1}+${roll2} = ${total}`,
-                });
+                })
 
                 // Emit dice roll event for panels to listen to
                 panelEventBus.emit('aux-drawer', 'dice-rolled', {
@@ -65,7 +65,7 @@ const AuxiliaryDrawer: React.FC < AuxiliaryDrawerProps> = ({ onClose }) => {
                   roll2,
                   total,
                   timestamp: Date.now(),
-                });
+                })
               }}
             >
               Roll 2d6
@@ -87,7 +87,7 @@ const AuxiliaryDrawer: React.FC < AuxiliaryDrawerProps> = ({ onClose }) => {
         </section>
 
         <section className="auxiliary-drawer__section">
-          <h4 > Quick Notes</h4>
+          <h4> Quick Notes</h4>
           <textarea
             className="quick-notes-textarea"
             placeholder="Take quick notes during the session..."
@@ -96,19 +96,16 @@ const AuxiliaryDrawer: React.FC < AuxiliaryDrawerProps> = ({ onClose }) => {
         </section>
 
         <section className="auxiliary-drawer__section">
-          <h4 > Active Counters</h4>
+          <h4> Active Counters</h4>
           <div className="counters-placeholder">
-            <p > Hold: 0</p>
-            <p > Forward: 0</p>
-            <p > Ongoing: 0</p>
+            <p> Hold: 0</p>
+            <p> Forward: 0</p>
+            <p> Ongoing: 0</p>
           </div>
         </section>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AuxiliaryDrawer;
-
-
-
+export default AuxiliaryDrawer

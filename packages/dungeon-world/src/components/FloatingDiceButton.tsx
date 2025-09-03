@@ -1,91 +1,94 @@
-import './FloatingDiceButton.css';
+import type { DiceRoll } from '../services/DiceRollingService'
 
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import { diceRollingService } from '../services/DiceRollingService'
 
-import { DiceRoll, diceRollingService } from '../services/DiceRollingService';
-import { rollAnalyticsService } from '../services/RollAnalyticsService';
-import { useGameStore } from '../store/GameStore';
-import QuickRollInterface from './QuickRollInterface';
+import { rollAnalyticsService } from '../services/RollAnalyticsService'
+import { useGameStore } from '../store/GameStore'
+import QuickRollInterface from './QuickRollInterface'
+import './FloatingDiceButton.css'
 
 interface FloatingDiceButtonProps {
-  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
-  className?: string;
+  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'
+  className?: string
 }
 
-export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
+export const FloatingDiceButton: React.FC <FloatingDiceButtonProps> = ({
   position = 'bottom-right',
   className = '',
 }) => {
-  const { state: gameState, updateCharacter } = useGameStore();
-  const [showQuickRoll, setShowQuickRoll] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [recentRolls, setRecentRolls] = useState < DiceRoll[]>([]);
-  const [showRollHistory, setShowRollHistory] = useState(false);
+  const { state: gameState, updateCharacter } = useGameStore()
+  const [showQuickRoll, setShowQuickRoll] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [recentRolls, setRecentRolls] = useState <DiceRoll[]>([])
+  const [showRollHistory, setShowRollHistory] = useState(false)
 
   // Get active character
-  const character = gameState.activeCharacterId ?
-    gameState.characters[gameState.activeCharacterId] : null;
+  const character = gameState.activeCharacterId
+    ? gameState.characters[gameState.activeCharacterId]
+    : null
 
   // Update recent rolls periodically
   useEffect(() => {
     const updateRolls = () => {
-      setRecentRolls(diceRollingService.getRecentRolls(3));
-    };
+      setRecentRolls(diceRollingService.getRecentRolls(3))
+    }
 
-    updateRolls();
-    const interval = setInterval(updateRolls, 2000);
-    return () => clearInterval(interval);
-  }, []);
+    updateRolls()
+    const interval = setInterval(updateRolls, 2000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Global keyboard shortcut
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // Ctrl / Cmd + D to open quick roll
       if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-        e.preventDefault();
-        setShowQuickRoll(true);
+        e.preventDefault()
+        setShowQuickRoll(true)
       }
-    };
+    }
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [])
 
   const handleRoll = (roll: DiceRoll) => {
     // Animate the button
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 600);
+    setIsAnimating(true)
+    setTimeout(() => setIsAnimating(false), 600)
 
     // Record analytics
-    const insights = rollAnalyticsService.recordRoll(roll);
+    const insights = rollAnalyticsService.recordRoll(roll)
 
     // Handle XP gain
     if (diceRollingService.grantsXP(roll) && character && roll.result === 'failure') {
-      const newXP = (character.xp || 0) + 1;
-      updateCharacter(character.id, { xp: newXP });
+      const newXP = (character.xp || 0) + 1
+      updateCharacter(character.id, { xp: newXP })
     }
 
     // Show insights as notifications (could be enhanced with a toast system)
     for (const insight of insights) {
-      }
+    }
 
     // Update recent rolls
-    setRecentRolls(diceRollingService.getRecentRolls(3));
-  };
+    setRecentRolls(diceRollingService.getRecentRolls(3))
+  }
 
   const getPositionClass = () => {
     switch (position) {
-      case 'bottom-left': return 'floating-dice-bottom-left';
-      case 'top-right': return 'floating-dice-top-right';
-      case 'top-left': return 'floating-dice-top-left';
-      default: return 'floating-dice-bottom-right';
+      case 'bottom-left': return 'floating-dice-bottom-left'
+      case 'top-right': return 'floating-dice-top-right'
+      case 'top-left': return 'floating-dice-top-left'
+      default: return 'floating-dice-bottom-right'
     }
-  };
+  }
 
   const getLastRollIndicator = () => {
-    if (recentRolls.length === 0) return null;
+    if (recentRolls.length === 0)
+      return null
 
-    const lastRoll = recentRolls[0];
+    const lastRoll = recentRolls[0]
     return (
       <div className={`last-roll - indicator ${lastRoll.result}`}>
         <span className="roll-total">{lastRoll.total}</span>
@@ -95,8 +98,8 @@ export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
           {lastRoll.result === 'failure' && '✗'}
         </span>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <>
@@ -120,7 +123,7 @@ export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
             onMouseLeave={() => setShowRollHistory(false)}
           >
             <div className="roll-history-header">
-              <span > Recent Rolls</span>
+              <span> Recent Rolls</span>
             </div>
             <div className="roll-history-items">
               {recentRolls.map((item, index) => (
@@ -158,8 +161,8 @@ export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
               if (character) {
                 const _roll = diceRollingService.rollStat('STR', character, {
                   description: 'Quick STR roll',
-                });
-                handleRoll(roll);
+                })
+                handleRoll(roll)
               }
             }}
             disabled={!character}
@@ -173,8 +176,8 @@ export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
               if (character) {
                 const _roll = diceRollingService.rollStat('DEX', character, {
                   description: 'Quick DEX roll',
-                });
-                handleRoll(roll);
+                })
+                handleRoll(roll)
               }
             }}
             disabled={!character}
@@ -188,8 +191,8 @@ export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
               if (character) {
                 const _roll = diceRollingService.rollStat('WIS', character, {
                   description: 'Quick WIS roll',
-                });
-                handleRoll(roll);
+                })
+                handleRoll(roll)
               }
             }}
             disabled={!character}
@@ -203,7 +206,10 @@ export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
         {character && (
           <div className="character-indicator">
             <span className="character-name">{character.name}</span>
-            <span className="character-xp">XP: {character.xp || 0}</span>
+            <span className="character-xp">
+              XP:
+              {character.xp || 0}
+            </span>
           </div>
         )}
       </div>
@@ -215,10 +221,7 @@ export const FloatingDiceButton: React.FC < FloatingDiceButtonProps> = ({
         onRoll={handleRoll}
       />
     </>
-  );
-};
+  )
+}
 
-export default FloatingDiceButton;
-
-
-
+export default FloatingDiceButton

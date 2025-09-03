@@ -1,44 +1,46 @@
-import './SpecialMovesPanel.css';
+import type { PanelProps } from '../../framework/Panel'
 
-import React, {useState } from 'react';
+import React, { useState } from 'react'
 
-import EndOfSessionModal from '../../components/EndOfSessionModal';
-import LevelUpModal from '../../components/LevelUpModal';
-import { createPanel, PanelProps } from '../../framework/Panel';
-import { createPanelAPI } from '../../framework/PanelAPI';
-import { SpecialMovesService } from '../../services/SpecialMovesService';
-import { useGameStore } from '../../store/GameStore';
+import EndOfSessionModal from '../../components/EndOfSessionModal'
+import LevelUpModal from '../../components/LevelUpModal'
+import { createPanel } from '../../framework/Panel'
+import { createPanelAPI } from '../../framework/PanelAPI'
+import { SpecialMovesService } from '../../services/SpecialMovesService'
+import { useGameStore } from '../../store/GameStore'
+import './SpecialMovesPanel.css'
 
 interface SpecialMovesPanelState {
-  showLevelUpModal: boolean;
-  showEndOfSessionModal: boolean;
-  showMakeCampModal: boolean;
-  showLastBreathModal: boolean;
+  showLevelUpModal: boolean
+  showEndOfSessionModal: boolean
+  showMakeCampModal: boolean
+  showLastBreathModal: boolean
 }
 
-const SpecialMovesPanel: React.FC < PanelProps> = ({ id }) => {
-  const api = createPanelAPI(id);
-  const { state: gameState, updateCharacter } = useGameStore();
-  const [panelState, setPanelState] = useState < SpecialMovesPanelState>({
+const SpecialMovesPanel: React.FC <PanelProps> = ({ id }) => {
+  const api = createPanelAPI(id)
+  const { state: gameState, updateCharacter } = useGameStore()
+  const [panelState, setPanelState] = useState <SpecialMovesPanelState>({
     showLevelUpModal: false,
     showEndOfSessionModal: false,
     showMakeCampModal: false,
     showLastBreathModal: false,
-  });
+  })
 
   // Get active character
-  const character = gameState.activeCharacterId ?
-    gameState.characters[gameState.activeCharacterId] : null;
+  const character = gameState.activeCharacterId
+    ? gameState.characters[gameState.activeCharacterId]
+    : null
 
   // Special moves state
-  const canLevelUp = character ? SpecialMovesService.canLevelUp(character) : false;
-  const shouldTriggerLastBreath = character ? SpecialMovesService.shouldTriggerLastBreath(character) : false;
-  const xpProgress = character ? SpecialMovesService.getXPProgress(character) : 0;
-  const nextLevelXP = character ? SpecialMovesService.getNextLevelXP(character) : 0;
+  const canLevelUp = character ? SpecialMovesService.canLevelUp(character) : false
+  const shouldTriggerLastBreath = character ? SpecialMovesService.shouldTriggerLastBreath(character) : false
+  const xpProgress = character ? SpecialMovesService.getXPProgress(character) : 0
+  const nextLevelXP = character ? SpecialMovesService.getNextLevelXP(character) : 0
 
-  const updateState = (updates: Partial < SpecialMovesPanelState>) => {
-    setPanelState(prev => ({ ...prev, ...updates }));
-  };
+  const updateState = (updates: Partial <SpecialMovesPanelState>) => {
+    setPanelState(prev => ({ ...prev, ...updates }))
+  }
 
   const handleLevelUp = (result: unknown, advancementChoice?: string) => {
     if (character && result.success) {
@@ -46,7 +48,7 @@ const SpecialMovesPanel: React.FC < PanelProps> = ({ id }) => {
       const updates: unknown = {
         level: result.newLevel,
         xp: result.newXP,
-      };
+      }
 
       // Add advancement choice to character's advancement history
       if (advancementChoice) {
@@ -56,47 +58,50 @@ const SpecialMovesPanel: React.FC < PanelProps> = ({ id }) => {
           choice: advancementChoice,
           description: advancementChoice,
           timestamp: new Date(),
-        };
-        updates.advancements = [...(character.advancements || []), newAdvancement];
+        }
+        updates.advancements = [...(character.advancements || []), newAdvancement]
       }
 
-      (updateCharacter as string)(character.id, updates);
+      (updateCharacter as string)(character.id, updates)
     }
-    updateState({ showLevelUpModal: false });
-  };
+    updateState({ showLevelUpModal: false })
+  }
 
   const handleEndOfSession = (result: any) => {
     if (character) {
-      (updateCharacter as string)(character.id, { xp: result.totalXP });
+      (updateCharacter as string)(character.id, { xp: result.totalXP })
     }
-    updateState({ showEndOfSessionModal: false });
-  };
+    updateState({ showEndOfSessionModal: false })
+  }
 
   const handleMakeCamp = () => {
-    if (!character) return;
+    if (!character)
+      return
 
-    const result = SpecialMovesService.makeCamp(character, true);
+    const result = SpecialMovesService.makeCamp(character, true)
 
     if (result.success) {
       // Update HP
       const newHP = Math.min(character.hp.current + result.hpRestored, character.hp.max);
       (updateCharacter as string)(character.id, {
         hp: { ...character.hp, current: newHP },
-      });
+      })
 
       // Note: Ration consumption would need inventory integration
-      alert(result.message);
-    } else {
-      alert(result.message);
+      alert(result.message)
     }
-  };
+    else {
+      alert(result.message)
+    }
+  }
 
   const handleLastBreath = () => {
-    if (!character) return;
+    if (!character)
+      return
 
-    const result = SpecialMovesService.lastBreath(character);
-    alert(`${result.message}\n\nRoll: ${result.roll} (${result.tier})\nConsequence: ${result.consequence}`);
-  };
+    const result = SpecialMovesService.lastBreath(character)
+    alert(`${result.message}\n\nRoll: ${result.roll} (${result.tier})\nConsequence: ${result.consequence}`)
+  }
 
   if (!character) {
     return (
@@ -105,10 +110,10 @@ const SpecialMovesPanel: React.FC < PanelProps> = ({ id }) => {
           <h2>🎲 Special Moves</h2>
         </div>
         <div className="no-character">
-          <p > No character selected. Create or select a character to access special moves.</p>
+          <p> No character selected. Create or select a character to access special moves.</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -117,15 +122,23 @@ const SpecialMovesPanel: React.FC < PanelProps> = ({ id }) => {
         <h2>🎲 Special Moves</h2>
         <div className="character-info">
           <span className="character-name">{character.name}</span>
-          <span className="character-class">({character.class})</span>
+          <span className="character-class">
+            (
+            {character.class}
+            )
+          </span>
         </div>
       </div>
 
       {/* XP Progress */}
       <div className="xp-progress-section">
         <div className="xp-progress-header">
-          <h3 > Experience Progress</h3>
-          <span className="xp-current">{character.xp} XP</span>
+          <h3> Experience Progress</h3>
+          <span className="xp-current">
+            {character.xp}
+            {' '}
+            XP
+          </span>
         </div>
         <div className="xp-progress-bar">
           <div
@@ -134,8 +147,19 @@ const SpecialMovesPanel: React.FC < PanelProps> = ({ id }) => {
           />
         </div>
         <div className="xp-progress-details">
-          <span > Level {character.level} → {character.level + 1}</span>
-          <span>{nextLevelXP-character.xp} XP needed</span>
+          <span>
+            {' '}
+            Level
+            {character.level}
+            {' '}
+            →
+            {character.level + 1}
+          </span>
+          <span>
+            {nextLevelXP - character.xp}
+            {' '}
+            XP needed
+          </span>
         </div>
       </div>
 
@@ -222,12 +246,15 @@ const SpecialMovesPanel: React.FC < PanelProps> = ({ id }) => {
 
       {/* Character Status */}
       <div className="character-status">
-        <h3 > Character Status</h3>
+        <h3> Character Status</h3>
         <div className="status-grid">
           <div className="status-item">
             <span className="status-label">HP:</span>
             <span className="status-value">
-              {character.hp.current} / {character.hp.max}
+              {character.hp.current}
+              {' '}
+              /
+              {character.hp.max}
             </span>
           </div>
           <div className="status-item">
@@ -260,8 +287,8 @@ const SpecialMovesPanel: React.FC < PanelProps> = ({ id }) => {
         onCancel={() => updateState({ showEndOfSessionModal: false })}
       />
     </div>
-  );
-};
+  )
+}
 
 export default createPanel(
   {
@@ -272,7 +299,4 @@ export default createPanel(
     priority: 5,
   },
   SpecialMovesPanel,
-);
-
-
-
+)

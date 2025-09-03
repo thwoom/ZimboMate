@@ -1,82 +1,86 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react'
+import React, { Component } from 'react'
 
-import { panelRecoveryManager } from '../utils/panelRecovery';
+import { panelRecoveryManager } from '../utils/panelRecovery'
 
 interface Props {
-  children: ReactNode;
-  panelName: string;
-  panelId: string;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  children: ReactNode
+  panelName: string
+  panelId: string
+  fallback?: ReactNode
+  onError?: (error: Error, errorInfo: ErrorInfo) => void
 }
 
 interface State {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: ErrorInfo;
+  hasError: boolean
+  error?: Error
+  errorInfo?: ErrorInfo
 }
 
-export class PanelErrorBoundary extends Component < Props, State> {
+export class PanelErrorBoundary extends Component <Props, State> {
   constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
+    super(props)
+    this.state = { hasError: false }
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Call the onError callback if provided
     if (this.props.onError) {
-      this.props.onError(error, errorInfo);
+      this.props.onError(error, errorInfo)
     }
 
     // Update state with error info
-    this.setState({ error, errorInfo });
+    this.setState({ error, errorInfo })
 
     // Log to recovery manager
     try {
-      panelRecoveryManager.captureException?.(error, `panel-${this.props.panelId}`);
-    } catch {
-      }
+      panelRecoveryManager.captureException?.(error, `panel-${this.props.panelId}`)
+    }
+    catch {
+    }
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
-  };
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined })
+  }
 
-  handleRecover = async() => {
+  handleRecover = async () => {
     try {
       await panelRecoveryManager.performRecovery({
         clearAllStates: false,
         resetRegistry: false,
         clearLocalStorage: false,
         enableDebugMode: true,
-      });
-      this.handleRetry();
-    } catch {
-      }
-  };
+      })
+      this.handleRetry()
+    }
+    catch {
+    }
+  }
 
-  handleFullRecovery = async() => {
+  handleFullRecovery = async () => {
     try {
       await panelRecoveryManager.performRecovery({
         clearAllStates: true,
         resetRegistry: true,
         clearLocalStorage: true,
         enableDebugMode: true,
-      });
-      panelRecoveryManager.forceReload();
-    } catch {
-      }
-  };
+      })
+      panelRecoveryManager.forceReload()
+    }
+    catch {
+    }
+  }
 
   render() {
     if (this.state.hasError) {
       // Custom fallback UI
       if (this.props.fallback) {
-        return this.props.fallback;
+        return this.props.fallback
       }
 
       // Default error UI
@@ -84,15 +88,19 @@ export class PanelErrorBoundary extends Component < Props, State> {
         <div className="panel-error-boundary">
           <div className="panel-error-boundary__header">
             <div className="panel-error-boundary__icon">⚠️</div>
-            <h3 > Panel Error: {this.props.panelName}</h3>
+            <h3>
+              {' '}
+              Panel Error:
+              {this.props.panelName}
+            </h3>
           </div>
 
           <div className="panel-error-boundary__content">
-            <p > Something went wrong while loading this panel.</p>
+            <p> Something went wrong while loading this panel.</p>
 
             {this.state.error && (
               <details className="panel-error-boundary__details">
-                <summary > Error Details</summary>
+                <summary> Error Details</summary>
                 <pre className="panel-error-boundary__error">
                   {this.state.error.message}
                 </pre>
@@ -128,10 +136,10 @@ export class PanelErrorBoundary extends Component < Props, State> {
             </button>
           </div>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
@@ -222,14 +230,11 @@ const styles = `
 .panel-error-boundary__button--full-recovery:hover {
   background: #d32f2f;
 }
-`;
+`
 
 // Inject styles
 if (typeof document !== 'undefined') {
-  const styleElement = document.createElement('style');
-  styleElement.textContent = styles;
-  document.head.appendChild(styleElement);
+  const styleElement = document.createElement('style')
+  styleElement.textContent = styles
+  document.head.appendChild(styleElement)
 }
-
-
-

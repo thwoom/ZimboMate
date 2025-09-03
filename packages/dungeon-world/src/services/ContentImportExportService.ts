@@ -1,49 +1,49 @@
-import { ContentType } from './ContentSchema';
-import { contentValidationService } from './ContentValidationService';
+import type { ContentType } from './ContentSchema'
+import { contentValidationService } from './ContentValidationService'
 
 export interface ContentExport {
-  version: string;
-  exportedAt: string;
-  contentType: ContentType;
-  content: unknown[];
+  version: string
+  exportedAt: string
+  contentType: ContentType
+  content: unknown[]
   metadata?: {
-    name?: string;
-    description?: string;
-    author?: string;
-    tags?: string[];
-  };
+    name?: string
+    description?: string
+    author?: string
+    tags?: string[]
+  }
 }
 
 export interface ContentImportResult {
-  success: boolean;
-  imported: number;
-  errors: string[];
-  warnings: string[];
-  content?: unknown[];
+  success: boolean
+  imported: number
+  errors: string[]
+  warnings: string[]
+  content?: unknown[]
 }
 
 export interface ContentTemplate {
-  id: string;
-  name: string;
-  description: string;
-  contentType: ContentType;
-  content: unknown;
-  tags?: string[];
+  id: string
+  name: string
+  description: string
+  contentType: ContentType
+  content: unknown
+  tags?: string[]
 }
 
 export class ContentImportExportService {
-  private static instance: ContentImportExportService;
-  private templates: ContentTemplate[] = [];
+  private static instance: ContentImportExportService
+  private templates: ContentTemplate[] = []
 
   static getInstance(): ContentImportExportService {
     if (!ContentImportExportService.instance) {
-      ContentImportExportService.instance = new ContentImportExportService();
+      ContentImportExportService.instance = new ContentImportExportService()
     }
-    return ContentImportExportService.instance;
+    return ContentImportExportService.instance
   }
 
   constructor() {
-    this.initializeTemplates();
+    this.initializeTemplates()
   }
 
   /**
@@ -56,9 +56,9 @@ export class ContentImportExportService {
       contentType,
       content,
       metadata,
-    };
+    }
 
-    return JSON.stringify(exportData, null, 2);
+    return JSON.stringify(exportData, null, 2)
   }
 
   /**
@@ -70,56 +70,57 @@ export class ContentImportExportService {
       imported: 0,
       errors: [],
       warnings: [],
-    };
+    }
 
     try {
-      const importData: ContentExport = JSON.parse(jsonData);
+      const importData: ContentExport = JSON.parse(jsonData)
 
       // Validate export format
       if (!importData.version || !importData.contentType || !Array.isArray(importData.content)) {
-        result.errors.push('Invalid export format: missing required fields');
-        return result;
+        result.errors.push('Invalid export format: missing required fields')
+        return result
       }
 
       // Check version compatibility
       if (importData.version !== '1.0') {
-        result.warnings.push(`Export version ${importData.version} may not be fully compatible`);
+        result.warnings.push(`Export version ${importData.version} may not be fully compatible`)
       }
 
-      const importedContent: unknown[] = [];
+      const importedContent: unknown[] = []
 
       // Validate each content item
       for (const item of importData.content) {
         try {
-          const validation = contentValidationService.validateContent(item, importData.contentType);
+          const validation = contentValidationService.validateContent(item, importData.contentType)
 
           if (!validation.isValid) {
-            result.errors.push(`Validation failed for ${item.name || item.id}: ${validation.errors.map(e => e.message).join(', ')}`);
-            continue;
+            result.errors.push(`Validation failed for ${item.name || item.id}: ${validation.errors.map(e => e.message).join(', ')}`)
+            continue
           }
 
           // Check for duplicates
-          const duplicateCheck = contentValidationService.checkForDuplicates(item, importData.contentType, existingContent);
+          const duplicateCheck = contentValidationService.checkForDuplicates(item, importData.contentType, existingContent)
           if (!duplicateCheck.isValid) {
-            result.warnings.push(`Duplicate content found: ${item.name || item.id}`);
-            continue;
+            result.warnings.push(`Duplicate content found: ${item.name || item.id}`)
+            continue
           }
 
-          importedContent.push(item);
-          result.imported++;
-        } catch {
-          result.errors.push(`Failed to process ${item.name || item.id}: ${error}`);
+          importedContent.push(item)
+          result.imported++
+        }
+        catch {
+          result.errors.push(`Failed to process ${item.name || item.id}: ${error}`)
         }
       }
 
-      result.success = result.imported > 0;
-      result.content = importedContent;
-
-    } catch {
-      result.errors.push(`Failed to parse JSON: ${error}`);
+      result.success = result.imported > 0
+      result.content = importedContent
+    }
+    catch {
+      result.errors.push(`Failed to parse JSON: ${error}`)
     }
 
-    return result;
+    return result
   }
 
   /**
@@ -127,39 +128,39 @@ export class ContentImportExportService {
    */
   getTemplates(contentType?: ContentType): ContentTemplate[] {
     if (contentType) {
-      return this.templates.filter(t => t.contentType === contentType);
+      return this.templates.filter(t => t.contentType === contentType)
     }
-    return this.templates;
+    return this.templates
   }
 
   /**
    * Get a specific template
    */
   getTemplate(templateId: string): ContentTemplate | undefined {
-    return this.templates.find(t => t.id === templateId);
+    return this.templates.find(t => t.id === templateId)
   }
 
   /**
    * Create content from template
    */
-  createFromTemplate(templateId: string, customizations: Record < string, unknown> = {}): unknown {
-    const template = this.getTemplate(templateId);
+  createFromTemplate(templateId: string, customizations: Record <string, unknown> = {}): unknown {
+    const template = this.getTemplate(templateId)
     if (!template) {
-      throw new Error(`Template not found: ${templateId}`);
+      throw new Error(`Template not found: ${templateId}`)
     }
 
     // Deep clone the template content
-    const content = JSON.parse(JSON.stringify(template.content));
+    const content = JSON.parse(JSON.stringify(template.content))
 
     // Apply customizations
-    Object.assign({}, customizations);
+    Object.assign({}, customizations)
 
     // Generate unique ID if not provided
     if (!content.id) {
-      content.id = `${template.contentType}-${Date.now()}`;
+      content.id = `${template.contentType}-${Date.now()}`
     }
 
-    return content;
+    return content
   }
 
   /**
@@ -294,12 +295,9 @@ export class ContentImportExportService {
         },
         tags: ['spell'],
       },
-    ];
+    ]
   }
 }
 
 // Export singleton instance
-export const contentImportExportService = ContentImportExportService.getInstance();
-
-
-
+export const contentImportExportService = ContentImportExportService.getInstance()

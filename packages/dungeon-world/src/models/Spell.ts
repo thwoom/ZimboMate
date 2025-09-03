@@ -2,61 +2,61 @@
  * Spell management data models for Dungeon World
  */
 
-import { CharacterClass } from './Character';
+import type { CharacterClass } from './Character'
 
 // Spell levels in Dungeon World (official: 0 = cantrips / rotes, then 1,3,5,7,9)
-export type SpellLevel = 0 | 1 | 3 | 5 | 7 | 9;
+export type SpellLevel = 0 | 1 | 3 | 5 | 7 | 9
 
 // Spell categories
-export type SpellCategory =
-  | 'wizard'     // Wizard spells
-  | 'cleric'     // Cleric spells
-  | 'divine'     // Divine spells
-  | 'arcane'     // Arcane spells
-  | 'nature'     // Druid / nature spells
-  | 'custom';    // Custom spells
+export type SpellCategory
+  = | 'wizard' // Wizard spells
+    | 'cleric' // Cleric spells
+    | 'divine' // Divine spells
+    | 'arcane' // Arcane spells
+    | 'nature' // Druid / nature spells
+    | 'custom' // Custom spells
 
 // Main spell interface
 export interface Spell {
-  id: string;
-  name: string;
-  level: SpellLevel;
-  category: SpellCategory;
-  description: string;
-  effect: string;
-  ongoing?: boolean;
-  tags: string[];
-  source?: string; // Book / page reference
+  id: string
+  name: string
+  level: SpellLevel
+  category: SpellCategory
+  description: string
+  effect: string
+  ongoing?: boolean
+  tags: string[]
+  source?: string // Book / page reference
 }
 
 // Spell preparation for spellcasters
 export interface SpellPreparation {
-  characterId: string;
-  characterClass: CharacterClass;
+  characterId: string
+  characterClass: CharacterClass
 
   // Prepared spells
-  preparedSpells: string[]; // Spell IDs
-  maxPrepared: number; // Level + 1 for Wizard, Wisdom modifier + 1 for Cleric
+  preparedSpells: string[] // Spell IDs
+  maxPrepared: number // Level + 1 for Wizard, Wisdom modifier + 1 for Cleric
 
   // Wizard-specific
-  spellbook?: string[]; // Known spells (Wizards choose from these)
+  spellbook?: string[] // Known spells (Wizards choose from these)
 
   // Cleric-specific
-  deity?: string;
-  domain?: string;
+  deity?: string
+  domain?: string
 
   // Spell slots (if using variant rules)
   spellSlots?: {
-    level: SpellLevel;
-    used: number;
-    max: number;
-  }[];
+    level: SpellLevel
+    used: number
+    max: number
+  }[]
 
-  lastPrepared: Date;
+  lastPrepared: Date
 }
 
 // Common wizard spells
-export const WIZARD_SPELLS: Partial < Spell>[] = [
+export const WIZARD_SPELLS: Partial <Spell>[] = [
   // Cantrips (Level 0)
   {
     name: 'Light',
@@ -151,10 +151,10 @@ export const WIZARD_SPELLS: Partial < Spell>[] = [
     ongoing: true,
     tags: ['enchantment', 'ongoing'],
   },
-];
+]
 
 // Common cleric spells
-export const CLERIC_SPELLS: Partial < Spell>[] = [
+export const CLERIC_SPELLS: Partial <Spell>[] = [
   // Level 1 Spells
   {
     name: 'Bless',
@@ -201,7 +201,7 @@ export const CLERIC_SPELLS: Partial < Spell>[] = [
     effect: 'The GM will shed light on the current situation.',
     tags: ['divination'],
   },
-];
+]
 
 // Utility functions
 
@@ -216,9 +216,9 @@ export function calculateMaxSpellLevels(
   switch (characterClass) {
     case 'Wizard':
     case 'Cleric':
-      return level + 1; // Official DW: total spell levels ≤ character level + 1
+      return level + 1 // Official DW: total spell levels ≤ character level + 1
     default:
-      return 0; // Non-spellcasters
+      return 0 // Non-spellcasters
   }
 }
 
@@ -228,8 +228,8 @@ export function calculateMaxSpellLevels(
 export function calculateUsedSpellLevels(preparedSpells: Spell[]): number {
   return preparedSpells.reduce((total, spell) => {
     // Cantrips / rotes (level 0) don't count against the limit
-    return total + (spell.level === 0 ? 0 : spell.level);
-  }, 0);
+    return total + (spell.level === 0 ? 0 : spell.level)
+  }, 0)
 }
 
 /**
@@ -242,35 +242,37 @@ export function canPrepareSpell(
 ): boolean {
   // Check level requirement
   if (characterLevel < spell.level) {
-    return false;
+    return false
   }
 
   // If wizard, check if spell is in spellbook
   if (spellbook && !spellbook.includes(spell.id)) {
-    return false;
+    return false
   }
 
-  return true;
+  return true
 }
 
 /**
  * Get available spell levels for a character (official DW rules)
  */
 export function getAvailableSpellLevels(characterLevel: number): SpellLevel[] {
-  const levels: SpellLevel[] = [];
+  const levels: SpellLevel[] = []
 
   // Cantrips / rotes available to all spellcasters
-  levels.push(0);
+  levels.push(0)
 
   // Spell levels based on character level
-  if (characterLevel >= 1) levels.push(1);
-  if (characterLevel >= 3) levels.push(3);
-  if (characterLevel >= 5) levels.push(5);
-  if (characterLevel >= 7) levels.push(7);
-  if (characterLevel >= 9) levels.push(9);
+  if (characterLevel >= 1)
+    levels.push(1)
+  if (characterLevel >= 3)
+    levels.push(3)
+  if (characterLevel >= 5)
+    levels.push(5)
+  if (characterLevel >= 7)
+    levels.push(7)
+  if (characterLevel >= 9)
+    levels.push(9)
 
-  return levels;
+  return levels
 }
-
-
-

@@ -1,13 +1,13 @@
-export type SpellClass = 'Wizard' | 'Cleric' | 'Immolator';
+export type SpellClass = 'Wizard' | 'Cleric' | 'Immolator'
 
 export interface Spell {
-  id: string; // unique identifier
-  name: string;
-  level: number; // 0: rotes / cantrips for wizard / cleric
-  description: string;
+  id: string // unique identifier
+  name: string
+  level: number // 0: rotes / cantrips for wizard / cleric
+  description: string
 }
 
-export const SPELLS: Record < SpellClass, Spell[]> = {
+export const SPELLS: Record <SpellClass, Spell[]> = {
   Wizard: [
     { id: 'wiz_cantrip_light', name: 'Light', level: 0, description: 'An item you touch glows with arcane light.' },
     { id: 'wiz_cantrip_prestidigitation', name: 'Prestidigitation', level: 0, description: 'Perform minor tricks of true magic.' },
@@ -29,12 +29,8 @@ export const SPELLS: Record < SpellClass, Spell[]> = {
     { id: 'imm_scorch', name: 'Scorch', level: 1, description: 'Wreathe your hand in fire to burn your foe.' },
     { id: 'imm_heat_metal', name: 'Heat Metal', level: 1, description: 'Objects grow painfully hot at your command.' },
   ],
-};
-
-export function getSpellsForClass(cls: SpellClass): Spell[] {
-  return SPELLS[cls] || [];
 }
 
-
-
-
+export function getSpellsForClass(cls: SpellClass): Spell[] {
+  return SPELLS[cls] || []
+}

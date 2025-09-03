@@ -159,7 +159,7 @@
   cursor: pointer;
 }
 
-.advantage-controls input[type="checkbox"] {
+.advantage-controls input[type='checkbox'] {
   width: 16px;
   height: 16px;
   accent-color: var(--color-primary);
@@ -332,15 +332,15 @@
   .roll-controls {
     grid-template-columns: 1fr;
   }
-  
+
   .advanced-options {
     grid-template-columns: 1fr;
   }
-  
+
   .roll-actions {
     flex-direction: column;
   }
-  
+
   .quick-dice-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -348,9 +348,17 @@
 
 /* Animation for roll results */
 @keyframes rollAnimation {
-  0% { transform: scale(0.8); opacity: 0; }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .roll-result {
@@ -358,15 +366,15 @@
 }
 
 /* Dice type specific colors */
-.quick-dice-btn[data-type="move"] {
+.quick-dice-btn[data-type='move'] {
   border-left: 3px solid var(--color-primary);
 }
 
-.quick-dice-btn[data-type="damage"] {
+.quick-dice-btn[data-type='damage'] {
   border-left: 3px solid var(--color-danger);
 }
 
-.quick-dice-btn[data-type="target"] {
+.quick-dice-btn[data-type='target'] {
   border-left: 3px solid var(--color-info);
 }
 

@@ -1,138 +1,139 @@
-import { ContentType,validateContent, ValidationContext, ValidationResult } from './ContentSchema';
-import { moveIndexService } from './MoveIndexService';
+import type { ContentType, ValidationContext, ValidationResult } from './ContentSchema'
+import { validateContent } from './ContentSchema'
+import { moveIndexService } from './MoveIndexService'
 
 export interface ContentValidationService {
-  validateMove(move: unknown, context?: ValidationContext): ValidationResult;
-  validateItem(item: unknown, context?: ValidationContext): ValidationResult;
-  validateSpell(spell: unknown, context?: ValidationContext): ValidationResult;
-  validateContent(content: unknown, contentType: ContentType, context?: ValidationContext): ValidationResult;
-  checkForDuplicates(content: unknown, contentType: ContentType, existingContent: unknown[]): ValidationResult;
-  validateReferences(content: unknown, contentType: ContentType, existingContent: unknown[]): ValidationResult;
+  validateMove: (move: unknown, context?: ValidationContext) => ValidationResult
+  validateItem: (item: unknown, context?: ValidationContext) => ValidationResult
+  validateSpell: (spell: unknown, context?: ValidationContext) => ValidationResult
+  validateContent: (content: unknown, contentType: ContentType, context?: ValidationContext) => ValidationResult
+  checkForDuplicates: (content: unknown, contentType: ContentType, existingContent: unknown[]) => ValidationResult
+  validateReferences: (content: unknown, contentType: ContentType, existingContent: unknown[]) => ValidationResult
 }
 
 export class ContentValidationServiceImpl implements ContentValidationService {
-  private moveIndexService: unknown;
+  private moveIndexService: unknown
 
   constructor(moveIndexService: any) {
-    this.moveIndexService = moveIndexService;
+    this.moveIndexService = moveIndexService
   }
 
   validateMove(move: unknown, context?: ValidationContext): ValidationResult {
-    return this.validateContent(move, 'move', context);
+    return this.validateContent(move, 'move', context)
   }
 
   validateItem(item: unknown, context?: ValidationContext): ValidationResult {
-    return this.validateContent(item, 'item', context);
+    return this.validateContent(item, 'item', context)
   }
 
   validateSpell(spell: unknown, context?: ValidationContext): ValidationResult {
-    return this.validateContent(spell, 'spell', context);
+    return this.validateContent(spell, 'spell', context)
   }
 
   validateContent(content: unknown, contentType: ContentType, context?: ValidationContext): ValidationResult {
     // Start with schema validation
-    const schemaResult = validateContent(content, contentType, context);
+    const schemaResult = validateContent(content, contentType, context)
 
     // Add business rule validation
-    const businessResult = this.validateBusinessRules(content, contentType, context);
+    const businessResult = this.validateBusinessRules(content, contentType, context)
 
     return {
       isValid: schemaResult.isValid && businessResult.isValid,
       errors: [...schemaResult.errors, ...businessResult.errors],
       warnings: [...schemaResult.warnings, ...businessResult.warnings],
-    };
+    }
   }
 
   checkForDuplicates(content: unknown, contentType: ContentType, existingContent: unknown[]): ValidationResult {
-    const errors: unknown[] = [];
-    const warnings: unknown[] = [];
+    const errors: unknown[] = []
+    const warnings: unknown[] = []
 
     // Check for duplicate IDs
-    const duplicateId = existingContent.find(item => item.id === content.id);
+    const duplicateId = existingContent.find(item => item.id === content.id)
     if (duplicateId) {
       errors.push({
         field: 'id',
         message: `A ${contentType} with ID "${content.id}" already exists`,
         code: 'DUPLICATE_ID',
-      });
+      })
     }
 
     // Check for duplicate names (case-insensitive)
     const duplicateName = existingContent.find(item =>
       item.name.toLowerCase() === content.name.toLowerCase(),
-    );
+    )
     if (duplicateName) {
       warnings.push({
         field: 'name',
         message: `A ${contentType} with name "${content.name}" already exists`,
         code: 'DUPLICATE_NAME',
-      });
+      })
     }
 
     return {
       isValid: errors.length === 0,
       errors,
       warnings,
-    };
+    }
   }
 
   validateReferences(content: unknown, contentType: ContentType, existingContent: unknown[]): ValidationResult {
-    const errors: unknown[] = [];
-    const warnings: unknown[] = [];
+    const errors: unknown[] = []
+    const warnings: unknown[] = []
 
     // Check for references to other content that might not exist
-    if (contentType === 'move' && // Check if move references other moves
-      content.requiresMove) {
-        const referencedMove = existingContent.find(item => item.id === content.requiresMove);
-        if (!referencedMove) {
-          warnings.push({
-            field: 'requiresMove',
-            message: `Referenced move "${content.requiresMove}" not found in existing content`,
-            code: 'MISSING_REFERENCE',
-          });
-        }
+    if (contentType === 'move' // Check if move references other moves
+      && content.requiresMove) {
+      const referencedMove = existingContent.find(item => item.id === content.requiresMove)
+      if (!referencedMove) {
+        warnings.push({
+          field: 'requiresMove',
+          message: `Referenced move "${content.requiresMove}" not found in existing content`,
+          code: 'MISSING_REFERENCE',
+        })
       }
+    }
 
-    if (contentType === 'item' && // Check if item references spells or moves
-      content.customMove) {
-        const referencedMove = existingContent.find(item => item.id === content.customMove);
-        if (!referencedMove) {
-          warnings.push({
-            field: 'customMove',
-            message: `Referenced move "${content.customMove}" not found in existing content`,
-            code: 'MISSING_REFERENCE',
-          });
-        }
+    if (contentType === 'item' // Check if item references spells or moves
+      && content.customMove) {
+      const referencedMove = existingContent.find(item => item.id === content.customMove)
+      if (!referencedMove) {
+        warnings.push({
+          field: 'customMove',
+          message: `Referenced move "${content.customMove}" not found in existing content`,
+          code: 'MISSING_REFERENCE',
+        })
       }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  private validateBusinessRules(content: unknown, contentType: ContentType, context?: ValidationContext): ValidationResult {
-    const errors: unknown[] = [];
-    const warnings: unknown[] = [];
-
-    switch (contentType) {
-      case 'move':
-        this.validateMoveBusinessRules(content, errors, warnings, context);
-        break;
-      case 'item':
-        this.validateItemBusinessRules(content, errors, warnings, context);
-        break;
-      case 'spell':
-        this.validateSpellBusinessRules(content, errors, warnings, context);
-        break;
     }
 
     return {
       isValid: errors.length === 0,
       errors,
       warnings,
-    };
+    }
+  }
+
+  private validateBusinessRules(content: unknown, contentType: ContentType, context?: ValidationContext): ValidationResult {
+    const errors: unknown[] = []
+    const warnings: unknown[] = []
+
+    switch (contentType) {
+      case 'move':
+        this.validateMoveBusinessRules(content, errors, warnings, context)
+        break
+      case 'item':
+        this.validateItemBusinessRules(content, errors, warnings, context)
+        break
+      case 'spell':
+        this.validateSpellBusinessRules(content, errors, warnings, context)
+        break
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    }
   }
 
   private validateMoveBusinessRules(move: unknown, errors: unknown[], warnings: unknown[], context?: ValidationContext): void {
@@ -142,7 +143,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'class',
         message: 'Advanced moves must be associated with a character class',
         code: 'ADVANCED_MOVE_REQUIRES_CLASS',
-      });
+      })
     }
 
     // Moves with roll stats should have triggers
@@ -151,7 +152,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'trigger',
         message: 'Moves with a roll stat should have a trigger description',
         code: 'ROLL_STAT_WITHOUT_TRIGGER',
-      });
+      })
     }
 
     // Level requirements should be reasonable
@@ -160,7 +161,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'level',
         message: 'Very high level requirements may limit usability',
         code: 'HIGH_LEVEL_REQUIREMENT',
-      });
+      })
     }
 
     // Check for balanced move descriptions
@@ -169,7 +170,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'description',
         message: 'Move description seems very brief-consider adding more detail',
         code: 'BRIEF_DESCRIPTION',
-      });
+      })
     }
   }
 
@@ -180,7 +181,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'tags',
         message: 'Magic items should have the "magical" tag',
         code: 'MAGIC_ITEM_MISSING_TAG',
-      });
+      })
     }
 
     // Weapons should have damage information
@@ -189,7 +190,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'damage',
         message: 'Weapons should specify damage',
         code: 'WEAPON_MISSING_DAMAGE',
-      });
+      })
     }
 
     // Armor should have armor value
@@ -198,7 +199,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'armorValue',
         message: 'Armor should specify armor value',
         code: 'ARMOR_MISSING_VALUE',
-      });
+      })
     }
 
     // Value should be reasonable
@@ -207,7 +208,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'value',
         message: 'Very high values may be unbalanced',
         code: 'HIGH_VALUE',
-      });
+      })
     }
   }
 
@@ -218,7 +219,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'level',
         message: 'Cantrips should be level 0',
         code: 'CANTRIP_LEVEL_MISMATCH',
-      });
+      })
     }
 
     // High-level spells should have appropriate components
@@ -227,7 +228,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'components',
         message: 'High-level spells typically require material components',
         code: 'HIGH_LEVEL_NO_MATERIALS',
-      });
+      })
     }
 
     // Check for balanced spell descriptions
@@ -236,7 +237,7 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'description',
         message: 'Spell description seems very brief-consider adding more detail',
         code: 'BRIEF_DESCRIPTION',
-      });
+      })
     }
 
     // Duration should be reasonable
@@ -245,37 +246,37 @@ export class ContentValidationServiceImpl implements ContentValidationService {
         field: 'duration',
         message: 'Permanent effects should be carefully balanced',
         code: 'PERMANENT_EFFECT',
-      });
+      })
     }
   }
 
   // Utility method to validate a complete content set
   validateContentSet(contentSet: { moves?: unknown[], items?: unknown[], spells?: unknown[] }): ValidationResult {
-    const allErrors: unknown[] = [];
-    const allWarnings: unknown[] = [];
+    const allErrors: unknown[] = []
+    const allWarnings: unknown[] = []
 
     // Validate each content type
     if (contentSet.moves) {
       for (const move of contentSet.moves) {
-        const result = this.validateMove(move);
-        allErrors.push(...result.errors);
-        allWarnings.push(...result.warnings);
+        const result = this.validateMove(move)
+        allErrors.push(...result.errors)
+        allWarnings.push(...result.warnings)
       }
     }
 
     if (contentSet.items) {
       for (const item of contentSet.items) {
-        const result = this.validateItem(item);
-        allErrors.push(...result.errors);
-        allWarnings.push(...result.warnings);
+        const result = this.validateItem(item)
+        allErrors.push(...result.errors)
+        allWarnings.push(...result.warnings)
       }
     }
 
     if (contentSet.spells) {
       for (const spell of contentSet.spells) {
-        const result = this.validateSpell(spell);
-        allErrors.push(...result.errors);
-        allWarnings.push(...result.warnings);
+        const result = this.validateSpell(spell)
+        allErrors.push(...result.errors)
+        allWarnings.push(...result.warnings)
       }
     }
 
@@ -284,46 +285,43 @@ export class ContentValidationServiceImpl implements ContentValidationService {
       ...(contentSet.moves || []),
       ...(contentSet.items || []),
       ...(contentSet.spells || []),
-    ];
+    ]
 
     for (const content of allContent) {
-      const contentType = this.determineContentType(content);
-      const referenceResult = this.validateReferences(content, contentType, allContent);
-      allErrors.push(...referenceResult.errors);
-      allWarnings.push(...referenceResult.warnings);
+      const contentType = this.determineContentType(content)
+      const referenceResult = this.validateReferences(content, contentType, allContent)
+      allErrors.push(...referenceResult.errors)
+      allWarnings.push(...referenceResult.warnings)
     }
 
     return {
       isValid: allErrors.length === 0,
       errors: allErrors,
       warnings: allWarnings,
-    };
+    }
   }
 
   private determineContentType(content: any): ContentType {
     if (content.category && ['basic', 'advanced', 'special', 'racial', 'custom'].includes(content.category)) {
-      return 'move';
+      return 'move'
     }
     if (content.type && ['weapon', 'armor', 'gear', 'magic', 'consumable'].includes(content.type)) {
-      return 'item';
+      return 'item'
     }
     if (content.school || content.castingTime || content.range || content.duration) {
-      return 'spell';
+      return 'spell'
     }
 
     // Default based on most common fields
     if (content.rollStat || content.trigger) {
-      return 'move';
+      return 'move'
     }
     if (content.weight !== undefined || content.value !== undefined) {
-      return 'item';
+      return 'item'
     }
-    return 'spell';
+    return 'spell'
   }
 }
 
 // Export a singleton instance
-export const contentValidationService = new ContentValidationServiceImpl(moveIndexService);
-
-
-
+export const contentValidationService = new ContentValidationServiceImpl(moveIndexService)

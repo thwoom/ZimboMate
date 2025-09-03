@@ -46,7 +46,9 @@
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 0 rgba(var(--color-primary-rgb), 0.4);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.15),
+    0 0 0 0 rgba(var(--color-primary-rgb), 0.4);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
@@ -55,7 +57,9 @@
 
 .main-tool-button:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 0 0 8px rgba(var(--color-primary-rgb), 0.1);
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, 0.2),
+    0 0 0 8px rgba(var(--color-primary-rgb), 0.1);
 }
 
 .main-tool-button:active {
@@ -78,11 +82,21 @@
 }
 
 @keyframes rollAnimation {
-  0% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(90deg) scale(1.1); }
-  50% { transform: rotate(180deg) scale(1.2); }
-  75% { transform: rotate(270deg) scale(1.1); }
-  100% { transform: rotate(360deg) scale(1); }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(90deg) scale(1.1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+  75% {
+    transform: rotate(270deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 
 .last-roll-badge {
@@ -103,13 +117,29 @@
   animation: badgePulse 2s ease-in-out;
 }
 
-.last-roll-badge.success { border-color: var(--color-success); color: var(--color-success); }
-.last-roll-badge.partial { border-color: var(--color-warning); color: var(--color-warning); }
-.last-roll-badge.failure { border-color: var(--color-danger); color: var(--color-danger); }
+.last-roll-badge.success {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+.last-roll-badge.partial {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+.last-roll-badge.failure {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
 
 @keyframes badgePulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
 }
 
 .contextual-hint {
@@ -128,8 +158,15 @@
 }
 
 @keyframes hintPulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.2); opacity: 1; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }
 
 /* Expanded Modes-Panel */
@@ -381,9 +418,15 @@
   text-align: center;
 }
 
-.counter-hold { color: #4299e1; }
-.counter-forward { color: #48bb78; }
-.counter-ongoing { color: #ed8936; }
+.counter-hold {
+  color: #4299e1;
+}
+.counter-forward {
+  color: #48bb78;
+}
+.counter-ongoing {
+  color: #ed8936;
+}
 
 /* Quick Note Input */
 .quick-note-input {
@@ -548,7 +591,7 @@
   cursor: pointer;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   margin: 0;
 }
 
@@ -664,9 +707,15 @@
   margin-bottom: 0.5rem;
 }
 
-.roll-item.success { border-left: 4px solid var(--color-success); }
-.roll-item.partial { border-left: 4px solid var(--color-warning); }
-.roll-item.failure { border-left: 4px solid var(--color-danger); }
+.roll-item.success {
+  border-left: 4px solid var(--color-success);
+}
+.roll-item.partial {
+  border-left: 4px solid var(--color-warning);
+}
+.roll-item.failure {
+  border-left: 4px solid var(--color-danger);
+}
 
 .roll-header {
   display: flex;
@@ -715,9 +764,18 @@
   font-weight: bold;
 }
 
-.result-badge.success { background: var(--color-success); color: white; }
-.result-badge.partial { background: var(--color-warning); color: white; }
-.result-badge.failure { background: var(--color-danger); color: white; }
+.result-badge.success {
+  background: var(--color-success);
+  color: white;
+}
+.result-badge.partial {
+  background: var(--color-warning);
+  color: white;
+}
+.result-badge.failure {
+  background: var(--color-danger);
+  color: white;
+}
 
 .recent-notes h4 {
   margin: 0 0 0.75rem 0;

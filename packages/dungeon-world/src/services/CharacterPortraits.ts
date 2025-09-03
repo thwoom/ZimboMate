@@ -1,14 +1,14 @@
-import { CharacterClass, Race } from '../models/Character';
+import type { CharacterClass, Race } from '../models/Character'
 
 export interface Portrait {
-  id: string;
-  name: string;
-  emoji: string; // Using emoji as placeholder for actual portraits
-  color: string; // Background color
-  tags: string[];
-  suggestedClasses?: CharacterClass[];
-  suggestedRaces?: Race[];
-  customUrl?: string; // For custom uploaded portraits
+  id: string
+  name: string
+  emoji: string // Using emoji as placeholder for actual portraits
+  color: string // Background color
+  tags: string[]
+  suggestedClasses?: CharacterClass[]
+  suggestedRaces?: Race[]
+  customUrl?: string // For custom uploaded portraits
 }
 
 // Default fantasy character portraits using emojis as placeholders
@@ -147,72 +147,72 @@ export const DEFAULT_PORTRAITS: Portrait[] = [
     color: '#483D8B',
     tags: ['scholar', 'wise', 'learned'],
   },
-];
+]
 
 class CharacterPortraitService {
-  private static instance: CharacterPortraitService;
-  private readonly STORAGE_KEY = 'zimbomate_custom_portraits';
-  private customPortraits: Portrait[] = [];
+  private static instance: CharacterPortraitService
+  private readonly STORAGE_KEY = 'zimbomate_custom_portraits'
+  private customPortraits: Portrait[] = []
 
   private constructor() {
-    this.loadCustomPortraits();
+    this.loadCustomPortraits()
   }
 
   static getInstance(): CharacterPortraitService {
     if (!CharacterPortraitService.instance) {
-      CharacterPortraitService.instance = new CharacterPortraitService();
+      CharacterPortraitService.instance = new CharacterPortraitService()
     }
-    return CharacterPortraitService.instance;
+    return CharacterPortraitService.instance
   }
 
   // Get all portraits
   getAllPortraits(): Portrait[] {
-    return [...DEFAULT_PORTRAITS, ...this.customPortraits];
+    return [...DEFAULT_PORTRAITS, ...this.customPortraits]
   }
 
   // Get portraits filtered by class / race
   getSuggestedPortraits(characterClass?: CharacterClass, race?: Race): Portrait[] {
-    return this.getAllPortraits().filter(portrait => {
+    return this.getAllPortraits().filter((portrait) => {
       if (characterClass && portrait.suggestedClasses && !portrait.suggestedClasses.includes(characterClass)) {
-        return false;
+        return false
       }
       if (race && portrait.suggestedRaces && !portrait.suggestedRaces.includes(race)) {
-        return false;
+        return false
       }
-      return true;
-    });
+      return true
+    })
   }
 
   // Add custom portrait from file
-  async addCustomPortrait(file: File, name: string, tags: string[] = []): Promise < Portrait> {
+  async addCustomPortrait(file: File, name: string, tags: string[] = []): Promise <Portrait> {
     return new Promise((resolve, reject) => {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        reject(new Error('Please select a valid image file (PNG, JPG, GIF, etc.)'));
-        return;
+        reject(new Error('Please select a valid image file (PNG, JPG, GIF, etc.)'))
+        return
       }
 
       // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024 // 5MB
       if (file.size > maxSize) {
-        reject(new Error('Image file is too large. Please select a file smaller than 5MB.'));
-        return;
+        reject(new Error('Image file is too large. Please select a file smaller than 5MB.'))
+        return
       }
 
       // Validate name
       if (!name || name.trim().length === 0) {
-        reject(new Error('Please provide a name for the portrait.'));
-        return;
+        reject(new Error('Please provide a name for the portrait.'))
+        return
       }
 
-      const reader = new FileReader();
+      const reader = new FileReader()
 
       reader.onload = (e) => {
         try {
-          const result = e.target?.result as string;
+          const result = e.target?.result as string
           if (!result) {
-            reject(new Error('Failed to process image file.'));
-            return;
+            reject(new Error('Failed to process image file.'))
+            return
           }
 
           const portrait: Portrait = {
@@ -222,54 +222,54 @@ class CharacterPortraitService {
             color: '#696969',
             tags: ['custom', ...tags],
             customUrl: result, // Store base64 data URL
-          };
+          }
 
-          this.customPortraits.push(portrait);
-          this.saveCustomPortraits();
-          resolve(portrait);
-        } catch {
-          reject(new Error('Failed to create portrait from image file.'));
+          this.customPortraits.push(portrait)
+          this.saveCustomPortraits()
+          resolve(portrait)
         }
-      };
+        catch {
+          reject(new Error('Failed to create portrait from image file.'))
+        }
+      }
 
       reader.onerror = () => {
-        reject(new Error('Failed to read image file. Please try a different file.'));
-      };
+        reject(new Error('Failed to read image file. Please try a different file.'))
+      }
 
-      reader.readAsDataURL(file);
-    });
+      reader.readAsDataURL(file)
+    })
   }
 
   // Remove custom portrait
   removeCustomPortrait(id: string): boolean {
-    const index = this.customPortraits.findIndex(p => p.id === id);
+    const index = this.customPortraits.findIndex(p => p.id === id)
     if (index !== -1) {
-      this.customPortraits.splice(index, 1);
-      this.saveCustomPortraits();
-      return true;
+      this.customPortraits.splice(index, 1)
+      this.saveCustomPortraits()
+      return true
     }
-    return false;
+    return false
   }
 
   private loadCustomPortraits(): void {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
+      const stored = localStorage.getItem(this.STORAGE_KEY)
       if (stored) {
-        this.customPortraits = JSON.parse(stored);
+        this.customPortraits = JSON.parse(stored)
       }
-    } catch {
-      }
+    }
+    catch {
+    }
   }
 
   private saveCustomPortraits(): void {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.customPortraits));
-    } catch {
-      }
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.customPortraits))
+    }
+    catch {
+    }
   }
 }
 
-export const portraitService = CharacterPortraitService.getInstance();
-
-
-
+export const portraitService = CharacterPortraitService.getInstance()

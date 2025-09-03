@@ -4,37 +4,37 @@
  * A comprehensive interface for browsing, searching, filtering, and comparing * moves from the Dungeon World compendium.
  */
 
-import './MoveCompendium.css';
-
-import React, { useMemo,useState } from 'react';
-
-import {
+import type {
   CompendiumMove,
-} from '../data/moveCompendium';
-import { moveCompendiumService } from '../services/MoveCompendiumService';
-import { useGameStore } from '../stores/gameStore';
+} from '../data/moveCompendium'
+
+import React, { useMemo, useState } from 'react'
+
+import { moveCompendiumService } from '../services/MoveCompendiumService'
+import { useGameStore } from '../stores/gameStore'
+import './MoveCompendium.css'
 
 interface MoveCompendiumState {
-  searchQuery: string;
-  selectedCategory: string;
-  selectedType: string;
-  selectedTriggerType: string;
-  selectedClass: string;
-  selectedLevel: string;
-  selectedRollStat: string;
-  selectedTags: string[];
-  viewMode: 'list' | 'grid' | 'detailed';
-  sortBy: 'name' | 'level' | 'category' | 'type';
-  sortOrder: 'asc' | 'desc';
-  selectedMoves: string[];
-  showComparison: boolean;
-  showFilters: boolean;
+  searchQuery: string
+  selectedCategory: string
+  selectedType: string
+  selectedTriggerType: string
+  selectedClass: string
+  selectedLevel: string
+  selectedRollStat: string
+  selectedTags: string[]
+  viewMode: 'list' | 'grid' | 'detailed'
+  sortBy: 'name' | 'level' | 'category' | 'type'
+  sortOrder: 'asc' | 'desc'
+  selectedMoves: string[]
+  showComparison: boolean
+  showFilters: boolean
 }
 
 const MoveCompendium: React.FC = () => {
-  const { characterData } = useGameStore();
+  const { characterData } = useGameStore()
 
-  const [state, setState] = useState < MoveCompendiumState>({
+  const [state, setState] = useState <MoveCompendiumState>({
     searchQuery: '',
     selectedCategory: 'all',
     selectedType: 'all',
@@ -49,7 +49,7 @@ const MoveCompendium: React.FC = () => {
     selectedMoves: [],
     showComparison: false,
     showFilters: true,
-  });
+  })
 
   // Get available moves based on character data
   const availableMoves = useMemo(() => {
@@ -57,119 +57,120 @@ const MoveCompendium: React.FC = () => {
       return moveCompendiumService.getAvailableMoves(
         characterData.class,
         characterData.level,
-      );
+      )
     }
-    return moveCompendiumService.getAllMoves();
-  }, [characterData]);
+    return moveCompendiumService.getAllMoves()
+  }, [characterData])
 
   // Filter and sort moves
   const filteredMoves = useMemo(() => {
-    let moves = availableMoves;
+    let moves = availableMoves
 
     // Apply search query
     if (state.searchQuery) {
       moves = moves.filter(move =>
-        move.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-        move.description.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-        move.trigger.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-        (move.tags && move.tags.some(tag =>
+        move.name.toLowerCase().includes(state.searchQuery.toLowerCase())
+        || move.description.toLowerCase().includes(state.searchQuery.toLowerCase())
+        || move.trigger.toLowerCase().includes(state.searchQuery.toLowerCase())
+        || (move.tags && move.tags.some(tag =>
           tag.toLowerCase().includes(state.searchQuery.toLowerCase()),
         )),
-      );
+      )
     }
 
     // Apply category filter
     if (state.selectedCategory !== 'all') {
-      moves = moves.filter(move => move.category === state.selectedCategory);
+      moves = moves.filter(move => move.category === state.selectedCategory)
     }
 
     // Apply type filter
     if (state.selectedType !== 'all') {
-      moves = moves.filter(move => move.type === state.selectedType);
+      moves = moves.filter(move => move.type === state.selectedType)
     }
 
     // Apply trigger type filter
     if (state.selectedTriggerType !== 'all') {
-      moves = moves.filter(move => move.triggerType === state.selectedTriggerType);
+      moves = moves.filter(move => move.triggerType === state.selectedTriggerType)
     }
 
     // Apply class filter
     if (state.selectedClass !== 'all') {
       moves = moves.filter(move =>
-        move.requiresClass === state.selectedClass ||
-        move.category === 'basic',
-      );
+        move.requiresClass === state.selectedClass
+        || move.category === 'basic',
+      )
     }
 
     // Apply level filter
     if (state.selectedLevel !== 'all') {
-      const level = Number.parseInt(state.selectedLevel);
-      moves = moves.filter(move => !move.level || move.level <= level);
+      const level = Number.parseInt(state.selectedLevel)
+      moves = moves.filter(move => !move.level || move.level <= level)
     }
 
     // Apply roll stat filter
     if (state.selectedRollStat !== 'all') {
-      moves = moves.filter(move => move.rollStat === state.selectedRollStat);
+      moves = moves.filter(move => move.rollStat === state.selectedRollStat)
     }
 
     // Apply tags filter
     if (state.selectedTags.length > 0) {
       moves = moves.filter(move =>
         move.tags && state.selectedTags.some(tag => move.tags!.includes(tag)),
-      );
+      )
     }
 
     // Sort moves
     moves.sort((a, b) => {
-      let aValue: unknown, bValue: unknown;
+      let aValue: unknown, bValue: unknown
 
       switch (state.sortBy) {
         case 'name':
-          aValue = a.name;
-          bValue = b.name;
-          break;
+          aValue = a.name
+          bValue = b.name
+          break
         case 'level':
-          aValue = a.level || 0;
-          bValue = b.level || 0;
-          break;
+          aValue = a.level || 0
+          bValue = b.level || 0
+          break
         case 'category':
-          aValue = a.category;
-          bValue = b.category;
-          break;
+          aValue = a.category
+          bValue = b.category
+          break
         case 'type':
-          aValue = a.type;
-          bValue = b.type;
-          break;
+          aValue = a.type
+          bValue = b.type
+          break
         default:
-          aValue = a.name;
-          bValue = b.name;
+          aValue = a.name
+          bValue = b.name
       }
 
       if (state.sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue>bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
       }
-    });
+      else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
 
-    return moves;
-  }, [availableMoves, state]);
+    return moves
+  }, [availableMoves, state])
 
   // Get all available tags
   const allTags = useMemo(() => {
-    const tags = new Set < string>();
+    const tags = new Set <string>()
     for (const move of availableMoves) {
       if (move.tags) {
-        for (const tag of move.tags) tags.add(tag);
+        for (const tag of move.tags) tags.add(tag)
       }
     }
-    return [...tags].sort();
-  }, [availableMoves]);
+    return [...tags].sort()
+  }, [availableMoves])
 
   // Update state helper
-  const updateState = (updates: Partial < MoveCompendiumState>) => {
-    setState(prev => ({ ...prev, ...updates }));
-  };
+  const updateState = (updates: Partial <MoveCompendiumState>) => {
+    setState(prev => ({ ...prev, ...updates }))
+  }
 
   // Toggle move selection
   const toggleMoveSelection = (moveId: string) => {
@@ -178,34 +179,36 @@ const MoveCompendium: React.FC = () => {
       selectedMoves: prev.selectedMoves.includes(moveId)
         ? prev.selectedMoves.filter(id => id !== moveId)
         : [...prev.selectedMoves, moveId],
-    }));
-  };
+    }))
+  }
 
   // Clear all selections
   const clearSelections = () => {
-    updateState({ selectedMoves: [] });
-  };
+    updateState({ selectedMoves: [] })
+  }
 
   // Get comparison data
   const comparisonData = useMemo(() => {
-    if (state.selectedMoves.length !== 2) return null;
+    if (state.selectedMoves.length !== 2)
+      return null
     return moveCompendiumService.compareMoves(
       state.selectedMoves[0],
       state.selectedMoves[1],
-    );
-  }, [state.selectedMoves]);
+    )
+  }, [state.selectedMoves])
 
   // Render move card
   const renderMoveCard = (move: CompendiumMove) => {
-    const isSelected = state.selectedMoves.includes(move.id);
-    const isAvailable = characterData ?
-      moveCompendiumService.validateMovePrerequisites(
+    const isSelected = state.selectedMoves.includes(move.id)
+    const isAvailable = characterData
+      ? moveCompendiumService.validateMovePrerequisites(
         move.id,
         characterData.class,
         characterData.level,
         characterData.moves || [],
         characterData.attributes,
-      ).canTake : true;
+      ).canTake
+      : true
 
     return (
       <div
@@ -223,7 +226,10 @@ const MoveCompendium: React.FC = () => {
               {move.type}
             </span>
             {move.level && (
-              <span className="badge level">Level {move.level}</span>
+              <span className="badge level">
+                Level
+                {move.level}
+              </span>
             )}
             {move.requiresClass && (
               <span className="badge class">{move.requiresClass}</span>
@@ -233,17 +239,40 @@ const MoveCompendium: React.FC = () => {
 
         <div className="move-content">
           <p className="move-description">{move.description}</p>
-          <p className="move-trigger"><strong > Trigger:</strong> {move.trigger}</p>
+          <p className="move-trigger">
+            <strong> Trigger:</strong>
+            {' '}
+            {move.trigger}
+          </p>
 
           {move.rollStat && (
-            <p className="move-roll">Roll: {move.rollStat}</p>
+            <p className="move-roll">
+              Roll:
+              {move.rollStat}
+            </p>
           )}
 
           {move.onSuccess && (
             <div className="move-results">
-              <p><strong > 10+:</strong> {move.onSuccess}</p>
-              {move.onPartial && <p><strong > 7-9:</strong> {move.onPartial}</p>}
-              {move.onFailure && <p><strong > 6-:</strong> {move.onFailure}</p>}
+              <p>
+                <strong> 10+:</strong>
+                {' '}
+                {move.onSuccess}
+              </p>
+              {move.onPartial && (
+                <p>
+                  <strong> 7-9:</strong>
+                  {' '}
+                  {move.onPartial}
+                </p>
+              )}
+              {move.onFailure && (
+                <p>
+                  <strong> 6-:</strong>
+                  {' '}
+                  {move.onFailure}
+                </p>
+              )}
             </div>
           )}
 
@@ -256,26 +285,30 @@ const MoveCompendium: React.FC = () => {
           )}
 
           {move.source && (
-            <p className="move-source">Source: {move.source}</p>
+            <p className="move-source">
+              Source:
+              {move.source}
+            </p>
           )}
         </div>
 
         {!isAvailable && (
           <div className="move-unavailable">
-            <p > Not available for your character</p>
+            <p> Not available for your character</p>
           </div>
         )}
       </div>
-    );
-  };
+    )
+  }
 
   // Render comparison panel
   const renderComparisonPanel = () => {
-    if (!comparisonData) return null;
+    if (!comparisonData)
+      return null
 
     return (
       <div className="comparison-panel">
-        <h3 > Move Comparison</h3>
+        <h3> Move Comparison</h3>
         <div className="comparison-content">
           <div className="comparison-moves">
             <div className="comparison-move">
@@ -290,7 +323,7 @@ const MoveCompendium: React.FC = () => {
 
           <div className="comparison-details">
             <div className="similarities">
-              <h5 > Similarities</h5>
+              <h5> Similarities</h5>
               <ul>
                 {comparisonData.similarities.map((item, index) => (
                   <li key={index}>{similarity}</li>
@@ -299,7 +332,7 @@ const MoveCompendium: React.FC = () => {
             </div>
 
             <div className="differences">
-              <h5 > Differences</h5>
+              <h5> Differences</h5>
               <ul>
                 {comparisonData.differences.map((item, index) => (
                   <li key={index}>{difference}</li>
@@ -309,7 +342,7 @@ const MoveCompendium: React.FC = () => {
 
             {comparisonData.recommendations.length > 0 && (
               <div className="recommendations">
-                <h5 > Recommendations</h5>
+                <h5> Recommendations</h5>
                 <ul>
                   {comparisonData.recommendations.map((item, index) => (
                     <li key={index}>{recommendation}</li>
@@ -320,32 +353,38 @@ const MoveCompendium: React.FC = () => {
           </div>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="move-compendium">
       <div className="compendium-header">
-        <h2 > Move Compendium</h2>
+        <h2> Move Compendium</h2>
         <div className="header-actions">
           <button
             className="btn btn-secondary"
             onClick={() => updateState({ showFilters: !state.showFilters })}
           >
-            {state.showFilters ? 'Hide' : 'Show'} Filters
+            {state.showFilters ? 'Hide' : 'Show'}
+            {' '}
+            Filters
           </button>
           <button
             className="btn btn-secondary"
             onClick={() => updateState({ showComparison: !state.showComparison })}
           >
-            {state.showComparison ? 'Hide' : 'Show'} Comparison
+            {state.showComparison ? 'Hide' : 'Show'}
+            {' '}
+            Comparison
           </button>
           {state.selectedMoves.length > 0 && (
             <button
               className="btn btn-secondary"
               onClick={clearSelections}
             >
-              Clear Selection ({state.selectedMoves.length})
+              Clear Selection (
+              {state.selectedMoves.length}
+              )
             </button>
           )}
         </div>
@@ -360,7 +399,7 @@ const MoveCompendium: React.FC = () => {
                 id="search-filter"
                 type="text"
                 value={state.searchQuery}
-                onChange={(e) => updateState({ searchQuery: e.target.value })}
+                onChange={e => updateState({ searchQuery: e.target.value })}
                 placeholder="Search moves..."
                 className="filter-input"
               />
@@ -371,7 +410,7 @@ const MoveCompendium: React.FC = () => {
               <select
                 id="category-filter"
                 value={state.selectedCategory}
-                onChange={(e) => updateState({ selectedCategory: e.target.value })}
+                onChange={e => updateState({ selectedCategory: e.target.value })}
                 className="filter-select"
               >
                 <option value="all">All Categories</option>
@@ -388,7 +427,7 @@ const MoveCompendium: React.FC = () => {
               <select
                 id="type-filter"
                 value={state.selectedType}
-                onChange={(e) => updateState({ selectedType: e.target.value })}
+                onChange={e => updateState({ selectedType: e.target.value })}
                 className="filter-select"
               >
                 <option value="all">All Types</option>
@@ -405,7 +444,7 @@ const MoveCompendium: React.FC = () => {
               <select
                 id="trigger-filter"
                 value={state.selectedTriggerType}
-                onChange={(e) => updateState({ selectedTriggerType: e.target.value })}
+                onChange={e => updateState({ selectedTriggerType: e.target.value })}
                 className="filter-select"
               >
                 <option value="all">All Triggers</option>
@@ -422,7 +461,7 @@ const MoveCompendium: React.FC = () => {
               <select
                 id="class-filter"
                 value={state.selectedClass}
-                onChange={(e) => updateState({ selectedClass: e.target.value })}
+                onChange={e => updateState({ selectedClass: e.target.value })}
                 className="filter-select"
               >
                 <option value="all">All Classes</option>
@@ -444,7 +483,7 @@ const MoveCompendium: React.FC = () => {
               <select
                 id="level-filter"
                 value={state.selectedLevel}
-                onChange={(e) => updateState({ selectedLevel: e.target.value })}
+                onChange={e => updateState({ selectedLevel: e.target.value })}
                 className="filter-select"
               >
                 <option value="all">All Levels</option>
@@ -459,7 +498,7 @@ const MoveCompendium: React.FC = () => {
               <select
                 id="roll-stat-filter"
                 value={state.selectedRollStat}
-                onChange={(e) => updateState({ selectedRollStat: e.target.value })}
+                onChange={e => updateState({ selectedRollStat: e.target.value })}
                 className="filter-select"
               >
                 <option value="all">All Stats</option>
@@ -477,7 +516,7 @@ const MoveCompendium: React.FC = () => {
               <select
                 id="sort-filter"
                 value={state.sortBy}
-                onChange={(e) => updateState({ sortBy: e.target.value as string })}
+                onChange={e => updateState({ sortBy: e.target.value as string })}
                 className="filter-select"
               >
                 <option value="name">Name</option>
@@ -492,7 +531,7 @@ const MoveCompendium: React.FC = () => {
               <select
                 id="view-filter"
                 value={state.viewMode}
-                onChange={(e) => updateState({ viewMode: e.target.value as string })}
+                onChange={e => updateState({ viewMode: e.target.value as string })}
                 className="filter-select"
               >
                 <option value="list">List</option>
@@ -504,7 +543,7 @@ const MoveCompendium: React.FC = () => {
 
           {allTags.length > 0 && (
             <div className="tags-filter">
-              <label > Tags:</label>
+              <label> Tags:</label>
               <div className="tags-list">
                 {allTags.map(tag => (
                   <label key={tag} className="tag-checkbox">
@@ -513,11 +552,12 @@ const MoveCompendium: React.FC = () => {
                       checked={state.selectedTags.includes(tag)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          updateState({ selectedTags: [...state.selectedTags, tag] });
-                        } else {
+                          updateState({ selectedTags: [...state.selectedTags, tag] })
+                        }
+                        else {
                           updateState({
                             selectedTags: state.selectedTags.filter(t => t !== tag),
-                          });
+                          })
                         }
                       }}
                     />
@@ -531,7 +571,15 @@ const MoveCompendium: React.FC = () => {
       )}
 
       <div className="compendium-stats">
-        <p > Showing {filteredMoves.length} of {availableMoves.length} moves
+        <p>
+          {' '}
+          Showing
+          {filteredMoves.length}
+          {' '}
+          of
+          {availableMoves.length}
+          {' '}
+          moves
           {state.searchQuery && ` matching "${state.searchQuery}"`}
         </p>
       </div>
@@ -541,34 +589,33 @@ const MoveCompendium: React.FC = () => {
       )}
 
       <div className={`moves-container view-${state.viewMode}`}>
-        {filteredMoves.length > 0 ? (
-          filteredMoves.map(renderMoveCard)
-        ) : (
-          <div className="no-results">
-            <p > No moves found matching your criteria.</p>
-            <button
-              className="btn btn-primary"
-              onClick={() => updateState({
-                searchQuery: '',
-                selectedCategory: 'all',
-                selectedType: 'all',
-                selectedTriggerType: 'all',
-                selectedClass: 'all',
-                selectedLevel: 'all',
-                selectedRollStat: 'all',
-                selectedTags: [],
-              })}
-            >
-              Clear All Filters
-            </button>
-          </div>
-        )}
+        {filteredMoves.length > 0
+          ? (
+              filteredMoves.map(renderMoveCard)
+            )
+          : (
+              <div className="no-results">
+                <p> No moves found matching your criteria.</p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => updateState({
+                    searchQuery: '',
+                    selectedCategory: 'all',
+                    selectedType: 'all',
+                    selectedTriggerType: 'all',
+                    selectedClass: 'all',
+                    selectedLevel: 'all',
+                    selectedRollStat: 'all',
+                    selectedTags: [],
+                  })}
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default MoveCompendium;
-
-
-
+export default MoveCompendium

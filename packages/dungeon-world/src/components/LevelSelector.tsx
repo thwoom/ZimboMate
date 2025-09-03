@@ -2,23 +2,24 @@
  * Level selector component for choosing character level
  */
 
-import './LevelSelector.css';
+import type { CharacterClass } from '../models/Character'
 
-import React, { useEffect,useState } from 'react';
+import type { LevelProgression } from '../services/AdvancementService'
 
-import { CharacterClass } from '../models/Character';
-import { advancementService, LevelProgression } from '../services/AdvancementService';
+import React, { useEffect, useState } from 'react'
+import { advancementService } from '../services/AdvancementService'
+import './LevelSelector.css'
 
 interface LevelSelectorProps {
-  selectedLevel: number;
-  characterClass: CharacterClass;
-  onLevelChange: (level: number, progression: LevelProgression) => void;
-  minLevel?: number;
-  maxLevel?: number;
-  disabled?: boolean;
+  selectedLevel: number
+  characterClass: CharacterClass
+  onLevelChange: (level: number, progression: LevelProgression) => void
+  minLevel?: number
+  maxLevel?: number
+  disabled?: boolean
 }
 
-export const LevelSelector: React.FC < LevelSelectorProps> = ({
+export const LevelSelector: React.FC <LevelSelectorProps> = ({
   selectedLevel,
   characterClass,
   onLevelChange,
@@ -26,25 +27,25 @@ export const LevelSelector: React.FC < LevelSelectorProps> = ({
   maxLevel = 10,
   disabled = false,
 }) => {
-  const [progression, setProgression] = useState < LevelProgression | null>(null);
+  const [progression, setProgression] = useState <LevelProgression | null>(null)
 
   useEffect(() => {
-    const newProgression = advancementService.getLevelProgression(selectedLevel, characterClass);
-    setProgression(newProgression);
-  }, [selectedLevel, characterClass]);
+    const newProgression = advancementService.getLevelProgression(selectedLevel, characterClass)
+    setProgression(newProgression)
+  }, [selectedLevel, characterClass])
 
   const handleLevelChange = (level: number) => {
-    const newProgression = advancementService.getLevelProgression(level, characterClass);
-    setProgression(newProgression);
-    onLevelChange(level, newProgression);
-  };
+    const newProgression = advancementService.getLevelProgression(level, characterClass)
+    setProgression(newProgression)
+    onLevelChange(level, newProgression)
+  }
 
-  const levels = Array.from({ length: maxLevel-minLevel + 1 }, (_, i) => minLevel + i);
+  const levels = Array.from({ length: maxLevel - minLevel + 1 }, (_, i) => minLevel + i)
 
   return (
     <div className="level-selector">
       <div className="level-selector-header">
-        <h3 > Choose Character Level</h3>
+        <h3> Choose Character Level</h3>
         <p className="level-description">
           Select your character's starting level. Higher levels require advancement choices.
         </p>
@@ -58,7 +59,10 @@ export const LevelSelector: React.FC < LevelSelectorProps> = ({
             onClick={() => !disabled && handleLevelChange(level)}
             disabled={disabled}
           >
-            <span className="level-number">Level {level}</span>
+            <span className="level-number">
+              Level
+              {level}
+            </span>
             {level === 1 && <span className="level-badge">Beginner</span>}
             {level >= 6 && <span className="level-badge advanced">Advanced</span>}
           </button>
@@ -67,24 +71,41 @@ export const LevelSelector: React.FC < LevelSelectorProps> = ({
 
       {progression && (
         <div className="level-progression-info">
-          <h4 > Level {selectedLevel} Requirements</h4>
+          <h4>
+            {' '}
+            Level
+            {selectedLevel}
+            {' '}
+            Requirements
+          </h4>
           <div className="progression-grid">
             <div className="progression-item">
               <span className="progression-label">XP to Reach Level:</span>
-              <span className="progression-value">{progression.xpRequired} XP</span>
+              <span className="progression-value">
+                {progression.xpRequired}
+                {' '}
+                XP
+              </span>
             </div>
 
             <div className="progression-item">
               <span className="progression-label">XP for Next Level:</span>
-              <span className="progression-value">{progression.xpForNext} XP</span>
+              <span className="progression-value">
+                {progression.xpForNext}
+                {' '}
+                XP
+              </span>
             </div>
           </div>
 
           {progression.level > 1 && (
             <div className="advancement-info">
-              <h5 > Official Dungeon World Advancement</h5>
+              <h5> Official Dungeon World Advancement</h5>
               <p className="advancement-description">
-                Each level up gives you < strong > exactly two things</strong>:
+                Each level up gives you
+                {' '}
+                <strong> exactly two things</strong>
+                :
               </p>
               <div className="advancement-benefits">
                 <div className="benefit-item">
@@ -104,10 +125,7 @@ export const LevelSelector: React.FC < LevelSelectorProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default LevelSelector;
-
-
-
+export default LevelSelector

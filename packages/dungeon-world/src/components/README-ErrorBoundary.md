@@ -9,6 +9,7 @@ This comprehensive error boundary system provides robust error handling for the 
 The primary error boundary that wraps the entire application.
 
 **Features:**
+
 - Catches and displays rendering errors with a user-friendly interface
 - Provides retry functionality
 - Supports custom fallback UI
@@ -19,7 +20,8 @@ The primary error boundary that wraps the entire application.
 - Dark mode support
 
 **Usage:**
-```tsx
+
+````tsx
 import ErrorBoundary from './components/ErrorBoundary';
 
 <ErrorBoundary
@@ -163,7 +165,7 @@ import { useErrorHandler } from './utils/globalErrorHandler';
 
 const MyComponent = () => {
   const { captureException } = useErrorHandler();
-  
+
   const handleAsyncOperation = async () => {
     try {
       await riskyOperation();
@@ -189,19 +191,19 @@ Replace the placeholder error reporting in `GlobalErrorHandler`:
 // In globalErrorHandler.ts
 private reportError(errorEntry) {
   // Replace with your error service
-  
+
   // Sentry example:
   Sentry.captureException(errorEntry.error, {
     extra: errorReport,
     tags: { context: errorEntry.context }
   });
-  
+
   // Bugsnag example:
   Bugsnag.notify(errorEntry.error, {
     context: errorEntry.context,
     metadata: { errorReport }
   });
-  
+
   // LogRocket example:
   LogRocket.captureException(errorEntry.error);
 }
@@ -275,3 +277,4 @@ Set up monitoring for:
 - [React Error Boundaries Documentation](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
 - [Error Handling in React 16+](https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html)
 - [Production Error Tracking Services](https://sentry.io/for/react/)
+````

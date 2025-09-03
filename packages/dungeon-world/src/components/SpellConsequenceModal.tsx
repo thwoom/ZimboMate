@@ -1,39 +1,40 @@
-import './SpellConsequenceModal.css';
+import React, { useEffect, useRef, useState } from 'react'
 
-import React, { useEffect, useRef, useState } from 'react';
+import './SpellConsequenceModal.css'
 
-type Consequence = 'unwelcome-attention' | 'forget' | 'strain';
+type Consequence = 'unwelcome-attention' | 'forget' | 'strain'
 
 interface SpellConsequenceModalProps {
-  isOpen: boolean;
-  spellName: string;
-  casterClass: 'Wizard' | 'Cleric';
-  onConfirm: (choice: Consequence) => void;
-  onCancel: () => void;
+  isOpen: boolean
+  spellName: string
+  casterClass: 'Wizard' | 'Cleric'
+  onConfirm: (choice: Consequence) => void
+  onCancel: () => void
 }
 
-const SpellConsequenceModal: React.FC < SpellConsequenceModalProps> = ({
+const SpellConsequenceModal: React.FC <SpellConsequenceModalProps> = ({
   isOpen,
   spellName,
   casterClass,
   onConfirm,
   onCancel,
 }) => {
-  const [choice, setChoice] = useState < Consequence>('unwelcome-attention');
-  const dialogRef = useRef < HTMLDivElement>(null);
+  const [choice, setChoice] = useState <Consequence>('unwelcome-attention')
+  const dialogRef = useRef <HTMLDivElement>(null)
 
   useEffect(() => {
     if (isOpen) {
-      setChoice('unwelcome-attention');
+      setChoice('unwelcome-attention')
       // focus the first radio
-      const first = dialogRef.current?.querySelector < HTMLInputElement>('input[type="radio"]');
-      first?.focus();
+      const first = dialogRef.current?.querySelector <HTMLInputElement>('input[type="radio"]')
+      first?.focus()
     }
-  }, [isOpen]);
+  }, [isOpen])
 
-  if (!isOpen) return null;
+  if (!isOpen)
+    return null
 
-  const forgetLabel = casterClass === 'Cleric' ? 'Spell is revoked (remove from prepared)' : 'Forget the spell (remove from prepared)';
+  const forgetLabel = casterClass === 'Cleric' ? 'Spell is revoked (remove from prepared)' : 'Forget the spell (remove from prepared)'
 
   return (
     <div className="spell-modal__backdrop" role="dialog" aria-modal="true" aria-labelledby="spell-modal - title">
@@ -43,7 +44,12 @@ const SpellConsequenceModal: React.FC < SpellConsequenceModalProps> = ({
           <button className="spell-modal__close" aria-label="Close" onClick={onCancel}>×</button>
         </div>
         <div className="spell-modal__body">
-          <p > Casting < strong>{spellName}</strong > succeeded, but with a cost. Choose one consequence per Dungeon World rules.
+          <p>
+            {' '}
+            Casting
+            <strong>{spellName}</strong>
+            {' '}
+            succeeded, but with a cost. Choose one consequence per Dungeon World rules.
           </p>
           <div className="spell-modal__options" role="radiogroup" aria-label="Spell consequence choices">
             <label className={`spell-modal__option ${choice === 'unwelcome-attention' ? 'selected' : ''}`}>
@@ -84,7 +90,11 @@ const SpellConsequenceModal: React.FC < SpellConsequenceModalProps> = ({
               />
               <div>
                 <div className="spell-modal__option-title">-1 ongoing to Cast a Spell</div>
-                <div className="spell-modal__option-desc">Until you next {casterClass === 'Cleric' ? 'Commune' : 'Prepare Spells'}.</div>
+                <div className="spell-modal__option-desc">
+                  Until you next
+                  {casterClass === 'Cleric' ? 'Commune' : 'Prepare Spells'}
+                  .
+                </div>
               </div>
             </label>
           </div>
@@ -95,11 +105,7 @@ const SpellConsequenceModal: React.FC < SpellConsequenceModalProps> = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SpellConsequenceModal;
-
-
-
-
+export default SpellConsequenceModal
