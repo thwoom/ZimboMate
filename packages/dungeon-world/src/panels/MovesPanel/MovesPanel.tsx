@@ -6,12 +6,14 @@ import type { DiceRoll, EnhancedDiceRoll } from '../../services/DiceRollingServi
 import type { RollInsight } from '../../services/RollAnalyticsService'
 import type { MoveSuggestion } from '../../services/SmartMoveSuggestionService'
 import type { Spell as ServiceSpell, SpellClass } from '../../services/Spells'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import EnhancedDiceRoller from '../../components/EnhancedDiceRoller'
+import ContextMenu from '../../components/ContextMenu'
+import Tooltip from '../../components/Tooltip'
 import MoveCard from '../../components/MoveCard'
 import SpellConsequenceModal from '../../components/SpellConsequenceModal'
 import { createPanel } from '../../framework/Panel'
-import { createPanelAPI } from '../../framework/PanelAPI'
+import { createPanelAPI, loadPanelState, savePanelState } from '../../framework/PanelAPI'
 import { BASIC_MOVES, SPECIAL_MOVES } from '../../models/Move'
 import { diceRollingService } from '../../services/DiceRollingService'
 import { MoveCompendiumService } from '../../services/MoveCompendiumService'
@@ -20,6 +22,7 @@ import { smartMoveSuggestionService } from '../../services/SmartMoveSuggestionSe
 import { spellCastingService } from '../../services/SpellCastingService'
 import { getSpellsForClass } from '../../services/Spells'
 import { useGameStore } from '../../store/GameStore'
+import { registerShortcut, setActiveScope } from '../../utils/KeyboardShortcuts'
 import './MovesPanel.css'
 
 interface MovesPanelState {
@@ -37,10 +40,12 @@ interface MovesPanelState {
 const MovesPanel: React.FC <PanelProps> = ({ id }) => {
   const _api = createPanelAPI(id)
   const { state: gameState, updateCharacter } = useGameStore()
+  const persisted = loadPanelState<Pick<MovesPanelState, 'selectedCategory' | 'searchTerm' | 'showAll'>>(id, { selectedCategory: 'all', searchTerm: '', showAll: false })
+  const searchRef = useRef<HTMLInputElement>(null)
   const [panelState, setPanelState] = useState <MovesPanelState>({
-    selectedCategory: 'all',
-    searchTerm: '',
-    showAll: false,
+    selectedCategory: persisted.selectedCategory,
+    searchTerm: persisted.searchTerm,
+    showAll: persisted.showAll,
     showRollHistory: false,
     showSuggestions: true,
     showInsights: false,
@@ -49,9 +54,27 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
     contextDescription: '',
   })
 
+  useEffect(() => {
+    setActiveScope(id)
+    const unReg = registerShortcut({ combo: '/', handler: () => searchRef.current?.focus(), scope: id, preventDefault: true })
+    return () => {
+      setActiveScope(null)
+      unReg()
+    }
+  }, [id])
+
+  const updateState = (updates: Partial <MovesPanelState>) => {
+    setPanelState((prev) => {
+      const next = { ...prev, ...updates }
+      savePanelState(id, { selectedCategory: next.selectedCategory, searchTerm: next.searchTerm, showAll: next.showAll })
+      return next
+    })
+  }
+
   const [rollHistory, setRollHistory] = useState <DiceRoll[]>([])
   const [suggestions, setSuggestions] = useState <MoveSuggestion[]>([])
   const [insights, setInsights] = useState <RollInsight[]>([])
+  const [menuState, setMenuState] = useState<{ open: boolean, x: number, y: number, move?: Move }>({ open: false, x: 0, y: 0 })
 
   // Get active character
   const character = gameState.activeCharacterId
@@ -178,6 +201,13 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
     return moves
   }
 
+  const openContextMenu = (e: React.MouseEvent, move: Move) => {
+    e.preventDefault()
+    setMenuState({ open: true, x: e.clientX, y: e.clientY, move })
+  }
+
+  const closeContextMenu = () => setMenuState(prev => ({ ...prev, open: false }))
+
   const handleRoll = (roll: DiceRoll) => {
     // Record analytics and get insights
     const newInsights = rollAnalyticsService.recordRoll(roll)
@@ -205,10 +235,6 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
   }
 
   // (expand/collapse behavior handled within MoveCard)
-
-  const updateState = (updates: Partial <MovesPanelState>) => {
-    setPanelState(prev => ({ ...prev, ...updates }))
-  }
 
   const filteredMoves = getFilteredMoves()
 
@@ -334,6 +360,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                 value={panelState.searchTerm}
                 onChange={e => updateState({ searchTerm: e.target.value })}
                 className="search-input"
+                ref={searchRef}
               />
             </div>
 
@@ -351,14 +378,15 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
 
             <div className="category-filters">
               {(['all', 'basic', 'class', 'advanced', 'master', 'special'] as const).map(category => (
-                <button
-                  key={category}
-                  className={`category-button ${panelState.selectedCategory === category ? 'active' : ''}`}
-                  onClick={() => updateState({ selectedCategory: category })}
-                  type="button"
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </button>
+                <Tooltip key={category} content={`Filter: ${category}`}>
+                  <button
+                    className={`category-button ${panelState.selectedCategory === category ? 'active' : ''}`}
+                    onClick={() => updateState({ selectedCategory: category })}
+                    type="button"
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </button>
+                </Tooltip>
               ))}
             </div>
 
@@ -518,18 +546,51 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                   )
                 : (
                     filteredMoves.map(move => (
-                      <MoveCard
-                        key={move.id}
-                        move={move}
-                        character={character}
-                        onRoll={handleRoll}
-                        onUse={handleUseMove}
-                        expanded={panelState.expandedMoves.has(move.id)}
-                        className="moves-list__item"
-                      />
+                      <div key={move.id} onContextMenu={(e) => openContextMenu(e, move)}>
+                        <MoveCard
+                          move={move}
+                          character={character}
+                          onRoll={handleRoll}
+                          onUse={handleUseMove}
+                          expanded={panelState.expandedMoves.has(move.id)}
+                          className="moves-list__item"
+                        />
+                      </div>
                     ))
                   )}
             </div>
+
+            {menuState.open && menuState.move && (
+              <ContextMenu
+                x={menuState.x}
+                y={menuState.y}
+                onClose={closeContextMenu}
+                items={[
+                  {
+                    id: 'roll',
+                    label: '🎲 Roll',
+                    onSelect: () => {
+                      if (character) {
+                        const roll = diceRollingService.rollMove(menuState.move!, character)
+                        handleRoll(roll)
+                      }
+                    },
+                  },
+                  {
+                    id: 'copy',
+                    label: '📋 Copy name',
+                    onSelect: () => {
+                      try {
+                        void navigator.clipboard?.writeText(menuState.move!.name)
+                      }
+                      catch (e) {
+                        console.warn('Clipboard copy failed', e)
+                      }
+                    },
+                  },
+                ]}
+              />
+            )}
 
             {/* Roll History Sidebar */}
             {panelState.showRollHistory && (
