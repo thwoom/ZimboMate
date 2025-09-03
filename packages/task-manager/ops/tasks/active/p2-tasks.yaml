@@ -115,7 +115,7 @@ tasks:
     title: Implement Moves Panel
     intent: Implement the moves panel feature as specified in the PRD
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature
@@ -280,7 +280,7 @@ tasks:
     title: Create Conditional Content Foundation and Utilities
     intent: Build the core system for conditional rendering based on character class
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature
@@ -1026,7 +1026,7 @@ tasks:
     title: Create Load Optimization and Weight Calculator
     intent: Build weight optimization tools to help manage encumbrance and load limits
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature
@@ -1235,7 +1235,7 @@ tasks:
       Extend inventory with equipment configurations, wishlist, and comparison
       tools
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature
