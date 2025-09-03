@@ -12,6 +12,7 @@ import CharacterCreationPanel from './panels/CharacterCreationPanel'
 import CharacterStatsPanel from './panels/CharacterStatsPanel'
 import ConditionTrackerPanel from './panels/ConditionTrackerPanel/ConditionTrackerPanel'
 import { ContentStudioPanelInstance } from './panels/ContentStudioPanel/ContentStudioPanel'
+import EquipmentCompendiumPanel from './panels/EquipmentCompendiumPanel/EquipmentCompendiumPanel'
 import EquipmentPanel from './panels/EquipmentPanel'
 import { InventoryPanel } from './panels/InventoryPanel'
 import MoveLibraryPanel from './panels/MoveLibraryPanel'
@@ -25,7 +26,6 @@ import { panelDiagnostics } from './utils/panelDiagnostics'
 import { panelRecoveryManager } from './utils/panelRecovery'
 // import { PanelDebugger, testPanel } from './debug/PanelDebugger';
 import './App.css'
-import EquipmentCompendiumPanel from './panels/EquipmentCompendiumPanel/EquipmentCompendiumPanel'
 
 function App() {
   useEffect(() => {

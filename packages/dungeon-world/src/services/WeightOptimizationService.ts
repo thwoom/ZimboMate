@@ -1,6 +1,6 @@
 import type { Character } from '../models/Character'
 import type { Inventory } from '../models/Inventory'
-import { getLoadSummary, getLoadSuggestions } from '../utils/weightCalculations'
+import { getLoadSuggestions, getLoadSummary } from '../utils/weightCalculations'
 
 export interface LoadOptimizationResult {
   summary: ReturnType<typeof getLoadSummary>
@@ -16,5 +16,3 @@ class WeightOptimizationService {
 }
 
 export const weightOptimizationService = new WeightOptimizationService()
-
-

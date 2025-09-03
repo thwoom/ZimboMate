@@ -14,6 +14,7 @@ import { createPanel } from '../../framework/Panel'
 import { createPanelAPI } from '../../framework/PanelAPI'
 import { BASIC_MOVES, SPECIAL_MOVES } from '../../models/Move'
 import { diceRollingService } from '../../services/DiceRollingService'
+import { MoveCompendiumService } from '../../services/MoveCompendiumService'
 import { rollAnalyticsService } from '../../services/RollAnalyticsService'
 import { smartMoveSuggestionService } from '../../services/SmartMoveSuggestionService'
 import { spellCastingService } from '../../services/SpellCastingService'
@@ -24,6 +25,7 @@ import './MovesPanel.css'
 interface MovesPanelState {
   selectedCategory: 'all' | 'basic' | 'class' | 'advanced' | 'master' | 'special'
   searchTerm: string
+  showAll: boolean
   showRollHistory: boolean
   showSuggestions: boolean
   showInsights: boolean
@@ -33,11 +35,12 @@ interface MovesPanelState {
 }
 
 const MovesPanel: React.FC <PanelProps> = ({ id }) => {
-  const api = createPanelAPI(id)
+  const _api = createPanelAPI(id)
   const { state: gameState, updateCharacter } = useGameStore()
   const [panelState, setPanelState] = useState <MovesPanelState>({
     selectedCategory: 'all',
     searchTerm: '',
+    showAll: false,
     showRollHistory: false,
     showSuggestions: true,
     showInsights: false,
@@ -54,6 +57,8 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
   const character = gameState.activeCharacterId
     ? gameState.characters[gameState.activeCharacterId]
     : null
+
+  const compendium = new MoveCompendiumService()
 
   // Spellcasting context
   const isCaster = Boolean(character && (character.class === 'Wizard' || character.class === 'Cleric' || character.class === 'Immolator'))
@@ -121,10 +126,31 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
       }
     }
 
-    // Add character's known moves (class moves, etc.)
+    // Add compendium moves
     if (character) {
-      // TODO: Get class moves and other learned moves from character
-      // This would require a move database / service
+      const level = character.level || 1
+      const base = panelState.showAll
+        ? compendium.getAllMoves().filter(m => m.category !== 'basic' && m.category !== 'special')
+        : compendium.getAvailableMoves(character.class as any, level).filter(m => m.category === 'class')
+
+      const compendiumMapped: Move[] = base.map(m => ({
+        id: m.id,
+        name: m.name,
+        category: m.category as any,
+        description: m.description,
+        trigger: m.trigger,
+        triggerType: m.triggerType as any,
+        rollStat: m.rollStat as any,
+        onSuccess: m.onSuccess,
+        onPartial: m.onPartial,
+        onFailure: m.onFailure,
+        level: m.level,
+        requiresClass: m.requiresClass as any,
+        source: m.source,
+        custom: m.custom,
+      }))
+
+      moves.push(...compendiumMapped)
     }
 
     return moves
@@ -178,16 +204,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
     }
   }
 
-  const toggleMoveExpanded = (moveId: string) => {
-    const newExpanded = new Set(panelState.expandedMoves)
-    if (newExpanded.has(moveId)) {
-      newExpanded.delete(moveId)
-    }
-    else {
-      newExpanded.add(moveId)
-    }
-    setPanelState(prev => ({ ...prev, expandedMoves: newExpanded }))
-  }
+  // (expand/collapse behavior handled within MoveCard)
 
   const updateState = (updates: Partial <MovesPanelState>) => {
     setPanelState(prev => ({ ...prev, ...updates }))
@@ -215,7 +232,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
         updateCharacter(character.id, { preparedSpells: updated.preparedSpells, conditions: updated.conditions })
       }
       catch (e) {
-        alert((e as Error).message)
+        console.warn((e as Error).message)
       }
     }
 
@@ -223,7 +240,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
       if (!character)
         return
       try {
-        const { roll, updated, tier } = spellCastingService.castPreparedSpell(character, spell)
+        const { roll: _roll, updated, tier } = spellCastingService.castPreparedSpell(character, spell)
         if (tier === '7-9') {
           setSpellModal({ open: true, spell })
           updateCharacter(character.id, { xp: updated.xp })
@@ -233,7 +250,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
         }
       }
       catch (e) {
-        alert((e as Error).message)
+        console.warn((e as Error).message)
       }
     }
 
@@ -270,10 +287,10 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                   {spell.level === 0 ? '(Cantrip / Rote)' : `(Level ${spell.level})`}
                 </div>
                 <div className="spell-actions">
-                  <button className="toggle-button" onClick={() => !prepareDisabled && onTogglePrepare(spell.id)} disabled={prepareDisabled} title={prepareTitle}>
+                  <button className="toggle-button" onClick={() => !prepareDisabled && onTogglePrepare(spell.id)} disabled={prepareDisabled} title={prepareTitle} type="button">
                     {isPrepared ? 'Unprepare' : 'Prepare'}
                   </button>
-                  <button className="toggle-button" onClick={() => onCast(spell)} disabled={castDisabled} title={castTitle}>
+                  <button className="toggle-button" onClick={() => onCast(spell)} disabled={castDisabled} title={castTitle} type="button">
                     Cast
                   </button>
                 </div>
@@ -320,12 +337,25 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
               />
             </div>
 
+            <div className="show-all-toggle">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={panelState.showAll}
+                  onChange={e => updateState({ showAll: e.target.checked })}
+                />
+                {' '}
+                Show all moves (ignore class/level)
+              </label>
+            </div>
+
             <div className="category-filters">
               {(['all', 'basic', 'class', 'advanced', 'master', 'special'] as const).map(category => (
                 <button
                   key={category}
                   className={`category-button ${panelState.selectedCategory === category ? 'active' : ''}`}
                   onClick={() => updateState({ selectedCategory: category })}
+                  type="button"
                 >
                   {category.charAt(0).toUpperCase() + category.slice(1)}
                 </button>
@@ -346,24 +376,28 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
               <button
                 className={`toggle-button ${panelState.showEnhancedDice ? 'active' : ''}`}
                 onClick={() => updateState({ showEnhancedDice: !panelState.showEnhancedDice })}
+                type="button"
               >
                 🎲 Enhanced Dice
               </button>
               <button
                 className={`toggle-button ${panelState.showSuggestions ? 'active' : ''}`}
                 onClick={() => updateState({ showSuggestions: !panelState.showSuggestions })}
+                type="button"
               >
                 💡 Smart Suggestions
               </button>
               <button
                 className={`toggle-button ${panelState.showInsights ? 'active' : ''}`}
                 onClick={() => updateState({ showInsights: !panelState.showInsights })}
+                type="button"
               >
                 📊 Analytics
               </button>
               <button
                 className={`toggle-button ${panelState.showRollHistory ? 'active' : ''}`}
                 onClick={() => updateState({ showRollHistory: !panelState.showRollHistory })}
+                type="button"
               >
                 📜 Roll History
               </button>
@@ -443,6 +477,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                             const roll = diceRollingService.rollMove(suggestion.move, character)
                             handleRoll(roll)
                           }}
+                          type="button"
                         >
                           🎲 Roll +
                           {' '}
@@ -507,6 +542,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                       diceRollingService.clearHistory()
                       setRollHistory([])
                     }}
+                    type="button"
                   >
                     Clear
                   </button>

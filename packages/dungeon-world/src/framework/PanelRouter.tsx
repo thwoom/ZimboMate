@@ -72,9 +72,8 @@ export const PanelRouter: React.FC <PanelRouterProps> = ({
 
   // Performance optimization: Debounced state saving
   const debouncedSaveState = useCallback(
-    debounce((...args: [string, any]) => {
+    debounce((panelId: string, state: any) => {
       try {
-        const [panelId, state] = args
         panelStateManager.saveState(panelId, state)
       }
       catch {

@@ -3,8 +3,9 @@ import type { PanelProps } from '../../framework/Panel'
 import type { ItemCategory, Tag } from '../../models/Equipment'
 
 import React, { useMemo, useState } from 'react'
-import TagDisplay from '../../components/TagDisplay'
+import EquipmentSets from '../../components/EquipmentSets'
 import LoadOptimizer from '../../components/LoadOptimizer'
+import TagDisplay from '../../components/TagDisplay'
 import { createPanel } from '../../framework/Panel'
 import { createPanelAPI } from '../../framework/PanelAPI'
 import { useGameStore } from '../../store/GameStore'
@@ -513,6 +514,9 @@ const InventoryPanel: React.FC <PanelProps & { panelState?: InventoryPanelState 
             </span>
           </div>
         </div>
+      </div>
+      <div className="inventory-tools" style={{ marginBottom: '1rem' }}>
+        <EquipmentSets />
       </div>
 
       <div className="inventory-controls">
