@@ -49,8 +49,8 @@ class TaskDashboard {
             return [];
           }
           
-          const _content = readFileSync(resolvedPath, 'utf8');
-          const _doc = YAML.parse(content);
+          const content = readFileSync(resolvedPath, 'utf8');
+          const doc = YAML.parse(content);
           if (doc.tasks) {
             tasks.push(...doc.tasks);
           }
@@ -62,8 +62,8 @@ class TaskDashboard {
       // Load completed tasks
       try {
         const completedPath = `${taskDir}/completed / completed-2025.yaml`;
-        const _content = readFileSync(completedPath, 'utf8');
-        const _doc = YAML.parse(content);
+        const content = readFileSync(completedPath, 'utf8');
+        const doc = YAML.parse(content);
         if (doc.tasks) {
           tasks.push(...doc.tasks);
         }
@@ -74,8 +74,8 @@ class TaskDashboard {
       // Load archived tasks
       try {
         const archivedPath = `${taskDir}/archived / archived-tasks.yaml`;
-        const _content = readFileSync(archivedPath, 'utf8');
-        const _doc = YAML.parse(content);
+        const content = readFileSync(archivedPath, 'utf8');
+        const doc = YAML.parse(content);
         if (doc.tasks) {
           tasks.push(...doc.tasks);
         }
@@ -98,9 +98,9 @@ class TaskDashboard {
   }
 
   private createProgressBar(completed: number, total: number, width = 30): string {
-    const _percent = total > 0 ? completed / total : 0;
+    const percent = total > 0 ? completed / total : 0;
     const filled = Math.round(percent * width);
-    const empty = width-filled;
+    const empty = width - filled;
     return '█'.repeat(filled) + '░'.repeat(empty);
   }
 
@@ -116,7 +116,7 @@ class TaskDashboard {
   }
 
   private getPriorityIcon(priority: string): string {
-    const _icons = {
+    const icons = {
       'P0': '🔥',
       'P1': '⚡',
       'P2': '📋',
@@ -129,11 +129,11 @@ class TaskDashboard {
   public renderMainDashboard() {
     console.clear();
     // Overall Progress
-    const _totalTasks = this.tasks.length;
-    const _completedTasks = this.tasks.filter(t => t)
-    const _inProgressTasks = this.tasks.filter(t => t)
-    const _openTasks = this.tasks.filter(t => t)
-    const _progressPercent = Math.round((completedTasks / totalTasks) * 100 * 10) / 10;
+    const totalTasks = this.tasks.length;
+    const completedTasks = this.tasks.filter(t => t.status === 'done').length;
+    const inProgressTasks = this.tasks.filter(t => t.status === 'in_progress').length;
+    const openTasks = this.tasks.filter(t => t.status === 'open').length;
+    const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100 * 10) / 10 : 0;
 
     );
     }`);

@@ -206,7 +206,7 @@ function analyzeFile(filePath) {
 function fixFile(filePath) {
   try {
     let content = fs.readFileSync(filePath, 'utf8');
-    let originalContent = content;
+    const originalContent = content;
     let fixesApplied = 0;
     
     // Apply specific fixes

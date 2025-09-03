@@ -373,7 +373,7 @@ class TaskModalPuppeteerTester {
     
     // Read current dashboard.html
     const dashboardPath = resolve(process.cwd(), 'dashboard.html');
-    let dashboardContent = readFileSync(dashboardPath, 'utf8');
+    const dashboardContent = readFileSync(dashboardPath, 'utf8');
     
     let modified = false;
     

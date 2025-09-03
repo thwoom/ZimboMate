@@ -125,7 +125,7 @@ function findFiles(dir) {
 function applyFixes(filePath) {
   try {
     let content = fs.readFileSync(filePath, 'utf8');
-    let originalContent = content;
+    const originalContent = content;
     let fixesApplied = 0;
     
     // Apply each fix

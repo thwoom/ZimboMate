@@ -56,7 +56,7 @@ function getESLintStatus(): ESLintResult | null {
     // Try to get ESLint status from the status file first
     const statusFile = join(process.cwd(), 'eslint-status.json');
     if (existsSync(statusFile)) {
-      const _content = readFileSync(statusFile, 'utf8');
+      const content = readFileSync(statusFile, 'utf8');
       return JSON.parse(content);
     }
 
@@ -65,7 +65,7 @@ function getESLintStatus(): ESLintResult | null {
 
     // Read the generated status
     if (existsSync(statusFile)) {
-      const _content = readFileSync(statusFile, 'utf8');
+      const content = readFileSync(statusFile, 'utf8');
       return JSON.parse(content);
     }
   } catch (error) {
@@ -79,8 +79,8 @@ function getSemgrepStatus(): SemgrepResult | null {
     // Try to get Semgrep status from the report file first
     const reportFile = join(process.cwd(), 'semgrep-report.json');
     if (existsSync(reportFile)) {
-      const _content = readFileSync(reportFile, 'utf8');
-      const _report = JSON.parse(content);
+      const content = readFileSync(reportFile, 'utf8');
+      const report = JSON.parse(content);
 
       return {
         totalIssues: report.summary?.totalIssues || 0,
@@ -373,7 +373,8 @@ function generateCompletionReportHTML(report: TaskCompletionReport): string {
 
     <div class="card">
       <h2>💡 Recommendations</h2>
-      ${report.recommendations.map(rec => `}
+      ${report.recommendations.map(rec => `
+}
         <div class="recommendation">${rec}</div>
       `).join('')}
     </div>

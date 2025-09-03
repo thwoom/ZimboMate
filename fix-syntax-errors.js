@@ -111,7 +111,7 @@ function findFiles(dir) {
 function applySyntaxFixes(filePath) {
   try {
     let content = fs.readFileSync(filePath, 'utf8');
-    let originalContent = content;
+    const originalContent = content;
     let fixesApplied = 0;
     
     // Apply each syntax fix

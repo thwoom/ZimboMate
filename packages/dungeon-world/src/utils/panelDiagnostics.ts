@@ -21,9 +21,22 @@ export class PanelDiagnostics {
    * 
    */
   runDiagnostics(): {
-    registry: unknown;
-    localStorage: unknown;
-    memory: unknown;
+    registry: {
+      totalPanels: number;
+      panelIds: string[];
+      issues: string[];
+    };
+    localStorage: {
+      totalKeys: number;
+      panelStateKeys: string[];
+      gameStateKeys: string[];
+      issues: string[];
+    };
+    memory: {
+      usedJSHeapSize?: number;
+      totalJSHeapSize?: number;
+      jsHeapSizeLimit?: number;
+    };
     issues: string[];
     recommendations: string[];
   } {
@@ -110,8 +123,8 @@ export class PanelDiagnostics {
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      const value = localStorage.getItem(key);
       if (key) {
+        const value = localStorage.getItem(key);
         if (key.startsWith('panel-state-')) {
           panelStateKeys.push(key);
 
@@ -146,7 +159,7 @@ export class PanelDiagnostics {
     jsHeapSizeLimit?: number;
   } {
     if ('memory' in performance) {
-      const mem = (performance as string).memory;
+      const mem = (performance as any).memory;
       return {
         usedJSHeapSize: mem.usedJSHeapSize,
         totalJSHeapSize: mem.totalJSHeapSize,
@@ -219,8 +232,13 @@ export class PanelDiagnostics {
     if (diagnostics.memory.usedJSHeapSize) {
       report += '🧠 Memory:\n';
       report += `  Used: ${Math.round(diagnostics.memory.usedJSHeapSize / 1024 / 1024)}MB\n`;
-      report += `  Total: ${Math.round(diagnostics.memory.totalJSHeapSize / 1024 / 1024)}MB\n`;
-      report += `  Limit: ${Math.round(diagnostics.memory.jsHeapSizeLimit / 1024 / 1024)}MB\n\n`;
+      if (diagnostics.memory.totalJSHeapSize) {
+        report += `  Total: ${Math.round(diagnostics.memory.totalJSHeapSize / 1024 / 1024)}MB\n`;
+      }
+      if (diagnostics.memory.jsHeapSizeLimit) {
+        report += `  Limit: ${Math.round(diagnostics.memory.jsHeapSizeLimit / 1024 / 1024)}MB\n`;
+      }
+      report += '\n';
     }
 
     // Issues and recommendations

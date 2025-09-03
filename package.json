@@ -12,14 +12,18 @@
     "build:task-manager": "npm run build --workspace=task-manager",
     "build:dungeon-world": "npm run build --workspace=dungeon-world",
     "test": "npm run test --workspaces",
-    "lint": "npm run lint --workspaces",
-    "lint:fix": "npm run lint:fix --workspaces",
+    "lint": "eslint packages/dungeon-world/src",
+    "lint:fix": "eslint packages/dungeon-world/src --fix",
+    "lint:workspaces": "npm run lint --workspaces",
+    "lint:fix:workspaces": "npm run lint:fix --workspaces",
     "format": "npm run format --workspaces",
     "clean": "npm run clean --workspaces",
     "install:all": "npm install"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^5.2.1",
     "@types/node": "^20.0.0",
+    "eslint": "^9.34.0",
     "typescript": "^5.0.0"
   },
   "engines": {

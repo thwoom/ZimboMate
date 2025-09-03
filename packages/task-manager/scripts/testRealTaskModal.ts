@@ -29,7 +29,7 @@ async function testRealTaskModal() {
     // Look for T-196 task specifically
     const foundT196 = await page.evaluate(() => {
       const taskItems = Array.from(document.querySelectorAll('.task-item'));
-      for (let item of taskItems) {
+      for (const item of taskItems) {
         const text = item.textContent || '';
         if (text.includes('T-196') || text.includes('Bond & Alignment XP Tracker')) {
           // Click this task

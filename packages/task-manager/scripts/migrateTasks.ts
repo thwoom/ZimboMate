@@ -63,8 +63,8 @@ class TaskMigrator {
       throw new Error(`Source file not found: ${this.sourceFile}`);
     }
 
-    const _content = fs.readFileSync(this.sourceFile, 'utf8');
-    const _data = yaml.load(content) as { tasks?: Task[] };
+    const content = fs.readFileSync(this.sourceFile, 'utf8');
+    const data = yaml.load(content) as { tasks?: Task[] };
 
     if (!data.tasks) {
       throw new Error('No tasks found in source file');
@@ -126,8 +126,8 @@ class TaskMigrator {
   }
 
   private async writeTaskFile(filename: string, tasks: Task[]): Promise < void> {
-    const _filePath = path.join(this.taskDir, filename);
-    const _content = yaml.dump({ tasks }, { indent: 2 });
+    const filePath = path.join(this.taskDir, filename);
+    const content = yaml.dump({ tasks }, { indent: 2 });
     fs.writeFileSync(filePath, content, 'utf8');
     }
 
