@@ -1,0 +1,38 @@
+id: semgrep-quality-src-services-CharacterValidation-ts-1756734183214
+title: "[Semgrep] Quality Issues in src\\services\\CharacterValidation.ts"
+description: |
+  **Summary:** 64 quality issues found in src\services\CharacterValidation.ts
+
+  **Details:**
+  - Total Issues: 64
+  - Fixable Issues: 0
+  - Category: quality
+
+  **Issue Types:**
+  - Variable may be unused. Consider removing if not needed.: 64 instances
+
+  **Next Steps:**
+  1. Review the file for quality issues
+  2. Apply fixes for 0 auto-fixable issues
+  3. Address remaining issues manually
+  4. Mark this task as complete when all issues are resolved
+
+  **Run:** `npm run semgrep:autofix` to apply automatic fixes
+status: archived
+priority: low
+category: quality
+tags:
+  - semgrep
+  - static-analysis
+  - quality
+created: 2025-09-01T13:43:50.375Z
+updated: 2025-09-01T13:43:50.375Z
+metadata:
+archived: 2025-09-02T01:35:56.094Z
+archive_reason: "Automated Semgrep task archiving - moved to code quality backlog"
+metadata:
+  semgrep:
+    file: src\services\CharacterValidation.ts
+    line: 0
+    column: 0
+    checkId: quality

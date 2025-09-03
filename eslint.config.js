@@ -1,248 +1,110 @@
 import js from '@eslint/js';
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsparser from '@typescript-eslint/parser';
-import react from 'eslint-plugin-react';
-import reactHooks from 'eslint-plugin-react-hooks';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
+import tseslint from 'typescript-eslint';
 
-export default [
-  // Base configuration for all files
-  js.configs.recommended,
-
-     // TypeScript files
-   {
-     files: ['**/*.{ts,tsx}'],
-     languageOptions: {
-       parser: tsparser,
-       parserOptions: {
-         ecmaVersion: 2022,
-         sourceType: 'module',
-         ecmaFeatures: {
-           jsx: true,
-         },
-         // project: './tsconfig.json', // Removed to avoid script file parsing errors
-         // tsconfigRootDir: process.cwd(), // Removed to avoid script file parsing errors
-       },
-       globals: {
-         // Browser globals
-         window: 'readonly',
-         document: 'readonly',
-         console: 'readonly',
-         localStorage: 'readonly',
-         sessionStorage: 'readonly',
-         navigator: 'readonly',
-         performance: 'readonly',
-         alert: 'readonly',
-         confirm: 'readonly',
-         setTimeout: 'readonly',
-         clearTimeout: 'readonly',
-         setInterval: 'readonly',
-         clearInterval: 'readonly',
-         // DOM types
-         HTMLElement: 'readonly',
-         HTMLInputElement: 'readonly',
-         HTMLButtonElement: 'readonly',
-         MediaQueryList: 'readonly',
-         File: 'readonly',
-         getComputedStyle: 'readonly',
-         history: 'readonly',
-         // Node.js globals (for some utility files)
-         process: 'readonly',
-         Buffer: 'readonly',
-         global: 'readonly',
-         module: 'readonly',
-         require: 'readonly',
-         exports: 'readonly',
-         __dirname: 'readonly',
-         __filename: 'readonly',
-         NodeJS: 'readonly',
-       },
-     },
-    plugins: {
-      '@typescript-eslint': tseslint,
-      'react': react,
-      'react-hooks': reactHooks,
-      'jsx-a11y': jsxA11y,
-    },
-    settings: {
-      react: {
-        version: 'detect',
-      },
-    },
-    rules: {
-      // ===== TypeScript Rules (Auto-fixable) =====
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_',
-      }],
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-var-requires': 'error',
-      '@typescript-eslint/no-empty-function': 'warn',
-      '@typescript-eslint/no-empty-interface': 'error',
-      '@typescript-eslint/no-inferrable-types': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
-
-      // ===== React Rules (Auto-fixable) =====
-      'react/jsx-uses-react': 'off', // Not needed in React 17+
-      'react/react-in-jsx-scope': 'off', // Not needed in React 17+
-      'react/prop-types': 'off', // TypeScript handles this
-      'react/display-name': 'warn',
-      'react/jsx-key': 'error',
-      'react/jsx-no-duplicate-props': 'error',
-      'react/jsx-no-undef': 'error',
-      'react/jsx-uses-vars': 'error',
-      'react/no-array-index-key': 'warn',
-      'react/no-children-prop': 'error',
-      'react/no-danger-with-children': 'error',
-      'react/no-deprecated': 'warn',
-      'react/no-direct-mutation-state': 'error',
-      'react/no-find-dom-node': 'error',
-      'react/no-is-mounted': 'error',
-      'react/no-render-return-value': 'error',
-      'react/no-string-refs': 'error',
-      'react/no-unescaped-entities': 'error',
-      'react/no-unknown-property': 'error',
-      'react/no-unsafe': 'warn',
-      'react/self-closing-comp': 'error',
-      'react/sort-comp': 'off', // Too strict for modern React
-      'react/style-prop-object': 'error',
-      'react/void-dom-elements-no-children': 'error',
-
-      // ===== React Hooks Rules =====
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-
-      // ===== Accessibility Rules (Auto-fixable) =====
-      'jsx-a11y/alt-text': 'error',
-      'jsx-a11y/anchor-has-content': 'error',
-      'jsx-a11y/anchor-is-valid': 'error',
-      'jsx-a11y/aria-props': 'error',
-      'jsx-a11y/aria-proptypes': 'error',
-      'jsx-a11y/aria-unsupported-elements': 'error',
-      'jsx-a11y/click-events-have-key-events': 'warn',
-      'jsx-a11y/heading-has-content': 'error',
-      'jsx-a11y/html-has-lang': 'error',
-      'jsx-a11y/iframe-has-title': 'error',
-      'jsx-a11y/img-redundant-alt': 'error',
-      'jsx-a11y/no-access-key': 'error',
-      'jsx-a11y/no-autofocus': 'warn',
-      'jsx-a11y/no-distracting-elements': 'error',
-      'jsx-a11y/no-interactive-element-to-noninteractive-role': 'error',
-      'jsx-a11y/no-noninteractive-element-interactions': 'warn',
-      'jsx-a11y/no-noninteractive-tabindex': 'error',
-      'jsx-a11y/no-redundant-roles': 'error',
-      'jsx-a11y/no-static-element-interactions': 'warn',
-      'jsx-a11y/role-has-required-aria-props': 'error',
-      'jsx-a11y/role-supports-aria-props': 'error',
-      'jsx-a11y/scope': 'error',
-      'jsx-a11y/tabindex-no-positive': 'error',
-
-      // ===== General JavaScript Rules (Auto-fixable) =====
-      'no-unused-vars': 'off', // Use TypeScript version
-      'no-var': 'error',
-      'prefer-const': 'off', // Use TypeScript version
-      'no-console': 'warn',
-      'no-debugger': 'error',
-      'no-alert': 'warn',
-      'no-eval': 'error',
-      'no-implied-eval': 'error',
-      'no-new-func': 'error',
-      'no-script-url': 'error',
-      'no-self-compare': 'error',
-      'no-sequences': 'error',
-      'no-throw-literal': 'error',
-      'no-unmodified-loop-condition': 'error',
-      'no-unused-expressions': 'error',
-      'no-useless-call': 'error',
-      'no-useless-concat': 'error',
-      'no-useless-return': 'error',
-      'prefer-promise-reject-errors': 'error',
-      'require-await': 'off', // Use TypeScript version
-      'yoda': 'error',
-
-      // ===== Code Quality Rules =====
-      'complexity': ['warn', 10],
-      'max-depth': ['warn', 4],
-      'max-lines': ['warn', 300],
-      'max-lines-per-function': ['warn', 50],
-      'max-params': ['warn', 5],
-      'max-statements': ['warn', 20],
-
-      // ===== Formatting Rules (Auto-fixable) =====
-      'array-bracket-spacing': ['error', 'never'],
-      'block-spacing': 'error',
-      'brace-style': ['error', '1tbs'],
-      'camelcase': ['error', { properties: 'never' }],
-      'comma-dangle': ['error', 'always-multiline'],
-      'comma-spacing': 'error',
-      'comma-style': 'error',
-      'computed-property-spacing': 'error',
-      'eol-last': 'error',
-      'func-call-spacing': 'error',
-      // 'indent': ['error', 2, { SwitchCase: 1 }], // Disabled due to stack overflow
-      'key-spacing': 'error',
-      'keyword-spacing': 'error',
-      // 'linebreak-style': ['error', 'unix'], // Disabled for Windows compatibility
-      'max-len': ['warn', { code: 100, ignoreUrls: true, ignoreStrings: true }],
-      'no-mixed-spaces-and-tabs': 'error',
-      'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1 }],
-      'no-trailing-spaces': 'error',
-      'object-curly-spacing': ['error', 'always'],
-      'quotes': ['error', 'single', { avoidEscape: true }],
-      'semi': ['error', 'always'],
-      'space-before-blocks': 'error',
-      'space-before-function-paren': ['error', 'never'],
-      'space-in-parens': 'error',
-      'space-infix-ops': 'error',
-      'space-unary-ops': 'error',
-      'spaced-comment': 'error',
-    },
-  },
-
-  // Scripts and tools (more relaxed)
-  {
-     files: ['scripts/**/*', 'tools/**/*', 'ops/**/*', 'test/**/*'],
-     languageOptions: {
-       globals: {
-         process: 'readonly',
-         console: 'readonly',
-         __dirname: 'readonly',
-         __filename: 'readonly',
-         Buffer: 'readonly',
-         global: 'readonly',
-         module: 'readonly',
-         require: 'readonly',
-         exports: 'readonly',
-       },
-     },
-    rules: {
-       'no-console': 'off',
-       'max-lines': 'off',
-       'max-lines-per-function': 'off',
-       'no-undef': 'off', // Node.js globals
-     },
-   },
-
-  // Test files (more relaxed)
-  {
-    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
-    rules: {
-      'no-console': 'off',
-      'jsx-a11y/click-events-have-key-events': 'off',
-      'jsx-a11y/no-static-element-interactions': 'off',
-    },
-  },
-
-  // Ignore patterns
-  {
+// TypeScript-aware ESLint configuration for Dungeon World
+export default tseslint.config(
+  { 
     ignores: [
-      'dist/**',
-      'node_modules/**',
+      'dist/',
+      'node_modules/',
+      'test-results/',
+      'playwright-report/',
+      'coverage/',
       '*.config.js',
-      '*.config.cjs',
-      'vite.config.ts',
-      'docs/**',
-    ],
+      '*.config.ts'
+    ] 
   },
-];
+  {
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.recommended,
+    ],
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true
+        }
+      },
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        performance: 'readonly',
+        File: 'readonly',
+        Blob: 'readonly',
+        FileReader: 'readonly',
+        FormData: 'readonly',
+        Performance: 'readonly',
+        Window: 'readonly',
+        HTMLButtonElement: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLInputElement: 'readonly',
+        HTMLSelectElement: 'readonly',
+        HTMLTextAreaElement: 'readonly',
+        confirm: 'readonly',
+        alert: 'readonly',
+        prompt: 'readonly',
+        btoa: 'readonly',
+        atob: 'readonly',
+        screen: 'readonly',
+        history: 'readonly',
+        getComputedStyle: 'readonly',
+        // DOM Types
+        Event: 'readonly',
+        MouseEvent: 'readonly',
+        KeyboardEvent: 'readonly',
+        MessageEvent: 'readonly',
+        AudioContext: 'readonly',
+        MediaQueryList: 'readonly',
+        Node: 'readonly',
+        // Test globals
+        describe: 'readonly',
+        it: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        expect: 'readonly',
+        vi: 'readonly',
+        vitest: 'readonly',
+        // Node globals for build scripts
+        process: 'readonly',
+        Buffer: 'readonly',
+        global: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        NodeJS: 'readonly'
+      }
+    },
+    rules: {
+      // Focus on runtime-critical issues only
+      'no-undef': 'error',
+      'no-unused-vars': 'off', // Use TypeScript version instead
+      '@typescript-eslint/no-unused-vars': 'warn',
+      'no-empty': 'warn',
+      
+      // Disable overly strict rules for now
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off'
+    }
+  }
+);

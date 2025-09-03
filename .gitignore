@@ -1,44 +1,32 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
 # Dependencies
-node_modules
-dist
-dist-ssr
-*.local
+node_modules/
+*/node_modules/
 
 # Build outputs
+dist/
+*/dist/
 build/
-out/
-target/
+*/build/
 
-# Environment variables
+# Environment files
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# OS generated files
-Thumbs.db
-ehthumbs.db
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
 # Coverage directory used by tools like istanbul
 coverage/
@@ -49,6 +37,9 @@ coverage/
 
 # Dependency directories
 jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -89,12 +80,34 @@ jspm_packages/
 tmp/
 temp/
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Tauri build artifacts
-src-tauri/target/
-src-tauri/Cargo.lock
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Task management specific
+ops/tasks.yaml
+ops/tasks-backup-*.yaml
+ops/tasks-combined.yaml
+
+# Test results
+test-results/
+playwright-report/
+screenshots/
+
+# Semgrep results
+semgrep-*.json
+
+# Lint analysis
+lint-analysis.json

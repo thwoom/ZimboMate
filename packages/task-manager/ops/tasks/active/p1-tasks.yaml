@@ -1,0 +1,73 @@
+tasks:
+  - id: T-200
+    title: Create Debility and Ongoing Effect Tracker
+    intent: Implement tracking system for debilities, ongoing effects, and temporary
+      conditions in Dungeon World
+    owner: cursor-agent
+    status: in_progress
+    priority: P1
+    labels:
+      - feature
+      - core-mechanics
+      - conditions
+      - tracking
+    deps:
+      - T-007
+      - T-027
+    steps:
+      - Implement debility tracking (Weak, Shaky, Sick, Stunned, Confused,
+        Scarred)
+      - Create ongoing effect management (+1 forward, -1 ongoing, etc.)
+      - Build condition timer system for temporary effects
+      - Add automatic stat modifier calculations for debilities
+      - Implement visual indicators for active conditions
+      - Create condition resolution and removal workflows
+      - Add condition stacking and interaction rules
+      - Implement condition notifications and reminders
+    acceptance:
+      - All six debilities are tracked with automatic stat penalties
+      - Ongoing effects (+1 forward, -1 ongoing) are properly managed
+      - Temporary conditions have clear duration tracking
+      - Visual indicators show active conditions at a glance
+      - Stat calculations automatically include debility modifiers
+      - Condition resolution follows official DW rules exactly
+    artifacts:
+      - src/components/ConditionTracker.tsx
+      - src/services/ConditionService.ts
+      - src/models/Condition.ts
+      - src/utils/conditionCalculations.ts
+      - test/services/ConditionService.test.ts
+  - id: T-214
+    title: Enhanced Equipment Compendium Integration
+    intent: Integrate comprehensive equipment data from Dungeon World Compendium to
+      provide players with complete item information and mechanics
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - feature
+      - equipment
+      - compendium
+      - player-tools
+    deps:
+      - T-203
+    steps:
+      - Extract and integrate all equipment from DW Compendium (weapons, armor,
+        items)
+      - Implement equipment tag mechanics and effects
+      - Create equipment search and filtering by tags, categories, and properties
+      - Add equipment comparison tools for decision making
+      - Implement equipment requirements and restrictions
+      - Create equipment sets and loadout management
+    acceptance:
+      - All equipment from DW Compendium is available and searchable
+      - Equipment tags provide clear mechanical effects and descriptions
+      - Equipment comparison helps players make informed choices
+      - Equipment requirements are clearly displayed and validated
+      - Equipment sets allow quick switching between configurations
+    artifacts:
+      - src/data/equipmentCompendium.ts
+      - src/components/EquipmentCompendium.tsx
+      - src/services/EquipmentCompendiumService.ts
+      - src/utils/equipmentTagMechanics.ts
+      - test/data/equipmentCompendium.test.ts

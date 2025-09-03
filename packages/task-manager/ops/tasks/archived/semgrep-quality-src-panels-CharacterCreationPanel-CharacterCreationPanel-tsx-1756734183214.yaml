@@ -1,0 +1,55 @@
+id: semgrep-quality-src-panels-CharacterCreationPanel-CharacterCreationPanel-tsx-1756734183214
+title: "[Semgrep] Quality Issues in
+  src\\panels\\CharacterCreationPanel\\CharacterCreationPanel.tsx"
+description: >
+  **Summary:** 157 quality issues found in
+  src\panels\CharacterCreationPanel\CharacterCreationPanel.tsx
+
+
+  **Details:**
+
+  - Total Issues: 157
+
+  - Fixable Issues: 0
+
+  - Category: quality
+
+
+  **Issue Types:**
+
+  - Variable may be unused. Consider removing if not needed.: 152 instances
+
+  - Console.log found in production code. Consider removing or using proper
+  logging.: 5 instances
+
+
+  **Next Steps:**
+
+  1. Review the file for quality issues
+
+  2. Apply fixes for 0 auto-fixable issues
+
+  3. Address remaining issues manually
+
+  4. Mark this task as complete when all issues are resolved
+
+
+  **Run:** `npm run semgrep:autofix` to apply automatic fixes
+status: archived
+priority: low
+category: quality
+tags:
+  - semgrep
+  - static-analysis
+  - quality
+created: 2025-09-01T13:43:50.370Z
+updated: 2025-09-01T13:43:50.370Z
+metadata:
+archived: 2025-09-02T01:35:56.092Z
+archive_reason: "Automated Semgrep task archiving - moved to code quality backlog"
+metadata:
+  semgrep:
+    file: src\panels\CharacterCreationPanel\CharacterCreationPanel.tsx
+    line: 0
+    column: 0
+    checkId: quality

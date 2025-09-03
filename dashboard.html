@@ -84,6 +84,50 @@
       </div>
     </div>
 
+    <!-- Smart Task Prioritization -->
+    <div class="card">
+      <h2>🧠 Smart Task Recommendations</h2>
+      <div class="grid-2">
+        <div>
+          <h3 style="color: #4ade80; margin-bottom: 15px;">🎯 Next Task: T-196</h3>
+          <div style="background: #1f2937; padding: 15px; border-radius: 6px; border-left: 4px solid #4ade80;">
+            <h4 style="margin: 0 0 10px 0; color: #4ade80;">Implement Bond & Alignment XP Tracker</h4>
+            <p style="margin: 5px 0; color: #e0e0e0;"><strong>Priority:</strong> P1</p>
+            <p style="margin: 5px 0; color: #e0e0e0;"><strong>Status:</strong> In Progress</p>
+            <p style="margin: 5px 0; color: #e0e0e0;"><strong>Category:</strong> Core Mechanics</p>
+            <p style="margin: 5px 0; color: #888; font-size: 0.9em;">Create comprehensive tracking system for bond resolution and alignment-based XP triggers</p>
+            <button onclick="showTaskDetails('T-196')" class="btn btn-primary" style="margin-top: 10px;">View Full Details</button>
+          </div>
+        </div>
+        
+        <div>
+          <h3 style="color: #f97316; margin-bottom: 15px;">📋 Other In-Progress Tasks</h3>
+          <div style="max-height: 200px; overflow-y: auto;">
+            <div style="background: #1f2937; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #f97316;">
+              <h5 style="margin: 0 0 5px 0; color: #f97316;">T-200: Debility & Ongoing Effect Tracker</h5>
+              <p style="margin: 2px 0; font-size: 0.9em; color: #888;">P1 - Core mechanics for conditions</p>
+            </div>
+            <div style="background: #1f2937; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #f97316;">
+              <h5 style="margin: 0 0 5px 0; color: #f97316;">T-223: Advanced Character Levels</h5>
+              <p style="margin: 2px 0; font-size: 0.9em; color: #888;">P1 - High-level character creation</p>
+            </div>
+            <div style="background: #1f2937; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #f97316;">
+              <h5 style="margin: 0 0 5px 0; color: #f97316;">T-218: Enhanced Move Compendium</h5>
+              <p style="margin: 2px 0; font-size: 0.9em; color: #888;">P1 - Core gameplay mechanics</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 20px; padding: 15px; background: #1f2937; border-radius: 6px; border-left: 4px solid #60a5fa;">
+        <h4 style="margin: 0 0 10px 0; color: #60a5fa;">🧠 Smart Algorithm Logic</h4>
+        <p style="margin: 5px 0; color: #e0e0e0;"><strong>1.</strong> In-progress tasks take priority (4 active)</p>
+        <p style="margin: 5px 0; color: #e0e0e0;"><strong>2.</strong> Tasks blocking important dependents</p>
+        <p style="margin: 5px 0; color: #e0e0e0;"><strong>3.</strong> Most important unblocked tasks (P0/P1)</p>
+        <p style="margin: 5px 0; color: #888; font-size: 0.9em;">T-196 is recommended because it's in-progress, P1 priority, and unblocks T-197 (Roll History) and T-198 (Session Recap)</p>
+      </div>
+    </div>
+
     <!-- Code Quality & Security Status -->
     <div class="grid-2">
       <!-- ESLint Code Quality -->
@@ -560,9 +604,95 @@
     }, 10000);
   }
 
+  // Smart Task Functions
+  function showTaskDetails(taskId) {
+    const taskDetails = {
+      'T-196': {
+        title: 'Implement Bond & Alignment XP Tracker',
+        intent: 'Create comprehensive tracking system for bond resolution and alignment-based XP triggers',
+        priority: 'P1',
+        status: 'In Progress',
+        category: 'Core Mechanics',
+        deps: ['T-007', 'T-013'],
+        steps: [
+          'Create bond tracking interface with resolution workflow',
+          'Implement alignment XP trigger detection and notifications',
+          'Build bond editing and management system',
+          'Add XP award automation for bond resolution',
+          'Create alignment action logging and XP prompts',
+          'Implement bond relationship visualization',
+          'Add bond templates and suggestions for different character types',
+          'Create alignment guidance and examples for XP triggers'
+        ],
+        acceptance: [
+          'Users can create, edit, and resolve bonds with automatic XP awards',
+          'Alignment actions are tracked with XP trigger notifications',
+          'Bond resolution workflow is intuitive and follows DW rules',
+          'XP is automatically awarded when bonds are resolved',
+          'Alignment tracker helps players identify XP opportunities',
+          'Bond relationships are clearly displayed and manageable'
+        ],
+        artifacts: [
+          'src/components/BondTracker.tsx',
+          'src/components/AlignmentXPTracker.tsx',
+          'src/services/BondService.ts',
+          'src/data/bondTemplates.ts',
+          'test/components/BondTracker.test.ts'
+        ]
+      }
+    };
+    
+    const task = taskDetails[taskId];
+    if (task) {
+      let detailsHtml = `
+        <div style="background: #1f2937; padding: 20px; border-radius: 8px; max-width: 600px; margin: 20px auto;">
+          <h3 style="color: #4ade80; margin-bottom: 15px;">${task.title}</h3>
+          <p style="color: #888; margin-bottom: 15px;">${task.intent}</p>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div><strong>Priority:</strong> ${task.priority}</div>
+            <div><strong>Status:</strong> ${task.status}</div>
+            <div><strong>Category:</strong> ${task.category}</div>
+            <div><strong>Dependencies:</strong> ${task.deps.join(', ')}</div>
+          </div>
+          
+          <h4 style="color: #f97316; margin-bottom: 10px;">Steps:</h4>
+          <ul style="margin-bottom: 20px;">
+            ${task.steps.map(step => `<li style="margin-bottom: 5px;">${step}</li>`).join('')}
+          </ul>
+          
+          <h4 style="color: #f97316; margin-bottom: 10px;">Acceptance Criteria:</h4>
+          <ul style="margin-bottom: 20px;">
+            ${task.acceptance.map(criteria => `<li style="margin-bottom: 5px;">${criteria}</li>`).join('')}
+          </ul>
+          
+          <h4 style="color: #f97316; margin-bottom: 10px;">Artifacts:</h4>
+          <ul style="margin-bottom: 20px;">
+            ${task.artifacts.map(artifact => `<li style="margin-bottom: 5px; font-family: monospace;">${artifact}</li>`).join('')}
+          </ul>
+          
+          <button onclick="this.parentElement.remove()" class="btn btn-secondary" style="width: 100%;">Close Details</button>
+        </div>
+      `;
+      
+      // Create modal overlay
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;';
+      modal.innerHTML = detailsHtml;
+      document.body.appendChild(modal);
+      
+      // Close on background click
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+    }
+  }
+
   // Initialize dashboard
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎯 ZimboMate Dashboard loaded with automation triggers!');
+    console.log('🎯 ZimboMate Dashboard loaded with smart task prioritization!');
   });
   </script>
 </body>

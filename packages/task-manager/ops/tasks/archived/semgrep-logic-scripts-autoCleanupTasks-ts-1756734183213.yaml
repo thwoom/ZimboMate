@@ -1,0 +1,54 @@
+id: semgrep-logic-scripts-autoCleanupTasks-ts-1756734183213
+title: "[Semgrep] Logic Issues in scripts\\autoCleanupTasks.ts"
+description: >
+  **Summary:** 2 logic issues found in scripts\autoCleanupTasks.ts
+
+
+  **Details:**
+
+  - Total Issues: 2
+
+  - Fixable Issues: 0
+
+  - Category: logic
+
+
+  **Issue Types:**
+
+  - File path may be vulnerable to traversal attacks. Validate path.: 1
+  instances
+
+  - YAML parsing without validation. Consider validating input structure.: 1
+  instances
+
+
+  **Next Steps:**
+
+  1. Review the file for logic issues
+
+  2. Apply fixes for 0 auto-fixable issues
+
+  3. Address remaining issues manually
+
+  4. Mark this task as complete when all issues are resolved
+
+
+  **Run:** `npm run semgrep:autofix` to apply automatic fixes
+status: archived
+priority: medium
+category: logic
+tags:
+  - semgrep
+  - static-analysis
+  - logic
+created: 2025-09-01T13:43:50.344Z
+updated: 2025-09-01T13:43:50.344Z
+metadata:
+archived: 2025-09-02T01:35:56.060Z
+archive_reason: "Automated Semgrep task archiving - moved to code quality backlog"
+metadata:
+  semgrep:
+    file: scripts\autoCleanupTasks.ts
+    line: 0
+    column: 0
+    checkId: logic
