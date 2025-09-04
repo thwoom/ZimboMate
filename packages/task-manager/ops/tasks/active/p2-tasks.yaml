@@ -314,7 +314,7 @@ tasks:
       Make the Moves panel show only relevant moves and spells for the
       character's class
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature

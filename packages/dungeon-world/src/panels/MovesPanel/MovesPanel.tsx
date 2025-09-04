@@ -453,10 +453,10 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                 isOpen={spellModal.open}
                 spellName={spellModal.spell?.name || ''}
                 casterClass={(character?.class as string) === 'Cleric' ? 'Cleric' : 'Wizard'}
-                onConfirm={(choice) => {
+                onConfirm={(choice: 'unwelcome-attention' | 'forget' | 'strain') => {
                   if (!character || !spellModal.spell)
                     return
-                  const post = spellCastingService.applySevenToNineConsequence(character, spellModal.spell, choice as string)
+                  const post = spellCastingService.applySevenToNineConsequence(character, spellModal.spell, choice)
                   updateCharacter(character.id, { preparedSpells: post.preparedSpells, conditions: post.conditions, xp: post.xp })
                   setSpellModal({ open: false })
                 }}
@@ -537,12 +537,12 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                 <h3>📊 Roll Insights</h3>
                 <div className="insights-list">
                   {insights.slice(0, 5).map((item, index) => (
-                    <div key={index} className={`insight-item ${insight.severity}`}>
+                    <div key={index} className={`insight-item ${item.severity}`}>
                       <div className="insight-header">
-                        <span className="insight-title">{insight.title}</span>
-                        <span className="insight-type">{insight.type}</span>
+                        <span className="insight-title">{item.title}</span>
+                        <span className="insight-type">{item.type}</span>
                       </div>
-                      <div className="insight-description">{insight.description}</div>
+                      <div className="insight-description">{item.description}</div>
                     </div>
                   ))}
                 </div>
