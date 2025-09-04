@@ -22,7 +22,7 @@ import { smartMoveSuggestionService } from '../../services/SmartMoveSuggestionSe
 import { spellCastingService } from '../../services/SpellCastingService'
 import { getSpellsForClass } from '../../services/Spells'
 import { useGameStore } from '../../store/GameStore'
-import { filterMovesByClass } from '../../utils/conditionalContent'
+import { filterMovesByClass, getClassMapping } from '../../utils/conditionalContent'
 import { registerShortcut, setActiveScope } from '../../utils/KeyboardShortcuts'
 import './MovesPanel.css'
 
@@ -243,6 +243,13 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
   // (expand/collapse behavior handled within MoveCard)
 
   const filteredMoves = getFilteredMoves()
+  const preferredCategories = character && getClassMapping((character.class as any))?.moves.preferredCategories
+  const classMoves = character && !panelState.showAll
+    ? filteredMoves.filter(m => (preferredCategories as any)?.includes((m.category as any)))
+    : []
+  const otherMoves = character && !panelState.showAll
+    ? filteredMoves.filter(m => !(preferredCategories as any)?.includes((m.category as any)))
+    : filteredMoves
 
   const renderSpellSection = () => {
     if (!character || !isCaster)
@@ -551,18 +558,42 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                     </div>
                   )
                 : (
-                    filteredMoves.map(move => (
-                      <div key={move.id} onContextMenu={e => openContextMenu(e, move)}>
-                        <MoveCard
-                          move={move}
-                          character={character}
-                          onRoll={handleRoll}
-                          onUse={handleUseMove}
-                          expanded={panelState.expandedMoves.has(move.id)}
-                          className="moves-list__item"
-                        />
+                    <>
+                      {character && !panelState.showAll && classMoves.length > 0 && (
+                        <div className="moves-group">
+                          <h3>Class Moves</h3>
+                          {classMoves.map(move => (
+                            <div key={move.id} onContextMenu={e => openContextMenu(e, move)}>
+                              <MoveCard
+                                move={move}
+                                character={character}
+                                onRoll={handleRoll}
+                                onUse={handleUseMove}
+                                expanded={panelState.expandedMoves.has(move.id)}
+                                className="moves-list__item"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="moves-group">
+                        {character && !panelState.showAll && classMoves.length > 0 && (
+                          <h3>Other Moves</h3>
+                        )}
+                        {(character && !panelState.showAll ? otherMoves : filteredMoves).map(move => (
+                          <div key={move.id} onContextMenu={e => openContextMenu(e, move)}>
+                            <MoveCard
+                              move={move}
+                              character={character}
+                              onRoll={handleRoll}
+                              onUse={handleUseMove}
+                              expanded={panelState.expandedMoves.has(move.id)}
+                              className="moves-list__item"
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))
+                    </>
                   )}
             </div>
 
