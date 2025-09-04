@@ -1,15 +1,16 @@
 import type { PanelProps } from '../../framework/Panel'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import LevelUpModal from '../../components/LevelUpModal'
 import { createPanel } from '../../framework/Panel'
-import { createPanelAPI } from '../../framework/PanelAPI'
+import { createPanelAPI, loadPanelState, savePanelState } from '../../framework/PanelAPI'
 import { SpecialMovesService } from '../../services/SpecialMovesService'
 import { spellCastingService } from '../../services/SpellCastingService'
 import { useGameStore } from '../../store/GameStore'
 import { getClassMapping, isCaster } from '../../utils/conditionalContent'
 import { getAttributeTooltip, getEncumbranceTier, getSpellBudgetProgress, getXpToNext } from '../../utils/statsPanelHelpers'
+import { getClassBaseLoad, getEffectiveModifier as getEffectiveModifierModel, getXPThreshold } from '../../models/Character'
 import './CharacterStatsPanel.css'
 import Tooltip from '../../components/Tooltip'
 
@@ -63,6 +64,15 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   // Get the active character from the game state
   const character = gameState.activeCharacterId ? gameState.characters[gameState.activeCharacterId] : null
 
+  // restore persisted section toggles
+  const persisted = loadPanelState(id + ':stats', { sections: { showSpellcasting: true, showClassFocus: true } }) as any
+  const [sections, setSections] = useState<{ showSpellcasting: boolean; showClassFocus: boolean }>(persisted.sections)
+  const toggleSection = useCallback((key: keyof typeof sections) => {
+    const next = { ...sections, [key]: !sections[key] }
+    setSections(next)
+    savePanelState(id + ':stats', { sections: next })
+  }, [sections, id])
+
   // Default state with migration for old data
   const defaultState: CharacterStatsPanelState = {
     name: 'Unnamed Hero',
@@ -109,97 +119,47 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   }
 
   // Calculate attribute modifiers
-  const getModifier = (score: number): number => {
-    if (score <= 3)
-      return -3
-    if (score <= 5)
-      return -2
-    if (score <= 8)
-      return -1
-    if (score <= 12)
-      return 0
-    if (score <= 15)
-      return 1
-    if (score <= 17)
-      return 2
-    return 3
-  }
-
-  // Apply debility penalties
   const getEffectiveModifier = useCallback((attribute: keyof typeof state.attributes): number => {
-    let modifier = getModifier(state.attributes[attribute])
-
-    // Apply debility penalties
-    if (attribute === 'STR' && state.debilities.weak)
-      modifier -= 1
-    if (attribute === 'DEX' && state.debilities.shaky)
-      modifier -= 1
-    if (attribute === 'CON' && state.debilities.sick)
-      modifier -= 1
-    if (attribute === 'INT' && state.debilities.confused)
-      modifier -= 1
-    if (attribute === 'WIS' && state.debilities.scarred)
-      modifier -= 1
-    if (attribute === 'CHA' && state.debilities.stunned)
-      modifier -= 1
-
-    return modifier
+    return getEffectiveModifierModel(attribute as any, state.attributes, state.debilities)
   }, [state.attributes, state.debilities])
 
   // Calculate max load based on class base + STR modifier
   const calculateMaxLoad = useCallback(() => {
-    // Base load by class (DW rules)
-    const classBaseLoad: Record<string, number> = {
-      Fighter: 12,
-      Paladin: 12,
-      Ranger: 11,
-      Barbarian: 8,
-      Cleric: 10,
-      Druid: 6,
-      Wizard: 7,
-      Bard: 9,
-      Thief: 9,
-      default: 10,
-    }
-
-    const baseLoad = classBaseLoad[state.class] || classBaseLoad.default
+    const baseLoad = getClassBaseLoad((state.class as any))
     const strModifier = getEffectiveModifier('STR')
     return baseLoad + strModifier
   }, [state.class, getEffectiveModifier])
 
+  // Memoized derived values
+  const xpThreshold = useMemo(() => getXPThreshold((character?.level ?? state.level) as number), [character?.level, state.level])
+  const maxLoadMemo = useMemo(() => calculateMaxLoad(), [calculateMaxLoad])
+
   const handleHpChange = useCallback((delta: number) => {
     const newHp = Math.max(0, Math.min(state.maxHp, state.hp + delta))
-    if (onStateChange) {
+    if (character) {
+      updateCharacter(character.id, { hp: { ...character.hp, current: newHp } })
+    } else if (onStateChange) {
       onStateChange({ ...state, hp: newHp })
     }
 
-    // Emit event for other panels
     api.send('hp-changed', { hp: newHp, maxHp: state.maxHp })
-
-    // Check for Last Breath
     if (newHp === 0 && state.hp > 0) {
       api.send('last-breath-triggered', { character: state.name })
     }
-  }, [state, onStateChange, api])
+  }, [state, onStateChange, api, character, updateCharacter])
 
   const handleAddXP = useCallback(() => {
-    if (!character)
-      return
-
-    const newXP = character.xp + 1;
-    (updateCharacter as string)(state.id, { xp: newXP })
-
-    // Check for level up
-    if (SpecialMovesService.canLevelUp({ ...state, xp: newXP })) {
-      api.send('level-up-available', { character: state.name, level: state.level })
+    if (!character) return
+    const newXP = character.xp + 1
+    updateCharacter(character.id, { xp: newXP })
+    if (SpecialMovesService.canLevelUp({ ...character, xp: newXP })) {
+      api.send('level-up-available', { character: character.name, level: character.level })
     }
   }, [character, updateCharacter, api])
 
   const handleRest = useCallback(() => {
-    if (!character)
-      return;
-
-    (updateCharacter as string)(character.id, { hp: { ...character.hp, current: character.hp.max } })
+    if (!character) return
+    updateCharacter(character.id, { hp: { ...character.hp, current: character.hp.max } })
     api.send('character-rested', { character: character.name })
   }, [character, updateCharacter, api])
 
@@ -395,7 +355,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   }, [isActive, handleHpChange, handleAddXP, handleRest, rollAttribute, api])
 
   // Use character from game store if available, otherwise fall back to local state
-  const displayCharacter = character || {
+  const displayCharacter = useMemo(() => character || {
     name: state.name,
     class: state.class,
     level: state.level,
@@ -404,12 +364,12 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
     armor: state.armor,
     damageDie: state.damage,
     xp: state.xp,
-    load: { current: state.load, max: calculateMaxLoad() },
+    load: { current: state.load, max: maxLoadMemo },
     attributes: state.attributes,
     debilities: state.debilities,
-  }
+  }, [character, state.name, state.class, state.level, state.alignment, state.hp, state.maxHp, state.armor, state.damage, state.xp, state.load, maxLoadMemo, state.attributes, state.debilities])
 
-  const classMap = getClassMapping((displayCharacter.class as any))
+  const classMap = useMemo(() => getClassMapping((displayCharacter.class as any)), [displayCharacter.class])
   const highlightStats = classMap?.statsHighlight || []
   const caster = isCaster(character as any)
   const preparedCount = (character?.preparedSpells || []).length
@@ -418,6 +378,9 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
 
   return (
     <div className="character-stats-panel">
+      <div aria-live="polite" className="aria-live-region">
+        HP {state.hp} of {state.maxHp}. XP {displayCharacter.xp} of {displayCharacter.level + 7}.
+      </div>
       {/* Character Header */}
       <div className="character-header">
         <h2 className="character-name">{displayCharacter.name}</h2>
@@ -457,9 +420,11 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             </button>
           </div>
           <div className="hp-bar">
-            <div
-              className={`hp-bar__fill ${getHpClass()}`}
-              style={{ '--hp-progress': `${(state.hp / state.maxHp) * 100}%` } as React.CSSProperties}
+            <progress
+              className={`hp-progress ${getHpClass()}`}
+              max={state.maxHp}
+              value={state.hp}
+              aria-label="HP progress"
             />
           </div>
         </div>
@@ -498,9 +463,11 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             </div>
           </div>
           <div className="xp-bar">
-            <div
-              className="xp-bar__fill"
-              style={{ '--xp-progress': `${(displayCharacter.xp / (displayCharacter.level + 7)) * 100}%` } as React.CSSProperties}
+            <progress
+              className="xp-progress"
+              max={displayCharacter.level + 7}
+              value={displayCharacter.xp}
+              aria-label="XP progress"
             />
           </div>
           <div className="quick-actions">
@@ -521,15 +488,17 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
           <div className="load-display">
             <span className="load-current">{state.load}</span>
             <span className="load-separator">/</span>
-            <span className="load-max">{calculateMaxLoad()}</span>
+            <span className="load-max">{maxLoadMemo}</span>
           </div>
           <div className="load-bar">
-            <div
-              className={`load-bar__fill ${state.load > calculateMaxLoad() ? 'overloaded' : ''}`}
-              style={{ '--load-progress': `${(state.load / calculateMaxLoad()) * 100}%` } as React.CSSProperties}
+            <progress
+              className={`load-progress ${state.load > maxLoadMemo ? 'overloaded' : ''}`}
+              max={maxLoadMemo}
+              value={state.load}
+              aria-label="Load progress"
             />
           </div>
-          {state.load > calculateMaxLoad() && (
+          {state.load > maxLoadMemo && (
             <div className="load-warning">Encumbered!</div>
           )}
           <div className="load-details">
@@ -538,12 +507,12 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
           </div>
           <div className="load-details">
             <span className="stat-label">Encumbrance:</span>
-            <span className="stat-value">{getEncumbranceTier(state.load, calculateMaxLoad()) === 'encumbered' ? 'Encumbered' : 'OK'}</span>
+            <span className="stat-value">{getEncumbranceTier(state.load, maxLoadMemo) === 'encumbered' ? 'Encumbered' : 'OK'}</span>
           </div>
         </div>
 
         {/* Spellcasting (for casters) */}
-        {caster && character && (
+        {sections.showSpellcasting && caster && character && (
           <div className="stat-card">
             <h3> Spellcasting</h3>
             <div className="combat-stats">
@@ -557,9 +526,11 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
               </div>
             </div>
             <div className="xp-bar">
-              <div
-                className="xp-bar__fill"
-                style={{ '--xp-progress': `${getSpellBudgetProgress(preparedCount, spellBudget)}%` } as React.CSSProperties}
+              <progress
+                className="xp-progress"
+                max={Math.max(1, spellBudget)}
+                value={Math.min(spellBudget, preparedCount)}
+                aria-label="Spell budget progress"
               />
             </div>
             <div className="quick-actions">
@@ -608,7 +579,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
       </div>
 
       {/* Class Focus */}
-      {classMap && (
+      {sections.showClassFocus && classMap && (
         <div className="class-focus-section">
           <h3> Class Focus</h3>
           <div className="class-focus-grid">

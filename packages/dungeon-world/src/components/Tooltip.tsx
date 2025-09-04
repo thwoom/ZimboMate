@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import './Tooltip.css'
 
 interface TooltipProps {
   content: string
@@ -22,7 +23,7 @@ const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
   }, [])
 
   return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
+    <span className="tooltip-wrapper">
       {React.cloneElement(children, {
         'onMouseEnter': show,
         'onMouseLeave': hide,
@@ -31,13 +32,7 @@ const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
         'aria-describedby': visible ? id : undefined,
       })}
       {visible && (
-        <span
-          id={id}
-          role="tooltip"
-          style={{ position: 'absolute', bottom: '100%', left: 0, transform: 'translateY(-6px)', background: '#111', color: '#fff', padding: '4px 8px', fontSize: 12, borderRadius: 4, whiteSpace: 'nowrap', pointerEvents: 'none' }}
-        >
-          {content}
-        </span>
+        <span id={id} role="tooltip" className="tooltip-bubble">{content}</span>
       )}
     </span>
   )

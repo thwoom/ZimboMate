@@ -378,7 +378,7 @@ tasks:
     title: Implement Conditional Character Stats Panel Content
     intent: Adapt the character stats panel to show class-relevant information
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature
