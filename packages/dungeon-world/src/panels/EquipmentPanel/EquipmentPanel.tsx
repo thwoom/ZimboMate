@@ -9,6 +9,9 @@ import { createPanel } from '../../framework/Panel'
 import { createPanelAPI } from '../../framework/PanelAPI'
 import { equipmentCalculationService } from '../../services/EquipmentCalculations'
 import { useGameStore } from '../../store/GameStore'
+import { equipmentFilteringService } from '../../services/EquipmentFilteringService'
+import { loadPanelState, savePanelState } from '../../framework/PanelAPI'
+import { registerShortcut, setActiveScope } from '../../utils/KeyboardShortcuts'
 import './EquipmentPanel.css'
 
 // Item tags from Dungeon World
@@ -37,6 +40,8 @@ export interface EquipmentItem {
 interface EquipmentPanelState {
   items: EquipmentItem[]
   showDetails: string | null // ID of item to show details for
+  showAll: boolean
+  searchTerm: string
 }
 
 const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState }> = ({
@@ -46,6 +51,9 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
 }) => {
   const api = createPanelAPI(id)
   const { state: gameState, setCharacter } = useGameStore()
+
+  // Persisted UI state
+  const persisted = loadPanelState<Pick<EquipmentPanelState, 'showAll' | 'searchTerm'>>(id, { showAll: false, searchTerm: '' })
 
   // Get the active character from the game state
   const character = gameState.activeCharacterId ? gameState.characters[gameState.activeCharacterId] : null
@@ -105,12 +113,15 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
       },
     ],
     showDetails: null,
+    showAll: persisted.showAll,
+    searchTerm: persisted.searchTerm,
   }
 
   const state = { ...defaultState, ...panelState }
 
   // Use character inventory if available, otherwise fall back to panel state
-  const displayItems = character?.inventory || state.items
+  let displayItems = character?.inventory || state.items
+  displayItems = equipmentFilteringService.filterForCharacter(character as any, displayItems as any, { showAll: state.showAll, searchTerm: state.searchTerm }) as any
 
   // Calculate equipment stats using the enhanced service
   const equipmentStats: EquipmentStats | null = character
@@ -135,6 +146,22 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
     api.send('equipment-armor-changed', { totalArmor })
     api.send('equipment-damage-changed', { damageItems })
   }, [totalWeight, totalArmor, state.items, api, damageItems])
+
+  // Persist UI state
+  React.useEffect(() => {
+    savePanelState(id, { showAll: state.showAll, searchTerm: state.searchTerm })
+  }, [id, state.showAll, state.searchTerm])
+
+  // Keyboard scope and shortcut
+  const searchRef = React.useRef<HTMLInputElement>(null)
+  React.useEffect(() => {
+    setActiveScope(id)
+    const unReg = registerShortcut({ combo: '/', handler: () => searchRef.current?.focus(), scope: id, preventDefault: true })
+    return () => {
+      setActiveScope(null)
+      unReg()
+    }
+  }, [id])
 
   // Listen for items being equipped from inventory
   React.useEffect(() => {
@@ -259,11 +286,32 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
     <div className="equipment-panel">
       <div className="equipment-header">
         <h2> Equipment</h2>
+        <div className="equipment-controls">
+          <input
+            type="text"
+            placeholder="Search equipment..."
+            value={state.searchTerm}
+            onChange={e => onStateChange?.({ ...state, searchTerm: e.target.value })}
+            className="search-input"
+            ref={searchRef}
+          />
+          {character && (
+            <label className="show-all-toggle">
+              <input
+                type="checkbox"
+                checked={state.showAll}
+                onChange={e => onStateChange?.({ ...state, showAll: e.target.checked })}
+              />{' '}
+              Show all (ignore class rules)
+            </label>
+          )}
+        </div>
         {character && (
           <button
             className="btn btn-secondary auto-equip-btn"
             onClick={handleAutoEquip}
             title="Automatically equip optimal gear for your character"
+            type="button"
           >
             🎯 Auto-Equip
           </button>
@@ -311,47 +359,98 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
       </div>
 
       <div className="equipment-list">
-        {displayItems.length === 0
-          ? (
-              <div className="empty-state">
-                <p> No equipment currently equipped.</p>
-                <p className="empty-hint">Visit the Inventory panel to equip items.</p>
-              </div>
-            )
-          : (
-              <div className="equipment-grid">
-                {displayItems.map((item: EquipmentItem) => (
-                  <div key={item.id} className="equipment-item">
-                    <div className="item-header">
-                      <span className="item-name">{item.name}</span>
-                      <span className="item-weight">
-                        {item.weight}
-                        {' '}
-                        weight
-                      </span>
+        {displayItems.length === 0 ? (
+          <div className="empty-state">
+            <p> No equipment currently equipped.</p>
+            <p className="empty-hint">Visit the Inventory panel to equip items.</p>
+          </div>
+        ) : (
+          (() => {
+            const groups = equipmentFilteringService.groupByCategory(displayItems as any)
+            const spellComponents = equipmentFilteringService.getSpellComponents(character as any, displayItems as any)
+            return (
+              <>
+                {character && spellComponents.length > 0 && !state.showAll && (
+                  <div className="equipment-group">
+                    <h3>Spell Components & Consumables</h3>
+                    <div className="equipment-grid">
+                      {spellComponents.map((item: any) => (
+                        <div key={item.id} className="equipment-item">
+                          <div className="item-header">
+                            <span className="item-name">{item.name}</span>
+                            <span className="item-weight">{item.weight} weight</span>
+                          </div>
+                          <div className="item-tags">
+                            <TagDisplay tags={convertToTags((item.tags as any) ?? [])} showTooltips={true} onUseDecrement={() => handleUseDecrement(item.id)} />
+                          </div>
+                          <div className="item-properties">{getItemProperties(item as any).join(' • ')}</div>
+                          {item.description && <div className="item-description">{item.description}</div>}
+                        </div>
+                      ))}
                     </div>
-
-                    <div className="item-tags">
-                      <TagDisplay
-                        tags={convertToTags(item.tags)}
-                        showTooltips={true}
-                        onUseDecrement={() => handleUseDecrement(item.id)}
-                      />
-                    </div>
-
-                    <div className="item-properties">
-                      {getItemProperties(item).join(' • ')}
-                    </div>
-
-                    {item.description && (
-                      <div className="item-description">
-                        {item.description}
-                      </div>
-                    )}
                   </div>
-                ))}
-              </div>
-            )}
+                )}
+
+                <div className="equipment-group">
+                  <h3>Weapons</h3>
+                  <div className="equipment-grid">
+                    {groups.weapons.map((item: any) => (
+                      <div key={item.id} className="equipment-item">
+                        <div className="item-header">
+                          <span className="item-name">{item.name}</span>
+                          <span className="item-weight">{item.weight} weight</span>
+                        </div>
+                        <div className="item-tags">
+                          <TagDisplay tags={convertToTags((item.tags as any) ?? [])} showTooltips={true} onUseDecrement={() => handleUseDecrement(item.id)} />
+                        </div>
+                        <div className="item-properties">{getItemProperties(item as any).join(' • ')}</div>
+                        {item.description && <div className="item-description">{item.description}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="equipment-group">
+                  <h3>Armor</h3>
+                  <div className="equipment-grid">
+                    {groups.armor.map((item: any) => (
+                      <div key={item.id} className="equipment-item">
+                        <div className="item-header">
+                          <span className="item-name">{item.name}</span>
+                          <span className="item-weight">{item.weight} weight</span>
+                        </div>
+                        <div className="item-tags">
+                          <TagDisplay tags={convertToTags((item.tags as any) ?? [])} showTooltips={true} onUseDecrement={() => handleUseDecrement(item.id)} />
+                        </div>
+                        <div className="item-properties">{getItemProperties(item as any).join(' • ')}</div>
+                        {item.description && <div className="item-description">{item.description}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="equipment-group">
+                  <h3>Gear</h3>
+                  <div className="equipment-grid">
+                    {groups.gear.map((item: any) => (
+                      <div key={item.id} className="equipment-item">
+                        <div className="item-header">
+                          <span className="item-name">{item.name}</span>
+                          <span className="item-weight">{item.weight} weight</span>
+                        </div>
+                        <div className="item-tags">
+                          <TagDisplay tags={convertToTags((item.tags as any) ?? [])} showTooltips={true} onUseDecrement={() => handleUseDecrement(item.id)} />
+                        </div>
+                        <div className="item-properties">{getItemProperties(item as any).join(' • ')}</div>
+                        {item.description && <div className="item-description">{item.description}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )
+          })()
+        )}
       </div>
 
       {/* Item Details Modal */}
