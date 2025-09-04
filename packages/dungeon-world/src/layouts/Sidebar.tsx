@@ -3,6 +3,8 @@ import type { PanelMetadata } from '../framework/Panel'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { panelRegistry } from '../framework/PanelRegistry'
+import { useGameStore } from '../store/GameStore'
+import { filterPanelsForCharacter } from '../utils/navigationFilter'
 import './Sidebar.css'
 
 interface SidebarProps {
@@ -12,6 +14,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
   const [panels, setPanels] = useState <PanelMetadata[]>([])
+  const { state } = useGameStore()
 
   useEffect(() => {
     // Get initial panels sorted by priority
@@ -31,7 +34,9 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
         }
       }
 
-      setPanels(uniquePanels)
+      // Apply conditional navigation filter
+      const filtered = filterPanelsForCharacter(uniquePanels, state)
+      setPanels(filtered)
     }
 
     updatePanels()
@@ -42,7 +47,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
     })
 
     return unsubscribe
-  }, [])
+  }, [state])
 
   // Memoize the panel list to prevent unnecessary re-renders
   const memoizedPanels = useMemo(() => panels, [panels])
