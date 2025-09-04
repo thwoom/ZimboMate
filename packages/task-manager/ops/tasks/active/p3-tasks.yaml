@@ -393,3 +393,36 @@ tasks:
       - src/data/analyticsMetrics.ts
       - src/utils/performanceAnalysis.ts
       - test/services/PerformanceAnalyticsService.test.ts
+  - id: T-226
+    title: User Settings Expansion (A11y, Shortcuts, Navigation, Notifications)
+    intent: Add a comprehensive user settings suite to improve accessibility, control, and UX polish
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - settings
+      - accessibility
+      - ux
+    deps:
+      - T-186
+    steps:
+      - Add Accessibility options: high-contrast theme, reduced motion, UI scale, tooltip delay
+      - Add Keyboard options: editable shortcuts, cheat sheet toggle, scope-locking
+      - Add Panels & Navigation: custom panel order, pin favorites, auto-collapse sections, restore last panel
+      - Add Dice & Rolling: dice skin/sound, animation speed, auto-XP on failure toggle
+      - Add Notifications: toast vs silent, sound cues, do-not-disturb during rolls
+      - Add Autosave & Backups: interval, rotating backups, snapshot slots
+    acceptance:
+      - Settings persist across sessions and reflect immediately in UI
+      - All toggles have clear labels and ARIA support
+      - Shortcut edits are validated and conflict-checked
+      - Panel order and pinned items are restored on reload
+      - Notifications and autosave behave per user configuration
+    artifacts:
+      - src/panels/SettingsPanel/AccessibilitySettings.tsx
+      - src/panels/SettingsPanel/ShortcutsSettings.tsx
+      - src/panels/SettingsPanel/NavigationSettings.tsx
+      - src/panels/SettingsPanel/NotificationsSettings.tsx
+      - src/panels/SettingsPanel/AutosaveSettings.tsx
+      - src/store/settings.ts
+      - test/panels/SettingsPanel/*.test.ts

@@ -346,7 +346,7 @@ tasks:
     title: Implement Conditional Equipment Panel Content
     intent: Show class-appropriate equipment sections and suggestions
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature
