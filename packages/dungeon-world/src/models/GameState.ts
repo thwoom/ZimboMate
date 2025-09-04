@@ -33,6 +33,12 @@ export interface AppSettings {
       stats: { overrideEnabled: boolean; showSpells: boolean }
     }
   }
+  sidebarPrefs?: {
+    favorites: string[]
+    collapsedSections: string[]
+    order: string[]
+    recents: string[]
+  }
 }
 
 // Complete game state
@@ -153,6 +159,12 @@ export function createInitialGameState(): GameState {
           equipment: { overrideEnabled: false, showAll: false },
           stats: { overrideEnabled: false, showSpells: false },
         },
+      },
+      sidebarPrefs: {
+        favorites: [],
+        collapsedSections: [],
+        order: [],
+        recents: [],
       },
     },
     version: '1.0.0',
