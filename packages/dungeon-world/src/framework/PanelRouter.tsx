@@ -277,6 +277,21 @@ export const PanelRouter: React.FC <PanelRouterProps> = ({
     }
   }, [activePanelId])
 
+  // Global navigation event: allow panels to request navigation
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const custom = e as CustomEvent<{ id: string }>
+        const targetId = custom.detail?.id
+        if (targetId && onPanelChange) onPanelChange(targetId)
+      }
+      catch {
+      }
+    }
+    window.addEventListener('navigate-panel', handler as EventListener)
+    return () => window.removeEventListener('navigate-panel', handler as EventListener)
+  }, [onPanelChange])
+
   // Get the active panel
   const activePanel = panelRegistry.getPanel(activePanelId)
   if (!activePanel) {

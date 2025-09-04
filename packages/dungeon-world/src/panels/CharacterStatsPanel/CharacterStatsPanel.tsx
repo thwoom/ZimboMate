@@ -9,6 +9,7 @@ import { SpecialMovesService } from '../../services/SpecialMovesService'
 import { spellCastingService } from '../../services/SpellCastingService'
 import { useGameStore } from '../../store/GameStore'
 import { getClassMapping, isCaster } from '../../utils/conditionalContent'
+import { getAttributeTooltip, getEncumbranceTier, getSpellBudgetProgress, getXpToNext } from '../../utils/statsPanelHelpers'
 import './CharacterStatsPanel.css'
 import Tooltip from '../../components/Tooltip'
 
@@ -413,6 +414,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   const caster = isCaster(character as any)
   const preparedCount = (character?.preparedSpells || []).length
   const spellBudget = character ? spellCastingService.getPreparationBudget(character) : 0
+  const xpToNext = getXpToNext(displayCharacter.level as number, displayCharacter.xp as number)
 
   return (
     <div className="character-stats-panel">
@@ -491,6 +493,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
                 {displayCharacter.xp}
                 /
                 {displayCharacter.level + 7}
+                {' '}({getXpToNext(displayCharacter.level as number, displayCharacter.xp as number)} to next)
               </span>
             </div>
           </div>
@@ -533,6 +536,10 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             <span className="stat-label">Max Load Formula:</span>
             <span className="stat-value">Base({displayCharacter.class}) + STR mod</span>
           </div>
+          <div className="load-details">
+            <span className="stat-label">Encumbrance:</span>
+            <span className="stat-value">{getEncumbranceTier(state.load, calculateMaxLoad()) === 'encumbered' ? 'Encumbered' : 'OK'}</span>
+          </div>
         </div>
 
         {/* Spellcasting (for casters) */}
@@ -548,6 +555,15 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
                 <span className="stat-label">Budget (levels):</span>
                 <span className="stat-value">{spellBudget}</span>
               </div>
+            </div>
+            <div className="xp-bar">
+              <div
+                className="xp-bar__fill"
+                style={{ '--xp-progress': `${getSpellBudgetProgress(preparedCount, spellBudget)}%` } as React.CSSProperties}
+              />
+            </div>
+            <div className="quick-actions">
+              <a href="#spells" className="action-link" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('navigate-panel', { detail: { id: 'spells' } } as any)) }}>Open Spells</a>
             </div>
             {character.conditions?.includes('spellcasting-strain') && (
               <div className="load-warning">Spellcasting Strain (-1 ongoing to Cast a Spell)</div>
@@ -573,7 +589,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
 
             return (
               <div key={attr} className={`attribute-card ${highlightStats.includes(attr as any) ? 'attribute-card--highlight' : ''}`}>
-                <Tooltip content={highlightStats.includes(attr as any) ? 'Class-relevant attribute' : 'Attribute'}>
+                <Tooltip content={highlightStats.includes(attr as any) ? getAttributeTooltip(attr as any) : 'Attribute'}>
                   <button
                     className={`attribute-button ${hasDebility ? 'attribute-button--debility' : ''}`}
                     title={`Roll 2d6${formatModifier(modifier)}`}
@@ -603,6 +619,15 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             <div className="focus-item">
               <span className="stat-label">Armor Training:</span>
               <span className="stat-value">{classMap.equipment.armorTraining ? 'Yes' : 'No'}</span>
+            </div>
+            <div className="focus-item">
+              <span className="stat-label">Why it matters:</span>
+              <span className="stat-value">
+                {(classMap.statsHighlight || []).length > 0
+                  ? 'These attributes enhance core class moves and survivability.'
+                  : 'No special attribute emphasis for this class.'}
+                {' '}Armor training reduces penalties from heavier armor.
+              </span>
             </div>
           </div>
         </div>
