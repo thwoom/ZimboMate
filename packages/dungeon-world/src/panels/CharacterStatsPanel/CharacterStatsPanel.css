@@ -1,3 +1,7 @@
+/* utilities */
+.ml-8 {
+  margin-left: 8px;
+}
 .character-stats-panel {
   padding: var(--spacing-xl);
   height: 100%;

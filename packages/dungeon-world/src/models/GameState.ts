@@ -19,7 +19,20 @@ export interface AppSettings {
   autoSaveInterval: number // minutes
   showRollAnimations: boolean
   confirmDangerousActions: boolean
-  keyboardShortcuts: Record <string, string>
+  keyboardShortcuts: Record<string, string>
+  conditionalContent?: {
+    global: {
+      preferClassRelevant: boolean
+      showAllMoves: boolean
+      showAllEquipment: boolean
+      showSpellsForNonCasters: boolean
+    }
+    perPanel: {
+      moves: { overrideEnabled: boolean; showAll: boolean }
+      equipment: { overrideEnabled: boolean; showAll: boolean }
+      stats: { overrideEnabled: boolean; showSpells: boolean }
+    }
+  }
 }
 
 // Complete game state
@@ -127,6 +140,19 @@ export function createInitialGameState(): GameState {
         rollStat: 'r',
         quickSave: 'ctrl + s',
         toggleDrawer: 'ctrl + d',
+      },
+      conditionalContent: {
+        global: {
+          preferClassRelevant: true,
+          showAllMoves: false,
+          showAllEquipment: false,
+          showSpellsForNonCasters: false,
+        },
+        perPanel: {
+          moves: { overrideEnabled: false, showAll: false },
+          equipment: { overrideEnabled: false, showAll: false },
+          stats: { overrideEnabled: false, showSpells: false },
+        },
       },
     },
     version: '1.0.0',

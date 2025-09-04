@@ -24,6 +24,7 @@ import { getSpellsForClass } from '../../services/Spells'
 import { useGameStore } from '../../store/GameStore'
 import { filterMovesByClass, getClassMapping } from '../../utils/conditionalContent'
 import { registerShortcut, setActiveScope } from '../../utils/KeyboardShortcuts'
+import { getEffectivePrefs, togglePanelOverride, setPanelShowAll } from '../../utils/preferences'
 import './MovesPanel.css'
 
 interface MovesPanelState {
@@ -40,7 +41,7 @@ interface MovesPanelState {
 
 const MovesPanel: React.FC <PanelProps> = ({ id }) => {
   const _api = createPanelAPI(id)
-  const { state: gameState, updateCharacter } = useGameStore()
+  const { state: gameState, updateCharacter, updateSettings } = useGameStore()
   const persisted = loadPanelState<Pick<MovesPanelState, 'selectedCategory' | 'searchTerm' | 'showAll'>>(id, { selectedCategory: 'all', searchTerm: '', showAll: false })
   const searchRef = useRef<HTMLInputElement>(null)
   const [panelState, setPanelState] = useState <MovesPanelState>({
@@ -58,11 +59,16 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
   useEffect(() => {
     setActiveScope(id)
     const unReg = registerShortcut({ combo: '/', handler: () => searchRef.current?.focus(), scope: id, preventDefault: true })
+    const unToggle = registerShortcut({ combo: 'ctrl+alt+m', handler: () => {
+      const next = togglePanelOverride(gameState.settings, 'moves')
+      updateSettings({ conditionalContent: next.conditionalContent })
+    }, scope: id, preventDefault: true })
     return () => {
       setActiveScope(null)
       unReg()
+      unToggle()
     }
-  }, [id])
+  }, [id, gameState.settings, updateSettings])
 
   const updateState = (updates: Partial <MovesPanelState>) => {
     setPanelState((prev) => {
@@ -83,6 +89,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
     : null
 
   const compendium = new MoveCompendiumService()
+  const effective = getEffectivePrefs(gameState.settings, Boolean(character && (character.class === 'Wizard' || character.class === 'Cleric' || character.class === 'Immolator')))
 
   // Spellcasting context
   const isCaster = Boolean(character && (character.class === 'Wizard' || character.class === 'Cleric' || character.class === 'Immolator'))
@@ -153,7 +160,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
     // Add compendium moves
     if (character) {
       const level = character.level || 1
-      const base = panelState.showAll
+      const base = (effective.movesShowAll)
         ? compendium.getAllMoves().filter(m => m.category !== 'basic' && m.category !== 'special')
         : compendium.getAvailableMoves(character.class as any, level).filter(m => m.category === 'class')
 
@@ -185,7 +192,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
     let moves = getAllMoves()
 
     // Class-aware ordering/filtering (non-breaking): prefer class-relevant categories unless Show All is true
-    if (character && !panelState.showAll) {
+    if (character && !effective.movesShowAll) {
       moves = filterMovesByClass(character as any, moves)
     }
 
@@ -244,10 +251,10 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
 
   const filteredMoves = getFilteredMoves()
   const preferredCategories = character && getClassMapping((character.class as any))?.moves.preferredCategories
-  const classMoves = character && !panelState.showAll
+  const classMoves = character && !effective.movesShowAll
     ? filteredMoves.filter(m => (preferredCategories as any)?.includes((m.category as any)))
     : []
-  const otherMoves = character && !panelState.showAll
+  const otherMoves = character && !effective.movesShowAll
     ? filteredMoves.filter(m => !(preferredCategories as any)?.includes((m.category as any)))
     : filteredMoves
 
@@ -307,7 +314,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
             (cantrips / rotes don’t count)
           </div>
           <div className="spells-budget__bar" aria-label={`Prepared ${current} of ${budget}`}>
-            <div className="spells-budget__fill" style={{ width: `${Math.min(100, (current / Math.max(1, budget)) * 100)}%` }} />
+            <progress className="spells-progress" max={Math.max(1, budget)} value={Math.min(current, budget)} />
           </div>
         </div>
         <div className="spells-list">
@@ -381,11 +388,25 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
               <label>
                 <input
                   type="checkbox"
-                  checked={panelState.showAll}
-                  onChange={e => updateState({ showAll: e.target.checked })}
-                />
-                {' '}
-                Show all moves (ignore class/level)
+                  checked={gameState.settings.conditionalContent?.perPanel.moves.overrideEnabled || false}
+                  onChange={() => {
+                    const next = togglePanelOverride(gameState.settings, 'moves')
+                    updateSettings({ conditionalContent: next.conditionalContent })
+                  }}
+                />{' '}
+                Override
+              </label>
+              <label className="ml-8">
+                <input
+                  type="checkbox"
+                  checked={gameState.settings.conditionalContent?.perPanel.moves.showAll || false}
+                  onChange={e => {
+                    const next = setPanelShowAll(gameState.settings, 'moves', e.target.checked)
+                    updateSettings({ conditionalContent: next.conditionalContent })
+                  }}
+                  disabled={!gameState.settings.conditionalContent?.perPanel.moves.overrideEnabled}
+                />{' '}
+                Show all moves
               </label>
             </div>
 
@@ -559,7 +580,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                   )
                 : (
                     <>
-                      {character && !panelState.showAll && classMoves.length > 0 && (
+                      {character && !effective.movesShowAll && classMoves.length > 0 && (
                         <div className="moves-group">
                           <h3>Class Moves</h3>
                           {classMoves.map(move => (
@@ -577,10 +598,10 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                         </div>
                       )}
                       <div className="moves-group">
-                        {character && !panelState.showAll && classMoves.length > 0 && (
+                        {character && !effective.movesShowAll && classMoves.length > 0 && (
                           <h3>Other Moves</h3>
                         )}
-                        {(character && !panelState.showAll ? otherMoves : filteredMoves).map(move => (
+                        {(character && !effective.movesShowAll ? otherMoves : filteredMoves).map(move => (
                           <div key={move.id} onContextMenu={e => openContextMenu(e, move)}>
                             <MoveCard
                               move={move}

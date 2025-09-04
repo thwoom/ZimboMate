@@ -9,6 +9,7 @@ import { SpecialMovesService } from '../../services/SpecialMovesService'
 import { spellCastingService } from '../../services/SpellCastingService'
 import { useGameStore } from '../../store/GameStore'
 import { getClassMapping, isCaster } from '../../utils/conditionalContent'
+import { getEffectivePrefs, setStatsShowSpells, togglePanelOverride } from '../../utils/preferences'
 import { getAttributeTooltip, getEncumbranceTier, getSpellBudgetProgress, getXpToNext } from '../../utils/statsPanelHelpers'
 import { getClassBaseLoad, getEffectiveModifier as getEffectiveModifierModel, getXPThreshold } from '../../models/Character'
 import './CharacterStatsPanel.css'
@@ -58,7 +59,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   isActive,
 }) => {
   const api = createPanelAPI(id)
-  const { state: gameState, updateCharacter } = useGameStore()
+  const { state: gameState, updateCharacter, updateSettings } = useGameStore()
   const [showLevelUpModal, setShowLevelUpModal] = useState(false)
 
   // Get the active character from the game state
@@ -354,6 +355,20 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isActive, handleHpChange, handleAddXP, handleRest, rollAttribute, api])
 
+  // Stats panel override shortcut
+  useEffect(() => {
+    if (!isActive) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.altKey && (e.key.toLowerCase() === 's')) {
+        e.preventDefault()
+        const next = togglePanelOverride(gameState.settings, 'stats')
+        updateSettings({ conditionalContent: next.conditionalContent })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [isActive, gameState.settings, updateSettings])
+
   // Use character from game store if available, otherwise fall back to local state
   const displayCharacter = useMemo(() => character || {
     name: state.name,
@@ -375,6 +390,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   const preparedCount = (character?.preparedSpells || []).length
   const spellBudget = character ? spellCastingService.getPreparationBudget(character) : 0
   const xpToNext = getXpToNext(displayCharacter.level as number, displayCharacter.xp as number)
+  const effective = getEffectivePrefs(gameState.settings, caster)
 
   return (
     <div className="character-stats-panel">
@@ -511,8 +527,36 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
           </div>
         </div>
 
-        {/* Spellcasting (for casters) */}
-        {sections.showSpellcasting && caster && character && (
+        {/* Preferences override + Spellcasting (for casters) */}
+        <div className="stat-card">
+          <div className="stat-item">
+            <label>
+              <input
+                type="checkbox"
+                checked={gameState.settings.conditionalContent?.perPanel.stats.overrideEnabled || false}
+                onChange={() => {
+                  const next = togglePanelOverride(gameState.settings, 'stats')
+                  updateSettings({ conditionalContent: next.conditionalContent })
+                }}
+              />{' '}
+              Override
+            </label>
+            <label className="ml-8">
+              <input
+                type="checkbox"
+                checked={gameState.settings.conditionalContent?.perPanel.stats.showSpells || false}
+                onChange={e => {
+                  const next = setStatsShowSpells(gameState.settings, e.target.checked)
+                  updateSettings({ conditionalContent: next.conditionalContent })
+                }}
+                disabled={!gameState.settings.conditionalContent?.perPanel.stats.overrideEnabled}
+              />{' '}
+              Show spells
+            </label>
+          </div>
+        </div>
+
+        {sections.showSpellcasting && effective.statsShowSpells && character && (
           <div className="stat-card">
             <h3> Spellcasting</h3>
             <div className="combat-stats">

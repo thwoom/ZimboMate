@@ -12,6 +12,8 @@ import { useGameStore } from '../../store/GameStore'
 import { equipmentFilteringService } from '../../services/EquipmentFilteringService'
 import { loadPanelState, savePanelState } from '../../framework/PanelAPI'
 import { registerShortcut, setActiveScope } from '../../utils/KeyboardShortcuts'
+import { getEffectivePrefs, setPanelShowAll, togglePanelOverride } from '../../utils/preferences'
+import { isCaster } from '../../utils/conditionalContent'
 import './EquipmentPanel.css'
 
 // Item tags from Dungeon World
@@ -50,7 +52,7 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
   onStateChange,
 }) => {
   const api = createPanelAPI(id)
-  const { state: gameState, setCharacter } = useGameStore()
+  const { state: gameState, setCharacter, updateSettings } = useGameStore()
 
   // Persisted UI state
   const persisted = loadPanelState<Pick<EquipmentPanelState, 'showAll' | 'searchTerm'>>(id, { showAll: false, searchTerm: '' })
@@ -120,8 +122,9 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
   const state = { ...defaultState, ...panelState }
 
   // Use character inventory if available, otherwise fall back to panel state
+  const effective = getEffectivePrefs(gameState.settings, Boolean(isCaster(character as any)))
   let displayItems = character?.inventory || state.items
-  displayItems = equipmentFilteringService.filterForCharacter(character as any, displayItems as any, { showAll: state.showAll, searchTerm: state.searchTerm }) as any
+  displayItems = equipmentFilteringService.filterForCharacter(character as any, displayItems as any, { showAll: effective.equipmentShowAll, searchTerm: state.searchTerm }) as any
 
   // Calculate equipment stats using the enhanced service
   const equipmentStats: EquipmentStats | null = character
@@ -157,11 +160,16 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
   React.useEffect(() => {
     setActiveScope(id)
     const unReg = registerShortcut({ combo: '/', handler: () => searchRef.current?.focus(), scope: id, preventDefault: true })
+    const unToggle = registerShortcut({ combo: 'ctrl+alt+e', handler: () => {
+      const next = togglePanelOverride(gameState.settings, 'equipment')
+      updateSettings({ conditionalContent: next.conditionalContent })
+    }, scope: id, preventDefault: true })
     return () => {
       setActiveScope(null)
       unReg()
+      unToggle()
     }
-  }, [id])
+  }, [id, gameState.settings, updateSettings])
 
   // Listen for items being equipped from inventory
   React.useEffect(() => {
@@ -296,14 +304,31 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
             ref={searchRef}
           />
           {character && (
-            <label className="show-all-toggle">
-              <input
-                type="checkbox"
-                checked={state.showAll}
-                onChange={e => onStateChange?.({ ...state, showAll: e.target.checked })}
-              />{' '}
-              Show all (ignore class rules)
-            </label>
+            <div className="show-all-toggle">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={gameState.settings.conditionalContent?.perPanel.equipment.overrideEnabled || false}
+                  onChange={() => {
+                    const next = togglePanelOverride(gameState.settings, 'equipment')
+                    updateSettings({ conditionalContent: next.conditionalContent })
+                  }}
+                />{' '}
+                Override
+              </label>
+              <label className="ml-8">
+                <input
+                  type="checkbox"
+                  checked={gameState.settings.conditionalContent?.perPanel.equipment.showAll || false}
+                  onChange={e => {
+                    const next = setPanelShowAll(gameState.settings, 'equipment', e.target.checked)
+                    updateSettings({ conditionalContent: next.conditionalContent })
+                  }}
+                  disabled={!gameState.settings.conditionalContent?.perPanel.equipment.overrideEnabled}
+                />{' '}
+                Show all (ignore class rules)
+              </label>
+            </div>
           )}
         </div>
         {character && (
@@ -370,7 +395,7 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
             const spellComponents = equipmentFilteringService.getSpellComponents(character as any, displayItems as any)
             return (
               <>
-                {character && spellComponents.length > 0 && !state.showAll && (
+                {character && spellComponents.length > 0 && !effective.equipmentShowAll && (
                   <div className="equipment-group">
                     <h3>Spell Components & Consumables</h3>
                     <div className="equipment-grid">
