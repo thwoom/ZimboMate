@@ -449,7 +449,7 @@ tasks:
       Make the navigation menu show only relevant panels for the character's
       class
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature
