@@ -4,7 +4,7 @@ tasks:
     intent: Implement tracking system for debilities, ongoing effects, and temporary
       conditions in Dungeon World
     owner: cursor-agent
-    status: in_progress
+    status: done
     priority: P1
     labels:
       - feature
@@ -42,7 +42,7 @@ tasks:
     intent: Integrate comprehensive equipment data from Dungeon World Compendium to
       provide players with complete item information and mechanics
     owner: cursor-agent
-    status: open
+    status: done
     priority: P1
     labels:
       - feature

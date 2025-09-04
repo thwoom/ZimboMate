@@ -6,8 +6,11 @@ import LevelUpModal from '../../components/LevelUpModal'
 import { createPanel } from '../../framework/Panel'
 import { createPanelAPI } from '../../framework/PanelAPI'
 import { SpecialMovesService } from '../../services/SpecialMovesService'
+import { spellCastingService } from '../../services/SpellCastingService'
 import { useGameStore } from '../../store/GameStore'
+import { getClassMapping, isCaster } from '../../utils/conditionalContent'
 import './CharacterStatsPanel.css'
+import Tooltip from '../../components/Tooltip'
 
 interface CharacterStatsPanelState {
   // Basic Info
@@ -405,6 +408,12 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
     debilities: state.debilities,
   }
 
+  const classMap = getClassMapping((displayCharacter.class as any))
+  const highlightStats = classMap?.statsHighlight || []
+  const caster = isCaster(character as any)
+  const preparedCount = (character?.preparedSpells || []).length
+  const spellBudget = character ? spellCastingService.getPreparationBudget(character) : 0
+
   return (
     <div className="character-stats-panel">
       {/* Character Header */}
@@ -428,6 +437,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             <button
               className="hp-button hp-button--minus"
               onClick={() => handleHpChange(-1)}
+              type="button"
             >
               -
             </button>
@@ -439,6 +449,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             <button
               className="hp-button hp-button--plus"
               onClick={() => handleHpChange(1)}
+              type="button"
             >
               +
             </button>
@@ -518,7 +529,31 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
           {state.load > calculateMaxLoad() && (
             <div className="load-warning">Encumbered!</div>
           )}
+          <div className="load-details">
+            <span className="stat-label">Max Load Formula:</span>
+            <span className="stat-value">Base({displayCharacter.class}) + STR mod</span>
+          </div>
         </div>
+
+        {/* Spellcasting (for casters) */}
+        {caster && character && (
+          <div className="stat-card">
+            <h3> Spellcasting</h3>
+            <div className="combat-stats">
+              <div className="stat-item">
+                <span className="stat-label">Prepared:</span>
+                <span className="stat-value">{preparedCount}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Budget (levels):</span>
+                <span className="stat-value">{spellBudget}</span>
+              </div>
+            </div>
+            {character.conditions?.includes('spellcasting-strain') && (
+              <div className="load-warning">Spellcasting Strain (-1 ongoing to Cast a Spell)</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Attributes & Rolls */}
@@ -537,21 +572,41 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             )
 
             return (
-              <div key={attr} className="attribute-card">
-                <button
-                  className={`attribute-button ${hasDebility ? 'attribute-button--debility' : ''}`}
-                  title={`Roll 2d6${formatModifier(modifier)}`}
-                  onClick={() => rollAttribute(attr as keyof typeof state.attributes)}
-                >
-                  <span className="attribute-name">{attr}</span>
-                  <span className="attribute-score">{score as number}</span>
-                  <span className="attribute-modifier">{formatModifier(modifier)}</span>
-                </button>
+              <div key={attr} className={`attribute-card ${highlightStats.includes(attr as any) ? 'attribute-card--highlight' : ''}`}>
+                <Tooltip content={highlightStats.includes(attr as any) ? 'Class-relevant attribute' : 'Attribute'}>
+                  <button
+                    className={`attribute-button ${hasDebility ? 'attribute-button--debility' : ''}`}
+                    title={`Roll 2d6${formatModifier(modifier)}`}
+                    onClick={() => rollAttribute(attr as keyof typeof state.attributes)}
+                    type="button"
+                  >
+                    <span className="attribute-name">{attr}</span>
+                    <span className="attribute-score">{score as number}</span>
+                    <span className="attribute-modifier">{formatModifier(modifier)}</span>
+                  </button>
+                </Tooltip>
               </div>
             )
           })}
         </div>
       </div>
+
+      {/* Class Focus */}
+      {classMap && (
+        <div className="class-focus-section">
+          <h3> Class Focus</h3>
+          <div className="class-focus-grid">
+            <div className="focus-item">
+              <span className="stat-label">Highlighted Attributes:</span>
+              <span className="stat-value">{(classMap.statsHighlight || []).join(', ') || '—'}</span>
+            </div>
+            <div className="focus-item">
+              <span className="stat-label">Armor Training:</span>
+              <span className="stat-value">{classMap.equipment.armorTraining ? 'Yes' : 'No'}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Debilities */}
       <div className="debilities-section">
