@@ -412,7 +412,7 @@ tasks:
       Allow users to control conditional content behavior and override
       class-based filtering
     owner: cursor-agent
-    status: open
+    status: done
     priority: P2
     labels:
       - feature

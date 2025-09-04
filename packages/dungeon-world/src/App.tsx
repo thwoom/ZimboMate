@@ -17,6 +17,7 @@ import EquipmentPanel from './panels/EquipmentPanel'
 import { InventoryPanel } from './panels/InventoryPanel'
 import MoveLibraryPanel from './panels/MoveLibraryPanel'
 import MovesPanel from './panels/MovesPanel'
+import ConditionalContentSettings from './panels/SettingsPanel/ConditionalContentSettings'
 import { createPlaceholderPanel } from './panels/PlaceholderPanel'
 import { SpecialMovesPanel } from './panels/SpecialMovesPanel'
 import { SpellPanel } from './panels/SpellPanel'
@@ -43,6 +44,7 @@ function App() {
       CharacterStatsPanel,
       EquipmentPanel,
       MovesPanel,
+      ConditionalContentSettings,
       SpellPanel,
       SpecialMovesPanel,
       CampaignPanel,
