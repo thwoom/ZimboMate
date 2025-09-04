@@ -21,15 +21,51 @@ const SpellConsequenceModal: React.FC <SpellConsequenceModalProps> = ({
 }) => {
   const [choice, setChoice] = useState <Consequence>('unwelcome-attention')
   const dialogRef = useRef <HTMLDivElement>(null)
+  const previouslyFocused = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     if (isOpen) {
       setChoice('unwelcome-attention')
-      // focus the first radio
-      const first = dialogRef.current?.querySelector <HTMLInputElement>('input[type="radio"]')
-      first?.focus()
+      previouslyFocused.current = document.activeElement as HTMLElement
+      // focus the first focusable
+      const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      )
+      focusables && focusables[0]?.focus()
+
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          onCancel()
+          return
+        }
+        if (e.key === 'Tab') {
+          const list = dialogRef.current?.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          )
+          if (!list || list.length === 0) return
+          const first = list[0]
+          const last = list[list.length - 1]
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+      document.addEventListener('keydown', onKeyDown)
+      return () => document.removeEventListener('keydown', onKeyDown)
     }
-  }, [isOpen])
+    return
+  }, [isOpen, onCancel])
+
+  useEffect(() => {
+    return () => {
+      previouslyFocused.current?.focus()
+    }
+  }, [])
 
   if (!isOpen)
     return null
@@ -37,13 +73,20 @@ const SpellConsequenceModal: React.FC <SpellConsequenceModalProps> = ({
   const forgetLabel = casterClass === 'Cleric' ? 'Spell is revoked (remove from prepared)' : 'Forget the spell (remove from prepared)'
 
   return (
-    <div className="spell-modal__backdrop" role="dialog" aria-modal="true" aria-labelledby="spell-modal - title">
-      <div className="spell-modal__dialog" ref={dialogRef}>
+    <div className="spell-modal__backdrop">
+      <div
+        className="spell-modal__dialog"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="spell-modal-title"
+        aria-describedby="spell-modal-desc"
+      >
         <div className="spell-modal__header">
           <h3 id="spell-modal-title">7–9: Choose a consequence</h3>
-          <button className="spell-modal__close" aria-label="Close" onClick={onCancel}>×</button>
+          <button className="spell-modal__close" aria-label="Close" onClick={onCancel} type="button">×</button>
         </div>
-        <div className="spell-modal__body">
+        <div className="spell-modal__body" id="spell-modal-desc">
           <p>
             {' '}
             Casting
@@ -100,8 +143,8 @@ const SpellConsequenceModal: React.FC <SpellConsequenceModalProps> = ({
           </div>
         </div>
         <div className="spell-modal__footer">
-          <button className="btn" onClick={() => onConfirm(choice)}>Confirm</button>
-          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className="btn" onClick={() => onConfirm(choice)} type="button">Confirm</button>
+          <button className="btn btn-secondary" onClick={onCancel} type="button">Cancel</button>
         </div>
       </div>
     </div>

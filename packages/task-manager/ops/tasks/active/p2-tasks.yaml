@@ -248,7 +248,7 @@ tasks:
     description: >-
       Add focus trap, ESC handling, ARIA; unit tests for 7–9 consequence
       handling and roll annotations
-    status: open
+    status: done
     priority: P2
     category: spellcasting
     estimated_hours: 6
