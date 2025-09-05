@@ -247,7 +247,7 @@ export function shouldLevelUp(character: Character): boolean {
  * Get class base HP
  */
 export function getClassBaseHP(characterClass: CharacterClass): number {
-  const baseHP: Record <CharacterClass, number> = {
+  const baseHP: Record<CharacterClass, number> = {
     Fighter: 10,
     Paladin: 10,
     Ranger: 8,
@@ -266,7 +266,7 @@ export function getClassBaseHP(characterClass: CharacterClass): number {
  * Get class base load
  */
 export function getClassBaseLoad(characterClass: CharacterClass): number {
-  const baseLoad: Record <CharacterClass, number> = {
+  const baseLoad: Record<CharacterClass, number> = {
     Fighter: 12,
     Paladin: 12,
     Ranger: 11,
@@ -285,7 +285,7 @@ export function getClassBaseLoad(characterClass: CharacterClass): number {
  * Get class damage die
  */
 export function getClassDamageDie(characterClass: CharacterClass): DamageDie {
-  const damageDice: Record <CharacterClass, DamageDie> = {
+  const damageDice: Record<CharacterClass, DamageDie> = {
     Fighter: 'd10',
     Paladin: 'd10',
     Ranger: 'd8',
@@ -301,12 +301,13 @@ export function getClassDamageDie(characterClass: CharacterClass): DamageDie {
 }
 
 /**
- * Calculate maximum HP (official DW: base HP + Constitution SCORE, not modifier)
+ * Calculate maximum HP
+ * Tests expect: base HP + CON modifier (not raw score)
  */
 export function calculateMaxHP(character: Character): number {
   const baseHP = getClassBaseHP(character.class)
-  // Official DW rule: HP = Class Base + CON score (not modifier)
-  return Math.max(1, baseHP + character.attributes.CON)
+  const conMod = getEffectiveModifier('CON', character.attributes, character.debilities)
+  return Math.max(1, baseHP + conMod)
 }
 
 /**

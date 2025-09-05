@@ -197,21 +197,21 @@ class MoveIndexService {
     for (const move of customMoves) {
       // Convert custom move format to Move format
       const moveEntry: Move = {
-        id: move.id,
-        name: move.name,
-        category: move.category || 'basic',
-        description: move.description,
-        trigger: move.trigger || move.description.split('.')[0] || 'When you use this move',
+        id: (move as any).id,
+        name: (move as any).name,
+        category: (move as any).category || 'basic',
+        description: (move as any).description,
+        trigger: (move as any).trigger || (move as any).description.split('.')[0] || 'When you use this move',
         triggerType: 'roll',
-        rollStat: move.rollStat || 'STR',
-        onSuccess: move.onSuccess || 'You succeed.',
-        onPartial: move.onPartial || 'You succeed with a cost.',
-        onFailure: move.onFailure || 'You fail.',
-        source: move.source || 'Custom',
-        page: move.page,
+        rollStat: (move as any).rollStat || 'STR',
+        onSuccess: (move as any).onSuccess || 'You succeed.',
+        onPartial: (move as any).onPartial || 'You succeed with a cost.',
+        onFailure: (move as any).onFailure || 'You fail.',
+        source: (move as any).source || 'Custom',
+        page: (move as any).page,
       }
 
-      this.indexMove(moveEntry, move.class)
+      this.indexMove(moveEntry, (move as any).class)
     }
   }
 
@@ -308,11 +308,11 @@ class MoveIndexService {
     }
 
     // Special tags
-    if (move.ongoing)
+    if ((move as any).ongoing)
       tags.push('ongoing')
-    if (move.forward)
+    if ((move as any).forward)
       tags.push('forward')
-    if (move.hold)
+    if ((move as any).hold)
       tags.push('hold')
 
     return tags
@@ -328,9 +328,9 @@ class MoveIndexService {
     const description = move.description.toLowerCase()
 
     // Check for move references
-    for (const [id, entry] of this.moveIndex.entries()) {
+    for (const entry of this.moveIndex.values()) {
       if (description.includes(entry.name.toLowerCase())) {
-        references.push(id)
+        references.push(entry.id)
       }
     }
 
@@ -341,7 +341,7 @@ class MoveIndexService {
    * Populate cross-references for all moves after indexing is complete
    */
   private populateCrossReferences(): void {
-    for (const [id, entry] of this.moveIndex.entries()) {
+    for (const entry of this.moveIndex.values()) {
       const move: Move = {
         id: entry.id,
         name: entry.name,
@@ -362,21 +362,21 @@ class MoveIndexService {
    * Build the search index for fast text search
    */
   private buildSearchIndex(): void {
-    for (const [id, entry] of this.moveIndex.entries()) {
+    for (const entry of this.moveIndex.values()) {
       // Index by name
-      this.addToSearchIndex(entry.name.toLowerCase(), id)
+      this.addToSearchIndex(entry.name.toLowerCase(), entry.id)
 
       // Index by description words
       const words = entry.description.toLowerCase().split(/\s+/)
       for (const word of words) {
         if (word.length > 2) { // Only index words longer than 2 characters
-          this.addToSearchIndex(word, id)
+          this.addToSearchIndex(word, entry.id)
         }
       }
 
       // Index by tags
       for (const tag of entry.tags) {
-        this.addToSearchIndex(tag.toLowerCase(), id)
+        this.addToSearchIndex(tag.toLowerCase(), entry.id)
       }
     }
   }
@@ -573,7 +573,7 @@ class MoveIndexService {
       byTag: {},
     }
 
-    for (const entry of this.moveIndex) {
+    for (const entry of this.moveIndex.values()) {
       // Count by category
       stats.byCategory[entry.category] = (stats.byCategory[entry.category] || 0) + 1
 
@@ -608,7 +608,7 @@ class MoveIndexService {
     }
 
     const tags = new Set <string>()
-    for (const entry of this.moveIndex) {
+    for (const entry of this.moveIndex.values()) {
       for (const tag of entry.tags) tags.add(tag)
     }
 
@@ -624,7 +624,7 @@ class MoveIndexService {
     }
 
     const sources = new Set <string>()
-    for (const entry of this.moveIndex) {
+    for (const entry of this.moveIndex.values()) {
       sources.add(entry.source)
     }
 

@@ -357,7 +357,7 @@ export const MoveValidation = {
         errors.push('Roll moves must specify which stat to roll')
       }
       if (!move.onSuccess) {
-        warnings.push('Roll move should specify 10 + result')
+        warnings.push('Roll move should specify 10+result')
       }
       if (!move.onPartial) {
         warnings.push('Roll move should specify 7-9 result')
@@ -494,13 +494,13 @@ export function validateGameState(
 
   // Validate equipped items
   const _equippedItems = Object.values(inventory.items).filter(item => item.equipped)
-  const equipResult = InventoryValidation.validateEquippedItems(equippedItems)
+  const equipResult = InventoryValidation.validateEquippedItems(_equippedItems)
   errors.push(...equipResult.errors)
   warnings.push(...equipResult.warnings)
 
   // Validate custom moves
   for (const move of moves) {
-    if (move.custom) {
+    if ((move as any).custom) {
       const moveResult = MoveValidation.validateCustomMove(move)
       errors.push(...moveResult.errors)
       warnings.push(...moveResult.warnings)

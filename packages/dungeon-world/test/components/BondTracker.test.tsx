@@ -9,16 +9,20 @@ import { bondService } from '../../src/services/BondService';
 import { BondStatus, BondResolutionType } from '../../src/types/Bond';
 
 // Mock the GameStore
-vi.mock('../../src/store/GameStore', () => ({
-  useGameStore: () => ({
-    characters: [
-      { id: 'char1', name: 'Aragorn', class: 'Fighter', alignment: 'Good' },
-      { id: 'char2', name: 'Gandalf', class: 'Wizard', alignment: 'Good' },
-      { id: 'char3', name: 'Legolas', class: 'Ranger', alignment: 'Neutral' }
-    ],
-    currentCharacter: { id: 'char1', name: 'Aragorn', class: 'Fighter', alignment: 'Good' }
-  })
-}));
+vi.mock('../../src/store/GameStore', async () => {
+  const actual = await vi.importActual<any>('../../src/store/GameStore')
+  return {
+    ...actual,
+    useGameStore: () => ({
+      characters: [
+        { id: 'char1', name: 'Aragorn', class: 'Fighter', alignment: 'Good' },
+        { id: 'char2', name: 'Gandalf', class: 'Wizard', alignment: 'Good' },
+        { id: 'char3', name: 'Legolas', class: 'Ranger', alignment: 'Neutral' }
+      ],
+      currentCharacter: { id: 'char1', name: 'Aragorn', class: 'Fighter', alignment: 'Good' }
+    }),
+  }
+})
 
 // Mock the BondService
 vi.mock('../../src/services/BondService', () => ({
@@ -65,7 +69,7 @@ describe('BondTracker', () => {
       render(<BondTracker />);
       
       expect(screen.getByText('Bond Tracker')).toBeInTheDocument();
-      expect(screen.getByText('Create Bond')).toBeInTheDocument();
+      expect(screen.getByText('✨ Create Bond')).toBeInTheDocument();
     });
 
     it('shows bond statistics', () => {
@@ -80,9 +84,11 @@ describe('BondTracker', () => {
       render(<BondTracker />);
       
       expect(screen.getByText('Active Bonds:')).toBeInTheDocument();
-      expect(screen.getByText('1')).toBeInTheDocument();
+      const activeValue = screen.getByText('Active Bonds:').parentElement?.querySelector('.stat__value');
+      expect(activeValue).toHaveTextContent('1');
       expect(screen.getByText('Resolved:')).toBeInTheDocument();
-      expect(screen.getByText('1')).toBeInTheDocument();
+      const resolvedValue = screen.getByText('Resolved:').parentElement?.querySelector('.stat__value');
+      expect(resolvedValue).toHaveTextContent('1');
     });
 
     it('shows empty state when no bonds exist', () => {
@@ -220,7 +226,7 @@ describe('BondTracker', () => {
     it('opens create bond form when button is clicked', () => {
       render(<BondTracker />);
       
-      const createButton = screen.getByText('Create Bond');
+      const createButton = screen.getByText('✨ Create Bond');
       fireEvent.click(createButton);
       
       expect(screen.getByText('Create New Bond')).toBeInTheDocument();
@@ -245,7 +251,7 @@ describe('BondTracker', () => {
       render(<BondTracker />);
       
       // Open create form
-      fireEvent.click(screen.getByText('Create Bond'));
+      fireEvent.click(screen.getByText('✨ Create Bond'));
       
       // Fill form
       const targetSelect = screen.getByLabelText('Target Character:');
@@ -293,7 +299,7 @@ describe('BondTracker', () => {
       fireEvent.click(resolveButton);
       
       expect(screen.getByText('Resolve Bond')).toBeInTheDocument();
-      expect(screen.getByText('Test bond')).toBeInTheDocument();
+      expect(screen.getAllByText('Test bond').length).toBeGreaterThan(0);
     });
 
     it('resolves a bond when form is submitted', async () => {
@@ -328,7 +334,7 @@ describe('BondTracker', () => {
       fireEvent.click(screen.getByText('Resolve'));
       
       // Fill form
-      const resolutionTypeSelect = screen.getByLabelText('Resolution Type:');
+      const resolutionTypeSelect = screen.getByLabelText('Select bond resolution type');
       fireEvent.change(resolutionTypeSelect, { target: { value: BondResolutionType.FULFILLED } });
       
       const descriptionTextarea = screen.getByLabelText('Resolution Description:');
@@ -388,14 +394,18 @@ describe('BondTracker', () => {
   });
 
   describe('Error Handling', () => {
-    it('handles missing character gracefully', () => {
-      // Mock GameStore to return no current character
-      vi.mocked(require('../../src/store/GameStore').useGameStore).mockReturnValue({
-        characters: [],
-        currentCharacter: null
-      });
-
-      render(<BondTracker />);
+    it('handles missing character gracefully', async () => {
+      await vi.resetModules()
+      vi.doMock('../../src/store/GameStore', async () => {
+        const actual = await vi.importActual<any>('../../src/store/GameStore')
+        return {
+          ...actual,
+          useGameStore: () => ({ characters: [], currentCharacter: null })
+        }
+      })
+      const mod = await import('../../src/components/BondTracker')
+      const Comp = (mod as any).BondTracker || (mod as any).default
+      render(<Comp />);
       
       expect(screen.getByText('No Character Selected')).toBeInTheDocument();
       expect(screen.getByText('Please select a character to view their bonds.')).toBeInTheDocument();
@@ -416,13 +426,13 @@ describe('BondTracker', () => {
       render(<BondTracker />);
       
       expect(screen.getByRole('combobox')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Create Bond' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '✨ Create Bond' })).toBeInTheDocument();
     });
 
     it('supports keyboard navigation', () => {
       render(<BondTracker />);
       
-      const createButton = screen.getByText('Create Bond');
+      const createButton = screen.getByText('✨ Create Bond');
       createButton.focus();
       
       expect(createButton).toHaveFocus();

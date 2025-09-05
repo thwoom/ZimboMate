@@ -17,7 +17,7 @@ export type ItemTag
   = | 'hand' // Useful for attacking within reach
     | 'close' // Useful at arm's reach plus a foot or two
     | 'reach' // Useful for attacking several feet away (up to ~10 feet)
-    | 'near' // Useful if you can see the whites of their eyes
+    | 'near' // Useful for attacking something in shouting distance
     | 'far' // Useful for attacking something in shouting distance
 
   // Weapon mechanical effect tags (official DW)
@@ -63,7 +63,7 @@ export type ItemTag
     | 'holy' // Blessed or divine
     | 'unholy' // Cursed or profane
 
-// Tag with optional value (e.g., "uses 3", "armor + 2", "weight 1")
+// Tag with optional value (e.g., "uses 3", "armor +1", "weight 1")
 export interface Tag {
   name: ItemTag | string // Allow custom tags
   value?: number | string
@@ -113,7 +113,7 @@ export function isArmor(item: Item): item is Armor {
 // Utility functions
 
 /**
- * Parse tags from a string (e.g., "close, 1 weight, uses 3")
+ * Parse tags from a string (e.g., "close, 1 weight, uses 3, armor +1")
  */
 export function parseTagString(tagString: string): Tag[] {
   const tags: Tag[] = []
@@ -122,7 +122,11 @@ export function parseTagString(tagString: string): Tag[] {
   for (const part of parts) {
     const match = part.match(/^(\w+)\s+(.+)$/)
     if (match) {
-      tags.push({ name: match[1] as ItemTag, value: match[2] })
+      const name = match[1] as ItemTag
+      let value = match[2]
+      // Normalize patterns like "+ 1" to "+1" for armor/damage, keep as string per tests
+      value = value.replace(/\+\s*(\d+)/, '+$1')
+      tags.push({ name, value })
     }
     else {
       tags.push({ name: part as ItemTag })
@@ -151,7 +155,16 @@ export function hasTag(item: Item, tagName: ItemTag | string): boolean {
  */
 export function getTagValue(item: Item, tagName: ItemTag | string): number | string | undefined {
   const tag = item.tags.find(t => t.name === tagName)
-  return tag?.value
+  if (!tag)
+    return undefined
+  // Attempt numeric coercion when value is a pure number
+  if (typeof tag.value === 'string') {
+    const numeric = Number(tag.value)
+    if (!Number.isNaN(numeric) && /^\d+(\.\d+)?$/.test(tag.value)) {
+      return numeric
+    }
+  }
+  return tag.value
 }
 
 /**
@@ -181,7 +194,7 @@ export function formatTags(tags: Tag[]): string {
 
 // Common items database (can be expanded)
 // Using a more flexible type to accommodate different item types
-export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <Armor>> = [
+export const COMMON_ITEMS: Array<Partial<Item> | Partial<Weapon> | Partial<Armor>> = [
   // Weapons
   {
     name: 'Dagger',
@@ -189,14 +202,14 @@ export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <A
     tags: [{ name: 'hand' }, { name: 'weight', value: 1 }],
     weight: 1,
     value: 2,
-  } as Partial <Weapon>,
+  } as Partial<Weapon>,
   {
     name: 'Short Sword',
     category: 'weapon',
     tags: [{ name: 'close' }, { name: 'weight', value: 1 }],
     weight: 1,
     value: 8,
-  } as Partial <Weapon>,
+  } as Partial<Weapon>,
   {
     name: 'Long Sword',
     category: 'weapon',
@@ -204,21 +217,21 @@ export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <A
     weight: 1,
     value: 15,
     damage: '+1 damage',
-  } as Partial <Weapon>,
+  } as Partial<Weapon>,
   {
     name: 'Battle Axe',
     category: 'weapon',
     tags: [{ name: 'close' }, { name: 'weight', value: 1 }],
     weight: 1,
     value: 10,
-  } as Partial <Weapon>,
+  } as Partial<Weapon>,
   {
     name: 'Bow',
     category: 'weapon',
     tags: [{ name: 'near' }, { name: 'far' }, { name: 'weight', value: 2 }],
     weight: 2,
     value: 60,
-  } as Partial <Weapon>,
+  } as Partial<Weapon>,
 
   // Armor
   {
@@ -228,7 +241,7 @@ export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <A
     weight: 1,
     value: 10,
     armorValue: 1,
-  } as Partial <Armor>,
+  } as Partial<Armor>,
   {
     name: 'Chainmail',
     category: 'armor',
@@ -236,7 +249,7 @@ export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <A
     weight: 3,
     value: 40,
     armorValue: 2,
-  } as Partial <Armor>,
+  } as Partial<Armor>,
   {
     name: 'Plate',
     category: 'armor',
@@ -244,7 +257,7 @@ export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <A
     weight: 4,
     value: 350,
     armorValue: 3,
-  } as Partial <Armor>,
+  } as Partial<Armor>,
 
   // Gear
   {
@@ -254,7 +267,7 @@ export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <A
     weight: 2,
     value: 20,
     uses: { current: 5, max: 5 },
-  } as Partial <Item>,
+  } as Partial<Item>,
   {
     name: 'Healing Potion',
     category: 'consumable',
@@ -262,7 +275,7 @@ export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <A
     weight: 0,
     value: 50,
     description: 'Heal 10 HP or remove one debility',
-  } as Partial <Item>,
+  } as Partial<Item>,
   {
     name: 'Rations',
     category: 'consumable',
@@ -270,5 +283,5 @@ export const COMMON_ITEMS: Array <Partial <Item> | Partial <Weapon> | Partial <A
     weight: 1,
     value: 5,
     uses: { current: 5, max: 5 },
-  } as Partial <Item>,
+  } as Partial<Item>,
 ]

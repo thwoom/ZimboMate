@@ -142,13 +142,13 @@ export class CalculationEngine {
     // Calculate combat values
     const totalArmor = this.calculateTotalArmor(
       character,
-      equippedItems,
+      _equippedItems,
       conditions,
       conditionDefinitions,
     )
     const { damageDie, damageBonus } = this.calculateDamage(
       character,
-      equippedItems,
+      _equippedItems,
       modifiers,
     )
 
@@ -187,7 +187,7 @@ export class CalculationEngine {
     )
 
     // Validation
-    const { warnings, errors } = this.validate(context, equippedItems)
+    const { warnings, errors } = this.validate(context, _equippedItems)
 
     // Generate enhanced warnings
     const warningContext = {
@@ -199,7 +199,7 @@ export class CalculationEngine {
       level: character.level,
       bonds: character.bonds.length,
       debilities: Object.fromEntries(Object.entries(character.debilities)) as Record <string, boolean>,
-      equippedItems: equippedItems.map(item => ({
+      equippedItems: _equippedItems.map(item => ({
         name: item.name,
         category: item.category,
         tags: item.tags,

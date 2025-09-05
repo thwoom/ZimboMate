@@ -45,6 +45,7 @@ export function hasTag(item: Item, tagName: ItemTag | string): boolean {
  * Get the value of a specific tag
  */
 export function getTagValue(item: Item, tagName: ItemTag | string): number | string | undefined {
+  const tag = item.tags.find(t => t.name === tagName)
   return tag?.value
 }
 
@@ -52,22 +53,25 @@ export function getTagValue(item: Item, tagName: ItemTag | string): number | str
  * Calculate total armor from equipped items
  */
 export function calculateTotalArmor(items: Item[]): number {
-  let totalArmor = 0
+  let highestArmor = 0
   let armorPlus = 0
 
   for (const item of items) {
     if (!item.equipped)
       continue
+
+    const armorValue = getTagValue(item, 'armor')
     if (typeof armorValue === 'number') {
-      totalArmor = Math.max(totalArmor, armorValue) // Highest armor value only
+      highestArmor = Math.max(highestArmor, armorValue) // Highest armor value only
     }
 
+    const armorPlusValue = getTagValue(item, 'armor-plus')
     if (typeof armorPlusValue === 'number') {
       armorPlus += armorPlusValue // Armor-plus stacks
     }
   }
 
-  return totalArmor + armorPlus
+  return highestArmor + armorPlus
 }
 
 /**
@@ -79,6 +83,8 @@ export function calculateDamageBonus(items: Item[]): number {
   for (const item of items) {
     if (!item.equipped || item.category !== 'weapon')
       continue
+
+    const damageValue = getTagValue(item, 'damage')
     if (typeof damageValue === 'number') {
       damageBonus += damageValue
     }
@@ -96,6 +102,8 @@ export function calculatePiercingBonus(items: Item[]): number {
   for (const item of items) {
     if (!item.equipped || item.category !== 'weapon')
       continue
+
+    const piercingValue = getTagValue(item, 'piercing')
     if (typeof piercingValue === 'number') {
       piercingBonus += piercingValue
     }
@@ -134,6 +142,7 @@ export function useItem(item: Item): Item | null {
  * Check if an item has ammo
  */
 export function hasAmmo(items: Item[], weapon: Item): boolean {
+  const ammoValue = getTagValue(weapon, 'ammo')
   if (typeof ammoValue !== 'number')
     return true // No ammo requirement
 
@@ -361,7 +370,7 @@ export function formatTags(tags: Tag[]): string {
  * Get tag description for tooltips
  */
 export function getTagDescription(tag: Tag): string {
-  const descriptions: Record <ItemTag, string> = {
+  const descriptions: Record<ItemTag, string> = {
     // Weapon range tags
     'hand': 'Useful for attacking within reach',
     'close': 'Useful at arm\'s reach plus a foot or two',

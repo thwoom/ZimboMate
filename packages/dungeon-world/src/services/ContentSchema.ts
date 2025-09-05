@@ -564,7 +564,7 @@ export function validateContent(content: unknown, contentType: ContentType, cont
 
   // Validate required fields and field dependencies
   for (const field of schema.fields) {
-    const value = content[field.name]
+    const value = (content as any)[field.name]
     const isFieldVisible = checkFieldDependency(field, content)
 
     // Skip validation if field is not visible due to dependencies
@@ -624,16 +624,20 @@ function validateFieldRule(value: unknown, rule: FieldValidationRule): boolean {
     case 'required':
       return value !== undefined && value !== null && value !== ''
     case 'minLength':
-      return typeof value === 'string' && value.length >= rule.value
+      return typeof value === 'string' && value.length >= (rule.value as number)
     case 'maxLength':
-      return typeof value === 'string' && value.length <= rule.value
+      return typeof value === 'string' && value.length <= (rule.value as number)
     case 'min':
-      return typeof value === 'number' && value >= rule.value
+      return typeof value === 'number' && value >= (rule.value as number)
     case 'max':
-      return typeof value === 'number' && value <= rule.value
+      return typeof value === 'number' && value <= (rule.value as number)
     case 'pattern':
-      // Use simple string matching instead of regex to avoid ReDoS
-      return typeof value === 'string' && String(value).includes(String(rule.value))
+      try {
+        const re = new RegExp(String(rule.value))
+        return typeof value === 'string' && re.test(value)
+      } catch {
+        return true
+      }
     case 'custom':
       return rule.validator ? rule.validator(value, {} as ValidationContext) : true
     default:
@@ -656,9 +660,9 @@ export function checkFieldDependency(field: SchemaField, data: any): boolean {
     case 'contains':
       return Array.isArray(dependentValue) && dependentValue.includes(value)
     case 'greaterThan':
-      return typeof dependentValue === 'number' && dependentValue > value
+      return typeof dependentValue === 'number' && dependentValue > (value as number)
     case 'lessThan':
-      return typeof dependentValue === 'number' && dependentValue < value
+      return typeof dependentValue === 'number' && dependentValue < (value as number)
     default:
       return true
   }

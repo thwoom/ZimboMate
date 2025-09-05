@@ -1,3 +1,5 @@
+import '@testing-library/jest-dom/vitest'
+
 // Global jsdom shims for tests mounting App components
 if (!(globalThis as any).matchMedia) {
   (globalThis as any).matchMedia = (query: string) => ({

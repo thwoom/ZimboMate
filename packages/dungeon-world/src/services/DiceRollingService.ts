@@ -444,7 +444,7 @@ export class DiceRollingService {
       finalResults = this.applyDisadvantage(results)
     }
 
-    const total = finalResults.reduce((sum, die) => sum + die.result, 0)
+    const total = finalResults.reduce((sum, die) => sum + die, 0)
     const modifier = options.modifier || expression.modifier || 0
     const finalResult = total + modifier
 

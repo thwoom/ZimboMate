@@ -94,30 +94,30 @@ export class ContentImportExportService {
           const validation = contentValidationService.validateContent(item, importData.contentType)
 
           if (!validation.isValid) {
-            result.errors.push(`Validation failed for ${item.name || item.id}: ${validation.errors.map(e => e.message).join(', ')}`)
+            result.errors.push(`Validation failed for ${((item as any).name) || (item as any).id}: ${validation.errors.map(e => e.message).join(', ')}`)
             continue
           }
 
           // Check for duplicates
           const duplicateCheck = contentValidationService.checkForDuplicates(item, importData.contentType, existingContent)
           if (!duplicateCheck.isValid) {
-            result.warnings.push(`Duplicate content found: ${item.name || item.id}`)
+            result.warnings.push(`Duplicate content found: ${((item as any).name) || (item as any).id}`)
             continue
           }
 
           importedContent.push(item)
           result.imported++
         }
-        catch {
-          result.errors.push(`Failed to process ${item.name || item.id}: ${error}`)
+        catch (error) {
+          result.errors.push(`Failed to process ${((item as any).name) || (item as any).id}: ${String(error)}`)
         }
       }
 
       result.success = result.imported > 0
       result.content = importedContent
     }
-    catch {
-      result.errors.push(`Failed to parse JSON: ${error}`)
+    catch (error) {
+      result.errors.push(`Failed to parse JSON: ${String(error)}`)
     }
 
     return result
@@ -143,21 +143,29 @@ export class ContentImportExportService {
   /**
    * Create content from template
    */
-  createFromTemplate(templateId: string, customizations: Record <string, unknown> = {}): unknown {
+  createFromTemplate(templateId: string, customizations: Record<string, unknown> = {}): any {
     const template = this.getTemplate(templateId)
     if (!template) {
       throw new Error(`Template not found: ${templateId}`)
     }
 
     // Deep clone the template content
-    const content = JSON.parse(JSON.stringify(template.content))
+    const content: any = JSON.parse(JSON.stringify(template.content))
 
-    // Apply customizations
-    Object.assign({}, customizations)
+    // Apply customizations (mutate cloned content)
+    Object.assign(content, customizations)
 
     // Generate unique ID if not provided
     if (!content.id) {
       content.id = `${template.contentType}-${Date.now()}`
+    }
+
+    // Ensure name/description can be set via customizations
+    if (customizations['name'] && typeof customizations['name'] === 'string') {
+      content.name = customizations['name']
+    }
+    if (customizations['description'] && typeof customizations['description'] === 'string') {
+      content.description = customizations['description']
     }
 
     return content

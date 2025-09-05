@@ -7,10 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=dungeon-world",
+    "dev": "npm run dev --workspace=@zimbo-mate/dungeon-world",
     "build": "npm run build --workspaces",
     "build:task-manager": "npm run build --workspace=task-manager",
-    "build:dungeon-world": "npm run build --workspace=dungeon-world",
+    "build:dungeon-world": "npm run build --workspace=@zimbo-mate/dungeon-world",
     "test": "npm run test --workspaces",
     "lint": "eslint packages/dungeon-world/src",
     "lint:fix": "eslint packages/dungeon-world/src --fix",

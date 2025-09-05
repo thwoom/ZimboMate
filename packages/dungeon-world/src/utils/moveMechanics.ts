@@ -83,11 +83,14 @@ export function canTakeMove(
   }
 
   // Check stat requirement
-  if (move.requiresStat && currentStat < move.requiresStat.value) {
-    result.errors.push(
-      `Requires ${move.requiresStat.stat} ${move.requiresStat.value} (current: ${currentStat})`,
-    )
-    result.canTake = false
+  if (move.requiresStat) {
+    const currentStat = character.attributes[move.requiresStat.stat]
+    if (currentStat < move.requiresStat.value) {
+      result.errors.push(
+        `Requires ${move.requiresStat.stat} ${move.requiresStat.value} (current: ${currentStat})`,
+      )
+      result.canTake = false
+    }
   }
 
   // Check prerequisite moves
@@ -109,11 +112,6 @@ export function canTakeMove(
     result.canTake = false
   }
 
-  // Check if move replaces another move
-  if (move.replaces && !character.knownMoves.includes(move.replaces)) {
-    result.warnings.push(`This move replaces ${move.replaces}, but you don't have that move`)
-  }
-
   // Generate suggestions
   if (!result.canTake) {
     if (move.level && character.level < move.level) {
@@ -121,6 +119,7 @@ export function canTakeMove(
     }
 
     if (move.requiresStat) {
+      const currentStat = character.attributes[move.requiresStat.stat]
       const needed = move.requiresStat.value - currentStat
       if (needed > 0) {
         result.suggestions.push(`Increase ${move.requiresStat.stat} by ${needed} to meet the requirement`)
@@ -152,9 +151,9 @@ export function processMoveEffects(
   }
 
   // Process ongoing effects
-  if (move.ongoing) {
+  if (typeof move.ongoing === 'number') {
     result.modifiers.ongoing = move.ongoing
-    result.effects.push(`Ongoing +${move.ongoing} modifier`)
+    result.effects.push(`Ongoing + ${move.ongoing} modifier`)
   }
 
   // Process forward effects
@@ -164,13 +163,13 @@ export function processMoveEffects(
   }
 
   // Process hold generation
-  if (move.hold) {
+  if (typeof move.hold === 'number') {
     result.modifiers.hold = move.hold
     result.effects.push(`Generate ${move.hold} hold`)
   }
 
   // Process armor effects
-  if (move.armor) {
+  if (typeof move.armor === 'number') {
     result.modifiers.armor = move.armor
     result.effects.push(`+${move.armor} armor`)
   }
@@ -272,7 +271,7 @@ export function getRecommendedMoves(
   allMoves: CompendiumMove[],
 ): CompendiumMove[] {
   // Sort by priority: level-appropriate, class-specific, then others
-  return availableMoves.sort((a, b) => {
+  return [...allMoves].sort((a, b) => {
     // Prioritize moves at character's level
     const aLevelMatch = a.level === character.level
     const bLevelMatch = b.level === character.level
@@ -292,7 +291,7 @@ export function getRecommendedMoves(
       return 1
 
     // Sort by level, then by name
-    if (a.level !== b.level) {
+    if ((a.level || 0) !== (b.level || 0)) {
       return (a.level || 0) - (b.level || 0)
     }
 
@@ -348,7 +347,7 @@ export function calculateMoveStatistics(
     : 0
 
   // Calculate most used moves
-  const moveCounts = new Map <string, number>()
+  const moveCounts = new Map<string, number>()
   for (const move of moves) {
     moveCounts.set(move.moveId, (moveCounts.get(move.moveId) || 0) + 1)
   }
@@ -451,7 +450,7 @@ export function getMoveSuggestions(
 /**
  * Validate custom move creation
  */
-export function validateCustomMove(move: Partial <CompendiumMove>): {
+export function validateCustomMove(move: Partial<CompendiumMove>): {
   isValid: boolean
   errors: string[]
   warnings: string[]

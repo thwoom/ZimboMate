@@ -59,9 +59,9 @@ export interface CompendiumMove {
   rollTarget?: number // Target number (if not standard)
 
   // Results
-  onSuccess?: string // 10 + result
+  onSuccess?: string // 10+ result
   onPartial?: string // 7-9 result
-  onFailure?: string // 6-result (usually "mark XP")
+  onFailure?: string // 6- result (usually "mark XP")
 
   // Requirements
   level?: number // Minimum level required
@@ -101,7 +101,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     type: 'combat',
     description: 'When you attack an enemy in melee, roll + STR.',
     trigger: 'When you attack an enemy in melee',
-    triggerType: 'roll',
+    triggerType: 'action',
     rollStat: 'STR',
     onSuccess: 'You deal your damage to the enemy and avoid their attack.',
     onPartial: 'You deal your damage to the enemy and the enemy makes an attack against you.',
@@ -109,6 +109,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     tags: ['combat', 'melee', 'damage'],
     source: 'DW Core',
     page: 56,
+    level: 1,
   },
   {
     id: 'volley',
@@ -125,6 +126,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     tags: ['combat', 'ranged', 'damage'],
     source: 'DW Core',
     page: 56,
+    level: 1,
   },
   {
     id: 'defy_danger',
@@ -133,7 +135,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     type: 'defensive',
     description: 'When you act despite an imminent threat or suffer a calamity, say how you deal with it and roll.',
     trigger: 'When you act despite an imminent threat or suffer a calamity',
-    triggerType: 'roll',
+    triggerType: 'action',
     rollStat: 'STR', // Can be unknown stat based on fiction
     onSuccess: 'You do what you set out to do.',
     onPartial: 'The GM will offer you a worse outcome, hard bargain, or ugly choice.',
@@ -141,6 +143,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     tags: ['defensive', 'reactive', 'flexible'],
     source: 'DW Core',
     page: 56,
+    level: 1,
   },
   {
     id: 'parley',
@@ -157,6 +160,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     tags: ['social', 'negotiation', 'leverage'],
     source: 'DW Core',
     page: 56,
+    level: 1,
   },
   {
     id: 'spout_lore',
@@ -173,6 +177,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     tags: ['exploration', 'knowledge', 'information'],
     source: 'DW Core',
     page: 56,
+    level: 1,
   },
   {
     id: 'discern_realities',
@@ -189,6 +194,7 @@ export const BASIC_MOVES: CompendiumMove[] = [
     tags: ['exploration', 'investigation', 'perception'],
     source: 'DW Core',
     page: 56,
+    level: 1,
   },
 ]
 
@@ -211,6 +217,7 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     tags: ['strength', 'utility', 'destruction'],
     source: 'DW Core',
     page: 25,
+    level: 1,
   },
   {
     id: 'fighter_armored',
@@ -225,13 +232,14 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     tags: ['armor', 'defensive', 'passive'],
     source: 'DW Core',
     page: 25,
+    level: 1,
   },
   {
     id: 'fighter_signature_weapon',
     name: 'Signature Weapon',
     category: 'class',
     type: 'combat',
-    description: 'Choose a signature weapon. When you use it, you deal + 1 damage.',
+    description: 'Choose a signature weapon. When you use it, you deal +1 damage.',
     trigger: 'When you use your signature weapon',
     triggerType: 'passive',
     requiresClass: 'Fighter',
@@ -239,6 +247,7 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     tags: ['weapon', 'damage', 'passive'],
     source: 'DW Core',
     page: 25,
+    level: 1,
   },
 
   // Advanced Fighter Moves (Level 2-5)
@@ -247,7 +256,7 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     name: 'Heavy Warrior',
     category: 'advanced',
     type: 'combat',
-    description: 'When you use a weapon with the forceful tag, you may choose to knock your target back 1d3 + 1 spaces and close the distance between you.',
+    description: 'When you use a weapon with the forceful tag, you may choose to knock your target back 1d3+1 spaces and close the distance between you.',
     trigger: 'When you use a weapon with the forceful tag',
     triggerType: 'action',
     requiresClass: 'Fighter',
@@ -276,7 +285,7 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     name: 'Improved Weapon',
     category: 'advanced',
     type: 'combat',
-    description: 'Choose one weapon. You deal + 1d4 damage with that weapon.',
+    description: 'Choose one weapon. You deal +1d4 damage with that weapon.',
     trigger: 'When you use the chosen weapon',
     triggerType: 'passive',
     requiresClass: 'Fighter',
@@ -291,7 +300,7 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     name: 'Defensive Fighter',
     category: 'advanced',
     type: 'defensive',
-    description: 'When you use Defy Danger, you may choose to use CON instead of unknown other stat.',
+    description: 'When you use Defy Danger, you may choose to use CON instead of some other stat.',
     trigger: 'When you use Defy Danger',
     triggerType: 'action',
     requiresClass: 'Fighter',
@@ -319,7 +328,7 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     name: 'Combat Commander',
     category: 'advanced',
     type: 'combat',
-    description: 'When you Hack and Slash, you may choose one ally. That ally takes + 1 forward to their next attack.',
+    description: 'When you Hack and Slash, you may choose one ally. That ally takes +1 forward to their next attack.',
     trigger: 'When you Hack and Slash',
     triggerType: 'action',
     requiresClass: 'Fighter',
@@ -336,7 +345,7 @@ export const FIGHTER_MOVES: CompendiumMove[] = [
     name: 'Weapon Master',
     category: 'master',
     type: 'combat',
-    description: 'Choose one weapon. You deal + 1d6 damage with that weapon.',
+    description: 'Choose one weapon. You deal +1d6 damage with that weapon.',
     trigger: 'When you use the chosen weapon',
     triggerType: 'passive',
     requiresClass: 'Fighter',
@@ -382,6 +391,7 @@ export const WIZARD_MOVES: CompendiumMove[] = [
     tags: ['magical', 'spellcasting', 'intelligence'],
     source: 'DW Core',
     page: 35,
+    level: 1,
   },
   {
     id: 'wizard_prepare_spells',
@@ -483,7 +493,7 @@ export const WIZARD_MOVES: CompendiumMove[] = [
     trigger: 'Always active',
     triggerType: 'passive',
     requiresClass: 'Wizard',
-    level: 5,
+    level: 1,
     armor: 1,
     ongoing: true,
     tags: ['magical', 'defensive', 'passive'],
@@ -541,6 +551,7 @@ export const CLERIC_MOVES: CompendiumMove[] = [
     tags: ['magical', 'divine', 'wisdom'],
     source: 'DW Core',
     page: 30,
+    level: 1,
   },
   {
     id: 'cleric_commune',
@@ -703,6 +714,7 @@ export const BARBARIAN_MOVES: CompendiumMove[] = [
     tags: ['consumption', 'bonus', 'barbarian'],
     source: 'DW Core',
     page: 27,
+    level: 1,
   },
   {
     id: 'the_upper_hand',
@@ -718,6 +730,7 @@ export const BARBARIAN_MOVES: CompendiumMove[] = [
     tags: ['weapon', 'damage', 'barbarian'],
     source: 'DW Core',
     page: 27,
+    level: 1,
   },
   {
     id: 'what_are_you_waiting_for',
@@ -732,6 +745,7 @@ export const BARBARIAN_MOVES: CompendiumMove[] = [
     tags: ['charge', 'forward', 'barbarian'],
     source: 'DW Core',
     page: 27,
+    level: 1,
   },
 ]
 
@@ -754,6 +768,7 @@ export const PALADIN_MOVES: CompendiumMove[] = [
     tags: ['healing', 'divine', 'touch'],
     source: 'DW Core',
     page: 28,
+    level: 1,
   },
   {
     id: 'paladin_armored',
@@ -768,6 +783,7 @@ export const PALADIN_MOVES: CompendiumMove[] = [
     tags: ['armor', 'defensive', 'passive'],
     source: 'DW Core',
     page: 28,
+    level: 1,
   },
   {
     id: 'paladin_iron_will',
@@ -781,6 +797,7 @@ export const PALADIN_MOVES: CompendiumMove[] = [
     tags: ['defensive', 'charisma', 'flexible'],
     source: 'DW Core',
     page: 28,
+    level: 1,
   },
 ]
 
@@ -803,6 +820,7 @@ export const RANGER_MOVES: CompendiumMove[] = [
     tags: ['tracking', 'exploration', 'wilderness'],
     source: 'DW Core',
     page: 32,
+    level: 1,
   },
   {
     id: 'ranger_called_shot',
@@ -820,6 +838,7 @@ export const RANGER_MOVES: CompendiumMove[] = [
     tags: ['combat', 'ranged', 'damage'],
     source: 'DW Core',
     page: 32,
+    level: 1,
   },
   {
     id: 'ranger_animal_companion',
@@ -833,6 +852,7 @@ export const RANGER_MOVES: CompendiumMove[] = [
     tags: ['companion', 'damage', 'cooperation'],
     source: 'DW Core',
     page: 32,
+    level: 1,
   },
 ]
 
@@ -855,6 +875,7 @@ export const THIEF_MOVES: CompendiumMove[] = [
     tags: ['locks', 'traps', 'dexterity'],
     source: 'DW Core',
     page: 34,
+    level: 1,
   },
   {
     id: 'thief_backstab',
@@ -872,6 +893,7 @@ export const THIEF_MOVES: CompendiumMove[] = [
     tags: ['combat', 'sneak', 'damage'],
     source: 'DW Core',
     page: 34,
+    level: 1,
   },
   {
     id: 'thief_poisoner',
@@ -889,6 +911,7 @@ export const THIEF_MOVES: CompendiumMove[] = [
     tags: ['poison', 'crafting', 'intelligence'],
     source: 'DW Core',
     page: 34,
+    level: 1,
   },
 ]
 
@@ -911,6 +934,7 @@ export const BARD_MOVES: CompendiumMove[] = [
     tags: ['magical', 'performance', 'spellcasting'],
     source: 'DW Core',
     page: 26,
+    level: 1,
   },
   {
     id: 'bard_charming_and_open',
@@ -956,6 +980,7 @@ export const DRUID_MOVES: CompendiumMove[] = [
     tags: ['sustenance', 'nature', 'passive'],
     source: 'DW Core',
     page: 29,
+    level: 1,
   },
   {
     id: 'druid_shapeshifter',
@@ -1005,6 +1030,7 @@ export const IMMOLATOR_MOVES: CompendiumMove[] = [
     tags: ['fire', 'combat', 'touch'],
     source: 'DW Core',
     page: 31,
+    level: 1,
   },
   {
     id: 'immolator_give_me_fuel_give_me_fire',
@@ -1100,16 +1126,11 @@ export const MOVE_COMPENDIUM: CompendiumMove[] = [
 
 // Helper functions for move management
 export function getMovesByClass(characterClass: CharacterClass): CompendiumMove[] {
-  return MOVE_COMPENDIUM.filter(move =>
-    move.requiresClass === characterClass
-    || (move.category === 'basic' && !move.requiresClass),
-  )
+  return MOVE_COMPENDIUM.filter(move => move.requiresClass === characterClass)
 }
 
 export function getMovesByLevel(level: number): CompendiumMove[] {
-  return MOVE_COMPENDIUM.filter(move =>
-    !move.level || move.level <= level,
-  )
+  return MOVE_COMPENDIUM.filter(move => move.level === level)
 }
 
 export function getMovesByCategory(category: MoveCategory): CompendiumMove[] {
