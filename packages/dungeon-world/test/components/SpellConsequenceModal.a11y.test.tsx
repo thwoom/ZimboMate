@@ -2,7 +2,7 @@
 import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import ReactDOM from 'react-dom/client'
-import { act } from 'react-dom/test-utils'
+import { act } from 'react'
 import SpellConsequenceModal from '../../src/components/SpellConsequenceModal'
 
 function nextTick() {

@@ -2,7 +2,7 @@
 import React from 'react'
 import { describe, it, expect } from 'vitest'
 import ReactDOM from 'react-dom/client'
-import { act } from 'react-dom/test-utils'
+import { act } from 'react'
 import App from '../../src/App'
 
 function nextTick() { return new Promise<void>(r => queueMicrotask(() => r())) }
