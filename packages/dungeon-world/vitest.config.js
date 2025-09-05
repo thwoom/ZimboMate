@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'node',
+    environment: 'jsdom',
     include: [
       'test/**/*.test.ts',
       'test/**/*.test.tsx',
@@ -17,5 +17,6 @@ export default defineConfig({
       'test/task-manager.test.js',
     ],
     reporters: ['verbose'],
+    setupFiles: ['test/setup.ts']
   },
 });

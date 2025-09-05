@@ -1,9 +1,42 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { useGameStore } from '../../store/GameStore'
+import { exportKeymap, getRegisteredShortcuts, importKeymap, remapShortcut } from '../../utils/KeyboardShortcuts'
+import { createPanel, type PanelProps } from '../../framework/Panel'
 
-const IntegrationSettings: React.FC = () => {
+const IntegrationSettingsView: React.FC = () => {
   const { state, updateSettings } = useGameStore()
   const s = state.settings.integration!
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [importText, setImportText] = useState('')
+  const list = useMemo(() => getRegisteredShortcuts(), [refreshKey])
+
+  const doRemap = (normalized: string, newCombo: string) => {
+    if (!newCombo.trim()) return
+    const ok = remapShortcut(normalized, newCombo)
+    if (ok) setRefreshKey(k => k + 1)
+  }
+
+  const doExport = async () => {
+    const json = JSON.stringify(exportKeymap(), null, 2)
+    try {
+      await navigator.clipboard?.writeText(json)
+      alert('Keymap JSON copied to clipboard')
+    } catch {
+      setImportText(json)
+    }
+  }
+
+  const doImport = () => {
+    try {
+      const parsed = JSON.parse(importText)
+      importKeymap(parsed)
+      setRefreshKey(k => k + 1)
+      alert('Keymap imported')
+    } catch {
+      alert('Invalid JSON')
+    }
+  }
+
   return (
     <div>
       <h2>Integration Settings</h2>
@@ -31,10 +64,37 @@ const IntegrationSettings: React.FC = () => {
         <input type="checkbox" checked={s.overlayEnabled} onChange={e => updateSettings({ integration: { ...s, overlayEnabled: (e.target as HTMLInputElement).checked } })} />
         Enable Shortcuts Overlay
       </label>
+
+      <hr />
+      <h3>Keymap Editor</h3>
+      <p>Remap existing shortcuts. Conflicts will be rejected.</p>
+      <div>
+        {list.map((i, idx) => (
+          <div key={`${i.normalized}-${idx}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+            <span title={i.scope ?? 'global'}>{i.description || 'Shortcut'}</span>
+            <code>{i.combo}</code>
+            <input type="text" placeholder="New combo (e.g., ctrl+shift+k)" aria-label={`Remap ${i.combo}`} onKeyDown={(e) => { if (e.key === 'Enter') doRemap(i.normalized, (e.target as HTMLInputElement).value) }} />
+            <button type="button" onClick={(e) => {
+              const input = (e.currentTarget.parentElement?.querySelector('input') as HTMLInputElement | null)
+              if (input) doRemap(i.normalized, input.value)
+            }}>Remap</button>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <button type="button" onClick={doExport}>Export Keymap</button>
+        <button type="button" onClick={doImport} style={{ marginLeft: 8 }}>Import Keymap</button>
+      </div>
+      <textarea value={importText} onChange={e => setImportText((e.target as HTMLTextAreaElement).value)} placeholder="Paste keymap JSON here" rows={6} style={{ width: '100%', marginTop: 8 }} />
     </div>
   )
 }
 
-export default IntegrationSettings
+const IntegrationSettingsPanel = createPanel(
+  { id: 'settings-integration', name: 'Integration', icon: '⚙️' },
+  ((props: PanelProps) => React.createElement(IntegrationSettingsView)) as React.FC<PanelProps>,
+)
+
+export default IntegrationSettingsPanel
 
 
