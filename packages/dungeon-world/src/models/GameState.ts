@@ -63,6 +63,7 @@ export interface GameState {
     sidePanelOpen: boolean
     auxiliaryDrawerOpen: boolean
     modalStack: string[]
+    panelState?: Record<string, any>
   }
 
   // App settings
@@ -134,6 +135,7 @@ export function createInitialGameState(): GameState {
       sidePanelOpen: true,
       auxiliaryDrawerOpen: false,
       modalStack: [],
+      panelState: {},
     },
     settings: {
       theme: 'light',
