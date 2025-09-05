@@ -21,7 +21,7 @@ export class LocalStoragePanelStateManager implements PanelStateManager {
 
   saveState(panelId: string, state: any): void {
     try {
-      const _key = this.getStorageKey(panelId)
+      const key = this.getStorageKey(panelId)
       localStorage.setItem(key, JSON.stringify(state))
     }
     catch {
@@ -30,7 +30,7 @@ export class LocalStoragePanelStateManager implements PanelStateManager {
 
   loadState(panelId: string): unknown {
     try {
-      const _key = this.getStorageKey(panelId)
+      const key = this.getStorageKey(panelId)
       const storedState = localStorage.getItem(key)
       return storedState ? JSON.parse(storedState) : null
     }
@@ -41,7 +41,7 @@ export class LocalStoragePanelStateManager implements PanelStateManager {
 
   clearState(panelId: string): void {
     try {
-      const _key = this.getStorageKey(panelId)
+      const key = this.getStorageKey(panelId)
       localStorage.removeItem(key)
     }
     catch (error) {

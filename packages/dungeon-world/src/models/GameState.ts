@@ -20,6 +20,13 @@ export interface AppSettings {
   showRollAnimations: boolean
   confirmDangerousActions: boolean
   keyboardShortcuts: Record<string, string>
+  integration?: {
+    contextMenuEnabled: boolean
+    tooltipDelayMs: number
+    highContrastMenu: boolean
+    suspendShortcutsOnDialog: boolean
+    overlayEnabled: boolean
+  }
   conditionalContent?: {
     global: {
       preferClassRelevant: boolean
@@ -148,6 +155,13 @@ export function createInitialGameState(): GameState {
         rollStat: 'r',
         quickSave: 'ctrl + s',
         toggleDrawer: 'ctrl + d',
+      },
+      integration: {
+        contextMenuEnabled: true,
+        tooltipDelayMs: 0,
+        highContrastMenu: false,
+        suspendShortcutsOnDialog: true,
+        overlayEnabled: true,
       },
       conditionalContent: {
         global: {

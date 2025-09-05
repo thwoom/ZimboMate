@@ -5,6 +5,7 @@ export interface ShortcutSpec {
   handler: ShortcutHandler
   scope?: string // optional scope id (e.g., panel id or 'global')
   preventDefault?: boolean
+  description?: string
 }
 
 interface RegisteredShortcut extends ShortcutSpec {
@@ -18,6 +19,13 @@ function normalizeCombo(combo: string): string {
 const shortcuts: RegisteredShortcut[] = []
 let activeScope: string | null = null
 let suspended = false
+let paused = false
+let lastKeydownAt = 0
+let dialogSuspendEnabled = true
+
+export function setDialogSuspensionEnabled(enabled: boolean): void {
+  dialogSuspendEnabled = enabled
+}
 
 export function setActiveScope(scopeId: string | null): void {
   activeScope = scopeId
@@ -39,7 +47,6 @@ export function suspendShortcuts(suspend: boolean): void {
 }
 
 export function suspendDuring(predicate: () => boolean): void {
-  // Simple polling-based suspension for dialogs
   const update = () => {
     try {
       suspended = predicate()
@@ -53,8 +60,35 @@ export function suspendDuring(predicate: () => boolean): void {
   window.addEventListener('beforeunload', () => clearInterval(id), { once: true })
 }
 
+export function getRegisteredShortcuts(): Array<Pick<RegisteredShortcut, 'combo' | 'normalized' | 'scope' | 'description'>> {
+  return shortcuts.map(({ combo, normalized, scope, description }) => ({ combo, normalized, scope, description }))
+}
+
+function suggestAlternative(normalized: string): string {
+  const base = normalized.replace(/^ctrl\+|^alt\+|^meta\+|^shift\+/g, '')
+  const candidates = [
+    `ctrl+alt+${base}`,
+    `alt+${base}`,
+    `ctrl+shift+${base}`,
+  ]
+  for (const c of candidates) {
+    const exists = shortcuts.some(s => s.normalized === c)
+    if (!exists)
+      return c
+  }
+  return `${base}-conflict`
+}
+
 export function registerShortcut(spec: ShortcutSpec): () => void {
   const normalized = normalizeCombo(spec.combo)
+  const conflict = shortcuts.find(s => s.normalized === normalized && (s.scope ?? 'global') === (spec.scope ?? 'global'))
+  if (conflict) {
+    // eslint-disable-next-line no-console
+    console.warn(`Shortcut conflict for "${normalized}" in scope "${spec.scope ?? 'global'}"`)
+    const alt = suggestAlternative(normalized)
+    // eslint-disable-next-line no-console
+    console.warn(`Suggested alternative: ${alt}`)
+  }
   const entry: RegisteredShortcut = { ...spec, normalized }
   shortcuts.push(entry)
   return () => unregisterShortcut(entry)
@@ -67,8 +101,39 @@ export function unregisterShortcut(spec: RegisteredShortcut | ShortcutSpec): voi
     shortcuts.splice(idx, 1)
 }
 
+export function remapShortcut(oldNormalized: string, newCombo: string): boolean {
+  const idx = shortcuts.findIndex(s => s.normalized === oldNormalized)
+  if (idx < 0) return false
+  const newNorm = normalizeCombo(newCombo)
+  const conflict = shortcuts.find((s, i) => i !== idx && s.normalized === newNorm && (s.scope ?? 'global') === (shortcuts[idx].scope ?? 'global'))
+  if (conflict) {
+    // eslint-disable-next-line no-console
+    console.warn(`Remap conflict for "${newNorm}"; keeping old mapping.`)
+    return false
+  }
+  shortcuts[idx].combo = newCombo
+  shortcuts[idx].normalized = newNorm
+  try {
+    const raw = localStorage.getItem('keymapOverrides')
+    const overrides = raw ? JSON.parse(raw) : {}
+    overrides[oldNormalized] = newCombo
+    localStorage.setItem('keymapOverrides', JSON.stringify(overrides))
+  } catch {}
+  return true
+}
+
+export function exportKeymap(): Record<string, string> {
+  const raw = (typeof localStorage !== 'undefined') ? localStorage.getItem('keymapOverrides') : null
+  try { return raw ? JSON.parse(raw) : {} } catch { return {} }
+}
+
+export function importKeymap(map: Record<string, string>): void {
+  try { localStorage.setItem('keymapOverrides', JSON.stringify(map)) } catch {}
+  for (const [old, nw] of Object.entries(map))
+    remapShortcut(old, nw)
+}
+
 function matchEventToCombo(event: KeyboardEvent, combo: string): boolean {
-  // Simple combos: single key with optional modifiers
   const wanted = combo.split(' ')
   if (wanted.length > 1)
     return false
@@ -93,7 +158,11 @@ function isTypingTarget(target: HTMLElement | null): boolean {
 }
 
 function onKeydown(event: KeyboardEvent): void {
-  if (suspended)
+  const now = Date.now()
+  if (now - lastKeydownAt < 24)
+    return
+  lastKeydownAt = now
+  if (paused || suspended)
     return
   const target = event.target as HTMLElement | null
   if (isTypingTarget(target))
@@ -107,6 +176,11 @@ function onKeydown(event: KeyboardEvent): void {
         event.preventDefault()
       try {
         s.handler(event)
+        try {
+          const t: any = (window as any).__devTelemetry
+          if (t && typeof t.recordShortcutTrigger === 'function')
+            t.recordShortcutTrigger(s.normalized)
+        } catch {}
       }
       catch (e) {
         // eslint-disable-next-line no-console
@@ -117,9 +191,16 @@ function onKeydown(event: KeyboardEvent): void {
   }
 }
 
-// Attach once and add basic modal suspension if a dialog is present
+function initOverlayHotkeys(): void {
+  const toggle = () => window.dispatchEvent(new CustomEvent('shortcuts:toggle-overlay'))
+  registerShortcut({ combo: '?', handler: toggle, description: 'Open shortcuts overlay', scope: 'global', preventDefault: true })
+  registerShortcut({ combo: 'ctrl+/', handler: toggle, description: 'Open shortcuts overlay', scope: 'global', preventDefault: true })
+}
+
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', onKeydown)
-  // suspend when any role="dialog" or [aria-modal="true"] is present
-  suspendDuring(() => !!document.querySelector('[role="dialog"], [aria-modal="true"]'))
+  suspendDuring(() => dialogSuspendEnabled && !!document.querySelector('[role="dialog"], [aria-modal="true"]'))
+  window.addEventListener('blur', () => { paused = true })
+  window.addEventListener('focus', () => { paused = false })
+  initOverlayHotkeys()
 }

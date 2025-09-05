@@ -31,3 +31,15 @@
   cursor: not-allowed;
 }
 
+.context-menu__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.context-menu__reason {
+  color: #999;
+  font-size: 12px;
+  padding-right: 12px;
+}
+

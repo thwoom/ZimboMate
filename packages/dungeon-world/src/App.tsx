@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import DarkModeToggle from './components/DarkModeToggle'
 
@@ -18,15 +18,76 @@ import { InventoryPanel } from './panels/InventoryPanel'
 import MoveLibraryPanel from './panels/MoveLibraryPanel'
 import MovesPanel from './panels/MovesPanel'
 import ConditionalContentSettings from './panels/SettingsPanel/ConditionalContentSettings'
+import IntegrationSettings from './panels/SettingsPanel/IntegrationSettings'
 import { createPlaceholderPanel } from './panels/PlaceholderPanel'
 import { SpecialMovesPanel } from './panels/SpecialMovesPanel'
 import { SpellPanel } from './panels/SpellPanel'
 import TestPlaygroundPanel from './panels/TestPlayground'
-import { GameStoreProvider } from './store/GameStore'
+import { GameStoreProvider, useSettings } from './store/GameStore'
 import { panelDiagnostics } from './utils/panelDiagnostics'
 import { panelRecoveryManager } from './utils/panelRecovery'
+import ShortcutsOverlay from './components/ShortcutsOverlay'
+import './components/ShortcutsOverlay.css'
+import ContextMenu, { type MenuItem } from './components/ContextMenu'
 // import { PanelDebugger, testPanel } from './debug/PanelDebugger';
 import './App.css'
+
+function AppInner() {
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [menuState, setMenuState] = useState<{ open: boolean, x: number, y: number, items: MenuItem[] }>({ open: false, x: 0, y: 0, items: [] })
+  const settings = useSettings()
+
+  useEffect(() => {
+    const root = document.querySelector('.app') as HTMLElement | null
+    if (root)
+      root.style.setProperty('--tt-delay', `${settings.integration?.tooltipDelayMs ?? 0}ms`)
+  }, [settings.integration?.tooltipDelayMs])
+
+  useEffect(() => {
+    const onToggle = () => settings.integration?.overlayEnabled && setShowShortcuts(v => !v)
+    window.addEventListener('shortcuts:toggle-overlay', onToggle as EventListener)
+    return () => window.removeEventListener('shortcuts:toggle-overlay', onToggle as EventListener)
+  }, [settings.integration?.overlayEnabled])
+
+  useEffect(() => {
+    if (!settings.integration?.contextMenuEnabled)
+      return
+    const onContext = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      const appRoot = document.querySelector('.app')
+      if (appRoot && appRoot.contains(target)) {
+        e.preventDefault()
+        const items: MenuItem[] = [
+          { id: 'favorite', label: 'Add to Favorites', onSelect: () => window.dispatchEvent(new CustomEvent('menu:add-favorite')) },
+          { id: 'copy', label: 'Copy Panel Link', onSelect: () => navigator.clipboard?.writeText(window.location.href).catch(() => {}) },
+          { id: 'disabled', label: 'Inspect (coming soon)', onSelect: () => {}, disabled: true, disabledReason: 'Dev tool' },
+        ]
+        setMenuState({ open: true, x: e.clientX, y: e.clientY, items })
+      }
+    }
+    window.addEventListener('contextmenu', onContext)
+    return () => window.removeEventListener('contextmenu', onContext)
+  }, [settings.integration?.contextMenuEnabled])
+
+  return (
+    <div className="app">
+      <DarkModeToggle />
+      <MainLayout />
+      {menuState.open && (
+        <ContextMenu
+          x={menuState.x}
+          y={menuState.y}
+          items={menuState.items}
+          onClose={() => setMenuState(s => ({ ...s, open: false }))}
+        />
+      )}
+      {showShortcuts && (
+        <ShortcutsOverlay onClose={() => setShowShortcuts(false)} />
+      )}
+      {/* <PanelDebugger /> */}
+    </div>
+  )
+}
 
 function App() {
   useEffect(() => {
@@ -45,6 +106,7 @@ function App() {
       EquipmentPanel,
       MovesPanel,
       ConditionalContentSettings,
+      IntegrationSettings,
       SpellPanel,
       SpecialMovesPanel,
       CampaignPanel,
@@ -103,19 +165,13 @@ function App() {
   return (
     <ErrorBoundary
       onError={(error, errorInfo) => {
-        // Custom error handling-could send to analytics service
-        // In development, provide recovery options
         if (process.env.NODE_ENV === 'development') {
           console.warn('Error occurred, attempting recovery...')
         }
       }}
     >
       <GameStoreProvider>
-        <div className="app">
-          <DarkModeToggle />
-          <MainLayout />
-          {/* <PanelDebugger /> */}
-        </div>
+        <AppInner />
       </GameStoreProvider>
     </ErrorBoundary>
   )

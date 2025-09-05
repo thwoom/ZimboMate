@@ -5,9 +5,8 @@
 
 .tooltip-bubble {
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translate(-50%, -6px);
+  top: var(--tt-top, -9999px);
+  left: var(--tt-left, -9999px);
   background: #111;
   color: #fff;
   padding: 4px 8px;
@@ -15,10 +14,16 @@
   border-radius: 4px;
   white-space: nowrap;
   pointer-events: none;
+  transition: opacity 120ms ease;
+  opacity: 1;
 }
 
 .tooltip-wrapper:focus-within .tooltip-bubble,
 .tooltip-wrapper:hover .tooltip-bubble {
   /* shown via React state; selectors ensure good placement behavior */
+}
+
+.tooltip-wrapper.reduced .tooltip-bubble {
+  transition: none;
 }
 
