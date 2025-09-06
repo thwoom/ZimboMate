@@ -1,0 +1,11 @@
+{
+  "contextMenuEnabled": true,
+  "overlayEnabled": true,
+  "tooltipDelayMs": 250,
+  "keymap": {
+    "shortcutsOverlay.toggle": ["?", "Ctrl+/"],
+    "navigate.search": ["Ctrl+K"],
+    "menu.open": ["Shift+F10"],
+    "roll.quick": ["Space"]
+  }
+}
