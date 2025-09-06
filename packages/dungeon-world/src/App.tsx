@@ -14,6 +14,7 @@ import ConditionTrackerPanel from './panels/ConditionTrackerPanel/ConditionTrack
 import { ContentStudioPanelInstance } from './panels/ContentStudioPanel/ContentStudioPanel'
 import EquipmentCompendiumPanel from './panels/EquipmentCompendiumPanel/EquipmentCompendiumPanel'
 import EquipmentPanel from './panels/EquipmentPanel'
+import SessionToolsPanel from './panels/SessionToolsPanel'
 import { InventoryPanel } from './panels/InventoryPanel'
 import MoveLibraryPanel from './panels/MoveLibraryPanel'
 import MovesPanel from './panels/MovesPanel'
@@ -121,8 +122,8 @@ function App() {
       ConditionTrackerPanel,
       // Register actual panels
       InventoryPanel,
-      // Register placeholder panels for testing
-      createPlaceholderPanel('session-tools', 'Session Tools', '🎲'),
+      // Register Session Tools (replaces previous placeholder)
+      SessionToolsPanel,
       createPlaceholderPanel('lore-journal', 'Lore & Journal', '📖'),
     ]
 

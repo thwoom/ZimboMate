@@ -22,6 +22,11 @@
   - `usePanelState(panelId, initial)` persists per-panel UI flags in `ui.panelState`
   - LocalStorage manager helpers in `framework/PanelState`
 
+- **Session Tools Panel**
+  - See `docs/session-tools.md` (dice, notes, trackers, timers, unified log)
+  - Emits log entries via `panelEventBus.emit('session:log:add', { type, text })`
+  - Badges can refresh with `panelEventBus.emit('badge:update')`
+
 - **Config (implicit)**
   - Keyboard: global scope `global`, dialog suspension enabled
   - Context menu enabled by default

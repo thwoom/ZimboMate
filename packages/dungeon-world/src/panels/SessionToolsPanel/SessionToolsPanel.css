@@ -1,0 +1,9 @@
+.session-tools-panel { padding: 16px; }
+.st-header { margin-bottom: 12px; }
+.st-title { margin: 0 0 4px 0; font-size: 20px; }
+.st-subtitle { margin: 0; opacity: 0.8; }
+.st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.st-card { border: 1px solid var(--border-color, #333); border-radius: 6px; padding: 12px; background: var(--panel-bg, #111); }
+.st-card__title { margin: 0 0 6px 0; font-size: 16px; }
+.st-card__text { margin: 0; opacity: 0.85; }
+.st-card--wide { grid-column: 1 / -1; }

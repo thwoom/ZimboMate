@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { panelRegistry } from '../framework/PanelRegistry'
 import { useGameStore } from '../store/GameStore'
 import { filterPanelsForCharacter } from '../utils/navigationFilter'
+import { panelEventBus } from '../framework/PanelAPI'
 import './Sidebar.css'
 
 interface SidebarProps {
@@ -69,7 +70,11 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
 
     updatePanels()
     const unsubscribe = panelRegistry.addListener(() => { updatePanels() })
-    return unsubscribe
+    const offBadge = panelEventBus.on('badge:update', () => {
+      // trigger a re-render so getBadgeCount reflects latest counts
+      setPanels(prev => [...prev])
+    })
+    return () => { unsubscribe(); offBadge() }
   }, [state])
 
   useEffect(() => {
