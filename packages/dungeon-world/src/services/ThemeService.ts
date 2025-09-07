@@ -215,19 +215,25 @@ export class ThemeService {
   private applyTheme(): void {
     const root = document.documentElement
 
-    // Remove existing theme classes
-    root.removeAttribute('data-theme')
+    // Remove existing theme attributes/classes (we keep both systems bridged)
+    root.classList.remove('dark')
 
     // Apply new theme
     if (this.currentTheme === 'auto') {
       const systemTheme = this.mediaQuery.matches ? 'dark' : 'light'
-      if (systemTheme === 'light') {
-        root.setAttribute('data-theme', 'light')
-      }
-      // Dark is default, no attribute needed
+      if (systemTheme === 'light') root.setAttribute('data-theme', 'light')
+      else root.classList.add('dark')
     }
     else if (this.currentTheme !== 'dark') {
-      root.setAttribute('data-theme', this.currentTheme)
+      if (this.currentTheme === 'light') {
+        root.setAttribute('data-theme', 'light')
+      } else {
+        // map 'moon' and 'high-contrast' via data-theme for token variants
+        root.setAttribute('data-theme', this.currentTheme)
+      }
+    } else {
+      root.classList.add('dark')
+      root.setAttribute('data-theme', 'dark')
     }
 
     // Update meta theme-color for mobile browsers

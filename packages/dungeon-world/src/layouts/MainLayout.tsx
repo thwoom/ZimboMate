@@ -8,6 +8,9 @@ import { useGameStore } from '../store/GameStore'
 import ContentArea from './ContentArea'
 import Sidebar from './Sidebar'
 import './MainLayout.css'
+import R3FHudOverlay from '../components/ui/R3FHudOverlay'
+import { useSettings } from '../store/GameStore'
+import R3FIntroOverlay from '../components/ui/R3FIntroOverlay'
 
 interface MainLayoutProps {
   // No longer need drawer props since we're removing the auxiliary drawer
@@ -67,8 +70,11 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
     return () => clearTimeout(saveTimeout)
   }, [state])
 
+  const settings = useSettings()
   return (
     <div className="main-layout">
+      {settings.uiOverlays?.introSceneEnabled !== false && <R3FIntroOverlay enabled={true} />}
+      <R3FHudOverlay enabled={settings.uiOverlays?.r3fHudEnabled !== false} />
       <aside className="main-layout__sidebar">
         <Sidebar
           activePanelId={activePanelId}

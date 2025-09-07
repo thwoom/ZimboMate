@@ -7,6 +7,10 @@ import { createPanel } from '../../framework/Panel'
 import { createPanelAPI } from '../../framework/PanelAPI'
 import { useCharacter } from '../../store/GameStore'
 import './AlignmentXPTrackerPanel.css'
+import { HUDFrame } from '../../components/ui/HUDFrame'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant } from '../../utils/motion'
 
 const id = 'alignment-xp-tracker'
 
@@ -27,21 +31,24 @@ const AlignmentXPTrackerPanelComponent: React.FC <PanelProps> = ({ isActive, onS
   }
 
   return (
-    <div className="alignment-xp-tracker-panel">
-      <div className="alignment-xp-tracker-panel__header">
-        <h2>⚖️ Alignment XP Tracker</h2>
-        <p className="alignment-xp-tracker-panel__subtitle">
-          Log alignment-based actions and earn XP through roleplay
-        </p>
-      </div>
-
-      <div className="alignment-xp-tracker-panel__content">
-        <AlignmentXPTracker
-          characterId={currentCharacter?.id}
-          onAlignmentAction={handleAlignmentAction}
-        />
-      </div>
-    </div>
+    <motion.div initial={useReducedMotion() ? false : 'hidden'} animate={useReducedMotion() ? undefined : 'visible'} variants={getVariant('fade')}>
+      <HUDFrame className="p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>⚖️ Alignment XP Tracker</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-[--color-muted-foreground] mb-3">
+              Log alignment-based actions and earn XP through roleplay
+            </p>
+            <AlignmentXPTracker
+              characterId={currentCharacter?.id}
+              onAlignmentAction={handleAlignmentAction}
+            />
+          </CardContent>
+        </Card>
+      </HUDFrame>
+    </motion.div>
   )
 }
 

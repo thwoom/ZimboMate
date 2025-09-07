@@ -12,13 +12,13 @@
 }
 
 .step-header h2 {
-  color: var(--rp-text);
+  color: var(--color-foreground);
   margin-bottom: 10px;
   font-size: 2rem;
 }
 
 .step-header p {
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
   font-size: 1.1rem;
 }
 
@@ -30,21 +30,21 @@
 .search-input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid var(--rp-surface);
+  border: 2px solid var(--color-border);
   border-radius: 8px;
-  background: var(--rp-base);
-  color: var(--rp-text);
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-size: 1rem;
   transition: border-color 0.2s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--rp-rose);
+  border-color: var(--color-ring);
 }
 
 .search-input::placeholder {
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
 }
 
 /* Tabs */
@@ -52,16 +52,16 @@
   display: flex;
   gap: 4px;
   margin-bottom: 20px;
-  border-bottom: 2px solid var(--rp-surface);
+  border-bottom: 2px solid var(--color-border);
   padding-bottom: 0;
 }
 
 .tab {
   padding: 12px 20px;
-  background: var(--rp-base);
+  background: var(--color-background);
   border: none;
   border-radius: 8px 8px 0 0;
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
@@ -70,14 +70,14 @@
 }
 
 .tab:hover {
-  background: var(--rp-surface);
-  color: var(--rp-text);
+  background: var(--color-card);
+  color: var(--color-card-foreground);
 }
 
 .tab.active {
-  background: var(--rp-surface);
-  color: var(--rp-rose);
-  border-bottom-color: var(--rp-rose);
+  background: var(--color-card);
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 /* Tab Content */
@@ -97,8 +97,8 @@
 .compendium-class-card,
 .race-move-card,
 .template-card {
-  background: var(--rp-base);
-  border: 2px solid var(--rp-surface);
+  background: var(--color-background);
+  border: 2px solid var(--color-border);
   border-radius: 12px;
   padding: 20px;
   cursor: pointer;
@@ -110,7 +110,7 @@
 .compendium-class-card:hover,
 .race-move-card:hover,
 .template-card:hover {
-  border-color: var(--rp-rose);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
@@ -118,16 +118,16 @@
 .compendium-class-card.selected,
 .race-move-card.selected,
 .template-card.selected {
-  border-color: var(--rp-rose);
-  background: var(--rp-surface);
-  box-shadow: 0 0 0 2px var(--rp-rose);
+  border-color: var(--color-primary);
+  background: var(--color-card);
+  box-shadow: 0 0 0 2px var(--color-primary);
 }
 
 .compendium-class-card.disabled,
 .race-move-card.disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  border-color: var(--rp-overlay);
+  border-color: var(--color-border);
 }
 
 .compendium-class-card.disabled:hover,
@@ -145,7 +145,7 @@
 }
 
 .card-header h3 {
-  color: var(--rp-text);
+  color: var(--color-foreground);
   margin: 0;
   font-size: 1.3rem;
   font-weight: 600;
@@ -154,8 +154,8 @@
 .source,
 .race,
 .level {
-  background: var(--rp-rose);
-  color: var(--rp-base);
+  background: var(--color-primary);
+  color: var(--color-background);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 0.8rem;
@@ -164,7 +164,7 @@
 
 /* Description */
 .description {
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
   margin-bottom: 15px;
   line-height: 1.5;
 }
@@ -177,7 +177,7 @@
 
 .requirements h4,
 .benefits h4 {
-  color: var(--rp-text);
+  color: var(--color-foreground);
   margin-bottom: 8px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -194,7 +194,7 @@
 
 .requirements li,
 .benefits li {
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
   font-size: 0.9rem;
   margin-bottom: 4px;
   padding-left: 16px;
@@ -204,7 +204,7 @@
 .requirements li::before,
 .benefits li::before {
   content: '•';
-  color: var(--rp-rose);
+  color: var(--color-primary);
   position: absolute;
   left: 0;
   font-weight: bold;
@@ -220,14 +220,14 @@
 
 .base-info h4,
 .advanced-info h4 {
-  color: var(--rp-text);
+  color: var(--color-foreground);
   margin-bottom: 8px;
   font-size: 0.9rem;
   font-weight: 600;
 }
 
 .base-info p {
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
   margin: 0;
   font-size: 0.9rem;
 }
@@ -261,7 +261,7 @@
 }
 
 .tags {
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
   font-size: 0.8rem;
 }
 
@@ -269,7 +269,7 @@
 .no-options {
   text-align: center;
   padding: 60px 20px;
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
 }
 
 .no-options p {
@@ -279,15 +279,15 @@
 
 /* Selected Options */
 .selected-options {
-  background: var(--rp-surface);
-  border: 2px solid var(--rp-rose);
+  background: var(--color-card);
+  border: 2px solid var(--color-primary);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
 }
 
 .selected-options h3 {
-  color: var(--rp-text);
+  color: var(--color-foreground);
   margin-bottom: 15px;
   font-size: 1.2rem;
 }
@@ -297,7 +297,7 @@
 }
 
 .selected-group h4 {
-  color: var(--rp-text);
+  color: var(--color-foreground);
   margin-bottom: 8px;
   font-size: 1rem;
 }
@@ -309,7 +309,7 @@
 }
 
 .selected-group li {
-  color: var(--rp-muted);
+  color: var(--color-muted-foreground);
   padding: 4px 0;
   font-size: 0.9rem;
 }
@@ -383,7 +383,7 @@
   gap: 15px;
   margin-top: 30px;
   padding-top: 20px;
-  border-top: 2px solid var(--rp-surface);
+  border-top: 2px solid var(--color-border);
 }
 
 .primary-button,
@@ -398,14 +398,14 @@
 }
 
 .primary-button {
-  background: var(--rp-rose);
-  color: var(--rp-base);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
 }
 
 .primary-button:hover:not(:disabled) {
-  background: var(--rp-rose);
+  background: var(--color-primary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(235, 87, 87, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .primary-button:disabled {
@@ -416,12 +416,12 @@
 }
 
 .secondary-button {
-  background: var(--rp-surface);
-  color: var(--rp-text);
+  background: var(--color-card);
+  color: var(--color-card-foreground);
 }
 
 .secondary-button:hover {
-  background: var(--rp-overlay);
+  background: var(--color-muted);
 }
 
 /* Responsive Design */

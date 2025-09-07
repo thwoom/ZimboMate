@@ -3,6 +3,7 @@ import type { ModifierSet, TemporaryModifier } from '../models/Modifiers'
 import React, { useState } from 'react'
 
 import './ModifiersPanel.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
 
 interface ModifiersPanelProps {
   modifiers: ModifierSet
@@ -167,15 +168,14 @@ export const ModifiersPanel: React.FC <ModifiersPanelProps> = ({
               onChange={e => setNewModifier({ ...newModifier, value: Number.parseInt(e.target.value) || 0 })}
               className="value-input"
             />
-            <select
-              value={newModifier.type}
-              onChange={e => setNewModifier({ ...newModifier, type: e.target.value as string })}
-              aria-label="Modifier type"
-            >
-              <option value="ongoing">Ongoing</option>
-              <option value="forward">Forward</option>
-              <option value="hold">Hold</option>
-            </select>
+            <Select value={newModifier.type!} onValueChange={(v) => setNewModifier({ ...newModifier, type: v as any })}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ongoing">Ongoing</SelectItem>
+                <SelectItem value="forward">Forward</SelectItem>
+                <SelectItem value="hold">Hold</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="form-row">
             <input

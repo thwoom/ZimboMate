@@ -32,3 +32,6 @@ Accessibility
 - Regions labeled via aria attributes
 - Live regions announce changes in dice/timers/log
 - Full keyboard access for all controls
+
+
+

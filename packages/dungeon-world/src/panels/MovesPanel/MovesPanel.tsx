@@ -26,6 +26,13 @@ import { filterMovesByClass, getClassMapping } from '../../utils/conditionalCont
 import { registerShortcut, setActiveScope } from '../../utils/KeyboardShortcuts'
 import { getEffectivePrefs, togglePanelOverride, setPanelShowAll } from '../../utils/preferences'
 import './MovesPanel.css'
+import { Checkbox } from '../../components/ui/checkbox'
+import { Switch } from '../../components/ui/switch'
+import { Button } from '../../components/ui/button'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant, staggerContainer, itemFadeIn } from '../../utils/motion'
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs'
+import { Card } from '../../components/ui/card'
 
 interface MovesPanelState {
   selectedCategory: 'all' | 'basic' | 'class' | 'advanced' | 'master' | 'special'
@@ -348,8 +355,15 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
     )
   }
 
+  const prefersReduced = useReducedMotion()
+
   return (
-    <div className="moves-panel">
+    <motion.div
+      className="moves-panel"
+      initial={prefersReduced ? false : 'hidden'}
+      animate={prefersReduced ? undefined : 'visible'}
+      variants={getVariant('fade')}
+    >
       <div className="moves-panel__header">
         <h2> Moves</h2>
         {character && (
@@ -372,7 +386,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
       {character && (
         <>
           {/* Controls */}
-          <div className="moves-panel__controls">
+          <motion.div className="moves-panel__controls" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
             <div className="search-bar">
               <input
                 type="text"
@@ -386,43 +400,43 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
 
             <div className="show-all-toggle">
               <label>
-                <input
-                  type="checkbox"
+                <Switch
                   checked={gameState.settings.conditionalContent?.perPanel.moves.overrideEnabled || false}
-                  onChange={() => {
+                  onCheckedChange={() => {
                     const next = togglePanelOverride(gameState.settings, 'moves')
                     updateSettings({ conditionalContent: next.conditionalContent })
                   }}
+                  aria-label="Override"
                 />{' '}
                 Override
               </label>
               <label className="ml-8">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={gameState.settings.conditionalContent?.perPanel.moves.showAll || false}
-                  onChange={e => {
-                    const next = setPanelShowAll(gameState.settings, 'moves', e.target.checked)
+                  onCheckedChange={(checked) => {
+                    const next = setPanelShowAll(gameState.settings, 'moves', Boolean(checked))
                     updateSettings({ conditionalContent: next.conditionalContent })
                   }}
                   disabled={!gameState.settings.conditionalContent?.perPanel.moves.overrideEnabled}
+                  aria-label="Show all moves"
                 />{' '}
                 Show all moves
               </label>
             </div>
 
-            <div className="category-filters">
-              {(['all', 'basic', 'class', 'advanced', 'master', 'special'] as const).map(category => (
-                <Tooltip key={category} content={`Filter: ${category}`}>
-                  <button
-                    className={`category-button ${panelState.selectedCategory === category ? 'active' : ''}`}
-                    onClick={() => updateState({ selectedCategory: category })}
-                    type="button"
-                  >
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </button>
-                </Tooltip>
-              ))}
-            </div>
+            <motion.div className="category-filters" variants={itemFadeIn}>
+              <Tabs value={panelState.selectedCategory} onValueChange={(v) => updateState({ selectedCategory: v as any })}>
+                <TabsList>
+                  {(['all', 'basic', 'class', 'advanced', 'master', 'special'] as const).map(category => (
+                    <Tooltip key={category} content={`Filter: ${category}`}>
+                      <TabsTrigger value={category} className={`category-button ${panelState.selectedCategory === category ? 'active' : ''}`}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </TabsTrigger>
+                    </Tooltip>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </motion.div>
 
             <div className="context-description">
               <input
@@ -434,37 +448,45 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
               />
             </div>
 
-            <div className="view-toggles">
-              <button
+            <motion.div className="view-toggles" variants={itemFadeIn}>
+              <Button
+                variant="secondary"
+                size="sm"
                 className={`toggle-button ${panelState.showEnhancedDice ? 'active' : ''}`}
                 onClick={() => updateState({ showEnhancedDice: !panelState.showEnhancedDice })}
                 type="button"
               >
                 🎲 Enhanced Dice
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 className={`toggle-button ${panelState.showSuggestions ? 'active' : ''}`}
                 onClick={() => updateState({ showSuggestions: !panelState.showSuggestions })}
                 type="button"
               >
                 💡 Smart Suggestions
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 className={`toggle-button ${panelState.showInsights ? 'active' : ''}`}
                 onClick={() => updateState({ showInsights: !panelState.showInsights })}
                 type="button"
               >
                 📊 Analytics
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 className={`toggle-button ${panelState.showRollHistory ? 'active' : ''}`}
                 onClick={() => updateState({ showRollHistory: !panelState.showRollHistory })}
                 type="button"
               >
                 📜 Roll History
-              </button>
-            </div>
-          </div>
+              </Button>
+            </motion.div>
+          </motion.div>
 
           {/* Main Content */}
           <div className="moves-panel__content">
@@ -523,7 +545,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                 <h3>💡 Smart Suggestions</h3>
                 <div className="suggestions-grid">
                   {suggestions.slice(0, 6).map(suggestion => (
-                    <div key={suggestion.move.id} className={`suggestion-card ${suggestion.priority}`}>
+                    <Card key={suggestion.move.id} className={`suggestion-card ${suggestion.priority}`}>
                       <div className="suggestion-header">
                         <span className="suggestion-move-name">{suggestion.move.name}</span>
                         <span className="suggestion-relevance">
@@ -533,7 +555,8 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                       </div>
                       <div className="suggestion-reason">{suggestion.reason}</div>
                       {suggestion.move.rollStat && character && (
-                        <button
+                        <Button
+                          size="sm"
                           className="suggestion-roll-btn"
                           onClick={() => {
                             const roll = diceRollingService.rollMove(suggestion.move, character)
@@ -541,12 +564,10 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                           }}
                           type="button"
                         >
-                          🎲 Roll +
-                          {' '}
-                          {suggestion.move.rollStat}
-                        </button>
+                          🎲 Roll + {' '}{suggestion.move.rollStat}
+                        </Button>
                       )}
-                    </div>
+                    </Card>
                   ))}
                 </div>
               </div>
@@ -571,7 +592,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
             )}
 
             {/* Moves List */}
-            <div className="moves-list">
+            <motion.div className="moves-list" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
               {filteredMoves.length === 0
                 ? (
                     <div className="no-moves">
@@ -581,10 +602,10 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                 : (
                     <>
                       {character && !effective.movesShowAll && classMoves.length > 0 && (
-                        <div className="moves-group">
+                        <motion.div className="moves-group" variants={itemFadeIn}>
                           <h3>Class Moves</h3>
                           {classMoves.map(move => (
-                            <div key={move.id} onContextMenu={e => openContextMenu(e, move)}>
+                            <motion.div key={move.id} onContextMenu={e => openContextMenu(e, move)} variants={itemFadeIn}>
                               <MoveCard
                                 move={move}
                                 character={character}
@@ -593,16 +614,16 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                                 expanded={panelState.expandedMoves.has(move.id)}
                                 className="moves-list__item"
                               />
-                            </div>
+                            </motion.div>
                           ))}
-                        </div>
+                        </motion.div>
                       )}
-                      <div className="moves-group">
+                      <motion.div className="moves-group" variants={itemFadeIn}>
                         {character && !effective.movesShowAll && classMoves.length > 0 && (
                           <h3>Other Moves</h3>
                         )}
                         {(character && !effective.movesShowAll ? otherMoves : filteredMoves).map(move => (
-                          <div key={move.id} onContextMenu={e => openContextMenu(e, move)}>
+                          <motion.div key={move.id} onContextMenu={e => openContextMenu(e, move)} variants={itemFadeIn}>
                             <MoveCard
                               move={move}
                               character={character}
@@ -611,12 +632,12 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                               expanded={panelState.expandedMoves.has(move.id)}
                               className="moves-list__item"
                             />
-                          </div>
+                          </motion.div>
                         ))}
-                      </div>
+                      </motion.div>
                     </>
                   )}
-            </div>
+            </motion.div>
 
             {menuState.open && menuState.move && (
               <ContextMenu
@@ -655,7 +676,9 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
               <div className="roll-history">
                 <div className="roll-history__header">
                   <h3> Recent Rolls</h3>
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     className="clear-history-button"
                     onClick={() => {
                       diceRollingService.clearHistory()
@@ -664,7 +687,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
                     type="button"
                   >
                     Clear
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="roll-history__list">
@@ -718,7 +741,7 @@ const MovesPanel: React.FC <PanelProps> = ({ id }) => {
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   )
 }
 

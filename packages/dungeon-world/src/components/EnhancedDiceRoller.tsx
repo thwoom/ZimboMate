@@ -14,6 +14,9 @@ import {
 
 import DiceAnimation from './DiceAnimation'
 import './EnhancedDiceRoller.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../utils/motion'
 
 interface EnhancedDiceRollerProps {
   onRoll?: (roll: EnhancedDiceRoll) => void
@@ -122,6 +125,8 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
     return 'var(--color-text-primary)'
   }
 
+  const prefersReduced = useReducedMotion()
+
   if (compact) {
     return (
       <div className="enhanced-dice-roller compact">
@@ -137,26 +142,29 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
           </div>
         )}
 
-        <div className="quick-dice-grid">
-          {quickDice.map((item, index) => (
-            <button
+        <motion.div className="quick-dice-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
+          {quickDice.map((dice, index) => (
+            <motion.button
               key={index}
               className="quick-dice-btn"
               onClick={() => {
                 handleQuickDice(dice)
                 setTimeout(handleRoll, 100)
               }}
+              variants={itemFadeIn}
+              whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.98 }}
             >
               {dice.label}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
         {lastRoll && (
-          <div className="last-roll-compact">
+          <motion.div className="last-roll-compact" variants={itemFadeIn} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
             <span className={`roll-result-text ${lastRoll.rollResult || (lastRoll.success !== undefined ? (lastRoll.success ? 'success' : 'failure') : 'neutral')}`}>
               {diceRollingService.formatEnhancedRoll(lastRoll)}
             </span>
-          </div>
+          </motion.div>
         )}
       </div>
     )
@@ -166,28 +174,33 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
     <div className="enhanced-dice-roller">
       <div className="dice-roller-header">
         <h3>🎲 Enhanced Dice Roller</h3>
-        <button
+        <motion.button
           className="toggle-advanced"
           onClick={() => setShowAdvanced(!showAdvanced)}
+          whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+          whileTap={prefersReduced ? undefined : { scale: 0.98 }}
         >
           {showAdvanced ? 'Simple' : 'Advanced'}
-        </button>
+        </motion.button>
       </div>
 
       {/* Quick Dice Buttons */}
       <div className="quick-dice-section">
         <h4> Quick Dice</h4>
-        <div className="quick-dice-grid">
-          {quickDice.map((item, index) => (
-            <button
+        <motion.div className="quick-dice-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
+          {quickDice.map((dice, index) => (
+            <motion.button
               key={index}
               className={`quick-dice-btn ${expression === dice.expression ? 'active' : ''}`}
               onClick={() => handleQuickDice(dice)}
+              variants={itemFadeIn}
+              whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.98 }}
             >
               {dice.label}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Main Roll Controls */}
@@ -230,17 +243,16 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
         <div className="advanced-options">
           <div className="roll-type-select">
             <label> Roll Type:</label>
-            <select
-              value={rollType}
-              onChange={e => setRollType(e.target.value as RollType)}
-              aria-label="Select roll type"
-            >
-              <option value="custom">Custom</option>
-              <option value="move">Move (2d6)</option>
-              <option value="damage">Damage</option>
-              <option value="stat">Stat Roll</option>
-              <option value="target">Target Number</option>
-            </select>
+            <Select value={rollType} onValueChange={(v) => setRollType(v as RollType)}>
+              <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="custom">Custom</SelectItem>
+                <SelectItem value="move">Move (2d6)</SelectItem>
+                <SelectItem value="damage">Damage</SelectItem>
+                <SelectItem value="stat">Stat Roll</SelectItem>
+                <SelectItem value="target">Target Number</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="advantage-controls">
@@ -274,17 +286,17 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
 
       {/* Roll Button */}
       <div className="roll-actions">
-        <button className="roll-btn primary" onClick={handleRoll}>
+        <motion.button className="roll-btn primary" onClick={handleRoll} whileHover={prefersReduced ? undefined : { scale: 1.03 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
           🎲 Roll
           {' '}
           {expression}
           {modifier !== 0 && (modifier > 0 ? '+' : '')}
           {modifier !== 0 && modifier}
-        </button>
+        </motion.button>
         {lastRoll && (
-          <button className="reroll-btn secondary" onClick={handleReroll}>
+          <motion.button className="reroll-btn secondary" onClick={handleReroll} whileHover={prefersReduced ? undefined : { scale: 1.03 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
             🔄 Reroll (Spend XP)
-          </button>
+          </motion.button>
         )}
       </div>
 
@@ -302,7 +314,7 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
 
       {/* Last Roll Display */}
       {lastRoll && (
-        <div className="last-roll-display">
+        <motion.div className="last-roll-display" variants={itemFadeIn} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
           <h4> Last Roll:</h4>
           <div className={`roll-result roll-result-text ${lastRoll.rollResult || (lastRoll.success !== undefined ? (lastRoll.success ? 'success' : 'failure') : 'neutral')}`}>
             <div className="roll-expression">
@@ -335,16 +347,16 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Roll History */}
       {showHistory && rollHistory.length > 0 && (
-        <div className="roll-history">
+        <motion.div className="roll-history" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
           <h4> Recent Rolls:</h4>
           <div className="history-list">
             {rollHistory.slice(0, 5).map(roll => (
-              <div key={roll.id} className="history-item">
+              <motion.div key={roll.id} className="history-item" variants={itemFadeIn}>
                 <span className="history-expression">
                   {roll.expression.count}
                   {roll.expression.type}
@@ -361,10 +373,10 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
                     {roll.rollResult === 'failure' && '❌'}
                   </span>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   )

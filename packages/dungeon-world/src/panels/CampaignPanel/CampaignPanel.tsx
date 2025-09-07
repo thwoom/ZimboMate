@@ -7,6 +7,15 @@ import { createPanel } from '../../framework/Panel'
 import { createPanelAPI } from '../../framework/PanelAPI'
 import { campaignService } from '../../services/CampaignService'
 import './CampaignPanel.css'
+import { HUDFrame } from '../../components/ui/HUDFrame'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../../components/ui/select'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../../utils/motion'
 
 interface CampaignPanelState {
   selectedTab: 'sessions' | 'journal' | 'npcs' | 'locations'
@@ -30,6 +39,7 @@ const CampaignPanel: React.FC <PanelProps> = ({ id }) => {
 
   const [campaigns, setCampaigns] = useState <Campaign[]>([])
   const [selectedCampaign, setSelectedCampaign] = useState <Campaign | null>(null)
+  const prefersReduced = useReducedMotion()
 
   // Load campaigns on mount
   useEffect(() => {
@@ -168,7 +178,7 @@ const CampaignPanel: React.FC <PanelProps> = ({ id }) => {
     if (!selectedCampaign)
       return []
 
-    let items: unknown[] = []
+    let items: any[] = []
     switch (panelState.selectedTab) {
       case 'sessions':
         items = selectedCampaign.sessions
@@ -186,7 +196,7 @@ const CampaignPanel: React.FC <PanelProps> = ({ id }) => {
 
     if (panelState.searchTerm) {
       const searchLower = panelState.searchTerm.toLowerCase()
-      items = items.filter((item) => {
+      items = items.filter((item: any) => {
         if (panelState.selectedTab === 'sessions') {
           return item.title.toLowerCase().includes(searchLower)
             || item.summary.toLowerCase().includes(searchLower)
@@ -326,27 +336,36 @@ const CampaignPanel: React.FC <PanelProps> = ({ id }) => {
   if (campaigns.length === 0) {
     return (
       <>
-        <div className="campaign-panel">
-          <div className="campaign-panel__header">
-            <h2>🗺️ Campaigns</h2>
-          </div>
-          <div className="no-campaigns">
-            <p> No campaigns found. Create your first campaign to get started!</p>
-            <button
-              className="primary-button"
-              onClick={() => updateState({ showCreateModal: true })}
-            >
-              Create Campaign
-            </button>
-          </div>
-        </div>
+        <HUDFrame className="p-4">
+          <motion.div initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={staggerContainer}>
+            <motion.div variants={itemFadeIn}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>🗺️ Campaigns</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="no-campaigns">
+                    <p> No campaigns found. Create your first campaign to get started!</p>
+                    <Button onClick={() => updateState({ showCreateModal: true })}>Create Campaign</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        </HUDFrame>
 
-        {/* Create Campaign Modal-Rendered for no campaigns case */}
         {shouldShowCreateModal && (
-          <CreateCampaignModal
-            onConfirm={handleCreateCampaign}
-            onCancel={() => updateState({ showCreateModal: false })}
-          />
+          <Dialog open={true} onOpenChange={(o) => { if (!o) updateState({ showCreateModal: false }) }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Campaign</DialogTitle>
+              </DialogHeader>
+              <CreateCampaignModal
+                onConfirm={handleCreateCampaign}
+                onCancel={() => updateState({ showCreateModal: false })}
+              />
+            </DialogContent>
+          </Dialog>
         )}
       </>
     )
@@ -356,147 +375,152 @@ const CampaignPanel: React.FC <PanelProps> = ({ id }) => {
 
   return (
     <>
-      <div className="campaign-panel">
-        <div className="campaign-panel__header">
-          <h2>🗺️ Campaigns</h2>
-          <div className="campaign-selector">
-            <select
-              value={panelState.selectedCampaignId || ''}
-              onChange={e => updateState({ selectedCampaignId: e.target.value })}
-              aria-label="Select campaign"
-            >
-              {campaigns.map(campaign => (
-                <option key={campaign.id} value={campaign.id}>
-                  {campaign.name}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={() => updateState({ showCreateModal: true })}
-              className="primary-button"
-            >
-              New Campaign
-            </button>
-            <button
-              onClick={() => handleDeleteCampaign(panelState.selectedCampaignId!)}
-              className="delete-button"
-              disabled={!panelState.selectedCampaignId}
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+      <HUDFrame className="p-4">
+        <motion.div initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={staggerContainer}>
+          <motion.div variants={itemFadeIn}>
+            <Card className="mb-4">
+              <CardHeader>
+                <CardTitle>🗺️ Campaigns</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="campaign-selector flex items-center gap-2">
+                  <Select value={panelState.selectedCampaignId || ''} onValueChange={(v) => updateState({ selectedCampaignId: v })}>
+                    <SelectTrigger className="w-64"><SelectValue placeholder="Select campaign" /></SelectTrigger>
+                    <SelectContent>
+                      {campaigns.map(campaign => (
+                        <SelectItem key={campaign.id} value={campaign.id}>{campaign.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={() => updateState({ showCreateModal: true })}>New Campaign</Button>
+                  <Button variant="destructive" onClick={() => handleDeleteCampaign(panelState.selectedCampaignId!)} disabled={!panelState.selectedCampaignId}>Delete</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
         {selectedCampaign && (
           <>
-            <div className="campaign-info">
-              <h3>{selectedCampaign.name}</h3>
-              {selectedCampaign.description && (
-                <p className="campaign-description">{selectedCampaign.description}</p>
-              )}
-              <div className="campaign-stats">
-                <span>
-                  {' '}
-                  Sessions:
-                  {selectedCampaign.sessions.length}
-                </span>
-                <span>
-                  {' '}
-                  Journal Entries:
-                  {selectedCampaign.journal.length}
-                </span>
-                <span>
-                  {' '}
-                  NPCs:
-                  {selectedCampaign.npcs.length}
-                </span>
-                <span>
-                  {' '}
-                  Locations:
-                  {selectedCampaign.locations.length}
-                </span>
-              </div>
-            </div>
+            <motion.div variants={itemFadeIn}>
+              <Card className="mb-4">
+                <CardContent>
+                  <div className="campaign-info">
+                    <h3>{selectedCampaign.name}</h3>
+                    {selectedCampaign.description && (
+                      <p className="campaign-description">{selectedCampaign.description}</p>
+                    )}
+                    <div className="campaign-stats">
+                      <span> Sessions: {selectedCampaign.sessions.length}</span>
+                      <span> Journal Entries: {selectedCampaign.journal.length}</span>
+                      <span> NPCs: {selectedCampaign.npcs.length}</span>
+                      <span> Locations: {selectedCampaign.locations.length}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <div className="campaign-tabs">
-              {(['sessions', 'journal', 'npcs', 'locations'] as const).map(tab => (
-                <button
-                  key={tab}
-                  className={`tab-button ${panelState.selectedTab === tab ? 'active' : ''}`}
-                  onClick={() => updateState({ selectedTab: tab })}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
+            <Tabs value={panelState.selectedTab} onValueChange={(v) => updateState({ selectedTab: v as CampaignPanelState['selectedTab'] })}>
+              <TabsList>
+                <TabsTrigger value="sessions">Sessions</TabsTrigger>
+                <TabsTrigger value="journal">Journal</TabsTrigger>
+                <TabsTrigger value="npcs">NPCs</TabsTrigger>
+                <TabsTrigger value="locations">Locations</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-            <div className="campaign-controls">
-              <div className="search-bar">
-                <input
-                  type="text"
-                  placeholder={`Search ${panelState.selectedTab}...`}
-                  value={panelState.searchTerm}
-                  onChange={e => updateState({ searchTerm: e.target.value })}
-                  className="search-input"
-                />
-              </div>
-              <button
-                className="primary-button"
-                onClick={() => updateState({ showCreateModal: true })}
-              >
-                Add
-                {' '}
-                {panelState.selectedTab.slice(0, -1)}
-              </button>
-            </div>
+            <motion.div variants={itemFadeIn}>
+              <Card className="mb-4">
+                <CardContent>
+                  <div className="campaign-controls">
+                    <div className="search-bar">
+                      <Input
+                        placeholder={`Search ${panelState.selectedTab}...`}
+                        value={panelState.searchTerm}
+                        onChange={e => updateState({ searchTerm: e.target.value })}
+                      />
+                    </div>
+                    <Button onClick={() => updateState({ showCreateModal: true })}>
+                      Add {panelState.selectedTab.slice(0, -1)}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <div className="campaign-content">
+            <motion.div className="campaign-content" variants={staggerContainer}>
               {filteredItems.length === 0
                 ? (
-                    <div className="no-items">
-                      <p>
-                        {' '}
-                        No
-                        {panelState.selectedTab}
-                        {' '}
-                        found. Create your first one!
-                      </p>
-                    </div>
+                    <motion.div variants={itemFadeIn}>
+                      <Card>
+                        <CardContent>
+                          <div className="no-items">
+                            <p> No {panelState.selectedTab} found. Create your first one!</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   )
                 : (
-                    <div className="items-grid">
-                      {filteredItems.map(renderItemCard)}
-                    </div>
+                    <motion.div className="items-grid" variants={staggerContainer}>
+                      {(filteredItems as any[]).map((item) => (
+                        <motion.div key={(item as any).id} variants={itemFadeIn} whileHover={prefersReduced ? undefined : { scale: 1.01 }}>
+                          {renderItemCard(item as any)}
+                        </motion.div>
+                      ))}
+                    </motion.div>
                   )}
-            </div>
+            </motion.div>
           </>
         )}
-      </div>
+        </motion.div>
+      </HUDFrame>
 
       {/* Create Campaign Modal */}
       {panelState.showCreateModal && !selectedCampaign && (
-        <CreateCampaignModal
-          onConfirm={handleCreateCampaign}
-          onCancel={() => updateState({ showCreateModal: false })}
-        />
+        <Dialog open={true} onOpenChange={(o) => { if (!o) updateState({ showCreateModal: false }) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Campaign</DialogTitle>
+            </DialogHeader>
+            <CreateCampaignModal
+              onConfirm={handleCreateCampaign}
+              onCancel={() => updateState({ showCreateModal: false })}
+            />
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Add Item Modal */}
       {panelState.showCreateModal && selectedCampaign && (
-        <AddItemModal
-          type={panelState.selectedTab}
-          onConfirm={handleCreateItem}
-          onCancel={() => updateState({ showCreateModal: false })}
-        />
+        <Dialog open={true} onOpenChange={(o) => { if (!o) updateState({ showCreateModal: false }) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add {panelState.selectedTab.slice(0, -1)}</DialogTitle>
+            </DialogHeader>
+            <AddItemModal
+              type={panelState.selectedTab}
+              onConfirm={handleCreateItem}
+              onCancel={() => updateState({ showCreateModal: false })}
+            />
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Item Details Modal */}
       {panelState.showDetailsModal && panelState.detailsItem && (
-        <ItemDetailsModal
-          item={panelState.detailsItem}
-          onUpdate={handleUpdateItem}
-          onCancel={() => updateState({ showDetailsModal: false, detailsItem: null })}
-        />
+        <Dialog open={true} onOpenChange={(o) => { if (!o) updateState({ showDetailsModal: false, detailsItem: null }) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit {panelState.selectedTab.slice(0, -1)}</DialogTitle>
+            </DialogHeader>
+            <ItemDetailsModal
+              item={panelState.detailsItem}
+              onUpdate={handleUpdateItem}
+              onCancel={() => updateState({ showDetailsModal: false, detailsItem: null })}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </>
   )
@@ -560,7 +584,7 @@ const AddItemModal: React.FC<{
   onConfirm: (type: string, data: any) => void
   onCancel: () => void
 }> = ({ type, onConfirm, onCancel }) => {
-  const [formData, setFormData] = useState <unknown>({})
+  const [formData, setFormData] = useState<any>({})
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -577,8 +601,8 @@ const AddItemModal: React.FC<{
               <input
                 id="session-title"
                 type="text"
-                value={formData.title || ''}
-                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                value={(formData as any).title || ''}
+                onChange={e => setFormData({ ...(formData as any), title: e.target.value })}
                 required
                 placeholder="Enter session title"
                 aria-label="Session title"
@@ -588,8 +612,8 @@ const AddItemModal: React.FC<{
               <label htmlFor="session-summary">Summary *</label>
               <textarea
                 id="session-summary"
-                value={formData.summary || ''}
-                onChange={e => setFormData({ ...formData, summary: e.target.value })}
+                value={(formData as any).summary || ''}
+                onChange={e => setFormData({ ...(formData as any), summary: e.target.value })}
                 required
                 placeholder="Brief session summary"
                 rows={3}
@@ -607,8 +631,8 @@ const AddItemModal: React.FC<{
               <input
                 id="journal-title"
                 type="text"
-                value={formData.title || ''}
-                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                value={(formData as any).title || ''}
+                onChange={e => setFormData({ ...(formData as any), title: e.target.value })}
                 required
                 placeholder="Enter journal entry title"
                 aria-label="Journal title"
@@ -618,8 +642,8 @@ const AddItemModal: React.FC<{
               <label htmlFor="journal-content">Content *</label>
               <textarea
                 id="journal-content"
-                value={formData.content || ''}
-                onChange={e => setFormData({ ...formData, content: e.target.value })}
+                value={(formData as any).content || ''}
+                onChange={e => setFormData({ ...(formData as any), content: e.target.value })}
                 required
                 placeholder="Journal entry content"
                 rows={6}
@@ -637,8 +661,8 @@ const AddItemModal: React.FC<{
               <input
                 id="npc-name"
                 type="text"
-                value={formData.name || ''}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                value={(formData as any).name || ''}
+                onChange={e => setFormData({ ...(formData as any), name: e.target.value })}
                 required
                 placeholder="Enter NPC name"
                 aria-label="NPC name"
@@ -648,8 +672,8 @@ const AddItemModal: React.FC<{
               <label htmlFor="npc-description">Description *</label>
               <textarea
                 id="npc-description"
-                value={formData.description || ''}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                value={(formData as any).description || ''}
+                onChange={e => setFormData({ ...(formData as any), description: e.target.value })}
                 required
                 placeholder="NPC description"
                 rows={3}
@@ -661,8 +685,8 @@ const AddItemModal: React.FC<{
               <input
                 id="npc-role"
                 type="text"
-                value={formData.role || ''}
-                onChange={e => setFormData({ ...formData, role: e.target.value })}
+                value={(formData as any).role || ''}
+                onChange={e => setFormData({ ...(formData as any), role: e.target.value })}
                 required
                 placeholder="NPC role (e.g., Merchant, Quest Giver)"
                 aria-label="NPC role"
@@ -679,8 +703,8 @@ const AddItemModal: React.FC<{
               <input
                 id="location-name"
                 type="text"
-                value={formData.name || ''}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                value={(formData as any).name || ''}
+                onChange={e => setFormData({ ...(formData as any), name: e.target.value })}
                 required
                 placeholder="Enter location name"
                 aria-label="Location name"
@@ -690,8 +714,8 @@ const AddItemModal: React.FC<{
               <label htmlFor="location-description">Description *</label>
               <textarea
                 id="location-description"
-                value={formData.description || ''}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                value={(formData as any).description || ''}
+                onChange={e => setFormData({ ...(formData as any), description: e.target.value })}
                 required
                 placeholder="Location description"
                 rows={3}
@@ -700,19 +724,17 @@ const AddItemModal: React.FC<{
             </div>
             <div className="form-group">
               <label htmlFor="location-type">Type</label>
-              <select
-                id="location-type"
-                value={formData.type || 'other'}
-                onChange={e => setFormData({ ...formData, type: e.target.value })}
-                aria-label="Location type"
-              >
-                <option value="city">City</option>
-                <option value="town">Town</option>
-                <option value="village">Village</option>
-                <option value="dungeon">Dungeon</option>
-                <option value="wilderness">Wilderness</option>
-                <option value="other">Other</option>
-              </select>
+              <Select value={(formData as any).type || 'other'} onValueChange={(v) => setFormData({ ...(formData as any), type: v })}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="city">City</SelectItem>
+                  <SelectItem value="town">Town</SelectItem>
+                  <SelectItem value="village">Village</SelectItem>
+                  <SelectItem value="dungeon">Dungeon</SelectItem>
+                  <SelectItem value="wilderness">Wilderness</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </>
         )
@@ -743,20 +765,20 @@ const AddItemModal: React.FC<{
 }
 
 const ItemDetailsModal: React.FC<{
-  item: unknown
+  item: any
   onUpdate: (type: string, itemId: string, updates: any) => void
   onCancel: () => void
 }> = ({ item, onUpdate, onCancel }) => {
-  const [formData, setFormData] = useState(item)
+  const [formData, setFormData] = useState<any>(item as any)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onUpdate(item.type, item.id, formData)
+    onUpdate((item as any).type, (item as any).id, formData)
     onCancel()
   }
 
   const renderForm = () => {
-    switch (item.type) {
+    switch ((item as any).type) {
       case 'sessions':
         return (
           <>
@@ -872,30 +894,26 @@ const ItemDetailsModal: React.FC<{
             </div>
             <div className="form-group">
               <label htmlFor="edit-npc-importance">Importance</label>
-              <select
-                id="edit-npc-importance"
-                value={formData.importance || 'medium'}
-                onChange={e => setFormData({ ...formData, importance: e.target.value })}
-                aria-label="NPC importance"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+              <Select value={(formData as any).importance || 'medium'} onValueChange={(v) => setFormData({ ...(formData as any), importance: v })}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="form-group">
               <label htmlFor="edit-npc-disposition">Disposition</label>
-              <select
-                id="edit-npc-disposition"
-                value={formData.disposition || 'neutral'}
-                onChange={e => setFormData({ ...formData, disposition: e.target.value })}
-                aria-label="NPC disposition"
-              >
-                <option value="friendly">Friendly</option>
-                <option value="neutral">Neutral</option>
-                <option value="hostile">Hostile</option>
-                <option value="unknown">Unknown</option>
-              </select>
+              <Select value={(formData as any).disposition || 'neutral'} onValueChange={(v) => setFormData({ ...(formData as any), disposition: v })}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="friendly">Friendly</SelectItem>
+                  <SelectItem value="neutral">Neutral</SelectItem>
+                  <SelectItem value="hostile">Hostile</SelectItem>
+                  <SelectItem value="unknown">Unknown</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </>
         )
@@ -927,19 +945,17 @@ const ItemDetailsModal: React.FC<{
             </div>
             <div className="form-group">
               <label htmlFor="edit-location-type">Type</label>
-              <select
-                id="edit-location-type"
-                value={formData.type || 'other'}
-                onChange={e => setFormData({ ...formData, type: e.target.value })}
-                aria-label="Location type"
-              >
-                <option value="city">City</option>
-                <option value="town">Town</option>
-                <option value="village">Village</option>
-                <option value="dungeon">Dungeon</option>
-                <option value="wilderness">Wilderness</option>
-                <option value="other">Other</option>
-              </select>
+              <Select value={formData.type || 'other'} onValueChange={(v) => setFormData({ ...formData, type: v })}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="city">City</SelectItem>
+                  <SelectItem value="town">Town</SelectItem>
+                  <SelectItem value="village">Village</SelectItem>
+                  <SelectItem value="dungeon">Dungeon</SelectItem>
+                  <SelectItem value="wilderness">Wilderness</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </>
         )

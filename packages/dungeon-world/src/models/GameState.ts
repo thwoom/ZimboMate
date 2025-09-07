@@ -46,6 +46,11 @@ export interface AppSettings {
     order: string[]
     recents: string[]
   }
+  uiOverlays?: {
+    r3fHudEnabled: boolean
+    introSceneEnabled?: boolean
+    panelBackdropEnabled?: boolean
+  }
 }
 
 // Complete game state
@@ -181,6 +186,11 @@ export function createInitialGameState(): GameState {
         collapsedSections: [],
         order: [],
         recents: [],
+      },
+      uiOverlays: {
+        r3fHudEnabled: true,
+        introSceneEnabled: true,
+        panelBackdropEnabled: true,
       },
     },
     version: '1.0.0',

@@ -71,6 +71,8 @@
     "test:modal": "tsx ./scripts/puppeteerTaskModalTest.ts",
     "test:visual": "tsx ./scripts/visualTaskModalTest.ts",
     "analyze:visual": "tsx ./scripts/puppeteerVisualAnalyzer.ts",
+    "analyze:playwright:modal": "tsx ./scripts/playwrightModalAnalysis.ts",
+    "gallery": "tsx ./scripts/generateImageGallery.ts",
     "test:t196": "tsx ./scripts/testRealTaskModal.ts",
     "debug:data": "tsx ./scripts/debugDataLoading.ts",
     "test:data-flow": "tsx ./scripts/testRealDataFlow.ts",

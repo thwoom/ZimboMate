@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './ContextMenu.css'
 import { recordMenuOpen, recordMenuSelect } from '../utils/DevTelemetry'
+import { motion, useReducedMotion } from 'framer-motion'
+import { fadeInUp } from '../utils/motion'
 
 export interface MenuItem {
   id: string
@@ -107,32 +109,37 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ items, x, y, onClose }) => {
     ref.current?.focus()
   }, [])
 
+  const prefersReduced = useReducedMotion()
   return (
-    <div
-      ref={ref}
+    <motion.div
+      ref={ref as any}
       role="menu"
       aria-label="Context menu"
       className="context-menu"
       tabIndex={-1}
+      initial={prefersReduced ? false : 'hidden'}
+      animate={prefersReduced ? undefined : 'visible'}
+      variants={fadeInUp}
     >
       {items.map((item, idx) => (
         <div key={item.id} className="context-menu__row">
-          <button
+          <motion.button
             role="menuitem"
             onClick={() => !item.disabled && (recordMenuSelect(item.id), item.onSelect(), onClose())}
             disabled={item.disabled}
             className={`context-menu__item ${idx === activeIndex ? 'is-active' : ''} ${item.disabled ? 'is-disabled' : ''}`}
             tabIndex={idx === activeIndex ? 0 : -1}
             type="button"
+            whileTap={prefersReduced ? undefined : { scale: 0.98 }}
           >
             {item.label}
-          </button>
+          </motion.button>
           {item.disabled && item.disabledReason && (
             <span className="context-menu__reason" aria-hidden="true">{item.disabledReason}</span>
           )}
         </div>
       ))}
-    </div>
+    </motion.div>
   )
 }
 

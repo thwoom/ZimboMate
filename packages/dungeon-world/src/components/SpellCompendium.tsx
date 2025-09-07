@@ -20,6 +20,9 @@ import {
 } from '../services/SpellCompendiumService'
 import { useGameStore } from '../store/GameStore'
 import './SpellCompendium.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../utils/motion'
 
 interface SpellCompendiumProps {
   onSpellSelect?: (spell: CompendiumSpell) => void
@@ -52,6 +55,7 @@ const SpellCompendium: React.FC <SpellCompendiumProps> = ({
   const character = gameState.activeCharacterId
     ? gameState.characters[gameState.activeCharacterId]
     : null
+  const prefersReduced = useReducedMotion()
 
   const [state, setState] = useState <SpellCompendiumState>({
     searchQuery: '',
@@ -170,22 +174,26 @@ const SpellCompendium: React.FC <SpellCompendiumProps> = ({
       <div className="compendium-header">
         <h2>📚 Spell Compendium</h2>
         <div className="header-controls">
-          <button
+          <motion.button
             className="filter-toggle"
             onClick={() => updateState({ showFilters: !state.showFilters })}
+            whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+            whileTap={prefersReduced ? undefined : { scale: 0.98 }}
           >
             {state.showFilters ? 'Hide' : 'Show'}
             {' '}
             Filters
-          </button>
+          </motion.button>
           {showComparisonTools && (
-            <button
+            <motion.button
               className={`comparison-toggle ${state.comparisonMode ? 'active' : ''}`}
               onClick={handleComparisonToggle}
               disabled={state.selectedSpells.length < 2}
+              whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.98 }}
             >
               Compare Spells
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
@@ -207,89 +215,84 @@ const SpellCompendium: React.FC <SpellCompendiumProps> = ({
 
             <div className="filter-group">
               <label htmlFor="class-filter">Class:</label>
-              <select
-                id="class-filter"
-                value={state.selectedClass}
-                onChange={e => updateState({ selectedClass: e.target.value })}
-              >
-                <option value="all">All Classes</option>
-                <option value="wizard">Wizard</option>
-                <option value="cleric">Cleric</option>
-                <option value="immolator">Immolator</option>
-              </select>
+              <Select value={state.selectedClass} onValueChange={(v) => updateState({ selectedClass: v })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Classes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classes</SelectItem>
+                  <SelectItem value="wizard">Wizard</SelectItem>
+                  <SelectItem value="cleric">Cleric</SelectItem>
+                  <SelectItem value="immolator">Immolator</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="level-filter">Level:</label>
-              <select
-                id="level-filter"
-                value={state.selectedLevel}
-                onChange={e => updateState({ selectedLevel: e.target.value as string })}
-              >
-                <option value="all">All Levels</option>
-                <option value={0}>Cantrips / Rotes</option>
-                <option value={1}>Level 1</option>
-                <option value={3}>Level 3</option>
-                <option value={5}>Level 5</option>
-                <option value={7}>Level 7</option>
-                <option value={9}>Level 9</option>
-              </select>
+              <Select value={String(state.selectedLevel)} onValueChange={(v) => updateState({ selectedLevel: v === 'all' ? 'all' : (Number(v) as any) })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Levels" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="0">Cantrips / Rotes</SelectItem>
+                  <SelectItem value="1">Level 1</SelectItem>
+                  <SelectItem value="3">Level 3</SelectItem>
+                  <SelectItem value="5">Level 5</SelectItem>
+                  <SelectItem value="7">Level 7</SelectItem>
+                  <SelectItem value="9">Level 9</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="school-filter">School:</label>
-              <select
-                id="school-filter"
-                value={state.selectedSchool}
-                onChange={e => updateState({ selectedSchool: e.target.value as string })}
-              >
-                <option value="all">All Schools</option>
-                {spellCompendiumService.getSpellSchools().map(school => (
-                  <option key={school} value={school}>
-                    {getSpellSchoolLabel(school)}
-                  </option>
-                ))}
-              </select>
+              <Select value={state.selectedSchool} onValueChange={(v) => updateState({ selectedSchool: v as any })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Schools" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Schools</SelectItem>
+                  {spellCompendiumService.getSpellSchools().map(school => (
+                    <SelectItem key={school} value={school}>{getSpellSchoolLabel(school)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="filter-row">
             <div className="filter-group">
               <label htmlFor="sort-filter">Sort By:</label>
-              <select
-                id="sort-filter"
-                value={state.sortBy}
-                onChange={e => updateState({ sortBy: e.target.value as string })}
-              >
-                <option value="name">Name</option>
-                <option value="level">Level</option>
-                <option value="school">School</option>
-                <option value="category">Class</option>
-              </select>
-              <button
+              <Select value={state.sortBy} onValueChange={(v) => updateState({ sortBy: v as any })}>
+                <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="level">Level</SelectItem>
+                  <SelectItem value="school">School</SelectItem>
+                  <SelectItem value="category">Class</SelectItem>
+                </SelectContent>
+              </Select>
+              <motion.button
                 className="sort-order"
                 onClick={() => updateState({ sortOrder: state.sortOrder === 'asc' ? 'desc' : 'asc' })}
+                whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+                whileTap={prefersReduced ? undefined : { scale: 0.98 }}
               >
                 {state.sortOrder === 'asc' ? '↑' : '↓'}
-              </button>
+              </motion.button>
             </div>
 
             <div className="filter-group">
               <label htmlFor="view-filter">View:</label>
-              <select
-                id="view-filter"
-                value={state.viewMode}
-                onChange={e => updateState({ viewMode: e.target.value as string })}
-              >
-                <option value="grid">Grid</option>
-                <option value="list">List</option>
-                <option value="table">Table</option>
-              </select>
+              <Select value={state.viewMode} onValueChange={(v) => updateState({ viewMode: v as any })}>
+                <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="grid">Grid</SelectItem>
+                  <SelectItem value="list">List</SelectItem>
+                  <SelectItem value="table">Table</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <button className="clear-filters" onClick={clearFilters}>
+            <motion.button className="clear-filters" onClick={clearFilters} whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
               Clear Filters
-            </button>
+            </motion.button>
           </div>
         </div>
       )}
@@ -437,12 +440,14 @@ const SpellCompendium: React.FC <SpellCompendiumProps> = ({
       )}
 
       {/* Spell Grid */}
-      <div className={`spell-grid ${state.viewMode}`}>
+      <motion.div className={`spell-grid ${state.viewMode}`} variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
         {sortedSpells.map(spell => (
-          <div
+          <motion.div
             key={spell.id}
             className={`spell-card ${state.selectedSpells.includes(spell.id) ? 'selected' : ''}`}
             onClick={() => handleSpellSelect(spell)}
+            variants={itemFadeIn}
+            whileHover={prefersReduced ? undefined : { scale: 1.01 }}
           >
             <div className="spell-header">
               <h3 className="spell-name">{spell.name}</h3>
@@ -487,27 +492,29 @@ const SpellCompendium: React.FC <SpellCompendiumProps> = ({
 
             <div className="spell-actions">
               {showPreparationTools && (
-                <button
+                <motion.button
                   className={`select-spell ${state.selectedSpells.includes(spell.id) ? 'selected' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation()
                     handleSpellToggle(spell.id)
                   }}
+                  whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+                  whileTap={prefersReduced ? undefined : { scale: 0.98 }}
                 >
                   {state.selectedSpells.includes(spell.id) ? 'Selected' : 'Select'}
-                </button>
+                </motion.button>
               )}
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* No Results */}
       {sortedSpells.length === 0 && (
-        <div className="no-results">
+        <motion.div className="no-results" variants={itemFadeIn} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
           <p> No spells found matching your criteria.</p>
-          <button onClick={clearFilters}>Clear Filters</button>
-        </div>
+          <motion.button onClick={clearFilters} whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>Clear Filters</motion.button>
+        </motion.div>
       )}
     </div>
   )

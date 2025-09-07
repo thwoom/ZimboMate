@@ -9,6 +9,11 @@ import React, { useState } from 'react'
 import { MoveSearch } from '../../components/MoveSearch'
 import { useGameStore } from '../../store/GameStore'
 import './MoveLibraryPanel.css'
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant, staggerContainer, itemFadeIn } from '../../utils/motion'
 
 export const MoveLibraryPanel: React.FC = () => {
   const { state } = useGameStore()
@@ -31,14 +36,11 @@ export const MoveLibraryPanel: React.FC = () => {
       return null
 
     return (
-      <div className="move-details-overlay" onClick={handleCloseDetails}>
-        <div className="move-details-modal" onClick={e => e.stopPropagation()}>
-          <div className="move-details-header">
-            <h2>{selectedMove.name}</h2>
-            <button className="close-button" onClick={handleCloseDetails}>
-              ×
-            </button>
-          </div>
+      <Dialog open={true} onOpenChange={(o) => { if (!o) handleCloseDetails() }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedMove.name}</DialogTitle>
+          </DialogHeader>
 
           <div className="move-details-content">
             <div className="move-meta-info">
@@ -168,31 +170,37 @@ export const MoveLibraryPanel: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     )
   }
 
+  const prefersReduced = useReducedMotion()
   return (
-    <div className="move-library-panel">
-      <div className="panel-header">
-        <h1>📚 Move Library</h1>
-        <p className="panel-subtitle">
-          Search and browse all available moves from the Dungeon World rules
-        </p>
-      </div>
+    <motion.div className="move-library-panel" initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={getVariant('fade')}>
+      <Card className="panel-header">
+        <CardHeader>
+          <CardTitle>📚 Move Library</CardTitle>
+        </CardHeader>
+      </Card>
 
-      <div className="panel-content">
-        <MoveSearch
-          onMoveSelect={handleMoveSelect}
-          showFilters={true}
-          showStats={true}
-          className="move-search-container"
-        />
-      </div>
+      <Card className="panel-content">
+        <CardContent>
+          <motion.div variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
+            <motion.div variants={itemFadeIn}>
+              <MoveSearch
+                onMoveSelect={handleMoveSelect}
+                showFilters={true}
+                showStats={true}
+                className="move-search-container"
+              />
+            </motion.div>
+          </motion.div>
+        </CardContent>
+      </Card>
 
       {renderMoveDetails()}
-    </div>
+    </motion.div>
   )
 }
 

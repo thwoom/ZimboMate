@@ -1,3 +1,5 @@
+@import "tailwindcss";
+@import './styles/tokens.css';
 /* Import Rose Pine Theme Variables */
 @import './styles/rose-pine-variables.css';
 

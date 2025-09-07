@@ -135,6 +135,7 @@ tasks:
       - No alert()/prompt() used
     deps: []
     labels: []
+    owner: ""
   - id: T-175
     title: Audit Other Casters for DW Compliance
     description: Audit and align non-Wizard/Cleric casters (e.g., Immolator) with DW rules
@@ -213,6 +214,7 @@ tasks:
       - src/data/classStartingData.ts
     deps: []
     labels: []
+    owner: ""
   - id: T-202
     title: Implement Character Retirement and Achievement System
     intent: Create system for retiring characters with achievement tracking and
@@ -395,7 +397,8 @@ tasks:
       - test/services/PerformanceAnalyticsService.test.ts
   - id: T-226
     title: User Settings Expansion (A11y, Shortcuts, Navigation, Notifications)
-    intent: Add a comprehensive user settings suite to improve accessibility, control, and UX polish
+    intent: Add a comprehensive user settings suite to improve accessibility,
+      control, and UX polish
     owner: cursor-agent
     status: open
     priority: P3
@@ -408,7 +411,8 @@ tasks:
     steps:
       - Add Accessibility options: high-contrast theme, reduced motion, UI scale, tooltip delay
       - Add Keyboard options: editable shortcuts, cheat sheet toggle, scope-locking
-      - Add Panels & Navigation: custom panel order, pin favorites, auto-collapse sections, restore last panel
+      - Add Panels & Navigation: custom panel order, pin favorites, auto-collapse
+          sections, restore last panel
       - Add Dice & Rolling: dice skin/sound, animation speed, auto-XP on failure toggle
       - Add Notifications: toast vs silent, sound cues, do-not-disturb during rolls
       - Add Autosave & Backups: interval, rotating backups, snapshot slots

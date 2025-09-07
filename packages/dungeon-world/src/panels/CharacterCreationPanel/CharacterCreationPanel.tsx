@@ -36,6 +36,9 @@ import { randomGeneratorService } from '../../services/RandomGenerators'
 import { getSpellsForClass } from '../../services/Spells'
 import { useGameStore } from '../../store/GameStore'
 import './CharacterCreationPanel.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../../components/ui/select'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../../utils/motion'
 
 // Wizard steps-using the same type as CharacterCreationAssistant
 type WizardStep
@@ -171,6 +174,7 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
 }) => {
   const { setCharacter, state } = useGameStore()
   const [showSuccess, setShowSuccess] = useState(false)
+  const prefersReduced = useReducedMotion()
 
   const defaultState: CharacterCreationPanelState = {
     currentStep: 'intro',
@@ -373,9 +377,9 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
     const currentIndex = steps.findIndex(step => step.id === currentState.currentStep)
 
     return (
-      <div className="wizard-progress">
+      <motion.div className="wizard-progress" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
         {steps.map((step, index) => (
-          <div
+          <motion.div
             key={step.id}
             className={`progress-step ${index <= currentIndex ? 'completed' : ''} ${index === currentIndex ? 'active' : ''}`}
             onClick={() => {
@@ -384,12 +388,14 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
                 updateState({ currentStep: step.id as WizardStep })
               }
             }}
+            variants={itemFadeIn}
+            whileHover={prefersReduced ? undefined : { scale: 1.02 }}
           >
             <div className="step-icon">{step.emoji}</div>
             <div className="step-label">{step.label}</div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     )
   }
 
@@ -492,12 +498,14 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
         <div className="template-sections">
           <div className="template-section">
             <h3>🚀 Quick Start Templates</h3>
-            <div className="template-grid">
+            <motion.div className="template-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
               {quickStartTemplates.map(template => (
-                <div
+                <motion.div
                   key={template.id}
                   className="template-card quick-start"
                   onClick={() => handleTemplateSelect(template)}
+                  variants={itemFadeIn}
+                  whileHover={prefersReduced ? undefined : { scale: 1.01 }}
                 >
                   <div className="template-icon">{template.characterData.class ? '⚔️' : '🎭'}</div>
                   <h4>{template.name}</h4>
@@ -508,19 +516,21 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
                     •
                     {template.characterData.race}
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
 
           {customTemplates.length > 0 && (
             <div className="template-section">
               <h3>💾 Your Saved Templates</h3>
-              <div className="template-grid">
+              <motion.div className="template-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
                 {customTemplates.map(template => (
-                  <div
+                  <motion.div
                     key={template.id}
                     className="template-card custom"
+                    variants={itemFadeIn}
+                    whileHover={prefersReduced ? undefined : { scale: 1.01 }}
                   >
                     <h4>{template.name}</h4>
                     <p>{template.description}</p>
@@ -549,9 +559,9 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
                         Delete
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           )}
         </div>
@@ -907,15 +917,17 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
             && ` Showing suggestions for ${currentState.characterData.race} ${currentState.characterData.class}.`}
         </p>
 
-        <div className="portrait-grid">
+        <motion.div className="portrait-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
           {portraits.map(portrait => (
-            <div
+            <motion.div
               key={portrait.id}
               className={`portrait-card ${currentState.characterData.portraitId === portrait.id ? 'selected' : ''}`}
               onClick={() => updateState({
                 characterData: { ...currentState.characterData, portraitId: portrait.id },
               })}
               style={{ '--portrait-color': portrait.color } as React.CSSProperties}
+              variants={itemFadeIn}
+              whileHover={prefersReduced ? undefined : { scale: 1.01 }}
             >
               <div className="portrait-emoji">{portrait.emoji}</div>
               <div className="portrait-name">{portrait.name}</div>
@@ -937,7 +949,7 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
                   ×
                 </button>
               )}
-            </div>
+            </motion.div>
           ))}
 
           <label className="portrait-card upload-portrait">
@@ -950,7 +962,7 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
             <div className="portrait-emoji">📤</div>
             <div className="portrait-name">Upload Custom</div>
           </label>
-        </div>
+        </motion.div>
 
         <div className="wizard-actions">
           <button className="btn btn-secondary" onClick={previousStep}>
@@ -972,14 +984,16 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
       <div className="step-content-container">
         <h2> Choose Your Class</h2>
         <p className="step-intro">Your class defines your role in the party and the kinds of things you're good at.</p>
-        <div className="class-grid">
+        <motion.div className="class-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
           {(Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]).map(cls => (
-            <div
+            <motion.div
               key={cls}
               className={`class-card ${currentState.characterData.class === cls ? 'selected' : ''}`}
               onClick={() => updateState({
                 characterData: { ...currentState.characterData, class: cls },
               })}
+              variants={itemFadeIn}
+              whileHover={prefersReduced ? undefined : { scale: 1.01 }}
             >
               <h3>{cls}</h3>
               <p className="class-tagline">{CLASS_DESCRIPTIONS[cls].tagline}</p>
@@ -994,9 +1008,9 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
                   {CLASS_DESCRIPTIONS[cls].primaryStat}
                 </span>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
       <div className="wizard-actions-sticky">
         <button className="btn btn-secondary" onClick={previousStep}>
@@ -1614,44 +1628,30 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
                         </div>
                       </div>
                       <p className="attribute-desc">{attributeDescriptions[attr]}</p>
-                      <select
-                        value={currentState.assignedAttributes?.[attr] || ''}
-                        aria-label={`Select score for ${attr}`}
-                        className="attribute-select"
-                        onChange={(e) => {
-                          const value = e.target.value ? Number.parseInt(e.target.value) : undefined
-                          const newAssigned = { ...currentState.assignedAttributes }
-                          if (value) {
-                            newAssigned[attr] = value
-                          }
-                          else {
-                            delete newAssigned[attr]
-                          }
-                          updateState({ assignedAttributes: newAssigned })
-                        }}
-                      >
-                        <option value="">Select score...</option>
-                        {scores.map((score: number, index: number) => {
-                          const timesUsed = Object.values(currentState.assignedAttributes || {})
-                            .filter(s => s === score)
-                            .length
-                          const timesAvailable = scores.filter((s: number) => s === score).length
-                          const isAvailable = timesUsed < timesAvailable
-                            || currentState.assignedAttributes?.[attr] === score
-
-                          return (
-                            <option
-                              key={index}
-                              value={score}
-                              disabled={!isAvailable}
-                            >
-                              {score}
-                              {' '}
-                              {!isAvailable && '(already assigned)'}
-                            </option>
-                          )
-                        })}
-                      </select>
+                      <Select value={String(currentState.assignedAttributes?.[attr] || '')} onValueChange={(v) => {
+                        const value = v ? Number.parseInt(v) : undefined
+                        const newAssigned = { ...currentState.assignedAttributes }
+                        if (value) newAssigned[attr] = value; else delete newAssigned[attr]
+                        updateState({ assignedAttributes: newAssigned })
+                      }}>
+                        <SelectTrigger className="attribute-select"><SelectValue placeholder="Select score..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Select score...</SelectItem>
+                          {scores.map((score: number, index: number) => {
+                            const timesUsed = Object.values(currentState.assignedAttributes || {})
+                              .filter(s => s === score)
+                              .length
+                            const timesAvailable = scores.filter((s: number) => s === score).length
+                            const isAvailable = timesUsed < timesAvailable
+                              || currentState.assignedAttributes?.[attr] === score
+                            return (
+                              <SelectItem key={index} value={String(score)} disabled={!isAvailable}>
+                                {score} {!isAvailable && '(already assigned)'}
+                              </SelectItem>
+                            )
+                          })}
+                        </SelectContent>
+                      </Select>
                     </div>
                   )
                 })}
@@ -2103,16 +2103,15 @@ const CharacterCreationPanel: React.FC <PanelProps & { panelState?: CharacterCre
           {partyNames.length > 0 && (
             <div className="form-group margin-bottom-1">
               <label htmlFor="bond-party-target">Fill blanks with party member:</label>
-              <select
-                id="bond-party-target"
-                value={currentState.bondPartyTarget || ''}
-                onChange={e => updateState({ bondPartyTarget: e.target.value })}
-              >
-                <option value="">(none)</option>
-                {partyNames.map((n: string) => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>
+              <Select value={currentState.bondPartyTarget || ''} onValueChange={(v) => updateState({ bondPartyTarget: v })}>
+                <SelectTrigger className="w-64"><SelectValue placeholder="(none)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">(none)</SelectItem>
+                  {partyNames.map((n: string) => (
+                    <SelectItem key={n} value={n}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           <p className="templates-intro">

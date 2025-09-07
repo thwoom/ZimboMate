@@ -15,6 +15,14 @@ import { registerShortcut, setActiveScope } from '../../utils/KeyboardShortcuts'
 import { getEffectivePrefs, setPanelShowAll, togglePanelOverride } from '../../utils/preferences'
 import { isCaster } from '../../utils/conditionalContent'
 import './EquipmentPanel.css'
+import HUDFrame from '../../components/ui/HUDFrame'
+import { Card } from '../../components/ui/card'
+import { Checkbox } from '../../components/ui/checkbox'
+import { Switch } from '../../components/ui/switch'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog'
+import { Button } from '../../components/ui/button'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant, staggerContainer, itemFadeIn } from '../../utils/motion'
 
 // Item tags from Dungeon World
 export type ItemTag
@@ -290,8 +298,15 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
 
   const detailItem = state.showDetails ? state.items.find((i: EquipmentItem) => i.id === state.showDetails) : null
 
+  const prefersReduced = React.useMemo(() => false, [])
+  const reduced = useReducedMotion()
   return (
-    <div className="equipment-panel">
+    <motion.div
+      className="equipment-panel"
+      initial={reduced ? false : 'hidden'}
+      animate={reduced ? undefined : 'visible'}
+      variants={getVariant('fade')}
+    >
       <div className="equipment-header">
         <h2> Equipment</h2>
         <div className="equipment-controls">
@@ -306,25 +321,25 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
           {character && (
             <div className="show-all-toggle">
               <label>
-                <input
-                  type="checkbox"
+                <Switch
                   checked={gameState.settings.conditionalContent?.perPanel.equipment.overrideEnabled || false}
-                  onChange={() => {
+                  onCheckedChange={() => {
                     const next = togglePanelOverride(gameState.settings, 'equipment')
                     updateSettings({ conditionalContent: next.conditionalContent })
                   }}
+                  aria-label="Override"
                 />{' '}
                 Override
               </label>
               <label className="ml-8">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={gameState.settings.conditionalContent?.perPanel.equipment.showAll || false}
-                  onChange={e => {
-                    const next = setPanelShowAll(gameState.settings, 'equipment', e.target.checked)
+                  onCheckedChange={(checked) => {
+                    const next = setPanelShowAll(gameState.settings, 'equipment', Boolean(checked))
                     updateSettings({ conditionalContent: next.conditionalContent })
                   }}
                   disabled={!gameState.settings.conditionalContent?.perPanel.equipment.overrideEnabled}
+                  aria-label="Show all"
                 />{' '}
                 Show all (ignore class rules)
               </label>
@@ -372,10 +387,10 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
               <h4> Active Effects:</h4>
               <div className="effects-list">
                 {equipmentStats.specialEffects.map(effect => (
-                  <div key={effect.id} className={`effect-item effect-${effect.type}`}>
+                  <Card key={effect.id} className={`effect-item effect-${effect.type}`}>
                     <span className="effect-name">{effect.name}</span>
                     <span className="effect-description">{effect.description}</span>
-                  </div>
+                  </Card>
                 ))}
               </div>
             </div>
@@ -383,7 +398,7 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
         </div>
       </div>
 
-      <div className="equipment-list">
+      <motion.div className="equipment-list" variants={staggerContainer} initial={reduced ? false : 'hidden'} animate={reduced ? undefined : 'visible'}>
         {displayItems.length === 0 ? (
           <div className="empty-state">
             <p> No equipment currently equipped.</p>
@@ -396,11 +411,12 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
             return (
               <>
                 {character && spellComponents.length > 0 && !effective.equipmentShowAll && (
-                  <div className="equipment-group">
+                  <motion.div className="equipment-group" variants={itemFadeIn}>
                     <h3>Spell Components & Consumables</h3>
                     <div className="equipment-grid">
                       {spellComponents.map((item: any) => (
-                        <div key={item.id} className="equipment-item">
+                        <motion.div key={item.id} variants={itemFadeIn}>
+                        <Card className="equipment-item">
                           <div className="item-header">
                             <span className="item-name">{item.name}</span>
                             <span className="item-weight">{item.weight} weight</span>
@@ -410,17 +426,19 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
                           </div>
                           <div className="item-properties">{getItemProperties(item as any).join(' • ')}</div>
                           {item.description && <div className="item-description">{item.description}</div>}
-                        </div>
+                        </Card>
+                        </motion.div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 )}
 
-                <div className="equipment-group">
+                <motion.div className="equipment-group" variants={itemFadeIn}>
                   <h3>Weapons</h3>
                   <div className="equipment-grid">
                     {groups.weapons.map((item: any) => (
-                      <div key={item.id} className="equipment-item">
+                      <motion.div key={item.id} variants={itemFadeIn}>
+                      <Card className="equipment-item">
                         <div className="item-header">
                           <span className="item-name">{item.name}</span>
                           <span className="item-weight">{item.weight} weight</span>
@@ -430,16 +448,18 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
                         </div>
                         <div className="item-properties">{getItemProperties(item as any).join(' • ')}</div>
                         {item.description && <div className="item-description">{item.description}</div>}
-                      </div>
+                      </Card>
+                      </motion.div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="equipment-group">
+                <motion.div className="equipment-group" variants={itemFadeIn}>
                   <h3>Armor</h3>
                   <div className="equipment-grid">
                     {groups.armor.map((item: any) => (
-                      <div key={item.id} className="equipment-item">
+                      <motion.div key={item.id} variants={itemFadeIn}>
+                      <Card className="equipment-item">
                         <div className="item-header">
                           <span className="item-name">{item.name}</span>
                           <span className="item-weight">{item.weight} weight</span>
@@ -449,16 +469,18 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
                         </div>
                         <div className="item-properties">{getItemProperties(item as any).join(' • ')}</div>
                         {item.description && <div className="item-description">{item.description}</div>}
-                      </div>
+                      </Card>
+                      </motion.div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="equipment-group">
+                <motion.div className="equipment-group" variants={itemFadeIn}>
                   <h3>Gear</h3>
                   <div className="equipment-grid">
                     {groups.gear.map((item: any) => (
-                      <div key={item.id} className="equipment-item">
+                      <motion.div key={item.id} variants={itemFadeIn}>
+                      <Card className="equipment-item">
                         <div className="item-header">
                           <span className="item-name">{item.name}</span>
                           <span className="item-weight">{item.weight} weight</span>
@@ -468,67 +490,59 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
                         </div>
                         <div className="item-properties">{getItemProperties(item as any).join(' • ')}</div>
                         {item.description && <div className="item-description">{item.description}</div>}
-                      </div>
+                      </Card>
+                      </motion.div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               </>
             )
           })()
         )}
-      </div>
+      </motion.div>
 
       {/* Item Details Modal */}
       {detailItem && (
-        <div className="modal-overlay" onClick={handleCloseDetails}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{detailItem.name}</h3>
-              <button className="modal-close" onClick={handleCloseDetails}>×</button>
+        <Dialog open={true} onOpenChange={(open) => { if (!open) handleCloseDetails() }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{detailItem.name}</DialogTitle>
+            </DialogHeader>
+            <div className="detail-section">
+              <h4> Tags</h4>
+              <TagDisplay
+                tags={convertToTags(detailItem.tags)}
+                showTooltips={true}
+              />
             </div>
-
-            <div className="modal-body">
-              <div className="detail-section">
-                <h4> Tags</h4>
-                <TagDisplay
-                  tags={convertToTags(detailItem.tags)}
-                  showTooltips={true}
-                />
-              </div>
-
-              <div className="detail-section">
-                <h4> Properties</h4>
-                <p>{getItemProperties(detailItem).join(' • ')}</p>
-              </div>
-
-              {detailItem.description && (
-                <div className="detail-section">
-                  <h4> Description</h4>
-                  <p>{detailItem.description}</p>
-                </div>
-              )}
-
-              {detailItem.customMove && (
-                <div className="detail-section">
-                  <h4> Custom Move</h4>
-                  <p className="custom-move">{detailItem.customMove}</p>
-                </div>
-              )}
-
-              {detailItem.value !== undefined && (
-                <div className="detail-section">
-                  <h4> Value</h4>
-                  <p>
-                    {detailItem.value}
-                    {' '}
-                    coin
-                  </p>
-                </div>
-              )}
+            <div className="detail-section">
+              <h4> Properties</h4>
+              <p>{getItemProperties(detailItem).join(' • ')}</p>
             </div>
-
+            {detailItem.description && (
+              <div className="detail-section">
+                <h4> Description</h4>
+                <p>{detailItem.description}</p>
+              </div>
+            )}
+            {detailItem.customMove && (
+              <div className="detail-section">
+                <h4> Custom Move</h4>
+                <p className="custom-move">{detailItem.customMove}</p>
+              </div>
+            )}
+            {detailItem.value !== undefined && (
+              <div className="detail-section">
+                <h4> Value</h4>
+                <p>
+                  {detailItem.value}
+                  {' '}
+                  coin
+                </p>
+              </div>
+            )}
             <div className="modal-footer">
-              <button
+              <Button
                 className="action-button action-button--unequip"
                 onClick={() => {
                   handleUnequip(detailItem.id)
@@ -536,9 +550,9 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
                 }}
               >
                 Unequip
-              </button>
+              </Button>
               {detailItem.uses !== undefined && detailItem.uses > 0 && (
-                <button
+                <Button
                   className="action-button action-button--use"
                   onClick={() => {
                     handleUseItem(detailItem.id)
@@ -549,13 +563,13 @@ const EquipmentPanel: React.FC <PanelProps & { panelState?: EquipmentPanelState 
                   {detailItem.uses}
                   {' '}
                   left)
-                </button>
+                </Button>
               )}
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
-    </div>
+    </motion.div>
   )
 }
 

@@ -3,10 +3,19 @@ import type { PanelProps } from '../../framework/Panel'
 import type { ItemCategory, Tag } from '../../models/Equipment'
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../../utils/motion'
 import ContextMenu from '../../components/ContextMenu'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../../components/ui/dropdown-menu'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Textarea } from '../../components/ui/textarea'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../../components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog'
 import EquipmentSets from '../../components/EquipmentSets'
 import LoadOptimizer from '../../components/LoadOptimizer'
 import TagDisplay from '../../components/TagDisplay'
+import { Card } from '../../components/ui/card'
 import Tooltip from '../../components/Tooltip'
 import { createPanel } from '../../framework/Panel'
 import { createPanelAPI, loadPanelState, savePanelState } from '../../framework/PanelAPI'
@@ -47,80 +56,79 @@ const AddItemForm: React.FC<AddItemFormProps> = ({ onAdd, onCancel }) => {
     <form onSubmit={handleSubmit} className="item-form">
       <div className="form-group">
         <label htmlFor="name">Name:</label>
-        <input
+        <Input
           id="name"
           type="text"
           value={formData.name}
-          onChange={e => setFormData({ ...formData, name: e.target.value })}
+          onChange={e => setFormData({ ...formData, name: (e.target as HTMLInputElement).value })}
           required
         />
       </div>
 
       <div className="form-group">
         <label htmlFor="category">Category:</label>
-        <select
-          id="category"
-          value={formData.category}
-          onChange={e => setFormData({ ...formData, category: e.target.value as ItemCategory })}
-        >
-          <option value="weapon">Weapon</option>
-          <option value="armor">Armor</option>
-          <option value="gear">Gear</option>
-          <option value="consumable">Consumable</option>
-          <option value="treasure">Treasure</option>
-          <option value="magical">Magical</option>
-        </select>
+        <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v as ItemCategory })}>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="weapon">Weapon</SelectItem>
+            <SelectItem value="armor">Armor</SelectItem>
+            <SelectItem value="gear">Gear</SelectItem>
+            <SelectItem value="consumable">Consumable</SelectItem>
+            <SelectItem value="treasure">Treasure</SelectItem>
+            <SelectItem value="magical">Magical</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="weight">Weight:</label>
-          <input
+          <Input
             id="weight"
             type="number"
             min="0"
             step="0.1"
             value={formData.weight}
-            onChange={e => setFormData({ ...formData, weight: Number.parseFloat(e.target.value) || 0 })}
+            onChange={e => setFormData({ ...formData, weight: Number.parseFloat((e.target as HTMLInputElement).value) || 0 })}
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="value">Value (coins):</label>
-          <input
+          <Input
             id="value"
             type="number"
             min="0"
             value={formData.value}
-            onChange={e => setFormData({ ...formData, value: Number.parseInt(e.target.value) || 0 })}
+            onChange={e => setFormData({ ...formData, value: Number.parseInt((e.target as HTMLInputElement).value) || 0 })}
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="quantity">Quantity:</label>
-          <input
+          <Input
             id="quantity"
             type="number"
             min="1"
             value={formData.quantity}
-            onChange={e => setFormData({ ...formData, quantity: Number.parseInt(e.target.value) || 1 })}
+            onChange={e => setFormData({ ...formData, quantity: Number.parseInt((e.target as HTMLInputElement).value) || 1 })}
           />
         </div>
       </div>
 
       <div className="form-group">
         <label htmlFor="description">Description:</label>
-        <textarea
+        <Textarea
           id="description"
           value={formData.description}
-          onChange={e => setFormData({ ...formData, description: e.target.value })}
+          onChange={e => setFormData({ ...formData, description: (e.target as HTMLTextAreaElement).value })}
           rows={3}
         />
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="btn btn-primary">Add Item</button>
-        <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+        <Button type="submit">Add Item</Button>
+        <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
       </div>
     </form>
   )
@@ -159,80 +167,79 @@ const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSave, onCancel }) =
     <form onSubmit={handleSubmit} className="item-form">
       <div className="form-group">
         <label htmlFor="edit-name">Name:</label>
-        <input
+        <Input
           id="edit-name"
           type="text"
           value={formData.name}
-          onChange={e => setFormData({ ...formData, name: e.target.value })}
+          onChange={e => setFormData({ ...formData, name: (e.target as HTMLInputElement).value })}
           required
         />
       </div>
 
       <div className="form-group">
         <label htmlFor="edit-category">Category:</label>
-        <select
-          id="edit-category"
-          value={formData.category}
-          onChange={e => setFormData({ ...formData, category: e.target.value as ItemCategory })}
-        >
-          <option value="weapon">Weapon</option>
-          <option value="armor">Armor</option>
-          <option value="gear">Gear</option>
-          <option value="consumable">Consumable</option>
-          <option value="treasure">Treasure</option>
-          <option value="magical">Magical</option>
-        </select>
+        <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v as ItemCategory })}>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="weapon">Weapon</SelectItem>
+            <SelectItem value="armor">Armor</SelectItem>
+            <SelectItem value="gear">Gear</SelectItem>
+            <SelectItem value="consumable">Consumable</SelectItem>
+            <SelectItem value="treasure">Treasure</SelectItem>
+            <SelectItem value="magical">Magical</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="edit-weight">Weight:</label>
-          <input
+          <Input
             id="edit-weight"
             type="number"
             min="0"
             step="0.1"
             value={formData.weight}
-            onChange={e => setFormData({ ...formData, weight: Number.parseFloat(e.target.value) || 0 })}
+            onChange={e => setFormData({ ...formData, weight: Number.parseFloat((e.target as HTMLInputElement).value) || 0 })}
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="edit-value">Value (coins):</label>
-          <input
+          <Input
             id="edit-value"
             type="number"
             min="0"
             value={formData.value}
-            onChange={e => setFormData({ ...formData, value: Number.parseInt(e.target.value) || 0 })}
+            onChange={e => setFormData({ ...formData, value: Number.parseInt((e.target as HTMLInputElement).value) || 0 })}
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="edit-quantity">Quantity:</label>
-          <input
+          <Input
             id="edit-quantity"
             type="number"
             min="1"
             value={formData.quantity}
-            onChange={e => setFormData({ ...formData, quantity: Number.parseInt(e.target.value) || 1 })}
+            onChange={e => setFormData({ ...formData, quantity: Number.parseInt((e.target as HTMLInputElement).value) || 1 })}
           />
         </div>
       </div>
 
       <div className="form-group">
         <label htmlFor="edit-description">Description:</label>
-        <textarea
+        <Textarea
           id="edit-description"
           value={formData.description}
-          onChange={e => setFormData({ ...formData, description: e.target.value })}
+          onChange={e => setFormData({ ...formData, description: (e.target as HTMLTextAreaElement).value })}
           rows={3}
         />
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="btn btn-primary">Save Changes</button>
-        <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+        <Button type="submit">Save Changes</Button>
+        <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
       </div>
     </form>
   )
@@ -411,7 +418,7 @@ const InventoryPanel: React.FC<PanelProps & { panelState?: InventoryPanelState }
 
     // Sort items
     items.sort((a, b) => {
-      let aValue: unknown, bValue: unknown
+      let aValue: number | string, bValue: number | string
 
       switch (state.sortBy) {
         case 'name':
@@ -435,12 +442,14 @@ const InventoryPanel: React.FC<PanelProps & { panelState?: InventoryPanelState }
           bValue = b.name
       }
 
-      if (state.sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      const compare = () => {
+        if (typeof aValue === 'string' && typeof bValue === 'string') return aValue.localeCompare(bValue)
+        const an = typeof aValue === 'number' ? aValue : Number(aValue)
+        const bn = typeof bValue === 'number' ? bValue : Number(bValue)
+        return an < bn ? -1 : an > bn ? 1 : 0
       }
-      else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
-      }
+
+      return state.sortOrder === 'asc' ? compare() : -compare()
     })
 
     return items
@@ -611,226 +620,221 @@ const InventoryPanel: React.FC<PanelProps & { panelState?: InventoryPanelState }
     const canEquip = item.category === 'weapon' || item.category === 'armor'
 
     return (
-      <div
-        key={item.id}
-        className={`inventory-item-card ${isSelected ? 'selected' : ''} ${item.equipped ? 'equipped' : ''}`}
-        onClick={() => updateState({ showDetails: isSelected ? null : item.id })}
-        onContextMenu={e => openContextMenu(e, item)}
-      >
-        <div className="item-header">
-          <h3 className="item-name">{item.name}</h3>
-          <div className="item-badges">
-            <span className={`badge category-${item.category}`}>
-              {item.category}
-            </span>
-            {item.equipped && (
-              <span className="badge equipped">Equipped</span>
-            )}
-            {item.value && (
-              <span className="badge value">
-                {item.value}
-                {' '}
-                coins
+      <motion.div variants={itemFadeIn} whileHover={prefersReduced ? undefined : { scale: 1.01 }}>
+        <Card
+          key={item.id}
+          className={`inventory-item-card ${isSelected ? 'selected' : ''} ${item.equipped ? 'equipped' : ''}`}
+          onClick={() => updateState({ showDetails: isSelected ? null : item.id })}
+          onContextMenu={e => openContextMenu(e, item)}
+        >
+          <div className="item-header">
+            <h3 className="item-name">{item.name}</h3>
+            <div className="item-badges">
+              <span className={`badge category-${item.category}`}>
+                {item.category}
               </span>
-            )}
+              {item.equipped && (
+                <span className="badge equipped">Equipped</span>
+              )}
+              {item.value && (
+                <span className="badge value">
+                  {item.value}
+                  {' '}
+                  coins
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="item-content">
-          <div className="item-stats">
-            <span className="stat">
-              Weight:
-              {item.weight}
-            </span>
-            <span className="stat">
-              Quantity:
-              {item.quantity}
-            </span>
-            {item.uses && (
+          <div className="item-content">
+            <div className="item-stats">
               <span className="stat">
-                Uses:
-                {item.uses.current}
-                /
-                {item.uses.max}
+                Weight:
+                {item.weight}
               </span>
+              <span className="stat">
+                Quantity:
+                {item.quantity}
+              </span>
+              {item.uses && (
+                <span className="stat">
+                  Uses:
+                  {item.uses.current}
+                  /
+                  {item.uses.max}
+                </span>
+              )}
+            </div>
+
+            {item.description && (
+              <p className="item-description">{item.description}</p>
+            )}
+
+            {item.tags && item.tags.length > 0 && (
+              <div className="item-tags">
+                <TagDisplay tags={item.tags} />
+              </div>
+            )}
+
+            {item.customMove && (
+              <div className="item-custom-move">
+                <strong> Custom Move:</strong>
+                {' '}
+                {item.customMove}
+              </div>
             )}
           </div>
 
-          {item.description && (
-            <p className="item-description">{item.description}</p>
-          )}
+          <div className="item-actions">
+            {canUse && (
+              <Tooltip content="Use this item">
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    consumeItem(item.id)
+                  }}
+                  type="button"
+                >
+                  Use
+                </button>
+              </Tooltip>
+            )}
 
-          {item.tags && item.tags.length > 0 && (
-            <div className="item-tags">
-              <TagDisplay tags={item.tags} />
-            </div>
-          )}
+            {canEquip && !item.equipped && (
+              <Tooltip content="Equip this item">
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    equipItem(item.id)
+                  }}
+                  type="button"
+                >
+                  Equip
+                </button>
+              </Tooltip>
+            )}
 
-          {item.customMove && (
-            <div className="item-custom-move">
-              <strong> Custom Move:</strong>
-              {' '}
-              {item.customMove}
-            </div>
-          )}
-        </div>
+            {canEquip && item.equipped && (
+              <Tooltip content="Unequip this item">
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    unequipItem(item.id)
+                  }}
+                  type="button"
+                >
+                  Unequip
+                </button>
+              </Tooltip>
+            )}
 
-        <div className="item-actions">
-          {canUse && (
-            <Tooltip content="Use this item">
+            <Tooltip content="Edit item">
               <button
-                className="btn btn-primary btn-sm"
+                className="btn btn-outline btn-sm"
                 onClick={(e) => {
                   e.stopPropagation()
-                  consumeItem(item.id)
+                  updateState({
+                    showEditItemModal: true,
+                    editingItem: item,
+                  })
                 }}
                 type="button"
               >
-                Use
+                Edit
               </button>
             </Tooltip>
-          )}
 
-          {canEquip && !item.equipped && (
-            <Tooltip content="Equip this item">
+            <Tooltip content="Remove item">
               <button
-                className="btn btn-secondary btn-sm"
+                className="btn btn-danger btn-sm"
                 onClick={(e) => {
                   e.stopPropagation()
-                  equipItem(item.id)
+                  // eslint-disable-next-line no-alert
+                  if (confirm(`Are you sure you want to remove ${item.name}?`)) {
+                    removeItem(item.id)
+                  }
                 }}
                 type="button"
               >
-                Equip
+                Remove
               </button>
             </Tooltip>
-          )}
-
-          {canEquip && item.equipped && (
-            <Tooltip content="Unequip this item">
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  unequipItem(item.id)
-                }}
-                type="button"
-              >
-                Unequip
-              </button>
-            </Tooltip>
-          )}
-
-          <Tooltip content="Edit item">
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                updateState({
-                  showEditItemModal: true,
-                  editingItem: item,
-                })
-              }}
-              type="button"
-            >
-              Edit
-            </button>
-          </Tooltip>
-
-          <Tooltip content="Remove item">
-            <button
-              className="btn btn-danger btn-sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                // eslint-disable-next-line no-alert
-                if (confirm(`Are you sure you want to remove ${item.name}?`)) {
-                  removeItem(item.id)
-                }
-              }}
-              type="button"
-            >
-              Remove
-            </button>
-          </Tooltip>
-        </div>
-      </div>
+          </div>
+        </Card>
+      </motion.div>
     )
   }
 
-  return (
-    <div className="inventory-panel">
-      <div className="inventory-header">
-        <h2> Inventory</h2>
-        <div style={{ marginTop: '0.5rem' }}>
-          <LoadOptimizer />
-        </div>
-        <div className="inventory-summary">
-          <div className={`weight-display ${getWeightStatusColor()}`}>
-            <span className="weight-label">Weight:</span>
-            <span className="weight-value">{totalWeight}</span>
-            <span className="weight-capacity">
-              /
-              {loadCapacity}
-            </span>
-            {isEncumbered && (
-              <span className="encumbrance-warning">
-                {isHeavilyEncumbered ? 'Heavily Encumbered!' : 'Encumbered!'}
-              </span>
-            )}
-          </div>
-          <div className="value-display">
-            <span className="value-label">Total Value:</span>
-            <span className="value-amount">
-              {totalValue}
-              {' '}
-              coins
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="inventory-tools" style={{ marginBottom: '1rem' }}>
-        <EquipmentSets />
-      </div>
+  const prefersReduced = useReducedMotion()
 
-      <div className="inventory-controls">
+  return (
+    <motion.div className="inventory-panel" initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={staggerContainer}>
+      <motion.div variants={itemFadeIn}>
+        <Card className="inventory-header">
+          <h2> Inventory</h2>
+          <div className="mt-2">
+            <LoadOptimizer />
+          </div>
+          <div className="inventory-summary">
+            <div className={`weight-display ${getWeightStatusColor()}`}>
+              <span className="weight-label">Weight:</span>
+              <span className="weight-value">{totalWeight}</span>
+              <span className="weight-capacity">
+                /
+                {loadCapacity}
+              </span>
+              {isEncumbered && (
+                <motion.span className="encumbrance-warning" animate={prefersReduced ? undefined : { scale: [1, 1.05, 1] }} transition={prefersReduced ? undefined : { duration: 1.2, repeat: Infinity }}>
+                  {isHeavilyEncumbered ? 'Heavily Encumbered!' : 'Encumbered!'}
+                </motion.span>
+              )}
+            </div>
+            <div className="value-display">
+              <span className="value-label">Total Value:</span>
+              <span className="value-amount">
+                {totalValue}
+                {' '}
+                coins
+              </span>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+      <motion.div className="inventory-tools mb-4" variants={itemFadeIn}>
+        <EquipmentSets />
+      </motion.div>
+
+      <motion.div className="inventory-controls" variants={itemFadeIn}>
         <div className="search-filter">
-          <input
+          <Input
             type="text"
             placeholder="Search items..."
             value={state.searchQuery}
-            onChange={e => updateState({ searchQuery: e.target.value })}
+            onChange={e => updateState({ searchQuery: (e.target as HTMLInputElement).value })}
             className="search-input"
             ref={searchRef}
           />
 
-          <label htmlFor="filter-category">Category:</label>
-          <select
-            id="filter-category"
-            value={state.filterCategory}
-            onChange={e => updateState({ filterCategory: e.target.value as ItemCategory | 'all' })}
-            className="filter-select"
-          >
-            <option value="all">All Categories</option>
-            <option value="weapon">Weapons</option>
-            <option value="armor">Armor</option>
-            <option value="gear">Gear</option>
-            <option value="consumable">Consumables</option>
-            <option value="treasure">Treasure</option>
-            <option value="magical">Magical</option>
-          </select>
+          <Select value={state.filterCategory} onValueChange={(v) => updateState({ filterCategory: v as any })}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {(['all','weapon','armor','gear','consumable','treasure','magical'] as const).map(cat => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <label htmlFor="sort-by">Sort by:</label>
-          <select
-            id="sort-by"
-            value={state.sortBy}
-            onChange={e => updateState({ sortBy: e.target.value as string })}
-            className="sort-select"
-          >
-            <option value="name">Sort by Name</option>
-            <option value="weight">Sort by Weight</option>
-            <option value="value">Sort by Value</option>
-            <option value="category">Sort by Category</option>
-          </select>
+          <Select value={state.sortBy} onValueChange={(v) => updateState({ sortBy: v as any })}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {(['name','weight','value','category'] as const).map(key => (
+                <SelectItem key={key} value={key}>{key}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <button
             onClick={() => updateState({ sortOrder: state.sortOrder === 'asc' ? 'desc' : 'asc' })}
@@ -841,67 +845,57 @@ const InventoryPanel: React.FC<PanelProps & { panelState?: InventoryPanelState }
           </button>
         </div>
 
-        <button
-          className="btn btn-primary"
-          onClick={() => updateState({ showAddItemModal: true })}
-          type="button"
-        >
-          Add Item
-        </button>
-      </div>
+        <Button onClick={() => updateState({ showAddItemModal: true })} type="button">Add Item</Button>
+      </motion.div>
 
-      <div className="inventory-content">
+      <motion.div className="inventory-content" variants={staggerContainer}>
         {filteredAndSortedItems.length === 0
           ? (
-              <div className="empty-inventory">
+              <motion.div className="empty-inventory" variants={itemFadeIn}>
                 <p> No items found matching your criteria.</p>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => updateState({
-                    searchQuery: '',
-                    filterCategory: 'all',
-                  })}
-                  type="button"
-                >
-                  Clear Filters
-                </button>
-              </div>
+                <Button variant="secondary" onClick={() => updateState({ searchQuery: '', filterCategory: 'all' })} type="button">Clear Filters</Button>
+              </motion.div>
             )
           : (
-              <div className="inventory-grid">
-                {filteredAndSortedItems.map(renderItemCard)}
-              </div>
+              <motion.div className="inventory-grid" variants={staggerContainer}>
+                {filteredAndSortedItems.map(item => (
+                  <motion.div key={item.id} variants={itemFadeIn}>
+                    {renderItemCard(item)}
+                  </motion.div>
+                ))}
+              </motion.div>
             )}
-      </div>
+      </motion.div>
 
       {/* Add Item Modal */}
       {state.showAddItemModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3> Add New Item</h3>
+        <Dialog open={true} onOpenChange={(o) => { if (!o) updateState({ showAddItemModal: false }) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Item</DialogTitle>
+            </DialogHeader>
             <AddItemForm
               onAdd={addItem}
               onCancel={() => updateState({ showAddItemModal: false })}
             />
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Edit Item Modal */}
       {state.showEditItemModal && state.editingItem && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3> Edit Item</h3>
+        <Dialog open={true} onOpenChange={(o) => { if (!o) updateState({ showEditItemModal: false, editingItem: null }) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Item</DialogTitle>
+            </DialogHeader>
             <EditItemForm
               item={state.editingItem}
-              onSave={updates => editItem(state.editingItem!.id, updates)}
-              onCancel={() => updateState({
-                showEditItemModal: false,
-                editingItem: null,
-              })}
+              onSave={(updates) => editItem(state.editingItem!.id, updates)}
+              onCancel={() => updateState({ showEditItemModal: false, editingItem: null })}
             />
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {menuState.open && menuState.item && (
@@ -915,7 +909,7 @@ const InventoryPanel: React.FC<PanelProps & { panelState?: InventoryPanelState }
           ]}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 

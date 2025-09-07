@@ -1,5 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../../utils/motion'
 import { loadPanelState, savePanelState, panelEventBus } from '../../framework/PanelAPI'
+import { Input } from '../../components/ui/input'
+import { Button } from '../../components/ui/button'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../../components/ui/select'
 
 type TimerMode = 'up' | 'down'
 
@@ -103,58 +108,62 @@ const TimersWidget: React.FC<TimersWidgetProps> = ({ panelId }) => {
 
   const empty = useMemo(() => timers.length === 0, [timers])
 
+  const prefersReduced = useReducedMotion()
   return (
-    <div className="st-timers-widget">
-      <div className="st-timer-form">
+    <motion.div className="st-timers-widget" initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={staggerContainer}>
+      <motion.div className="st-timer-form flex flex-wrap items-end gap-2" variants={itemFadeIn}>
         <label htmlFor="tm-label">Label:</label>
-        <input id="tm-label" type="text" value={label} onChange={e => setLabel(e.target.value)} aria-label="Timer label" />
+        <Input id="tm-label" value={label} onChange={e => setLabel((e.target as HTMLInputElement).value)} aria-label="Timer label" className="w-40" />
         <label htmlFor="tm-mode">Mode:</label>
-        <select id="tm-mode" value={mode} onChange={e => setMode(e.target.value as TimerMode)} aria-label="Timer mode">
-          <option value="up">Stopwatch</option>
-          <option value="down">Countdown</option>
-        </select>
+        <Select value={mode} onValueChange={(v) => setMode(v as TimerMode)}>
+          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="up">Stopwatch</SelectItem>
+            <SelectItem value="down">Countdown</SelectItem>
+          </SelectContent>
+        </Select>
         {mode === 'down' && (
           <>
             <label htmlFor="tm-min">Min:</label>
-            <input id="tm-min" type="number" value={minutes} onChange={e => setMinutes(Number.parseInt(e.target.value || '0'))} aria-label="Minutes" />
+            <Input id="tm-min" type="number" value={minutes as any} onChange={e => setMinutes(Number.parseInt((e.target as HTMLInputElement).value || '0'))} aria-label="Minutes" className="w-20" />
             <label htmlFor="tm-sec">Sec:</label>
-            <input id="tm-sec" type="number" value={seconds} onChange={e => setSeconds(Number.parseInt(e.target.value || '0'))} aria-label="Seconds" />
+            <Input id="tm-sec" type="number" value={seconds as any} onChange={e => setSeconds(Number.parseInt((e.target as HTMLInputElement).value || '0'))} aria-label="Seconds" className="w-20" />
           </>
         )}
-        <button type="button" className="btn btn-primary" onClick={addTimer}>Add Timer</button>
-        <button type="button" className="btn btn-outline" onClick={() => addBookmark()}>Add Bookmark</button>
-      </div>
+        <Button type="button" onClick={addTimer}>Add Timer</Button>
+        <Button type="button" variant="ghost" onClick={() => addBookmark()}>Add Bookmark</Button>
+      </motion.div>
 
-      <div className="st-timer-list" aria-live="polite">
+      <motion.div className="st-timer-list" aria-live="polite" variants={staggerContainer}>
         {empty && <div className="st-empty">No timers yet.</div>}
         {timers.map(t => (
-          <div key={t.id} className="st-timer-row">
+          <motion.div key={t.id} className="st-timer-row" variants={itemFadeIn} whileHover={prefersReduced ? undefined : { scale: 1.01 }}>
             <div className="st-timer-meta">
               <span className="st-timer-label">{t.label}</span>
               <span className="st-timer-remaining" aria-label={`${t.label} time`}>{remaining(t)}</span>
             </div>
-            <div className="st-timer-actions">
-              {!t.running && <button type="button" className="btn btn-secondary btn-sm" onClick={() => start(t.id)} aria-label={`Start ${t.label}`}>Start</button>}
-              {t.running && <button type="button" className="btn btn-secondary btn-sm" onClick={() => pause(t.id)} aria-label={`Pause ${t.label}`}>Pause</button>}
-              <button type="button" className="btn btn-outline btn-sm" onClick={() => reset(t.id)} aria-label={`Reset ${t.label}`}>Reset</button>
-              <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(t.id)} aria-label={`Delete ${t.label}`}>Delete</button>
+            <div className="st-timer-actions flex gap-2">
+              {!t.running && <Button type="button" variant="secondary" size="sm" onClick={() => start(t.id)} aria-label={`Start ${t.label}`}>Start</Button>}
+              {t.running && <Button type="button" variant="secondary" size="sm" onClick={() => pause(t.id)} aria-label={`Pause ${t.label}`}>Pause</Button>}
+              <Button type="button" variant="ghost" size="sm" onClick={() => reset(t.id)} aria-label={`Reset ${t.label}`}>Reset</Button>
+              <Button type="button" variant="destructive" size="sm" onClick={() => remove(t.id)} aria-label={`Delete ${t.label}`}>Delete</Button>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      <div className="st-bookmarks">
+      <motion.div className="st-bookmarks" variants={staggerContainer}>
         <h3 className="st-card__title">Bookmarks</h3>
         {bookmarks.length === 0 && <div className="st-empty">No bookmarks yet.</div>}
         {bookmarks.map(b => (
-          <div key={b.id} className="st-bookmark-row">
+          <motion.div key={b.id} className="st-bookmark-row" variants={itemFadeIn}>
             <span className="st-bookmark-label">{b.label}</span>
             <span className="st-bookmark-time">{new Date(b.timestamp).toLocaleTimeString()}</span>
-            <button type="button" className="btn btn-danger btn-sm" onClick={() => removeBookmark(b.id)} aria-label={`Remove ${b.label}`}>Remove</button>
-          </div>
+            <Button type="button" variant="destructive" size="sm" onClick={() => removeBookmark(b.id)} aria-label={`Remove ${b.label}`}>Remove</Button>
+          </motion.div>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

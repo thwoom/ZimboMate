@@ -14,6 +14,13 @@ import { getAttributeTooltip, getEncumbranceTier, getSpellBudgetProgress, getXpT
 import { getClassBaseLoad, getEffectiveModifier as getEffectiveModifierModel, getXPThreshold } from '../../models/Character'
 import './CharacterStatsPanel.css'
 import Tooltip from '../../components/Tooltip'
+import { Progress } from '../../components/ui/progress'
+import { Checkbox } from '../../components/ui/checkbox'
+import { Switch } from '../../components/ui/switch'
+import HUDFrame from '../../components/ui/HUDFrame'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant, staggerContainer, itemFadeIn } from '../../utils/motion'
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card'
 
 interface CharacterStatsPanelState {
   // Basic Info
@@ -392,8 +399,15 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   const xpToNext = getXpToNext(displayCharacter.level as number, displayCharacter.xp as number)
   const effective = getEffectivePrefs(gameState.settings, caster)
 
+  const prefersReduced = useReducedMotion()
+
   return (
-    <div className="character-stats-panel">
+    <motion.div
+      className="character-stats-panel"
+      initial={prefersReduced ? false : 'hidden'}
+      animate={prefersReduced ? undefined : 'visible'}
+      variants={getVariant('fade')}
+    >
       <div aria-live="polite" className="aria-live-region">
         HP {state.hp} of {state.maxHp}. XP {displayCharacter.xp} of {displayCharacter.level + 7}.
       </div>
@@ -410,9 +424,14 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         </div>
       </div>
 
-      <div className="stats-grid">
+      <motion.div className="stats-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
         {/* HP Section */}
-        <div className="stat-card stat-card--hp">
+        <motion.div variants={itemFadeIn}>
+        <Card className="stat-card stat-card--hp">
+          <CardHeader>
+            <CardTitle>Hit Points</CardTitle>
+          </CardHeader>
+          <CardContent>
           <h3> Hit Points</h3>
           <div className="hp-display">
             <button
@@ -436,17 +455,19 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             </button>
           </div>
           <div className="hp-bar">
-            <progress
-              className={`hp-progress ${getHpClass()}`}
-              max={state.maxHp}
-              value={state.hp}
-              aria-label="HP progress"
-            />
+            <Progress className={`hp-progress ${getHpClass()}`} max={state.maxHp} value={state.hp} aria-label="HP progress" />
           </div>
-        </div>
+          </CardContent>
+        </Card>
+        </motion.div>
 
         {/* Armor & Damage */}
-        <div className="stat-card">
+        <motion.div variants={itemFadeIn}>
+        <Card className="stat-card">
+          <CardHeader>
+            <CardTitle>Combat Stats</CardTitle>
+          </CardHeader>
+          <CardContent>
           <h3> Combat Stats</h3>
           <div className="combat-stats">
             <div className="stat-item">
@@ -458,10 +479,17 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
               <span className="stat-value">{state.damage}</span>
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
+        </motion.div>
 
         {/* Level & XP */}
-        <div className="stat-card">
+        <motion.div variants={itemFadeIn}>
+        <Card className="stat-card">
+          <CardHeader>
+            <CardTitle>Experience</CardTitle>
+          </CardHeader>
+          <CardContent>
           <h3> Experience</h3>
           <div className="experience-stats">
             <div className="stat-item">
@@ -479,12 +507,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             </div>
           </div>
           <div className="xp-bar">
-            <progress
-              className="xp-progress"
-              max={displayCharacter.level + 7}
-              value={displayCharacter.xp}
-              aria-label="XP progress"
-            />
+            <Progress className="xp-progress" max={displayCharacter.level + 7} value={displayCharacter.xp} aria-label="XP progress" />
           </div>
           <div className="quick-actions">
             <button type="button" className="action-button action-button--xp" onClick={handleAddXP}>
@@ -496,10 +519,17 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
               </button>
             )}
           </div>
-        </div>
+          </CardContent>
+        </Card>
+        </motion.div>
 
         {/* Load */}
-        <div className="stat-card">
+        <motion.div variants={itemFadeIn}>
+        <Card className="stat-card">
+          <CardHeader>
+            <CardTitle>Load</CardTitle>
+          </CardHeader>
+          <CardContent>
           <h3> Load</h3>
           <div className="load-display">
             <span className="load-current">{state.load}</span>
@@ -507,12 +537,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             <span className="load-max">{maxLoadMemo}</span>
           </div>
           <div className="load-bar">
-            <progress
-              className={`load-progress ${state.load > maxLoadMemo ? 'overloaded' : ''}`}
-              max={maxLoadMemo}
-              value={state.load}
-              aria-label="Load progress"
-            />
+            <Progress className={`load-progress ${state.load > maxLoadMemo ? 'overloaded' : ''}`} max={maxLoadMemo} value={state.load} aria-label="Load progress" />
           </div>
           {state.load > maxLoadMemo && (
             <div className="load-warning">Encumbered!</div>
@@ -525,39 +550,44 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             <span className="stat-label">Encumbrance:</span>
             <span className="stat-value">{getEncumbranceTier(state.load, maxLoadMemo) === 'encumbered' ? 'Encumbered' : 'OK'}</span>
           </div>
-        </div>
+          </CardContent>
+        </Card>
+        </motion.div>
 
         {/* Preferences override + Spellcasting (for casters) */}
-        <div className="stat-card">
+        <motion.div variants={itemFadeIn}>
+        <HUDFrame className="stat-card">
           <div className="stat-item">
             <label>
-              <input
-                type="checkbox"
+              <Switch
                 checked={gameState.settings.conditionalContent?.perPanel.stats.overrideEnabled || false}
-                onChange={() => {
+                onCheckedChange={() => {
                   const next = togglePanelOverride(gameState.settings, 'stats')
                   updateSettings({ conditionalContent: next.conditionalContent })
                 }}
+                aria-label="Override"
               />{' '}
               Override
             </label>
             <label className="ml-8">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={gameState.settings.conditionalContent?.perPanel.stats.showSpells || false}
-                onChange={e => {
-                  const next = setStatsShowSpells(gameState.settings, e.target.checked)
+                onCheckedChange={(checked) => {
+                  const next = setStatsShowSpells(gameState.settings, Boolean(checked))
                   updateSettings({ conditionalContent: next.conditionalContent })
                 }}
                 disabled={!gameState.settings.conditionalContent?.perPanel.stats.overrideEnabled}
+                aria-label="Show spells"
               />{' '}
               Show spells
             </label>
           </div>
-        </div>
+        </HUDFrame>
+        </motion.div>
 
         {sections.showSpellcasting && effective.statsShowSpells && character && (
-          <div className="stat-card">
+          <motion.div variants={itemFadeIn}>
+          <HUDFrame className="stat-card">
             <h3> Spellcasting</h3>
             <div className="combat-stats">
               <div className="stat-item">
@@ -570,12 +600,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
               </div>
             </div>
             <div className="xp-bar">
-              <progress
-                className="xp-progress"
-                max={Math.max(1, spellBudget)}
-                value={Math.min(spellBudget, preparedCount)}
-                aria-label="Spell budget progress"
-              />
+              <Progress className="xp-progress" max={Math.max(1, spellBudget)} value={Math.min(spellBudget, preparedCount)} aria-label="Spell budget progress" />
             </div>
             <div className="quick-actions">
               <a href="#spells" className="action-link" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('navigate-panel', { detail: { id: 'spells' } } as any)) }}>Open Spells</a>
@@ -583,14 +608,15 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             {character.conditions?.includes('spellcasting-strain') && (
               <div className="load-warning">Spellcasting Strain (-1 ongoing to Cast a Spell)</div>
             )}
-          </div>
+          </HUDFrame>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Attributes & Rolls */}
       <div className="attributes-section">
         <h3> Attributes</h3>
-        <div className="attributes-grid">
+        <motion.div className="attributes-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
           {(displayCharacter.attributes || state.attributes) && Object.entries(displayCharacter.attributes || state.attributes).map(([attr, score]) => {
             const modifier = getEffectiveModifier(attr as keyof typeof state.attributes)
             const hasDebility = (
@@ -603,7 +629,8 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             )
 
             return (
-              <div key={attr} className={`attribute-card ${highlightStats.includes(attr as any) ? 'attribute-card--highlight' : ''}`}>
+              <motion.div key={attr} variants={itemFadeIn}>
+              <HUDFrame className={`attribute-card ${highlightStats.includes(attr as any) ? 'attribute-card--highlight' : ''}`}>
                 <Tooltip content={highlightStats.includes(attr as any) ? getAttributeTooltip(attr as any) : 'Attribute'}>
                   <button
                     className={`attribute-button ${hasDebility ? 'attribute-button--debility' : ''}`}
@@ -616,10 +643,11 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
                     <span className="attribute-modifier">{formatModifier(modifier)}</span>
                   </button>
                 </Tooltip>
-              </div>
+              </HUDFrame>
+              </motion.div>
             )
           })}
-        </div>
+        </motion.div>
       </div>
 
       {/* Class Focus */}
@@ -653,51 +681,27 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         <h3> Debilities</h3>
         <div className="debilities-grid">
           <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.weak}
-              onChange={() => handleDebilityToggle('weak')}
-            />
+            <Checkbox checked={state.debilities.weak} onCheckedChange={() => handleDebilityToggle('weak')} aria-label="Weak debility" />
             <span> Weak (-1 STR)</span>
           </label>
           <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.shaky}
-              onChange={() => handleDebilityToggle('shaky')}
-            />
+            <Checkbox checked={state.debilities.shaky} onCheckedChange={() => handleDebilityToggle('shaky')} aria-label="Shaky debility" />
             <span> Shaky (-1 DEX)</span>
           </label>
           <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.sick}
-              onChange={() => handleDebilityToggle('sick')}
-            />
+            <Checkbox checked={state.debilities.sick} onCheckedChange={() => handleDebilityToggle('sick')} aria-label="Sick debility" />
             <span> Sick (-1 CON)</span>
           </label>
           <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.confused}
-              onChange={() => handleDebilityToggle('confused')}
-            />
+            <Checkbox checked={state.debilities.confused} onCheckedChange={() => handleDebilityToggle('confused')} aria-label="Confused debility" />
             <span> Confused (-1 INT)</span>
           </label>
           <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.scarred}
-              onChange={() => handleDebilityToggle('scarred')}
-            />
+            <Checkbox checked={state.debilities.scarred} onCheckedChange={() => handleDebilityToggle('scarred')} aria-label="Scarred debility" />
             <span> Scarred (-1 WIS)</span>
           </label>
           <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.stunned}
-              onChange={() => handleDebilityToggle('stunned')}
-            />
+            <Checkbox checked={state.debilities.stunned} onCheckedChange={() => handleDebilityToggle('stunned')} aria-label="Stunned debility" />
             <span> Stunned (-1 CHA)</span>
           </label>
         </div>
@@ -764,7 +768,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
           onCancel={() => setShowLevelUpModal(false)}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 
