@@ -4,6 +4,8 @@ import { panelRegistry } from '../framework/PanelRegistry'
 
 import { PanelRouter } from '../framework/PanelRouter'
 import './ContentArea.css'
+import PanelBackdrop3D from '../components/ui/PanelBackdrop3D'
+import { useSettings } from '../store/GameStore'
 
 interface ContentAreaProps {
   activePanelId: string
@@ -24,6 +26,7 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
     document.body.classList.toggle('debug-layout')
   }
 
+  const settings = useSettings()
   return (
     <div className="content-area">
       <header className="content-area__header">
@@ -40,6 +43,7 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
       </header>
 
       <div className={`content-area__body ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
+        {settings.uiOverlays?.panelBackdropEnabled !== false && <PanelBackdrop3D panelId={activePanelId} />}
         {panelCount > 0
           ? (
               <PanelRouter

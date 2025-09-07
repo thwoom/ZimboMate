@@ -8,6 +8,8 @@ import { requiresRoll } from '../models/Move'
 import { StatSubstitutionService } from '../services/StatSubstitutionService'
 import DiceRoller from './DiceRoller'
 import './MoveCard.css'
+import { motion, useReducedMotion } from 'framer-motion'
+import { fadeInUp, scaleIn } from '../utils/motion'
 
 interface MoveCardProps {
   move: Move
@@ -73,8 +75,14 @@ export const MoveCard: React.FC <MoveCardProps> = ({
     }
   }
 
+  const prefersReduced = useReducedMotion()
   return (
-    <div className={`move-card ${move.category} ${!canUse ? 'disabled' : ''} ${className}`}>
+    <motion.div
+      className={`move-card ${move.category} ${!canUse ? 'disabled' : ''} ${className}`}
+      initial={prefersReduced ? false : 'hidden'}
+      animate={prefersReduced ? undefined : 'visible'}
+      variants={fadeInUp}
+    >
       {/* Move Header */}
       <div className="move-card__header" onClick={handleToggleExpanded}>
         <div className="move-info">
@@ -112,40 +120,42 @@ export const MoveCard: React.FC <MoveCardProps> = ({
 
         <div className="move-actions">
           {needsRoll && character && showRoller && (
-            <button
+            <motion.button
               className="roll-button"
               onClick={(e) => {
                 e.stopPropagation()
                 handleShowRoller()
               }}
               disabled={!canUse}
+              whileTap={prefersReduced ? undefined : { scale: 0.97 }}
             >
               🎲 Roll
-            </button>
+            </motion.button>
           )}
 
           {!needsRoll && (
-            <button
+            <motion.button
               className="use-button"
               onClick={(e) => {
                 e.stopPropagation()
                 handleShowRoller()
               }}
               disabled={!canUse}
+              whileTap={prefersReduced ? undefined : { scale: 0.97 }}
             >
               Use
-            </button>
+            </motion.button>
           )}
 
-          <button className="expand-button">
+          <motion.button className="expand-button" whileTap={prefersReduced ? undefined : { scale: 0.95 }}>
             {isExpanded ? '▼' : '▶'}
-          </button>
+          </motion.button>
         </div>
       </div>
 
       {/* Move Details */}
       {isExpanded && (
-        <div className="move-card__content">
+        <motion.div className="move-card__content" initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={scaleIn}>
           <div className="move-trigger">
             <strong> When:</strong>
             {' '}
@@ -241,7 +251,7 @@ export const MoveCard: React.FC <MoveCardProps> = ({
               )}
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* Dice Roller Modal */}
@@ -271,7 +281,7 @@ export const MoveCard: React.FC <MoveCardProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

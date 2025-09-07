@@ -24,6 +24,8 @@ export default defineConfig({
     include: [
       'test/**/*.test.ts',
       'test/**/*.test.tsx',
+      'src/tests/**/*.spec.ts',
+      'src/tests/**/*.spec.tsx',
     ],
     exclude: [
       'tests/**', // playwright e2e

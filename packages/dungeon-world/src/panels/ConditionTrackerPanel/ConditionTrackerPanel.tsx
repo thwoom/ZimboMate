@@ -6,6 +6,10 @@ import { createPanel } from '../../framework/Panel'
 import { createPanelAPI } from '../../framework/PanelAPI'
 import { useCharacter } from '../../store/GameStore'
 import './ConditionTrackerPanel.css'
+import { HUDFrame } from '../../components/ui/HUDFrame'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant } from '../../utils/motion'
 
 const _id = 'condition-tracker'
 
@@ -26,21 +30,24 @@ const ConditionTrackerPanelComponent: React.FC <PanelProps> = ({ isActive, onSta
   }
 
   return (
-    <div className="condition-tracker-panel">
-      <div className="condition-tracker-panel__header">
-        <h2>🎭 Condition Tracker</h2>
-        <p className="condition-tracker-panel__subtitle">
-          Track debilities, ongoing effects, and temporary conditions
-        </p>
-      </div>
-
-      <div className="condition-tracker-panel__content">
-        <ConditionTracker
-          characterId={currentCharacter?.id}
-          onConditionResolved={handleConditionResolved}
-        />
-      </div>
-    </div>
+    <motion.div initial={useReducedMotion() ? false : 'hidden'} animate={useReducedMotion() ? undefined : 'visible'} variants={getVariant('fade')}>
+      <HUDFrame className="p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>🎭 Condition Tracker</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-[--color-muted-foreground] mb-3">
+              Track debilities, ongoing effects, and temporary conditions
+            </p>
+            <ConditionTracker
+              characterId={currentCharacter?.id}
+              onConditionResolved={handleConditionResolved}
+            />
+          </CardContent>
+        </Card>
+      </HUDFrame>
+    </motion.div>
   )
 }
 

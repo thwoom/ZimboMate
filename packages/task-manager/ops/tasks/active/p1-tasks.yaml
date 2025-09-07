@@ -1,73 +1,82 @@
 tasks:
-  - id: T-200
-    title: Create Debility and Ongoing Effect Tracker
-    intent: Implement tracking system for debilities, ongoing effects, and temporary
-      conditions in Dungeon World
+  - id: T-227
+    title: "Epic: Theming HUD Migration (Tailwind v4 + shadcn/ui)"
+    intent: Migrate all UI to shadcn primitives styled via Tailwind v4 tokens;
+      deliver HUD effects and strict a11y/perf guarantees.
     owner: cursor-agent
-    status: done
+    status: open
     priority: P1
     labels:
-      - feature
-      - core-mechanics
-      - conditions
-      - tracking
-    deps:
-      - T-007
-      - T-027
+      - epic
+      - migration
+      - tag:theming-hud-migration
+    deps: []
     steps:
-      - Implement debility tracking (Weak, Shaky, Sick, Stunned, Confused,
-        Scarred)
-      - Create ongoing effect management (+1 forward, -1 ongoing, etc.)
-      - Build condition timer system for temporary effects
-      - Add automatic stat modifier calculations for debilities
-      - Implement visual indicators for active conditions
-      - Create condition resolution and removal workflows
-      - Add condition stacking and interaction rules
-      - Implement condition notifications and reminders
+      - Establish token source of truth with Tailwind v4 @theme inline
+      - Adopt shadcn primitives and adapter layer
+      - Implement HUD frames, motion, and 3D overlays where applicable
     acceptance:
-      - All six debilities are tracked with automatic stat penalties
-      - Ongoing effects (+1 forward, -1 ongoing) are properly managed
-      - Temporary conditions have clear duration tracking
-      - Visual indicators show active conditions at a glance
-      - Stat calculations automatically include debility modifiers
-      - Condition resolution follows official DW rules exactly
-    artifacts:
-      - src/components/ConditionTracker.tsx
-      - src/services/ConditionService.ts
-      - src/models/Condition.ts
-      - src/utils/conditionCalculations.ts
-      - test/services/ConditionService.test.ts
-  - id: T-214
-    title: Enhanced Equipment Compendium Integration
-    intent: Integrate comprehensive equipment data from Dungeon World Compendium to
-      provide players with complete item information and mechanics
+      - All UI flows through shadcn or adapter-wrapped components
+      - Tokens available in utilities and var(--token) for JS
+      - WCAG AA and performance budgets met
+  - id: T-239
+    title: "Phase 3: Accessibility hardening (axe, AA contrast, keyboard flows)"
+    intent: Add automated axe checks; ensure AA contrast; validate keyboard flows
+      and focus traps.
     owner: cursor-agent
-    status: done
+    status: open
     priority: P1
     labels:
-      - feature
-      - equipment
-      - compendium
-      - player-tools
+      - a11y
+      - quality
+      - tag:theming-hud-migration
     deps:
-      - T-203
+      - T-228
+      - T-229
+      - T-230
+      - T-231
+      - T-232
+      - T-233
+      - T-234
+      - T-235
+      - T-236
+      - T-237
+      - T-238
     steps:
-      - Extract and integrate all equipment from DW Compendium (weapons, armor,
-        items)
-      - Implement equipment tag mechanics and effects
-      - Create equipment search and filtering by tags, categories, and properties
-      - Add equipment comparison tools for decision making
-      - Implement equipment requirements and restrictions
-      - Create equipment sets and loadout management
+      - Integrate axe-core in CI; fix violations
+      - High-contrast token variant + prefers-contrast
+      - Playwright keyboard nav and focus trap tests
     acceptance:
-      - All equipment from DW Compendium is available and searchable
-      - Equipment tags provide clear mechanical effects and descriptions
-      - Equipment comparison helps players make informed choices
-      - Equipment requirements are clearly displayed and validated
-      - Equipment sets allow quick switching between configurations
-    artifacts:
-      - src/data/equipmentCompendium.ts
-      - src/components/EquipmentCompendium.tsx
-      - src/services/EquipmentCompendiumService.ts
-      - src/utils/equipmentTagMechanics.ts
-      - test/data/equipmentCompendium.test.ts
+      - Lighthouse ≥ 90 (A11y, Best Practices)
+      - WCAG AA contrast across surfaces and text
+      - All dialogs/menus pass keyboard tests
+  - id: T-240
+    title: "Phase 3: Testing & visual regression (themes/modes/motion)"
+    intent: Baseline visual snapshots per theme/mode; add reduced/normal motion
+      snapshots; stabilize CI.
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - testing
+      - playwright
+      - tag:theming-hud-migration
+    deps:
+      - T-228
+      - T-229
+      - T-230
+      - T-231
+      - T-232
+      - T-233
+      - T-234
+      - T-235
+      - T-236
+      - T-237
+      - T-238
+    steps:
+      - Snapshot Dark/Light/Moon/High-Contrast/Cosmic/Timey-Wimey
+      - Reduced-motion vs normal-motion snapshots
+      - Version baselines and document process
+    acceptance:
+      - Stable CI snapshots with clear update workflow
+      - Coverage for key panels and primitives

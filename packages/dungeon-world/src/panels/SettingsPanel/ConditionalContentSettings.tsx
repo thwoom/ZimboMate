@@ -2,54 +2,46 @@ import React from 'react'
 import { createPanel } from '../../framework/Panel'
 import { useGameStore } from '../../store/GameStore'
 import './ConditionalContentSettings.css'
+import { HUDFrame } from '../../components/ui/HUDFrame'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { Switch } from '../../components/ui/switch'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn, getVariant } from '../../utils/motion'
 
 const ConditionalContentSettings: React.FC = () => {
   const { state, updateSettings } = useGameStore()
   const cc = state.settings.conditionalContent!
+  const prefersReduced = useReducedMotion()
   return (
-    <div className="settings-conditional">
-      <h2>Conditional Content</h2>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={cc.global.preferClassRelevant}
-            onChange={e => updateSettings({ conditionalContent: { ...cc, global: { ...cc.global, preferClassRelevant: e.target.checked } } })}
-          />{' '}
-          Prefer class-relevant content
-        </label>
-      </div>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={cc.global.showAllMoves}
-            onChange={e => updateSettings({ conditionalContent: { ...cc, global: { ...cc.global, showAllMoves: e.target.checked } } })}
-          />{' '}
-          Show all moves
-        </label>
-      </div>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={cc.global.showAllEquipment}
-            onChange={e => updateSettings({ conditionalContent: { ...cc, global: { ...cc.global, showAllEquipment: e.target.checked } } })}
-          />{' '}
-          Show all equipment
-        </label>
-      </div>
-      <div>
-        <label>
-          <input
-            type="checkbox"
-            checked={cc.global.showSpellsForNonCasters}
-            onChange={e => updateSettings({ conditionalContent: { ...cc, global: { ...cc.global, showSpellsForNonCasters: e.target.checked } } })}
-          />{' '}
-          Show spells for non-casters
-        </label>
-      </div>
-    </div>
+    <motion.div initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={getVariant('fade')}>
+      <HUDFrame className="p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Conditional Content</CardTitle>
+          </CardHeader>
+          <CardContent>
+          <motion.div className="space-y-3" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
+            <motion.label className="flex items-center gap-2" variants={itemFadeIn}>
+              <Switch checked={cc.global.preferClassRelevant} onCheckedChange={(v) => updateSettings({ conditionalContent: { ...cc, global: { ...cc.global, preferClassRelevant: !!v } } })} />
+              <span>Prefer class-relevant content</span>
+            </motion.label>
+            <motion.label className="flex items-center gap-2" variants={itemFadeIn}>
+              <Switch checked={cc.global.showAllMoves} onCheckedChange={(v) => updateSettings({ conditionalContent: { ...cc, global: { ...cc.global, showAllMoves: !!v } } })} />
+              <span>Show all moves</span>
+            </motion.label>
+            <motion.label className="flex items-center gap-2" variants={itemFadeIn}>
+              <Switch checked={cc.global.showAllEquipment} onCheckedChange={(v) => updateSettings({ conditionalContent: { ...cc, global: { ...cc.global, showAllEquipment: !!v } } })} />
+              <span>Show all equipment</span>
+            </motion.label>
+            <motion.label className="flex items-center gap-2" variants={itemFadeIn}>
+              <Switch checked={cc.global.showSpellsForNonCasters} onCheckedChange={(v) => updateSettings({ conditionalContent: { ...cc, global: { ...cc.global, showSpellsForNonCasters: !!v } } })} />
+              <span>Show spells for non-casters</span>
+            </motion.label>
+          </motion.div>
+          </CardContent>
+        </Card>
+      </HUDFrame>
+    </motion.div>
   )
 }
 

@@ -13,6 +13,9 @@ import React, { useMemo, useState } from 'react'
 import { moveCompendiumService } from '../services/MoveCompendiumService'
 import { useGameStore } from '../stores/gameStore'
 import './MoveCompendium.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../utils/motion'
 
 interface MoveCompendiumState {
   searchQuery: string
@@ -33,6 +36,7 @@ interface MoveCompendiumState {
 
 const MoveCompendium: React.FC = () => {
   const { characterData } = useGameStore()
+  const prefersReduced = useReducedMotion()
 
   const [state, setState] = useState <MoveCompendiumState>({
     searchQuery: '',
@@ -121,7 +125,7 @@ const MoveCompendium: React.FC = () => {
 
     // Sort moves
     moves.sort((a, b) => {
-      let aValue: unknown, bValue: unknown
+      let aValue: number | string, bValue: number | string
 
       switch (state.sortBy) {
         case 'name':
@@ -145,12 +149,13 @@ const MoveCompendium: React.FC = () => {
           bValue = b.name
       }
 
-      if (state.sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      const compare = () => {
+        if (typeof aValue === 'string' && typeof bValue === 'string') return aValue.localeCompare(bValue)
+        const an = typeof aValue === 'number' ? aValue : Number(aValue)
+        const bn = typeof bValue === 'number' ? bValue : Number(bValue)
+        return an < bn ? -1 : an > bn ? 1 : 0
       }
-      else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
-      }
+      return state.sortOrder === 'asc' ? compare() : -compare()
     })
 
     return moves
@@ -211,10 +216,12 @@ const MoveCompendium: React.FC = () => {
       : true
 
     return (
-      <div
+      <motion.div
         key={move.id}
         className={`move-card ${isSelected ? 'selected' : ''} ${!isAvailable ? 'unavailable' : ''}`}
         onClick={() => toggleMoveSelection(move.id)}
+        variants={itemFadeIn}
+        whileHover={prefersReduced ? undefined : { scale: 1.01 }}
       >
         <div className="move-header">
           <h3 className="move-name">{move.name}</h3>
@@ -297,7 +304,7 @@ const MoveCompendium: React.FC = () => {
             <p> Not available for your character</p>
           </div>
         )}
-      </div>
+      </motion.div>
     )
   }
 
@@ -361,31 +368,37 @@ const MoveCompendium: React.FC = () => {
       <div className="compendium-header">
         <h2> Move Compendium</h2>
         <div className="header-actions">
-          <button
+          <motion.button
             className="btn btn-secondary"
             onClick={() => updateState({ showFilters: !state.showFilters })}
+            whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+            whileTap={prefersReduced ? undefined : { scale: 0.98 }}
           >
             {state.showFilters ? 'Hide' : 'Show'}
             {' '}
             Filters
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             className="btn btn-secondary"
             onClick={() => updateState({ showComparison: !state.showComparison })}
+            whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+            whileTap={prefersReduced ? undefined : { scale: 0.98 }}
           >
             {state.showComparison ? 'Hide' : 'Show'}
             {' '}
             Comparison
-          </button>
+          </motion.button>
           {state.selectedMoves.length > 0 && (
-            <button
+            <motion.button
               className="btn btn-secondary"
               onClick={clearSelections}
+              whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.98 }}
             >
               Clear Selection (
               {state.selectedMoves.length}
               )
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
@@ -407,137 +420,115 @@ const MoveCompendium: React.FC = () => {
 
             <div className="filter-group">
               <label htmlFor="category-filter">Category:</label>
-              <select
-                id="category-filter"
-                value={state.selectedCategory}
-                onChange={e => updateState({ selectedCategory: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Categories</option>
-                {moveCompendiumService.getMoveCategories().map(category => (
-                  <option key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </option>
-                ))}
-              </select>
+              <Select value={state.selectedCategory} onValueChange={(v) => updateState({ selectedCategory: v })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Categories" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {moveCompendiumService.getMoveCategories().map(category => (
+                    <SelectItem key={category} value={category}>{category.charAt(0).toUpperCase() + category.slice(1)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="type-filter">Type:</label>
-              <select
-                id="type-filter"
-                value={state.selectedType}
-                onChange={e => updateState({ selectedType: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Types</option>
-                {moveCompendiumService.getMoveTypes().map(type => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-              </select>
+              <Select value={state.selectedType} onValueChange={(v) => updateState({ selectedType: v })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Types" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {moveCompendiumService.getMoveTypes().map(type => (
+                    <SelectItem key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="trigger-filter">Trigger:</label>
-              <select
-                id="trigger-filter"
-                value={state.selectedTriggerType}
-                onChange={e => updateState({ selectedTriggerType: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Triggers</option>
-                {moveCompendiumService.getTriggerTypes().map(trigger => (
-                  <option key={trigger} value={trigger}>
-                    {trigger.charAt(0).toUpperCase() + trigger.slice(1)}
-                  </option>
-                ))}
-              </select>
+              <Select value={state.selectedTriggerType} onValueChange={(v) => updateState({ selectedTriggerType: v })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Triggers" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Triggers</SelectItem>
+                  {moveCompendiumService.getTriggerTypes().map(trigger => (
+                    <SelectItem key={trigger} value={trigger}>{trigger.charAt(0).toUpperCase() + trigger.slice(1)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="class-filter">Class:</label>
-              <select
-                id="class-filter"
-                value={state.selectedClass}
-                onChange={e => updateState({ selectedClass: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Classes</option>
-                <option value="Fighter">Fighter</option>
-                <option value="Wizard">Wizard</option>
-                <option value="Cleric">Cleric</option>
-                <option value="Thief">Thief</option>
-                <option value="Ranger">Ranger</option>
-                <option value="Paladin">Paladin</option>
-                <option value="Bard">Bard</option>
-                <option value="Druid">Druid</option>
-                <option value="Barbarian">Barbarian</option>
-                <option value="Immolator">Immolator</option>
-              </select>
+              <Select value={state.selectedClass} onValueChange={(v) => updateState({ selectedClass: v })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Classes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classes</SelectItem>
+                  <SelectItem value="Fighter">Fighter</SelectItem>
+                  <SelectItem value="Wizard">Wizard</SelectItem>
+                  <SelectItem value="Cleric">Cleric</SelectItem>
+                  <SelectItem value="Thief">Thief</SelectItem>
+                  <SelectItem value="Ranger">Ranger</SelectItem>
+                  <SelectItem value="Paladin">Paladin</SelectItem>
+                  <SelectItem value="Bard">Bard</SelectItem>
+                  <SelectItem value="Druid">Druid</SelectItem>
+                  <SelectItem value="Barbarian">Barbarian</SelectItem>
+                  <SelectItem value="Immolator">Immolator</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="level-filter">Level:</label>
-              <select
-                id="level-filter"
-                value={state.selectedLevel}
-                onChange={e => updateState({ selectedLevel: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Levels</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(level => (
-                  <option key={level} value={level}>{level}</option>
-                ))}
-              </select>
+              <Select value={state.selectedLevel} onValueChange={(v) => updateState({ selectedLevel: v })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Levels" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(level => (
+                    <SelectItem key={level} value={String(level)}>{level}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="roll-stat-filter">Roll Stat:</label>
-              <select
-                id="roll-stat-filter"
-                value={state.selectedRollStat}
-                onChange={e => updateState({ selectedRollStat: e.target.value })}
-                className="filter-select"
-              >
-                <option value="all">All Stats</option>
-                <option value="STR">Strength</option>
-                <option value="DEX">Dexterity</option>
-                <option value="CON">Constitution</option>
-                <option value="INT">Intelligence</option>
-                <option value="WIS">Wisdom</option>
-                <option value="CHA">Charisma</option>
-              </select>
+              <Select value={state.selectedRollStat} onValueChange={(v) => updateState({ selectedRollStat: v })}>
+                <SelectTrigger className="w-56"><SelectValue placeholder="All Stats" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Stats</SelectItem>
+                  <SelectItem value="STR">Strength</SelectItem>
+                  <SelectItem value="DEX">Dexterity</SelectItem>
+                  <SelectItem value="CON">Constitution</SelectItem>
+                  <SelectItem value="INT">Intelligence</SelectItem>
+                  <SelectItem value="WIS">Wisdom</SelectItem>
+                  <SelectItem value="CHA">Charisma</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="sort-filter">Sort By:</label>
-              <select
-                id="sort-filter"
-                value={state.sortBy}
-                onChange={e => updateState({ sortBy: e.target.value as string })}
-                className="filter-select"
-              >
-                <option value="name">Name</option>
-                <option value="level">Level</option>
-                <option value="category">Category</option>
-                <option value="type">Type</option>
-              </select>
+              <Select value={state.sortBy} onValueChange={(v) => updateState({ sortBy: v as any })}>
+                <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="level">Level</SelectItem>
+                  <SelectItem value="category">Category</SelectItem>
+                  <SelectItem value="type">Type</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="view-filter">View:</label>
-              <select
-                id="view-filter"
-                value={state.viewMode}
-                onChange={e => updateState({ viewMode: e.target.value as string })}
-                className="filter-select"
-              >
-                <option value="list">List</option>
-                <option value="grid">Grid</option>
-                <option value="detailed">Detailed</option>
-              </select>
+              <Select value={state.viewMode} onValueChange={(v) => updateState({ viewMode: v as any })}>
+                <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="list">List</SelectItem>
+                  <SelectItem value="grid">Grid</SelectItem>
+                  <SelectItem value="detailed">Detailed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -588,15 +579,15 @@ const MoveCompendium: React.FC = () => {
         renderComparisonPanel()
       )}
 
-      <div className={`moves-container view-${state.viewMode}`}>
+      <motion.div className={`moves-container view-${state.viewMode}`} variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
         {filteredMoves.length > 0
           ? (
               filteredMoves.map(renderMoveCard)
             )
           : (
-              <div className="no-results">
+              <motion.div className="no-results" variants={itemFadeIn}>
                 <p> No moves found matching your criteria.</p>
-                <button
+                <motion.button
                   className="btn btn-primary"
                   onClick={() => updateState({
                     searchQuery: '',
@@ -608,12 +599,14 @@ const MoveCompendium: React.FC = () => {
                     selectedRollStat: 'all',
                     selectedTags: [],
                   })}
+                  whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+                  whileTap={prefersReduced ? undefined : { scale: 0.98 }}
                 >
                   Clear All Filters
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
-      </div>
+      </motion.div>
     </div>
   )
 }

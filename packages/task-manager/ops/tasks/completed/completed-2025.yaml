@@ -1,4 +1,755 @@
 tasks:
+  - id: T-237
+    title: "Phase 2: R3F overlays (intro, HUD grid, panel backdrops) + fallbacks"
+    intent: Introduce optional 3D overlays with graceful SVG/CSS fallbacks and
+      runtime toggle.
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - r3f
+      - 3d
+      - tag:theming-hud-migration
+    deps:
+      - T-228
+      - T-229
+      - T-230
+      - T-231
+      - T-232
+    steps:
+      - Intro scene (animated logo) in <Canvas>
+      - HUD background grid overlay
+      - Optional panel backdrops
+      - Feature detection + toggle + SVG/CSS fallbacks
+    acceptance:
+      - 3D scenes lazy-loaded and isolated
+      - Fallbacks render correctly in unsupported contexts
+    done_at: 2025-09-06T22:35:14.104Z
+  - id: T-236
+    title: "Phase 2: Motion layer (Framer Motion) + tokenized curves/variants"
+    intent: Implement power-on/glitch transitions; expose motion tokens; support
+      motion-reduce.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - motion
+      - framer-motion
+      - tag:theming-hud-migration
+    deps:
+      - T-228
+      - T-229
+      - T-230
+      - T-231
+      - T-232
+    steps:
+      - Add tokenized curves/durations (ease-out 300ms, ease-in 200ms, glitch
+        50–150ms, cosmic 800–1200ms)
+      - Apply variants to HUDFrame/primitives
+      - Honor prefers-reduced-motion globally
+    acceptance:
+      - Motion budgets met; 60fps on desktop in critical paths
+      - Variants switched via tokens; reduced-motion disables animations
+    done_at: 2025-09-06T21:35:55.218Z
+  - id: T-233
+    title: "Phase 2: Panel migrations batch 1 (Stats, Equipment, Moves, Nav)"
+    intent: Refactor these panels to shadcn primitives and tokens; remove bespoke
+      theming CSS.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - migration
+      - components
+      - tag:theming-hud-migration
+    deps:
+      - T-228
+      - T-229
+      - T-230
+      - T-231
+      - T-232
+    steps:
+      - Migrate CharacterStatsPanel primitives
+      - Migrate EquipmentPanel primitives
+      - Migrate MovesPanel primitives
+      - Migrate menus/navigation to shadcn
+    acceptance:
+      - All listed panels use shadcn primitives
+      - No legacy color/spacing/radius/shadow in these panels
+      - Keyboard/focus flows validated
+    done_at: 2025-09-06T14:21:08.111Z
+  - id: T-235
+    title: "Phase 2: HUDFrame system + react-cyber-elements integration"
+    intent: Introduce reusable HUDFrame wrappers; integrate
+      CyberFrame/HUDButton/GlitchText as needed.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - hud
+      - react-cyber-elements
+      - tag:theming-hud-migration
+    deps:
+      - T-228
+      - T-229
+      - T-230
+      - T-231
+      - T-232
+    steps:
+      - Create HUDFrame wrapper with SVG overlays and scanlines
+      - Wrap shadcn Card/Dialog/Sheet with HUDFrame
+      - Integrate HUDButton and GlitchText where beneficial
+    acceptance:
+      - HUDFrame applied to applicable primitives
+      - Visuals tokenized; defaults allowed for secondary effects
+    done_at: 2025-09-06T13:36:12.652Z
+  - id: T-232
+    title: "Phase 1: Global CSS cleanup and utilities pass"
+    intent: Move global color/spacing/radius/shadow/typography to Tailwind
+      utilities; leave only complex layout CSS.
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - cleanup
+      - utilities
+      - tag:theming-hud-migration
+    deps: []
+    steps:
+      - Replace globals with utilities/tokens
+      - Audit remaining CSS for layout-only rules
+      - Ensure no bespoke color systems remain
+    acceptance:
+      - Globals rely on Tailwind utilities
+      - No duplicate color/spacing/radius/shadow scales remain
+      - Build and visual checks pass
+    done_at: 2025-09-06T13:33:44.637Z
+  - id: T-231
+    title: "Phase 1: Core primitive migration (Buttons, Inputs, Selects, Dialogs,
+      Tooltips, Menus, Tabs, Card, Toast, Switch, Badge)"
+    intent: Replace bespoke styles with shadcn primitives; use tokens/utilities;
+      keep layouts intact.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - migration
+      - components
+      - tag:theming-hud-migration
+    deps: []
+    steps:
+      - Migrate Button / Input / Label / Select / Textarea
+      - Migrate Dialog / Sheet / AlertDialog / Tooltip / DropdownMenu
+      - Migrate Tabs / Card / Toast(Sonner) / Switch / Badge
+    acceptance:
+      - All listed primitives use shadcn
+      - Legacy color/spacing/radius/shadow removed from these components
+      - Keyboard navigation and focus traps validated
+    done_at: 2025-09-06T13:28:39.332Z
+  - id: T-247
+    title: "T-231.E: Toast (Sonner)"
+    intent: Adopt Sonner for toasts consistent with tokens.
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - migration
+      - components
+      - tag:theming-hud-migration
+    deps: []
+    done_at: 2025-09-06T13:28:31.770Z
+  - id: T-246
+    title: "T-231.D: Tabs, Card, Switch, Badge"
+    intent: Add remaining primitives.
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - migration
+      - components
+      - tag:theming-hud-migration
+    deps: []
+    done_at: 2025-09-06T13:28:22.041Z
+  - id: T-245
+    title: "T-231.C: Dialog, Tooltip, Dropdown Menu"
+    intent: Add Radix-backed Dialog/Tooltip/Menu wrappers styled by tokens.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - migration
+      - components
+      - tag:theming-hud-migration
+    deps: []
+    done_at: 2025-09-06T13:28:15.981Z
+  - id: T-244
+    title: "T-231.B: Migrate Input and Label primitives"
+    intent: Add Input/Label primitives and prepare replacements.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - migration
+      - components
+      - tag:theming-hud-migration
+    deps: []
+    done_at: 2025-09-06T13:28:03.527Z
+  - id: T-243
+    title: "T-231.A: Migrate Button primitive"
+    intent: Introduce shadcn-style Button with tokens/utilities and replace custom
+      usage incrementally.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - migration
+      - components
+      - tag:theming-hud-migration
+    deps: []
+    steps:
+      - Create components/ui/button.tsx
+      - Smoke build and basic usage in one component
+    acceptance:
+      - Button primitive compiles and matches tokens
+      - No regressions in build
+    done_at: 2025-09-06T13:27:54.363Z
+  - id: T-230
+    title: "Phase 1: Install shadcn/ui, react-cyber-elements, Framer Motion, R3F
+      (pinned)"
+    intent: Add dependencies with locked versions; scaffold adapter layer; ensure
+      basic imports compile.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - deps
+      - shadcn
+      - framer-motion
+      - r3f
+      - tag:theming-hud-migration
+    deps: []
+    steps:
+      - Install shadcn/ui and peers (Radix, tailwind-merge, clsx, lucide-react)
+      - Install react-cyber-elements, framer-motion, react-three-fiber
+      - Pin versions and document upgrade policy
+      - Scaffold adapter layer API (e.g., <HUDButton />)
+    acceptance:
+      - All deps installed and pinned
+      - Adapter layer compiles
+      - No runtime errors in dev build
+    done_at: 2025-09-06T06:37:28.167Z
+  - id: T-229
+    title: "Phase 1: Dark-mode bridge and ThemeService integration"
+    intent: Introduce .dark class; keep ThemeService persistence/system-follow; map
+      data-theme variants to token sets.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - theming
+      - dark-mode
+      - tag:theming-hud-migration
+    deps: []
+    steps:
+      - Add .dark class handling and sync with ThemeService
+      - Token mappings for light/dark/high-contrast
+      - Meta theme-color updates verified
+    acceptance:
+      - .dark class switches themes correctly
+      - High-contrast variant available
+      - ThemeService continues persistence and system-follow
+    done_at: 2025-09-06T06:32:30.697Z
+  - id: T-245
+    title: "T-228.C: Initial utility pass & smoke verification"
+    intent: Introduce minimal utility usage on non-critical UI to verify
+      tokens/utilities without visual churn.
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - utilities
+      - verification
+      - tag:theming-hud-migration
+    deps:
+      - T-228
+    steps:
+      - Apply a small utility-only change in a safe component
+      - Run project smoke (dev + core flows)
+    acceptance:
+      - No regressions; tokens/utilities verified in UI
+    done_at: 2025-09-06T06:30:28.681Z
+  - id: T-244
+    title: "T-228.B: Token maps
+      (colors/spacing/radii/typography/elevation/motion/scale)"
+    intent: Define token scales via @theme inline and expose var(--token) for JS
+      consumption.
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - tokens
+      - theming
+      - tag:theming-hud-migration
+    deps:
+      - T-228
+    steps:
+      - Create theme maps for colors/spacing/radii/elevation/typography
+      - Add motion curves/durations and UI scale tokens
+      - Provide JS export helpers for tokens
+    acceptance:
+      - Tokens accessible via utilities and var(--token)
+      - JS helpers return expected values
+    done_at: 2025-09-06T06:30:02.331Z
+  - id: T-243
+    title: "T-228.A: Tailwind v4 install & config bootstrap"
+    intent: Add Tailwind v4, initialize config with @theme inline scaffolding in
+      monorepo (no styling changes yet).
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - theming
+      - tailwind
+      - tag:theming-hud-migration
+    deps:
+      - T-228
+    steps:
+      - Add Tailwind v4 deps and postcss config as needed
+      - Create base Tailwind config and entry CSS imports
+      - Verify build runs without style regressions
+    acceptance:
+      - Tailwind v4 present and builds pass
+      - "@theme inline available for tokens"
+    done_at: 2025-09-06T06:29:52.588Z
+  - id: T-228
+    title: "Phase 1: Tailwind v4 setup and tokenization"
+    intent: Install Tailwind v4; configure @theme inline; define tokens (colors,
+      spacing, radii, elevation, typography, motion, scale).
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - theming
+      - tailwind
+      - tag:theming-hud-migration
+    deps: []
+    steps:
+      - Install Tailwind v4 and initialize config
+      - Create tokens for colors/spacing/radii/elevation/typography
+      - Add motion/curve/scale tokens; expose var(--token) for JS
+    acceptance:
+      - Tailwind v4 active with @theme inline
+      - Tokens available in CSS and JS
+      - Build and lints pass
+    done_at: 2025-09-06T06:29:44.824Z
+  - id: T-200
+    title: Create Debility and Ongoing Effect Tracker
+    intent: Implement tracking system for debilities, ongoing effects, and temporary
+      conditions in Dungeon World
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - core-mechanics
+      - conditions
+      - tracking
+    deps:
+      - T-007
+      - T-027
+    steps:
+      - Implement debility tracking (Weak, Shaky, Sick, Stunned, Confused,
+        Scarred)
+      - Create ongoing effect management (+1 forward, -1 ongoing, etc.)
+      - Build condition timer system for temporary effects
+      - Add automatic stat modifier calculations for debilities
+      - Implement visual indicators for active conditions
+      - Create condition resolution and removal workflows
+      - Add condition stacking and interaction rules
+      - Implement condition notifications and reminders
+    acceptance:
+      - All six debilities are tracked with automatic stat penalties
+      - Ongoing effects (+1 forward, -1 ongoing) are properly managed
+      - Temporary conditions have clear duration tracking
+      - Visual indicators show active conditions at a glance
+      - Stat calculations automatically include debility modifiers
+      - Condition resolution follows official DW rules exactly
+    artifacts:
+      - src/components/ConditionTracker.tsx
+      - src/services/ConditionService.ts
+      - src/models/Condition.ts
+      - src/utils/conditionCalculations.ts
+      - test/services/ConditionService.test.ts
+  - id: T-214
+    title: Enhanced Equipment Compendium Integration
+    intent: Integrate comprehensive equipment data from Dungeon World Compendium to
+      provide players with complete item information and mechanics
+    owner: cursor-agent
+    status: done
+    priority: P1
+    labels:
+      - feature
+      - equipment
+      - compendium
+      - player-tools
+    deps:
+      - T-203
+    steps:
+      - Extract and integrate all equipment from DW Compendium (weapons, armor,
+        items)
+      - Implement equipment tag mechanics and effects
+      - Create equipment search and filtering by tags, categories, and properties
+      - Add equipment comparison tools for decision making
+      - Implement equipment requirements and restrictions
+      - Create equipment sets and loadout management
+    acceptance:
+      - All equipment from DW Compendium is available and searchable
+      - Equipment tags provide clear mechanical effects and descriptions
+      - Equipment comparison helps players make informed choices
+      - Equipment requirements are clearly displayed and validated
+      - Equipment sets allow quick switching between configurations
+    artifacts:
+      - src/data/equipmentCompendium.ts
+      - src/components/EquipmentCompendium.tsx
+      - src/services/EquipmentCompendiumService.ts
+      - src/utils/equipmentTagMechanics.ts
+      - test/data/equipmentCompendium.test.ts
+  - id: T-016
+    title: Setup UI/UX Integration Features
+    intent: Implement integration requirements as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - infrastructure
+      - integration
+      - ux
+    deps:
+      - T-005
+      - T-006
+    steps:
+      - Implement keyboard shortcuts and accessibility
+      - Implement context menus and right-click actions
+      - Implement hover behaviors and tooltips
+      - Implement panel state preservation
+      - Add ARIA labels and screen reader support
+    acceptance:
+      - All keyboard shortcuts work
+      - Context menus function properly
+      - Tooltips appear correctly
+      - Panel states persist
+      - Accessibility standards met
+    artifacts:
+      - src/utils/KeyboardShortcuts.ts
+      - src/components/ContextMenu.tsx
+      - src/components/Tooltip.tsx
+      - docs/integration-requirements.md
+      - config/integration.json
+  - id: T-036
+    title: Implement Moves Panel
+    intent: Implement the moves panel feature as specified in the PRD
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - implementation
+    deps: []
+    steps:
+      - Implement organize basic, class, and custom moves
+      - Implement support roll automation and move descriptions
+      - Implement enable custom move creation
+      - Implement include spell management for casters
+    acceptance:
+      - All moves panel requirements are implemented
+      - Feature passes integration tests
+      - Documentation is updated
+    artifacts:
+      - src/features/moves-panel/
+      - test/features/moves-panel.test.ts
+  - id: T-171
+    title: Spellcasting Modal A11y & Tests
+    description: Add focus trap, ESC handling, ARIA; unit tests for 7–9 consequence
+      handling and roll annotations
+    status: done
+    priority: P2
+    category: spellcasting
+    estimated_hours: 6
+    dependencies:
+      - T-026
+    acceptance:
+      - Focus is trapped within modal and ESC closes with confirmation
+      - ARIA roles/labels present
+      - Unit tests cover consequence branches and roll history markers
+    deps: []
+    labels: []
+    owner: ""
+  - id: T-182
+    title: Create Conditional Content Foundation and Utilities
+    intent: Build the core system for conditional rendering based on character class
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - foundation
+      - utilities
+    deps:
+      - T-007
+      - T-013
+    steps:
+      - Create conditional content utility functions and hooks
+      - Build class-specific content filtering system
+      - Implement character class detection and validation
+      - Create base components for conditional rendering
+      - Add class-specific content data structures
+      - Build testing framework for conditional content
+    acceptance:
+      - Conditional content utilities work for all character classes
+      - Class detection accurately identifies character type
+      - Content filtering system handles edge cases (multiclass, etc.)
+      - Base components render conditionally based on class
+      - All utilities have comprehensive test coverage
+    artifacts:
+      - src/utils/conditionalContent.ts
+      - src/hooks/useClassConditionalContent.ts
+      - src/data/classSpecificContent.ts
+      - src/components/ClassConditionalContent.tsx
+      - test/utils/conditionalContent.test.ts
+  - id: T-183
+    title: Implement Conditional Moves Panel Content
+    intent: Make the Moves panel show only relevant moves and spells for the
+      character's class
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - ui
+      - moves
+    deps:
+      - T-010
+      - T-182
+    steps:
+      - Filter basic moves based on character class relevance
+      - Show spell sections only for spellcasting classes
+      - Implement class-specific move categories and organization
+      - Add class-appropriate move suggestions and defaults
+      - Create smooth transitions when switching between classes
+      - Add user preference to show all moves if desired
+    acceptance:
+      - Non-casters don't see spell preparation sections
+      - Casters see appropriate spell lists and casting mechanics
+      - Class-specific moves are prominently displayed
+      - Move organization adapts to character class
+      - Users can override filtering to see all moves
+      - Performance remains fast with conditional rendering
+    artifacts:
+      - src/panels/MovesPanel/ClassConditionalMoves.tsx
+      - src/services/MoveFilteringService.ts
+      - src/data/classMoveMappings.ts
+      - test/panels/MovesPanel/ClassConditionalMoves.test.ts
+  - id: T-184
+    title: Implement Conditional Equipment Panel Content
+    intent: Show class-appropriate equipment sections and suggestions
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - ui
+      - equipment
+    deps:
+      - T-008
+      - T-182
+    steps:
+      - Add spell component sections for casters
+      - Show weapon focus sections for martial classes
+      - Implement class-specific equipment suggestions
+      - Create conditional equipment categories and organization
+      - Add class-appropriate starting equipment defaults
+      - Implement equipment filtering based on class capabilities
+    acceptance:
+      - Casters see spell components and arcane items
+      - Martial classes see weapon and armor focus
+      - Equipment suggestions are class-appropriate
+      - Equipment categories adapt to character class
+      - Starting equipment defaults match class needs
+      - Users can see all equipment regardless of class
+    artifacts:
+      - src/panels/EquipmentPanel/ClassConditionalEquipment.tsx
+      - src/services/EquipmentFilteringService.ts
+      - src/data/classEquipmentMappings.ts
+      - test/panels/EquipmentPanel/ClassConditionalEquipment.test.ts
+  - id: T-185
+    title: Implement Conditional Character Stats Panel Content
+    intent: Adapt the character stats panel to show class-relevant information
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - ui
+      - character-stats
+    deps:
+      - T-007
+      - T-182
+    steps:
+      - Show spell slots and casting info for casters
+      - Display combat-focused stats for martial classes
+      - Implement class-specific stat highlighting and organization
+      - Add class-appropriate health and resource tracking
+      - Create conditional stat sections based on class abilities
+      - Implement class-specific tooltips and help text
+    acceptance:
+      - Casters see spell slots and casting resources
+      - Martial classes see combat-focused stat displays
+      - Stat organization adapts to character class
+      - Class-specific abilities are prominently displayed
+      - Tooltips provide class-relevant information
+      - All stats remain accessible regardless of class
+    artifacts:
+      - src/panels/CharacterStatsPanel/ClassConditionalStats.tsx
+      - src/services/StatsFilteringService.ts
+      - src/data/classStatsMappings.ts
+      - test/panels/CharacterStatsPanel/ClassConditionalStats.test.ts
+  - id: T-186
+    title: Add User Preferences and Override Controls
+    intent: Allow users to control conditional content behavior and override
+      class-based filtering
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - ui
+      - preferences
+    deps:
+      - T-182
+      - T-183
+      - T-184
+      - T-185
+    steps:
+      - Create user preference system for conditional content
+      - Add toggle controls to show/hide class-based filtering
+      - Implement per-panel override options
+      - Create settings panel for conditional content preferences
+      - Add persistent storage for user preferences
+      - Implement smooth transitions when toggling preferences
+    acceptance:
+      - Users can toggle class-based filtering on/off globally
+      - Per-panel override options work correctly
+      - Preferences persist across sessions
+      - Transitions are smooth when changing preferences
+      - Settings are accessible and intuitive
+      - Default behavior is class-appropriate but can be overridden
+    artifacts:
+      - src/components/ConditionalContentControls.tsx
+      - src/store/conditionalContentPreferences.ts
+      - src/services/PreferenceService.ts
+      - src/panels/SettingsPanel/ConditionalContentSettings.tsx
+      - test/components/ConditionalContentControls.test.ts
+  - id: T-187
+    title: Implement Conditional Navigation Menu Based on Character Class
+    intent: Make the navigation menu show only relevant panels for the character's
+      class
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - ui
+      - navigation
+      - menu
+    deps:
+      - T-006
+      - T-182
+    steps:
+      - Hide irrelevant panels from navigation menu based on character class
+      - Show class-specific panel shortcuts and quick actions
+      - Implement conditional menu sections and organization
+      - Add class-appropriate panel ordering and grouping
+      - Create smooth menu transitions when character class changes
+      - Implement menu item tooltips explaining class relevance
+      - Add fallback menu items for edge cases and multiclass characters
+    acceptance:
+      - Non-casters don't see "Spells" panel in navigation
+      - Casters see spell-related panels prominently placed
+      - Menu organization adapts to character class priorities
+      - Panel shortcuts are class-appropriate
+      - Menu transitions are smooth when class changes
+      - Users can access all panels via settings override
+      - Multiclass characters see relevant panels for all classes
+    artifacts:
+      - src/layouts/Sidebar/ConditionalNavigation.tsx
+      - src/services/NavigationFilteringService.ts
+      - src/data/classNavigationMappings.ts
+      - src/components/ConditionalMenuItem.tsx
+      - test/layouts/Sidebar/ConditionalNavigation.test.ts
+  - id: T-203
+    title: Create Load Optimization and Weight Calculator
+    intent: Build weight optimization tools to help manage encumbrance and load limits
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - equipment
+      - optimization
+      - weight
+    deps:
+      - T-008
+      - T-009
+    steps:
+      - Implement load optimization suggestions and recommendations
+      - Build weight calculator with "what-if" scenarios
+      - Add equipment upgrade path suggestions based on weight efficiency
+      - Create visual load indicators and warnings
+      - Implement weight distribution analysis and suggestions
+    acceptance:
+      - Load optimization suggests best equipment combinations for weight limits
+      - Weight calculator helps plan equipment changes before making them
+      - Equipment suggestions prioritize weight efficiency and utility
+      - Visual indicators clearly show load status and limits
+      - Weight optimization follows official DW encumbrance rules
+    artifacts:
+      - src/components/LoadOptimizer.tsx
+      - src/services/WeightOptimizationService.ts
+      - src/utils/weightCalculations.ts
+      - test/services/WeightOptimizationService.test.ts
+  - id: T-212
+    title: Add Equipment Sets and Advanced Inventory Management
+    intent: Extend inventory with equipment configurations, wishlist, and comparison
+      tools
+    owner: cursor-agent
+    status: done
+    priority: P2
+    labels:
+      - feature
+      - equipment
+      - inventory
+      - management
+    deps:
+      - T-203
+    steps:
+      - Create equipment set saving and loading (different configurations)
+      - Implement coin and wealth tracking with spending history
+      - Create equipment wishlist and goal tracking
+      - Add equipment comparison tools for decision making
+      - Implement equipment maintenance and durability tracking
+      - Create equipment history and acquisition tracking
+    acceptance:
+      - Equipment sets allow quick switching between different configurations
+      - Coin tracking provides spending insights and budget planning
+      - Equipment comparison helps users make informed upgrade decisions
+      - Wishlist helps players track desired equipment and goals
+      - Equipment history tracks acquisition and changes over time
+    artifacts:
+      - src/components/EquipmentSets.tsx
+      - src/components/EquipmentWishlist.tsx
+      - src/services/EquipmentManagementService.ts
+      - src/utils/equipmentComparison.ts
+      - test/services/EquipmentManagementService.test.ts
   - id: T-196
     title: Implement Bond & Alignment XP Tracker
     intent: Create comprehensive tracking system for bond resolution and
@@ -43,46 +794,81 @@ tasks:
       - ✅ src/panels/AlignmentXPTrackerPanel/AlignmentXPTrackerPanel.tsx
       - ✅ src/panels/AlignmentXPTrackerPanel/AlignmentXPTrackerPanel.css
     progress: 100%
-    notes: |
+    notes: >
       ✅ COMPLETED: Comprehensive Bond & Alignment XP Tracker system
 
+
       **Core Features Implemented:**
+
       - ✅ Bond creation, editing, and resolution workflow
+
       - ✅ Automatic XP awards for bond resolution (+1 XP per bond)
+
       - ✅ Alignment action tracking with XP triggers
-      - ✅ Bond templates for all character classes (Fighter, Wizard, Cleric, Thief, etc.)
+
+      - ✅ Bond templates for all character classes (Fighter, Wizard, Cleric,
+      Thief, etc.)
+
       - ✅ Bidirectional bond relationship tracking
+
       - ✅ Bond statistics and analytics
 
+
       **Technical Implementation:**
+
       - ✅ React components with proper accessibility (aria-labels)
+
       - ✅ TypeScript interfaces and type safety
+
       - ✅ Service layer with singleton pattern
+
       - ✅ Local storage persistence for alignment actions
+
       - ✅ Comprehensive test suite enabled
+
       - ✅ Panel integration with error boundaries
+
       - ✅ Fixed underscore variable inconsistencies
 
+
       **User Experience:**
+
       - ✅ Intuitive bond creation with character selection
+
       - ✅ Template-based bond suggestions
+
       - ✅ Visual status indicators (active, resolved, broken)
+
       - ✅ Filtering and search capabilities
+
       - ✅ XP tracking and session limits
+
       - ✅ Responsive design with proper styling
 
+
       **Dungeon World Compliance:**
+
       - ✅ Follows official DW bond mechanics
+
       - ✅ Proper XP trigger conditions
+
       - ✅ Alignment-based action examples
+
       - ✅ Character class-specific templates
+
       - ✅ Bond limit enforcement (max 3 per character)
 
+
       **Integration Points:**
+
       - ✅ Game store integration for character data
+
       - ✅ XP system hooks for automatic awards
+
       - ✅ Panel system integration
+
       - ✅ Error boundary protection
+
       - ✅ State management integration
     done_at: 2025-01-01T00:00:00.000Z
   - id: T-223
@@ -106,6 +892,7 @@ tasks:
     deps: []
     labels: []
     done_at: 2025-09-01T05:20:36.568Z
+    owner: ""
   - id: T-001
     title: Repo health checks
     intent: Set up lint, format, tests, and CI smoke to enforce quality gates
@@ -1009,6 +1796,7 @@ tasks:
     done_at: 2025-01-05T12:45:00.000Z
     deps: []
     labels: []
+    owner: ""
   - id: T-176
     title: Implement Campaign Management Foundations
     intent: Add campaign data model and UI for sessions, journal, NPCs, and locations

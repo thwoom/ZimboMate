@@ -15,6 +15,8 @@ import { CalculationWarnings } from '../../components/CalculationWarnings'
 import { ConditionBadges } from '../../components/ConditionBadges'
 import { ModifiersPanel } from '../../components/ModifiersPanel'
 import { RealTimeValidation } from '../../components/RealTimeValidation'
+import { Button } from '../../components/ui/button'
+import HUDFrame from '../../components/ui/HUDFrame'
 import { useCalculationHistory } from '../../hooks/useCalculationHistory'
 import { useIntegratedValidation } from '../../hooks/useIntegratedValidation'
 import { useModifiers } from '../../hooks/useModifiers'
@@ -42,6 +44,8 @@ import {
 } from '../../store'
 import '../../styles/calculations.css'
 import './TestPlayground.css'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../../utils/motion'
 
 const TestPlayground: React.FC = () => {
   const { state, setCharacter, saveGame, loadGame, resetGame } = useGameStore()
@@ -221,13 +225,15 @@ const TestPlayground: React.FC = () => {
       return (
         <div className="test-section">
           <h3> Character</h3>
-          <button type="button" onClick={createTestCharacter}>Create Test Character</button>
+          <Button type="button" onClick={createTestCharacter}>
+            Create Test Character
+          </Button>
         </div>
       )
     }
 
     return (
-      <div className="test-section">
+      <HUDFrame className="test-section">
         <h3>
           {' '}
           Character:
@@ -343,7 +349,7 @@ const TestPlayground: React.FC = () => {
             </button>
           )}
         </div>
-      </div>
+      </HUDFrame>
     )
   }
 
@@ -687,17 +693,17 @@ const TestPlayground: React.FC = () => {
         />
       </div>
 
-      <div className="playground-grid">
-        {renderCharacterSection()}
-        {renderInventorySection()}
-        {renderRollResults()}
-        {renderModifiersSection()}
-        {renderWarningsSection()}
-        {renderCalculationsSection()}
-        {renderHistorySection()}
-        {renderValidationSection()}
-        {renderSaveLoadSection()}
-      </div>
+      <motion.div className="playground-grid" variants={staggerContainer} initial={useReducedMotion() ? false : 'hidden'} animate={useReducedMotion() ? undefined : 'visible'}>
+        <motion.div variants={itemFadeIn}>{renderCharacterSection()}</motion.div>
+        <motion.div variants={itemFadeIn}>{renderInventorySection()}</motion.div>
+        <motion.div variants={itemFadeIn}>{renderRollResults()}</motion.div>
+        <motion.div variants={itemFadeIn}>{renderModifiersSection()}</motion.div>
+        <motion.div variants={itemFadeIn}>{renderWarningsSection()}</motion.div>
+        <motion.div variants={itemFadeIn}>{renderCalculationsSection()}</motion.div>
+        <motion.div variants={itemFadeIn}>{renderHistorySection()}</motion.div>
+        <motion.div variants={itemFadeIn}>{renderValidationSection()}</motion.div>
+        <motion.div variants={itemFadeIn}>{renderSaveLoadSection()}</motion.div>
+      </motion.div>
     </div>
   )
 }

@@ -3,10 +3,13 @@ import type { Character } from '../models/Character'
 import type { Bond } from '../types/Bond'
 
 import React, { useCallback, useEffect, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../utils/motion'
 import { bondService } from '../services/BondService'
 import { useGameStore } from '../store/GameStore'
 import { BondResolutionType, BondStatus } from '../types/Bond'
 import './BondTracker.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
 
 interface BondTrackerProps {
   characterId?: string
@@ -38,6 +41,7 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
   const [bondStats, setBondStats] = useState<unknown>(null)
 
   const activeCharacterId = characterId || currentCharacterFromStore?.id
+  const prefersReduced = useReducedMotion()
 
   // Load bonds when character changes
   useEffect(() => {
@@ -142,42 +146,40 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
   }
 
   return (
-    <div className="bond-tracker">
+    <motion.div className="bond-tracker" initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={staggerContainer}>
       {/* Header with Stats */}
-      <div className="bond-tracker__header">
+      <motion.div className="bond-tracker__header" variants={itemFadeIn}>
         <h2> Bond Tracker</h2>
         {bondStats && (
-          <div className="bond-tracker__stats">
-            <div className="stat">
+          <motion.div className="bond-tracker__stats" variants={staggerContainer}>
+            <motion.div className="stat" variants={itemFadeIn}>
               <span className="stat__label">Active Bonds:</span>
               <span className="stat__value">{(bondStats as any).activeBonds}</span>
-            </div>
-            <div className="stat">
+            </motion.div>
+            <motion.div className="stat" variants={itemFadeIn}>
               <span className="stat__label">Resolved:</span>
               <span className="stat__value" aria-hidden="true">{(bondStats as any).resolvedBonds}</span>
-            </div>
-            <div className="stat">
+            </motion.div>
+            <motion.div className="stat" variants={itemFadeIn}>
               <span className="stat__label">Total XP:</span>
               <span className="stat__value" aria-hidden="true">{(bondStats as any).totalXPEarned}</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Controls */}
-      <div className="bond-tracker__controls">
+      <motion.div className="bond-tracker__controls" variants={itemFadeIn}>
         <div className="bond-tracker__filters">
-          <select
-            value={filter}
-            onChange={e => setFilter(e.target.value as BondStatus | 'all')}
-            className="bond-tracker__filter"
-            aria-label="Filter bonds by status"
-          >
-            <option value="all">All Bonds</option>
-            <option value={BondStatus.ACTIVE}>Active</option>
-            <option value={BondStatus.RESOLVED}>Resolved</option>
-            <option value={BondStatus.BROKEN}>Broken</option>
-          </select>
+          <Select value={typeof filter === 'string' ? filter : String(filter)} onValueChange={(v) => setFilter(v === 'all' ? 'all' : Number(v) as BondStatus)}>
+            <SelectTrigger className="bond-tracker__filter"><SelectValue placeholder="All Bonds" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Bonds</SelectItem>
+              <SelectItem value={String(BondStatus.ACTIVE)}>Active</SelectItem>
+              <SelectItem value={String(BondStatus.RESOLVED)}>Resolved</SelectItem>
+              <SelectItem value={String(BondStatus.BROKEN)}>Broken</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <button
@@ -187,10 +189,10 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
         >
           ✨ Create Bond
         </button>
-      </div>
+      </motion.div>
 
       {/* Bonds List */}
-      <div className="bond-tracker__content">
+      <motion.div className="bond-tracker__content" variants={staggerContainer}>
         <div className="bond-tracker__bonds">
           <h3>
             {' '}
@@ -201,14 +203,14 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
 
           {filteredBonds.length === 0
             ? (
-                <div className="bond-tracker__empty">
+                <motion.div className="bond-tracker__empty" variants={itemFadeIn}>
                   <p> No bonds found. Create your first bond to start earning XP!</p>
-                </div>
+                </motion.div>
               )
             : (
-                <div className="bond-tracker__bonds-list">
+                <motion.div className="bond-tracker__bonds-list" variants={staggerContainer}>
                   {filteredBonds.map(bond => (
-                    <div key={bond.id} className="bond-tracker__bond">
+                    <motion.div key={bond.id} className="bond-tracker__bond" variants={itemFadeIn} whileHover={prefersReduced ? undefined : { scale: 1.01 }}>
                       <div className="bond-tracker__bond-header">
                         <span className={`bond-tracker__status ${getStatusColor(bond.status)}`}>
                           {getStatusIcon(bond.status)}
@@ -276,9 +278,9 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
                         )}
                         {bond.xpAwarded && <span className="bond-tracker__xp-awarded">✨ XP Awarded</span>}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
         </div>
 
@@ -313,7 +315,7 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Create Bond Modal */}
       {showCreateForm && (
@@ -336,7 +338,7 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
           }}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -389,42 +391,35 @@ const CreateBondForm: React.FC<CreateBondFormProps> = ({
         <form onSubmit={handleSubmit} className="bond-tracker__form">
           <div className="bond-tracker__form-group">
             <label htmlFor="target-select"> Target Character:</label>
-            <select
-              id="target-select"
-              value={targetCharacterId}
-              onChange={e => setTargetCharacterId(e.target.value)}
-              required
-              aria-label="Select target character for bond"
-            >
-              <option value="">Select a character...</option>
-              {availableTargets.map(char => (
-                <option key={char.id} value={char.id}>
-                  {char.name}
-                  {' '}
-                  ({(char as any).class})
-                </option>
-              ))}
-            </select>
+            <Select value={targetCharacterId} onValueChange={(v) => setTargetCharacterId(v)}>
+              <SelectTrigger className="w-full"><SelectValue placeholder="Select a character..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Select a character...</SelectItem>
+                {availableTargets.map(char => (
+                  <SelectItem key={char.id} value={char.id}>
+                    {char.name}
+                    {' '}
+                    ({(char as any).class})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="bond-tracker__form-group">
             <label htmlFor="template-select"> Bond Template (Optional):</label>
-            <select
-              id="template-select"
-              value={(selectedTemplate as any)?.id || ''}
-              onChange={(e) => {
-                const template = (templates as any).find((t: any) => t.id === e.target.value)
-                setSelectedTemplate(template || null)
-              }}
-              aria-label="Select bond template (optional)"
-            >
-              <option value="">Custom bond...</option>
-              {(templates as any).map((template: any) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </select>
+            <Select value={(selectedTemplate as any)?.id || ''} onValueChange={(v) => {
+              const template = (templates as any).find((t: any) => t.id === v)
+              setSelectedTemplate(template || null)
+            }}>
+              <SelectTrigger className="w-full"><SelectValue placeholder="Custom bond..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Custom bond...</SelectItem>
+                {(templates as any).map((template: any) => (
+                  <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {selectedTemplate && (
@@ -504,17 +499,15 @@ const ResolveBondForm: React.FC<ResolveBondFormProps> = ({ bond, onResolve, onCa
         <form onSubmit={handleSubmit} className="bond-tracker__form">
           <div className="bond-tracker__form-group">
             <label htmlFor="resolution-type"> Resolution Type:</label>
-            <select
-              id="resolution-type"
-              aria-label="Select bond resolution type"
-              value={resolutionType}
-              onChange={e => setResolutionType(e.target.value as BondResolutionType)}
-            >
-              <option value={BondResolutionType.FULFILLED}>Fulfilled</option>
-              <option value={BondResolutionType.BROKEN}>Broken</option>
-              <option value={BondResolutionType.CHANGED}>Changed</option>
-              <option value={BondResolutionType.COMPLETED}>Completed</option>
-            </select>
+            <Select value={String(resolutionType)} onValueChange={(v) => setResolutionType(Number(v) as BondResolutionType)}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={String(BondResolutionType.FULFILLED)}>Fulfilled</SelectItem>
+                <SelectItem value={String(BondResolutionType.BROKEN)}>Broken</SelectItem>
+                <SelectItem value={String(BondResolutionType.CHANGED)}>Changed</SelectItem>
+                <SelectItem value={String(BondResolutionType.COMPLETED)}>Completed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="bond-tracker__form-group">

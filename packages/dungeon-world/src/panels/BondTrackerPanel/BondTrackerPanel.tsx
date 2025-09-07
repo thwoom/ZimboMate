@@ -6,6 +6,10 @@ import { createPanel } from '../../framework/Panel'
 import { createPanelAPI } from '../../framework/PanelAPI'
 import { useCharacter } from '../../store/GameStore'
 import './BondTrackerPanel.css'
+import { HUDFrame } from '../../components/ui/HUDFrame'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant } from '../../utils/motion'
 
 const id = 'bond-tracker'
 
@@ -26,21 +30,24 @@ const BondTrackerPanelComponent: React.FC <PanelProps> = ({ isActive, onStateCha
   }
 
   return (
-    <div className="bond-tracker-panel">
-      <div className="bond-tracker-panel__header">
-        <h2>🔗 Bond Tracker</h2>
-        <p className="bond-tracker-panel__subtitle">
-          Manage character relationships and earn XP through bonds
-        </p>
-      </div>
-
-      <div className="bond-tracker-panel__content">
-        <BondTracker
-          characterId={currentCharacter?.id}
-          onBondResolved={handleBondResolved}
-        />
-      </div>
-    </div>
+    <motion.div initial={useReducedMotion() ? false : 'hidden'} animate={useReducedMotion() ? undefined : 'visible'} variants={getVariant('fade')}>
+      <HUDFrame className="p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>🔗 Bond Tracker</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-[--color-muted-foreground] mb-3">
+              Manage character relationships and earn XP through bonds
+            </p>
+            <BondTracker
+              characterId={currentCharacter?.id}
+              onBondResolved={handleBondResolved}
+            />
+          </CardContent>
+        </Card>
+      </HUDFrame>
+    </motion.div>
   )
 }
 

@@ -7,6 +7,10 @@ import { useGameStore } from '../store/GameStore'
 import { filterPanelsForCharacter } from '../utils/navigationFilter'
 import { panelEventBus } from '../framework/PanelAPI'
 import './Sidebar.css'
+import HUDFrame from '../components/ui/HUDFrame'
+import { Button } from '../components/ui/button'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn, hudGlowPulse } from '../utils/motion'
 
 interface SidebarProps {
   activePanelId?: string
@@ -57,6 +61,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
   const [showQuickOpen, setShowQuickOpen] = useState(false)
   const [query, setQuery] = useState('')
   const navRef = useRef<HTMLElement | null>(null)
+  const prefersReduced = useReducedMotion()
 
   useEffect(() => {
     const updatePanels = () => {
@@ -180,13 +185,13 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
       {showQuickOpen && (
         <div className="quick-open">
           <input className="quick-open__input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Quick open panel..." />
-          <div className="quick-open__list">
+          <motion.div className="quick-open__list" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
             {filteredByQuery.map(p => (
-              <div key={`qo-${p.id}`} className="quick-open__item" onClick={() => { onPanelSelect?.(p.id); setShowQuickOpen(false) }}>
+              <motion.div key={`qo-${p.id}`} className="quick-open__item" onClick={() => { onPanelSelect?.(p.id); setShowQuickOpen(false) }} variants={itemFadeIn} whileHover={prefersReduced ? undefined : { scale: 1.01 }}>
                 {p.icon} {p.name} <span style={{ opacity: 0.7, marginLeft: 6 }}>({sectionLabels[categorize(p)]})</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       )}
 
@@ -195,35 +200,56 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
         <div className="sidebar__section">
           <button className="sidebar__section-header" aria-expanded={!collapsed.has('favorites')} aria-controls="sec-favorites" onClick={() => toggleCollapsed('favorites')} type="button">
             <span>Favorites</span>
-            <span className="sidebar__badge">{favoritePanels.length}</span>
+            <motion.span
+              className="sidebar__badge"
+              variants={prefersReduced ? undefined : hudGlowPulse}
+              initial={prefersReduced ? undefined : 'rest'}
+              animate={prefersReduced ? undefined : (favoritePanels.length > 0 ? 'pulse' : 'rest')}
+            >
+              {favoritePanels.length}
+            </motion.span>
           </button>
           {!collapsed.has('favorites') && (
-            <ul id="sec-favorites" className="sidebar__section-list">
+            <motion.ul id="sec-favorites" className="sidebar__section-list" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
               {favoritePanels.map(panel => (
-                <li key={`fav-${panel.id}`} className="sidebar__nav-item">
-                  <div className="sidebar__nav-row">
-                    <button
-                      className={`sidebar__nav-button ${activePanelId === panel.id ? 'sidebar__nav-button--active' : ''}`}
-                      aria-current={activePanelId === panel.id ? 'page' : undefined}
-                      onClick={() => onPanelSelect?.(panel.id)}
-                      type="button"
-                    >
-                      <span className="sidebar__nav-icon">{panel.icon}</span>
-                      <span className="sidebar__nav-text">{panel.name}</span>
-                      {getBadgeCount(panel.id) > 0 && (
-                        <span className="sidebar__badge" aria-label={`Notifications ${getBadgeCount(panel.id)}`}>{Math.min(99, getBadgeCount(panel.id))}</span>
-                      )}
-                    </button>
-                    <button className="sidebar__star-button" onClick={(e) => { e.stopPropagation(); toggleFavorite(panel.id) }} title={favorites.includes(panel.id) ? 'Unfavorite' : 'Favorite'} type="button">
-                      {favorites.includes(panel.id) ? '★' : '☆'}
-                    </button>
-                  </div>
-                </li>
+                <motion.li key={`fav-${panel.id}`} className="sidebar__nav-item" variants={itemFadeIn}>
+                  <HUDFrame className="sidebar__nav-row">
+                    <motion.div whileHover={prefersReduced ? undefined : { scale: 1.01 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                      <Button
+                        className={`sidebar__nav-button ${activePanelId === panel.id ? 'sidebar__nav-button--active' : ''}`}
+                        aria-current={activePanelId === panel.id ? 'page' : undefined}
+                        onClick={() => onPanelSelect?.(panel.id)}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                      >
+                        <span className="sidebar__nav-icon">{panel.icon}</span>
+                        <span className="sidebar__nav-text">{panel.name}</span>
+                        {getBadgeCount(panel.id) > 0 && (
+                          <motion.span
+                            className="sidebar__badge"
+                            aria-label={`Notifications ${getBadgeCount(panel.id)}`}
+                            variants={prefersReduced ? undefined : hudGlowPulse}
+                            initial={prefersReduced ? undefined : 'rest'}
+                            animate={prefersReduced ? undefined : 'pulse'}
+                          >
+                            {Math.min(99, getBadgeCount(panel.id))}
+                          </motion.span>
+                        )}
+                      </Button>
+                    </motion.div>
+                    <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                      <Button className="sidebar__star-button" onClick={(e) => { e.stopPropagation(); toggleFavorite(panel.id) }} title={favorites.includes(panel.id) ? 'Unfavorite' : 'Favorite'} type="button" variant="ghost" size="sm">
+                        {favorites.includes(panel.id) ? '★' : '☆'}
+                      </Button>
+                    </motion.div>
+                  </HUDFrame>
+                </motion.li>
               ))}
               {favoritePanels.length === 0 && (
                 <li className="sidebar__nav-item"><span className="sidebar__nav-text">No favorites yet</span></li>
               )}
-            </ul>
+            </motion.ul>
           )}
         </div>
 
@@ -232,32 +258,53 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
           <div key={`sec-${sec}`} className="sidebar__section">
             <button className="sidebar__section-header" aria-expanded={!collapsed.has(`sec:${sec}`)} aria-controls={`sec-${sec}-list`} onClick={() => toggleCollapsed(`sec:${sec}`)} type="button">
               <span>{sectionLabels[sec]}</span>
-              <span className="sidebar__badge">{grouped[sec].length}</span>
+              <motion.span
+                className="sidebar__badge"
+                variants={prefersReduced ? undefined : hudGlowPulse}
+                initial={prefersReduced ? undefined : 'rest'}
+                animate={prefersReduced ? undefined : (grouped[sec].length > 0 ? 'pulse' : 'rest')}
+              >
+                {grouped[sec].length}
+              </motion.span>
             </button>
             {!collapsed.has(`sec:${sec}`) && (
-              <ul id={`sec-${sec}-list`} className="sidebar__section-list">
+              <motion.ul id={`sec-${sec}-list`} className="sidebar__section-list" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
                 {grouped[sec].map(panel => (
-                  <li key={`panel-${panel.id}`} className="sidebar__nav-item">
-                    <div className="sidebar__nav-row">
-                      <button
-                        className={`sidebar__nav-button ${activePanelId === panel.id ? 'sidebar__nav-button--active' : ''}`}
-                        aria-current={activePanelId === panel.id ? 'page' : undefined}
-                        onClick={() => onPanelSelect?.(panel.id)}
-                        type="button"
-                      >
-                        <span className="sidebar__nav-icon">{panel.icon}</span>
-                        <span className="sidebar__nav-text">{panel.name}</span>
-                        {getBadgeCount(panel.id) > 0 && (
-                          <span className="sidebar__badge" aria-label={`Notifications ${getBadgeCount(panel.id)}`}>{Math.min(99, getBadgeCount(panel.id))}</span>
-                        )}
-                      </button>
-                      <button className="sidebar__star-button" onClick={(e) => { e.stopPropagation(); toggleFavorite(panel.id) }} title={favorites.includes(panel.id) ? 'Unfavorite' : 'Favorite'} type="button">
-                        {favorites.includes(panel.id) ? '★' : '☆'}
-                      </button>
-                    </div>
-                  </li>
+                  <motion.li key={`panel-${panel.id}`} className="sidebar__nav-item" variants={itemFadeIn}>
+                    <HUDFrame className="sidebar__nav-row">
+                      <motion.div whileHover={prefersReduced ? undefined : { scale: 1.01 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                        <Button
+                          className={`sidebar__nav-button ${activePanelId === panel.id ? 'sidebar__nav-button--active' : ''}`}
+                          aria-current={activePanelId === panel.id ? 'page' : undefined}
+                          onClick={() => onPanelSelect?.(panel.id)}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                        >
+                          <span className="sidebar__nav-icon">{panel.icon}</span>
+                          <span className="sidebar__nav-text">{panel.name}</span>
+                          {getBadgeCount(panel.id) > 0 && (
+                            <motion.span
+                              className="sidebar__badge"
+                              aria-label={`Notifications ${getBadgeCount(panel.id)}`}
+                              variants={prefersReduced ? undefined : hudGlowPulse}
+                              initial={prefersReduced ? undefined : 'rest'}
+                              animate={prefersReduced ? undefined : 'pulse'}
+                            >
+                              {Math.min(99, getBadgeCount(panel.id))}
+                            </motion.span>
+                          )}
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                        <Button className="sidebar__star-button" onClick={(e) => { e.stopPropagation(); toggleFavorite(panel.id) }} title={favorites.includes(panel.id) ? 'Unfavorite' : 'Favorite'} type="button" variant="ghost" size="sm">
+                          {favorites.includes(panel.id) ? '★' : '☆'}
+                        </Button>
+                      </motion.div>
+                    </HUDFrame>
+                  </motion.li>
                 ))}
-              </ul>
+              </motion.ul>
             )}
           </div>
         ))}

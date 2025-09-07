@@ -9,6 +9,12 @@ import { checkFieldDependency, getSchema } from '../../services/ContentSchema'
 import { contentValidationService } from '../../services/ContentValidationService'
 import { moveIndexService } from '../../services/MoveIndexService'
 import './ContentStudioPanel.css'
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant, staggerContainer, itemFadeIn } from '../../utils/motion'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'
 
 interface ContentStudioPanelProps {
   // Add unknown props as needed
@@ -258,16 +264,16 @@ const ContentStudioPanel: React.FC <ContentStudioPanelProps> = () => {
               {field.label}
               {field.required && <span className="required">*</span>}
             </label>
-            <select
-              id={field.name}
-              value={value}
-              onChange={e => handleFieldChange(field.name, e.target.value)}
-              className={`field-select ${fieldErrors.length > 0 ? 'error' : ''}`}
-            >
-              {field.options?.map((option, index) => (
-                <option key={index} value={option.value}>{option.label}</option>
-              ))}
-            </select>
+            <Select value={String(value)} onValueChange={(v) => handleFieldChange(field.name, v)}>
+              <SelectTrigger className={`field-select ${fieldErrors.length > 0 ? 'error' : ''}`}>
+                <SelectValue placeholder={field.placeholder || 'Select option'} />
+              </SelectTrigger>
+              <SelectContent>
+                {field.options?.map((option: any, index: number) => (
+                  <SelectItem key={index} value={String(option.value)}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {fieldErrors.map((error, index) => (
               <div key={index} className="field-error">{error?.message || 'Unknown error'}</div>
             ))}
@@ -318,80 +324,73 @@ const ContentStudioPanel: React.FC <ContentStudioPanelProps> = () => {
   }
 
   const renderContentList = () => {
-    const contentList = customContent[`${contentType}s` as keyof typeof customContent] as string[]
+    const contentList = customContent[`${contentType}s` as keyof typeof customContent] as any[]
 
     if (contentList.length === 0) {
       return (
-        <div className="empty-state">
+        <motion.div className="empty-state" variants={itemFadeIn}>
           No custom
           {contentType}
           s created yet.
-        </div>
+        </motion.div>
       )
     }
 
     return (
-      <div className="content-list">
+      <motion.div className="content-list" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
         {contentList.map((item, index) => (
-          <div key={index} className="content-item">
+          <motion.div key={index} className="content-item" variants={itemFadeIn}>
             <div className="content-item-header">
               <h4>{item.name}</h4>
               <div className="content-item-actions">
-                <button onClick={() => {
-                  setFormData(item); setIsEditing(true)
-                }}
-                >
+                <motion.button onClick={() => { setFormData(item); setIsEditing(true) }} whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
                   Edit
-                </button>
-                <button onClick={() => {
+                </motion.button>
+                <motion.button onClick={() => {
                   setCustomContent(prev => ({
                     ...prev,
-                    [`${contentType}s`]: prev[`${contentType}s` as keyof typeof prev].filter((_, i) => i !== index),
+                    [`${contentType}s`]: (prev[`${contentType}s` as keyof typeof prev] as any[]).filter((_, i) => i !== index),
                   }))
-                }}
-                >
+                }} whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
                   Delete
-                </button>
+                </motion.button>
               </div>
             </div>
             <p className="content-item-description">{item.description}</p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     )
   }
 
+  const prefersReduced = useReducedMotion()
   return (
-    <div className="content-studio-panel">
-      <div className="panel-header">
-        <h1> Content Studio</h1>
-        <p> Create and edit custom moves, items, and spells</p>
-      </div>
+    <motion.div className="content-studio-panel" initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={getVariant('fade')}>
+      <Card className="panel-header">
+        <CardHeader>
+          <CardTitle>Content Studio</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p> Create and edit custom moves, items, and spells</p>
+        </CardContent>
+      </Card>
 
-      <div className="panel-content">
+      <Card className="panel-content">
+        <CardContent>
         <div className="content-type-selector">
-          <button
-            className={`type-button ${contentType === 'move' ? 'active' : ''}`}
-            onClick={() => setContentType('move')}
-          >
-            Moves
-          </button>
-          <button
-            className={`type-button ${contentType === 'item' ? 'active' : ''}`}
-            onClick={() => setContentType('item')}
-          >
-            Items
-          </button>
-          <button
-            className={`type-button ${contentType === 'spell' ? 'active' : ''}`}
-            onClick={() => setContentType('spell')}
-          >
-            Spells
-          </button>
+          <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+            <Button variant={contentType === 'move' ? 'default' : 'secondary'} size="sm" onClick={() => setContentType('move')}>Moves</Button>
+          </motion.div>
+          <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+            <Button variant={contentType === 'item' ? 'default' : 'secondary'} size="sm" onClick={() => setContentType('item')}>Items</Button>
+          </motion.div>
+          <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+            <Button variant={contentType === 'spell' ? 'default' : 'secondary'} size="sm" onClick={() => setContentType('spell')}>Spells</Button>
+          </motion.div>
         </div>
 
         <div className="studio-layout">
-          <div className="form-section">
+          <Card className="form-section">
             <div className="form-header">
               <h2>
                 {isEditing ? 'Edit' : 'Create'}
@@ -401,14 +400,12 @@ const ContentStudioPanel: React.FC <ContentStudioPanelProps> = () => {
               <div className="form-actions">
                 {!isEditing && (
                   <>
-                    <button className="template-button" onClick={() => setShowTemplates(true)}>
-                      Templates
-                    </button>
-                    <button className="new-button" onClick={() => setIsEditing(true)}>
-                      New
-                      {' '}
-                      {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
-                    </button>
+                    <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                      <Button className="template-button" onClick={() => setShowTemplates(true)}>Templates</Button>
+                    </motion.div>
+                    <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                      <Button className="new-button" onClick={() => setIsEditing(true)}>New {contentType.charAt(0).toUpperCase() + contentType.slice(1)}</Button>
+                    </motion.div>
                   </>
                 )}
               </div>
@@ -419,43 +416,38 @@ const ContentStudioPanel: React.FC <ContentStudioPanelProps> = () => {
                 {schema.fields.map(renderField)}
 
                 <div className="form-actions">
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={!validationResult.isValid}
-                    className="save-button"
-                  >
-                    Save
-                    {' '}
-                    {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
-                  </button>
-                  <button type="button" onClick={handleCancel} className="cancel-button">
-                    Cancel
-                  </button>
+                  <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                    <Button type="button" onClick={handleSave} disabled={!validationResult.isValid} className="save-button">
+                      Save {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                    <Button type="button" variant="secondary" onClick={handleCancel} className="cancel-button">Cancel</Button>
+                  </motion.div>
                 </div>
 
                 {validationResult.errors.length > 0 && (
-                  <div className="validation-errors">
+                  <motion.div className="validation-errors" variants={itemFadeIn}>
                     <h4> Errors:</h4>
                     {validationResult.errors.map((item, index) => (
                       <div key={index} className="error-message">{error?.message || 'Unknown error'}</div>
                     ))}
-                  </div>
+                  </motion.div>
                 )}
 
                 {validationResult.warnings.length > 0 && (
-                  <div className="validation-warnings">
+                  <motion.div className="validation-warnings" variants={itemFadeIn}>
                     <h4> Warnings:</h4>
                     {validationResult.warnings.map((warning, index) => (
                       <div key={index} className="field-error">{warning.message}</div>
                     ))}
-                  </div>
+                  </motion.div>
                 )}
               </form>
             )}
-          </div>
+          </Card>
 
-          <div className="content-section">
+          <Card className="content-section">
             <div className="content-header">
               <h2>
                 {' '}
@@ -464,155 +456,102 @@ const ContentStudioPanel: React.FC <ContentStudioPanelProps> = () => {
                 s
               </h2>
               <div className="content-actions">
-                <button className="import-button" onClick={() => setShowImportExport(true)}>
-                  Import / Export
-                </button>
+                <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                  <Button className="import-button" onClick={() => { setExportData(''); setShowImportExport(true) }}>Import / Export</Button>
+                </motion.div>
               </div>
             </div>
             {renderContentList()}
-          </div>
+          </Card>
         </div>
-      </div>
+      </CardContent>
+      </Card>
 
-      {/* Templates Modal */}
+      {/* Templates Dialog */}
       {showTemplates && (
-        <div className="modal-overlay" onClick={() => setShowTemplates(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3> Choose Template</h3>
-              <button className="close-button" onClick={() => setShowTemplates(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="templates-grid">
-                {contentImportExportService.getTemplates(contentType).map(template => (
-                  <div key={template.id} className="template-card" onClick={() => handleTemplateSelect(template)}>
-                    <h4>{template.name}</h4>
-                    <p>{template.description}</p>
-                    <div className="template-tags">
-                      {template.tags?.map(tag => (
-                        <span key={tag} className="template-tag">{tag}</span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Import / Export Modal */}
-      {showImportExport && (
-        <div className="modal-overlay" onClick={() => setShowImportExport(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>
-                {' '}
-                Import / Export
-                {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
-                s
-              </h3>
-              <button className="close-button" onClick={() => setShowImportExport(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="import-export-tabs">
-                <div className="tab-buttons">
-                  <button className="tab-button active">Export</button>
-                  <button className="tab-button">Import</button>
-                </div>
-
-                <div className="tab-content">
-                  <div className="export-section">
-                    <h4>
-                      {' '}
-                      Export
-                      {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
-                      s
-                    </h4>
-                    <p>
-                      {' '}
-                      Copy the JSON below to export your custom
-                      {contentType}
-                      s:
-                    </p>
-                    <textarea
-                      className="export-textarea"
-                      value={exportData}
-                      readOnly
-                      rows={10}
-                      aria-label="Export JSON data"
-                      title="Export JSON data"
-                    />
-                    <button className="copy-button" onClick={() => navigator.clipboard.writeText(exportData)}>
-                      Copy to Clipboard
-                    </button>
-                  </div>
-
-                  <div className="import-section">
-                    <h4>
-                      {' '}
-                      Import
-                      {contentType.charAt(0).toUpperCase() + contentType.slice(1)}
-                      s
-                    </h4>
-                    <p>
-                      {' '}
-                      Paste JSON data to import
-                      {contentType}
-                      s:
-                    </p>
-                    <textarea
-                      className="import-textarea"
-                      placeholder="Paste JSON data here..."
-                      rows={10}
-                      aria-label="Import JSON data"
-                      title="Import JSON data"
-                      onChange={(e) => {
-                        if (e.target.value.trim()) {
-                          handleImport(e.target.value)
-                        }
-                      }}
-                    />
-                    {importResult && (
-                      <div className={`import-result ${importResult.success ? 'success' : 'error'}`}>
-                        <h5> Import Result:</h5>
-                        <p>
-                          {' '}
-                          Imported:
-                          {importResult.imported}
-                          {' '}
-                          items
-                        </p>
-                        {importResult.errors.length > 0 && (
-                          <div className="import-errors">
-                            <h6> Errors:</h6>
-                            <ul>
-                              {importResult.errors.map((error: string, index: number) => (
-                                <li key={index}>{error}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {importResult.warnings.length > 0 && (
-                          <div className="import-warnings">
-                            <h6> Warnings:</h6>
-                            <ul>
-                              {importResult.warnings.map((warning: string, index: number) => (
-                                <li key={index}>{warning}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+        <Dialog open={true} onOpenChange={(o) => { if (!o) setShowTemplates(false) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Choose Template</DialogTitle>
+            </DialogHeader>
+            <motion.div className="templates-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
+              {contentImportExportService.getTemplates(contentType).map(template => (
+                <motion.div key={template.id} variants={itemFadeIn}>
+                  <Card className="template-card" onClick={() => handleTemplateSelect(template)}>
+                    <CardHeader>
+                      <CardTitle>{template.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>{template.description}</p>
+                      <div className="template-tags">
+                        {template.tags?.map(tag => (
+                          <span key={tag} className="template-tag">{tag}</span>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Import / Export Dialog */}
+      {showImportExport && (
+        <Dialog open={true} onOpenChange={(o) => { if (!o) setShowImportExport(false) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Import / Export {contentType.charAt(0).toUpperCase() + contentType.slice(1)}s</DialogTitle>
+            </DialogHeader>
+            <div className="import-export-tabs">
+              <div className="tab-content">
+                <motion.div className="export-section" variants={itemFadeIn}>
+                  <h4>Export {contentType.charAt(0).toUpperCase() + contentType.slice(1)}s</h4>
+                  <p>Copy the JSON below to export your custom {contentType}s:</p>
+                  <textarea className="export-textarea" value={exportData} readOnly rows={10} aria-label="Export JSON data" title="Export JSON data" />
+                  <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+                    <Button className="copy-button" onClick={() => navigator.clipboard.writeText(exportData)}>Copy to Clipboard</Button>
+                  </motion.div>
+                </motion.div>
+
+                <motion.div className="import-section" variants={itemFadeIn}>
+                  <h4>Import {contentType.charAt(0).toUpperCase() + contentType.slice(1)}s</h4>
+                  <p>Paste JSON data to import {contentType}s:</p>
+                  <textarea className="import-textarea" placeholder="Paste JSON data here..." rows={10} aria-label="Import JSON data" title="Import JSON data" onChange={(e) => { if ((e.target as HTMLTextAreaElement).value.trim()) { handleImport((e.target as HTMLTextAreaElement).value) } }} />
+                  {importResult && (
+                    <div className={`import-result ${(importResult as any).success ? 'success' : 'error'}`}>
+                      <h5>Import Result:</h5>
+                      <p>Imported: {(importResult as any).imported} items</p>
+                      {(importResult as any).errors.length > 0 && (
+                        <div className="import-errors">
+                          <h6>Errors:</h6>
+                          <ul>
+                            {(importResult as any).errors.map((error: string, index: number) => (
+                              <li key={index}>{error}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {(importResult as any).warnings.length > 0 && (
+                        <div className="import-warnings">
+                          <h6>Warnings:</h6>
+                          <ul>
+                            {(importResult as any).warnings.map((warning: string, index: number) => (
+                              <li key={index}>{warning}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
               </div>
             </div>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
-    </div>
+    </motion.div>
   )
 }
 

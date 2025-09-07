@@ -11,10 +11,13 @@ import type {
 } from '../models/Condition'
 
 import React, { useCallback, useEffect, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn, hudGlowPulse } from '../utils/motion'
 
 import { conditionService } from '../services/ConditionService'
 import { useCharacter } from '../store/GameStore'
 import './ConditionTracker.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
 
 interface ConditionTrackerProps {
   characterId?: string
@@ -174,56 +177,60 @@ export const ConditionTracker: React.FC <ConditionTrackerProps> = ({
 
   const unreadNotifications = notifications.filter(n => !n.isRead)
 
+  const prefersReduced = useReducedMotion()
+
   if (!activeCharacterId) {
     return (
-      <div className="condition-tracker">
+      <motion.div className="condition-tracker" initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={itemFadeIn}>
         <div className="condition-tracker__no-character">
           <h3> No Character Selected</h3>
           <p> Please select a character to view their conditions.</p>
         </div>
-      </div>
+      </motion.div>
     )
   }
 
   return (
-    <div className="condition-tracker">
+    <motion.div className="condition-tracker" initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={staggerContainer}>
       {/* Header with Stats */}
-      <div className="condition-tracker__header">
+      <motion.div className="condition-tracker__header" variants={itemFadeIn}>
         <div className="condition-tracker__title">
           <h2>🎭 Condition Tracker</h2>
           <div className="condition-tracker__notification-badge" onClick={() => setShowNotifications(!showNotifications)}>
             {unreadNotifications.length > 0 && (
-              <span className="condition-tracker__notification-count">{unreadNotifications.length}</span>
+              <motion.span className="condition-tracker__notification-count" animate={prefersReduced ? undefined : { scale: [1, 1.15, 1] }} transition={prefersReduced ? undefined : { duration: 1.1, repeat: Infinity }}>
+                {unreadNotifications.length}
+              </motion.span>
             )}
             🔔
           </div>
         </div>
 
         {stats && (
-          <div className="condition-tracker__stats">
-            <div className="condition-tracker__stat">
+          <motion.div className="condition-tracker__stats" variants={staggerContainer}>
+            <motion.div className="condition-tracker__stat" variants={itemFadeIn}>
               <span className="condition-tracker__stat-label">Active:</span>
               <span className="condition-tracker__stat-value">{stats.activeConditions}</span>
-            </div>
-            <div className="condition-tracker__stat">
+            </motion.div>
+            <motion.div className="condition-tracker__stat" variants={itemFadeIn}>
               <span className="condition-tracker__stat-label">Debilities:</span>
               <span className="condition-tracker__stat-value condition-tracker__stat-value--debuff">{stats.debilities}</span>
-            </div>
-            <div className="condition-tracker__stat">
+            </motion.div>
+            <motion.div className="condition-tracker__stat" variants={itemFadeIn}>
               <span className="condition-tracker__stat-label">Effects:</span>
               <span className="condition-tracker__stat-value condition-tracker__stat-value--buff">{stats.ongoingEffects}</span>
-            </div>
-            <div className="condition-tracker__stat">
+            </motion.div>
+            <motion.div className="condition-tracker__stat" variants={itemFadeIn}>
               <span className="condition-tracker__stat-label">Temporary:</span>
               <span className="condition-tracker__stat-value">{stats.temporaryConditions}</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Notifications Panel */}
       {showNotifications && (
-        <div className="condition-tracker__notifications">
+        <motion.div className="condition-tracker__notifications" variants={itemFadeIn}>
           <div className="condition-tracker__notifications-header">
             <h3> Notifications</h3>
             <button
@@ -241,9 +248,10 @@ export const ConditionTracker: React.FC <ConditionTrackerProps> = ({
                 )
               : (
                   notifications.map(notification => (
-                    <div
+                    <motion.div
                       key={notification.id}
                       className={`condition-tracker__notification condition-tracker__notification--${notification.priority} ${!notification.isRead ? 'condition-tracker__notification--unread' : ''}`}
+                      variants={itemFadeIn}
                     >
                       <div className="condition-tracker__notification-content">
                         <p className="condition-tracker__notification-message">{notification.message}</p>
@@ -269,64 +277,60 @@ export const ConditionTracker: React.FC <ConditionTrackerProps> = ({
                           ✕
                         </button>
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 )}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Controls */}
-      <div className="condition-tracker__controls">
-        <button
+      <motion.div className="condition-tracker__controls" variants={itemFadeIn}>
+        <motion.button
           className="condition-tracker__btn condition-tracker__btn--primary"
           onClick={() => setShowCreateForm(true)}
           type="button"
+          whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+          whileTap={prefersReduced ? undefined : { scale: 0.98 }}
         >
           ➕ Add Condition
-        </button>
+        </motion.button>
 
         <div className="condition-tracker__filters">
-          <select
-            value={filter.type || 'all'}
-            onChange={e => handleFilterChange({ type: e.target.value === 'all' ? undefined : e.target.value as Condition['type'] })}
-            className="condition-tracker__filter-select"
-            aria-label="Filter by condition type"
-          >
-            <option value="all">All Types</option>
-            <option value="debility">Debilities</option>
-            <option value="ongoing_effect">Ongoing Effects</option>
-            <option value="temporary_condition">Temporary Conditions</option>
-          </select>
+          <Select value={filter.type || 'all'} onValueChange={(v) => handleFilterChange({ type: v === 'all' ? undefined : v as Condition['type'] })}>
+            <SelectTrigger className="w-56"><SelectValue placeholder="All Types" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="debility">Debilities</SelectItem>
+              <SelectItem value="ongoing_effect">Ongoing Effects</SelectItem>
+              <SelectItem value="temporary_condition">Temporary Conditions</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
-            value={filter.source || 'all'}
-            onChange={e => handleFilterChange({ source: e.target.value === 'all' ? undefined : e.target.value as ConditionSource })}
-            className="condition-tracker__filter-select"
-            aria-label="Filter by source"
-          >
-            <option value="all">All Sources</option>
-            <option value="move">Move</option>
-            <option value="spell">Spell</option>
-            <option value="item">Item</option>
-            <option value="environment">Environment</option>
-            <option value="npc">NPC</option>
-            <option value="gm">GM</option>
-            <option value="manual">Manual</option>
-          </select>
+          <Select value={filter.source || 'all'} onValueChange={(v) => handleFilterChange({ source: v === 'all' ? undefined : v as ConditionSource })}>
+            <SelectTrigger className="w-56"><SelectValue placeholder="All Sources" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sources</SelectItem>
+              <SelectItem value="move">Move</SelectItem>
+              <SelectItem value="spell">Spell</SelectItem>
+              <SelectItem value="item">Item</SelectItem>
+              <SelectItem value="environment">Environment</SelectItem>
+              <SelectItem value="npc">NPC</SelectItem>
+              <SelectItem value="gm">GM</SelectItem>
+              <SelectItem value="manual">Manual</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
-            value={filter.isActive === undefined ? 'all' : filter.isActive ? 'active' : 'resolved'}
-            onChange={e => handleFilterChange({ isActive: e.target.value === 'all' ? undefined : e.target.value === 'active' })}
-            className="condition-tracker__filter-select"
-            aria-label="Filter by status"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="resolved">Resolved</option>
-          </select>
+          <Select value={filter.isActive === undefined ? 'all' : filter.isActive ? 'active' : 'resolved'} onValueChange={(v) => handleFilterChange({ isActive: v === 'all' ? undefined : v === 'active' })}>
+            <SelectTrigger className="w-56"><SelectValue placeholder="All Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </div>
+      </motion.div>
 
       {/* Active Conditions */}
       <div className="condition-tracker__section">
@@ -398,7 +402,7 @@ export const ConditionTracker: React.FC <ConditionTrackerProps> = ({
           onDelete={handleDeleteCondition}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -424,13 +428,15 @@ function ConditionCardImpl({
   const duration = conditionService.formatDuration(condition)
 
   return (
-    <div
+    <motion.div
       className={`condition-card condition-card--${condition.type} ${isResolved ? 'condition-card--resolved' : ''}`}
-      style={{ borderLeftColor: _display.color }}
       onClick={() => onSelect(condition)}
+      data-color={_display.color}
+      variants={itemFadeIn}
+      whileHover={{ scale: 1.01 }}
     >
       <div className="condition-card__header">
-        <div className="condition-card__icon" style={{ color: _display.color }}>
+        <div className="condition-card__icon" data-color={_display.color}>
           {_display.icon}
         </div>
         <div className="condition-card__info">
@@ -495,7 +501,7 @@ function ConditionCardImpl({
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -561,66 +567,58 @@ function CreateConditionFormImpl({ onCreate, onCancel }: CreateConditionFormProp
 
           <div className="condition-tracker__form-group">
             <label htmlFor="cond-type"> Type:</label>
-            <select
-              value={formData.type}
-              onChange={e => setFormData(prev => ({ ...prev, type: e.target.value as Condition['type'] }))}
-              className="condition-tracker__select"
-              id="cond-type"
-            >
-              <option value="debility">Debility</option>
-              <option value="ongoing_effect">Ongoing Effect</option>
-              <option value="temporary_condition">Temporary Condition</option>
-            </select>
+            <Select value={formData.type} onValueChange={(v) => setFormData(prev => ({ ...prev, type: v as Condition['type'] }))}>
+              <SelectTrigger className="condition-tracker__select"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="debility">Debility</SelectItem>
+                <SelectItem value="ongoing_effect">Ongoing Effect</SelectItem>
+                <SelectItem value="temporary_condition">Temporary Condition</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="condition-tracker__form-group">
             <label htmlFor="cond-duration"> Duration:</label>
-            <select
-              value={formData.duration}
-              onChange={e => setFormData(prev => ({ ...prev, duration: e.target.value as DurationType }))}
-              className="condition-tracker__select"
-              id="cond-duration"
-            >
-              <option value="instant">Instant</option>
-              <option value="until_end_of_turn">Until End of Turn</option>
-              <option value="until_end_of_scene">Until End of Scene</option>
-              <option value="until_rest">Until Rest</option>
-              <option value="until_dawn">Until Dawn</option>
-              <option value="permanent">Permanent</option>
-            </select>
+            <Select value={formData.duration} onValueChange={(v) => setFormData(prev => ({ ...prev, duration: v as DurationType }))}>
+              <SelectTrigger className="condition-tracker__select"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="instant">Instant</SelectItem>
+                <SelectItem value="until_end_of_turn">Until End of Turn</SelectItem>
+                <SelectItem value="until_end_of_scene">Until End of Scene</SelectItem>
+                <SelectItem value="until_rest">Until Rest</SelectItem>
+                <SelectItem value="until_dawn">Until Dawn</SelectItem>
+                <SelectItem value="permanent">Permanent</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="condition-tracker__form-group">
             <label htmlFor="cond-source"> Source:</label>
-            <select
-              value={formData.source}
-              onChange={e => setFormData(prev => ({ ...prev, source: e.target.value as ConditionSource }))}
-              className="condition-tracker__select"
-              id="cond-source"
-            >
-              <option value="manual">Manual</option>
-              <option value="move">Move</option>
-              <option value="spell">Spell</option>
-              <option value="item">Item</option>
-              <option value="environment">Environment</option>
-              <option value="npc">NPC</option>
-              <option value="gm">GM</option>
-            </select>
+            <Select value={formData.source} onValueChange={(v) => setFormData(prev => ({ ...prev, source: v as ConditionSource }))}>
+              <SelectTrigger className="condition-tracker__select"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="move">Move</SelectItem>
+                <SelectItem value="spell">Spell</SelectItem>
+                <SelectItem value="item">Item</SelectItem>
+                <SelectItem value="environment">Environment</SelectItem>
+                <SelectItem value="npc">NPC</SelectItem>
+                <SelectItem value="gm">GM</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="condition-tracker__form-group">
             <label htmlFor="cond-priority"> Priority:</label>
-            <select
-              value={formData.priority}
-              onChange={e => setFormData(prev => ({ ...prev, priority: e.target.value as ConditionPriority }))}
-              className="condition-tracker__select"
-              id="cond-priority"
-            >
-              <option value="low">Low</option>
-              <option value="normal">Normal</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
+            <Select value={formData.priority} onValueChange={(v) => setFormData(prev => ({ ...prev, priority: v as ConditionPriority }))}>
+              <SelectTrigger className="condition-tracker__select"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="condition-tracker__form-group">

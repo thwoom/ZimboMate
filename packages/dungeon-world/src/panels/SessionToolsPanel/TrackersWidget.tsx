@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { loadPanelState, savePanelState } from '../../framework/PanelAPI'
+import { Input } from '../../components/ui/input'
+import { Button } from '../../components/ui/button'
+import { motion, useReducedMotion } from 'framer-motion'
+import { itemFadeIn } from '../../utils/motion'
 
 interface Tracker {
   id: string
@@ -16,6 +20,7 @@ const TrackersWidget: React.FC<TrackersWidgetProps> = ({ panelId }) => {
   const [trackers, setTrackers] = useState<Tracker[]>(persisted.trackers)
   const [label, setLabel] = useState('')
   const [initialValue, setInitialValue] = useState<number>(0)
+  const prefersReduced = useReducedMotion()
 
   useEffect(() => {
     const handle = setTimeout(() => savePanelState(`${panelId}:trackers`, { trackers }), 200)
@@ -47,34 +52,42 @@ const TrackersWidget: React.FC<TrackersWidgetProps> = ({ panelId }) => {
 
   return (
     <div className="st-trackers-widget">
-      <div className="st-trackers-form">
+      <div className="st-trackers-form flex flex-wrap items-end gap-2">
         <label htmlFor="tracker-label">Label:</label>
-        <input id="tracker-label" type="text" value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g., Hold" aria-label="Tracker label" />
+        <Input id="tracker-label" value={label} onChange={e => setLabel((e.target as HTMLInputElement).value)} placeholder="e.g., Hold" aria-label="Tracker label" className="w-40" />
         <label htmlFor="tracker-initial">Start:</label>
-        <input id="tracker-initial" type="number" value={initialValue} onChange={e => setInitialValue(Number.parseInt(e.target.value || '0'))} aria-label="Initial value" />
-        <button type="button" className="btn btn-primary" onClick={() => addTracker()}>Add</button>
-        <div className="st-quick-add">
-          <button type="button" className="btn btn-outline" onClick={() => addTracker('Hold', 0)}>+ Hold</button>
-          <button type="button" className="btn btn-outline" onClick={() => addTracker('Charge', 0)}>+ Charge</button>
-          <button type="button" className="btn btn-outline" onClick={() => addTracker('Counter', 0)}>+ Counter</button>
+        <Input id="tracker-initial" type="number" value={initialValue as any} onChange={e => setInitialValue(Number.parseInt((e.target as HTMLInputElement).value || '0'))} aria-label="Initial value" className="w-24" />
+        <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+          <Button type="button" onClick={() => addTracker()}>Add</Button>
+        </motion.div>
+        <div className="st-quick-add flex gap-2">
+          <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+            <Button type="button" variant="ghost" onClick={() => addTracker('Hold', 0)}>+ Hold</Button>
+          </motion.div>
+          <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+            <Button type="button" variant="ghost" onClick={() => addTracker('Charge', 0)}>+ Charge</Button>
+          </motion.div>
+          <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+            <Button type="button" variant="ghost" onClick={() => addTracker('Counter', 0)}>+ Counter</Button>
+          </motion.div>
         </div>
       </div>
 
       <div className="st-trackers-list" aria-live="polite">
         {hasNone && <div className="st-empty">No trackers yet.</div>}
         {trackers.map(t => (
-          <div key={t.id} className="st-tracker-row">
+          <motion.div key={t.id} className="st-tracker-row" variants={itemFadeIn} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
             <div className="st-tracker-meta">
               <span className="st-tracker-label">{t.label}</span>
               <span className="st-tracker-value" aria-label={`${t.label} value`}>{t.value}</span>
             </div>
-            <div className="st-tracker-actions">
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => updateValue(t.id, -1)} aria-label={`Decrement ${t.label}`}>-</button>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => updateValue(t.id, +1)} aria-label={`Increment ${t.label}`}>+</button>
-              <button type="button" className="btn btn-outline btn-sm" onClick={() => resetValue(t.id)} aria-label={`Reset ${t.label}`}>Reset</button>
-              <button type="button" className="btn btn-danger btn-sm" onClick={() => removeTracker(t.id)} aria-label={`Delete ${t.label}`}>Delete</button>
+            <div className="st-tracker-actions flex gap-2">
+              <Button type="button" variant="secondary" size="sm" onClick={() => updateValue(t.id, -1)} aria-label={`Decrement ${t.label}`}>-</Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => updateValue(t.id, +1)} aria-label={`Increment ${t.label}`}>+</Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => resetValue(t.id)} aria-label={`Reset ${t.label}`}>Reset</Button>
+              <Button type="button" variant="destructive" size="sm" onClick={() => removeTracker(t.id)} aria-label={`Delete ${t.label}`}>Delete</Button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

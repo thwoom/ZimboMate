@@ -11,12 +11,11 @@ import CampaignPanel from './panels/CampaignPanel'
 import CharacterCreationPanel from './panels/CharacterCreationPanel'
 import CharacterStatsPanel from './panels/CharacterStatsPanel'
 import ConditionTrackerPanel from './panels/ConditionTrackerPanel/ConditionTrackerPanel'
-import { ContentStudioPanelInstance } from './panels/ContentStudioPanel/ContentStudioPanel'
-import EquipmentCompendiumPanel from './panels/EquipmentCompendiumPanel/EquipmentCompendiumPanel'
+// Heavy panels will be lazily imported and registered
 import EquipmentPanel from './panels/EquipmentPanel'
 import SessionToolsPanel from './panels/SessionToolsPanel'
 import { InventoryPanel } from './panels/InventoryPanel'
-import MoveLibraryPanel from './panels/MoveLibraryPanel'
+// MoveLibraryPanel will be lazy-loaded
 import MovesPanel from './panels/MovesPanel'
 import ConditionalContentSettings from './panels/SettingsPanel/ConditionalContentSettings'
 import IntegrationSettings from './panels/SettingsPanel/IntegrationSettings'
@@ -29,7 +28,12 @@ import { panelDiagnostics } from './utils/panelDiagnostics'
 import { panelRecoveryManager } from './utils/panelRecovery'
 import ShortcutsOverlay from './components/ShortcutsOverlay'
 import './components/ShortcutsOverlay.css'
+const R3FOverlays = {
+  R3FHudOverlay: React.lazy(() => import('./components/ui/r3f-overlays').then(m => ({ default: m.R3FHudOverlay }))),
+  R3FIntroOverlay: React.lazy(() => import('./components/ui/r3f-overlays').then(m => ({ default: m.R3FIntroOverlay }))),
+}
 import ContextMenu, { type MenuItem } from './components/ContextMenu'
+import { HUDToaster } from './components/ui/toast'
 // import { PanelDebugger, testPanel } from './debug/PanelDebugger';
 import './App.css'
 
@@ -74,6 +78,11 @@ function AppInner() {
     <div className="app">
       <DarkModeToggle />
       <MainLayout />
+      <HUDToaster />
+      <React.Suspense fallback={null}>
+        {settings.uiOverlays?.r3fHudEnabled !== false && <R3FOverlays.R3FHudOverlay enabled />}
+        {settings.uiOverlays?.introSceneEnabled !== false && <R3FOverlays.R3FIntroOverlay enabled />}
+      </React.Suspense>
       {menuState.open && (
         <ContextMenu
           x={menuState.x}
@@ -112,17 +121,14 @@ function App() {
       SpecialMovesPanel,
       CampaignPanel,
       TestPlaygroundPanel,
-      MoveLibraryPanel,
-      ContentStudioPanelInstance,
-      EquipmentCompendiumPanel,
-      // Bond & Alignment XP Tracker panels
+      // Lazy panels registered after initial frame (defer heavy code)
+      // MoveLibraryPanel,
+      // ContentStudioPanelInstance,
+      // EquipmentCompendiumPanel,
       BondTrackerPanel,
       AlignmentXPTrackerPanel,
-      // Condition Tracker panel
       ConditionTrackerPanel,
-      // Register actual panels
       InventoryPanel,
-      // Register Session Tools (replaces previous placeholder)
       SessionToolsPanel,
       createPlaceholderPanel('lore-journal', 'Lore & Journal', '📖'),
     ]
@@ -138,6 +144,22 @@ function App() {
         }
       }
     }
+
+    // Defer heavy panels to next tick for initial TTI improvement
+    setTimeout(async () => {
+      try {
+        const [{ default: MoveLibraryPanel }, { ContentStudioPanelInstance }, { default: EquipmentCompendiumPanel }] = await Promise.all([
+          import('./panels/MoveLibraryPanel'),
+          import('./panels/ContentStudioPanel/ContentStudioPanel'),
+          import('./panels/EquipmentCompendiumPanel/EquipmentCompendiumPanel'),
+        ])
+        panelRegistry.register(MoveLibraryPanel)
+        panelRegistry.register(ContentStudioPanelInstance)
+        panelRegistry.register(EquipmentCompendiumPanel)
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') console.warn('Deferred panel load failed', e)
+      }
+    }, 0)
 
     // Log registry health after registration
     const _healthInfo = panelRegistry.getHealthInfo()

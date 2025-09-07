@@ -9,6 +9,12 @@ import { createPanelAPI } from '../../framework/PanelAPI'
 import { SpecialMovesService } from '../../services/SpecialMovesService'
 import { useGameStore } from '../../store/GameStore'
 import './SpecialMovesPanel.css'
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card'
+import HUDFrame from '../../components/ui/HUDFrame'
+import { Button } from '../../components/ui/button'
+import { Progress } from '../../components/ui/progress'
+import { motion, useReducedMotion } from 'framer-motion'
+import { getVariant, staggerContainer, itemFadeIn, hudGlowPulse } from '../../utils/motion'
 
 interface SpecialMovesPanelState {
   showLevelUpModal: boolean
@@ -43,17 +49,17 @@ const SpecialMovesPanel: React.FC <PanelProps> = ({ id }) => {
   }
 
   const handleLevelUp = (result: unknown, advancementChoice?: string) => {
-    if (character && result.success) {
+    if (character && (result as any).success) {
       // Update character with new level and XP
-      const updates: unknown = {
-        level: result.newLevel,
-        xp: result.newXP,
+      const updates: any = {
+        level: (result as any).newLevel,
+        xp: (result as any).newXP,
       }
 
       // Add advancement choice to character's advancement history
       if (advancementChoice) {
         const newAdvancement = {
-          level: result.newLevel,
+          level: (result as any).newLevel,
           type: advancementChoice.includes('Increase') ? 'stat' : 'move',
           choice: advancementChoice,
           description: advancementChoice,
@@ -62,14 +68,14 @@ const SpecialMovesPanel: React.FC <PanelProps> = ({ id }) => {
         updates.advancements = [...(character.advancements || []), newAdvancement]
       }
 
-      (updateCharacter as string)(character.id, updates)
+      (updateCharacter as any)(character.id, updates)
     }
     updateState({ showLevelUpModal: false })
   }
 
   const handleEndOfSession = (result: any) => {
     if (character) {
-      (updateCharacter as string)(character.id, { xp: result.totalXP })
+      (updateCharacter as any)(character.id, { xp: result.totalXP })
     }
     updateState({ showEndOfSessionModal: false })
   }
@@ -83,7 +89,7 @@ const SpecialMovesPanel: React.FC <PanelProps> = ({ id }) => {
     if (result.success) {
       // Update HP
       const newHP = Math.min(character.hp.current + result.hpRestored, character.hp.max);
-      (updateCharacter as string)(character.id, {
+      (updateCharacter as any)(character.id, {
         hp: { ...character.hp, current: newHP },
       })
 
@@ -105,149 +111,163 @@ const SpecialMovesPanel: React.FC <PanelProps> = ({ id }) => {
 
   if (!character) {
     return (
-      <div className="special-moves-panel">
-        <div className="special-moves-panel__header">
-          <h2>🎲 Special Moves</h2>
-        </div>
-        <div className="no-character">
-          <p> No character selected. Create or select a character to access special moves.</p>
-        </div>
-      </div>
+      <HUDFrame className="p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>🎲 Special Moves</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="no-character">
+              <p> No character selected. Create or select a character to access special moves.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </HUDFrame>
     )
   }
 
+  const prefersReduced = useReducedMotion()
   return (
-    <div className="special-moves-panel">
-      <div className="special-moves-panel__header">
-        <h2>🎲 Special Moves</h2>
-        <div className="character-info">
-          <span className="character-name">{character.name}</span>
-          <span className="character-class">
-            (
-            {character.class}
-            )
-          </span>
-        </div>
-      </div>
+    <motion.div className="special-moves-panel" initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={getVariant('fade')}>
+      <HUDFrame className="p-4">
+      <Card className="special-moves-panel__header">
+        <CardHeader>
+          <CardTitle>🎲 Special Moves</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="character-info">
+            <span className="character-name">{character.name}</span>
+            <span className="character-class">
+              (
+              {character.class}
+              )
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* XP Progress */}
-      <div className="xp-progress-section">
-        <div className="xp-progress-header">
-          <h3> Experience Progress</h3>
-          <span className="xp-current">
-            {character.xp}
-            {' '}
-            XP
-          </span>
-        </div>
-        <div className="xp-progress-bar">
-          <div
-            className="xp-progress-fill"
-            style={{ width: `${xpProgress}%` }}
-          />
-        </div>
-        <div className="xp-progress-details">
-          <span>
-            {' '}
-            Level
-            {character.level}
-            {' '}
-            →
-            {character.level + 1}
-          </span>
-          <span>
-            {nextLevelXP - character.xp}
-            {' '}
-            XP needed
-          </span>
-        </div>
-      </div>
+      <Card className="xp-progress-section">
+        <CardHeader>
+          <CardTitle>Experience Progress</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="xp-progress-header">
+            <span className="xp-current">
+              {character.xp}
+              {' '}
+              XP
+            </span>
+          </div>
+          <Progress max={100} value={xpProgress} aria-label="XP Progress" />
+          <div className="xp-progress-details">
+            <span>
+              {' '}
+              Level
+              {character.level}
+              {' '}
+              →
+              {character.level + 1}
+            </span>
+            <span>
+              {nextLevelXP - character.xp}
+              {' '}
+              XP needed
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Special Moves Grid */}
-      <div className="special-moves-grid">
+      <motion.div className="special-moves-grid" variants={staggerContainer}>
         {/* Level Up */}
-        <div className={`special-move-card ${canLevelUp ? 'available' : 'unavailable'}`}>
-          <div className="move-header">
-            <div className="move-icon">🎉</div>
-            <div className="move-title">Level Up</div>
-            <div className="move-status">
-              {canLevelUp ? 'Ready!' : 'Not Ready'}
+        <motion.div variants={itemFadeIn}>
+          <Card className={`special-move-card ${canLevelUp ? 'available' : 'unavailable'}`}>
+            <div className="move-header">
+              <div className="move-icon">🎉</div>
+              <div className="move-title">Level Up</div>
+              <div className="move-status">
+                {canLevelUp ? 'Ready!' : 'Not Ready'}
+              </div>
             </div>
-          </div>
-          <div className="move-description">
-            Spend XP to gain a level and choose an advancement.
-          </div>
-          <button
-            className="move-button"
-            onClick={() => updateState({ showLevelUpModal: true })}
-            disabled={!canLevelUp}
-          >
-            {canLevelUp ? 'Level Up!' : 'Need More XP'}
-          </button>
-        </div>
+            <div className="move-description">
+              Spend XP to gain a level and choose an advancement.
+            </div>
+            <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+              <Button className="move-button" onClick={() => updateState({ showLevelUpModal: true })} disabled={!canLevelUp}>
+                {canLevelUp ? 'Level Up!' : 'Need More XP'}
+              </Button>
+            </motion.div>
+          </Card>
+        </motion.div>
 
         {/* End of Session */}
-        <div className="special-move-card available">
-          <div className="move-header">
-            <div className="move-icon">🏁</div>
-            <div className="move-title">End of Session</div>
-            <div className="move-status">Available</div>
-          </div>
-          <div className="move-description">
-            Answer questions to gain XP based on session events.
-          </div>
-          <button
-            className="move-button"
-            onClick={() => updateState({ showEndOfSessionModal: true })}
-          >
-            End Session
-          </button>
-        </div>
+        <motion.div variants={itemFadeIn}>
+          <Card className="special-move-card available">
+            <div className="move-header">
+              <div className="move-icon">🏁</div>
+              <div className="move-title">End of Session</div>
+              <div className="move-status">Available</div>
+            </div>
+            <div className="move-description">
+              Answer questions to gain XP based on session events.
+            </div>
+            <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+              <Button className="move-button" onClick={() => updateState({ showEndOfSessionModal: true })}>
+                End Session
+              </Button>
+            </motion.div>
+          </Card>
+        </motion.div>
 
         {/* Make Camp */}
-        <div className="special-move-card available">
-          <div className="move-header">
-            <div className="move-icon">🏕️</div>
-            <div className="move-title">Make Camp</div>
-            <div className="move-status">Available</div>
-          </div>
-          <div className="move-description">
-            Rest and recover HP equal to your level. Consumes 1 ration.
-          </div>
-          <button
-            className="move-button"
-            onClick={handleMakeCamp}
-          >
-            Make Camp
-          </button>
-        </div>
+        <motion.div variants={itemFadeIn}>
+          <Card className="special-move-card available">
+            <div className="move-header">
+              <div className="move-icon">🏕️</div>
+              <div className="move-title">Make Camp</div>
+              <div className="move-status">Available</div>
+            </div>
+            <div className="move-description">
+              Rest and recover HP equal to your level. Consumes 1 ration.
+            </div>
+            <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+              <Button className="move-button" onClick={handleMakeCamp}>
+                Make Camp
+              </Button>
+            </motion.div>
+          </Card>
+        </motion.div>
 
         {/* Last Breath */}
-        <div className={`special-move-card ${shouldTriggerLastBreath ? 'critical' : 'available'}`}>
-          <div className="move-header">
-            <div className="move-icon">💀</div>
-            <div className="move-title">Last Breath</div>
-            <div className="move-status">
-              {shouldTriggerLastBreath ? 'TRIGGERED!' : 'Available'}
+        <motion.div variants={itemFadeIn}>
+          <Card className={`special-move-card ${shouldTriggerLastBreath ? 'critical' : 'available'}`}>
+            <div className="move-header">
+              <div className="move-icon">💀</div>
+              <div className="move-title">Last Breath</div>
+              <div className="move-status">
+                {shouldTriggerLastBreath ? 'TRIGGERED!' : 'Available'}
+              </div>
             </div>
-          </div>
-          <div className="move-description">
-            Roll 2d6 when you reach 0 HP to determine your fate.
-          </div>
-          <button
-            className="move-button"
-            onClick={handleLastBreath}
-            disabled={!shouldTriggerLastBreath}
-          >
-            {shouldTriggerLastBreath ? 'Roll Last Breath!' : 'Not at 0 HP'}
-          </button>
-        </div>
-      </div>
+            <div className="move-description">
+              Roll 2d6 when you reach 0 HP to determine your fate.
+            </div>
+            <motion.div whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
+              <Button className="move-button" onClick={handleLastBreath} disabled={!shouldTriggerLastBreath}>
+                {shouldTriggerLastBreath ? 'Roll Last Breath!' : 'Not at 0 HP'}
+              </Button>
+            </motion.div>
+          </Card>
+        </motion.div>
+      </motion.div>
 
       {/* Character Status */}
-      <div className="character-status">
-        <h3> Character Status</h3>
-        <div className="status-grid">
+      <Card className="character-status">
+        <CardHeader>
+          <CardTitle>Character Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="status-grid">
           <div className="status-item">
             <span className="status-label">HP:</span>
             <span className="status-value">
@@ -269,8 +289,9 @@ const SpecialMovesPanel: React.FC <PanelProps> = ({ id }) => {
             <span className="status-label">Class:</span>
             <span className="status-value">{character.class}</span>
           </div>
-        </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Modals */}
       <LevelUpModal
@@ -286,7 +307,8 @@ const SpecialMovesPanel: React.FC <PanelProps> = ({ id }) => {
         onConfirm={handleEndOfSession}
         onCancel={() => updateState({ showEndOfSessionModal: false })}
       />
-    </div>
+      </HUDFrame>
+    </motion.div>
   )
 }
 

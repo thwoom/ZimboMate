@@ -3,6 +3,9 @@ import type { CalculationChange } from '../services/CalculationHistory'
 import React, { useState } from 'react'
 
 import './CalculationHistory.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../utils/motion'
 
 interface CalculationHistoryProps {
   changes: CalculationChange[]
@@ -64,47 +67,47 @@ export const CalculationHistory: React.FC <CalculationHistoryProps> = ({
     }))
   }
 
+  const prefersReduced = useReducedMotion()
+
   return (
     <div className="calculation-history">
       <div className="history-header">
         <h3> Calculation History</h3>
         <div className="history-controls">
-          <select
-            value={filter}
-            onChange={e => setFilter(e.target.value as string)}
-            className="filter-select"
-            aria-label="Filter calculation history by type"
-          >
-            <option value="all">All Changes</option>
-            <option value="hp">HP</option>
-            <option value="armor">Armor</option>
-            <option value="load">Load</option>
-            <option value="xp">XP</option>
-            <option value="damage">Damage</option>
-            <option value="modifier">Modifiers</option>
-            <option value="condition">Conditions</option>
-          </select>
+          <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+            <SelectTrigger className="filter-select"><SelectValue placeholder="All Changes" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Changes</SelectItem>
+              <SelectItem value="hp">HP</SelectItem>
+              <SelectItem value="armor">Armor</SelectItem>
+              <SelectItem value="load">Load</SelectItem>
+              <SelectItem value="xp">XP</SelectItem>
+              <SelectItem value="damage">Damage</SelectItem>
+              <SelectItem value="modifier">Modifiers</SelectItem>
+              <SelectItem value="condition">Conditions</SelectItem>
+            </SelectContent>
+          </Select>
           {onExport && (
-            <button onClick={onExport} className="export-btn">
+            <motion.button onClick={onExport} className="export-btn" whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
               Export
-            </button>
+            </motion.button>
           )}
           {onClear && (
-            <button onClick={onClear} className="clear-btn">
+            <motion.button onClick={onClear} className="clear-btn" whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
               Clear
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
 
-      <div className="history-list">
+      <motion.div className="history-list" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
         {filteredChanges.length === 0
           ? (
-              <div className="no-history">No calculation changes recorded</div>
+              <motion.div className="no-history" variants={itemFadeIn}>No calculation changes recorded</motion.div>
             )
           : (
               filteredChanges.map(change => (
-                <div key={change.id} className={`history-item ${change.type}`}>
+                <motion.div key={change.id} className={`history-item ${change.type}`} variants={itemFadeIn} whileHover={prefersReduced ? undefined : { scale: 1.01 }}>
                   <div className="history-main" onClick={() => toggleDetails(change.id)}>
                     <span className="change-icon">{getChangeIcon(change.type)}</span>
                     <div className="change-info">
@@ -131,14 +134,14 @@ export const CalculationHistory: React.FC <CalculationHistoryProps> = ({
                   </div>
 
                   {showDetails[change.id] && change.details && (
-                    <div className="history-details">
+                    <motion.div className="history-details" variants={itemFadeIn}>
                       <pre>{JSON.stringify(change.details, null, 2)}</pre>
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               ))
             )}
-      </div>
+      </motion.div>
     </div>
   )
 }

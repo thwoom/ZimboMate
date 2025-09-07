@@ -15,6 +15,9 @@ import {
 } from '../services/MoveIndexService'
 
 import './MoveSearch.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerContainer, itemFadeIn } from '../utils/motion'
 
 interface MoveSearchProps {
   onMoveSelect?: (move: MoveIndexEntry) => void
@@ -132,10 +135,12 @@ export const MoveSearch: React.FC <MoveSearchProps> = ({
     const isSelected = selectedMove?.id === move.id
 
     return (
-      <div
+      <motion.div
         key={move.id}
         className={`move-search-card ${isSelected ? 'selected' : ''}`}
         onClick={() => handleMoveClick(move)}
+        variants={itemFadeIn}
+        whileHover={{ scale: 1.01 }}
       >
         <div className="move-header">
           <h4 className="move-name">{move.name}</h4>
@@ -188,7 +193,7 @@ export const MoveSearch: React.FC <MoveSearchProps> = ({
             </span>
           )}
         </div>
-      </div>
+      </motion.div>
     )
   }
 
@@ -203,68 +208,64 @@ export const MoveSearch: React.FC <MoveSearchProps> = ({
           <div className="filter-row">
             <div className="filter-group">
               <label htmlFor="category-filter">Category</label>
-              <select
-                id="category-filter"
-                aria-label="Filter by move category"
-                value={filters.category?.[0] || ''}
-                onChange={e => handleFilterChange('category', e.target.value ? [e.target.value] : undefined)}
-              >
-                <option value="">All Categories</option>
-                <option value="basic">Basic Moves</option>
-                <option value="advanced">Advanced Moves</option>
-                <option value="racial">Racial Moves</option>
-                <option value="special">Special Moves</option>
-              </select>
+              <Select value={filters.category?.[0] || ''} onValueChange={(v) => handleFilterChange('category', v ? [v] : undefined)}>
+                <SelectTrigger className="w-48"><SelectValue placeholder="All Categories" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="basic">Basic Moves</SelectItem>
+                  <SelectItem value="advanced">Advanced Moves</SelectItem>
+                  <SelectItem value="racial">Racial Moves</SelectItem>
+                  <SelectItem value="special">Special Moves</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="class-filter">Class</label>
-              <select
-                id="class-filter"
-                aria-label="Filter by character class"
-                value={filters.class?.[0] || ''}
-                onChange={e => handleFilterChange('class', e.target.value ? [e.target.value] : undefined)}
-              >
-                <option value="">All Classes</option>
-                <option value="Fighter">Fighter</option>
-                <option value="Wizard">Wizard</option>
-                <option value="Cleric">Cleric</option>
-                <option value="Thief">Thief</option>
-                <option value="Ranger">Ranger</option>
-                <option value="Paladin">Paladin</option>
-                <option value="Druid">Druid</option>
-                <option value="Bard">Bard</option>
-              </select>
+              <Select value={filters.class?.[0] || ''} onValueChange={(v) => handleFilterChange('class', v ? [v] : undefined)}>
+                <SelectTrigger className="w-48"><SelectValue placeholder="All Classes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Classes</SelectItem>
+                  <SelectItem value="Fighter">Fighter</SelectItem>
+                  <SelectItem value="Wizard">Wizard</SelectItem>
+                  <SelectItem value="Cleric">Cleric</SelectItem>
+                  <SelectItem value="Thief">Thief</SelectItem>
+                  <SelectItem value="Ranger">Ranger</SelectItem>
+                  <SelectItem value="Paladin">Paladin</SelectItem>
+                  <SelectItem value="Druid">Druid</SelectItem>
+                  <SelectItem value="Bard">Bard</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="filter-group">
               <label htmlFor="roll-stat-filter">Roll Stat</label>
-              <select
-                id="roll-stat-filter"
-                aria-label="Filter by roll stat"
-                value={filters.rollStat?.[0] || ''}
-                onChange={e => handleFilterChange('rollStat', e.target.value ? [e.target.value] : undefined)}
-              >
-                <option value="">Any Stat</option>
-                <option value="STR">Strength</option>
-                <option value="DEX">Dexterity</option>
-                <option value="CON">Constitution</option>
-                <option value="INT">Intelligence</option>
-                <option value="WIS">Wisdom</option>
-                <option value="CHA">Charisma</option>
-              </select>
+              <Select value={filters.rollStat?.[0] || ''} onValueChange={(v) => handleFilterChange('rollStat', v ? [v] : undefined)}>
+                <SelectTrigger className="w-48"><SelectValue placeholder="Any Stat" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any Stat</SelectItem>
+                  <SelectItem value="STR">Strength</SelectItem>
+                  <SelectItem value="DEX">Dexterity</SelectItem>
+                  <SelectItem value="CON">Constitution</SelectItem>
+                  <SelectItem value="INT">Intelligence</SelectItem>
+                  <SelectItem value="WIS">Wisdom</SelectItem>
+                  <SelectItem value="CHA">Charisma</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
 
-        <button
+        <motion.button
           className="advanced-filters-toggle"
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           {showAdvancedFilters ? 'Hide' : 'Show'}
           {' '}
           Advanced Filters
-        </button>
+        </motion.button>
 
         {showAdvancedFilters && (
           <div className="advanced-filters">
@@ -304,47 +305,41 @@ export const MoveSearch: React.FC <MoveSearchProps> = ({
 
                 <div className="filter-group">
                   <label htmlFor="source-filter">Source</label>
-                  <select
-                    id="source-filter"
-                    aria-label="Filter by source"
-                    value={filters.source?.[0] || ''}
-                    onChange={e => handleFilterChange('source', e.target.value ? [e.target.value] : undefined)}
-                  >
-                    <option value="">All Sources</option>
-                    {availableSources.map(source => (
-                      <option key={source} value={source}>{source}</option>
-                    ))}
-                  </select>
+                  <Select value={filters.source?.[0] || ''} onValueChange={(v) => handleFilterChange('source', v ? [v] : undefined)}>
+                    <SelectTrigger className="w-48"><SelectValue placeholder="All Sources" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Sources</SelectItem>
+                      {availableSources.map(source => (
+                        <SelectItem key={source} value={source}>{source}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <div className="filter-row">
                 <div className="filter-group">
                   <label htmlFor="prerequisites-filter">Has Prerequisites</label>
-                  <select
-                    id="prerequisites-filter"
-                    aria-label="Filter by prerequisites"
-                    value={filters.hasPrerequisites?.toString() || ''}
-                    onChange={e => handleFilterChange('hasPrerequisites', e.target.value === 'true' ? true : e.target.value === 'false' ? false : undefined)}
-                  >
-                    <option value="">Any</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
+                  <Select value={filters.hasPrerequisites?.toString() || ''} onValueChange={(v) => handleFilterChange('hasPrerequisites', v === 'true' ? true : v === 'false' ? false : undefined)}>
+                    <SelectTrigger className="w-32"><SelectValue placeholder="Any" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Any</SelectItem>
+                      <SelectItem value="true">Yes</SelectItem>
+                      <SelectItem value="false">No</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="filter-group">
                   <label htmlFor="cross-references-filter">Has Cross-References</label>
-                  <select
-                    id="cross-references-filter"
-                    aria-label="Filter by cross-references"
-                    value={filters.hasCrossReferences?.toString() || ''}
-                    onChange={e => handleFilterChange('hasCrossReferences', e.target.value === 'true' ? true : e.target.value === 'false' ? false : undefined)}
-                  >
-                    <option value="">Any</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
+                  <Select value={filters.hasCrossReferences?.toString() || ''} onValueChange={(v) => handleFilterChange('hasCrossReferences', v === 'true' ? true : v === 'false' ? false : undefined)}>
+                    <SelectTrigger className="w-32"><SelectValue placeholder="Any" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Any</SelectItem>
+                      <SelectItem value="true">Yes</SelectItem>
+                      <SelectItem value="false">No</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -352,11 +347,11 @@ export const MoveSearch: React.FC <MoveSearchProps> = ({
         )}
 
         {getFilterCount() > 0 && (
-          <button className="clear-filters" onClick={clearFilters}>
+          <motion.button className="clear-filters" onClick={clearFilters} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             Clear All Filters (
             {getFilterCount()}
             )
-          </button>
+          </motion.button>
         )}
       </div>
     )
@@ -391,6 +386,7 @@ export const MoveSearch: React.FC <MoveSearchProps> = ({
     )
   }
 
+  const prefersReduced = useReducedMotion()
   return (
     <div className={`move-search ${className}`}>
       <div className="move-search-header">
@@ -437,15 +433,15 @@ export const MoveSearch: React.FC <MoveSearchProps> = ({
             )
           : results?.entries.length === 0
             ? (
-                <div className="no-results">
+                <motion.div className="no-results" variants={itemFadeIn} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
                   <p> No moves found matching your criteria.</p>
-                  <button onClick={clearFilters}>Clear filters</button>
-                </div>
+                  <motion.button onClick={clearFilters} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>Clear filters</motion.button>
+                </motion.div>
               )
             : (
-                <div className="move-results-grid">
+                <motion.div className="move-results-grid" variants={staggerContainer} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
                   {results?.entries.map(renderMoveCard)}
-                </div>
+                </motion.div>
               )}
       </div>
     </div>

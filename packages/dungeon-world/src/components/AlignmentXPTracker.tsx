@@ -3,8 +3,11 @@ import type { Character } from '../models/Character'
 import type { AlignmentAction, AlignmentXPConfig } from '../types/XP'
 
 import React, { useCallback, useEffect, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { fadeInUp, staggerContainer, itemFadeIn, hudGlowPulse } from '../utils/motion'
 import { useCharacter, useGameStore } from '../store/GameStore'
 import './AlignmentXPTracker.css'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select'
 
 interface AlignmentXPTrackerProps {
   characterId?: string
@@ -158,80 +161,90 @@ export const AlignmentXPTracker: React.FC <AlignmentXPTrackerProps> = ({
     .filter(action => action.xpTriggered)
     .reduce((sum, action) => sum + (action.xpAmount || 0), 0)
 
+  const isNearCap = sessionXP >= Math.floor(config.maxAlignmentXPPerSession * 0.75)
+  const isCapped = sessionXP >= config.maxAlignmentXPPerSession
+
+  const prefersReduced = useReducedMotion()
+
   if (!activeCharacterId || !activeCharacter) {
     return (
-      <div className="alignment-xp-tracker">
-        <div className="alignment-xp-tracker__empty">
+      <motion.div className="alignment-xp-tracker" initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={fadeInUp}>
+        <motion.div className="alignment-xp-tracker__empty" variants={itemFadeIn}>
           <h3> No Character Selected</h3>
           <p> Please select a character to view their alignment actions.</p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     )
   }
 
   return (
-    <div className="alignment-xp-tracker">
+    <motion.div className="alignment-xp-tracker" initial={prefersReduced ? undefined : 'hidden'} animate={prefersReduced ? undefined : 'visible'} variants={staggerContainer}>
       {/* Header with Stats */}
-      <div className="alignment-xp-tracker__header">
+      <motion.div className="alignment-xp-tracker__header" variants={itemFadeIn}>
         <h2> Alignment XP Tracker</h2>
-        <div className="alignment-xp-tracker__character-info">
-          <span className={`alignment-xp-tracker__alignment ${getAlignmentColor(activeCharacter.alignment)}`}>
+        <motion.div className="alignment-xp-tracker__character-info" variants={itemFadeIn}>
+          <motion.span className={`alignment-xp-tracker__alignment ${getAlignmentColor(activeCharacter.alignment)}`} variants={prefersReduced ? undefined : hudGlowPulse} initial="rest" animate={prefersReduced ? 'rest' : 'pulse'}>
             {getAlignmentIcon(activeCharacter.alignment)}
             {' '}
             {activeCharacter.alignment}
-          </span>
+          </motion.span>
           <span className="alignment-xp-tracker__name">{activeCharacter.name}</span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Stats */}
-      <div className="alignment-xp-tracker__stats">
-        <div className="stat">
+      <motion.div className="alignment-xp-tracker__stats" variants={staggerContainer}>
+        <motion.div className="stat" variants={itemFadeIn}>
           <span className="stat__label">Total XP</span>
           <span className="stat__value">{totalXPEarned}</span>
-        </div>
-        <div className="stat">
+        </motion.div>
+        <motion.div className="stat" variants={itemFadeIn}>
           <span className="stat__label">Session XP</span>
           <span className="stat__value">
-            {sessionXP}
+            <motion.span
+              animate={prefersReduced ? undefined : (isNearCap ? { scale: [1, 1.12, 1] } : undefined)}
+              transition={prefersReduced ? undefined : (isNearCap ? { duration: 1.1, repeat: isCapped ? Infinity : 0 } : undefined)}
+            >
+              {sessionXP}
+            </motion.span>
             /
             {config.maxAlignmentXPPerSession}
           </span>
-        </div>
-        <div className="stat">
+        </motion.div>
+        <motion.div className="stat" variants={itemFadeIn}>
           <span className="stat__label">Actions</span>
           <span className="stat__value">{alignmentActions.length}</span>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Controls */}
-      <div className="alignment-xp-tracker__controls">
+      <motion.div className="alignment-xp-tracker__controls" variants={itemFadeIn}>
         <div className="alignment-xp-tracker__filters">
-          <select
-            value={filter}
-            onChange={e => setFilter(e.target.value)}
-            className="alignment-xp-tracker__filter"
-            aria-label="Filter alignment actions by alignment type"
-          >
-            <option value="all">All Alignments</option>
-            <option value="Good">Good</option>
-            <option value="Neutral">Neutral</option>
-            <option value="Chaotic">Chaotic</option>
-            <option value="Lawful">Lawful</option>
-          </select>
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="All Alignments" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Alignments</SelectItem>
+              <SelectItem value="Good">Good</SelectItem>
+              <SelectItem value="Neutral">Neutral</SelectItem>
+              <SelectItem value="Chaotic">Chaotic</SelectItem>
+              <SelectItem value="Lawful">Lawful</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <button
+        <motion.button
           onClick={() => setShowActionForm(true)}
           className="alignment-xp-tracker__create-btn"
           disabled={sessionXP >= config.maxAlignmentXPPerSession}
+          whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+          whileTap={prefersReduced ? undefined : { scale: 0.98 }}
         >
           ✨ Log Alignment Action
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* Actions List */}
-      <div className="alignment-xp-tracker__content">
+      <motion.div className="alignment-xp-tracker__content" variants={staggerContainer}>
         <h3>
           {' '}
           Alignment Actions (
@@ -241,14 +254,14 @@ export const AlignmentXPTracker: React.FC <AlignmentXPTrackerProps> = ({
 
         {filteredActions.length === 0
           ? (
-              <div className="alignment-xp-tracker__empty">
+              <motion.div className="alignment-xp-tracker__empty" variants={itemFadeIn} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
                 <p> No alignment actions logged yet. Log your first action to start earning XP!</p>
-              </div>
+              </motion.div>
             )
           : (
-              <div className="alignment-xp-tracker__actions-list">
+              <motion.div className="alignment-xp-tracker__actions-list" variants={staggerContainer}>
                 {filteredActions.map(action => (
-                  <div key={action.id} className="alignment-xp-tracker__action">
+                  <motion.div key={action.id} className="alignment-xp-tracker__action" variants={itemFadeIn} whileHover={prefersReduced ? undefined : { scale: 1.01 }}>
                     <div className="alignment-xp-tracker__action-header">
                       <span className={`alignment-xp-tracker__action-alignment ${getAlignmentColor(action.alignment)}`}>
                         {getAlignmentIcon(action.alignment)}
@@ -262,12 +275,14 @@ export const AlignmentXPTracker: React.FC <AlignmentXPTrackerProps> = ({
                         XP
                       </span>
                       <div className="alignment-xp-tracker__action-actions">
-                        <button
+                        <motion.button
                           onClick={() => handleDeleteAction(action.id)}
                           className="alignment-xp-tracker__action-btn alignment-xp-tracker__action-btn--delete"
+                          whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+                          whileTap={prefersReduced ? undefined : { scale: 0.98 }}
                         >
                           Delete
-                        </button>
+                        </motion.button>
                       </div>
                     </div>
 
@@ -293,11 +308,11 @@ export const AlignmentXPTracker: React.FC <AlignmentXPTrackerProps> = ({
                       <span>{new Date(action.timestamp).toLocaleDateString()}</span>
                       {action.xpTriggered && <span className="alignment-xp-tracker__xp-awarded">✨ XP Awarded</span>}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
-      </div>
+      </motion.div>
 
       {/* Create Action Modal */}
       {showActionForm && (
@@ -314,7 +329,7 @@ export const AlignmentXPTracker: React.FC <AlignmentXPTrackerProps> = ({
           setActionContext={setActionContext}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -345,6 +360,7 @@ const CreateAlignmentActionForm: React.FC <CreateAlignmentActionFormProps> = ({
   setActionContext,
 }) => {
   const alignmentActions = config.alignmentActions[character.alignment] || []
+  const prefersReduced = useReducedMotion()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -355,7 +371,7 @@ const CreateAlignmentActionForm: React.FC <CreateAlignmentActionFormProps> = ({
 
   return (
     <div className="alignment-xp-tracker__modal">
-      <div className="alignment-xp-tracker__modal-content">
+      <motion.div className="alignment-xp-tracker__modal-content" variants={fadeInUp} initial={prefersReduced ? false : 'hidden'} animate={prefersReduced ? undefined : 'visible'}>
         <h3> Log Alignment Action</h3>
 
         <div className="alignment-xp-tracker__character-preview">
@@ -369,19 +385,16 @@ const CreateAlignmentActionForm: React.FC <CreateAlignmentActionFormProps> = ({
         <form onSubmit={handleSubmit} className="alignment-xp-tracker__form">
           <div className="alignment-xp-tracker__form-group">
             <label> Alignment Action:</label>
-            <select
-              value={selectedAction}
-              onChange={e => setSelectedAction(e.target.value)}
-              required
-              aria-label="Select alignment action to log"
-            >
-              <option value="">Select an action...</option>
-              {alignmentActions.map(action => (
-                <option key={action || 'No action'} value={action || 'No action'}>
-                  {action || 'No action'}
-                </option>
-              ))}
-            </select>
+            <Select value={selectedAction} onValueChange={setSelectedAction}>
+              <SelectTrigger className="w-full"><SelectValue placeholder="Select an action..." /></SelectTrigger>
+              <SelectContent>
+                {alignmentActions.map(action => (
+                  <SelectItem key={action || 'No action'} value={action || 'No action'}>
+                    {action || 'No action'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="alignment-xp-tracker__form-group">
@@ -415,18 +428,18 @@ const CreateAlignmentActionForm: React.FC <CreateAlignmentActionFormProps> = ({
           </div>
 
           <div className="alignment-xp-tracker__form-actions">
-            <button type="submit" className="alignment-xp-tracker__btn alignment-xp-tracker__btn--primary">
+            <motion.button type="submit" className="alignment-xp-tracker__btn alignment-xp-tracker__btn--primary" whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
               Log Action (+
               {config.xpPerAlignmentAction}
               {' '}
               XP)
-            </button>
-            <button type="button" onClick={onCancel} className="alignment-xp-tracker__btn">
+            </motion.button>
+            <motion.button type="button" onClick={onCancel} className="alignment-xp-tracker__btn" whileHover={prefersReduced ? undefined : { scale: 1.02 }} whileTap={prefersReduced ? undefined : { scale: 0.98 }}>
               Cancel
-            </button>
+            </motion.button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   )
 }
