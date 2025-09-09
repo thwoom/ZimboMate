@@ -50,13 +50,13 @@
   justify-content: center;
   z-index: 1000;
   padding: var(--spacing-lg);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
 }
 
 .move-details-modal {
   background: rgba(40,38,56,0.4);
-  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
