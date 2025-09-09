@@ -1,0 +1,2 @@
+# webhint ignores
+packages/task-manager/claude-task-master/apps/extension/src/webview/components/ToastNotification.tsx
