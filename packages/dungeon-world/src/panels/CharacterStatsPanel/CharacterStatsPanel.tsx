@@ -12,6 +12,8 @@ import { getClassMapping, isCaster } from '../../utils/conditionalContent'
 import { getEffectivePrefs, setStatsShowSpells, togglePanelOverride } from '../../utils/preferences'
 import { getAttributeTooltip, getEncumbranceTier, getSpellBudgetProgress, getXpToNext } from '../../utils/statsPanelHelpers'
 import { getClassBaseLoad, getEffectiveModifier as getEffectiveModifierModel, getXPThreshold } from '../../models/Character'
+import type { Character } from '../../models/Character'
+import type { LevelUpResult } from '../../services/SpecialMovesService'
 import './CharacterStatsPanel.css'
 import Tooltip from '../../components/Tooltip'
 
@@ -168,10 +170,10 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
     setShowLevelUpModal(true)
   }, [])
 
-  const handleLevelUpConfirm = useCallback((result: unknown, advancementChoice?: string) => {
+  const handleLevelUpConfirm = useCallback((result: LevelUpResult, advancementChoice?: string) => {
     if (character && result.success) {
       // Update character with new level and XP
-      const updates: unknown = {
+      const updates: Partial<Character> = {
         level: result.newLevel,
         xp: result.newXP,
       }
@@ -188,7 +190,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         updates.advancements = [...(character.advancements || []), newAdvancement]
       }
 
-      (updateCharacter as string)(character.id, updates)
+      updateCharacter(character.id, updates)
     }
     setShowLevelUpModal(false)
   }, [character, updateCharacter])
