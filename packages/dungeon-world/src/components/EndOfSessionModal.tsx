@@ -58,8 +58,8 @@ const EndOfSessionModal: React.FC <EndOfSessionModalProps> = ({
   const totalXP = character.xp + xpGained
 
   return (
-    <div className="modal-overlay">
-      <div className="end-of-session-modal">
+    <div className="modal-overlay bg-black/40 backdrop-blur-sm">
+      <div className="end-of-session-modal bg-white/10 dark:bg-white/10 backdrop-blur-2xl border border-white/20">
         <div className="modal-header">
           <h2>🏁 End of Session</h2>
           <button className="modal-close" onClick={handleCancel}>

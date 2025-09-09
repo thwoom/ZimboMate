@@ -10,7 +10,6 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-lg);
-  background-color: var(--color-background);
   border-bottom: 1px solid var(--color-border);
   height: var(--header-height);
   flex-shrink: 0;
@@ -37,7 +36,6 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-xl);
-  background-color: var(--color-background);
 }
 
 /* Remove padding for character creation panel to allow full width */
@@ -52,8 +50,7 @@
   justify-content: center;
   height: 100%;
   min-height: 400px;
-  background-color: var(--color-surface);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: var(--spacing-xl);
   text-align: center;
 }

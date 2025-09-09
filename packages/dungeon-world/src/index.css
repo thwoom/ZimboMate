@@ -1,5 +1,10 @@
-/* Import Rose Pine Theme Variables */
+/* Imports must come first */
 @import './styles/rose-pine-variables.css';
+@import './styles/glass.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Layout Variables (Rose Pine theme handles colors) */
 :root {
@@ -23,6 +28,9 @@ body {
   background-color: var(--color-background);
   line-height: 1.5;
 }
+
+/* Ensure gradient applies to html/body/#root for backdrop-clip */
+html, body, #root { height: 100%; }
 
 h1,
 h2,

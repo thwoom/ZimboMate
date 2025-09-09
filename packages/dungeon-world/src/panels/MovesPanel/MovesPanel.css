@@ -6,7 +6,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-background);
+  background-color: transparent;
 }
 
 /* Header */
@@ -16,7 +16,7 @@
   justify-content: space-between;
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-surface);
+  background-color: transparent;
 }
 
 .moves-panel__header h2 {
@@ -64,7 +64,7 @@
 /* Controls */
 .moves-panel__controls {
   padding: var(--spacing-lg);
-  background-color: var(--color-surface);
+  background-color: transparent;
   border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
@@ -82,7 +82,9 @@
   border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 1rem;
-  background-color: var(--color-background);
+  background-color: rgba(255,255,255,0.06);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   color: var(--color-text-primary);
 }
 
@@ -154,7 +156,9 @@
   border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 1rem;
-  background-color: var(--color-background);
+  background-color: rgba(255,255,255,0.06);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   color: var(--color-text-primary);
 }
 
@@ -176,7 +180,7 @@
 /* Suggestions Section */
 .suggestions-section {
   padding: var(--spacing-lg);
-  background-color: var(--color-surface);
+  background-color: transparent;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -194,7 +198,9 @@
 
 .suggestion-card {
   padding: var(--spacing-md);
-  background-color: var(--color-background);
+  background-color: rgba(40,38,56,0.4);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
   border-radius: 6px;
   border-left: 3px solid var(--color-border);
   transition: all var(--transition-fast);
@@ -257,7 +263,7 @@
 /* Insights Section */
 .insights-section {
   padding: var(--spacing-lg);
-  background-color: var(--color-surface);
+  background-color: transparent;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -275,7 +281,9 @@
 
 .insight-item {
   padding: var(--spacing-md);
-  background-color: var(--color-background);
+  background-color: rgba(40,38,56,0.4);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
   border-radius: 6px;
   border-left: 3px solid var(--color-border);
 }
@@ -352,7 +360,9 @@
 /* Roll History Sidebar */
 .roll-history {
   width: 350px;
-  background-color: var(--color-surface);
+  background-color: rgba(40,38,56,0.35);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border-left: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
@@ -403,7 +413,9 @@
 .roll-item {
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-sm);
-  background-color: var(--color-background);
+  background-color: rgba(40,38,56,0.4);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border-radius: 6px;
   border-left: 3px solid var(--color-border);
   transition: all var(--transition-fast);
@@ -547,7 +559,9 @@
 
 /* Enhanced Dice Section */
 .enhanced-dice-section {
-  background: var(--color-surface);
+  background: rgba(40,38,56,0.4);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
@@ -562,7 +576,9 @@
 
 /* Spells Section */
 .spells-section {
-  background: var(--color-surface);
+  background: rgba(40,38,56,0.4);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   margin: 0 var(--spacing-lg);
@@ -581,7 +597,7 @@
 .spells-budget__bar {
   height: 8px;
   width: 100%;
-  background: var(--color-background);
+  background: rgba(255,255,255,0.08);
   border-radius: 999px;
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -590,10 +606,10 @@
 .spells-progress {
   width: 100%;
   height: 8px;
-  appearance: none;
   -webkit-appearance: none;
+  appearance: none;
 }
-.spells-progress::-webkit-progress-bar { background-color: var(--color-background); }
+.spells-progress::-webkit-progress-bar { background-color: rgba(255,255,255,0.12); }
 .spells-progress::-webkit-progress-value { background-color: var(--color-primary); }
 
 .spells-list {

@@ -20,7 +20,10 @@
 }
 
 .test-section {
-  background: var(--color-surface);
+  background: rgba(40,38,56,0.40);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: 8px;
   padding: 15px;
   box-shadow: 0 2px 4px var(--color-shadow);
@@ -49,7 +52,10 @@
 }
 
 .stat-grid > div {
-  background: var(--color-background);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 8px;
   border-radius: 4px;
@@ -63,7 +69,10 @@
 }
 
 .attribute-box {
-  background: var(--color-background);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 10px;
   border-radius: 4px;
@@ -99,7 +108,10 @@
 }
 
 .item-row {
-  background: var(--color-background);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 10px;
   border-radius: 4px;
@@ -127,7 +139,10 @@
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  background: var(--color-background);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   border-radius: 4px;
   font-size: 14px;
@@ -146,28 +161,27 @@
   padding: 8px;
   border-radius: 4px;
   font-size: 14px;
-  background: var(--color-background);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 3px solid var(--color-border);
   color: var(--color-text-primary);
 }
 
-.roll-result.success {
-  background: var(--color-success-light);
-  color: var(--color-success-text);
-}
+.roll-result.success { border-left-color: var(--color-success); }
 
-.roll-result.partial {
-  background: var(--color-warning-light);
-  color: var(--color-warning-text);
-}
+.roll-result.partial { border-left-color: var(--color-warning); }
 
-.roll-result.failure {
-  background: var(--color-danger-light);
-  color: var(--color-danger-text);
-}
+.roll-result.failure { border-left-color: var(--color-danger); }
 
 /* Validation Section */
 .validation-errors {
-  background: var(--color-danger-light);
+  background: rgba(40,38,56,0.40);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 3px solid var(--color-danger);
   color: var(--color-danger-text);
   padding: 10px;
   border-radius: 4px;
@@ -175,7 +189,11 @@
 }
 
 .validation-warnings {
-  background: var(--color-warning-light);
+  background: rgba(40,38,56,0.40);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 3px solid var(--color-warning);
   color: var(--color-warning-text);
   padding: 10px;
   border-radius: 4px;
@@ -183,7 +201,11 @@
 }
 
 .validation-success {
-  background: var(--color-success-light);
+  background: rgba(40,38,56,0.40);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-left: 3px solid var(--color-success);
   color: var(--color-success-text);
   padding: 10px;
   border-radius: 4px;
@@ -205,7 +227,10 @@
 .save-info {
   margin-top: 10px;
   padding: 10px;
-  background: var(--color-background);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   border-radius: 4px;
   font-size: 14px;
@@ -281,7 +306,10 @@ button:disabled {
 
 /* Calculation breakdown styles */
 .test-playground .calc-breakdown {
-  background: var(--color-background);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 10px;
   border-radius: 4px;
@@ -309,7 +337,10 @@ button:disabled {
 }
 
 .test-playground .modifier-grid > div {
-  background: var(--color-background);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 8px;
   border-radius: 4px;

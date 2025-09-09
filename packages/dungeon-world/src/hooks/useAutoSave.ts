@@ -40,9 +40,9 @@ export function useAutoSave(
         onSave(stateToSave)
       }
     }
-    catch {
+    catch (e) {
       if (onError) {
-        onError(error as Error)
+        onError(e as Error)
       }
     }
     finally {

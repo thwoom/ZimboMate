@@ -73,9 +73,9 @@ const SpellConsequenceModal: React.FC <SpellConsequenceModalProps> = ({
   const forgetLabel = casterClass === 'Cleric' ? 'Spell is revoked (remove from prepared)' : 'Forget the spell (remove from prepared)'
 
   return (
-    <div className="spell-modal__backdrop">
+    <div className="spell-modal__backdrop bg-black/40 backdrop-blur-sm">
       <div
-        className="spell-modal__dialog"
+        className="spell-modal__dialog bg-white/10 dark:bg-white/10 backdrop-blur-2xl border border-white/20"
         ref={dialogRef}
         role="dialog"
         aria-modal="true"

@@ -3,7 +3,21 @@
 .st-title { margin: 0 0 4px 0; font-size: 20px; }
 .st-subtitle { margin: 0; opacity: 0.8; }
 .st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.st-card { border: 1px solid var(--border-color, #333); border-radius: 6px; padding: 12px; background: var(--panel-bg, #111); }
+.st-card { border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 12px; background: rgba(40,38,56,0.40); -webkit-backdrop-filter: blur(12px) saturate(140%); backdrop-filter: blur(12px) saturate(140%); }
 .st-card__title { margin: 0 0 6px 0; font-size: 16px; }
 .st-card__text { margin: 0; opacity: 0.85; }
 .st-card--wide { grid-column: 1 / -1; }
+/* Inputs/selects/textarea glass */
+.session-tools-panel input,
+.session-tools-panel select,
+.session-tools-panel textarea {
+  background: rgba(255,255,255,0.06);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: var(--color-text-primary, #eaeaea);
+}
+.session-tools-panel input::placeholder,
+.session-tools-panel textarea::placeholder {
+  color: rgba(255,255,255,0.55);
+}

@@ -53,10 +53,12 @@ const LevelUpModal: React.FC <LevelUpModalProps> = ({
   const canLevelUp = SpecialMovesService.canLevelUp(character)
   const xpProgress = SpecialMovesService.getXPProgress(character)
   const nextLevelXP = SpecialMovesService.getNextLevelXP(character)
+  const xpWidthRounded = Math.max(0, Math.min(100, Math.round(xpProgress / 5) * 5))
+  const xpWidthClass = `xpw-${xpWidthRounded}`
 
   return (
-    <div className="modal-overlay">
-      <div className="level-up-modal">
+    <div className="modal-overlay bg-black/40 backdrop-blur-sm">
+      <div className="level-up-modal bg-white/10 dark:bg-white/10 backdrop-blur-2xl border border-white/20">
         <div className="modal-header">
           <h2>🎉 Level Up!</h2>
           <button className="modal-close" onClick={handleCancel}>
@@ -90,10 +92,7 @@ const LevelUpModal: React.FC <LevelUpModalProps> = ({
                       {nextLevelXP}
                     </div>
                     <div className="xp-progress-bar">
-                      <div
-                        className="xp-progress-fill"
-                        style={{ width: `${xpProgress}%` }}
-                      />
+                      <div className={`xp-progress-fill ${xpWidthClass}`} />
                     </div>
                     <div className="xp-progress-percentage">
                       {Math.round(xpProgress)}

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-surface);
+  background: transparent;
   color: var(--color-text-primary);
   padding: var(--spacing-lg);
   gap: var(--spacing-lg);
@@ -33,7 +33,7 @@
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: rgba(255,255,255,0.06);
   color: var(--color-text-primary);
   font-size: 0.875rem;
   min-width: 200px;
@@ -43,7 +43,7 @@
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-danger);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: rgba(255,255,255,0.06);
   color: var(--color-danger);
   font-size: 0.875rem;
   cursor: pointer;
@@ -62,8 +62,10 @@
 
 /* Campaign Info */
 .campaign-info {
-  background: var(--color-overlay);
-  border: 1px solid var(--color-border);
+  background: rgba(40,38,56,0.35);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
 }
@@ -139,7 +141,7 @@
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: rgba(255,255,255,0.06);
   color: var(--color-text-primary);
   font-size: 0.875rem;
 }
@@ -191,8 +193,10 @@
 
 /* Item Cards */
 .campaign-item-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgba(40,38,56,0.40);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   transition: all 0.2s ease;
@@ -226,7 +230,7 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: rgba(255,255,255,0.06);
   color: var(--color-text-primary);
   font-size: 0.75rem;
   cursor: pointer;
@@ -305,18 +309,20 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
 }
 
 .modal {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgba(40,38,56,0.45);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.14);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   max-width: 500px;
@@ -351,7 +357,7 @@
   padding: var(--spacing-sm);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: rgba(255,255,255,0.06);
   color: var(--color-text-primary);
   font-size: 0.875rem;
   font-family: inherit;
@@ -386,7 +392,7 @@
   padding: var(--spacing-sm) var(--spacing-lg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: rgba(255,255,255,0.06);
   color: var(--color-text-primary);
   font-size: 0.875rem;
   cursor: pointer;

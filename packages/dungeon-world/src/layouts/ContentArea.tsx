@@ -26,7 +26,7 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
 
   return (
     <div className="content-area">
-      <header className="content-area__header">
+      <header className="content-area__header bg-transparent">
         <h2 className="content-area__title">{panelTitle}</h2>
         {process.env.NODE_ENV === 'development' && activePanelId === 'character-creation' && (
           <button
@@ -39,7 +39,7 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
         )}
       </header>
 
-      <div className={`content-area__body ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
+      <div className={`content-area__body bg-transparent ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
         {panelCount > 0
           ? (
               <PanelRouter
@@ -48,7 +48,7 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
               />
             )
           : (
-              <div className="content-area__placeholder">
+              <div className="content-area__placeholder glass-panel">
                 <p> No panels registered</p>
                 <p> Panels will appear here once they are registered in the system</p>
               </div>

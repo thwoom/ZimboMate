@@ -25,8 +25,8 @@ const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
   }, [onClose])
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" className="shortcuts-overlay">
-      <div className="shortcuts-overlay__panel">
+    <div role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" className="shortcuts-overlay glass-overlay">
+      <div className="shortcuts-overlay__panel glass-modal">
         <div className="shortcuts-overlay__header">
           <h2 id="shortcuts-title">Keyboard Shortcuts</h2>
           <button type="button" className="shortcuts-overlay__close" aria-label="Close" onClick={onClose}>×</button>

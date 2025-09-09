@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useGameStore } from '../../store/GameStore'
 import { exportKeymap, getRegisteredShortcuts, importKeymap, remapShortcut } from '../../utils/KeyboardShortcuts'
 import { createPanel, type PanelProps } from '../../framework/Panel'
+import './IntegrationSettings.css'
 
 const IntegrationSettingsView: React.FC = () => {
   const { state, updateSettings } = useGameStore()
@@ -38,7 +39,7 @@ const IntegrationSettingsView: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="integration-settings">
       <h2>Integration Settings</h2>
       <label>
         <input type="checkbox" checked={s.contextMenuEnabled} onChange={e => updateSettings({ integration: { ...s, contextMenuEnabled: (e.target as HTMLInputElement).checked } })} />
@@ -70,7 +71,7 @@ const IntegrationSettingsView: React.FC = () => {
       <p>Remap existing shortcuts. Conflicts will be rejected.</p>
       <div>
         {list.map((i, idx) => (
-          <div key={`${i.normalized}-${idx}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+          <div key={`${i.normalized}-${idx}`} className="is-grid-row">
             <span title={i.scope ?? 'global'}>{i.description || 'Shortcut'}</span>
             <code>{i.combo}</code>
             <input type="text" placeholder="New combo (e.g., ctrl+shift+k)" aria-label={`Remap ${i.combo}`} onKeyDown={(e) => { if (e.key === 'Enter') doRemap(i.normalized, (e.target as HTMLInputElement).value) }} />
@@ -81,11 +82,11 @@ const IntegrationSettingsView: React.FC = () => {
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 12 }}>
+      <div className="is-button-row">
         <button type="button" onClick={doExport}>Export Keymap</button>
-        <button type="button" onClick={doImport} style={{ marginLeft: 8 }}>Import Keymap</button>
+        <button type="button" onClick={doImport}>Import Keymap</button>
       </div>
-      <textarea value={importText} onChange={e => setImportText((e.target as HTMLTextAreaElement).value)} placeholder="Paste keymap JSON here" rows={6} style={{ width: '100%', marginTop: 8 }} />
+      <textarea value={importText} onChange={e => setImportText((e.target as HTMLTextAreaElement).value)} placeholder="Paste keymap JSON here" rows={6} className="is-textarea" />
     </div>
   )
 }

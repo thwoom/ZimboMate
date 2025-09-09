@@ -4,12 +4,12 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-background);
+  background: transparent;
 }
 
 .panel-header {
   padding: var(--spacing-lg);
-  background: var(--color-surface);
+  background: transparent;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -44,16 +44,20 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: var(--spacing-lg);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
 }
 
 .move-details-modal {
-  background: var(--color-surface);
+  background: rgba(40,38,56,0.4);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   max-width: 800px;
@@ -69,7 +73,9 @@
   align-items: center;
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-overlay);
+  background: rgba(40,38,56,0.35);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
@@ -112,7 +118,9 @@
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
   padding: var(--spacing-md);
-  background: var(--color-overlay);
+  background: rgba(40,38,56,0.35);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
 }
@@ -218,7 +226,7 @@
 
 .tags-list .tag {
   padding: 4px 8px;
-  background: var(--color-overlay);
+  background: rgba(40,38,56,0.35);
   border-radius: 12px;
   font-size: 0.75rem;
   color: var(--color-text-secondary);
@@ -279,7 +287,9 @@
 .move-character-context {
   margin-top: var(--spacing-lg);
   padding: var(--spacing-lg);
-  background: var(--color-overlay);
+  background: rgba(40,38,56,0.35);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
 }

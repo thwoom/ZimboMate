@@ -31,7 +31,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
 
   // Emit panel activation events for context-aware tools
   useEffect(() => {
-    panelEventBus.emit('main-layout', 'panel-activated', {
+    panelEventBus.emit('panel-activated', {
       panelId: activePanelId,
     })
   }, [activePanelId])
@@ -69,14 +69,14 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
 
   return (
     <div className="main-layout">
-      <aside className="main-layout__sidebar">
+      <aside className="main-layout__sidebar bg-white/15 dark:bg-white/10 backdrop-blur-2xl border border-white/20">
         <Sidebar
           activePanelId={activePanelId}
           onPanelSelect={setActivePanelId}
         />
       </aside>
 
-      <main className="main-layout__content">
+      <main className="main-layout__content bg-transparent">
         <ContentArea
           activePanelId={activePanelId}
         />

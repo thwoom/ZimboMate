@@ -13,8 +13,11 @@
 .equipment-header {
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: rgba(40,38,56,0.35);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--color-text-primary);
 }
 
 .equipment-header h2 {
@@ -57,14 +60,16 @@
 
 /* Equipment Item */
 .equipment-item {
-  background: white;
+  background: rgba(40,38,56,0.4);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-md);
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .equipment-item:hover {
@@ -176,7 +181,9 @@
 }
 
 .modal-content {
-  background: white;
+  background: rgba(40,38,56,0.45);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   max-width: 500px;

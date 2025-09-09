@@ -126,13 +126,13 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
   const toggleFavorite = (id: string) => {
     const next = new Set(favorites)
     if (next.has(id)) next.delete(id); else next.add(id)
-    updateSettings({ sidebarPrefs: { ...state.settings.sidebarPrefs, favorites: Array.from(next) } })
+    updateSettings({ sidebarPrefs: { favorites: Array.from(next), collapsedSections: state.settings.sidebarPrefs?.collapsedSections || [], order: state.settings.sidebarPrefs?.order || [], recents: state.settings.sidebarPrefs?.recents || [] } })
   }
 
   const toggleCollapsed = (key: string) => {
     const next = new Set(collapsed)
     if (next.has(key)) next.delete(key); else next.add(key)
-    updateSettings({ sidebarPrefs: { ...state.settings.sidebarPrefs, collapsedSections: Array.from(next) } })
+    updateSettings({ sidebarPrefs: { favorites: state.settings.sidebarPrefs?.favorites || [], collapsedSections: Array.from(next), order: state.settings.sidebarPrefs?.order || [], recents: state.settings.sidebarPrefs?.recents || [] } })
   }
 
   const filteredByQuery = memoizedPanels.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
@@ -158,8 +158,8 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
   const hiddenCount = Math.max(0, totalRegistered - panels.length)
 
   return (
-    <div className="sidebar">
-      <div className="sidebar__header">
+    <div className="sidebar bg-white/10 dark:bg-white/10 backdrop-blur-2xl saturate-150 border border-white/20 rounded-none">
+      <div className="sidebar__header glass-header">
         <h1 className="sidebar__title">Dungeon World</h1>
       </div>
 
@@ -178,12 +178,12 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
       )}
 
       {showQuickOpen && (
-        <div className="quick-open">
+        <div className="quick-open glass-panel">
           <input className="quick-open__input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Quick open panel..." />
           <div className="quick-open__list">
             {filteredByQuery.map(p => (
               <div key={`qo-${p.id}`} className="quick-open__item" onClick={() => { onPanelSelect?.(p.id); setShowQuickOpen(false) }}>
-                {p.icon} {p.name} <span style={{ opacity: 0.7, marginLeft: 6 }}>({sectionLabels[categorize(p)]})</span>
+                {p.icon} {p.name} <span className="sidebar__section-label">({sectionLabels[categorize(p)]})</span>
               </div>
             ))}
           </div>
@@ -193,7 +193,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
       <nav className="sidebar__nav" ref={navRef}>
         {/* Favorites Section */}
         <div className="sidebar__section">
-          <button className="sidebar__section-header" aria-expanded={!collapsed.has('favorites')} aria-controls="sec-favorites" onClick={() => toggleCollapsed('favorites')} type="button">
+          <button className="sidebar__section-header" aria-controls="sec-favorites" onClick={() => toggleCollapsed('favorites')} type="button">
             <span>Favorites</span>
             <span className="sidebar__badge">{favoritePanels.length}</span>
           </button>
@@ -230,7 +230,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
         {/* Grouped Sections */}
         {sectionsOrder.map((sec) => (
           <div key={`sec-${sec}`} className="sidebar__section">
-            <button className="sidebar__section-header" aria-expanded={!collapsed.has(`sec:${sec}`)} aria-controls={`sec-${sec}-list`} onClick={() => toggleCollapsed(`sec:${sec}`)} type="button">
+            <button className="sidebar__section-header" aria-controls={`sec-${sec}-list`} onClick={() => toggleCollapsed(`sec:${sec}`)} type="button">
               <span>{sectionLabels[sec]}</span>
               <span className="sidebar__badge">{grouped[sec].length}</span>
             </button>
@@ -263,7 +263,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
         ))}
       </nav>
 
-      <div className="sidebar__footer">
+      <div className="sidebar__footer glass-header">
         <button className="sidebar__settings-button" type="button">
           <span className="sidebar__nav-icon">⚙️</span>
           <span className="sidebar__nav-text">Settings</span>

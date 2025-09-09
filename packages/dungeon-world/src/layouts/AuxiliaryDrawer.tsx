@@ -31,8 +31,8 @@ const AuxiliaryDrawer: React.FC <AuxiliaryDrawerProps> = ({ onClose }) => {
     return unsubscribe
   }, [])
   return (
-    <div className="auxiliary-drawer">
-      <header className="auxiliary-drawer__header">
+    <div className="auxiliary-drawer glass-surface">
+      <header className="auxiliary-drawer__header glass-header">
         <h3 className="auxiliary-drawer__title">Quick Tools</h3>
         <button
           className="auxiliary-drawer__close-button"
@@ -71,7 +71,7 @@ const AuxiliaryDrawer: React.FC <AuxiliaryDrawerProps> = ({ onClose }) => {
               Roll 2d6
             </button>
             {lastRoll !== null && (
-              <div className="dice-result">
+              <div className="dice-result glass-panel">
                 <p className="dice-result__total">
                   {lastRoll.total}
                 </p>

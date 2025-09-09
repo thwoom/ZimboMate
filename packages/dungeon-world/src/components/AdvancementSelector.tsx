@@ -248,12 +248,12 @@ export const AdvancementSelector: React.FC <AdvancementSelectorProps> = ({
               {classMoves.map(move => (
                 <div
                   key={move.id}
-                  className={`advancement-card move-card ${currentAdvancement?.selectedMove?.id === move.id ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
+                  className={`advancement-card move-card ${_currentAdvancement?.selectedMove?.id === move.id ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
                   onClick={() => handleMoveSelect(move)}
                 >
                   <div className="advancement-header">
                     <h6>{move.name}</h6>
-                    {currentAdvancement?.selectedMove?.id === move.id && <span className="selected-indicator">✓</span>}
+                    {_currentAdvancement?.selectedMove?.id === move.id && <span className="selected-indicator">✓</span>}
                   </div>
                   <p className="advancement-description">{move.description}</p>
                   {move.prerequisites && move.prerequisites.length > 0 && (
@@ -279,12 +279,12 @@ export const AdvancementSelector: React.FC <AdvancementSelectorProps> = ({
               {multiclassMoves.map(move => (
                 <div
                   key={move.id}
-                  className={`advancement-card move-card multiclass ${currentAdvancement?.selectedMove?.id === move.id ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
+                  className={`advancement-card move-card multiclass ${_currentAdvancement?.selectedMove?.id === move.id ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
                   onClick={() => handleMoveSelect(move)}
                 >
                   <div className="advancement-header">
                     <h6>{move.name}</h6>
-                    {currentAdvancement?.selectedMove?.id === move.id && <span className="selected-indicator">✓</span>}
+                    {_currentAdvancement?.selectedMove?.id === move.id && <span className="selected-indicator">✓</span>}
                     <span className="multiclass-badge">{move.sourceClass}</span>
                   </div>
                   <p className="advancement-description">{move.description}</p>
@@ -335,12 +335,12 @@ export const AdvancementSelector: React.FC <AdvancementSelectorProps> = ({
             {availableStats.map(stat => (
               <div
                 key={stat.id}
-                className={`advancement-card stat-card ${currentAdvancement?.selectedStat?.id === stat.id ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
+                className={`advancement-card stat-card ${_currentAdvancement?.selectedStat?.id === stat.id ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
                 onClick={() => handleStatSelect(stat)}
               >
                 <div className="advancement-header">
                   <h6>{stat.name}</h6>
-                  {currentAdvancement?.selectedStat?.id === stat.id && <span className="selected-indicator">✓</span>}
+                  {_currentAdvancement?.selectedStat?.id === stat.id && <span className="selected-indicator">✓</span>}
                 </div>
                 <p className="advancement-description">{stat.description}</p>
                 {stat.attribute === 'CON' && (
@@ -484,7 +484,7 @@ export const AdvancementSelector: React.FC <AdvancementSelectorProps> = ({
 
       {/* Validation and Status */}
       {(() => {
-        const _currentAdvancement = getCurrentLevelAdvancement()
+        const currentAdvancement = getCurrentLevelAdvancement()
         if (!currentAdvancement)
           return null
 
@@ -496,7 +496,7 @@ export const AdvancementSelector: React.FC <AdvancementSelectorProps> = ({
                   <div key={index} className="error-message">
                     ⚠️
                     {' '}
-                    {error}
+                    {item}
                   </div>
                 ))}
               </div>

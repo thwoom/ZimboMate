@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-surface);
+  background: transparent;
   color: var(--color-text-primary);
   padding: var(--spacing-lg);
   gap: var(--spacing-lg);
@@ -42,8 +42,10 @@
 
 /* XP Progress Section */
 .xp-progress-section {
-  background: var(--color-overlay);
-  border: 1px solid var(--color-border);
+  background: rgba(40,38,56,0.35);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
 }
@@ -100,8 +102,10 @@
 }
 
 .special-move-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgba(40,38,56,0.4);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   transition: all 0.2s ease;
@@ -151,7 +155,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-overlay);
+  background: rgba(255,255,255,0.08);
   border-radius: var(--radius-md);
 }
 
@@ -252,8 +256,10 @@
 
 /* Character Status */
 .character-status {
-  background: var(--color-overlay);
-  border: 1px solid var(--color-border);
+  background: rgba(40,38,56,0.35);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
 }
@@ -276,7 +282,7 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-sm);
-  background: var(--color-surface);
+  background: rgba(255,255,255,0.06);
   border-radius: var(--radius-md);
 }
 
