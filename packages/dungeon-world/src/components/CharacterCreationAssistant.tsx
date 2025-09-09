@@ -431,8 +431,7 @@ export const CharacterCreationAssistant: React.FC <CharacterCreationAssistantPro
       <div className="progress-indicator">
         <div className="progress-bar">
           <div
-            className="progress-fill"
-            style={{ '--progress': `${((Object.keys(STEP_INFO).indexOf(currentStep) + 1) / 13) * 100}%` } as React.CSSProperties}
+            className={`progress-fill pf-step-${Object.keys(STEP_INFO).indexOf(currentStep) + 1}`}
           />
         </div>
         <span className="progress-text">
