@@ -12,7 +12,7 @@ import { getClassMapping, isCaster } from '../../utils/conditionalContent'
 import { getEffectivePrefs, setStatsShowSpells, togglePanelOverride } from '../../utils/preferences'
 import { getAttributeTooltip, getEncumbranceTier, getSpellBudgetProgress, getXpToNext } from '../../utils/statsPanelHelpers'
 import { getClassBaseLoad, getEffectiveModifier as getEffectiveModifierModel, getXPThreshold } from '../../models/Character'
-import type { Character } from '../../models/Character'
+import type { Character, AdvancementChoice } from '../../models/Character'
 import type { LevelUpResult } from '../../services/SpecialMovesService'
 import './CharacterStatsPanel.css'
 import Tooltip from '../../components/Tooltip'
@@ -180,7 +180,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
 
       // Add advancement choice to character's advancement history
       if (advancementChoice) {
-        const newAdvancement = {
+        const newAdvancement: AdvancementChoice = {
           level: result.newLevel,
           type: advancementChoice.includes('Increase') ? 'stat' : 'move',
           choice: advancementChoice,
