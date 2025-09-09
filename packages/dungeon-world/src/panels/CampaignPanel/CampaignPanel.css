@@ -63,8 +63,8 @@
 /* Campaign Info */
 .campaign-info {
   background: rgba(40,38,56,0.35);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
@@ -194,8 +194,8 @@
 /* Item Cards */
 .campaign-item-card {
   background: rgba(40,38,56,0.40);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
@@ -314,14 +314,14 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .modal {
   background: rgba(40,38,56,0.45);
+  backdrop-filter: blur(12px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);

@@ -21,8 +21,8 @@
 
 .test-section {
   background: rgba(40,38,56,0.40);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 8px;
   padding: 15px;
@@ -53,8 +53,8 @@
 
 .stat-grid > div {
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 8px;
@@ -70,8 +70,8 @@
 
 .attribute-box {
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 10px;
@@ -109,8 +109,8 @@
 
 .item-row {
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 10px;
@@ -140,8 +140,8 @@
   justify-content: space-between;
   padding: 10px;
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   border-radius: 4px;
@@ -162,8 +162,8 @@
   border-radius: 4px;
   font-size: 14px;
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   border-left: 3px solid var(--color-border);
   color: var(--color-text-primary);
@@ -178,8 +178,8 @@
 /* Validation Section */
 .validation-errors {
   background: rgba(40,38,56,0.40);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   border-left: 3px solid var(--color-danger);
   color: var(--color-danger-text);
@@ -190,8 +190,8 @@
 
 .validation-warnings {
   background: rgba(40,38,56,0.40);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   border-left: 3px solid var(--color-warning);
   color: var(--color-warning-text);
@@ -202,8 +202,8 @@
 
 .validation-success {
   background: rgba(40,38,56,0.40);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   border-left: 3px solid var(--color-success);
   color: var(--color-success-text);
@@ -228,8 +228,8 @@
   margin-top: 10px;
   padding: 10px;
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   border-radius: 4px;
@@ -307,8 +307,8 @@ button:disabled {
 /* Calculation breakdown styles */
 .test-playground .calc-breakdown {
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 10px;
@@ -338,8 +338,8 @@ button:disabled {
 
 .test-playground .modifier-grid > div {
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--color-text-primary);
   padding: 8px;

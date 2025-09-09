@@ -1,7 +1,7 @@
 .calculation-history {
   background: rgba(40,38,56,0.40);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
   padding: 16px;
@@ -34,8 +34,8 @@
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: 4px;
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   font-size: 0.875rem;
 }
 
@@ -45,8 +45,8 @@
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: 4px;
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -86,8 +86,8 @@
   transition: all 0.2s;
   cursor: pointer;
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
 }
 
 .history-item:hover {
@@ -175,8 +175,8 @@
   margin-top: 12px;
   padding: 12px;
   background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(8px) saturate(140%);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
   border-radius: 4px;
   font-size: 0.8rem;
 }
