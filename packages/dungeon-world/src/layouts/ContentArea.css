@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  min-height: 0; /* allow inner flex child to scroll */
   background: transparent !important;
 }
 
@@ -36,6 +37,7 @@
 
 .content-area__body {
   flex: 1;
+  min-height: 0; /* ensure this flex child can shrink and scroll */
   overflow-y: auto;
   padding: var(--spacing-xl);
   background: transparent !important;

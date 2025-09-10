@@ -34,6 +34,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0; /* allow child flex scroller to actually scroll */
   background-color: transparent;
   background: transparent !important;
   transform: translateZ(0);
@@ -56,12 +57,14 @@
 
 .content-float {
   margin: 16px;
-  margin-top: 72px;
   /* Baseline offset to account for collapsed rail */
   margin-left: calc(var(--rail-offset) + var(--rail-collapsed) + var(--rail-gap));
   padding: 12px;
-  height: 100%;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: visible;
+  min-height: 0; /* ensure inner flex child can scroll */
   min-width: 0;
   background: transparent !important;
   position: relative;

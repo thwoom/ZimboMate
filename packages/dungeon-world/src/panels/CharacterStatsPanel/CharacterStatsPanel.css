@@ -4,7 +4,7 @@
 }
 .character-stats-panel {
   padding: var(--spacing-xl);
-  height: 100%;
+  min-height: 100%;
   overflow: visible;
   background: transparent !important; /* ensure no opaque panel background */
 }
