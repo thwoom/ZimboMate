@@ -11,6 +11,9 @@ import './Sidebar.css'
 interface SidebarProps {
   activePanelId?: string
   onPanelSelect?: (panelId: string) => void
+  overlay?: boolean
+  open?: boolean
+  onRequestClose?: () => void
 }
 
 type SectionKey = 'gameplay' | 'tools' | 'settings' | 'development'
@@ -51,7 +54,7 @@ function getBadgeCount(panelId: string): number {
   return 0
 }
 
-const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
+const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overlay, open, onRequestClose }) => {
   const [panels, setPanels] = useState <PanelMetadata[]>([])
   const { state, updateSettings } = useGameStore()
   const [showQuickOpen, setShowQuickOpen] = useState(false)
@@ -157,8 +160,24 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect }) => {
   }, [state])
   const hiddenCount = Math.max(0, totalRegistered - panels.length)
 
+  const rootClasses = [
+    'sidebar',
+    'bg-white/10',
+    'dark:bg-white/10',
+    'backdrop-blur-2xl',
+    'saturate-150',
+    'border',
+    'border-white/20',
+    overlay ? 'sidebar--overlay floating-glass' : 'rounded-none',
+  ].join(' ')
+
+  const rootA11yProps = overlay ? ({ role: 'dialog', 'aria-modal': 'true' } as const) : {}
+
   return (
-    <div className="sidebar bg-white/10 dark:bg-white/10 backdrop-blur-2xl saturate-150 border border-white/20 rounded-none">
+    <div className={rootClasses} data-open={overlay ? String(!!open) : undefined} {...rootA11yProps}>
+      {overlay && (
+        <button className="sidebar__overlay-dismiss" aria-label="Close navigation" onClick={onRequestClose} type="button" />
+      )}
       <div className="sidebar__header glass-header">
         <h1 className="sidebar__title">Dungeon World</h1>
       </div>

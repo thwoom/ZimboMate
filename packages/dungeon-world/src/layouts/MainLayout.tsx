@@ -7,6 +7,7 @@ import { panelEventBus } from '../framework/PanelAPI'
 import { useGameStore } from '../store/GameStore'
 import ContentArea from './ContentArea'
 import Sidebar from './Sidebar'
+import GlassTopNav from './GlassTopNav'
 import './MainLayout.css'
 
 interface MainLayoutProps {
@@ -16,6 +17,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC <MainLayoutProps> = () => {
   const [activePanelId, setActivePanelId] = useState <string>('character-stats')
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [isNavOpen, setIsNavOpen] = useState(false)
   const { state } = useGameStore()
 
   // Listen for navigation events from panels
@@ -69,17 +71,23 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
 
   return (
     <div className="main-layout">
-      <aside className="main-layout__sidebar bg-white/15 dark:bg-white/10 backdrop-blur-2xl border border-white/20">
-        <Sidebar
-          activePanelId={activePanelId}
-          onPanelSelect={setActivePanelId}
-        />
-      </aside>
+      <GlassTopNav onMenuClick={() => setIsNavOpen(v => !v)} />
 
-      <main className="main-layout__content bg-transparent">
-        <ContentArea
-          activePanelId={activePanelId}
-        />
+      {/* Overlay sidebar */}
+      <Sidebar
+        overlay
+        open={isNavOpen}
+        onRequestClose={() => setIsNavOpen(false)}
+        activePanelId={activePanelId}
+        onPanelSelect={(id) => { setActivePanelId(id); setIsNavOpen(false) }}
+      />
+
+      <main className="main-layout__content">
+        <div className="content-float floating-glass">
+          <ContentArea
+            activePanelId={activePanelId}
+          />
+        </div>
       </main>
 
       {/* Unified Quick Tools */}
