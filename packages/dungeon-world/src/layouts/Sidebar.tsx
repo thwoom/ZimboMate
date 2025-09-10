@@ -181,6 +181,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
 
   return (
     <div className={rootClasses}>
+      <div className="sidebar__inner">
 
       {/* Notice removed in minimized rail UX */}
 
@@ -204,6 +205,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
           ))}
         </ul>
       </nav>
+      </div>
     </div>
   )
 }
