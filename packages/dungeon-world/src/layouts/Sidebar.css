@@ -13,11 +13,11 @@
   left: 16px;
   width: 300px; /* fixed container width */
   z-index: 1050;
-  border-radius: 18px;
-  overflow: hidden;
+  /* Avoid double rounding artifacts-clip-path handles the rounding */
   transform: translateZ(0);
   backface-visibility: hidden;
   contain: layout paint style;
+  will-change: clip-path;
   /* visually collapsed to ~64px */
   clip-path: inset(0 236px 0 0 round 18px);
   transition: clip-path 220ms ease;
@@ -29,6 +29,8 @@
   transition: box-shadow 220ms ease;
   transform: translateX(0);
   box-shadow: none;
+  border-radius: 18px; /* keep rounding on inner only to avoid edge shimmering */
+  overflow: hidden; /* clip inner glass to rounded edge */
 }
 
 .sidebar:hover {

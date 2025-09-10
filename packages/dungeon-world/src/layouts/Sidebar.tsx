@@ -170,18 +170,16 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
 
   const rootClasses = [
     'sidebar',
+  ].join(' ')
+
+  const innerClasses = [
+    'sidebar__inner',
     'floating-glass',
-    'bg-white/10',
-    'dark:bg-white/10',
-    'backdrop-blur-2xl',
-    'saturate-150',
-    'border',
-    'border-white/20',
   ].join(' ')
 
   return (
     <div className={rootClasses}>
-      <div className="sidebar__inner">
+      <div className={innerClasses}>
 
       {/* Notice removed in minimized rail UX */}
 
