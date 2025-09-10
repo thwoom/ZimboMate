@@ -17,7 +17,6 @@ interface MainLayoutProps {
 const MainLayout: React.FC <MainLayoutProps> = () => {
   const [activePanelId, setActivePanelId] = useState <string>('character-stats')
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [isNavOpen, setIsNavOpen] = useState(false)
   const { state } = useGameStore()
 
   // Listen for navigation events from panels
@@ -71,15 +70,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
 
   return (
     <div className="main-layout">
-      <GlassTopNav onMenuClick={() => setIsNavOpen(v => !v)} />
+      <GlassTopNav />
 
-      {/* Overlay sidebar */}
+      {/* Hover-to-expand minimal sidebar */}
       <Sidebar
-        overlay
-        open={isNavOpen}
-        onRequestClose={() => setIsNavOpen(false)}
         activePanelId={activePanelId}
-        onPanelSelect={(id) => { setActivePanelId(id); setIsNavOpen(false) }}
+        onPanelSelect={(id) => { setActivePanelId(id) }}
       />
 
       <main className="main-layout__content">
