@@ -7,6 +7,9 @@
 
 /* Fixed rail overlay (original behavior) */
 .sidebar {
+  --rail-radius: 18px; /* base logical radius */
+  --rail-inner-radius: var(--rail-radius);
+  --rail-clip-radius: calc(var(--rail-radius) + 1px); /* slightly larger to avoid seam */
   position: fixed;
   top: 72px;
   bottom: 16px;
@@ -19,7 +22,7 @@
   contain: layout paint style;
   will-change: clip-path;
   /* visually collapsed to ~64px */
-  clip-path: inset(0 236px 0 0 round 18px);
+  clip-path: inset(0 236px 0 0 round var(--rail-clip-radius));
   transition: clip-path 220ms ease;
 }
 
@@ -28,13 +31,52 @@
   height: 100%;
   transition: box-shadow 220ms ease;
   transform: translateX(0);
+  will-change: transform;
   box-shadow: none;
-  border-radius: 18px; /* keep rounding on inner only to avoid edge shimmering */
+  border-radius: var(--rail-inner-radius); /* keep rounding on inner only to avoid edge shimmering */
   overflow: hidden; /* clip inner glass to rounded edge */
+  background-clip: padding-box; /* avoid border bleed with blur */
+  position: relative; /* for pseudo-outline */
 }
 
+/* Thicker visual outline that doesn't affect layout (masks seam) */
+.sidebar__inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  /* buffer layer + thicker outline to mask seam */
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+}
+
+/* Isolate blur to a pseudo-element to reduce edge artifacts */
+.sidebar__inner.floating-glass {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 0; /* move border responsibility to outline */
+}
+.sidebar__inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+/* Prefer overflow: clip when supported for cleaner corners */
+@supports (overflow: clip) {
+  .sidebar__inner { overflow: clip; }
+}
+
+/* Ensure floating-glass doesn't override our radius */
+.sidebar__inner.floating-glass { border-radius: inherit; }
+
 .sidebar:hover {
-  clip-path: inset(0 0 0 0 round 18px);
+  clip-path: inset(0 0 0 0 round var(--rail-clip-radius));
 }
 
 /* Minimized rail: icons only */
