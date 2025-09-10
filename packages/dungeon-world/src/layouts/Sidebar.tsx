@@ -7,7 +7,19 @@ import { useGameStore } from '../store/GameStore'
 import { filterPanelsForCharacter } from '../utils/navigationFilter'
 import { panelEventBus } from '../framework/PanelAPI'
 import './Sidebar.css'
-import { HomeIcon, Cog6ToothIcon, BeakerIcon, CubeIcon } from '@heroicons/react/24/outline'
+import {
+  HomeIcon,
+  Cog6ToothIcon,
+  BeakerIcon,
+  BookOpenIcon,
+  ClipboardDocumentListIcon,
+  RectangleGroupIcon,
+  WrenchScrewdriverIcon,
+  CubeIcon,
+  UserIcon,
+  ArchiveBoxIcon,
+  MapIcon,
+} from '@heroicons/react/24/outline'
 
 interface SidebarProps {
   activePanelId?: string
@@ -128,10 +140,18 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
 
   const filteredByQuery = memoizedPanels.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
 
+  const I = (C: React.ComponentType<any>) => <C className="w-5 h-5" />
   const iconOverrides: Record<string, React.ReactNode> = {
-    'character-stats': <HomeIcon className="w-5 h-5" />,
-    'settings': <Cog6ToothIcon className="w-5 h-5" />,
-    'test-playground': <BeakerIcon className="w-5 h-5" />,
+    'character-stats': I(UserIcon),
+    'moves': I(ClipboardDocumentListIcon),
+    'move-library': I(BookOpenIcon),
+    'inventory': I(ArchiveBoxIcon),
+    'equipment': I(CubeIcon),
+    'campaign': I(MapIcon),
+    'content-studio': I(RectangleGroupIcon),
+    'session-tools': I(WrenchScrewdriverIcon),
+    'test-playground': I(BeakerIcon),
+    'settings': I(Cog6ToothIcon),
   }
 
   const allPanels = filteredByQuery.map(p => ({
