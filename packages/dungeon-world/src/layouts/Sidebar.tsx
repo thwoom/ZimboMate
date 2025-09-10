@@ -7,6 +7,7 @@ import { useGameStore } from '../store/GameStore'
 import { filterPanelsForCharacter } from '../utils/navigationFilter'
 import { panelEventBus } from '../framework/PanelAPI'
 import './Sidebar.css'
+import { HomeIcon, Cog6ToothIcon, BeakerIcon, CubeIcon } from '@heroicons/react/24/outline'
 
 interface SidebarProps {
   activePanelId?: string
@@ -127,7 +128,16 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
 
   const filteredByQuery = memoizedPanels.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
 
-  const allPanels = filteredByQuery
+  const iconOverrides: Record<string, React.ReactNode> = {
+    'character-stats': <HomeIcon className="w-5 h-5" />,
+    'settings': <Cog6ToothIcon className="w-5 h-5" />,
+    'test-playground': <BeakerIcon className="w-5 h-5" />,
+  }
+
+  const allPanels = filteredByQuery.map(p => ({
+    ...p,
+    iconNode: iconOverrides[p.id] || <span aria-hidden>{p.icon}</span>,
+  }))
 
   // Hidden notice (panels filtered out by class prefs)
   // Hidden notice removed in condensed rail UX
@@ -161,7 +171,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
                 title={panel.name}
                 type="button"
               >
-                <span className="sidebar__nav-icon">{panel.icon}</span>
+                <span className="sidebar__nav-icon">{(panel as any).iconNode}</span>
                 <span className="sidebar__nav-text">{panel.name}</span>
               </button>
             </li>
