@@ -6,6 +6,7 @@
   padding: var(--spacing-xl);
   height: 100%;
   overflow-y: auto;
+  background: transparent !important; /* ensure no opaque panel background */
 }
 
 /* Character Header */
@@ -49,6 +50,9 @@
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-xl);
 }
+
+/* Hide in-page blocks when HUD is active for this context */
+/* Show original sections (rollback HUD-only hiding) */
 
 .stat-card {
   background-color: transparent;

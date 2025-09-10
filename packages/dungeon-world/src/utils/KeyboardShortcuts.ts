@@ -197,10 +197,16 @@ function initOverlayHotkeys(): void {
   registerShortcut({ combo: 'ctrl+/', handler: toggle, description: 'Open shortcuts overlay', scope: 'global', preventDefault: true })
 }
 
+function initDevtoolsHotkey(): void {
+  const toggleDevtools = () => window.dispatchEvent(new CustomEvent('devtools:toggle'))
+  registerShortcut({ combo: 'ctrl+alt+q', handler: toggleDevtools, description: 'Toggle React Query Devtools', scope: 'global', preventDefault: true })
+}
+
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', onKeydown)
   suspendDuring(() => dialogSuspendEnabled && !!document.querySelector('[role="dialog"], [aria-modal="true"]'))
   window.addEventListener('blur', () => { paused = true })
   window.addEventListener('focus', () => { paused = false })
   initOverlayHotkeys()
+  initDevtoolsHotkey()
 }

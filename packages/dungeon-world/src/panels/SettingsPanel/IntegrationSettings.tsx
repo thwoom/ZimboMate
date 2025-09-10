@@ -3,6 +3,19 @@ import { useGameStore } from '../../store/GameStore'
 import { exportKeymap, getRegisteredShortcuts, importKeymap, remapShortcut } from '../../utils/KeyboardShortcuts'
 import { createPanel, type PanelProps } from '../../framework/Panel'
 import './IntegrationSettings.css'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const schema = z.object({
+  contextMenuEnabled: z.boolean(),
+  tooltipDelayMs: z.number().int().min(0, 'Must be >= 0').max(2000, 'Must be <= 2000'),
+  highContrastMenu: z.boolean(),
+  suspendShortcutsOnDialog: z.boolean(),
+  overlayEnabled: z.boolean(),
+})
+
+type FormValues = z.infer<typeof schema>
 
 const IntegrationSettingsView: React.FC = () => {
   const { state, updateSettings } = useGameStore()
@@ -10,6 +23,23 @@ const IntegrationSettingsView: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0)
   const [importText, setImportText] = useState('')
   const list = useMemo(() => getRegisteredShortcuts(), [refreshKey])
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isDirty },
+    reset,
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      contextMenuEnabled: s.contextMenuEnabled,
+      tooltipDelayMs: s.tooltipDelayMs,
+      highContrastMenu: s.highContrastMenu,
+      suspendShortcutsOnDialog: s.suspendShortcutsOnDialog,
+      overlayEnabled: s.overlayEnabled,
+    },
+    mode: 'onSubmit',
+  })
 
   const doRemap = (normalized: string, newCombo: string) => {
     if (!newCombo.trim()) return
@@ -38,33 +68,44 @@ const IntegrationSettingsView: React.FC = () => {
     }
   }
 
+  const onSubmit = (values: FormValues) => {
+    updateSettings({ integration: { ...s, ...values } })
+    reset(values, { keepValues: true })
+  }
+
   return (
     <div className="integration-settings">
       <h2>Integration Settings</h2>
-      <label>
-        <input type="checkbox" checked={s.contextMenuEnabled} onChange={e => updateSettings({ integration: { ...s, contextMenuEnabled: (e.target as HTMLInputElement).checked } })} />
-        Enable custom context menu
-      </label>
-      <br />
-      <label>
-        Tooltip delay (ms):{' '}
-        <input type="number" value={s.tooltipDelayMs} min={0} max={2000} onChange={e => updateSettings({ integration: { ...s, tooltipDelayMs: Number((e.target as HTMLInputElement).value) } })} />
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" checked={s.highContrastMenu} onChange={e => updateSettings({ integration: { ...s, highContrastMenu: (e.target as HTMLInputElement).checked } })} />
-        High contrast context menu
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" checked={s.suspendShortcutsOnDialog} onChange={e => updateSettings({ integration: { ...s, suspendShortcutsOnDialog: (e.target as HTMLInputElement).checked } })} />
-        Suspend shortcuts when a dialog is open
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" checked={s.overlayEnabled} onChange={e => updateSettings({ integration: { ...s, overlayEnabled: (e.target as HTMLInputElement).checked } })} />
-        Enable Shortcuts Overlay
-      </label>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <label>
+          <input type="checkbox" {...register('contextMenuEnabled')} defaultChecked={s.contextMenuEnabled} />
+          Enable custom context menu
+        </label>
+        <br />
+        <label>
+          Tooltip delay (ms):{' '}
+          <input type="number" min={0} max={2000} {...register('tooltipDelayMs', { valueAsNumber: true })} defaultValue={s.tooltipDelayMs} />
+        </label>
+        {errors.tooltipDelayMs && (<div className="form-error">{errors.tooltipDelayMs.message}</div>)}
+        <br />
+        <label>
+          <input type="checkbox" {...register('highContrastMenu')} defaultChecked={s.highContrastMenu} />
+          High contrast context menu
+        </label>
+        <br />
+        <label>
+          <input type="checkbox" {...register('suspendShortcutsOnDialog')} defaultChecked={s.suspendShortcutsOnDialog} />
+          Suspend shortcuts when a dialog is open
+        </label>
+        <br />
+        <label>
+          <input type="checkbox" {...register('overlayEnabled')} defaultChecked={s.overlayEnabled} />
+          Enable Shortcuts Overlay
+        </label>
+        <div className="is-button-row">
+          <button type="submit" disabled={!isDirty}>Apply</button>
+        </div>
+      </form>
 
       <hr />
       <h3>Keymap Editor</h3>

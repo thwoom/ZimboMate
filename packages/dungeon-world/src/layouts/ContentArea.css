@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  background: transparent !important;
 }
 
 .content-area__header {
@@ -11,6 +12,7 @@
   justify-content: space-between;
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
+  background: transparent !important;
   height: var(--header-height);
   flex-shrink: 0;
 }
@@ -36,6 +38,17 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-xl);
+  background: transparent !important;
+  position: relative;
+  z-index: 0;
+  /* Hide native scrollbars (overlay micro bar will appear instead) */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.content-area__body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 /* Remove padding for character creation panel to allow full width */
@@ -78,4 +91,24 @@
   .content-area__body {
     padding: var(--spacing-md);
   }
+}
+
+/* Overlay micro scrollbar */
+.overlay-scrollbar-track {
+  position: absolute;
+  right: 6px;
+  width: 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.overlay-scrollbar-track.is-visible { opacity: 1; }
+
+.overlay-scrollbar-thumb {
+  width: 100%;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.45));
+  box-shadow: 0 0 10px rgba(255,255,255,0.35);
 }

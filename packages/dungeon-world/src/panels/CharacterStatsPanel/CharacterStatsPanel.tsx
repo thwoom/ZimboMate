@@ -399,7 +399,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
       <div aria-live="polite" className="aria-live-region">
         HP {state.hp} of {state.maxHp}. XP {displayCharacter.xp} of {displayCharacter.level + 7}.
       </div>
-      {/* Character Header */}
+      {/* Original header */}
       <div className="character-header">
         <h2 className="character-name">{displayCharacter.name}</h2>
         <div className="character-info">

@@ -4,6 +4,18 @@
   width: 100vw;
   overflow: hidden;
   position: relative;
+  /* Sidebar rail sizing variables */
+  --rail-offset: 16px;
+  --rail-gap: 16px;
+  --rail-collapsed: 64px;
+  --rail-expanded: 300px;
+  --rail-delta: calc(var(--rail-expanded) - var(--rail-collapsed));
+  /* Soft gradient backdrop to enhance glass blur */
+  background:
+    radial-gradient(1200px 800px at 10% 0%, rgba(98, 73, 255, 0.12), transparent 60%),
+    radial-gradient(1000px 600px at 90% 20%, rgba(255, 73, 160, 0.10), transparent 60%),
+    radial-gradient(900px 700px at 50% 100%, rgba(64, 182, 255, 0.10), transparent 60%),
+    linear-gradient(180deg, #0f0e17 0%, #0c0b13 100%);
 }
 
 .main-layout__sidebar {
@@ -23,7 +35,7 @@
   flex-direction: column;
   overflow: hidden;
   background-color: transparent;
-  /* Performance optimization: Enable hardware acceleration */
+  background: transparent !important;
   transform: translateZ(0);
   will-change: transform;
 }
@@ -45,9 +57,31 @@
 .content-float {
   margin: 16px;
   margin-top: 72px;
+  /* Baseline offset to account for collapsed rail */
+  margin-left: calc(var(--rail-offset) + var(--rail-collapsed) + var(--rail-gap));
   padding: 12px;
   height: 100%;
   overflow: hidden;
+  min-width: 0;
+  background: transparent !important;
+  position: relative;
+  transition: margin-left 200ms ease;
+}
+
+/* When the sidebar expands, translate the whole card without resizing */
+/* no grid expand; handled by rail overlay previously */
+
+/* Mobile: keep standard margins; rail stacks differently */
+@media (max-width: 768px) {
+  .content-float {
+    /* Grid handles spacing on mobile */
+    margin-left: 16px !important;
+  }
+}
+
+/* Expand offset when rail is hovered */
+.main-layout:has(.sidebar:hover) .content-float {
+  margin-left: calc(var(--rail-offset) + var(--rail-expanded) + var(--rail-gap));
 }
 
 /* Auto-save indicator positioning */

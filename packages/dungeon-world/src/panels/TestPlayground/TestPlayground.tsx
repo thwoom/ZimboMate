@@ -10,6 +10,7 @@ import type {
 import type { Armor, Item, Weapon } from '../../models/Equipment'
 
 import React, { useState } from 'react'
+import { useDeleteSaveSlotMutation, useSaveSlotsQuery } from '../../hooks/useSaveSlotsQuery'
 import { CalculationHistory } from '../../components/CalculationHistory'
 import { CalculationWarnings } from '../../components/CalculationWarnings'
 import { ConditionBadges } from '../../components/ConditionBadges'
@@ -597,28 +598,56 @@ const TestPlayground: React.FC = () => {
   }
 
   // Render save / load section
-  const renderSaveLoadSection = () => (
-    <div className="test-section">
-      <h3> Save / Load</h3>
-      <div className="action-buttons">
-        <button type="button" onClick={() => saveGame('Test Save')}>Save Game</button>
-        <button type="button" onClick={() => loadGame()}>Load Game</button>
-        <button type="button" onClick={resetGame} className="danger">Reset All</button>
-      </div>
-      <div className="save-info">
-        <div>
-          {' '}
-          Is Dirty:
-          {state.isDirty ? 'Yes' : 'No'}
+  const renderSaveLoadSection = () => {
+    const { data: slots, isLoading, isError } = useSaveSlotsQuery(import.meta.env.DEV)
+    const del = useDeleteSaveSlotMutation()
+    return (
+      <div className="test-section">
+        <h3> Save / Load</h3>
+        <div className="action-buttons">
+          <button type="button" onClick={() => saveGame('Test Save')}>Save Game</button>
+          <button type="button" onClick={() => loadGame()}>Load Game</button>
+          <button type="button" onClick={resetGame} className="danger">Reset All</button>
         </div>
-        <div>
-          {' '}
-          Last Saved:
-          {state.lastSaved?.toLocaleString() || 'Never'}
+        <div className="save-info">
+          <div>
+            {' '}
+            Is Dirty:
+            {state.isDirty ? 'Yes' : 'No'}
+          </div>
+          <div>
+            {' '}
+            Last Saved:
+            {state.lastSaved?.toLocaleString() || 'Never'}
+          </div>
         </div>
+        {import.meta.env.DEV && (
+          <div className="save-slots">
+            <h4> Save Slots (dev)</h4>
+            {isLoading && <div>Loading slots...</div>}
+            {isError && <div>Failed to load slots</div>}
+            {!isLoading && !isError && (
+              <ul>
+                {(slots || []).map(s => (
+                  <li key={s.id}>
+                    {s.name}
+                    {' '}
+                    –
+                    {' '}
+                    {new Date(s.timestamp).toLocaleString()}
+                    {' '}
+                    <button type="button" className="save-slot__delete" onClick={() => del.mutate(s.id)} disabled={del.isPending}>
+                      {del.isPending ? 'Deleting…' : 'Delete'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
-    </div>
-  )
+    )
+  }
 
   // Render calculation history section
   const renderHistorySection = () => (

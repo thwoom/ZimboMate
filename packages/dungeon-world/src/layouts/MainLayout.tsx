@@ -7,7 +7,6 @@ import { panelEventBus } from '../framework/PanelAPI'
 import { useGameStore } from '../store/GameStore'
 import ContentArea from './ContentArea'
 import Sidebar from './Sidebar'
-import GlassTopNav from './GlassTopNav'
 import './MainLayout.css'
 
 interface MainLayoutProps {
@@ -69,17 +68,17 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
   }, [state])
 
   return (
-    <div className="main-layout">
-      <GlassTopNav />
+    <div className="main-layout" data-active-panel={activePanelId}>
 
-      {/* Hover-to-expand minimal sidebar */}
+      {/* Grid places the sidebar in column 1 naturally */}
       <Sidebar
         activePanelId={activePanelId}
         onPanelSelect={(id) => { setActivePanelId(id) }}
       />
 
-      <main className="main-layout__content">
-        <div className="content-float floating-glass">
+      <main className="main-layout__content bg-transparent">
+        <div className="content-float bg-transparent">
+          {/* HUD for character stats is rendered inside the panel for tighter data integration */}
           <ContentArea
             activePanelId={activePanelId}
           />

@@ -346,6 +346,37 @@ export const PanelRouter: React.FC <PanelRouterProps> = ({
     onStateChange: state => handlePanelStateChange(activePanelId, state),
   }
 
+  // Overlay scrollbar logic
+  useEffect(() => {
+    const el = document.getElementById('panel-container') as HTMLDivElement | null
+    const track = document.getElementById('overlay-scrollbar-track') as HTMLDivElement | null
+    const thumb = document.getElementById('overlay-scrollbar-thumb') as HTMLDivElement | null
+    if (!el || !track || !thumb) return
+    let hideTimer: number | undefined
+    const update = () => {
+      const { scrollTop, scrollHeight, clientHeight } = el
+      const ratio = clientHeight / Math.max(1, scrollHeight)
+      const thumbHeight = Math.max(24, clientHeight * ratio)
+      const maxTop = clientHeight - thumbHeight
+      const top = scrollTop / Math.max(1, scrollHeight - clientHeight) * maxTop
+      track.style.height = clientHeight + 'px'
+      track.classList.add('is-visible')
+      thumb.style.height = thumbHeight + 'px'
+      thumb.style.transform = `translateY(${top}px)`
+      window.clearTimeout(hideTimer)
+      hideTimer = window.setTimeout(() => track.classList.remove('is-visible'), 800) as unknown as number
+    }
+    update()
+    const onScroll = () => update()
+    const onResize = () => update()
+    el.addEventListener('scroll', onScroll)
+    window.addEventListener('resize', onResize)
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [activePanelId])
+
   return (
     <div
       className={`panel-router ${isTransitioning ? 'panel-router--transitioning' : ''}`}
@@ -357,7 +388,10 @@ export const PanelRouter: React.FC <PanelRouterProps> = ({
         }}
       >
         <Suspense fallback={loadingComponent}>
-          <div className="panel-container">
+          <div className="panel-container" id="panel-container">
+            <div className="overlay-scrollbar-track" id="overlay-scrollbar-track">
+              <div className="overlay-scrollbar-thumb" id="overlay-scrollbar-thumb" />
+            </div>
             <PanelComponent {...panelProps} panelState={panelStates[activePanelId]} />
           </div>
         </Suspense>

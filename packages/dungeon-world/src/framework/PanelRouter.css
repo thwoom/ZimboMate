@@ -16,7 +16,15 @@
   width: 100%;
   position: relative;
   background: transparent !important;
+  overflow-y: auto;
+  /* Hide native scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
+.panel-container::-webkit-scrollbar { width: 0; height: 0; }
+
+.panel-container .overlay-scrollbar-track { right: 4px; }
 
 /* Performance-optimized loading component */
 .panel-loading {
