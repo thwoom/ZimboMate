@@ -170,11 +170,14 @@
   align-items: center;
   line-height: 1;
   transform: translateY(-1px); /* optical center to match icon */
+  min-width: 0;
 }
 
 .sidebar:not(:hover) .sidebar__nav-text {
   opacity: 0;
   max-width: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, max-width 0ms linear; /* snap width to 0 to avoid overlay flash */
 }
 
 /* Collapsed: center icons horizontally within the 64px rail */
