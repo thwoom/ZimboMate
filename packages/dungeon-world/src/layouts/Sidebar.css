@@ -63,7 +63,7 @@
 
 .sidebar__nav {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: var(--spacing-md) 0;
 }
 
@@ -250,7 +250,7 @@
 
 .quick-open__list {
   max-height: 240px;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .quick-open__item {

@@ -56,7 +56,7 @@ function getBadgeCount(panelId: string): number {
 
 const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overlay, open, onRequestClose }) => {
   const [panels, setPanels] = useState <PanelMetadata[]>([])
-  const { state, updateSettings } = useGameStore()
+  const { state } = useGameStore()
   const [showQuickOpen, setShowQuickOpen] = useState(false)
   const [query, setQuery] = useState('')
   const navRef = useRef<HTMLElement | null>(null)
@@ -123,42 +123,14 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
 
   const memoizedPanels = useMemo(() => panels, [panels])
 
-  const favorites = state.settings.sidebarPrefs?.favorites || []
-  const collapsed = new Set(state.settings.sidebarPrefs?.collapsedSections || [])
-
-  const toggleFavorite = (id: string) => {
-    const next = new Set(favorites)
-    if (next.has(id)) next.delete(id); else next.add(id)
-    updateSettings({ sidebarPrefs: { favorites: Array.from(next), collapsedSections: state.settings.sidebarPrefs?.collapsedSections || [], order: state.settings.sidebarPrefs?.order || [], recents: state.settings.sidebarPrefs?.recents || [] } })
-  }
-
-  const toggleCollapsed = (key: string) => {
-    const next = new Set(collapsed)
-    if (next.has(key)) next.delete(key); else next.add(key)
-    updateSettings({ sidebarPrefs: { favorites: state.settings.sidebarPrefs?.favorites || [], collapsedSections: Array.from(next), order: state.settings.sidebarPrefs?.order || [], recents: state.settings.sidebarPrefs?.recents || [] } })
-  }
+  // Favorites and collapsible sections removed for condensed rail UX
 
   const filteredByQuery = memoizedPanels.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
 
-  // Favorites vs rest (dedup)
-  const favoritePanels = filteredByQuery.filter(p => favorites.includes(p.id))
-  const nonFavoritePanels = filteredByQuery.filter(p => !favorites.includes(p.id))
-
-  // Group non-favorites into sections
-  const sectionsOrder: SectionKey[] = ['gameplay', 'tools', 'settings', 'development']
-  const grouped: Record<SectionKey, PanelMetadata[]> = {
-    gameplay: [], tools: [], settings: [], development: [],
-  }
-  for (const p of nonFavoritePanels)
-    grouped[categorize(p)].push(p)
+  const allPanels = filteredByQuery
 
   // Hidden notice (panels filtered out by class prefs)
-  const totalRegistered = useMemo(() => {
-    const list = panelRegistry.getPanelsByPriority().map(p => p.metadata)
-    const unique = list.filter((panel, index, array) => array.findIndex(p => p.id === panel.id) === index)
-    return unique.length
-  }, [state])
-  const hiddenCount = Math.max(0, totalRegistered - panels.length)
+  // Hidden notice removed in condensed rail UX
 
   const rootClasses = [
     'sidebar',
@@ -173,70 +145,29 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
 
   return (
     <div className={rootClasses}>
-      <div className="sidebar__header glass-header">
-        <h1 className="sidebar__title">Dungeon World</h1>
-      </div>
 
       {/* Notice removed in minimized rail UX */}
 
-      {showQuickOpen && (
-        <div className="quick-open glass-panel">
-          <input className="quick-open__input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Quick open panel..." />
-          <div className="quick-open__list">
-            {filteredByQuery.map(p => (
-              <div key={`qo-${p.id}`} className="quick-open__item" onClick={() => { onPanelSelect?.(p.id); setShowQuickOpen(false) }}>
-                {p.icon} {p.name} <span className="sidebar__section-label">({sectionLabels[categorize(p)]})</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {false && showQuickOpen}
 
       <nav className="sidebar__nav" ref={navRef}>
-        {/* Favorites removed for minimal rail UX */}
-
-        {/* Grouped Sections */}
-        {sectionsOrder.map((sec) => (
-          <div key={`sec-${sec}`} className="sidebar__section">
-            <button className="sidebar__section-header" aria-controls={`sec-${sec}-list`} onClick={() => toggleCollapsed(`sec:${sec}`)} type="button">
-              <span>{sectionLabels[sec]}</span>
-              <span className="sidebar__badge">{grouped[sec].length}</span>
-            </button>
-            {!collapsed.has(`sec:${sec}`) && (
-              <ul id={`sec-${sec}-list`} className="sidebar__section-list">
-                {grouped[sec].map(panel => (
-                  <li key={`panel-${panel.id}`} className="sidebar__nav-item">
-                    <div className="sidebar__nav-row">
-                      <button
-                        className={`sidebar__nav-button ${activePanelId === panel.id ? 'sidebar__nav-button--active' : ''}`}
-                        aria-current={activePanelId === panel.id ? 'page' : undefined}
-                        onClick={() => onPanelSelect?.(panel.id)}
-                        type="button"
-                      >
-                        <span className="sidebar__nav-icon">{panel.icon}</span>
-                        <span className="sidebar__nav-text">{panel.name}</span>
-                        {getBadgeCount(panel.id) > 0 && (
-                          <span className="sidebar__badge" aria-label={`Notifications ${getBadgeCount(panel.id)}`}>{Math.min(99, getBadgeCount(panel.id))}</span>
-                        )}
-                      </button>
-                      <button className="sidebar__star-button" onClick={(e) => { e.stopPropagation(); toggleFavorite(panel.id) }} title={favorites.includes(panel.id) ? 'Unfavorite' : 'Favorite'} type="button">
-                        {favorites.includes(panel.id) ? '★' : '☆'}
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+        <ul className="sidebar__section-list">
+          {allPanels.map(panel => (
+            <li key={`panel-${panel.id}`} className="sidebar__nav-item">
+              <button
+                className={`sidebar__nav-button ${activePanelId === panel.id ? 'sidebar__nav-button--active' : ''}`}
+                aria-current={activePanelId === panel.id ? 'page' : undefined}
+                onClick={() => onPanelSelect?.(panel.id)}
+                title={panel.name}
+                type="button"
+              >
+                <span className="sidebar__nav-icon">{panel.icon}</span>
+                <span className="sidebar__nav-text">{panel.name}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       </nav>
-
-      <div className="sidebar__footer glass-header">
-        <button className="sidebar__settings-button" type="button">
-          <span className="sidebar__nav-icon">⚙️</span>
-          <span className="sidebar__nav-text">Settings</span>
-        </button>
-      </div>
     </div>
   )
 }
