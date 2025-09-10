@@ -99,27 +99,8 @@
   font-size: 10px;
 }
 
-.sidebar__nav-button[aria-current="page"] {
-  position: relative;
-  outline: none;
-  background-color: rgba(94, 114, 228, 0.16);
-  color: var(--color-text-primary);
-}
-
-.sidebar__nav-button[aria-current="page"]::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 4px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.35));
-  box-shadow: 0 0 8px rgba(255,255,255,0.45);
-}
-
 .sidebar__nav-button:hover {
-  background-color: rgba(94, 114, 228, 0.12);
+  background-color: rgba(94, 114, 228, 0.1);
   color: var(--color-text-primary);
 }
 

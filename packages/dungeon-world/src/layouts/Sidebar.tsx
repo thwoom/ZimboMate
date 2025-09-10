@@ -19,6 +19,7 @@ import {
   UserIcon,
   ArchiveBoxIcon,
   MapIcon,
+  ScaleIcon,
 } from '@heroicons/react/24/outline'
 
 interface SidebarProps {
@@ -147,11 +148,16 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
     'move-library': I(BookOpenIcon),
     'inventory': I(ArchiveBoxIcon),
     'equipment': I(CubeIcon),
-    'campaign': I(MapIcon),
+    'campaigns': I(MapIcon),
     'content-studio': I(RectangleGroupIcon),
     'session-tools': I(WrenchScrewdriverIcon),
     'test-playground': I(BeakerIcon),
     'settings': I(Cog6ToothIcon),
+    'character-creation': I(UserIcon),
+    'condition-tracker': I(ClipboardDocumentListIcon),
+    'alignment-xp-tracker': I(ScaleIcon),
+    'equipment-compendium': I(BookOpenIcon),
+    'settings-integration': I(Cog6ToothIcon),
   }
 
   const allPanels = filteredByQuery.map(p => ({
