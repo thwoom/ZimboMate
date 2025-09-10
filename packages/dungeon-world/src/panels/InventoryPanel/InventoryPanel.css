@@ -185,7 +185,7 @@
 .inventory-content {
   flex: 1;
   padding: 1rem 1.5rem;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 .empty-inventory {

@@ -215,7 +215,7 @@
   flex-direction: column;
   gap: var(--spacing-md);
   flex: 1;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 .spell-card {

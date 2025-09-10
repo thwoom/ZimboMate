@@ -38,7 +38,7 @@
 
 .equipment-list {
   flex: 1;
-  overflow-y: auto;
+  overflow: visible;
   padding: var(--spacing-lg);
 }
 
@@ -231,7 +231,7 @@
 .modal-body {
   padding: var(--spacing-lg);
   flex: 1;
-  overflow-y: auto;
+  overflow: auto; /* modal keeps its own scroll */
 }
 
 .detail-section {
