@@ -11,20 +11,12 @@
   pointer-events: none;
 }
 
-.panel-container {
-  height: 100%;
-  width: 100%;
-  position: relative;
-  background: transparent !important;
-  overflow-y: auto;
-  /* Hide native scrollbar */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+/* Removed panel-container scroller; ContentArea hosts the only scroll */
+.panel-recovery-button,
+.panel-retry-button {
+  margin-top: 10px;
+  padding: 5px 10px;
 }
-
-.panel-container::-webkit-scrollbar { width: 0; height: 0; }
-
-.panel-container .overlay-scrollbar-track { right: 4px; }
 
 /* Performance-optimized loading component */
 .panel-loading {

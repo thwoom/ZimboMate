@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+teredimport { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
