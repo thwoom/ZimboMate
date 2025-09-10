@@ -23,6 +23,33 @@
   box-shadow: 0 18px 40px rgba(0,0,0,0.35);
 }
 
+/* Minimized rail: icons only */
+.sidebar:not(:hover) .sidebar__header,
+.sidebar:not(:hover) .sidebar__footer,
+.sidebar:not(:hover) .sidebar__notice,
+.sidebar:not(:hover) .sidebar__section-header,
+.sidebar:not(:hover) .sidebar__nav-text,
+.sidebar:not(:hover) .sidebar__badge,
+.sidebar:not(:hover) .sidebar__star-button,
+.sidebar:not(:hover) .sidebar__section-label,
+.sidebar:not(:hover) .quick-open {
+  display: none;
+}
+
+/* Hide favorites section entirely when minimized */
+.sidebar:not(:hover) .sidebar__section:first-of-type {
+  display: none;
+}
+
+.sidebar:not(:hover) .sidebar__nav-button {
+  padding: 10px 0;
+  justify-content: center;
+}
+
+.sidebar:not(:hover) .sidebar__nav-icon {
+  margin-right: 0;
+}
+
 .sidebar__header {
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);

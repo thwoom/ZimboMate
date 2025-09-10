@@ -177,19 +177,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
         <h1 className="sidebar__title">Dungeon World</h1>
       </div>
 
-      {hiddenCount > 0 && (
-        <div className="sidebar__notice">
-          {hiddenCount} panel{hiddenCount > 1 ? 's' : ''} hidden by class preferences.
-          {' '}
-          <button
-            className="sidebar__star-button"
-            onClick={() => updateSettings({ conditionalContent: { ...state.settings.conditionalContent!, global: { ...state.settings.conditionalContent!.global, preferClassRelevant: false } } })}
-            type="button"
-          >
-            Show all
-          </button>
-        </div>
-      )}
+      {/* Notice removed in minimized rail UX */}
 
       {showQuickOpen && (
         <div className="quick-open glass-panel">
@@ -205,41 +193,7 @@ const Sidebar: React.FC <SidebarProps> = ({ activePanelId, onPanelSelect, overla
       )}
 
       <nav className="sidebar__nav" ref={navRef}>
-        {/* Favorites Section */}
-        <div className="sidebar__section">
-          <button className="sidebar__section-header" aria-controls="sec-favorites" onClick={() => toggleCollapsed('favorites')} type="button">
-            <span>Favorites</span>
-            <span className="sidebar__badge">{favoritePanels.length}</span>
-          </button>
-          {!collapsed.has('favorites') && (
-            <ul id="sec-favorites" className="sidebar__section-list">
-              {favoritePanels.map(panel => (
-                <li key={`fav-${panel.id}`} className="sidebar__nav-item">
-                  <div className="sidebar__nav-row">
-                    <button
-                      className={`sidebar__nav-button ${activePanelId === panel.id ? 'sidebar__nav-button--active' : ''}`}
-                      aria-current={activePanelId === panel.id ? 'page' : undefined}
-                      onClick={() => onPanelSelect?.(panel.id)}
-                      type="button"
-                    >
-                      <span className="sidebar__nav-icon">{panel.icon}</span>
-                      <span className="sidebar__nav-text">{panel.name}</span>
-                      {getBadgeCount(panel.id) > 0 && (
-                        <span className="sidebar__badge" aria-label={`Notifications ${getBadgeCount(panel.id)}`}>{Math.min(99, getBadgeCount(panel.id))}</span>
-                      )}
-                    </button>
-                    <button className="sidebar__star-button" onClick={(e) => { e.stopPropagation(); toggleFavorite(panel.id) }} title={favorites.includes(panel.id) ? 'Unfavorite' : 'Favorite'} type="button">
-                      {favorites.includes(panel.id) ? '★' : '☆'}
-                    </button>
-                  </div>
-                </li>
-              ))}
-              {favoritePanels.length === 0 && (
-                <li className="sidebar__nav-item"><span className="sidebar__nav-text">No favorites yet</span></li>
-              )}
-            </ul>
-          )}
-        </div>
+        {/* Favorites removed for minimal rail UX */}
 
         {/* Grouped Sections */}
         {sectionsOrder.map((sec) => (
