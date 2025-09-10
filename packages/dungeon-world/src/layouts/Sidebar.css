@@ -177,7 +177,14 @@
   max-width: 0;
 }
 
-/* No special centering overrides so X-position remains constant */
+/* Collapsed: center icons horizontally within the 64px rail */
+.sidebar:not(:hover) .sidebar__nav-button {
+  grid-template-columns: 64px 0;
+  padding-left: 0;
+  padding-right: 0;
+  column-gap: 0;
+  justify-items: center;
+}
 
 .sidebar__footer {
   padding: var(--spacing-md);
