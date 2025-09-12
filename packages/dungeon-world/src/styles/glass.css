@@ -101,20 +101,20 @@
   .sidebar.sidebar--hp-clone .shortcuts-list--compact {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px 10px;
+    gap: 2px 8px;
     align-items: center;
   }
   .sidebar.sidebar--hp-clone .shortcuts-list--compact .stat-item {
     display: flex;
     justify-content: space-between;
-    padding: 4px 6px;
+    padding: 2px 4px;
     line-height: 1;
-    min-height: 20px;
+    min-height: 18px;
   }
   .sidebar.sidebar--hp-clone .shortcuts-list--compact .stat-label {
-    font-size: 11px;
+    font-size: 10px;
   }
   .sidebar.sidebar--hp-clone .shortcuts-list--compact .stat-value {
-    font-size: 11px;
+    font-size: 10px;
   }
 }

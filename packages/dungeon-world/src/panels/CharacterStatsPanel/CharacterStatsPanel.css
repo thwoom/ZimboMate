@@ -230,6 +230,11 @@
 /* Make shortcuts tile compact */
 .stat-card--shortcuts { min-height: 72px; }
 
+/* Ensure shortcuts overlay content can overflow the placeholder vertically without clipping */
+.stat-card--shortcuts {
+  overflow: visible !important;
+}
+
 .stat-card h3 {
   font-size: 1rem;
   color: var(--color-text-secondary);
