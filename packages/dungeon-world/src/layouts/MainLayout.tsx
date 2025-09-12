@@ -444,7 +444,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: shortcutsRect.left, top: shortcutsRect.top, width: shortcutsRect.width, height: shortcutsRect.height }}
+          style={{ position: 'fixed', left: shortcutsRect.left, top: shortcutsRect.top, width: shortcutsRect.width, minHeight: shortcutsRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">

@@ -2,7 +2,7 @@ import React from 'react'
 
 const KeyboardShortcutsOverlay: React.FC = () => {
   return (
-    <div className="hp-sidebar-glass-content">
+    <div className="hp-sidebar-glass-content" style={{minHeight: 200}}>
       <h3> Keyboard Shortcuts</h3>
       <div className="shortcuts-list" aria-label="Keyboard shortcuts">
         <div className="stat-item"><span className="stat-label">Increase HP</span><span className="stat-value">↑ or +</span></div>
