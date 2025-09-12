@@ -479,8 +479,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
       {/* Header overlay removed */}
 
 
-      {/* Unified Quick Tools */}
-      <UnifiedQuickTools position="bottom-right" />
+      {/* Unified Quick Tools removed (dice roller button hidden) */}
 
       {/* Auto-save indicator */}
       <AutoSaveIndicator
