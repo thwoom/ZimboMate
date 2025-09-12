@@ -227,6 +227,9 @@
 /* Compact header bar height so overlay defines the visuals */
 .stat-card--header { min-height: 64px; margin-bottom: 16px; }
 
+/* Make shortcuts tile compact */
+.stat-card--shortcuts { min-height: 72px; }
+
 .stat-card h3 {
   font-size: 1rem;
   color: var(--color-text-secondary);
