@@ -61,19 +61,6 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
 
   return (
     <div className="content-area bg-transparent">
-      <header className="content-area__header bg-transparent">
-        <h2 className="content-area__title">{panelTitle}</h2>
-        {process.env.NODE_ENV === 'development' && activePanelId === 'character-creation' && (
-          <button
-            onClick={toggleLayoutDebug}
-            title="Toggle layout debug visualization"
-            className="content-area__debug-button"
-          >
-            🔍 Debug Layout
-          </button>
-        )}
-      </header>
-
       <div ref={bodyRef} className={`content-area__body bg-transparent ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
         <div className="overlay-scrollbar-track" id="overlay-scrollbar-track">
           <div className="overlay-scrollbar-thumb" id="overlay-scrollbar-thumb" />

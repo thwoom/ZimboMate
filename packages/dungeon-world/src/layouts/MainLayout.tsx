@@ -190,21 +190,13 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         const ar = attrEl.getBoundingClientRect()
         setAttributesRect({ left: ar.left, top: ar.top, width: ar.width, height: ar.height })
       }
-      const headerEl = document.querySelector('.stat-card--header') as HTMLElement | null
-      if (headerEl) {
-        const hr = headerEl.getBoundingClientRect()
-        setHeaderRect({ left: hr.left, top: hr.top, width: hr.width, height: hr.height })
-      }
+      // Header tile removed
       const prefEl = document.querySelector('.stat-card--prefs') as HTMLElement | null
       if (prefEl) {
         const pr = prefEl.getBoundingClientRect()
         setPrefsRect({ left: pr.left, top: pr.top, width: pr.width, height: pr.height })
       }
-      const scEl = document.querySelector('.stat-card--shortcuts') as HTMLElement | null
-      if (scEl) {
-        const sr = scEl.getBoundingClientRect()
-        setShortcutsRect({ left: sr.left, top: sr.top, width: sr.width, height: sr.height })
-      }
+      // Shortcuts tile removed
     }
     update()
     // If HP element not yet in DOM, observe for it
@@ -482,51 +474,9 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         </div>
       )}
 
-      {/* Keyboard Shortcuts overlay */}
-      {shortcutsRect && (
-        <div
-          className="sidebar sidebar--hp-clone"
-          ref={(el) => {
-            shortcutsCloneRef.current = el
-            if (el) {
-              const unregister = OverlayManager.register('character-stats', el)
-              ;(el as any).__unreg = unregister
-            } else if ((shortcutsCloneRef.current as any)?.__unreg) {
-              ;(shortcutsCloneRef.current as any).__unreg()
-            }
-          }}
-          style={{ position: 'fixed', left: shortcutsRect.left, top: shortcutsRect.top, width: shortcutsRect.width, minHeight: shortcutsRect.height }}
-        >
-          <div className="sidebar__inner floating-glass">
-            <div className="overlay-clone-content">
-              <KeyboardShortcutsOverlay />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Shortcuts overlay removed */}
 
-      {/* Header overlay */}
-      {headerRect && (
-        <div
-          className="sidebar sidebar--hp-clone"
-          ref={(el) => {
-            headerCloneRef.current = el
-            if (el) {
-              const unregister = OverlayManager.register('character-stats', el)
-              ;(el as any).__unreg = unregister
-            } else if ((headerCloneRef.current as any)?.__unreg) {
-              ;(headerCloneRef.current as any).__unreg()
-            }
-          }}
-          style={{ position: 'fixed', left: headerRect.left, top: headerRect.top, width: headerRect.width, minHeight: headerRect.height }}
-        >
-          <div className="sidebar__inner floating-glass">
-            <div className="overlay-clone-content">
-              <HeaderOverlay />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Header overlay removed */}
 
 
       {/* Unified Quick Tools */}

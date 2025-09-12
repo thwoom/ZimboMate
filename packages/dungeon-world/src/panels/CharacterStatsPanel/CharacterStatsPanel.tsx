@@ -431,8 +431,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
       <div aria-live="polite" className="aria-live-region">
         HP {state.hp} of {state.maxHp}. XP {displayCharacter.xp} of {displayCharacter.level + 7}.
       </div>
-      {/* Header placeholder (overlay renders real content) */}
-      <div className="stat-card stat-card--header" />
+      {/* (Header tile removed) */}
 
       <div className="stats-grid">
         {/* HP Section */}
@@ -532,13 +531,12 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         {/* Debilities placeholder (overlay renders content) */}
         <div className="stat-card stat-card--debilities" />
 
-        {/* Keyboard Shortcuts placeholder (overlay renders content) */}
-        <div className="stat-card stat-card--shortcuts" />
+        {/* (Shortcuts tile removed) */}
       </div>
 
       {/* (Rest button moved into HP overlay actions) */}
 
-      {/* (Shortcuts placeholder moved into stats-grid for banded layout) */}
+      {/* (Shortcuts tile removed) */}
 
       {/* Level Up Modal */}
       {character && (
