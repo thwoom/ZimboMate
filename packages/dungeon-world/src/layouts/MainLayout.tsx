@@ -8,7 +8,6 @@ import CombatOverlay from '../components/CombatOverlay'
 import XpOverlay from '../components/XpOverlay'
 import { useGameStore } from '../store/GameStore'
 import { createDummyCharacter } from '../models/Character'
-LoadOverlay
 import LoadOverlay from '../components/LoadOverlay'
 import ClassFocusOverlay from '../components/ClassFocusOverlay'
 import DebilitiesOverlay from '../components/DebilitiesOverlay'
@@ -112,6 +111,15 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
 
   // Auto-position HP clone over the real HP card
   const hpCloneRef = useRef<HTMLDivElement | null>(null)
+  const combatCloneRef = useRef<HTMLDivElement | null>(null)
+  const xpCloneRef = useRef<HTMLDivElement | null>(null)
+  const loadCloneRef = useRef<HTMLDivElement | null>(null)
+  const classFocusCloneRef = useRef<HTMLDivElement | null>(null)
+  const debilitiesCloneRef = useRef<HTMLDivElement | null>(null)
+  const attributesCloneRef = useRef<HTMLDivElement | null>(null)
+  const prefsCloneRef = useRef<HTMLDivElement | null>(null)
+  const shortcutsCloneRef = useRef<HTMLDivElement | null>(null)
+  const headerCloneRef = useRef<HTMLDivElement | null>(null)
   const [hpRect, setHpRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   const [combatRect, setCombatRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   const [xpRect, setXpRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
@@ -122,6 +130,27 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
   const [prefsRect, setPrefsRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   const [shortcutsRect, setShortcutsRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   const [headerRect, setHeaderRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  
+  // Dynamically size overlay clones to their content and sync placeholder min-heights
+  const applyOverlaySizingOnce = (el: HTMLElement | null, placeholderSelector: string) => {
+    if (!el) return
+    const placeholder = document.querySelector(placeholderSelector) as HTMLElement | null
+    const measure = () => {
+      const inner = el.querySelector('.overlay-clone-content') as HTMLElement | null
+      const contentHeight = inner?.scrollHeight || el.getBoundingClientRect().height
+      el.style.height = `${contentHeight}px`
+      if (placeholder) placeholder.style.minHeight = `${contentHeight}px`
+    }
+    // Initial and on next frame for layout
+    measure()
+    requestAnimationFrame(measure)
+    const inner = el.querySelector('.overlay-clone-content') as HTMLElement | null
+    if (inner && !(inner as any).__ro) {
+      const ro = new ResizeObserver(() => measure())
+      ro.observe(inner)
+      ;(inner as any).__ro = ro
+    }
+  }
   useLayoutEffect(() => {
     let rafId: number | null = null
     let mo: MutationObserver | null = null
@@ -233,6 +262,20 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
     OverlayManager.setActiveLayer(activePanelId)
   }, [activePanelId])
 
+  // Recompute overlay heights whenever rects update
+  useLayoutEffect(() => {
+    applyOverlaySizingOnce(hpCloneRef.current, '.stat-card--hp')
+    applyOverlaySizingOnce(combatCloneRef.current, '.stat-card--combat')
+    applyOverlaySizingOnce(xpCloneRef.current, '.stat-card--xp')
+    applyOverlaySizingOnce(loadCloneRef.current, '.stat-card--load')
+    applyOverlaySizingOnce(classFocusCloneRef.current, '.stat-card--class-focus')
+    applyOverlaySizingOnce(debilitiesCloneRef.current, '.stat-card--debilities')
+    applyOverlaySizingOnce(attributesCloneRef.current, '.stat-card--attributes')
+    applyOverlaySizingOnce(prefsCloneRef.current, '.stat-card--prefs')
+    applyOverlaySizingOnce(shortcutsCloneRef.current, '.stat-card--shortcuts')
+    applyOverlaySizingOnce(headerCloneRef.current, '.stat-card--header')
+  }, [hpRect, combatRect, xpRect, loadRect, classFocusRect, debilitiesRect, attributesRect, prefsRect, shortcutsRect, headerRect])
+
   return (
     <div ref={mainLayoutRef} className="main-layout" data-active-panel={activePanelId}>
 
@@ -283,11 +326,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            combatCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((combatCloneRef.current as any)?.__unreg) {
+              ;(combatCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: combatRect.left, top: combatRect.top, width: combatRect.width, minHeight: combatRect.height }}
@@ -305,11 +349,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            xpCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((xpCloneRef.current as any)?.__unreg) {
+              ;(xpCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: xpRect.left, top: xpRect.top, width: xpRect.width, minHeight: xpRect.height }}
@@ -327,11 +372,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            loadCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((loadCloneRef.current as any)?.__unreg) {
+              ;(loadCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: loadRect.left, top: loadRect.top, width: loadRect.width, minHeight: loadRect.height }}
@@ -349,11 +395,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            classFocusCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((classFocusCloneRef.current as any)?.__unreg) {
+              ;(classFocusCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: classFocusRect.left, top: classFocusRect.top, width: classFocusRect.width, minHeight: classFocusRect.height }}
@@ -371,11 +418,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            debilitiesCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((debilitiesCloneRef.current as any)?.__unreg) {
+              ;(debilitiesCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: debilitiesRect.left, top: debilitiesRect.top, width: debilitiesRect.width, minHeight: debilitiesRect.height }}
@@ -393,11 +441,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            attributesCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((attributesCloneRef.current as any)?.__unreg) {
+              ;(attributesCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: attributesRect.left, top: attributesRect.top, width: attributesRect.width, minHeight: attributesRect.height }}
@@ -415,11 +464,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            prefsCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((prefsCloneRef.current as any)?.__unreg) {
+              ;(prefsCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: prefsRect.left, top: prefsRect.top, width: prefsRect.width, minHeight: prefsRect.height }}
@@ -437,11 +487,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            shortcutsCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((shortcutsCloneRef.current as any)?.__unreg) {
+              ;(shortcutsCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: shortcutsRect.left, top: shortcutsRect.top, width: shortcutsRect.width, minHeight: shortcutsRect.height }}
@@ -459,11 +510,12 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
         <div
           className="sidebar sidebar--hp-clone"
           ref={(el) => {
+            headerCloneRef.current = el
             if (el) {
               const unregister = OverlayManager.register('character-stats', el)
               ;(el as any).__unreg = unregister
-            } else if ((el as any)?.__unreg) {
-              ;(el as any).__unreg()
+            } else if ((headerCloneRef.current as any)?.__unreg) {
+              ;(headerCloneRef.current as any).__unreg()
             }
           }}
           style={{ position: 'fixed', left: headerRect.left, top: headerRect.top, width: headerRect.width, minHeight: headerRect.height }}
