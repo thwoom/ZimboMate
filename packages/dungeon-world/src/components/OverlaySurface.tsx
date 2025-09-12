@@ -18,13 +18,19 @@ export const OverlaySurface: React.FC<OverlaySurfaceProps> = ({ anchorRef, rect:
   const overlayRoot = typeof document !== 'undefined' ? document.getElementById('overlay-panels') : null
   const [rect, setRect] = useState<Rect | null>(rectProp || null)
   const rafRef = useRef<number | null>(null)
+  const contentRef = useRef<HTMLDivElement | null>(null)
 
   useLayoutEffect(() => {
     if (!anchorRef || !('current' in anchorRef) || !anchorRef.current) return
     const update = () => {
       const el = anchorRef.current as HTMLElement
       const r = el.getBoundingClientRect()
-      setRect({ left: r.left + window.scrollX, top: r.top + window.scrollY, width: r.width, height: r.height })
+      // If content renders taller than the anchor, expand the placeholder height to fit content
+      const contentHeight = contentRef.current?.offsetHeight || r.height
+      const height = Math.max(r.height, contentHeight)
+      // Write back height to the anchor to prevent clipping and reserve space
+      if (el.style) el.style.minHeight = `${height}px`
+      setRect({ left: r.left + window.scrollX, top: r.top + window.scrollY, width: r.width, height })
     }
     const onScrollOrResize = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
@@ -45,7 +51,7 @@ export const OverlaySurface: React.FC<OverlaySurfaceProps> = ({ anchorRef, rect:
 
   return createPortal(
     <div className="overlay-rect" style={{ left: finalRect.left, top: finalRect.top, width: finalRect.width, height: finalRect.height, bottom: 'auto', pointerEvents: 'auto' }}>
-      <div className={`sidebar__inner ${className || ''}`.trim()} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }}>
+      <div ref={contentRef} className={`sidebar__inner ${className || ''}`.trim()} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }}>
         {children}
       </div>
     </div>,
