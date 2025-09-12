@@ -72,7 +72,6 @@ function AppInner() {
 
   return (
     <div className="app">
-      <DarkModeToggle />
       <MainLayout />
       {menuState.open && (
         <ContextMenu
