@@ -994,10 +994,11 @@
 }
 
 /* HP actions: small, unobtrusive button aligned right under the bar */
-.hp-actions {
+.hp-header {
   display: flex;
-  justify-content: flex-end;
-  margin-top: var(--spacing-xs);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
 }
 .hp-rest-button {
   padding: 6px 10px;

@@ -460,7 +460,10 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
 
           <OverlaySurface anchorRef={hpAnchorRef}>
             <div className="hp-sidebar-glass-content">
-              <h3> Hit Points</h3>
+              <div className="hp-header">
+                <h3> Hit Points</h3>
+                <button type="button" className="hp-rest-button" onClick={handleRest} aria-label="Rest to full HP">Rest</button>
+              </div>
               <div className="hp-display">
                 <button className="hp-button hp-button--minus" onClick={() => handleHpChange(-1)} type="button">-</button>
                 <div className="hp-value">
@@ -472,11 +475,6 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
               </div>
               <div className="hp-bar">
                 <progress className={`hp-progress ${getHpClass()}`} max={state.maxHp} value={state.hp} aria-label="HP progress" />
-              </div>
-              <div className="hp-actions">
-                <button type="button" className="hp-rest-button" onClick={handleRest} aria-label="Rest to full HP">
-                  Rest to Full
-                </button>
               </div>
             </div>
           </OverlaySurface>
