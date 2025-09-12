@@ -228,8 +228,8 @@
 .stat-card--header { min-height: 64px; margin-bottom: 16px; }
 
 /* Make shortcuts tile compact */
-/* (revert compact shortcuts tile height) */
-.stat-card--shortcuts { min-height: 140px; }
+/* Ensure shortcuts tile reserves enough space for 6 rows */
+.stat-card--shortcuts { min-height: 220px; }
 
 /* Ensure shortcuts overlay content can overflow the placeholder vertically without clipping */
 /* (revert overflow tweak) */

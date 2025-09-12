@@ -99,4 +99,6 @@
   }
 
   /* (reverted compact shortcuts grid) */
+  /* Prevent right-edge clipping within overlay inner */
+  .sidebar.sidebar--hp-clone .sidebar__inner { overflow: visible; }
 }
