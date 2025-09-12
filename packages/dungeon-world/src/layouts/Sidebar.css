@@ -15,7 +15,7 @@
   bottom: 16px;
   left: 16px;
   width: 300px; /* fixed container width */
-  z-index: 1050;
+  z-index: 1050; /* above overlay-layer */
   /* Avoid double rounding artifacts-clip-path handles the rounding */
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -166,9 +166,10 @@
 /* Active tile using :has() — square, edge-to-edge, no outline */
 .sidebar__nav-item { position: relative; }
 .sidebar__nav-item:has(.sidebar__nav-button[aria-current="page"]) {
-  background: rgba(255,255,255,0.06);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
-  backdrop-filter: blur(8px) saturate(120%);
+  /* TEMP DEBUG: neutralize active tile fill to compare rail base tone */
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
   border-radius: 0;
 }
 .sidebar__nav-item:has(.sidebar__nav-button[aria-current="page"]) .sidebar__nav-button {

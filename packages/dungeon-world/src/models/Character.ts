@@ -148,6 +148,48 @@ export interface Character {
   updatedAt: Date
 }
 
+export function createDummyCharacter(): Character {
+  return {
+    id: 'dummy-hero',
+    name: 'Unnamed Hero',
+    look: undefined,
+    portraitId: undefined,
+    background: undefined,
+    personalityTraits: [],
+    voice: undefined,
+    class: 'Fighter',
+    race: 'Human',
+    level: 1,
+    alignment: 'Neutral',
+    attributes: { STR: 16, DEX: 13, CON: 15, INT: 8, WIS: 12, CHA: 9 },
+    debilities: { weak: false, shaky: false, sick: false, stunned: false, confused: false, scarred: false },
+    hp: { current: 21, max: 21 },
+    armor: 2,
+    baseArmor: undefined,
+    damageDie: 'd10',
+    xp: 0,
+    load: { current: 5, max: 14 },
+    baseLoad: 12,
+    coin: 0,
+    bonds: [],
+    advancements: [],
+    availableMoves: [],
+    knownMoves: [],
+    knownSpells: [],
+    preparedSpells: [],
+    compendiumClasses: [],
+    raceMoves: [],
+    customMoves: [],
+    conditions: [],
+    inventory: [],
+    notes: '',
+    looks: '',
+    backstory: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
+}
+
 // Character creation data (for new character flow)
 export interface CharacterCreationData {
   name: string

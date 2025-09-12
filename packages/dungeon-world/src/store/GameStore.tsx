@@ -9,6 +9,7 @@ import type {
   GameStateAction,
 } from '../models/GameState'
 import type { Inventory } from '../models/Inventory'
+import { createEmptyInventory } from '../models/Inventory'
 import type { Move } from '../models/Move'
 import type { Session } from '../models/Session'
 import type { SaveSlot } from '../services/DataPersistence'
@@ -61,6 +62,8 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const setCharacter = useCallback((character: Character) => {
     dispatch({ type: 'ADD_CHARACTER', payload: character })
     dispatch({ type: 'SET_ACTIVE_CHARACTER', payload: character.id })
+    // Ensure an inventory exists for this character
+    dispatch({ type: 'SET_INVENTORY', payload: { characterId: character.id, inventory: createEmptyInventory() } })
   }, [])
 
   const updateCharacter = useCallback((characterId: string, updates: Partial <Character>) => {

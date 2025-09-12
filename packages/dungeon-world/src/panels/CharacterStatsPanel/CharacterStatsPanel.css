@@ -1,3 +1,69 @@
+.hp-overlay-placeholder { visibility: hidden; }
+/* Exact glass stack copied from sidebar__inner, without layout/width props */
+.hp-glass {
+  position: relative;
+  border-radius: var(--rail-radius, 18px);
+  overflow: hidden;
+  background-clip: padding-box;
+}
+.hp-glass::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+}
+.hp-glass::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  -webkit-backdrop-filter: none; /* sidebar is effectively zero diffusion per spec */
+  backdrop-filter: none;
+}
+/* (reverted test compositing class) */
+/* ============================================
+   COMPLETE GLASS EFFECT REWRITE
+   Matching Sidebar's "Incredible" Look Exactly
+   ============================================ */
+
+/* GLASS-TILE: EXACT SIDEBAR IMPLEMENTATION */
+/* HP box now uses the sidebar's inner class for glass; keep only content layout here */
+
+/* Fallback for browsers without clip support */
+@supports not (overflow: clip) {
+  .glass-tile {
+    overflow: hidden;
+  }
+}
+
+/* Sidebar glass content wrapper for HP */
+.hp-sidebar-glass-content { position: relative; padding: var(--spacing-lg); height: 100%; }
+
+/* no-op */
+
+/* CRITICAL: Remove conflicting pseudo-elements from glass-tile itself */
+.glass-tile::before,
+.glass-tile::after {
+  display: none !important;
+}
+
+/* Buffer layer with outline - EXACT match to sidebar__inner::before */
+/* rely on .sidebar__inner::before */
+
+/* Isolated blur - EXACT match to sidebar__inner::after */
+/* rely on .sidebar__inner::after */
+
+/* Content layer */
+/* moved to .hp-sidebar-glass-content */
+
+/* Match sidebar: no global text glow inside the tile */
+.glass-tile h3,
+.glass-tile .hp-value,
+.glass-tile .hp-current,
+.glass-tile .hp-separator,
+.glass-tile .hp-max,
+.glass-tile .stat-value,
+.glass-tile .stat-label,
+.glass-tile span { text-shadow: none; }
+
 /* utilities */
 .ml-8 {
   margin-left: 8px;
@@ -47,7 +113,7 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--spacing-lg);
+  gap: 24px; /* give panels more breathing room */
   margin-bottom: var(--spacing-xl);
 }
 
@@ -55,19 +121,94 @@
 /* Show original sections (rollback HUD-only hiding) */
 
 .stat-card {
-  background-color: transparent;
+  position: relative;
+  background: transparent !important;
   border-radius: 12px;
   padding: var(--spacing-lg);
-  box-shadow: 0 2px 4px var(--color-shadow);
+  box-shadow: none;
+  overflow: hidden;
 }
 
-.stat-card.glass-panel,
-.stat-card { /* ensure glass wins */
-  background: rgba(32, 30, 46, 0.55) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.08) !important;
+/* DISABLE ALL OLD STAT-CARD GLASS EFFECTS */
+.stat-card::before,
+.stat-card::after {
+  display: none !important;
+  content: none !important;
 }
+
+/* Apply sidebar-style glass to ALL stat cards (except HP which uses glass-tile) */
+.stat-card:not(.stat-card--hp) {
+  position: relative;
+  border-radius: var(--rail-radius, 18px);
+  overflow: hidden;
+  background-clip: padding-box;
+  isolation: isolate;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-height: 140px; /* ensure visible overlay height for placeholders */
+  margin-bottom: 24px; /* vertical spacing between overlay-anchoring cards */
+}
+
+@supports not (overflow: clip) {
+  .stat-card:not(.stat-card--hp) {
+    overflow: hidden;
+  }
+}
+
+.stat-card:not(.stat-card--hp)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+  z-index: 2;
+}
+
+.stat-card:not(.stat-card--hp)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  z-index: 1;
+}
+
+/* Ensure content sits above the glass layers */
+.stat-card > * {
+  position: relative;
+  z-index: 3;
+}
+
+/* Extra spacing between vertical stack: Attributes → Class Focus → Debilities */
+.stat-card--attributes { margin-bottom: 32px; }
+.stat-card--class-focus { margin-bottom: 32px; }
+.stat-card--debilities { margin-top: 8px; }
+
+/* Overlay placeholders that should be invisible (header, prefs, shortcuts) */
+.stat-card--header,
+.stat-card--prefs,
+.stat-card--shortcuts {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.stat-card--header::before,
+.stat-card--header::after,
+.stat-card--prefs::before,
+.stat-card--prefs::after,
+.stat-card--shortcuts::before,
+.stat-card--shortcuts::after {
+  display: none !important;
+  content: none !important;
+}
+/* Compact header bar height so overlay defines the visuals */
+.stat-card--header { min-height: 64px; margin-bottom: 16px; }
 
 .stat-card h3 {
   font-size: 1rem;
@@ -75,12 +216,42 @@
   margin-bottom: var(--spacing-md);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-shadow: 0 1px 12px rgba(255,255,255,0.08);
 }
 
-/* HP Section */
-.stat-card--hp {
-  grid-column: span 2;
+/* Text glow for all stat card text */
+.stat-card .stat-value,
+.stat-card .stat-label,
+.stat-card span {
+  text-shadow: 0 1px 12px rgba(255,255,255,0.08);
 }
+
+/* HP Section - REMOVE ALL STAT-CARD STYLING */
+.stat-card--hp { 
+  grid-column: span 2;
+  /* Reset ALL stat-card properties */
+  background: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  position: static !important;
+}
+
+/* Sheen is already included in the main glass-tile__inner::before rule above */
+
+/* HP heading and numbers — crisp with subtle glow */
+.stat-card--hp h3,
+.stat-card--hp .hp-value,
+.stat-card--hp .hp-separator,
+.stat-card--hp .hp-max {
+  color: var(--color-text-primary);
+  text-shadow: 0 1px 12px rgba(255,255,255,0.08);
+}
+
+
+/* (removed temporary debug neutralizations) */
 
 .hp-display {
   display: flex;
@@ -283,15 +454,50 @@
   margin-top: var(--spacing-sm);
 }
 
-/* Quick Rolls */
+/* Quick Rolls - SIDEBAR-STYLE GLASS */
 .quick-rolls {
-  background: rgba(32, 30, 46, 0.55) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  border-radius: 12px;
+  position: relative;
+  border-radius: var(--rail-radius, 18px);
+  overflow: clip;
+  background-clip: padding-box;
+  isolation: isolate;
+  background: transparent !important;
+  border: none !important;
   padding: var(--spacing-lg);
-  box-shadow: 0 2px 4px var(--color-shadow);
+  box-shadow: none !important;
+}
+
+@supports not (overflow: clip) {
+  .quick-rolls {
+    overflow: hidden;
+  }
+}
+
+.quick-rolls::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+  z-index: -1;
+}
+
+.quick-rolls::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  z-index: -1;
+}
+
+.quick-rolls > * {
+  position: relative;
+  z-index: 2;
 }
 
 .quick-rolls h3 {
@@ -395,16 +601,53 @@
   }
 }
 
-/* Attributes Section */
+/* Attributes Section - SIDEBAR-STYLE GLASS */
 .attributes-section {
-  background: rgba(32, 30, 46, 0.55) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  border-radius: 12px;
+  position: relative;
+  border-radius: var(--rail-radius, 18px);
+  overflow: hidden;
+  background-clip: padding-box;
+  isolation: isolate;
+  background: transparent !important;
+  border: none !important;
   padding: var(--spacing-lg);
   margin-top: var(--spacing-xl);
-  box-shadow: 0 2px 4px var(--color-shadow);
+  box-shadow: none !important;
+}
+
+/* Fallback for browsers without clip support */
+@supports not (overflow: clip) {
+  .attributes-section {
+    overflow: hidden;
+  }
+}
+
+.attributes-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+  z-index: 2;
+}
+
+.attributes-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  z-index: 1;
+}
+
+/* Ensure content is above glass layers */
+.attributes-section > * {
+  position: relative;
+  z-index: 3;
 }
 
 .attributes-section h3 {
@@ -413,6 +656,15 @@
   margin-bottom: var(--spacing-md);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-shadow: 0 1px 12px rgba(255,255,255,0.08);
+}
+
+/* Text glow for all text in attributes */
+.attributes-section span,
+.attribute-name,
+.attribute-score,
+.attribute-modifier {
+  text-shadow: 0 1px 12px rgba(255,255,255,0.08);
 }
 
 .attributes-grid {
@@ -475,16 +727,51 @@
   color: var(--color-danger);
 }
 
-/* Debilities Section */
+/* Debilities Section - SIDEBAR-STYLE GLASS */
 .debilities-section {
-  background: rgba(32, 30, 46, 0.55) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  border-radius: 12px;
+  position: relative;
+  border-radius: var(--rail-radius, 18px);
+  overflow: hidden;
+  background-clip: padding-box;
+  isolation: isolate;
+  background: transparent !important;
+  border: none !important;
   padding: var(--spacing-lg);
   margin-top: var(--spacing-lg);
-  box-shadow: 0 2px 4px var(--color-shadow);
+  box-shadow: none !important;
+}
+
+@supports not (overflow: clip) {
+  .debilities-section {
+    overflow: hidden;
+  }
+}
+
+.debilities-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+  z-index: 2;
+}
+
+.debilities-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  z-index: 1;
+}
+
+.debilities-section > * {
+  position: relative;
+  z-index: 3;
 }
 
 .debilities-section h3 {
@@ -493,6 +780,13 @@
   margin-bottom: var(--spacing-md);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-shadow: 0 1px 12px rgba(255,255,255,0.08);
+}
+
+/* Text glow for debilities text */
+.debilities-section span,
+.debility-item span {
+  text-shadow: 0 1px 12px rgba(255,255,255,0.08);
 }
 
 .debilities-grid {
@@ -533,16 +827,51 @@
   justify-content: center;
 }
 
-/* Keyboard Shortcuts */
+/* Keyboard Shortcuts - SIDEBAR-STYLE GLASS */
 .keyboard-shortcuts {
-  background: rgba(32, 30, 46, 0.55) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  border-radius: 12px;
+  position: relative;
+  border-radius: var(--rail-radius, 18px);
+  overflow: hidden;
+  background-clip: padding-box;
+  isolation: isolate;
+  background: transparent !important;
+  border: none !important;
   padding: var(--spacing-lg);
   margin-top: var(--spacing-lg);
-  box-shadow: 0 2px 4px var(--color-shadow);
+  box-shadow: none !important;
+}
+
+@supports not (overflow: clip) {
+  .keyboard-shortcuts {
+    overflow: hidden;
+  }
+}
+
+.keyboard-shortcuts::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+  z-index: 2;
+}
+
+.keyboard-shortcuts::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  z-index: 1;
+}
+
+.keyboard-shortcuts > * {
+  position: relative;
+  z-index: 3;
 }
 
 .keyboard-shortcuts h4 {

@@ -3,6 +3,7 @@ import type { Character } from '../models/Character'
 import type { LevelUpResult } from '../services/SpecialMovesService'
 
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { SpecialMovesService } from '../services/SpecialMovesService'
 import './LevelUpModal.css'
 
@@ -56,7 +57,7 @@ const LevelUpModal: React.FC <LevelUpModalProps> = ({
   const xpWidthRounded = Math.max(0, Math.min(100, Math.round(xpProgress / 5) * 5))
   const xpWidthClass = `xpw-${xpWidthRounded}`
 
-  return (
+  const modalContent = (
     <div className="modal-overlay bg-black/40 backdrop-blur-sm">
       <div className="level-up-modal bg-white/10 dark:bg-white/10 backdrop-blur-2xl border border-white/20">
         <div className="modal-header">
@@ -188,6 +189,9 @@ const LevelUpModal: React.FC <LevelUpModalProps> = ({
       </div>
     </div>
   )
+
+  if (typeof document === 'undefined') return modalContent
+  return createPortal(modalContent, document.body)
 }
 
 export default LevelUpModal

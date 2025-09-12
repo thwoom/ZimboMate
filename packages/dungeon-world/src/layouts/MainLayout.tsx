@@ -1,10 +1,23 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import HpOverlay from '../components/HpOverlay'
+import { OverlayManager } from '../framework/OverlayManager'
+import CombatOverlay from '../components/CombatOverlay'
+import XpOverlay from '../components/XpOverlay'
+import { useGameStore } from '../store/GameStore'
+import { createDummyCharacter } from '../models/Character'
+LoadOverlay
+import LoadOverlay from '../components/LoadOverlay'
+import ClassFocusOverlay from '../components/ClassFocusOverlay'
+import DebilitiesOverlay from '../components/DebilitiesOverlay'
+import AttributesOverlay from '../components/AttributesOverlay'
+import PreferencesOverlay from '../components/PreferencesOverlay'
+import KeyboardShortcutsOverlay from '../components/KeyboardShortcutsOverlay'
+import HeaderOverlay from '../components/HeaderOverlay'
 
 import { AutoSaveIndicator } from '../components/AutoSaveIndicator'
 
 import UnifiedQuickTools from '../components/UnifiedQuickTools'
 import { panelEventBus } from '../framework/PanelAPI'
-import { useGameStore } from '../store/GameStore'
 import ContentArea from './ContentArea'
 import Sidebar from './Sidebar'
 import './MainLayout.css'
@@ -16,7 +29,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC <MainLayoutProps> = () => {
   const [activePanelId, setActivePanelId] = useState <string>('character-stats')
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const { state } = useGameStore()
+  const { state, setCharacter } = useGameStore()
 
   // Listen for navigation events from panels
   useEffect(() => {
@@ -28,6 +41,13 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
 
     return unsubscribe
   }, [])
+
+  // Ensure we have an active character for demo/troubleshooting
+  useEffect(() => {
+    if (!state.activeCharacterId) {
+      setCharacter(createDummyCharacter())
+    }
+  }, [state.activeCharacterId, setCharacter])
 
   // Emit panel activation events for context-aware tools
   useEffect(() => {
@@ -67,8 +87,131 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
     return () => clearTimeout(saveTimeout)
   }, [state])
 
+  // Auto-position HP clone over the real HP card
+  const hpCloneRef = useRef<HTMLDivElement | null>(null)
+  const [hpRect, setHpRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [combatRect, setCombatRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [xpRect, setXpRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [loadRect, setLoadRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [classFocusRect, setClassFocusRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [debilitiesRect, setDebilitiesRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [attributesRect, setAttributesRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [prefsRect, setPrefsRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [shortcutsRect, setShortcutsRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  const [headerRect, setHeaderRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  useLayoutEffect(() => {
+    let rafId: number | null = null
+    let mo: MutationObserver | null = null
+    const update = () => {
+      const el = document.querySelector('.stat-card--hp') as HTMLElement | null
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      // Use viewport coordinates for fixed positioning
+      setHpRect({ left: r.left, top: r.top, width: r.width, height: r.height })
+      const combat = document.querySelector('.stat-card--combat') as HTMLElement | null
+      if (combat) {
+        const cr = combat.getBoundingClientRect()
+        setCombatRect({ left: cr.left, top: cr.top, width: cr.width, height: cr.height })
+      }
+      const xpEl = document.querySelector('.stat-card--xp') as HTMLElement | null
+      if (xpEl) {
+        const xr = xpEl.getBoundingClientRect()
+        setXpRect({ left: xr.left, top: xr.top, width: xr.width, height: xr.height })
+      }
+      const loadEl = document.querySelector('.stat-card--load') as HTMLElement | null
+      if (loadEl) {
+        const lr = loadEl.getBoundingClientRect()
+        setLoadRect({ left: lr.left, top: lr.top, width: lr.width, height: lr.height })
+      }
+      const cfEl = document.querySelector('.stat-card--class-focus') as HTMLElement | null
+      if (cfEl) {
+        const cr = cfEl.getBoundingClientRect()
+        setClassFocusRect({ left: cr.left, top: cr.top, width: cr.width, height: cr.height })
+      }
+      const debEl = document.querySelector('.stat-card--debilities') as HTMLElement | null
+      if (debEl) {
+        const dr = debEl.getBoundingClientRect()
+        setDebilitiesRect({ left: dr.left, top: dr.top, width: dr.width, height: dr.height })
+      }
+      const attrEl = document.querySelector('.stat-card--attributes') as HTMLElement | null
+      if (attrEl) {
+        const ar = attrEl.getBoundingClientRect()
+        setAttributesRect({ left: ar.left, top: ar.top, width: ar.width, height: ar.height })
+      }
+      const headerEl = document.querySelector('.stat-card--header') as HTMLElement | null
+      if (headerEl) {
+        const hr = headerEl.getBoundingClientRect()
+        setHeaderRect({ left: hr.left, top: hr.top, width: hr.width, height: hr.height })
+      }
+      const prefEl = document.querySelector('.stat-card--prefs') as HTMLElement | null
+      if (prefEl) {
+        const pr = prefEl.getBoundingClientRect()
+        setPrefsRect({ left: pr.left, top: pr.top, width: pr.width, height: pr.height })
+      }
+      const scEl = document.querySelector('.stat-card--shortcuts') as HTMLElement | null
+      if (scEl) {
+        const sr = scEl.getBoundingClientRect()
+        setShortcutsRect({ left: sr.left, top: sr.top, width: sr.width, height: sr.height })
+      }
+    }
+    update()
+    // If HP element not yet in DOM, observe for it
+    if (!document.querySelector('.stat-card--hp')) {
+      mo = new MutationObserver(() => {
+        const found = document.querySelector('.stat-card--hp')
+        if (found) {
+          update()
+          mo && mo.disconnect()
+          mo = null
+        }
+      })
+      mo.observe(document.body, { childList: true, subtree: true })
+    }
+    const onResize = () => update()
+    window.addEventListener('resize', onResize)
+
+    // No sidebar hover-driven remeasurement; overlay handles movement
+
+    return () => {
+      window.removeEventListener('resize', onResize)
+      if (rafId) cancelAnimationFrame(rafId)
+      if (mo) mo.disconnect()
+    }
+  }, [activePanelId])
+
+  // Toggle rail-open class on main-layout to avoid :has hover thrash when interacting with overlay
+  const mainLayoutRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const sidebarEl = document.querySelector('.sidebar:not(.sidebar--hp-clone)')
+    const root = mainLayoutRef.current
+    if (!sidebarEl || !root) return
+    let hoverTimer: number | null = null
+    const open = () => root.classList.add('rail-open')
+    const close = () => root.classList.remove('rail-open')
+    const onEnter = () => {
+      if (hoverTimer) window.clearTimeout(hoverTimer)
+      open()
+    }
+    const onLeave = () => {
+      if (hoverTimer) window.clearTimeout(hoverTimer)
+      // small delay to ignore incidental hover transitions over panels
+      hoverTimer = window.setTimeout(() => close(), 120)
+    }
+    sidebarEl.addEventListener('mouseenter', onEnter)
+    sidebarEl.addEventListener('mouseleave', onLeave)
+    return () => {
+      sidebarEl.removeEventListener('mouseenter', onEnter)
+      sidebarEl.removeEventListener('mouseleave', onLeave)
+    }
+  }, [])
+
+  // Update overlay active layer when panel changes
+  useEffect(() => {
+    OverlayManager.setActiveLayer(activePanelId)
+  }, [activePanelId])
+
   return (
-    <div className="main-layout" data-active-panel={activePanelId}>
+    <div ref={mainLayoutRef} className="main-layout" data-active-panel={activePanelId}>
 
       {/* Grid places the sidebar in column 1 naturally */}
       <Sidebar
@@ -84,6 +227,232 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
           />
         </div>
       </main>
+
+      {/* Overlay root retained for future surfaces */}
+      <div id="overlay-layer" />
+
+      {/* HP clone surface as sibling to sidebar for identical compositing */}
+      {hpRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            hpCloneRef.current = el
+            if (el) {
+              // Register this overlay under the character-stats layer
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((hpCloneRef.current as any)?.__unreg) {
+              ;(hpCloneRef.current as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: hpRect.left, top: hpRect.top, width: hpRect.width, height: hpRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <HpOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Combat overlay: anchored to combat card */}
+      {combatRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: combatRect.left, top: combatRect.top, width: combatRect.width, height: combatRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <CombatOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* XP overlay: anchored to XP card */}
+      {xpRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: xpRect.left, top: xpRect.top, width: xpRect.width, height: xpRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <XpOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Load overlay: anchored to Load card */}
+      {loadRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: loadRect.left, top: loadRect.top, width: loadRect.width, height: loadRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <LoadOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Class Focus overlay */}
+      {classFocusRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: classFocusRect.left, top: classFocusRect.top, width: classFocusRect.width, height: classFocusRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <ClassFocusOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Debilities overlay */}
+      {debilitiesRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: debilitiesRect.left, top: debilitiesRect.top, width: debilitiesRect.width, height: debilitiesRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <DebilitiesOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Attributes overlay */}
+      {attributesRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: attributesRect.left, top: attributesRect.top, width: attributesRect.width, height: attributesRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <AttributesOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preferences overlay */}
+      {prefsRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: prefsRect.left, top: prefsRect.top, width: prefsRect.width, height: prefsRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <PreferencesOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Keyboard Shortcuts overlay */}
+      {shortcutsRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: shortcutsRect.left, top: shortcutsRect.top, width: shortcutsRect.width, height: shortcutsRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <KeyboardShortcutsOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header overlay */}
+      {headerRect && (
+        <div
+          className="sidebar sidebar--hp-clone"
+          ref={(el) => {
+            if (el) {
+              const unregister = OverlayManager.register('character-stats', el)
+              ;(el as any).__unreg = unregister
+            } else if ((el as any)?.__unreg) {
+              ;(el as any).__unreg()
+            }
+          }}
+          style={{ position: 'fixed', left: headerRect.left, top: headerRect.top, width: headerRect.width, height: headerRect.height }}
+        >
+          <div className="sidebar__inner floating-glass">
+            <div className="overlay-clone-content">
+              <HeaderOverlay />
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Unified Quick Tools */}
       <UnifiedQuickTools position="bottom-right" />

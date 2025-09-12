@@ -1,21 +1,24 @@
+/* Overlay layer used only as a container (no motion) */
+#overlay-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1049; /* under rail */
+  pointer-events: none;
+}
 .main-layout {
   display: flex;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   position: relative;
+  z-index: 1; /* base */
   /* Sidebar rail sizing variables */
   --rail-offset: 16px;
   --rail-gap: 16px;
   --rail-collapsed: 64px;
   --rail-expanded: 300px;
   --rail-delta: calc(var(--rail-expanded) - var(--rail-collapsed));
-  /* Soft gradient backdrop to enhance glass blur */
-  background:
-    radial-gradient(1200px 800px at 10% 0%, rgba(98, 73, 255, 0.12), transparent 60%),
-    radial-gradient(1000px 600px at 90% 20%, rgba(255, 73, 160, 0.10), transparent 60%),
-    radial-gradient(900px 700px at 50% 100%, rgba(64, 182, 255, 0.10), transparent 60%),
-    linear-gradient(180deg, #0f0e17 0%, #0c0b13 100%);
+  background: transparent !important; /* image + gradients now applied globally */
 }
 
 .main-layout__sidebar {
@@ -41,14 +44,249 @@
   will-change: transform;
 }
 
+/* Overlay panels root */
+#overlay-panels {
+  position: fixed;
+  inset: 0;
+  z-index: 1050; /* same plane as sidebar */
+  pointer-events: none;
+}
+
+/* Overlay surface uses the same glass as sidebar__inner */
+.overlay-surface-outer {
+  position: fixed;
+  pointer-events: none; /* let inner handle interactions */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout paint style;
+}
+
+.overlay-surface {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  background-clip: padding-box;
+  pointer-events: auto;
+}
+
+.overlay-surface::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.18);
+}
+
+.overlay-surface::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Sidebar clone: reuse .sidebar rules and position it to the right */
+.sidebar.sidebar--clone {
+  position: fixed;
+  top: 72px;
+  bottom: 16px;
+  left: calc(16px + 300px + 24px); /* original left + width + gap */
+  width: 300px;
+  z-index: 1050;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout paint style;
+  /* show fully expanded clip to appear as a panel */
+  clip-path: inset(0 0 0 0 round var(--rail-clip-radius));
+}
+
+.sidebar.sidebar--hp-clone,
+.sidebar.sidebar--overlay-clone {
+  position: fixed;
+  pointer-events: auto; /* keep the clone interactive */
+  backface-visibility: hidden;
+  contain: layout paint style;
+  clip-path: inset(0 0 0 0 round 18px);
+  /* mirror rail custom properties so inner renders identically */
+  --rail-radius: 18px;
+  --rail-inner-radius: var(--rail-radius);
+  --rail-clip-radius: calc(var(--rail-radius) + 1px);
+  /* movement handled by transform on the clone */
+  top: auto; bottom: auto !important; right: auto;
+  transform: translateX(0);
+  /* kill inherited clip-path animation; only transform should animate */
+  transition: transform 220ms ease, clip-path 0ms linear;
+}
+
+/* Ensure inner fills the measured rect, not fixed 300px */
+.sidebar.sidebar--hp-clone .sidebar__inner,
+.sidebar.sidebar--overlay-clone .sidebar__inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure content sits above blur in overlay clones to avoid over-blurring */
+/* Remove special stacking for overlay clones to match HP/rail exactly */
+/* Apply same stacking fix for hp-clone (used by multiple overlays) */
+/* HP clone uses the rail's native stacking for blur fidelity */
+
+/* Keep the rail expanded when rail-open is set */
+.main-layout.rail-open .sidebar {
+  clip-path: inset(0 0 0 0 round var(--rail-clip-radius));
+}
+
+/* Shift the clone by rail delta when open */
+.main-layout.rail-open .sidebar.sidebar--hp-clone,
+.main-layout.rail-open .sidebar.sidebar--overlay-clone { transform: translateX(var(--rail-delta)); }
+
+/* Disable any hover-driven clip-path changes on the clone */
+.sidebar.sidebar--hp-clone:hover,
+.sidebar.sidebar--overlay-clone:hover { clip-path: inset(0 0 0 0 round var(--rail-clip-radius)); }
+
+.overlay-clone-content {
+  position: static;
+  padding: 10px;
+  display: block;
+}
+.sidebar.sidebar--hp-clone .combat-stats { gap: 6px; }
+.sidebar.sidebar--hp-clone .stat-item { display: flex; justify-content: space-between; align-items: center; }
+/* Normalize combat text tone to match HP readability */
+.sidebar.sidebar--hp-clone .combat-stats .stat-label { color: var(--color-text-secondary); font-weight: 600; }
+.sidebar.sidebar--hp-clone .combat-stats .stat-value { color: var(--color-text-primary); font-weight: 700; text-shadow: 0 1px 12px rgba(255,255,255,0.10); }
+/* Remove any dim backgrounds/borders on rows inside overlay */
+.sidebar.sidebar--hp-clone .combat-stats .stat-item { background: transparent !important; border: none !important; box-shadow: none !important; }
+.sidebar.sidebar--hp-clone .combat-stats .stat-item * { filter: none !important; opacity: 1 !important; }
+
+/* Attributes overlay legibility and parity with Combat */
+.sidebar.sidebar--hp-clone .attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+.sidebar.sidebar--hp-clone .attributes-grid .attribute-card,
+.sidebar.sidebar--hp-clone .attributes-grid .attribute-button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.sidebar.sidebar--hp-clone .attributes-grid .attribute-card *,
+.sidebar.sidebar--hp-clone .attributes-grid .attribute-button * {
+  filter: none !important;
+  opacity: 1 !important;
+}
+.sidebar.sidebar--hp-clone .attributes-grid .attribute-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 4px;
+  border-radius: 8px;
+  min-height: 24px;
+  text-align: center;
+}
+.sidebar.sidebar--hp-clone .attribute-button:hover { transform: none; }
+.sidebar.sidebar--hp-clone .attribute-button--debility { background: transparent !important; }
+/* Tone/weight to match HP panel */
+.sidebar.sidebar--hp-clone .attribute-name { color: var(--color-text-secondary); font-weight: 600; font-size: 10px; line-height: 1; }
+.sidebar.sidebar--hp-clone .attribute-score,
+.sidebar.sidebar--hp-clone .attribute-modifier { color: var(--color-text-primary); font-weight: 700; text-shadow: 0 1px 12px rgba(255,255,255,0.10); font-size: 12px; line-height: 1; }
+
+/* Preferences overlay uses combat-stats rows; ensure label tone */
+.sidebar.sidebar--hp-clone .combat-stats label { color: var(--color-text-secondary); font-weight: 600; }
+.sidebar.sidebar--hp-clone .combat-stats input[type='checkbox'] { accent-color: var(--color-primary); }
+
+/* Keyboard Shortcuts overlay legibility */
+.sidebar.sidebar--hp-clone .shortcuts-list { display: flex; flex-direction: column; gap: 6px; }
+.sidebar.sidebar--hp-clone .shortcuts-list .stat-item { display: flex; justify-content: space-between; align-items: center; }
+.sidebar.sidebar--hp-clone .shortcuts-list .stat-label { color: var(--color-text-secondary); font-weight: 600; }
+.sidebar.sidebar--hp-clone .shortcuts-list .stat-value { color: var(--color-text-primary); font-weight: 700; text-shadow: 0 1px 12px rgba(255,255,255,0.10); }
+
+/* Header overlay: strip legacy visuals and match tones */
+.sidebar.sidebar--hp-clone .character-name { color: var(--color-text-primary); font-weight: 700; text-shadow: 0 1px 12px rgba(255,255,255,0.10); margin: 0; }
+.sidebar.sidebar--hp-clone .character-info { display: flex; gap: 12px; }
+.sidebar.sidebar--hp-clone .character-info span { color: var(--color-text-secondary); font-weight: 600; text-shadow: 0 1px 12px rgba(255,255,255,0.08); }
+/* Strip any legacy fills behind header pills */
+.sidebar.sidebar--hp-clone .character-info,
+.sidebar.sidebar--hp-clone .character-info * {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+/* XP overlay legibility: strip legacy row styles and normalize tones */
+.sidebar.sidebar--hp-clone .experience-stats { display: flex; flex-direction: column; gap: 6px; }
+.sidebar.sidebar--hp-clone .experience-stats .stat-item { background: transparent !important; border: none !important; box-shadow: none !important; display: flex; justify-content: space-between; align-items: center; }
+.sidebar.sidebar--hp-clone .experience-stats .stat-label { color: var(--color-text-secondary); font-weight: 600; }
+.sidebar.sidebar--hp-clone .experience-stats .stat-value { color: var(--color-text-primary); font-weight: 700; text-shadow: 0 1px 12px rgba(255,255,255,0.10); }
+.sidebar.sidebar--hp-clone .xp-progress { filter: none !important; opacity: 1 !important; height: 6px; }
+.sidebar.sidebar--hp-clone .action-button:hover { transform: none; }
+
+/* Load overlay legibility */
+.sidebar.sidebar--hp-clone .load-display { display: grid; grid-template-columns: 32px 1fr 32px; gap: 6px; align-items: center; }
+.sidebar.sidebar--hp-clone .load-value { display: flex; justify-content: center; align-items: baseline; }
+.sidebar.sidebar--hp-clone .load-progress { height: 6px; filter: none !important; opacity: 1 !important; }
+.sidebar.sidebar--hp-clone .load-warning { margin-top: 6px; color: var(--color-warning, #f6ad55); font-weight: 600; }
+
+
+/* Ensure hp content stays within rounded glass */
+.hp-sidebar-glass-content { overflow: hidden; padding: 8px; }
+.hp-display { display: grid; grid-template-columns: 32px 1fr 32px; gap: 6px; align-items: center; }
+.hp-value { display: flex; align-items: baseline; justify-content: center; }
+.hp-button { border-radius: 8px; }
+
+/* Compact overrides scoped to the HP clone */
+.sidebar.sidebar--hp-clone .hp-button { width: 32px; height: 32px; }
+.sidebar.sidebar--hp-clone .hp-button:hover { transform: none; }
+.sidebar.sidebar--hp-clone .hp-progress { height: 6px; }
+
+.overlay-clone-icon { font-size: 18px; color: var(--color-text-secondary); }
+.overlay-clone-text { color: var(--color-text-primary); font-weight: 600; }
+.overlay-clone-button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+/* Duplicate icon under blur: Icon > Blur > Icon > Background */
+.overlay-icon { position: relative; width: 28px; height: 20px; display: inline-block; }
+.overlay-icon .icon-fx,
+.overlay-icon .icon-fg { position: absolute; inset: 0; display: inline-flex; align-items: center; justify-content: center; }
+.overlay-icon .icon-fx { filter: blur(3px) saturate(120%); opacity: 0.38; }
+.overlay-icon .icon-fg { filter: none; opacity: 1; }
+.overlay-rect {
+  position: fixed;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout paint style;
+  clip-path: inset(0 0 0 0 round 18px);
+  pointer-events: auto; /* enable interaction within overlay surface */
+}
+
+/* (reverted overlay panel layer) */
+
 /* Floating glass containers */
-.floating-glass {
-  background: rgba(40,38,56,0.35);
+.floating-glass { position: relative; border-radius: 14px; }
+.floating-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: rgba(40,38,56,0.35);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.14);
+  pointer-events: none;
+}
+.floating-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  pointer-events: none;
 }
 
 .main-layout__sidebar.floating-glass {
@@ -68,7 +306,6 @@
   min-width: 0;
   background: transparent !important;
   position: relative;
-  transition: margin-left 200ms ease;
 }
 
 /* When the sidebar expands, translate the whole card without resizing */
@@ -82,10 +319,7 @@
   }
 }
 
-/* Expand offset when rail is hovered */
-.main-layout:has(.sidebar:hover) .content-float {
-  margin-left: calc(var(--rail-offset) + var(--rail-expanded) + var(--rail-gap));
-}
+/* No content slide on rail hover; overlay layer handles movement */
 
 /* Auto-save indicator positioning */
 .main-layout__autosave {

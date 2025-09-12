@@ -1,6 +1,7 @@
 import type { PanelProps } from '../../framework/Panel'
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, useLayoutEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 import LevelUpModal from '../../components/LevelUpModal'
 import { createPanel } from '../../framework/Panel'
@@ -16,6 +17,7 @@ import type { Character, AdvancementChoice } from '../../models/Character'
 import type { LevelUpResult } from '../../services/SpecialMovesService'
 import './CharacterStatsPanel.css'
 import Tooltip from '../../components/Tooltip'
+import OverlaySurface from '../../components/OverlaySurface'
 
 interface CharacterStatsPanelState {
   // Basic Info
@@ -63,6 +65,25 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   const api = createPanelAPI(id)
   const { state: gameState, updateCharacter, updateSettings } = useGameStore()
   const [showLevelUpModal, setShowLevelUpModal] = useState(false)
+  const overlayRoot = typeof document !== 'undefined' ? document.getElementById('overlay-panels') : null
+  const hpAnchorRef = useRef<HTMLDivElement | null>(null)
+  const [hpRect, setHpRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  useLayoutEffect(() => {
+    const update = () => {
+      const el = hpAnchorRef.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      setHpRect({ left: r.left + window.scrollX, top: r.top + window.scrollY, width: r.width, height: r.height })
+    }
+    update()
+    window.addEventListener('resize', update)
+    window.addEventListener('scroll', update, true)
+    return () => {
+      window.removeEventListener('resize', update)
+      window.removeEventListener('scroll', update, true)
+    }
+  }, [isActive])
+
 
   // Get the active character from the game state
   const character = gameState.activeCharacterId ? gameState.characters[gameState.activeCharacterId] : null
@@ -121,10 +142,12 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
     },
   }
 
-  // Calculate attribute modifiers
+  // Calculate attribute modifiers (prefer store character values when available)
+  const currentAttributes = character?.attributes || state.attributes
+  const currentDebilities = character?.debilities || state.debilities
   const getEffectiveModifier = useCallback((attribute: keyof typeof state.attributes): number => {
-    return getEffectiveModifierModel(attribute as any, state.attributes, state.debilities)
-  }, [state.attributes, state.debilities])
+    return getEffectiveModifierModel(attribute as any, currentAttributes as any, currentDebilities as any)
+  }, [currentAttributes, currentDebilities])
 
   // Calculate max load based on class base + STR modifier
   const calculateMaxLoad = useCallback(() => {
@@ -159,6 +182,15 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
       api.send('level-up-available', { character: character.name, level: character.level })
     }
   }, [character, updateCharacter, api])
+
+  // Open the Level Up modal when overlays signal availability
+  useEffect(() => {
+    const off = api.listen('level-up-available', () => {
+      setShowLevelUpModal(true)
+    })
+    const off2 = api.listen('open-levelup-modal', () => setShowLevelUpModal(true))
+    return () => { off(); off2() }
+  }, [api])
 
   const handleRest = useCallback(() => {
     if (!character) return
@@ -399,164 +431,63 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
       <div aria-live="polite" className="aria-live-region">
         HP {state.hp} of {state.maxHp}. XP {displayCharacter.xp} of {displayCharacter.level + 7}.
       </div>
-      {/* Original header */}
-      <div className="character-header">
-        <h2 className="character-name">{displayCharacter.name}</h2>
-        <div className="character-info">
-          <span className="character-class">{displayCharacter.class}</span>
-          <span className="character-level">
-            Level
-            {displayCharacter.level}
-          </span>
-          <span className="character-alignment">{displayCharacter.alignment}</span>
-        </div>
-      </div>
+      {/* Header placeholder (overlay renders real content) */}
+      <div className="stat-card stat-card--header" />
 
       <div className="stats-grid">
         {/* HP Section */}
-        <div className="stat-card stat-card--hp">
-          <h3> Hit Points</h3>
-          <div className="hp-display">
-            <button
-              className="hp-button hp-button--minus"
-              onClick={() => handleHpChange(-1)}
-              type="button"
-            >
-              -
-            </button>
-            <div className="hp-value">
-              <span className="hp-current">{displayCharacter.hp?.current ?? state.hp}</span>
-              <span className="hp-separator">/</span>
-              <span className="hp-max">{displayCharacter.hp?.max ?? state.maxHp}</span>
+        <div className="stat-card--hp" ref={hpAnchorRef}>
+          {/* Hidden placeholder to preserve layout and provide a measurable rect */}
+          <div className="hp-overlay-placeholder" aria-hidden>
+            <div className="hp-glass">
+              <div className="hp-sidebar-glass-content">
+                <h3> Hit Points</h3>
+                <div className="hp-display">
+                  <button className="hp-button hp-button--minus" type="button">-</button>
+                  <div className="hp-value">
+                    <span className="hp-current">{displayCharacter.hp?.current ?? state.hp}</span>
+                    <span className="hp-separator">/</span>
+                    <span className="hp-max">{displayCharacter.hp?.max ?? state.maxHp}</span>
+                  </div>
+                  <button className="hp-button hp-button--plus" type="button">+</button>
+                </div>
+                <div className="hp-bar">
+                  <progress className={`hp-progress ${getHpClass()}`} max={state.maxHp} value={state.hp} />
+                </div>
+              </div>
             </div>
-            <button
-              className="hp-button hp-button--plus"
-              onClick={() => handleHpChange(1)}
-              type="button"
-            >
-              +
-            </button>
           </div>
-          <div className="hp-bar">
-            <progress
-              className={`hp-progress ${getHpClass()}`}
-              max={state.maxHp}
-              value={state.hp}
-              aria-label="HP progress"
-            />
-          </div>
+
+          <OverlaySurface anchorRef={hpAnchorRef}>
+            <div className="hp-sidebar-glass-content">
+              <h3> Hit Points</h3>
+              <div className="hp-display">
+                <button className="hp-button hp-button--minus" onClick={() => handleHpChange(-1)} type="button">-</button>
+                <div className="hp-value">
+                  <span className="hp-current">{displayCharacter.hp?.current ?? state.hp}</span>
+                  <span className="hp-separator">/</span>
+                  <span className="hp-max">{displayCharacter.hp?.max ?? state.maxHp}</span>
+                </div>
+                <button className="hp-button hp-button--plus" onClick={() => handleHpChange(1)} type="button">+</button>
+              </div>
+              <div className="hp-bar">
+                <progress className={`hp-progress ${getHpClass()}`} max={state.maxHp} value={state.hp} aria-label="HP progress" />
+              </div>
+            </div>
+          </OverlaySurface>
         </div>
 
-        {/* Armor & Damage */}
-        <div className="stat-card">
-          <h3> Combat Stats</h3>
-          <div className="combat-stats">
-            <div className="stat-item">
-              <span className="stat-label">Armor:</span>
-              <span className="stat-value">{state.armor}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">Damage:</span>
-              <span className="stat-value">{state.damage}</span>
-            </div>
-          </div>
-        </div>
+        {/* Combat Stats placeholder (overlay renders actual content) */}
+        <div className="stat-card--combat" />
 
-        {/* Level & XP */}
-        <div className="stat-card">
-          <h3> Experience</h3>
-          <div className="experience-stats">
-            <div className="stat-item">
-              <span className="stat-label">Level:</span>
-              <span className="stat-value">{displayCharacter.level}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">XP:</span>
-              <span className="stat-value">
-                {displayCharacter.xp}
-                /
-                {displayCharacter.level + 7}
-                {' '}({getXpToNext(displayCharacter.level as number, displayCharacter.xp as number)} to next)
-              </span>
-            </div>
-          </div>
-          <div className="xp-bar">
-            <progress
-              className="xp-progress"
-              max={displayCharacter.level + 7}
-              value={displayCharacter.xp}
-              aria-label="XP progress"
-            />
-          </div>
-          <div className="quick-actions">
-            <button type="button" className="action-button action-button--xp" onClick={handleAddXP}>
-              Add XP
-            </button>
-            {character && SpecialMovesService.canLevelUp(character) && (
-              <button type="button" className="action-button action-button--level-up" onClick={handleLevelUp}>
-                Level Up!
-              </button>
-            )}
-          </div>
-        </div>
+        {/* Experience placeholder (overlay renders content) */}
+        <div className="stat-card--xp" />
 
-        {/* Load */}
-        <div className="stat-card">
-          <h3> Load</h3>
-          <div className="load-display">
-            <span className="load-current">{state.load}</span>
-            <span className="load-separator">/</span>
-            <span className="load-max">{maxLoadMemo}</span>
-          </div>
-          <div className="load-bar">
-            <progress
-              className={`load-progress ${state.load > maxLoadMemo ? 'overloaded' : ''}`}
-              max={maxLoadMemo}
-              value={state.load}
-              aria-label="Load progress"
-            />
-          </div>
-          {state.load > maxLoadMemo && (
-            <div className="load-warning">Encumbered!</div>
-          )}
-          <div className="load-details">
-            <span className="stat-label">Max Load Formula:</span>
-            <span className="stat-value">Base({displayCharacter.class}) + STR mod</span>
-          </div>
-          <div className="load-details">
-            <span className="stat-label">Encumbrance:</span>
-            <span className="stat-value">{getEncumbranceTier(state.load, maxLoadMemo) === 'encumbered' ? 'Encumbered' : 'OK'}</span>
-          </div>
-        </div>
+        {/* Load placeholder (overlay renders content) */}
+        <div className="stat-card--load" />
 
-        {/* Preferences override + Spellcasting (for casters) */}
-        <div className="stat-card">
-          <div className="stat-item">
-            <label>
-              <input
-                type="checkbox"
-                checked={gameState.settings.conditionalContent?.perPanel.stats.overrideEnabled || false}
-                onChange={() => {
-                  const next = togglePanelOverride(gameState.settings, 'stats')
-                  updateSettings({ conditionalContent: next.conditionalContent })
-                }}
-              />{' '}
-              Override
-            </label>
-            <label className="ml-8">
-              <input
-                type="checkbox"
-                checked={gameState.settings.conditionalContent?.perPanel.stats.showSpells || false}
-                onChange={e => {
-                  const next = setStatsShowSpells(gameState.settings, e.target.checked)
-                  updateSettings({ conditionalContent: next.conditionalContent })
-                }}
-                disabled={!gameState.settings.conditionalContent?.perPanel.stats.overrideEnabled}
-              />{' '}
-              Show spells
-            </label>
-          </div>
-        </div>
+        {/* Preferences override placeholder (overlay renders content) */}
+        <div className="stat-card stat-card--prefs" />
 
         {sections.showSpellcasting && effective.statsShowSpells && character && (
           <div className="stat-card">
@@ -589,121 +520,16 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         )}
       </div>
 
-      {/* Attributes & Rolls */}
-      <div className="attributes-section">
-        <h3> Attributes</h3>
-        <div className="attributes-grid">
-          {(displayCharacter.attributes || state.attributes) && Object.entries(displayCharacter.attributes || state.attributes).map(([attr, score]) => {
-            const modifier = getEffectiveModifier(attr as keyof typeof state.attributes)
-            const hasDebility = (
-              (attr === 'STR' && state.debilities.weak)
-              || (attr === 'DEX' && state.debilities.shaky)
-              || (attr === 'CON' && state.debilities.sick)
-              || (attr === 'INT' && state.debilities.confused)
-              || (attr === 'WIS' && state.debilities.scarred)
-              || (attr === 'CHA' && state.debilities.stunned)
-            )
+      {/* Attributes placeholder (overlay renders content) */}
+      <div className="stat-card stat-card--attributes" />
 
-            return (
-              <div key={attr} className={`attribute-card ${highlightStats.includes(attr as any) ? 'attribute-card--highlight' : ''}`}>
-                <Tooltip content={highlightStats.includes(attr as any) ? getAttributeTooltip(attr as any) : 'Attribute'}>
-                  <button
-                    className={`attribute-button ${hasDebility ? 'attribute-button--debility' : ''}`}
-                    title={`Roll 2d6${formatModifier(modifier)}`}
-                    onClick={() => rollAttribute(attr as keyof typeof state.attributes)}
-                    type="button"
-                  >
-                    <span className="attribute-name">{attr}</span>
-                    <span className="attribute-score">{score as number}</span>
-                    <span className="attribute-modifier">{formatModifier(modifier)}</span>
-                  </button>
-                </Tooltip>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Class Focus */}
+      {/* Class Focus placeholder (overlay renders content) */}
       {sections.showClassFocus && classMap && (
-        <div className="class-focus-section">
-          <h3> Class Focus</h3>
-          <div className="class-focus-grid">
-            <div className="focus-item">
-              <span className="stat-label">Highlighted Attributes:</span>
-              <span className="stat-value">{(classMap.statsHighlight || []).join(', ') || '—'}</span>
-            </div>
-            <div className="focus-item">
-              <span className="stat-label">Armor Training:</span>
-              <span className="stat-value">{classMap.equipment.armorTraining ? 'Yes' : 'No'}</span>
-            </div>
-            <div className="focus-item">
-              <span className="stat-label">Why it matters:</span>
-              <span className="stat-value">
-                {(classMap.statsHighlight || []).length > 0
-                  ? 'These attributes enhance core class moves and survivability.'
-                  : 'No special attribute emphasis for this class.'}
-                {' '}Armor training reduces penalties from heavier armor.
-              </span>
-            </div>
-          </div>
-        </div>
+        <div className="stat-card stat-card--class-focus" />
       )}
 
-      {/* Debilities */}
-      <div className="debilities-section">
-        <h3> Debilities</h3>
-        <div className="debilities-grid">
-          <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.weak}
-              onChange={() => handleDebilityToggle('weak')}
-            />
-            <span> Weak (-1 STR)</span>
-          </label>
-          <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.shaky}
-              onChange={() => handleDebilityToggle('shaky')}
-            />
-            <span> Shaky (-1 DEX)</span>
-          </label>
-          <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.sick}
-              onChange={() => handleDebilityToggle('sick')}
-            />
-            <span> Sick (-1 CON)</span>
-          </label>
-          <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.confused}
-              onChange={() => handleDebilityToggle('confused')}
-            />
-            <span> Confused (-1 INT)</span>
-          </label>
-          <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.scarred}
-              onChange={() => handleDebilityToggle('scarred')}
-            />
-            <span> Scarred (-1 WIS)</span>
-          </label>
-          <label className="debility-item">
-            <input
-              type="checkbox"
-              checked={state.debilities.stunned}
-              onChange={() => handleDebilityToggle('stunned')}
-            />
-            <span> Stunned (-1 CHA)</span>
-          </label>
-        </div>
-      </div>
+      {/* Debilities placeholder (overlay renders content) */}
+      <div className="stat-card stat-card--debilities" />
 
       {/* Quick Actions */}
       <div className="quick-actions-section">
@@ -712,50 +538,8 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         </button>
       </div>
 
-      {/* Keyboard Shortcuts Help */}
-      <div className="keyboard-shortcuts">
-        <h4> Keyboard Shortcuts</h4>
-        <div className="shortcuts-grid">
-          <span className="shortcut">
-            <kbd>↑</kbd>
-            {' '}
-            /
-            {' '}
-            <kbd>+</kbd>
-            {' '}
-            Increase HP
-          </span>
-          <span className="shortcut">
-            <kbd>↓</kbd>
-            {' '}
-            /
-            {' '}
-            <kbd>-</kbd>
-            {' '}
-            Decrease HP
-          </span>
-          <span className="shortcut">
-            <kbd> 1-6</kbd>
-            {' '}
-            Roll Attribute
-          </span>
-          <span className="shortcut">
-            <kbd> X</kbd>
-            {' '}
-            Add XP
-          </span>
-          <span className="shortcut">
-            <kbd> R</kbd>
-            {' '}
-            Rest
-          </span>
-          <span className="shortcut">
-            <kbd> Space</kbd>
-            {' '}
-            Roll 2d6
-          </span>
-        </div>
-      </div>
+      {/* Keyboard Shortcuts placeholder (overlay renders content) */}
+      <div className="stat-card stat-card--shortcuts" />
 
       {/* Level Up Modal */}
       {character && (

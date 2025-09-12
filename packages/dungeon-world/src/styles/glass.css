@@ -1,12 +1,29 @@
 @layer utilities {
   .glass-panel {
-    background: color-mix(in oklab, var(--color-surface) 30%, transparent) !important;
-    background: rgba(40, 38, 56, 0.28) !important;
+    position: relative;
+    background: transparent !important; /* move rendering to pseudo element for consistency */
+    border-radius: 14px;
+  }
+
+  /* App-wide perfected glass: buffer layer + isolated blur + outline */
+  .glass-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-color: rgba(40, 38, 56, 0.28);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.28), 0 0 0 2px rgba(255,255,255,0.16);
+    pointer-events: none;
+  }
+
+  .glass-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
     -webkit-backdrop-filter: blur(18px) saturate(150%);
     backdrop-filter: blur(18px) saturate(150%);
-    border: 1px solid rgba(255,255,255,0.16) !important;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.28);
+    pointer-events: none;
   }
 
   .glass-surface {

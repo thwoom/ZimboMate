@@ -25,8 +25,26 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-text-primary);
-  background-color: var(--color-background);
+  background-color: transparent; /* allow body::before image to show */
   line-height: 1.5;
+}
+
+/* Strong, fixed background layer (works across browsers) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0; /* sit below app content but above body */
+  /* Restored app background */
+  background:
+    radial-gradient(1200px 800px at 10% 0%, rgba(98, 73, 255, 0.12), transparent 60%),
+    radial-gradient(1000px 600px at 90% 20%, rgba(255, 73, 160, 0.10), transparent 60%),
+    radial-gradient(900px 700px at 50% 100%, rgba(64, 182, 255, 0.10), transparent 60%),
+    url('/backgrounds/app-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
 
 /* Ensure gradient applies to html/body/#root for backdrop-clip */
