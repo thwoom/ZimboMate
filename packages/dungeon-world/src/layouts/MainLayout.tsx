@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import HpOverlay from '../components/HpOverlay'
 import { OverlayManager } from '../framework/OverlayManager'
 import CombatOverlay from '../components/CombatOverlay'
@@ -27,9 +28,20 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC <MainLayoutProps> = () => {
-  const [activePanelId, setActivePanelId] = useState <string>('character-stats')
+  const params = useParams()
+  const navigate = useNavigate()
+  const initialPanel = (params.panelId as string) || 'character-stats'
+  const [activePanelId, setActivePanelId] = useState <string>(initialPanel)
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const { state, setCharacter } = useGameStore()
+
+  // Keep URL in sync when panel changes
+  useEffect(() => {
+    const current = (params.panelId as string) || 'character-stats'
+    if (activePanelId !== current) {
+      navigate(`/${activePanelId}`, { replace: true })
+    }
+  }, [activePanelId])
 
   // Listen for navigation events from panels
   useEffect(() => {

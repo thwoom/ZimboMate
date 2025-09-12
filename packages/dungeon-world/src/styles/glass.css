@@ -97,24 +97,5 @@
     text-shadow: 0 1px 12px rgba(255,255,255,0.10);
   }
 
-  /* Compact shortcuts grid and typography */
-  .sidebar.sidebar--hp-clone .shortcuts-list--compact {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2px 8px;
-    align-items: center;
-  }
-  .sidebar.sidebar--hp-clone .shortcuts-list--compact .stat-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 2px 4px;
-    line-height: 1;
-    min-height: 18px;
-  }
-  .sidebar.sidebar--hp-clone .shortcuts-list--compact .stat-label {
-    font-size: 10px;
-  }
-  .sidebar.sidebar--hp-clone .shortcuts-list--compact .stat-value {
-    font-size: 10px;
-  }
+  /* (reverted compact shortcuts grid) */
 }
