@@ -4,6 +4,7 @@ import { panelRegistry } from '../framework/PanelRegistry'
 
 import { PanelRouter } from '../framework/PanelRouter'
 import './ContentArea.css'
+import GlobalPageHeader from '../components/GlobalPageHeader'
 
 interface ContentAreaProps {
   activePanelId: string
@@ -61,6 +62,7 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
 
   return (
     <div className="content-area bg-transparent">
+      <GlobalPageHeader title={panelTitle} />
       <div ref={bodyRef} className={`content-area__body bg-transparent ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
         <div className="overlay-scrollbar-track" id="overlay-scrollbar-track">
           <div className="overlay-scrollbar-thumb" id="overlay-scrollbar-thumb" />
