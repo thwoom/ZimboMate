@@ -313,7 +313,7 @@ export function useCharacterStats() {
       return null
 
     const _equippedItems = getEquippedItems(inventory)
-    const totalArmor = calculateTotalArmor(equippedItems) + (character.baseArmor || 0)
+    const totalArmor = calculateTotalArmor(_equippedItems) + (character.baseArmor || 0)
     const maxHP = calculateMaxHP(character)
     const maxLoad = calculateMaxLoad(character)
     const inventoryStats = calculateInventoryStats(inventory, maxLoad)

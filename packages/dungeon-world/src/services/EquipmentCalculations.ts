@@ -47,12 +47,12 @@ class EquipmentCalculationService {
     const inventory = character.inventory || []
     const _equippedItems = inventory.filter(item => item.equipped)
 
-    const totalArmor = this.calculateTotalArmor(equippedItems)
+    const totalArmor = this.calculateTotalArmor(_equippedItems)
     const totalWeight = this.calculateTotalWeight(inventory)
-    const damageBonus = this.calculateDamageBonus(equippedItems)
-    const damageDice = this.getDamageDice(equippedItems)
+    const damageBonus = this.calculateDamageBonus(_equippedItems)
+    const damageDice = this.getDamageDice(_equippedItems)
     const encumbranceStatus = this.calculateEncumbrance(totalWeight, character)
-    const specialEffects = this.getSpecialEffects(equippedItems)
+    const specialEffects = this.getSpecialEffects(_equippedItems)
 
     return {
       totalArmor,

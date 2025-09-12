@@ -97,10 +97,10 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
     }
   }
 
-  const handleQuickDice = (quickDice: { expression: string, type: RollType }) => {
-    setExpression(quickDice.expression)
-    setRollType(quickDice.type)
-    if (quickDice.type === 'target') {
+  const handleQuickDice = (spec: { expression: string, type: RollType }) => {
+    setExpression(spec.expression)
+    setRollType(spec.type)
+    if (spec.type === 'target') {
       setTargetNumber(targetNumber || 15)
     }
     else {
@@ -143,11 +143,11 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
               key={index}
               className="quick-dice-btn"
               onClick={() => {
-                handleQuickDice(dice)
+                handleQuickDice(item)
                 setTimeout(handleRoll, 100)
               }}
             >
-              {dice.label}
+              {item.label}
             </button>
           ))}
         </div>
@@ -181,10 +181,10 @@ const EnhancedDiceRoller: React.FC <EnhancedDiceRollerProps> = ({
           {quickDice.map((item, index) => (
             <button
               key={index}
-              className={`quick-dice-btn ${expression === dice.expression ? 'active' : ''}`}
-              onClick={() => handleQuickDice(dice)}
+              className={`quick-dice-btn ${expression === item.expression ? 'active' : ''}`}
+              onClick={() => handleQuickDice(item)}
             >
-              {dice.label}
+              {item.label}
             </button>
           ))}
         </div>

@@ -473,6 +473,11 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
               <div className="hp-bar">
                 <progress className={`hp-progress ${getHpClass()}`} max={state.maxHp} value={state.hp} aria-label="HP progress" />
               </div>
+              <div className="hp-actions">
+                <button type="button" className="hp-rest-button" onClick={handleRest} aria-label="Rest to full HP">
+                  Rest to Full
+                </button>
+              </div>
             </div>
           </OverlaySurface>
         </div>
@@ -533,12 +538,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         <div className="stat-card stat-card--shortcuts" />
       </div>
 
-      {/* Quick Actions */}
-      <div className="quick-actions-section">
-        <button type="button" className="action-button action-button--rest" onClick={handleRest}>
-          Rest (Restore HP)
-        </button>
-      </div>
+      {/* (Rest button moved into HP overlay actions) */}
 
       {/* (Shortcuts placeholder moved into stats-grid for banded layout) */}
 

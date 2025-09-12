@@ -10,6 +10,8 @@ import type {
 import type { Armor, Item, Weapon } from '../../models/Equipment'
 
 import React, { useState } from 'react'
+import { Save, Download, RotateCcw, Trash2 } from 'lucide-react'
+import { cn } from '../../lib/cn'
 import { useDeleteSaveSlotMutation, useSaveSlotsQuery } from '../../hooks/useSaveSlotsQuery'
 import { CalculationHistory } from '../../components/CalculationHistory'
 import { CalculationWarnings } from '../../components/CalculationWarnings'
@@ -363,7 +365,7 @@ const TestPlayground: React.FC = () => {
               <div className="item-list">
                 {items.map(item => (
                   <div key={item.id} className="item-row">
-                    <span className={item.equipped ? 'equipped' : ''}>
+                    <span className={cn(item.equipped && 'equipped')}>
                       {item.name}
                       {' '}
                       (x
@@ -605,9 +607,15 @@ const TestPlayground: React.FC = () => {
       <div className="test-section">
         <h3> Save / Load</h3>
         <div className="action-buttons">
-          <button type="button" onClick={() => saveGame('Test Save')}>Save Game</button>
-          <button type="button" onClick={() => loadGame()}>Load Game</button>
-          <button type="button" onClick={resetGame} className="danger">Reset All</button>
+          <button type="button" onClick={() => saveGame('Test Save')}>
+            <Save size={16} aria-hidden="true" />{' '}Save Game
+          </button>
+          <button type="button" onClick={() => loadGame()}>
+            <Download size={16} aria-hidden="true" />{' '}Load Game
+          </button>
+          <button type="button" onClick={resetGame} className="danger">
+            <RotateCcw size={16} aria-hidden="true" />{' '}Reset All
+          </button>
         </div>
         <div className="save-info">
           <div>
@@ -637,7 +645,7 @@ const TestPlayground: React.FC = () => {
                     {new Date(s.timestamp).toLocaleString()}
                     {' '}
                     <button type="button" className="save-slot__delete" onClick={() => del.mutate(s.id)} disabled={del.isPending}>
-                      {del.isPending ? 'Deleting…' : 'Delete'}
+                      <Trash2 size={14} aria-hidden="true" />{' '}{del.isPending ? 'Deleting…' : 'Delete'}
                     </button>
                   </li>
                 ))}

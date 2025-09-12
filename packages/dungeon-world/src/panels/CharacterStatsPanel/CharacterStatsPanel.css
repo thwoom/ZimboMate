@@ -993,6 +993,29 @@
   width: var(--hp-progress, 0%);
 }
 
+/* HP actions: small, unobtrusive button aligned right under the bar */
+.hp-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-xs);
+}
+.hp-rest-button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(40,38,56,0.35);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+.hp-rest-button:hover {
+  background: rgba(40,38,56,0.5);
+  transform: translateY(-1px);
+}
+
 /* HP Bar Dynamic Styles */
 .hp-bar__fill--full {
   background-color: var(--color-hp-full);

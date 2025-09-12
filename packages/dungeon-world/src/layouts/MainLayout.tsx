@@ -1,5 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { panelRegistry } from '../framework/PanelRegistry'
+import { panelLink } from '../lib/routes'
 import HpOverlay from '../components/HpOverlay'
 import { OverlayManager } from '../framework/OverlayManager'
 import CombatOverlay from '../components/CombatOverlay'
@@ -38,10 +40,19 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
   // Keep URL in sync when panel changes
   useEffect(() => {
     const current = (params.panelId as string) || 'character-stats'
-    if (activePanelId !== current) {
-      navigate(`/${activePanelId}`, { replace: true })
+    const validCurrent = panelRegistry.getPanel(current) ? current : 'character-stats'
+    if (activePanelId !== validCurrent) {
+      navigate(panelLink(activePanelId), { replace: true })
     }
   }, [activePanelId])
+
+  // Keep state in sync if the URL changes (e.g., user navigates directly)
+  useEffect(() => {
+    const current = (params.panelId as string) || 'character-stats'
+    if (current !== activePanelId) {
+      setActivePanelId(current)
+    }
+  }, [params.panelId])
 
   // Listen for navigation events from panels
   useEffect(() => {
