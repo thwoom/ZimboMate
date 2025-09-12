@@ -268,7 +268,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(hpCloneRef.current as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: hpRect.left, top: hpRect.top, width: hpRect.width, height: hpRect.height }}
+          style={{ position: 'fixed', left: hpRect.left, top: hpRect.top, width: hpRect.width, minHeight: hpRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
@@ -290,7 +290,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: combatRect.left, top: combatRect.top, width: combatRect.width, height: combatRect.height }}
+          style={{ position: 'fixed', left: combatRect.left, top: combatRect.top, width: combatRect.width, minHeight: combatRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
@@ -312,7 +312,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: xpRect.left, top: xpRect.top, width: xpRect.width, height: xpRect.height }}
+          style={{ position: 'fixed', left: xpRect.left, top: xpRect.top, width: xpRect.width, minHeight: xpRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
@@ -334,7 +334,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: loadRect.left, top: loadRect.top, width: loadRect.width, height: loadRect.height }}
+          style={{ position: 'fixed', left: loadRect.left, top: loadRect.top, width: loadRect.width, minHeight: loadRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
@@ -356,7 +356,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: classFocusRect.left, top: classFocusRect.top, width: classFocusRect.width, height: classFocusRect.height }}
+          style={{ position: 'fixed', left: classFocusRect.left, top: classFocusRect.top, width: classFocusRect.width, minHeight: classFocusRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
@@ -378,7 +378,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: debilitiesRect.left, top: debilitiesRect.top, width: debilitiesRect.width, height: debilitiesRect.height }}
+          style={{ position: 'fixed', left: debilitiesRect.left, top: debilitiesRect.top, width: debilitiesRect.width, minHeight: debilitiesRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
@@ -400,7 +400,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: attributesRect.left, top: attributesRect.top, width: attributesRect.width, height: attributesRect.height }}
+          style={{ position: 'fixed', left: attributesRect.left, top: attributesRect.top, width: attributesRect.width, minHeight: attributesRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
@@ -422,7 +422,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: prefsRect.left, top: prefsRect.top, width: prefsRect.width, height: prefsRect.height }}
+          style={{ position: 'fixed', left: prefsRect.left, top: prefsRect.top, width: prefsRect.width, minHeight: prefsRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
@@ -466,7 +466,7 @@ const MainLayout: React.FC <MainLayoutProps> = () => {
               ;(el as any).__unreg()
             }
           }}
-          style={{ position: 'fixed', left: headerRect.left, top: headerRect.top, width: headerRect.width, height: headerRect.height }}
+          style={{ position: 'fixed', left: headerRect.left, top: headerRect.top, width: headerRect.width, minHeight: headerRect.height }}
         >
           <div className="sidebar__inner floating-glass">
             <div className="overlay-clone-content">
