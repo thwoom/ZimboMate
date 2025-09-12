@@ -478,13 +478,13 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         </div>
 
         {/* Combat Stats placeholder (overlay renders actual content) */}
-        <div className="stat-card--combat" />
+        <div className="stat-card stat-card--combat" />
 
         {/* Experience placeholder (overlay renders content) */}
-        <div className="stat-card--xp" />
+        <div className="stat-card stat-card--xp" />
 
         {/* Load placeholder (overlay renders content) */}
-        <div className="stat-card--load" />
+        <div className="stat-card stat-card--load" />
 
         {/* Preferences override placeholder (overlay renders content) */}
         <div className="stat-card stat-card--prefs" />
@@ -518,18 +518,20 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             )}
           </div>
         )}
+        {/* Attributes placeholder (overlay renders content) */}
+        <div className="stat-card stat-card--attributes" />
+
+        {/* Class Focus placeholder (overlay renders content) */}
+        {sections.showClassFocus && classMap && (
+          <div className="stat-card stat-card--class-focus" />
+        )}
+
+        {/* Debilities placeholder (overlay renders content) */}
+        <div className="stat-card stat-card--debilities" />
+
+        {/* Keyboard Shortcuts placeholder (overlay renders content) */}
+        <div className="stat-card stat-card--shortcuts" />
       </div>
-
-      {/* Attributes placeholder (overlay renders content) */}
-      <div className="stat-card stat-card--attributes" />
-
-      {/* Class Focus placeholder (overlay renders content) */}
-      {sections.showClassFocus && classMap && (
-        <div className="stat-card stat-card--class-focus" />
-      )}
-
-      {/* Debilities placeholder (overlay renders content) */}
-      <div className="stat-card stat-card--debilities" />
 
       {/* Quick Actions */}
       <div className="quick-actions-section">
@@ -538,8 +540,7 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         </button>
       </div>
 
-      {/* Keyboard Shortcuts placeholder (overlay renders content) */}
-      <div className="stat-card stat-card--shortcuts" />
+      {/* (Shortcuts placeholder moved into stats-grid for banded layout) */}
 
       {/* Level Up Modal */}
       {character && (

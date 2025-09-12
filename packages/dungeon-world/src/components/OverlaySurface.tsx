@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 type Rect = { left: number; top: number; width: number; height: number }
 
 interface OverlaySurfaceProps {
-  anchorRef?: React.RefObject<HTMLElement>
+  anchorRef?: React.RefObject<HTMLElement> | React.MutableRefObject<HTMLElement | null>
   rect?: Rect | null
   children: React.ReactNode
   className?: string
@@ -20,7 +20,7 @@ export const OverlaySurface: React.FC<OverlaySurfaceProps> = ({ anchorRef, rect:
   const rafRef = useRef<number | null>(null)
 
   useLayoutEffect(() => {
-    if (!anchorRef?.current) return
+    if (!anchorRef || !('current' in anchorRef) || !anchorRef.current) return
     const update = () => {
       const el = anchorRef.current as HTMLElement
       const r = el.getBoundingClientRect()
