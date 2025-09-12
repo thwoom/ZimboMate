@@ -69,3 +69,31 @@
 }
 
 
+
+@layer utilities {
+  /* Overlay-neutralization: remove dim row backgrounds and borders inside overlay clones */
+  .sidebar.sidebar--hp-clone .stat-item,
+  .sidebar.sidebar--hp-clone .combat-stats .stat-item,
+  .sidebar.sidebar--hp-clone .experience-stats .stat-item,
+  .sidebar.sidebar--hp-clone .load-stats .stat-item,
+  .sidebar.sidebar--hp-clone .shortcuts-list .stat-item,
+  .sidebar.sidebar--hp-clone .attributes-grid .attribute-card,
+  .sidebar.sidebar--hp-clone .attributes-grid .attribute-button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+  }
+
+  /* Keyboard Shortcuts overlay tone alignment */
+  .sidebar.sidebar--hp-clone .shortcuts-list .stat-label {
+    color: var(--color-text-secondary);
+    font-weight: 600;
+  }
+  .sidebar.sidebar--hp-clone .shortcuts-list .stat-value {
+    color: var(--color-text-primary);
+    font-weight: 700;
+    text-shadow: 0 1px 12px rgba(255,255,255,0.10);
+  }
+}
