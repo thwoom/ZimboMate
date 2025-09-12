@@ -84,6 +84,7 @@
     box-shadow: none !important;
     filter: none !important;
     opacity: 1 !important;
+    overflow: visible !important;
   }
 
   /* Keyboard Shortcuts overlay tone alignment */

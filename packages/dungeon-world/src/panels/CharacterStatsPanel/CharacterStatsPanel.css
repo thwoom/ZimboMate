@@ -157,7 +157,7 @@
 .stat-card:not(.stat-card--hp) {
   position: relative;
   border-radius: var(--rail-radius, 18px);
-  overflow: hidden;
+  overflow: visible; /* allow overlay content to extend minimally */
   background-clip: padding-box;
   isolation: isolate;
   background: transparent !important;
@@ -233,7 +233,7 @@
 
 /* Ensure shortcuts overlay content can overflow the placeholder vertically without clipping */
 /* (revert overflow tweak) */
-.stat-card--shortcuts { overflow: hidden; }
+.stat-card--shortcuts { overflow: visible; }
 
 .stat-card h3 {
   font-size: 1rem;

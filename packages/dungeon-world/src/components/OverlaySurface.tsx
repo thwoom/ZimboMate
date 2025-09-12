@@ -50,8 +50,8 @@ export const OverlaySurface: React.FC<OverlaySurfaceProps> = ({ anchorRef, rect:
   if (!overlayRoot || !finalRect) return null
 
   return createPortal(
-    <div className="overlay-rect" style={{ left: finalRect.left, top: finalRect.top, width: finalRect.width, height: finalRect.height, bottom: 'auto', pointerEvents: 'auto' }}>
-      <div ref={contentRef} className={`sidebar__inner ${className || ''}`.trim()} style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }}>
+    <div className="overlay-rect" style={{ left: finalRect.left, top: finalRect.top, width: finalRect.width, minHeight: finalRect.height, bottom: 'auto', pointerEvents: 'auto' }}>
+      <div ref={contentRef} className={`sidebar__inner ${className || ''}`.trim()} style={{ width: '100%', position: 'relative', zIndex: 1 }}>
         {children}
       </div>
     </div>,
