@@ -1,18 +1,19 @@
 /**
- * Theme Management Service * Handles Rose Pine theme switching and persistence
+ * Theme Management Service
+ * Handles Arcane Slate and Cinder Black theme switching and persistence
  */
 
-export type ThemeMode = 'dark' | 'light' | 'moon' | 'high-contrast' | 'auto'
+export type ThemeMode = 'arcane-slate' | 'cinder-black' | 'high-contrast' | 'auto'
 
 export interface ThemePreferences {
   mode: ThemeMode
   followSystem: boolean
-  customColors?: Record <string, string>
+  customColors?: Record<string, string>
 }
 
 export class ThemeService {
   private static instance: ThemeService
-  private currentTheme: ThemeMode = 'dark'
+  private currentTheme: ThemeMode = 'arcane-slate'
   private preferences: ThemePreferences
   private mediaQuery: MediaQueryList
   private listeners: Set<(theme: ThemeMode) => void> = new Set()
@@ -55,10 +56,10 @@ export class ThemeService {
   }
 
   /**
-   * Toggle between dark and light themes
+   * Toggle between arcane-slate and cinder-black themes
    */
   toggleTheme(): void {
-    const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark'
+    const newTheme = this.currentTheme === 'arcane-slate' ? 'cinder-black' : 'arcane-slate'
     this.setTheme(newTheme)
   }
 
@@ -94,24 +95,19 @@ export class ThemeService {
   getAvailableThemes(): Array<{ value: ThemeMode, label: string, description: string }> {
     return [
       {
-        value: 'dark',
-        label: 'Rose Pine',
-        description: 'Dark theme with warm, muted colors',
+        value: 'arcane-slate',
+        label: 'Arcane Slate',
+        description: 'Default dark theme with blue-purple accents',
       },
       {
-        value: 'light',
-        label: 'Rose Pine Dawn',
-        description: 'Light theme with soft, natural tones',
-      },
-      {
-        value: 'moon',
-        label: 'Rose Pine Moon',
-        description: 'Alternative dark theme with cooler tones',
+        value: 'cinder-black',
+        label: 'Cinder Black',
+        description: 'Pure black theme with orange accents',
       },
       {
         value: 'auto',
         label: 'System',
-        description: 'Follow system preference',
+        description: 'Follow system preference (Arcane Slate/Cinder Black)',
       },
       {
         value: 'high-contrast',
@@ -124,19 +120,22 @@ export class ThemeService {
   /**
    * Get theme colors for current theme
    */
-  getThemeColors(): Record <string, string> {
+  getThemeColors(): Record<string, string> {
     const computedStyle = getComputedStyle(document.documentElement)
 
     return {
       background: computedStyle.getPropertyValue('--color-background').trim(),
       surface: computedStyle.getPropertyValue('--color-surface').trim(),
+      surfaceElevated: computedStyle.getPropertyValue('--color-surface-elevated').trim(),
       primary: computedStyle.getPropertyValue('--color-primary').trim(),
       textPrimary: computedStyle.getPropertyValue('--color-text-primary').trim(),
       textSecondary: computedStyle.getPropertyValue('--color-text-secondary').trim(),
+      textTertiary: computedStyle.getPropertyValue('--color-text-tertiary').trim(),
       success: computedStyle.getPropertyValue('--color-success').trim(),
       warning: computedStyle.getPropertyValue('--color-warning').trim(),
       danger: computedStyle.getPropertyValue('--color-danger').trim(),
       border: computedStyle.getPropertyValue('--color-border').trim(),
+      borderSubtle: computedStyle.getPropertyValue('--color-border-subtle').trim(),
     }
   }
 
@@ -144,16 +143,15 @@ export class ThemeService {
    * Check if current theme is dark
    */
   isDarkTheme(): boolean {
-    return this.currentTheme === 'dark' || this.currentTheme === 'moon'
-      || (this.currentTheme === 'auto' && this.mediaQuery.matches)
+    return this.currentTheme === 'arcane-slate' || this.currentTheme === 'cinder-black'
+      || (this.currentTheme === 'auto')
   }
 
   /**
-   * Check if current theme is light
+   * Check if current theme is high contrast
    */
-  isLightTheme(): boolean {
-    return this.currentTheme === 'light'
-      || (this.currentTheme === 'auto' && !this.mediaQuery.matches)
+  isHighContrastTheme(): boolean {
+    return this.currentTheme === 'high-contrast'
   }
 
   /**
@@ -203,7 +201,8 @@ export class ThemeService {
    */
   private initializeTheme(): void {
     if (this.preferences.followSystem || this.preferences.mode === 'auto') {
-      this.currentTheme = this.mediaQuery.matches ? 'dark' : 'light'
+      // For auto mode, default to arcane-slate (both are dark themes)
+      this.currentTheme = 'arcane-slate'
     }
     else {
       this.currentTheme = this.preferences.mode
@@ -220,13 +219,14 @@ export class ThemeService {
 
     // Apply new theme
     if (this.currentTheme === 'auto') {
-      const systemTheme = this.mediaQuery.matches ? 'dark' : 'light'
-      if (systemTheme === 'light') {
-        root.setAttribute('data-theme', 'light')
-      }
-      // Dark is default, no attribute needed
+      // Default to arcane-slate for auto mode
+      root.setAttribute('data-theme', 'arcane-slate')
     }
-    else if (this.currentTheme !== 'dark') {
+    else if (this.currentTheme === 'arcane-slate') {
+      // Arcane slate is default, but set explicitly for clarity
+      root.setAttribute('data-theme', 'arcane-slate')
+    }
+    else {
       root.setAttribute('data-theme', this.currentTheme)
     }
 
@@ -249,7 +249,7 @@ export class ThemeService {
 
   private handleSystemThemeChange(): void {
     if (this.preferences.followSystem || this.preferences.mode === 'auto') {
-      this.currentTheme = this.mediaQuery.matches ? 'dark' : 'light'
+      // Keep current theme for auto mode since both themes are dark
       this.applyTheme()
       this.notifyListeners()
     }
@@ -259,10 +259,16 @@ export class ThemeService {
     try {
       const saved = localStorage.getItem('zimbomate-theme-preferences')
       if (saved) {
-        return { ...this.getDefaultPreferences(), ...JSON.parse(saved) }
+        const parsed = JSON.parse(saved)
+        // Migrate old theme values
+        if (parsed.mode === 'dark' || parsed.mode === 'light' || parsed.mode === 'moon') {
+          parsed.mode = 'arcane-slate'
+        }
+        return { ...this.getDefaultPreferences(), ...parsed }
       }
     }
     catch {
+      // Ignore errors
     }
 
     return this.getDefaultPreferences()
@@ -273,12 +279,13 @@ export class ThemeService {
       localStorage.setItem('zimbomate-theme-preferences', JSON.stringify(this.preferences))
     }
     catch {
+      // Ignore errors
     }
   }
 
   private getDefaultPreferences(): ThemePreferences {
     return {
-      mode: 'dark',
+      mode: 'arcane-slate',
       followSystem: false,
     }
   }

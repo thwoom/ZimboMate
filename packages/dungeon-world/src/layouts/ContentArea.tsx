@@ -4,7 +4,6 @@ import { panelRegistry } from '../framework/PanelRegistry'
 
 import { PanelRouter } from '../framework/PanelRouter'
 import './ContentArea.css'
-import GlobalPageHeader from '../components/GlobalPageHeader'
 
 interface ContentAreaProps {
   activePanelId: string
@@ -37,6 +36,11 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
     let hideTimer: number | undefined
     const update = () => {
       const { scrollTop, scrollHeight, clientHeight } = el
+      const hasOverflow = scrollHeight - clientHeight > 1
+      // Hide the overlay scrollbar entirely when there's nothing to scroll
+      track.style.display = hasOverflow ? 'block' : 'none'
+      if (!hasOverflow) return
+
       const ratio = clientHeight / Math.max(1, scrollHeight)
       const thumbHeight = Math.max(24, clientHeight * ratio)
       const maxTop = clientHeight - thumbHeight
@@ -62,7 +66,6 @@ const ContentArea: React.FC <ContentAreaProps> = ({ activePanelId }) => {
 
   return (
     <div className="content-area bg-transparent">
-      <GlobalPageHeader title={panelTitle} />
       <div ref={bodyRef} className={`content-area__body bg-transparent ${activePanelId === 'character-creation' ? 'content-area__body--full-width' : ''}`}>
         <div className="overlay-scrollbar-track" id="overlay-scrollbar-track">
           <div className="overlay-scrollbar-thumb" id="overlay-scrollbar-thumb" />

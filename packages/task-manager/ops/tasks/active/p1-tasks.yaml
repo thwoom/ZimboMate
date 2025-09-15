@@ -71,3 +71,181 @@ tasks:
       - src/services/EquipmentCompendiumService.ts
       - src/utils/equipmentTagMechanics.ts
       - test/data/equipmentCompendium.test.ts
+  - id: T-100
+    title: Introduce design tokens + new theme
+    intent: Replace Rose Pine; add tokens for color/spacing/typography/elevation
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - ui
+      - tokens
+      - theme
+    deps: []
+    steps:
+      - Create design-tokens.css / tailwind config tokens
+      - Define color roles and elevations
+      - Apply baseline to app shell
+    acceptance:
+      - Tokens exported and documented
+      - No inline hard-coded colors in updated pages
+    artifacts:
+      - src/styles/design-tokens.css
+      - tailwind.config.ts
+  - id: T-101
+    title: Add shadcn/ui + cmdk and integrate
+    intent: Install and theme shadcn/ui + command palette (cmdk)
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - ui
+      - deps
+    deps:
+      - T-100
+    steps:
+      - Install shadcn/ui + cmdk
+      - Theme shadcn with tokens
+      - Create base Dialog/Sheet/Popover/Command components
+    acceptance:
+      - Palette renders and is themed
+      - Core primitives available
+    artifacts:
+      - src/components/ui/*
+  - id: T-102
+    title: Build UI primitives
+    intent: Create Tile, Card, SectionHeader, StatGroup, Meter primitives
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - ui
+      - primitives
+    deps:
+      - T-100
+      - T-101
+    steps:
+      - Implement TS components with variants
+      - Add docs/examples
+    acceptance:
+      - Primitives used in at least one page
+    artifacts:
+      - src/components/primitives/*
+  - id: T-103
+    title: Command Palette + command bus
+    intent: Global command palette and dispatcher (top-10 commands)
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - ux
+      - keyboard
+    deps:
+      - T-101
+    steps:
+      - Implement dispatcher
+      - Add Add XP/HP±/Roll Move/Debility toggle/Equip commands
+      - Bind shortcuts
+    acceptance:
+      - Commands execute from anywhere
+      - Shortcut map documented
+    artifacts:
+      - src/command-bus/*
+  - id: T-104
+    title: Convert Character Stats to primitives + Inspector
+    intent: Inline tiles; inspector on right; parity checklist
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - ui
+      - panel
+    deps:
+      - T-102
+      - T-103
+    steps:
+      - Replace overlays with inline tiles
+      - Wire inspector pane
+      - Complete parity QA
+    acceptance:
+      - No overlap; parity met
+    artifacts:
+      - src/panels/CharacterStatsPanel/*
+  - id: T-105
+    title: "Add contexts: Play/Prep/Build/Reference"
+    intent: Context presets for tile visibility and actions
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - ia
+      - ux
+    deps:
+      - T-104
+    steps:
+      - Implement context switcher
+      - Define visibility presets
+      - Persist selection
+    acceptance:
+      - Contexts switch without reload
+      - Tiles reflect presets
+    artifacts:
+      - src/contexts/*
+  - id: T-106
+    title: Migrate Moves/Inventory/Spells
+    intent: Convert to primitives; inspector integration
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - ui
+      - migration
+    deps:
+      - T-102
+      - T-103
+      - T-105
+    steps:
+      - Refactor panels
+      - Wire commands into panels
+    acceptance:
+      - Equal or better functionality
+    artifacts:
+      - src/panels/*
+  - id: T-107
+    title: Keyboard & a11y sweep
+    intent: Focus management, roles, shortcuts, toasts
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - a11y
+      - ux
+    deps:
+      - T-103
+      - T-106
+    steps:
+      - Audit focus traps
+      - ARIA roles/labels
+      - Shortcut help overlay
+    acceptance:
+      - Keyboard-only use possible
+      - ARIA lint clean
+    artifacts:
+      - docs/a11y-checklist.md
+  - id: T-108
+    title: Feature Parity QA route
+    intent: Snapshot route to test tiles with dummy state
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - qa
+    deps:
+      - T-104
+    steps:
+      - Create QA route
+      - Add fixtures for tiles
+    acceptance:
+      - Parity verified before merge
+    artifacts:
+      - src/routes/qa/*

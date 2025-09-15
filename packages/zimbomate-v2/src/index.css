@@ -1,0 +1,436 @@
+/* === ZIMBOMATE V2 THEME SYSTEM === */
+/* Import Tailwind CSS v4 */
+@import "tailwindcss";
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;700;900&display=swap');
+
+/* === ROOT THEME VARIABLES === */
+:root {
+  /* Typography */
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Crimson Text', serif;
+  --font-ui: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sci-fi: 'Orbitron', sans-serif;
+
+  /* Base Colors - Parchment & Warmth */
+  --parchment-50: #fdfcf8;
+  --parchment-100: #f9f6ed;
+  --parchment-200: #f3ede0;
+  --parchment-300: #e8dcc6;
+  --parchment-400: #dcc9a0;
+  --parchment-500: #d4c8a8;
+  --parchment-600: #c4b088;
+  --parchment-700: #a89d7e;
+  --parchment-800: #8b7355;
+  --parchment-900: #6b5940;
+  --parchment-950: #4a3d2a;
+
+  /* Mystical Gold */
+  --gold-50: #fefce8;
+  --gold-100: #fef9c3;
+  --gold-200: #fef08a;
+  --gold-300: #fde047;
+  --gold-400: #f4d03f;
+  --gold-500: #d4af37;
+  --gold-600: #ca8a04;
+  --gold-700: #a67c00;
+  --gold-800: #854d0e;
+  --gold-900: #713f12;
+  --gold-950: #422006;
+
+  /* Enchanted Purple */
+  --magic-50: #faf5ff;
+  --magic-100: #f3e8ff;
+  --magic-200: #e9d5ff;
+  --magic-300: #d8b4fe;
+  --magic-400: #c084fc;
+  --magic-500: #a855f7;
+  --magic-600: #9333ea;
+  --magic-700: #7c3aed;
+  --magic-800: #6b21a8;
+  --magic-900: #581c87;
+  --magic-950: #3b0764;
+
+  /* Nature Green */
+  --nature-50: #f0fdf4;
+  --nature-100: #dcfce7;
+  --nature-200: #bbf7d0;
+  --nature-300: #86efac;
+  --nature-400: #4ade80;
+  --nature-500: #22c55e;
+  --nature-600: #16a34a;
+  --nature-700: #15803d;
+  --nature-800: #166534;
+  --nature-900: #14532d;
+  --nature-950: #052e16;
+
+  /* Status Colors */
+  --red-50: #fef2f2;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+
+  --yellow-400: #facc15;
+  --yellow-500: #eab308;
+  --yellow-600: #ca8a04;
+
+  --orange-500: #f97316;
+  --orange-600: #ea580c;
+
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+
+  --green-600: #16a34a;
+  --green-700: #15803d;
+
+  /* Cyber/Sci-Fi Colors */
+  --cyber-50: #eff6ff;
+  --cyber-100: #dbeafe;
+  --cyber-200: #bfdbfe;
+  --cyber-300: #93c5fd;
+  --cyber-400: #60a5fa;
+  --cyber-500: #3b82f6;
+  --cyber-600: #2563eb;
+  --cyber-700: #1d4ed8;
+  --cyber-800: #1e40af;
+  --cyber-900: #1e3a8a;
+  --cyber-950: #172554;
+
+  --neon-50: #f0fdf4;
+  --neon-100: #dcfce7;
+  --neon-200: #bbf7d0;
+  --neon-300: #86efac;
+  --neon-400: #4ade80;
+  --neon-500: #00ff88;
+  --neon-600: #00c853;
+  --neon-700: #00a142;
+  --neon-800: #047857;
+  --neon-900: #065f46;
+  --neon-950: #004d1c;
+
+  /* Font synthesis and rendering */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === THEME VARIANTS === */
+/* Fantasy Theme (Default) */
+:root,
+[data-theme="fantasy"] {
+  --color-background: var(--parchment-50);
+  --color-surface: var(--parchment-100);
+  --color-surface-elevated: var(--parchment-200);
+  --color-primary: var(--gold-500);
+  --color-primary-hover: var(--gold-600);
+  --color-secondary: var(--magic-500);
+  --color-accent: var(--nature-500);
+  --color-text-primary: var(--parchment-900);
+  --color-text-secondary: var(--parchment-700);
+  --color-text-muted: var(--parchment-600);
+  --color-border: var(--parchment-300);
+  --color-border-hover: var(--gold-300);
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --color-background: #0a0a0a;
+  --color-surface: #1a1a1a;
+  --color-surface-elevated: #2a2a2a;
+  --color-primary: var(--gold-400);
+  --color-primary-hover: var(--gold-300);
+  --color-secondary: var(--magic-400);
+  --color-accent: var(--nature-400);
+  --color-text-primary: #f5f5f5;
+  --color-text-secondary: #d4d4d4;
+  --color-text-muted: #a3a3a3;
+  --color-border: #404040;
+  --color-border-hover: var(--gold-600);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-surface-elevated: #f1f5f9;
+  --color-primary: var(--gold-600);
+  --color-primary-hover: var(--gold-700);
+  --color-secondary: var(--magic-600);
+  --color-accent: var(--nature-600);
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-border-hover: var(--gold-400);
+}
+
+/* Sci-Fi Theme */
+[data-theme="sci-fi"] {
+  --color-background: #0c0c0f;
+  --color-surface: #1a1a2e;
+  --color-surface-elevated: #16213e;
+  --color-primary: var(--cyber-400);
+  --color-primary-hover: var(--cyber-300);
+  --color-secondary: var(--neon-400);
+  --color-accent: var(--magic-400);
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-border: #334155;
+  --color-border-hover: var(--cyber-500);
+}
+
+/* === EQUIPMENT & INVENTORY SPECIFIC STYLES === */
+:root {
+  --equipment-equipped: var(--gold-500);
+  --equipment-weapon: var(--red-600);
+  --equipment-armor: var(--blue-600);
+  --equipment-consumable: var(--green-600);
+  --equipment-treasure: var(--gold-400);
+  --equipment-magical: var(--magic-500);
+  
+  /* Load tracking colors */
+  --load-normal: var(--nature-500);
+  --load-encumbered: var(--yellow-500);
+  --load-overloaded: var(--red-500);
+  
+  /* Drag and drop feedback */
+  --drag-active: var(--magic-400);
+  --drop-zone-valid: var(--nature-400);
+  --drop-zone-invalid: var(--red-400);
+}
+
+/* === CUSTOM UTILITIES === */
+@utility glass-surface {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@utility magical-glow {
+  box-shadow: 0 0 20px var(--color-primary), 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+@utility cyber-glow {
+  box-shadow: 0 0 20px var(--cyber-400), 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+@utility character-card {
+  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-elevated) 100%);
+  border: 1px solid var(--color-border);
+}
+
+@utility cyber-card {
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(22, 33, 62, 0.8) 100%);
+  border: 1px solid var(--cyber-600);
+}
+
+@utility parchment-texture {
+  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-elevated) 100%);
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(168, 157, 126, 0.1) 0%, transparent 50%);
+}
+
+@utility enchanted-button {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border: 1px solid var(--color-primary);
+}
+
+@utility magical-border {
+  border: 2px solid;
+  border-image: linear-gradient(45deg, var(--gold-400), var(--magic-400), var(--gold-400)) 1;
+}
+
+@utility spell-book-page {
+  background: linear-gradient(135deg, var(--parchment-50) 0%, var(--parchment-100) 100%);
+  border-left: 4px solid var(--gold-500);
+  position: relative;
+}
+
+.spell-book-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.1) 2%, transparent 4%),
+    repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(212, 175, 55, 0.1) 25px);
+  pointer-events: none;
+}
+
+@utility equipment-glow {
+  box-shadow: 0 0 20px var(--equipment-magical), 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+@utility load-bar-gradient {
+  background: linear-gradient(90deg, var(--load-normal) 0%, var(--load-encumbered) 70%, var(--load-overloaded) 100%);
+}
+
+@utility drag-preview {
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+@utility drop-zone-active {
+  border: 2px dashed var(--drop-zone-valid);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+@utility item-equipped {
+  border-color: var(--equipment-equipped);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
+}
+
+@utility container-highlight {
+  background: linear-gradient(135deg, var(--parchment-50) 0%, var(--parchment-100) 100%);
+  border: 1px solid var(--parchment-300);
+}
+
+/* === TYPOGRAPHY UTILITIES === */
+@utility text-display-lg {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+@utility text-display-md {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+@utility text-display-sm {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+@utility text-body-lg {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+@utility text-body-regular {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+@utility text-body-sm {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+@utility text-ui-regular {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+@utility text-ui-small {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-text-muted);
+}
+
+/* === GLOBAL STYLES === */
+#root {
+  margin: auto;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Selection Styling */
+::selection {
+  background: var(--color-primary);
+  color: var(--color-background);
+}
+
+/* Focus Styles */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Animation Utilities */
+@keyframes magical-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@utility shimmer-effect {
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: magical-shimmer 2s infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .text-display-lg {
+    font-size: 2.25rem;
+  }
+  
+  .text-display-md {
+    font-size: 1.875rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+}

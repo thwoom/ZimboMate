@@ -214,19 +214,26 @@ export const GameStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     loadGame()
   }, [])
 
-  // Enhanced auto-save with visual feedback
-  const { forceSave } = useAutoSave(state, {
-    enabled: autoSaveEnabled && state.settings.autoSave,
-    debounceMs: 2000,
-    key: 'autosave',
-    onSave: () => {
-      setAutoSaveStatus('saved')
-      dispatch({ type: 'MARK_SAVED' })
-    },
-    onError: (error) => {
-      setAutoSaveStatus('error')
-    },
-  })
+  // Enhanced auto-save with visual feedback - wrapped in try-catch for safety
+  let forceSave: (() => void) | undefined
+  try {
+    const autoSaveResult = useAutoSave(state, {
+      enabled: autoSaveEnabled && state.settings.autoSave,
+      debounceMs: 2000,
+      key: 'autosave',
+      onSave: () => {
+        setAutoSaveStatus('saved')
+        dispatch({ type: 'MARK_SAVED' })
+      },
+      onError: (error) => {
+        setAutoSaveStatus('error')
+      },
+    })
+    forceSave = autoSaveResult.forceSave
+  } catch (error) {
+    console.warn('Auto-save hook failed to initialize:', error)
+    setAutoSaveStatus('error')
+  }
 
   const toggleAutoSave = useCallback((enabled: boolean) => {
     setAutoSaveEnabled(enabled)

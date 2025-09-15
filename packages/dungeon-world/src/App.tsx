@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
-
-import DarkModeToggle from './components/DarkModeToggle'
-
 import ErrorBoundary from './components/ErrorBoundary'
 import { panelRegistry } from './framework/PanelRegistry'
 import MainLayout from './layouts/MainLayout'
+import { CommandPalette } from './components/CommandPalette'
+import { commandBus } from './lib/commands/CommandBus'
+import { coreCommands } from './lib/commands/coreCommands'
+import { useCommandPalette } from './lib/hooks/useCommandPalette'
+import { initializeTheme } from './lib/utils'
 import AlignmentXPTrackerPanel from './panels/AlignmentXPTrackerPanel/AlignmentXPTrackerPanel'
 import BondTrackerPanel from './panels/BondTrackerPanel/BondTrackerPanel'
 import CampaignPanel from './panels/CampaignPanel'
@@ -37,6 +39,9 @@ function AppInner() {
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [menuState, setMenuState] = useState<{ open: boolean, x: number, y: number, items: MenuItem[] }>({ open: false, x: 0, y: 0, items: [] })
   const settings = useSettings()
+
+  // Use our new command palette system
+  const { isOpen: commandPaletteOpen, setIsOpen: setCommandPaletteOpen } = useCommandPalette()
 
   useEffect(() => {
     const root = document.querySelector('.app') as HTMLElement | null
@@ -73,6 +78,13 @@ function AppInner() {
   return (
     <div className="app">
       <MainLayout />
+      
+      {/* Command Palette */}
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+      />
+      
       {menuState.open && (
         <ContextMenu
           x={menuState.x}
@@ -91,6 +103,23 @@ function AppInner() {
 
 function App() {
   useEffect(() => {
+    // Initialize theme system
+    initializeTheme()
+    
+    // Register our new core commands
+    console.log('Registering commands:', coreCommands.length)
+    for (const command of coreCommands) {
+      console.log('Registering command:', command.id, command.label)
+      commandBus.register(command)
+    }
+    
+    // Verify commands are registered
+    setTimeout(() => {
+      const allCommands = commandBus.getAllCommands()
+      console.log('Total registered commands:', allCommands.length)
+      console.log('Commands:', allCommands.map(c => c.id))
+    }, 100)
+    
     // Initialize recovery and diagnostic tools (only when debug mode is enabled)
     // To enable: localStorage.setItem('zimbomate-debug-mode', 'true')
     panelRecoveryManager.injectRecoveryTools()

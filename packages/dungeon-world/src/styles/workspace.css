@@ -1,0 +1,212 @@
+/* Workspace shell specific theme extensions */
+:root {
+  /* Workspace Layout Variables */
+  --workspace-sidebar-width: 280px;
+  --workspace-sidebar-collapsed-width: 64px;
+  --workspace-inspector-width: 320px;
+  --workspace-header-height: 64px;
+  --workspace-grid-gap: 16px;
+  
+  /* Context Colors */
+  --context-play-color: var(--color-primary);
+  --context-prep-color: var(--color-secondary);
+  --context-build-color: var(--color-warning);
+  --context-reference-color: var(--color-info);
+  
+  /* Shell Component Backgrounds */
+  --shell-header-bg: var(--glass-bg);
+  --shell-sidebar-bg: var(--glass-bg);
+  --shell-inspector-bg: var(--glass-bg);
+  --shell-grid-bg: transparent;
+  
+  /* Interactive States */
+  --shell-item-hover: var(--color-surface-hover);
+  --shell-item-active: var(--color-primary-subtle);
+  --shell-item-selected: var(--color-primary);
+  
+  /* Panel-specific colors */
+  --panel-character-stats-accent: var(--color-stat-str);
+  --panel-moves-accent: var(--color-primary);
+  --panel-equipment-accent: var(--color-equipment-weapon);
+  --panel-spells-accent: var(--color-equipment-magic);
+  --panel-campaign-accent: var(--color-xp-highlight);
+  
+  /* Game-specific UI colors */
+  --hp-color: var(--color-hp-full);
+  --xp-color: var(--color-xp-highlight);
+  --armor-color: var(--color-equipment-armor);
+  --damage-color: var(--color-equipment-weapon);
+  --spell-color: var(--color-equipment-magic);
+  
+  /* Transitions */
+  --shell-transition-fast: var(--transition-fast);
+  --shell-transition-base: var(--transition-base);
+  --shell-transition-slow: var(--transition-slow);
+}
+
+/* Context-specific styling */
+[data-context="play"] {
+  --context-accent: var(--context-play-color);
+}
+
+[data-context="prep"] {
+  --context-accent: var(--context-prep-color);
+}
+
+[data-context="build"] {
+  --context-accent: var(--context-build-color);
+}
+
+[data-context="reference"] {
+  --context-accent: var(--context-reference-color);
+}
+
+/* Panel-specific styling */
+[data-panel="character-stats"] {
+  --panel-accent: var(--panel-character-stats-accent);
+}
+
+[data-panel="moves"] {
+  --panel-accent: var(--panel-moves-accent);
+}
+
+[data-panel="equipment"] {
+  --panel-accent: var(--panel-equipment-accent);
+}
+
+[data-panel="spells"] {
+  --panel-accent: var(--panel-spells-accent);
+}
+
+[data-panel="campaign"] {
+  --panel-accent: var(--panel-campaign-accent);
+}
+
+/* Game-specific component styling */
+.hp-display {
+  color: var(--hp-color);
+}
+
+.xp-display {
+  color: var(--xp-color);
+}
+
+.armor-display {
+  color: var(--armor-color);
+}
+
+.damage-display {
+  color: var(--damage-color);
+}
+
+.spell-display {
+  color: var(--spell-color);
+}
+
+/* Responsive breakpoints for workspace */
+@media (max-width: 768px) {
+  :root {
+    --workspace-sidebar-width: 100%;
+    --workspace-inspector-width: 100%;
+    --workspace-grid-gap: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --workspace-inspector-width: 280px;
+  }
+}
+
+/* Integration with existing glass morphism */
+.workspace-shell .glass {
+  background: var(--shell-header-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+/* Panel wrapper styling */
+.panel-wrapper {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--shell-transition-base);
+}
+
+.panel-wrapper:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-subtle);
+}
+
+/* Workspace shell layout utilities */
+.workspace-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Sidebar animations */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+/* Inspector animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Context transition effects */
+.workspace-shell[data-context] {
+  transition: all var(--shell-transition-base);
+}
+
+/* Panel focus states */
+.panel-wrapper[data-panel-active="true"] {
+  border-color: var(--context-accent);
+  box-shadow: 0 0 0 1px var(--context-accent);
+}
+
+/* Keyboard focus indicators */
+.workspace-shell *:focus-visible {
+  outline: 2px solid var(--context-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

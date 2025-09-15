@@ -1,104 +1,54 @@
-# ZimboMate Workspace
+# React + TypeScript + Vite
 
-A monorepo containing two main projects:
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 📦 Packages
+Currently, two official plugins are available:
 
-### `@zimbo-mate/task-manager`
-Advanced task management system with complexity scoring, risk analysis, and dependency management. Includes:
-- Enhanced task management scripts
-- Dashboard and API functionality
-- Semgrep integration
-- Workflow automation tools
-- Testing and linting utilities
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-### `@zimbo-mate/dungeon-world`
-Dungeon World Control Panel - A comprehensive game management interface built with React.
+## Expanding the ESLint configuration
 
-## 🚀 Getting Started
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-### Prerequisites
-- Node.js >= 18.0.0
-- npm or yarn
-
-### Installation
-```bash
-# Install all dependencies
-npm install
-
-# Or install specific package
-npm install --workspace=dungeon-world
-npm install --workspace=task-manager
+```js
+export default tseslint.config({
+  extends: [
+    // Remove ...tseslint.configs.recommended and replace with this
+    ...tseslint.configs.recommendedTypeChecked,
+    // Alternatively, use this for stricter rules
+    ...tseslint.configs.strictTypeChecked,
+    // Optionally, add this for stylistic rules
+    ...tseslint.configs.stylisticTypeChecked,
+  ],
+  languageOptions: {
+    // other options...
+    parserOptions: {
+      project: ["./tsconfig.node.json", "./tsconfig.app.json"],
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+});
 ```
 
-### Development
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-#### Run Dungeon World Control Panel
-```bash
-npm run dev
-# or
-npm run dev --workspace=dungeon-world
+```js
+// eslint.config.js
+import reactX from "eslint-plugin-react-x";
+import reactDom from "eslint-plugin-react-dom";
+
+export default tseslint.config({
+  plugins: {
+    // Add the react-x and react-dom plugins
+    "react-x": reactX,
+    "react-dom": reactDom,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended typescript rules
+    ...reactX.configs["recommended-typescript"].rules,
+    ...reactDom.configs.recommended.rules,
+  },
+});
 ```
-
-#### Run Task Manager
-```bash
-npm run dev --workspace=task-manager
-```
-
-#### Build All Packages
-```bash
-npm run build
-```
-
-#### Run Tests
-```bash
-npm run test
-```
-
-## 📁 Project Structure
-
-```
-ZimboMate/
-├── packages/
-│   ├── task-manager/          # Task management system
-│   │   ├── src/               # Source code
-│   │   ├── scripts/           # Task management scripts
-│   │   ├── tools/             # CLI tools
-│   │   ├── ops/               # Task operations
-│   │   └── claude-task-master/ # Advanced task management
-│   └── dungeon-world/         # Game control panel
-│       ├── src/               # React application
-│       ├── tests/             # Test files
-│       └── dist/              # Build output
-├── package.json               # Root workspace config
-└── README.md                  # This file
-```
-
-## 🔧 Available Scripts
-
-### Root Workspace
-- `npm run dev` - Start Dungeon World development server
-- `npm run build` - Build all packages
-- `npm run test` - Run tests for all packages
-- `npm run lint` - Lint all packages
-
-### Task Manager Package
-- `npm run tm:enhanced` - Run enhanced task manager
-- `npm run dashboard` - Launch task dashboard
-- `npm run semgrep:scan` - Run Semgrep security scan
-
-### Dungeon World Package
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run test:e2e` - Run end-to-end tests
-
-## 🤝 Contributing
-
-1. Make changes in the appropriate package directory
-2. Run tests: `npm run test`
-3. Run linting: `npm run lint`
-4. Commit your changes
-
-## 📄 License
-
-This project is licensed under the MIT License.

@@ -4,6 +4,7 @@
   inset: 0;
   z-index: 1049; /* under rail */
   pointer-events: none;
+  overflow: hidden; /* never contribute to page height */
 }
 .main-layout {
   display: flex;
@@ -16,7 +17,7 @@
   --rail-offset: 16px;
   --rail-gap: 16px;
   --rail-collapsed: 64px;
-  --rail-expanded: 300px;
+  --rail-expanded: 288px; /* align to 16px grid */
   --rail-delta: calc(var(--rail-expanded) - var(--rail-collapsed));
   background: transparent !important; /* image + gradients now applied globally */
 }
@@ -42,6 +43,7 @@
   background: transparent !important;
   transform: translateZ(0);
   will-change: transform;
+  padding: calc(var(--grid-unit));
 }
 
 /* Overlay panels root */
@@ -149,6 +151,34 @@
   padding: 10px;
   display: block;
 }
+
+/* Debug: toggle off overlay glass to verify spacing */
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone .floating-glass::before,
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone .floating-glass::after {
+  display: none !important;
+  box-shadow: none !important;
+}
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone .floating-glass {
+  border: 2px dashed rgba(255,255,255,0.8) !important;
+  background: transparent !important;
+}
+/* Ensure dashed border is visible: remove clip and any container shadows while debugging */
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone {
+  clip-path: none !important;
+  box-shadow: none !important;
+}
+
+/* Color-code each clone when debugging */
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='hp'] .floating-glass { border-color: #c084fc !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='xp'] .floating-glass { border-color: #60a5fa !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='combat'] .floating-glass { border-color: #34d399 !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='attributes'] .floating-glass { border-color: #fbbf24 !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='load'] .floating-glass { border-color: #f472b6 !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='class'] .floating-glass { border-color: #22d3ee !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='debilities'] .floating-glass { border-color: #a3e635 !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='prefs'] .floating-glass { border-color: #f59e0b !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='header'] .floating-glass { border-color: #f87171 !important; }
+body.debug-overlay-glass-off .sidebar.sidebar--hp-clone[data-clone='title'] .floating-glass { border-color: #93c5fd !important; }
 .sidebar.sidebar--hp-clone .combat-stats { gap: 6px; }
 .sidebar.sidebar--hp-clone .stat-item { display: flex; justify-content: space-between; align-items: center; }
 /* Normalize combat text tone to match HP readability */
@@ -293,20 +323,7 @@
   margin: 16px;
 }
 
-.content-float {
-  margin: 16px;
-  /* Baseline offset to account for collapsed rail */
-  margin-left: calc(var(--rail-offset) + var(--rail-collapsed) + var(--rail-gap));
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: visible;
-  min-height: 0; /* ensure inner flex child can scroll */
-  min-width: 0;
-  background: transparent !important;
-  position: relative;
-}
+/* content-float removed during flattening */
 
 /* When the sidebar expands, translate the whole card without resizing */
 /* no grid expand; handled by rail overlay previously */

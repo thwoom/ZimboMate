@@ -1,6 +1,6 @@
 import type { GameState } from '../models/GameState'
 
-import { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { DataPersistenceService } from '../services/DataPersistence'
 
 interface AutoSaveOptions {
@@ -15,6 +15,12 @@ export function useAutoSave(
   state: GameState,
   options: AutoSaveOptions = {},
 ) {
+  // Ensure React is properly imported and available
+  if (!React || !React.useRef) {
+    console.error('React hooks not available in useAutoSave')
+    return { isSaving: false, forceSave: () => {} }
+  }
+
   const {
     enabled = true,
     debounceMs = 2000,

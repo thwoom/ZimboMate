@@ -35,7 +35,7 @@
 }
 
 /* Sidebar glass content wrapper for HP */
-.hp-sidebar-glass-content { position: relative; padding: var(--spacing-lg); height: 100%; }
+.hp-sidebar-glass-content { position: relative; padding: var(--grid-unit); height: 100%; }
 
 /* no-op */
 
@@ -69,7 +69,7 @@
   margin-left: 8px;
 }
 .character-stats-panel {
-  padding: var(--spacing-xl);
+  padding: var(--grid-unit);
   min-height: 100%;
   overflow: visible;
   background: transparent !important; /* ensure no opaque panel background */
@@ -113,35 +113,56 @@
 .stats-grid {
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr; /* left emphasis for HP/Combat */
-  grid-auto-rows: minmax(140px, auto);
-  gap: 24px; /* give panels more breathing room */
-  margin-bottom: var(--spacing-xl);
+  grid-auto-rows: minmax(calc(var(--grid-unit) * 9), auto);
+  gap: var(--grid-unit);
+  margin-bottom: calc(var(--grid-unit) * 2);
   grid-template-areas:
-    "hp      xp        load"
-    "combat  attributes load"
-    "combat  class     debilities"
-    "prefs    prefs     prefs";
+    "hp        pageTitle status"
+    "progress  attributes status"
+    "progress  class      status"
+    "prefs     .          .";
 }
 
+/* Explicit placements using 15-column content grid */
+/* Row numbers are vertical units; overlay sizing will expand height as needed */
 /* Area assignments for placeholders */
+.panel-inline-header { grid-area: header; }
+.stat-card--pageTitle { grid-area: pageTitle; }
 .stat-card--hp { grid-area: hp; }
-.stat-card--combat { grid-area: combat; }
-.stat-card--xp { grid-area: xp; }
-.stat-card--load { grid-area: load; }
+.stat-card--progress { grid-area: progress; min-height: calc(var(--grid-unit) * 12); }
+.stat-card--status { grid-area: status; min-height: calc(var(--grid-unit) * 30); }
+.stat-card--load { grid-area: load; } /* legacy */
 .stat-card--attributes { grid-area: attributes; }
-.stat-card--class-focus { grid-area: class; }
-.stat-card--debilities { grid-area: debilities; }
+.stat-card--class-focus { grid-area: class; min-height: calc(var(--grid-unit) * 9); }
+.stat-card--debilities { grid-area: debilities; } /* legacy */
 .stat-card--prefs { grid-area: prefs; }
 .stat-card--shortcuts { grid-area: shortcuts; }
 
+/* Remove ad-hoc offsets; rely on grid gap for spacing */
+.stat-card--hp,
+.stat-card--attributes,
+.stat-card--xp,
+.stat-card--combat,
+.stat-card--load,
+.stat-card--class-focus,
+.stat-card--debilities { margin: 0; }
+
 /* Hide in-page blocks when HUD is active for this context */
 /* Show original sections (rollback HUD-only hiding) */
+
+/* DEBUG: Disable placeholder glass to verify gap perception */
+body.debug-placeholder-glass-off .character-stats-panel .stat-card:not(.stat-card--hp)::before,
+body.debug-placeholder-glass-off .character-stats-panel .stat-card:not(.stat-card--hp)::after { display: none !important; }
+
+/* When overlays are present, suppress placeholder glass so only clones render glass */
+body.overlays-active .character-stats-panel .stat-card:not(.stat-card--hp)::before,
+body.overlays-active .character-stats-panel .stat-card:not(.stat-card--hp)::after { display: none !important; }
 
 .stat-card {
   position: relative;
   background: transparent !important;
   border-radius: 12px;
-  padding: var(--spacing-lg);
+  padding: calc(var(--grid-unit) * 1); /* standard inner padding */
   box-shadow: none;
   overflow: hidden;
 }
@@ -163,8 +184,8 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  min-height: 140px; /* ensure visible overlay height for placeholders */
-  margin-bottom: 24px; /* vertical spacing between overlay-anchoring cards */
+  min-height: 0; /* let content/clone sizing dictate height */
+  margin-bottom: 0; /* spacing handled by grid gap */
 }
 
 @supports not (overflow: clip) {
@@ -202,9 +223,9 @@
 }
 
 /* Extra spacing between vertical stack: Attributes → Class Focus → Debilities */
-.stat-card--attributes { margin-bottom: 32px; }
-.stat-card--class-focus { margin-bottom: 32px; }
-.stat-card--debilities { margin-top: 8px; }
+.stat-card--attributes { margin-bottom: 0; }
+.stat-card--class-focus { margin-bottom: 0; }
+.stat-card--debilities { margin-top: 0; }
 
 /* Overlay placeholders that should be invisible (header, prefs, shortcuts) */
 .stat-card--header,
@@ -225,11 +246,34 @@
   content: none !important;
 }
 /* Compact header bar height so overlay defines the visuals */
-.stat-card--header { min-height: 64px; margin-bottom: 16px; }
+.stat-card--header { min-height: 0; margin-bottom: 16px; }
+
+/* Inline header — same layer as content */
+.panel-inline-header {
+  padding: 0 0 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.panel-inline-header h2 {
+  font-size: 1rem;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+/* Title tile styling */
+.stat-card--pageTitle {
+  display: flex;
+  align-items: flex-end;
+}
+.stat-card--pageTitle h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--color-text-primary);
+}
 
 /* Make shortcuts tile compact */
 /* Ensure shortcuts tile reserves enough space for 6 rows */
-.stat-card--shortcuts { min-height: 220px; }
+/* shortcuts panel currently removed; prevent phantom space */
+.stat-card--shortcuts { min-height: 0; }
 
 /* Ensure shortcuts overlay content can overflow the placeholder vertically without clipping */
 /* (revert overflow tweak) */
@@ -264,6 +308,15 @@
   position: static !important;
 }
 
+/* Grid-row sizing guidance to reduce overlap; heights snap via overlay sizing */
+.stat-card--hp { min-height: calc(var(--grid-unit) * 7); }
+.stat-card--xp { min-height: calc(var(--grid-unit) * 6); }
+.stat-card--combat { min-height: calc(var(--grid-unit) * 6); }
+.stat-card--attributes { min-height: calc(var(--grid-unit) * 16); }
+.stat-card--class-focus { min-height: calc(var(--grid-unit) * 7); }
+.stat-card--load { min-height: calc(var(--grid-unit) * 18); }
+.stat-card--debilities { min-height: calc(var(--grid-unit) * 9); }
+
 /* Sheen is already included in the main glass-tile__inner::before rule above */
 
 /* HP heading and numbers — crisp with subtle glow */
@@ -282,8 +335,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  gap: calc(var(--grid-unit) * 3);
+  margin-bottom: var(--grid-unit);
 }
 
 .hp-button {

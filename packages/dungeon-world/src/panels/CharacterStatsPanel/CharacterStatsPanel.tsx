@@ -18,6 +18,12 @@ import type { LevelUpResult } from '../../services/SpecialMovesService'
 import './CharacterStatsPanel.css'
 import Tooltip from '../../components/Tooltip'
 import OverlaySurface from '../../components/OverlaySurface'
+import HpOverlay from '../../components/HpOverlay'
+import ProgressOverlay from '../../components/ProgressOverlay'
+import StatusOverlay from '../../components/StatusOverlay'
+import AttributesOverlay from '../../components/AttributesOverlay'
+import ClassFocusOverlay from '../../components/ClassFocusOverlay'
+import PreferencesOverlay from '../../components/PreferencesOverlay'
 
 interface CharacterStatsPanelState {
   // Basic Info
@@ -65,24 +71,6 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
   const api = createPanelAPI(id)
   const { state: gameState, updateCharacter, updateSettings } = useGameStore()
   const [showLevelUpModal, setShowLevelUpModal] = useState(false)
-  const overlayRoot = typeof document !== 'undefined' ? document.getElementById('overlay-panels') : null
-  const hpAnchorRef = useRef<HTMLDivElement | null>(null)
-  const [hpRect, setHpRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
-  useLayoutEffect(() => {
-    const update = () => {
-      const el = hpAnchorRef.current
-      if (!el) return
-      const r = el.getBoundingClientRect()
-      setHpRect({ left: r.left + window.scrollX, top: r.top + window.scrollY, width: r.width, height: r.height })
-    }
-    update()
-    window.addEventListener('resize', update)
-    window.addEventListener('scroll', update, true)
-    return () => {
-      window.removeEventListener('resize', update)
-      window.removeEventListener('scroll', update, true)
-    }
-  }, [isActive])
 
 
   // Get the active character from the game state
@@ -431,62 +419,45 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
       <div aria-live="polite" className="aria-live-region">
         HP {state.hp} of {state.maxHp}. XP {displayCharacter.xp} of {displayCharacter.level + 7}.
       </div>
-      {/* (Header tile removed) */}
-
-      <div className="stats-grid">
-        {/* HP Section */}
-        <div className="stat-card--hp" ref={hpAnchorRef}>
-          {/* Hidden placeholder to preserve layout and provide a measurable rect */}
-          <div className="hp-overlay-placeholder" aria-hidden>
-            <div className="hp-glass">
-              <div className="hp-sidebar-glass-content">
-                <h3> Hit Points</h3>
-                <div className="hp-display">
-                  <button className="hp-button hp-button--minus" type="button">-</button>
-                  <div className="hp-value">
-                    <span className="hp-current">{displayCharacter.hp?.current ?? state.hp}</span>
-                    <span className="hp-separator">/</span>
-                    <span className="hp-max">{displayCharacter.hp?.max ?? state.maxHp}</span>
-                  </div>
-                  <button className="hp-button hp-button--plus" type="button">+</button>
-                </div>
-                <div className="hp-bar">
-                  <progress className={`hp-progress ${getHpClass()}`} max={state.maxHp} value={state.hp} />
-                </div>
-              </div>
-            </div>
+      <div className="stats-grid" style={{ overflow: 'visible' }}>
+        {/* Page title */}
+        <div className="stat-card stat-card--pageTitle">
+          <div className="hp-sidebar-glass-content">
+            <h3> Character Stats</h3>
           </div>
-
-          <OverlaySurface anchorRef={hpAnchorRef}>
-            <div className="hp-sidebar-glass-content">
-              <div className="hp-header">
-                <h3> Hit Points</h3>
-                <button type="button" className="hp-rest-button" onClick={handleRest} aria-label="Rest to full HP">Rest</button>
-              </div>
-              <div className="hp-display">
-                <button className="hp-button hp-button--minus" onClick={() => handleHpChange(-1)} type="button">-</button>
-                <div className="hp-value">
-                  <span className="hp-current">{displayCharacter.hp?.current ?? state.hp}</span>
-                  <span className="hp-separator">/</span>
-                  <span className="hp-max">{displayCharacter.hp?.max ?? state.maxHp}</span>
-                </div>
-                <button className="hp-button hp-button--plus" onClick={() => handleHpChange(1)} type="button">+</button>
-              </div>
-              <div className="hp-bar">
-                <progress className={`hp-progress ${getHpClass()}`} max={state.maxHp} value={state.hp} aria-label="HP progress" />
-              </div>
-            </div>
-          </OverlaySurface>
         </div>
 
-        {/* Combat Stats placeholder (overlay renders actual content) */}
-        <div className="stat-card stat-card--combat" />
+        {/* HP inline */}
+        <div className="stat-card stat-card--hp">
+          <div className="hp-sidebar-glass-content">
+            <div className="hp-header">
+              <h3> Hit Points</h3>
+              <button type="button" className="hp-rest-button" onClick={handleRest} aria-label="Rest to full HP">Rest</button>
+            </div>
+            <div className="hp-display">
+              <button className="hp-button hp-button--minus" onClick={() => handleHpChange(-1)} type="button">-</button>
+              <div className="hp-value">
+                <span className="hp-current">{displayCharacter.hp?.current ?? state.hp}</span>
+                <span className="hp-separator">/</span>
+                <span className="hp-max">{displayCharacter.hp?.max ?? state.maxHp}</span>
+              </div>
+              <button className="hp-button hp-button--plus" onClick={() => handleHpChange(1)} type="button">+</button>
+            </div>
+            <div className="hp-bar">
+              <progress className={`hp-progress ${getHpClass()}`} max={state.maxHp} value={state.hp} aria-label="HP progress" />
+            </div>
+          </div>
+        </div>
 
-        {/* Experience placeholder (overlay renders content) */}
-        <div className="stat-card stat-card--xp" />
+        {/* Progress composite (XP + Combat) inline */}
+        <div className="stat-card stat-card--progress">
+          <ProgressOverlay />
+        </div>
 
-        {/* Load placeholder (overlay renders content) */}
-        <div className="stat-card stat-card--load" />
+        {/* Status composite (Load + Debilities) inline */}
+        <div className="stat-card stat-card--status">
+          <StatusOverlay />
+        </div>
 
         {/* Preferences override placeholder (overlay renders content) */}
         <div className="stat-card stat-card--prefs" />
@@ -520,16 +491,22 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
             )}
           </div>
         )}
-        {/* Attributes placeholder (overlay renders content) */}
-        <div className="stat-card stat-card--attributes" />
+        {/* Attributes inline */}
+        <div className="stat-card stat-card--attributes">
+          <AttributesOverlay />
+        </div>
 
         {/* Class Focus placeholder (overlay renders content) */}
         {sections.showClassFocus && classMap && (
-          <div className="stat-card stat-card--class-focus" />
+          <div className="stat-card stat-card--class-focus">
+            <ClassFocusOverlay />
+          </div>
         )}
 
-        {/* Debilities placeholder (overlay renders content) */}
-        <div className="stat-card stat-card--debilities" />
+        {/* Preferences inline */}
+        <div className="stat-card stat-card--prefs">
+          <PreferencesOverlay />
+        </div>
 
         {/* (Shortcuts tile removed) */}
       </div>

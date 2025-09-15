@@ -1,16 +1,17 @@
-/* Imports must come first */
-@import './styles/rose-pine-variables.css';
+/* Font imports */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Theme imports */
+@import './styles/theme-tokens.css';
+
+@import "tailwindcss";
+
+/* Import glass morphism utilities */
 @import './styles/glass.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Layout Variables (Rose Pine theme handles colors) */
-:root {
-  --sidebar-width: 260px;
-  --header-height: 60px;
-}
+/* Import workspace shell styles */
+@import './styles/workspace.css';
 
 * {
   margin: 0;
@@ -19,46 +20,51 @@
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-    'Helvetica Neue', sans-serif;
+  font-family: var(--font-family-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-text-primary);
-  background-color: transparent; /* allow body::before image to show */
-  line-height: 1.5;
+  background-color: var(--color-background);
+  line-height: var(--line-height-normal);
+  font-size: var(--font-size-base);
 }
 
-/* Strong, fixed background layer (works across browsers) */
+/* Modern background with gradient and grid for glass morphism */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 0; /* sit below app content but above body */
-  /* Development grid background for layout debugging */
+  z-index: -1;
+  background: var(--color-background);
   background-image:
-    linear-gradient(rgba(255,255,255,0.14) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px),
-    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
-  background-size: 16px 16px, 16px 16px, 64px 64px, 64px 64px;
-  background-position: 0 0, 0 0, 0 0, 0 0;
-  background-color: #0f1020;
+    radial-gradient(1400px 900px at -15% -20%, rgba(99, 102, 241, 0.15), transparent 60%),
+    radial-gradient(1100px 800px at 120% 120%, rgba(16, 185, 129, 0.12), transparent 60%),
+    radial-gradient(1200px 700px at 120% -15%, rgba(239, 68, 68, 0.10), transparent 60%),
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, var(--grid-unit) var(--grid-unit), var(--grid-unit) var(--grid-unit);
+  background-position: center center, center center, center center, 0 0, 0 0;
+  background-attachment: fixed;
   pointer-events: none;
 }
 
-/* Ensure gradient applies to html/body/#root for backdrop-clip */
-html, body, #root { height: 100%; }
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 600;
-  line-height: 1.2;
+html, body, #root { 
+  height: 100%; 
+  overflow-x: hidden;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+h5 { font-size: var(--font-size-base); }
+h6 { font-size: var(--font-size-sm); }
 
 button {
   font-family: inherit;
@@ -68,108 +74,126 @@ button {
   font-size: inherit;
   color: inherit;
   padding: 0;
+  transition: all var(--transition-fast);
 }
 
-button:focus {
+button:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 #root {
   height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Selection styles */
+::selection {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-text-primary);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-base);
+}
+
+.animate-slide-in {
+  animation: slideIn var(--transition-base);
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Utility classes */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Grid system helpers */
+.grid-cols-auto {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Modern form styles */
+input, textarea, select {
+  transition: all var(--transition-fast);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+/* Loading states */
+.loading {
+  position: relative;
   overflow: hidden;
 }
 
-/* Global Modal Styles */
-.modal-overlay {
-  position: fixed;
+.loading::after {
+  content: '';
+  position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal {
-  background-color: var(--rp-base);
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  max-width: 500px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--rp-text);
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
+  left: -100%;
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid var(--rp-surface);
-  border-radius: 4px;
-  background-color: var(--rp-surface);
-  color: var(--rp-text);
-  font-size: 0.9rem;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: var(--rp-rose);
-  box-shadow: 0 0 0 2px rgba(235, 111, 146, 0.2);
-}
-
-.modal-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 1.5rem;
-}
-
-.primary-button {
-  background-color: var(--rp-rose);
-  color: var(--rp-base);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-.primary-button:hover {
-  background-color: var(--rp-rose);
-  opacity: 0.9;
-}
-
-.secondary-button {
-  background-color: var(--rp-surface);
-  color: var(--rp-text);
-  border: 1px solid var(--rp-overlay);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-.secondary-button:hover {
-  background-color: var(--rp-overlay);
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
 }

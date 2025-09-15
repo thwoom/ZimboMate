@@ -1,0 +1,205 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - 'button "Current theme: Rose Pine" [ref=e5] [cursor=pointer]':
+    - generic [ref=e8] [cursor=pointer]: 🌙
+    - generic [ref=e9] [cursor=pointer]: Rose Pine
+    - generic [ref=e10] [cursor=pointer]: ▼
+  - generic [ref=e11]:
+    - banner [ref=e12]:
+      - generic [ref=e13]: ZimboMate
+    - complementary [ref=e14]:
+      - generic [ref=e15]:
+        - heading "Dungeon World" [level=1] [ref=e17]
+        - generic [ref=e18]:
+          - text: 1 panel hidden by class preferences.
+          - button "Show all" [ref=e19] [cursor=pointer]
+        - navigation [ref=e20]:
+          - generic [ref=e21]:
+            - button "Favorites 0" [ref=e22] [cursor=pointer]:
+              - generic [ref=e23] [cursor=pointer]: Favorites
+              - generic [ref=e24] [cursor=pointer]: "0"
+            - list [ref=e25]:
+              - listitem [ref=e26]:
+                - generic [ref=e27]: No favorites yet
+          - generic [ref=e28]:
+            - button "Gameplay 13" [ref=e29] [cursor=pointer]:
+              - generic [ref=e30] [cursor=pointer]: Gameplay
+              - generic [ref=e31] [cursor=pointer]: "13"
+            - list [ref=e32]:
+              - listitem [ref=e33]:
+                - generic [ref=e34]:
+                  - button "✨ Create Character" [ref=e36] [cursor=pointer]:
+                    - generic [ref=e37] [cursor=pointer]: ✨
+                    - generic [ref=e38] [cursor=pointer]: Create Character
+                  - button "☆" [ref=e40] [cursor=pointer]
+                  - img [ref=e41]
+              - listitem [ref=e44]:
+                - generic [ref=e45]:
+                  - button "👤 Character Stats" [ref=e47] [cursor=pointer]:
+                    - generic [ref=e48] [cursor=pointer]: 👤
+                    - generic [ref=e49] [cursor=pointer]: Character Stats
+                  - button "☆" [ref=e51] [cursor=pointer]
+                  - img [ref=e52]
+              - listitem [ref=e55]:
+                - generic [ref=e56]:
+                  - button "⚔️ Equipment" [ref=e58] [cursor=pointer]:
+                    - generic [ref=e59] [cursor=pointer]: ⚔️
+                    - generic [ref=e60] [cursor=pointer]: Equipment
+                  - button "☆" [ref=e62] [cursor=pointer]
+                  - img [ref=e63]
+              - listitem [ref=e66]:
+                - generic [ref=e67]:
+                  - button "📜 Moves" [ref=e69] [cursor=pointer]:
+                    - generic [ref=e70] [cursor=pointer]: 📜
+                    - generic [ref=e71] [cursor=pointer]: Moves
+                  - button "☆" [ref=e73] [cursor=pointer]
+                  - img [ref=e74]
+              - listitem [ref=e77]:
+                - generic [ref=e78]:
+                  - button "🎒 Inventory" [ref=e80] [cursor=pointer]:
+                    - generic [ref=e81] [cursor=pointer]: 🎒
+                    - generic [ref=e82] [cursor=pointer]: Inventory
+                  - button "☆" [ref=e84] [cursor=pointer]
+                  - img [ref=e85]
+              - listitem [ref=e88]:
+                - generic [ref=e89]:
+                  - button "🎲 Special Moves" [ref=e91] [cursor=pointer]:
+                    - generic [ref=e92] [cursor=pointer]: 🎲
+                    - generic [ref=e93] [cursor=pointer]: Special Moves
+                  - button "☆" [ref=e95] [cursor=pointer]
+                  - img [ref=e96]
+              - listitem [ref=e99]:
+                - generic [ref=e100]:
+                  - button "📚 Move Library" [ref=e102] [cursor=pointer]:
+                    - generic [ref=e103] [cursor=pointer]: 📚
+                    - generic [ref=e104] [cursor=pointer]: Move Library
+                  - button "☆" [ref=e106] [cursor=pointer]
+                  - img [ref=e107]
+              - listitem [ref=e110]:
+                - generic [ref=e111]:
+                  - button "📖 Lore & Journal" [ref=e113] [cursor=pointer]:
+                    - generic [ref=e114] [cursor=pointer]: 📖
+                    - generic [ref=e115] [cursor=pointer]: Lore & Journal
+                  - button "☆" [ref=e117] [cursor=pointer]
+                  - img [ref=e118]
+              - listitem [ref=e121]:
+                - generic [ref=e122]:
+                  - button "🎭 Condition Tracker" [ref=e124] [cursor=pointer]:
+                    - generic [ref=e125] [cursor=pointer]: 🎭
+                    - generic [ref=e126] [cursor=pointer]: Condition Tracker
+                  - button "☆" [ref=e128] [cursor=pointer]
+                  - img [ref=e129]
+              - listitem [ref=e132]:
+                - generic [ref=e133]:
+                  - button "🔗 Bond Tracker" [ref=e135] [cursor=pointer]:
+                    - generic [ref=e136] [cursor=pointer]: 🔗
+                    - generic [ref=e137] [cursor=pointer]: Bond Tracker
+                  - button "☆" [ref=e139] [cursor=pointer]
+                  - img [ref=e140]
+              - listitem [ref=e143]:
+                - generic [ref=e144]:
+                  - button "⚖️ Alignment XP Tracker" [ref=e146] [cursor=pointer]:
+                    - generic [ref=e147] [cursor=pointer]: ⚖️
+                    - generic [ref=e148] [cursor=pointer]: Alignment XP Tracker
+                  - button "☆" [ref=e150] [cursor=pointer]
+                  - img [ref=e151]
+              - listitem [ref=e154]:
+                - generic [ref=e155]:
+                  - button "📚 Equipment Compendium" [ref=e157] [cursor=pointer]:
+                    - generic [ref=e158] [cursor=pointer]: 📚
+                    - generic [ref=e159] [cursor=pointer]: Equipment Compendium
+                  - button "☆" [ref=e161] [cursor=pointer]
+                  - img [ref=e162]
+              - listitem [ref=e165]:
+                - generic [ref=e166]:
+                  - button "🗂️ Task Management" [ref=e168] [cursor=pointer]:
+                    - generic [ref=e169] [cursor=pointer]: 🗂️
+                    - generic [ref=e170] [cursor=pointer]: Task Management
+                  - button "☆" [ref=e172] [cursor=pointer]
+                  - img [ref=e173]
+          - generic [ref=e176]:
+            - button "Tools 2" [ref=e177] [cursor=pointer]:
+              - generic [ref=e178] [cursor=pointer]: Tools
+              - generic [ref=e179] [cursor=pointer]: "2"
+            - list [ref=e180]:
+              - listitem [ref=e181]:
+                - generic [ref=e182]:
+                  - button "🎲 Session Tools" [ref=e184] [cursor=pointer]:
+                    - generic [ref=e185] [cursor=pointer]: 🎲
+                    - generic [ref=e186] [cursor=pointer]: Session Tools
+                  - button "☆" [ref=e188] [cursor=pointer]
+                  - img [ref=e189]
+              - listitem [ref=e192]:
+                - generic [ref=e193]:
+                  - button "🎲 Dice Roller" [ref=e195] [cursor=pointer]:
+                    - generic [ref=e196] [cursor=pointer]: 🎲
+                    - generic [ref=e197] [cursor=pointer]: Dice Roller
+                  - button "☆" [ref=e199] [cursor=pointer]
+                  - img [ref=e200]
+          - generic [ref=e203]:
+            - button "Settings 4" [ref=e204] [cursor=pointer]:
+              - generic [ref=e205] [cursor=pointer]: Settings
+              - generic [ref=e206] [cursor=pointer]: "4"
+            - list [ref=e207]:
+              - listitem [ref=e208]:
+                - generic [ref=e209]:
+                  - button "🗺️ Campaigns" [ref=e211] [cursor=pointer]:
+                    - generic [ref=e212] [cursor=pointer]: 🗺️
+                    - generic [ref=e213] [cursor=pointer]: Campaigns
+                  - button "☆" [ref=e215] [cursor=pointer]
+                  - img [ref=e216]
+              - listitem [ref=e219]:
+                - generic [ref=e220]:
+                  - button "⚙️ Conditional Content" [ref=e222] [cursor=pointer]:
+                    - generic [ref=e223] [cursor=pointer]: ⚙️
+                    - generic [ref=e224] [cursor=pointer]: Conditional Content
+                  - button "☆" [ref=e226] [cursor=pointer]
+                  - img [ref=e227]
+              - listitem [ref=e230]:
+                - generic [ref=e231]:
+                  - button "⬆️ Export / Import" [ref=e233] [cursor=pointer]:
+                    - generic [ref=e234] [cursor=pointer]: ⬆️
+                    - generic [ref=e235] [cursor=pointer]: Export / Import
+                  - button "☆" [ref=e237] [cursor=pointer]
+                  - img [ref=e238]
+              - listitem [ref=e241]:
+                - generic [ref=e242]:
+                  - button "⚙️ Integration" [ref=e244] [cursor=pointer]:
+                    - generic [ref=e245] [cursor=pointer]: ⚙️
+                    - generic [ref=e246] [cursor=pointer]: Integration
+                  - button "☆" [ref=e248] [cursor=pointer]
+                  - img [ref=e249]
+          - generic [ref=e252]:
+            - button "Development 2" [ref=e253] [cursor=pointer]:
+              - generic [ref=e254] [cursor=pointer]: Development
+              - generic [ref=e255] [cursor=pointer]: "2"
+            - list [ref=e256]:
+              - listitem [ref=e257]:
+                - generic [ref=e258]:
+                  - button "🎨 Content Studio" [ref=e260] [cursor=pointer]:
+                    - generic [ref=e261] [cursor=pointer]: 🎨
+                    - generic [ref=e262] [cursor=pointer]: Content Studio
+                  - button "☆" [ref=e264] [cursor=pointer]
+                  - img [ref=e265]
+              - listitem [ref=e268]:
+                - generic [ref=e269]:
+                  - button "🧪 Test Playground" [ref=e271] [cursor=pointer]:
+                    - generic [ref=e272] [cursor=pointer]: 🧪
+                    - generic [ref=e273] [cursor=pointer]: Test Playground
+                  - button "☆" [ref=e275] [cursor=pointer]
+                  - img [ref=e276]
+        - button "⚙️ Settings" [ref=e280] [cursor=pointer]:
+          - generic [ref=e281] [cursor=pointer]: ⚙️
+          - generic [ref=e282] [cursor=pointer]: Settings
+    - main [ref=e283]:
+      - generic [ref=e284]:
+        - heading "Bond Tracker" [level=2] [ref=e286]
+        - generic [ref=e292]:
+          - generic [ref=e293]: ⚠️
+          - generic [ref=e294]: Error loading panel:A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+          - button "🔄 Retry" [ref=e295] [cursor=pointer]
+  - status:
+    - region "Notifications alt+T"
+```
