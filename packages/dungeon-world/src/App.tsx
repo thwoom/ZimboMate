@@ -26,6 +26,7 @@ import { createPlaceholderPanel } from './panels/PlaceholderPanel'
 import { SpecialMovesPanel } from './panels/SpecialMovesPanel'
 import { SpellPanel } from './panels/SpellPanel'
 import TestPlaygroundPanel from './panels/TestPlayground'
+import ButtonDebugPanel from './panels/ButtonDebugPanel/ButtonDebugPanel'
 import { GameStoreProvider, useSettings } from './store/GameStore'
 import { panelDiagnostics } from './utils/panelDiagnostics'
 import { panelRecoveryManager } from './utils/panelRecovery'
@@ -152,6 +153,8 @@ function App() {
       InventoryPanel,
       // Register Session Tools (replaces previous placeholder)
       SessionToolsPanel,
+      // Button Debug Panel for fixing button issues
+      ButtonDebugPanel,
       createPlaceholderPanel('lore-journal', 'Lore & Journal', '📖'),
     ]
 

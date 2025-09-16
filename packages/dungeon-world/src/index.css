@@ -10,6 +10,9 @@
 /* Import glass morphism utilities */
 @import './styles/glass.css';
 
+/* Import button fixes */
+@import './styles/button-fixes.css';
+
 /* Import workspace shell styles */
 @import './styles/workspace.css';
 
@@ -75,12 +78,36 @@ button {
   color: inherit;
   padding: 0;
   transition: all var(--transition-fast);
+  /* Ensure buttons are always clickable */
+  pointer-events: auto !important;
+  /* Prevent text selection */
+  user-select: none;
+  -webkit-user-select: none;
+  /* Ensure proper stacking */
+  position: relative;
+  z-index: 1;
 }
 
 button:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Fix for buttons that might be covered by pseudo-elements */
+button::before,
+button::after {
+  pointer-events: none;
+}
+
+/* Ensure button content is properly aligned */
+button > * {
+  pointer-events: none;
 }
 
 #root {

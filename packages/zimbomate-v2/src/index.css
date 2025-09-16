@@ -2,9 +2,6 @@
 /* Import Tailwind CSS v4 */
 @import "tailwindcss";
 
-/* Google Fonts Import */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;700;900&display=swap');
-
 /* === ROOT THEME VARIABLES === */
 :root {
   /* Typography */
@@ -202,51 +199,78 @@
   --drag-active: var(--magic-400);
   --drop-zone-valid: var(--nature-400);
   --drop-zone-invalid: var(--red-400);
+  
+  /* Campaign-specific color variables */
+  --color-campaign-primary: var(--color-primary);
+  --color-campaign-secondary: var(--color-secondary);
+  --color-session: var(--nature-500);
+  --color-journal: var(--magic-500);
+  --color-npc: var(--gold-500);
+  --color-location: var(--parchment-600);
+  
+  /* Importance levels */
+  --color-importance-high: var(--red-500);
+  --color-importance-medium: var(--yellow-500);
+  --color-importance-low: #9ca3af;
+  
+  /* NPC disposition colors */
+  --color-disposition-friendly: var(--nature-500);
+  --color-disposition-neutral: #6b7280;
+  --color-disposition-hostile: var(--red-500);
+  --color-disposition-unknown: var(--magic-500);
+  
+  /* Location type colors */
+  --color-location-city: var(--blue-600);
+  --color-location-town: var(--nature-500);
+  --color-location-village: var(--yellow-500);
+  --color-location-dungeon: var(--red-500);
+  --color-location-wilderness: var(--parchment-600);
+  --color-location-other: #6b7280;
 }
 
 /* === CUSTOM UTILITIES === */
-@utility glass-surface {
+.glass-surface {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-@utility magical-glow {
+.magical-glow {
   box-shadow: 0 0 20px var(--color-primary), 0 4px 12px rgba(212, 175, 55, 0.3);
 }
 
-@utility cyber-glow {
+.cyber-glow {
   box-shadow: 0 0 20px var(--cyber-400), 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-@utility character-card {
+.character-card {
   background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-elevated) 100%);
   border: 1px solid var(--color-border);
 }
 
-@utility cyber-card {
+.cyber-card {
   background: linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(22, 33, 62, 0.8) 100%);
   border: 1px solid var(--cyber-600);
 }
 
-@utility parchment-texture {
+.parchment-texture {
   background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-elevated) 100%);
   background-image: 
     radial-gradient(circle at 25% 25%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(168, 157, 126, 0.1) 0%, transparent 50%);
 }
 
-@utility enchanted-button {
+.enchanted-button {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   border: 1px solid var(--color-primary);
 }
 
-@utility magical-border {
+.magical-border {
   border: 2px solid;
   border-image: linear-gradient(45deg, var(--gold-400), var(--magic-400), var(--gold-400)) 1;
 }
 
-@utility spell-book-page {
+.spell-book-page {
   background: linear-gradient(135deg, var(--parchment-50) 0%, var(--parchment-100) 100%);
   border-left: 4px solid var(--gold-500);
   position: relative;
@@ -265,37 +289,170 @@
   pointer-events: none;
 }
 
-@utility equipment-glow {
+.equipment-glow {
   box-shadow: 0 0 20px var(--equipment-magical), 0 4px 12px rgba(147, 51, 234, 0.3);
 }
 
-@utility load-bar-gradient {
+.load-bar-gradient {
   background: linear-gradient(90deg, var(--load-normal) 0%, var(--load-encumbered) 70%, var(--load-overloaded) 100%);
 }
 
-@utility drag-preview {
+.drag-preview {
   transform: rotate(5deg) scale(1.05);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   z-index: 1000;
 }
 
-@utility drop-zone-active {
+.drop-zone-active {
   border: 2px dashed var(--drop-zone-valid);
   background: rgba(34, 197, 94, 0.1);
 }
 
-@utility item-equipped {
+.item-equipped {
   border-color: var(--equipment-equipped);
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
 }
 
-@utility container-highlight {
+.container-highlight {
   background: linear-gradient(135deg, var(--parchment-50) 0%, var(--parchment-100) 100%);
   border: 1px solid var(--parchment-300);
 }
 
+/* Campaign-specific utility classes */
+.campaign-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-opacity: 0.2;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.campaign-card-hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-primary);
+  border-opacity: 0.3;
+  transform: translateY(-1px);
+}
+
+.campaign-stat-card {
+  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-background) 100%);
+  text-align: center;
+  padding: 1rem;
+}
+
+.importance-badge-high {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.importance-badge-medium {
+  background-color: #fefce8;
+  color: #a16207;
+  border: 1px solid #fde68a;
+}
+
+.importance-badge-low {
+  background-color: #f9fafb;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+.disposition-badge-friendly {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.disposition-badge-neutral {
+  background-color: #f9fafb;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+.disposition-badge-hostile {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.disposition-badge-unknown {
+  background-color: #faf5ff;
+  color: #7c3aed;
+  border: 1px solid #e9d5ff;
+}
+
+.campaign-tab-active {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary) 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+}
+
+.campaign-empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-muted);
+  background: radial-gradient(circle at center, var(--color-surface) 0%, var(--color-background) 100%);
+}
+
+/* Modal and Dialog Styles */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-opacity: 0.2;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Select Component Styles */
+.select-trigger {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-opacity: 0.2;
+  color: var(--color-text-primary);
+}
+
+.select-trigger:hover {
+  border-opacity: 0.4;
+}
+
+.select-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-opacity: 0.2;
+  box-shadow: 0 10px 38px -10px rgba(0, 0, 0, 0.35), 0 10px 20px -15px rgba(0, 0, 0, 0.2);
+}
+
+/* Loading Spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Line clamp utility */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 /* === TYPOGRAPHY UTILITIES === */
-@utility text-display-lg {
+.text-display-lg {
   font-family: var(--font-display);
   font-size: 3rem;
   font-weight: 600;
@@ -304,7 +461,7 @@
   color: var(--color-text-primary);
 }
 
-@utility text-display-md {
+.text-display-md {
   font-family: var(--font-display);
   font-size: 2.25rem;
   font-weight: 600;
@@ -313,7 +470,7 @@
   color: var(--color-text-primary);
 }
 
-@utility text-display-sm {
+.text-display-sm {
   font-family: var(--font-display);
   font-size: 1.875rem;
   font-weight: 500;
@@ -321,7 +478,7 @@
   color: var(--color-text-primary);
 }
 
-@utility text-body-lg {
+.text-body-lg {
   font-family: var(--font-body);
   font-size: 1.125rem;
   font-weight: 400;
@@ -329,7 +486,7 @@
   color: var(--color-text-secondary);
 }
 
-@utility text-body-regular {
+.text-body-regular {
   font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 400;
@@ -337,7 +494,7 @@
   color: var(--color-text-secondary);
 }
 
-@utility text-body-sm {
+.text-body-sm {
   font-family: var(--font-body);
   font-size: 0.875rem;
   font-weight: 400;
@@ -345,7 +502,7 @@
   color: var(--color-text-secondary);
 }
 
-@utility text-ui-regular {
+.text-ui-regular {
   font-family: var(--font-ui);
   font-size: 0.875rem;
   font-weight: 500;
@@ -353,7 +510,7 @@
   color: var(--color-text-primary);
 }
 
-@utility text-ui-small {
+.text-ui-small {
   font-family: var(--font-ui);
   font-size: 0.75rem;
   font-weight: 500;
@@ -409,7 +566,7 @@ body {
   100% { background-position: 200% 0; }
 }
 
-@utility shimmer-effect {
+.shimmer-effect {
   background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
   background-size: 200% 100%;
   animation: magical-shimmer 2s infinite;
@@ -424,6 +581,258 @@ body {
   .text-display-md {
     font-size: 1.875rem;
   }
+}
+
+/* === SPELL BOOK SPECIFIC STYLES === */
+:root {
+  /* Spell Book specific colors */
+  --spell-book-leather: #8B4513;
+  --spell-book-leather-dark: #654321;
+  --spell-book-pages: #F5F5DC;
+  --spell-book-pages-aged: #F0E68C;
+  --spell-book-text: #2F1B14;
+  --spell-book-gold-accent: #FFD700;
+  --spell-book-magical-glow: #9370DB;
+  
+  /* Spell school colors */
+  --spell-abjuration: #4169E1;
+  --spell-conjuration: #32CD32;
+  --spell-divination: #FFD700;
+  --spell-enchantment: #FF69B4;
+  --spell-evocation: #FF4500;
+  --spell-illusion: #9370DB;
+  --spell-necromancy: #2F4F4F;
+  --spell-transmutation: #FF6347;
+  
+  /* Spell slot gem colors */
+  --spell-slot-available: #00FF7F;
+  --spell-slot-used: #696969;
+  --spell-slot-prepared: #4169E1;
+  
+  /* Animation variables */
+  --page-turn-duration: 0.8s;
+  --magical-glow-intensity: 0.6;
+  --particle-count: 20;
+}
+
+.spell-book-container {
+  background: linear-gradient(45deg, var(--spell-book-leather), var(--spell-book-leather-dark));
+  border: 3px solid var(--spell-book-gold-accent);
+  border-radius: 12px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 215, 0, 0.2);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.spell-book-page-turning {
+  transform: rotateY(-180deg);
+  z-index: 10;
+}
+
+.spell-slot-gem {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--spell-book-gold-accent);
+  position: relative;
+  overflow: hidden;
+}
+
+.spell-slot-gem::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: rotate(45deg);
+  animation: gem-shine 3s linear infinite;
+}
+
+@keyframes gem-shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.spell-school-abjuration { background-color: var(--spell-abjuration); }
+.spell-school-conjuration { background-color: var(--spell-conjuration); }
+.spell-school-divination { background-color: var(--spell-divination); }
+.spell-school-enchantment { background-color: var(--spell-enchantment); }
+.spell-school-evocation { background-color: var(--spell-evocation); }
+.spell-school-illusion { background-color: var(--spell-illusion); }
+.spell-school-necromancy { background-color: var(--spell-necromancy); }
+.spell-school-transmutation { background-color: var(--spell-transmutation); }
+
+/* === FILE MANAGEMENT UTILITIES === */
+.file-dropzone {
+  border: 2px dashed var(--color-primary);
+  border-radius: 12px;
+  background: var(--color-surface);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: var(--color-primary-hover);
+    background: var(--color-surface-elevated);
+  }
+  
+  &[data-dragover="true"] {
+    border-color: var(--nature-500);
+    background: rgba(34, 197, 94, 0.1);
+    transform: scale(1.02);
+  }
+}
+
+.file-item-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+  
+  &[data-selected="true"] {
+    border-color: var(--color-primary);
+    background: rgba(212, 175, 55, 0.1);
+  }
+}
+
+.validation-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  
+  &[data-status="valid"] {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--nature-600);
+  }
+  
+  &[data-status="invalid"] {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--red-600);
+  }
+  
+  &[data-status="warning"] {
+    background: rgba(234, 179, 8, 0.1);
+    color: var(--yellow-600);
+  }
+}
+
+.progress-ring {
+  transform: rotate(-90deg);
+  
+  circle {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s ease;
+  }
+  
+  .progress-bg {
+    stroke: var(--color-border);
+  }
+  
+  .progress-fill {
+    stroke: var(--color-primary);
+  }
+}
+
+/* File management specific variables */
+:root {
+  --color-success: var(--nature-500);
+  --color-success-light: rgba(34, 197, 94, 0.1);
+  --color-success-dark: var(--nature-600);
+  --color-error: var(--red-500);
+  --color-error-light: rgba(239, 68, 68, 0.1);
+  --color-error-dark: var(--red-600);
+  --color-warning: var(--yellow-500);
+  --color-warning-light: rgba(234, 179, 8, 0.1);
+  --color-warning-dark: var(--yellow-600);
+  --color-primary-light: rgba(212, 175, 55, 0.1);
+  --color-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Help System Utilities */
+.help-content {
+  line-height: 1.7;
+}
+
+.help-content h1, .help-content h2, .help-content h3 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.help-content h1:first-child, .help-content h2:first-child, .help-content h3:first-child {
+  margin-top: 0;
+}
+
+.help-content p {
+  margin-bottom: 1rem;
+}
+
+.help-content ul, .help-content ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.help-content li {
+  margin-bottom: 0.5rem;
+}
+
+.help-content table {
+  margin-bottom: 1.5rem;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.help-content th, .help-content td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.help-content th {
+  font-weight: 600;
+  background-color: var(--color-surface-elevated);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.help-content code {
+  background-color: var(--color-surface-elevated);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: var(--font-mono);
+}
+
+.help-content pre {
+  background-color: var(--color-surface-elevated);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.help-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.help-search-highlight {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
 }
 
 /* Print Styles */

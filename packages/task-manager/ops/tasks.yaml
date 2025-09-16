@@ -3355,3 +3355,390 @@ tasks:
       - src/data/analyticsMetrics.ts
       - src/utils/performanceAnalysis.ts
       - test/services/PerformanceAnalyticsService.test.ts
+  - id: T-223.1
+    title: V2-1: Multiplayer Sync MVP (UI integration)
+    intent: Wire MultiplayerService into UI for connect/join/leave, presence, participants list, reconnection/errors
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - zimbomate-v2
+      - multiplayer
+    deps: []
+    steps:
+      - Add connect/join/leave flows in Multiplayer tab
+      - Show session/participants and connection status
+      - Handle reconnect with capped backoff; show error toasts
+      - Basic tests for flows and reconnection
+    acceptance:
+      - Can start/join/leave a session from UI
+      - Participant list updates on join/leave
+      - Connection loss triggers auto-reconnect and UX feedback
+    artifacts:
+      - packages/zimbomate-v2/src/services/MultiplayerService.ts
+      - packages/zimbomate-v2/src/components/game/SessionManager.tsx
+      - packages/zimbomate-v2/src/components/game/MultiplayerPanel.tsx
+  - id: T-223.2
+    title: V2-2: Share dice rolls in sessions
+    intent: Emit/display shared dice rolls via MultiplayerService; integrate with useSessionStore
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - zimbomate-v2
+      - multiplayer
+      - dice
+    deps:
+      - T-223.1
+    steps:
+      - On local roll, call MultiplayerService.shareDiceRoll
+      - Handle incoming dice_roll to append to roll history
+      - Visual indicator for remote vs local rolls
+      - Tests for send/receive and store wiring
+    acceptance:
+      - Remote players see each other's rolls in near real time
+      - RollHistory reflects shared rolls with context
+    artifacts:
+      - packages/zimbomate-v2/src/components/game/SessionTools/RollHistoryWidget.tsx
+      - packages/zimbomate-v2/src/stores/sessionStore.ts
+  - id: T-223.3
+    title: V2-3: Spell Compendium Service + integration
+    intent: Implement DW spell data/index; connect SpellBook and SpellCastingService to real spell IDs and level budgets
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - zimbomate-v2
+      - spells
+      - compendium
+    deps: []
+    steps:
+      - Create spell data source and index utilities
+      - Implement queries by class/level/tags
+      - Connect SpellBook UI and SpellCastingService methods
+      - Unit tests for indexing and prepare budget enforcement
+    acceptance:
+      - SpellBook lists correct spells by class/level
+      - prepareSpells enforces level+1 budget (cantrips free)
+    artifacts:
+      - packages/zimbomate-v2/src/services/SpellCompendiumService.ts
+      - packages/zimbomate-v2/src/components/game/SpellBook/*
+      - packages/zimbomate-v2/src/services/SpellCastingService.ts
+  - id: T-223.4
+    title: V2-4: Roll History completion
+    intent: Ensure all 2d6+mod rolls record context (move/character), filters, and persistence policy
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - dice
+    deps: []
+    steps:
+      - Route DiceRollingService and MovesPanel events into useSessionStore.addRoll
+      - Implement filters and stats per spec
+      - Persist recent N entries; verify clearing behavior
+      - Unit/e2e tests
+    acceptance:
+      - All move/dice flows populate RollHistory with correct context
+      - Filters and stats match expected calculations
+    artifacts:
+      - packages/zimbomate-v2/src/components/game/SessionTools/RollHistoryWidget.tsx
+      - packages/zimbomate-v2/src/stores/sessionStore.ts
+  - id: T-223.5
+    title: V2-5: File Management real I/O
+    intent: Implement import/export/backup/restore using File System Access API with JSON schema validation
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - file-management
+    deps: []
+    steps:
+      - Replace mock handlers with real FS operations
+      - Add JSON schema validation and error UX
+      - Tests for import/export/backup/restore flows
+    acceptance:
+      - Users can import/export/backup/restore without errors
+      - Invalid files surface actionable errors
+    artifacts:
+      - packages/zimbomate-v2/src/components/game/FileManagementPanel.tsx
+      - packages/zimbomate-v2/src/services/FileManagementService.ts
+  - id: T-223.6
+    title: V2-6: Local LLM integration (content generation)
+    intent: Integrate LM Studio/OpenRouter to generate item/move flavor text with safety checks; gated behind a user toggle
+    owner: cursor-agent
+    status: open
+    priority: P3
+    labels:
+      - zimbomate-v2
+      - llm
+      - content-gen
+    deps: []
+    steps:
+      - Add provider adapters (LM Studio/OpenRouter) with configurable model IDs
+      - Create prompt templates for items/moves flavor generation
+      - Add settings UI to enable/disable feature (disabled by default)
+      - Implement caching and rate limiting; redact PII
+      - Unit/integration tests for adapter and prompt pipeline
+    acceptance:
+      - Feature is disabled by default and can be enabled in settings
+      - Generated content respects safety filters and is cached
+      - Errors are surfaced with helpful messages; fallbacks work
+    artifacts:
+      - packages/zimbomate-v2/src/services/LlmContentService.ts
+      - packages/zimbomate-v2/src/components/settings/LlmSettings.tsx
+      - packages/zimbomate-v2/src/services/providers/{lmstudio,openrouter}.ts
+  - id: T-223.7
+    title: V2-7: Build config cleanup
+    intent: Ensure dev/build configs match preferences; add @tailwindcss/vite, fix terser or remove, clean main.tsx ErrorBoundary
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - zimbomate-v2
+      - build
+    deps: []
+    steps:
+      - Install @tailwindcss/vite and update vite.config.ts plugins
+      - Either install terser or switch to esbuild-only minify and remove terserOptions
+      - Remove unused @kombai/react-error-boundary import/wrapper in main.tsx
+    acceptance:
+      - Dev server runs on port 3000 strict, no auto-open
+      - Build succeeds without terser errors
+    artifacts:
+      - packages/zimbomate-v2/vite.config.ts
+      - packages/zimbomate-v2/main.tsx
+  - id: T-223.8
+    title: V2-8: Settings & preferences panel
+    intent: Centralize toggles (LLM enable, multiplayer server URL, telemetry opt-in) with persistence
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - settings
+    deps: []
+    steps:
+      - Create settings store with persist
+      - UI for toggles and inputs (server URL)
+      - Wire LLM enable flag and telemetry opt-in guards
+    acceptance:
+      - Settings persist across reloads; feature flags control behavior
+    artifacts:
+      - packages/zimbomate-v2/src/components/settings/PreferencesPanel.tsx
+      - packages/zimbomate-v2/src/stores/settingsStore.ts
+  - id: T-223.9
+    title: V2-9: Multiplayer local test server
+    intent: Provide a lightweight WS mock server for local join/leave/reconnect and dice sharing validation
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - multiplayer
+      - testing
+    deps:
+      - T-223.1
+    steps:
+      - Implement Node ws-based mock server with simple protocol
+      - npm script to launch alongside dev
+      - Docs for usage
+    acceptance:
+      - Can validate end-to-end flows locally without external infra
+    artifacts:
+      - packages/zimbomate-v2/dev/ws-mock-server.ts
+      - packages/zimbomate-v2/package.json scripts
+  - id: T-223.10
+    title: V2-10: Spell data import
+    intent: Seed official DW spell compendium JSON and index by class/level/tags
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - zimbomate-v2
+      - spells
+      - data
+    deps:
+      - T-223.3
+    steps:
+      - Create normalized JSON schema for spells
+      - Import initial dataset; verify types
+      - Index and query tests
+    acceptance:
+      - SpellBook lists populated spells with correct filters
+    artifacts:
+      - packages/zimbomate-v2/src/data/spells.json
+      - packages/zimbomate-v2/src/services/SpellCompendiumService.ts
+  - id: T-223.11
+    title: V2-11: A11y hardening
+    intent: Add focus traps, ARIA attributes, and keyboard paths for dialogs/palette; tests
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - a11y
+      - ui
+    deps: []
+    steps:
+      - Audit dialog components and command palette
+      - Add aria-* and focus management; update radix config
+      - Add testing-library a11y checks
+    acceptance:
+      - No focus traps broken; keyboard navigation complete
+    artifacts:
+      - packages/zimbomate-v2/src/components/ui/*
+      - packages/zimbomate-v2/src/components/ui/CommandPalette.tsx
+  - id: T-223.12
+    title: V2-12: 3D dice E2E wiring
+    intent: Integrate R3F/rapier dice into DiceRollingService; verify physics→result binding in tests
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - dice
+      - threejs
+    deps: []
+    steps:
+      - Implement 3D dice roll with physics and result readout
+      - Bridge to service and session store
+      - E2E assertions for visual/logic sync
+    acceptance:
+      - 3D rolls produce correct totals persisted in history
+    artifacts:
+      - packages/zimbomate-v2/src/components/3d/Dice3D.tsx
+      - packages/zimbomate-v2/src/services/DiceRollingService.ts
+  - id: T-223.13
+    title: V2-13: Critical E2E suite
+    intent: End-to-end tests for session start/end, dice roll+history, spell prepare/cast, file import/export
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - zimbomate-v2
+      - testing
+    deps:
+      - T-223.1
+      - T-223.2
+      - T-223.3
+      - T-223.4
+      - T-223.5
+    steps:
+      - Write Playwright flows for core user journeys
+      - Seed fixtures and mock data as needed
+      - CI job to run E2E on PR
+    acceptance:
+      - Green E2E run validates core flows
+    artifacts:
+      - packages/zimbomate-v2/tests/e2e/*
+      - .github/workflows/e2e.yml
+  - id: T-223.14
+    title: V2-14: Data migration utility (V1 → V2)
+    intent: Map V1 character/equipment models to V2; provide import/export migration flow
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - migration
+      - data
+    deps: []
+    steps:
+      - Define mapping from V1 models to V2 models (types and transforms)
+      - Implement import of V1 JSON and transform to V2 schema
+      - Export V2 data for backup
+      - Validation and discrepancy reporting
+    acceptance:
+      - Sample V1 data imports without loss of required fields
+      - Export produces valid V2 JSON matching schema
+    artifacts:
+      - packages/zimbomate-v2/src/services/MigrationService.ts
+      - packages/zimbomate-v2/src/components/tools/MigrationPanel.tsx
+      - packages/zimbomate-v2/src/data/schemas/*.ts
+  - id: T-223.15
+    title: V2-15: Bundle analysis & performance budgets
+    intent: Add bundle visualizer and enforce size/perf budgets in CI
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - performance
+      - build
+    deps: []
+    steps:
+      - Add bundle visualizer plugin and npm script
+      - Capture baseline report and commit artifact
+      - Configure CI to fail when budgets are exceeded
+    acceptance:
+      - CI enforces bundle and chunk size thresholds
+    artifacts:
+      - packages/zimbomate-v2/package.json scripts
+      - packages/zimbomate-v2/vite.config.ts
+      - .github/workflows/ci.yml
+  - id: T-223.16
+    title: V2-16: Core services unit test coverage ≥ 80%
+    intent: Raise coverage for Dice, Move, SpellCasting, Session, Multiplayer services
+    owner: cursor-agent
+    status: open
+    priority: P1
+    labels:
+      - zimbomate-v2
+      - testing
+      - coverage
+    deps: []
+    steps:
+      - Add unit tests for service edge cases and DW rule paths
+      - Mock MultiplayerService transport for deterministic tests
+      - Enforce 80% global coverage thresholds
+    acceptance:
+      - Vitest coverage meets thresholds; critical branches covered
+    artifacts:
+      - packages/zimbomate-v2/src/components/__tests__/*
+      - packages/zimbomate-v2/src/services/__tests__/*
+      - packages/zimbomate-v2/vitest.config.ts
+  - id: T-223.17
+    title: V2-18: Developer docs
+    intent: Document settings flags, WS mock usage, scripts, data seeding, feature toggles
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - docs
+    deps: []
+    steps:
+      - Write package README with development scripts and flows
+      - Add docs for Multiplayer mock server and LLM feature toggle
+      - Document data seeding and migration usage
+    acceptance:
+      - New contributors can set up and run core flows in <10 minutes
+    artifacts:
+      - packages/zimbomate-v2/README.md
+      - packages/zimbomate-v2/docs/*.md
+  - id: T-223.18
+    title: V2-20: Automated a11y checks in CI
+    intent: Integrate axe/testing-library a11y checks into unit/E2E and CI
+    owner: cursor-agent
+    status: open
+    priority: P2
+    labels:
+      - zimbomate-v2
+      - a11y
+      - testing
+    deps:
+      - T-223.11
+      - T-223.13
+    steps:
+      - Add axe checks to component tests for dialogs/palette
+      - Add Playwright a11y assertions for key flows
+      - CI job to run and fail on violations
+    acceptance:
+      - CI fails on a11y violations with actionable output
+    artifacts:
+      - packages/zimbomate-v2/src/components/__tests__/*
+      - packages/zimbomate-v2/tests/e2e/*
+      - .github/workflows/a11y.yml

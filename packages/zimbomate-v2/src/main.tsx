@@ -1,8 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import CompleteApp from './App.Complete'
+import App from './App.Complete'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <CompleteApp />
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 )

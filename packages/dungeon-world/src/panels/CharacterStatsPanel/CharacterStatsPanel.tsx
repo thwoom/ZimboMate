@@ -24,6 +24,7 @@ import StatusOverlay from '../../components/StatusOverlay'
 import AttributesOverlay from '../../components/AttributesOverlay'
 import ClassFocusOverlay from '../../components/ClassFocusOverlay'
 import PreferencesOverlay from '../../components/PreferencesOverlay'
+import { QuickButtonDebug } from '../../components/ui/QuickButtonDebug'
 
 interface CharacterStatsPanelState {
   // Basic Info
@@ -423,7 +424,10 @@ const CharacterStatsPanel: React.FC <PanelProps & { panelState?: CharacterStatsP
         {/* Page title */}
         <div className="stat-card stat-card--pageTitle">
           <div className="hp-sidebar-glass-content">
-            <h3> Character Stats</h3>
+            <div className="flex items-center justify-between">
+              <h3> Character Stats</h3>
+              <QuickButtonDebug />
+            </div>
           </div>
         </div>
 

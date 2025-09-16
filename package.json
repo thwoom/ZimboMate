@@ -1,5 +1,5 @@
 {
-  "name": "aa46611def06ce689d5c3435f4820c8d5854a6ab1e4517e726a7fe8229eee935",
+  "name": "d3a1a7ac397fe617e2a54501cbff32ee077ee10383b390cdbb02fb26f19546e8",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,7 +12,7 @@
   "dependencies": {
     "@kombai/react-error-boundary": "^1.1.0",
     "@tailwindcss/postcss": "^4.1.13",
-    "@tanstack/react-query": "^5.87.4",
+    "@tanstack/react-query": "^5.89.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.544.0",
     "postcss": "^8.5.6",
@@ -23,12 +23,15 @@
     "react-router": "^7.9.1",
     "react-router-dom": "^7.9.1",
     "tailwindcss": "^4.1.13",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "clsx": "latest",
+    "@radix-ui/react-tooltip": "latest",
+    "framer-motion": "latest"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@tailwindcss/vite": "^4.1.13",
-    "@types/node": "^24.4.0",
+    "@types/node": "^24.5.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.7.0",
@@ -48,7 +51,7 @@
   "strictDependencies": {
     "@kombai/react-error-boundary": "^1.1.0",
     "@tailwindcss/postcss": "^4.1.13",
-    "@tanstack/react-query": "^5.87.4",
+    "@tanstack/react-query": "^5.89.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.544.0",
     "postcss": "^8.5.6",
@@ -62,7 +65,7 @@
     "zustand": "^5.0.8",
     "@eslint/js": "^9.21.0",
     "@tailwindcss/vite": "^4.1.13",
-    "@types/node": "^24.4.0",
+    "@types/node": "^24.5.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.7.0",

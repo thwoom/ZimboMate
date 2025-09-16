@@ -12,6 +12,11 @@ export { MoveCompendiumService, moveCompendiumService } from './MoveCompendiumSe
 export { SpellCastingService, spellCastingService } from './SpellCastingService'
 export { AdvancementService, advancementService } from './AdvancementService'
 
+// Phase 4C Desktop Power Features
+export { KeyboardShortcutsService, keyboardShortcutsService } from './KeyboardShortcutsService'
+export { XPIntegrationService, xpIntegrationService } from './XPIntegrationService'
+export { DiceModifierService, diceModifierService } from './DiceModifierService'
+
 // Type exports for external use
 export type {
   // Dice Rolling types
@@ -71,3 +76,25 @@ export type {
   XPSource,
   XPEntry,
 } from './AdvancementService'
+
+export type {
+  // Keyboard Shortcuts types
+  KeyboardShortcut,
+  ShortcutCategory,
+} from './KeyboardShortcutsService'
+
+export type {
+  // XP Integration types
+  XPSource as XPIntegrationSource,
+  XPEntry as XPIntegrationEntry,
+  XPNotification,
+  XPAnalytics,
+} from './XPIntegrationService'
+
+export type {
+  // Dice Modifier types
+  ModifierSource,
+  ActiveModifier,
+  ModifierStack,
+  RollModifierContext,
+} from './DiceModifierService'

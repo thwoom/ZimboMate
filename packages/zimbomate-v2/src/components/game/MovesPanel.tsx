@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Badge } from '../ui'
-import { Sword, Shield, Eye, Brain, Users, Zap, Book, Target, BicepsFlexed } from 'lucide-react'
+import { Sword, Shield, Eye, Brain, Users, Zap, Book, Target, BicepsFlexed, Sparkles } from 'lucide-react'
+import { MoveContextAnalyzer } from './MoveContextAnalyzer'
+import { Move3DIntegration } from './Move3DIntegration'
+import { Character } from '../../models/Character'
 
 interface Move {
   id: string
@@ -101,43 +104,127 @@ const statIcons = {
 }
 
 interface MovesPanelProps {
+  character: Character
   characterClass?: string
   onMoveSelect?: (move: Move) => void
+  onRollComplete?: (result: any) => void
+}
+
+interface GameContext {
+  inCombat: boolean
+  hasEnemiesNearby: boolean
+  lowHealth: boolean
+  hasSpellsReady: boolean
+  hasAllies: boolean
+  inDanger: boolean
+  exploringNew: boolean
+  socialSituation: boolean
 }
 
 export const MovesPanel: React.FC<MovesPanelProps> = ({
+  character,
   characterClass = 'wizard',
-  onMoveSelect
+  onMoveSelect,
+  onRollComplete
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'basic' | 'class'>('basic')
   const [selectedMove, setSelectedMove] = useState<Move | null>(null)
+  const [showMoveIntegration, setShowMoveIntegration] = useState(false)
+  const [showContextAnalyzer, setShowContextAnalyzer] = useState(true)
 
   const moves = selectedCategory === 'basic' ? basicMoves : wizardMoves
+
+  // Analyze current game context
+  const gameContext = useMemo((): GameContext => {
+    const healthPercentage = character.hp.current / character.hp.max
+    
+    return {
+      inCombat: false, // This would come from game state
+      hasEnemiesNearby: false, // This would come from game state
+      lowHealth: healthPercentage < 0.5,
+      hasSpellsReady: character.class === 'wizard', // Simplified check
+      hasAllies: false, // This would come from game state
+      inDanger: healthPercentage < 0.3,
+      exploringNew: true, // This would come from game state
+      socialSituation: false // This would come from game state
+    }
+  }, [character])
 
   const handleMoveClick = (move: Move) => {
     setSelectedMove(move)
     onMoveSelect?.(move)
   }
 
+  const handleMoveSuggestion = (moveId: string) => {
+    const move = [...basicMoves, ...wizardMoves].find(m => m.id === moveId)
+    if (move) {
+      setSelectedMove(move)
+      onMoveSelect?.(move)
+    }
+  }
+
+  const handleExecuteMove = () => {
+    if (selectedMove) {
+      setShowMoveIntegration(true)
+    }
+  }
+
+  const handleRollComplete = (result: any) => {
+    setShowMoveIntegration(false)
+    setSelectedMove(null)
+    onRollComplete?.(result)
+  }
+
+  const handleCancelMove = () => {
+    setShowMoveIntegration(false)
+  }
+
   return (
     <div className="space-y-6">
+      {/* Context Analyzer */}
+      {showContextAnalyzer && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+        >
+          <MoveContextAnalyzer
+            character={character}
+            gameContext={gameContext}
+            onMoveSuggestion={handleMoveSuggestion}
+          />
+        </motion.div>
+      )}
+
       {/* Category Selector */}
       <Card variant="glass" padding="md">
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <Button
+                variant={selectedCategory === 'basic' ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory('basic')}
+              >
+                Basic Moves
+              </Button>
+              <Button
+                variant={selectedCategory === 'class' ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory('class')}
+              >
+                {characterClass.charAt(0).toUpperCase() + characterClass.slice(1)} Moves
+              </Button>
+            </div>
+            
             <Button
-              variant={selectedCategory === 'basic' ? 'primary' : 'outline'}
+              variant="ghost"
               size="sm"
-              onClick={() => setSelectedCategory('basic')}
+              onClick={() => setShowContextAnalyzer(!showContextAnalyzer)}
+              className="gap-2"
             >
-              Basic Moves
-            </Button>
-            <Button
-              variant={selectedCategory === 'class' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory('class')}
-            >
-              {characterClass.charAt(0).toUpperCase() + characterClass.slice(1)} Moves
+              <Brain size={16} />
+              {showContextAnalyzer ? 'Hide' : 'Show'} Suggestions
             </Button>
           </div>
         </CardContent>
@@ -244,12 +331,11 @@ export const MovesPanel: React.FC<MovesPanelProps> = ({
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={() => {
-                      // This would trigger the dice roller with the appropriate modifier
-                      console.log(`Rolling for ${selectedMove.name} with ${selectedMove.stat}`)
-                    }}
+                    onClick={handleExecuteMove}
+                    className="gap-2 magical-glow"
                   >
-                    Roll +{selectedMove.stat.slice(0, 3).toUpperCase()}
+                    <Sparkles size={16} />
+                    Execute Move
                   </Button>
                   <Button
                     variant="ghost"
@@ -264,6 +350,19 @@ export const MovesPanel: React.FC<MovesPanelProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 3D Move Integration */}
+      {selectedMove && (
+        <Move3DIntegration
+          moveId={selectedMove.id}
+          moveName={selectedMove.name}
+          stat={selectedMove.stat}
+          modifier={character.stats[selectedMove.stat as keyof typeof character.stats]?.modifier || 0}
+          onRollComplete={handleRollComplete}
+          onCancel={handleCancelMove}
+          isVisible={showMoveIntegration}
+        />
+      )}
     </div>
   )
 }

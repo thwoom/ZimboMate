@@ -7,16 +7,55 @@ import { CharacterSheet } from './components/game/CharacterSheet'
 import { DiceRoller } from './components/game/DiceRoller'
 import { MovesPanel } from './components/game/MovesPanel'
 import { EquipmentPanel } from './components/game/EquipmentPanel'
-import { Sparkles, User, Dice6, Scroll, Settings, Package } from 'lucide-react'
+import { SessionManager } from './components/game/SessionManager'
+import { SessionToolsPanel } from './components/game/SessionTools'
+import { BondTracker } from './components/game/BondTracker'
+import { AlignmentXPTracker } from './components/game/AlignmentXPTracker'
+import { DebilityTracker } from './components/game/DebilityTracker'
+import { ContextAwareSystem } from './components/game/ContextAwareSystem'
+import { SessionFlowManager } from './components/game/SessionFlowManager'
+import { CommandPalette } from './components/ui/CommandPalette'
+import { KeyboardShortcutsPanel } from './components/ui/KeyboardShortcutsPanel'
+import PerformanceMonitor from '@/components/ui/PerformanceMonitor'
+import { AccessibilityChecker } from './components/ui/AccessibilityChecker'
+import { ErrorBoundary } from './components/ui/ErrorBoundary'
+import { HelpSystem } from './components/ui/HelpSystem'
+import { Sparkles, User, Dice6, Scroll, Settings, Package, Users, NotebookPen, MapPin, FolderOpen } from 'lucide-react'
 import { Card, CardContent, Button, Badge } from './components/ui'
+import { DemoQuickAccess } from './components/ui/DemoQuickAccess'
+import { DemoModal } from './components/ui/DemoModal'
+import { CampaignPanel } from './components/game/CampaignPanel'
+import { FileManagementPanel } from './components/game/FileManagementPanel'
+import { FileOperation } from './fileManagementMockData'
+import { useCommandPalette, useNavigationShortcuts, useGlobalShortcuts, useDiceShortcuts } from './hooks/useKeyboardShortcuts'
+import './utils/initializeMockData' // Initialize mock data for development
+import { ButtonDebugger } from './components/ui/ButtonDebugger'
+import { 
+  diagnoseAllButtons, 
+  enableButtonDebugging, 
+  autoFixAllButtons, 
+  generateButtonReport,
+  type ButtonDiagnostic 
+} from './utils/buttonUtils'
+import { BugAntIcon, WrenchScrewdriverIcon, DocumentTextIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
-type ActiveTab = 'character' | 'dice' | 'moves' | 'equipment' | 'settings'
+type ActiveTab = 'character' | 'dice' | 'moves' | 'equipment' | 'session-tools' | 'campaign' | 'file-management' | 'multiplayer' | 'settings' | 'button-debug'
 
-// Mock character data for EquipmentPanel
+// Mock character data for EquipmentPanel and MovesPanel
 const mockCharacter = {
+  id: 'char-1',
   name: "Eldara Moonwhisper",
-  class: "Wizard",
+  class: "wizard",
   level: 5,
+  hp: { current: 18, max: 25 },
+  stats: {
+    strength: { value: 12, modifier: 1 },
+    dexterity: { value: 14, modifier: 2 },
+    constitution: { value: 13, modifier: 1 },
+    intelligence: { value: 18, modifier: 4 },
+    wisdom: { value: 16, modifier: 3 },
+    charisma: { value: 15, modifier: 2 }
+  },
   load: { current: 8, max: 12 },
   inventory: [
     {
@@ -63,14 +102,71 @@ const mockCharacter = {
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('character')
   const [diceModifier, setDiceModifier] = useState(2)
+  const [demoModalOpen, setDemoModalOpen] = useState(false)
+  const [selectedDemo, setSelectedDemo] = useState<{ id: string; title: string } | null>(null)
+  const [showSessionManager, setShowSessionManager] = useState(false)
+  const [currentSession, setCurrentSession] = useState<any>(null)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+  const [buttonDiagnostics, setButtonDiagnostics] = useState<ButtonDiagnostic[]>([])
+  const [debuggingEnabled, setDebuggingEnabled] = useState(false)
+  const [autoFixCount, setAutoFixCount] = useState(0)
 
   const tabs = [
     { id: 'character' as const, label: 'Character', icon: User },
     { id: 'dice' as const, label: 'Dice', icon: Dice6 },
     { id: 'moves' as const, label: 'Moves', icon: Scroll },
     { id: 'equipment' as const, label: 'Equipment', icon: Package },
-    { id: 'settings' as const, label: 'Settings', icon: Settings }
+    { id: 'session-tools' as const, label: 'Session Tools', icon: NotebookPen },
+    { id: 'campaign' as const, label: 'Campaign', icon: MapPin },
+    { id: 'file-management' as const, label: 'File Management', icon: FolderOpen },
+    { id: 'multiplayer' as const, label: 'Multiplayer', icon: Users },
+    { id: 'settings' as const, label: 'Settings', icon: Settings },
+    { id: 'button-debug' as const, label: 'Button Debug', icon: WrenchScrewdriverIcon }
   ]
+
+  // Command palette integration
+  const { registerCommandPalette, setIsOpen } = useCommandPalette()
+  
+  React.useEffect(() => {
+    registerCommandPalette(
+      () => setCommandPaletteOpen(true),
+      () => setCommandPaletteOpen(false)
+    )
+  }, [registerCommandPalette])
+
+  React.useEffect(() => {
+    setIsOpen(commandPaletteOpen)
+  }, [commandPaletteOpen, setIsOpen])
+
+  // Navigation shortcuts
+  useNavigationShortcuts((tabId) => {
+    setActiveTab(tabId as ActiveTab)
+  })
+
+  // Global shortcuts
+  useGlobalShortcuts({
+    onToggleTheme: () => {
+      // Theme toggle logic would go here
+      console.log('Toggle theme')
+    }
+  })
+
+  // Dice shortcuts
+  useDiceShortcuts((stat) => {
+    if (stat) {
+      // Set modifier based on stat and switch to dice tab
+      const statModifiers = {
+        strength: 1,
+        dexterity: 2,
+        constitution: 1,
+        intelligence: 4,
+        wisdom: 3,
+        charisma: 2
+      }
+      setDiceModifier(statModifiers[stat as keyof typeof statModifiers] || 0)
+    }
+    setActiveTab('dice')
+  }, activeTab === 'dice' || activeTab === 'character')
 
   const tabVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -103,7 +199,13 @@ const App: React.FC = () => {
             animate="visible"
             exit="exit"
           >
-            <CharacterSheet />
+            <div className="space-y-8">
+              <CharacterSheet />
+              <ContextAwareSystem context="character" />
+              <BondTracker />
+              <AlignmentXPTracker />
+              <DebilityTracker />
+            </div>
           </motion.div>
         )
       case 'dice':
@@ -116,12 +218,15 @@ const App: React.FC = () => {
             exit="exit"
             className="max-w-2xl mx-auto"
           >
-            <DiceRoller 
-              modifier={diceModifier}
-              onRoll={(result) => {
-                console.log('Dice roll result:', result)
-              }}
-            />
+            <div className="space-y-6">
+              <DiceRoller 
+                modifier={diceModifier}
+                onRoll={(result) => {
+                  console.log('Dice roll result:', result)
+                }}
+              />
+              <ContextAwareSystem context="dice" compact />
+            </div>
           </motion.div>
         )
       case 'moves':
@@ -133,14 +238,21 @@ const App: React.FC = () => {
             animate="visible"
             exit="exit"
           >
-            <MovesPanel 
-              characterClass="wizard"
-              onMoveSelect={(move) => {
-                console.log('Selected move:', move)
-                // Switch to dice tab when a move is selected
-                setActiveTab('dice')
-              }}
-            />
+            <div className="space-y-6">
+              <MovesPanel 
+                character={mockCharacter as any}
+                characterClass="wizard"
+                onMoveSelect={(move) => {
+                  console.log('Selected move:', move)
+                  // Switch to dice tab when a move is selected
+                  setActiveTab('dice')
+                }}
+                onRollComplete={(result) => {
+                  console.log('Roll completed:', result)
+                }}
+              />
+              <ContextAwareSystem context="moves" compact />
+            </div>
           </motion.div>
         )
       case 'equipment':
@@ -152,14 +264,162 @@ const App: React.FC = () => {
             animate="visible"
             exit="exit"
           >
-            <EquipmentPanel
-              character={mockCharacter as any}
-              onItemEquip={(item) => console.log('Equipped:', item)}
-              onItemUnequip={(item) => console.log('Unequipped:', item)}
-              onItemUse={(item) => console.log('Used:', item)}
-              onItemDrop={(item) => console.log('Dropped:', item)}
-              onInventoryUpdate={(inventory) => console.log('Inventory updated:', inventory)}
-            />
+            <div className="space-y-6">
+              <EquipmentPanel
+                character={mockCharacter as any}
+                onItemEquip={(item) => console.log('Equipped:', item)}
+                onItemUnequip={(item) => console.log('Unequipped:', item)}
+                onItemUse={(item) => console.log('Used:', item)}
+                onItemDrop={(item) => console.log('Dropped:', item)}
+                onInventoryUpdate={(inventory) => console.log('Inventory updated:', inventory)}
+              />
+              <ContextAwareSystem context="equipment" compact />
+            </div>
+          </motion.div>
+        )
+      case 'session-tools':
+        return (
+          <motion.div
+            key="session-tools"
+            variants={tabVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="space-y-6">
+              <SessionFlowManager />
+              <SessionToolsPanel />
+              <ContextAwareSystem context="session" compact />
+            </div>
+          </motion.div>
+        )
+      case 'campaign':
+        return (
+          <motion.div
+            key="campaign"
+            variants={tabVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="space-y-6">
+              <CampaignPanel />
+              <ContextAwareSystem context="campaign" compact />
+            </div>
+          </motion.div>
+        )
+      case 'file-management':
+        return (
+          <motion.div
+            key="file-management"
+            variants={tabVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="space-y-6">
+              <FileManagementPanel
+                onFileOperation={(operation: FileOperation, data: any) => {
+                  console.log('File operation:', operation, data)
+                  // Handle file operations here
+                  switch (operation) {
+                    case FileOperation.IMPORT:
+                      console.log('Importing files:', data)
+                      break
+                    case FileOperation.EXPORT:
+                      console.log('Exporting data:', data)
+                      break
+                    case FileOperation.BACKUP:
+                      console.log('Creating backup:', data)
+                      break
+                    case FileOperation.RESTORE:
+                      console.log('Restoring backup:', data)
+                      break
+                    case FileOperation.DELETE:
+                      console.log('Deleting files:', data)
+                      break
+                    case FileOperation.RENAME:
+                      console.log('Renaming file:', data)
+                      break
+                    case FileOperation.DUPLICATE:
+                      console.log('Duplicating file:', data)
+                      break
+                    default:
+                      console.log('Unknown operation:', operation, data)
+                  }
+                }}
+              />
+            </div>
+          </motion.div>
+        )
+      case 'multiplayer':
+        return (
+          <motion.div
+            key="multiplayer"
+            variants={tabVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="max-w-4xl mx-auto space-y-8">
+              <Card variant="magical" padding="lg">
+                <CardContent>
+                  <div className="text-center space-y-6">
+                    <div 
+                      className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: 'var(--color-primary)', opacity: 0.2 }}
+                    >
+                      <Users 
+                        size={32} 
+                        style={{ color: 'var(--color-primary)' }}
+                      />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-display mb-2">Multiplayer Sessions</h2>
+                      <p 
+                        className="max-w-md mx-auto"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                      >
+                        Connect with friends for shared adventures and real-time dice rolling.
+                        Phase 3.2 Advanced Features Complete!
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-3 justify-center">
+                      <Badge variant="default">Real-time Dice Sharing ✅</Badge>
+                      <Badge variant="default">Session Management ✅</Badge>
+                      <Badge variant="default">WebSocket Integration ✅</Badge>
+                      <Badge variant="secondary">Voice Chat 🔄</Badge>
+                    </div>
+                    {!currentSession ? (
+                      <Button
+                        variant="primary"
+                        size="lg"
+                        onClick={() => setShowSessionManager(true)}
+                        className="gap-2 magical-glow"
+                      >
+                        <Users size={20} />
+                        Start Multiplayer Session
+                      </Button>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-green-100 rounded-lg">
+                          <h4 className="font-medium text-green-800">Connected to: {currentSession.name}</h4>
+                          <p className="text-sm text-green-600">
+                            {currentSession.players?.length || 1} players online
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => setCurrentSession(null)}
+                        >
+                          Leave Session
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </motion.div>
         )
       case 'settings':
@@ -171,45 +431,186 @@ const App: React.FC = () => {
             animate="visible"
             exit="exit"
           >
-            <Card variant="glass" padding="lg">
-              <CardContent>
-                <div className="text-center space-y-6">
-                  <div 
-                    className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: 'var(--color-primary)', opacity: 0.2 }}
-                  >
-                    <Settings 
-                      size={32} 
-                      style={{ color: 'var(--color-primary)' }}
-                    />
+            <div className="max-w-4xl mx-auto space-y-8">
+              {/* Keyboard Shortcuts Panel */}
+              <KeyboardShortcutsPanel />
+
+              {/* Performance Monitor */}
+              <PerformanceMonitor />
+
+              {/* Accessibility Checker */}
+              <AccessibilityChecker />
+
+              {/* Help System */}
+              <HelpSystem />
+
+              {/* Demo Quick Access Section */}
+              <Card variant="magical" padding="lg">
+                <CardContent>
+                  <DemoQuickAccess 
+                    onDemoNavigate={handleDemoNavigate}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        )
+      case 'button-debug':
+        return (
+          <motion.div
+            key="button-debug"
+            variants={tabVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div className="max-w-6xl mx-auto space-y-8">
+              {/* Button Debug Control Panel */}
+              <Card variant="magical" padding="lg">
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-display-md mb-2">ZimboMate v2 Button Debugger</h2>
+                      <p style={{ color: 'var(--color-text-secondary)' }}>
+                        Diagnose and fix button functionality issues throughout the application
+                      </p>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-4">
+                      <Button 
+                        variant="cyber" 
+                        onClick={() => {
+                          const results = diagnoseAllButtons()
+                          setButtonDiagnostics(results)
+                          console.log('🔍 Button diagnosis completed:', results)
+                        }}
+                      >
+                        <BugAntIcon size={16} />
+                        Run Diagnosis
+                      </Button>
+                      
+                      <Button 
+                        variant="secondary" 
+                        onClick={() => {
+                          enableButtonDebugging()
+                          setDebuggingEnabled(true)
+                          console.log('🔧 Button debugging enabled')
+                        }}
+                        disabled={debuggingEnabled}
+                      >
+                        <WrenchScrewdriverIcon size={16} />
+                        {debuggingEnabled ? 'Debugging Active' : 'Enable Debug Mode'}
+                      </Button>
+                      
+                      <Button 
+                        variant="magical" 
+                        onClick={() => {
+                          const fixed = autoFixAllButtons()
+                          setAutoFixCount(prev => prev + fixed)
+                          console.log(`🔧 Auto-fixed ${fixed} button issues`)
+                        }}
+                      >
+                        <WrenchScrewdriverIcon size={16} />
+                        Auto-Fix Issues
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          const report = generateButtonReport()
+                          console.log(report)
+                          
+                          // Download report
+                          const blob = new Blob([report], { type: 'text/plain' })
+                          const url = URL.createObjectURL(blob)
+                          const a = document.createElement('a')
+                          a.href = url
+                          a.download = 'zimbomate-v2-button-report.txt'
+                          a.click()
+                          URL.revokeObjectURL(url)
+                        }}
+                      >
+                        <DocumentTextIcon size={16} />
+                        Download Report
+                      </Button>
+                    </div>
+                    
+                    {/* Status Summary */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-4 rounded-lg" style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--nature-500)' }}>
+                          {buttonDiagnostics.filter(d => d.working).length}
+                        </div>
+                        <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                          Working Buttons
+                        </div>
+                      </div>
+                      
+                      <div className="text-center p-4 rounded-lg" style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--red-500)' }}>
+                          {buttonDiagnostics.filter(d => !d.working).length}
+                        </div>
+                        <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                          Issues Found
+                        </div>
+                      </div>
+                      
+                      <div className="text-center p-4 rounded-lg" style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--yellow-500)' }}>
+                          {autoFixCount}
+                        </div>
+                        <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                          Auto-Fixed
+                        </div>
+                      </div>
+                      
+                      <div className="text-center p-4 rounded-lg" style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
+                        <div className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
+                          {debuggingEnabled ? '🔧' : '💤'}
+                        </div>
+                        <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                          Debug Mode
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-display mb-2">Settings & Preferences</h2>
-                    <p 
-                      className="max-w-md mx-auto"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                    >
-                      Customize your ZimboMate experience with theme selection, 
-                      audio controls, animation preferences, and character management.
-                    </p>
+                </CardContent>
+              </Card>
+              
+              {/* Interactive Test Suite */}
+              <ButtonDebugger 
+                onTestResult={(testName, success, details) => {
+                  console.log(`✅ Test result: ${testName} - ${success ? 'SUCCESS' : 'FAILED'}`, details)
+                }}
+              />
+              
+              {/* Console Commands Help */}
+              <Card>
+                <CardContent>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Console Commands</h3>
+                    <div className="grid md:grid-cols-2 gap-4 text-sm font-mono">
+                      <div>
+                        <code style={{ color: 'var(--color-primary)' }}>window.ZimboMate.debugButtons()</code>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>Enable visual debugging</p>
+                      </div>
+                      <div>
+                        <code style={{ color: 'var(--color-primary)' }}>window.ZimboMate.fixButtons()</code>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>Auto-fix all issues</p>
+                      </div>
+                      <div>
+                        <code style={{ color: 'var(--color-primary)' }}>window.ZimboMate.buttonReport()</code>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>Generate report</p>
+                      </div>
+                      <div>
+                        <code style={{ color: 'var(--color-primary)' }}>window.ZimboMate.diagnoseButtons()</code>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>Get diagnostics</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    <Badge variant="default">Theme System ✅</Badge>
-                    <Badge variant="secondary">Audio Controls 🔄</Badge>
-                    <Badge variant="secondary">Animation Prefs 🔄</Badge>
-                    <Badge variant="secondary">Export/Import 🔄</Badge>
-                  </div>
-                  <div className="pt-4">
-                    <p 
-                      className="text-sm"
-                      style={{ color: 'var(--color-text-muted)' }}
-                    >
-                      Advanced settings coming in Phase 3! 🚀
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </motion.div>
         )
       default:
@@ -217,9 +618,26 @@ const App: React.FC = () => {
     }
   }
 
+  const handleDemoNavigate = (demoId: string, demoTitle: string) => {
+    setSelectedDemo({ id: demoId, title: demoTitle })
+    setDemoModalOpen(true)
+  }
+
+  const handleCloseDemoModal = () => {
+    setDemoModalOpen(false)
+    setSelectedDemo(null)
+  }
+
+  const handleSessionJoined = (session: any) => {
+    setCurrentSession(session)
+    setShowSessionManager(false)
+    console.log('Joined session:', session)
+  }
+
   return (
-    <ThemeProvider>
-      <Tooltip.Provider delayDuration={200} skipDelayDuration={300}>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <Tooltip.Provider delayDuration={200} skipDelayDuration={300}>
         <div 
           className="min-h-screen transition-colors duration-300"
           style={{ backgroundColor: 'var(--color-background)' }}
@@ -349,14 +767,56 @@ const App: React.FC = () => {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.7 }}
                 >
-                  Phase 2: Core UI & Game Features Complete ✨
+                  Phase 4D: Advanced File Management System Complete ✨
                 </motion.div>
               </div>
             </div>
           </footer>
+
+          {/* Demo Modal */}
+          <DemoModal
+            isOpen={demoModalOpen}
+            onClose={handleCloseDemoModal}
+            demoId={selectedDemo?.id || null}
+            demoTitle={selectedDemo?.title}
+          />
+
+          {/* Command Palette */}
+          <CommandPalette
+            isOpen={commandPaletteOpen}
+            onClose={() => setCommandPaletteOpen(false)}
+            onNavigate={(tabId) => {
+              setActiveTab(tabId as ActiveTab)
+              setCommandPaletteOpen(false)
+            }}
+            onAction={(actionId) => {
+              console.log('Command palette action:', actionId)
+              // Handle various actions here
+              switch (actionId) {
+                case 'quick-roll-2d6':
+                  // Trigger dice roll
+                  break
+                case 'heal-character':
+                  // Heal character
+                  break
+                case 'new-note':
+                  // Create new note
+                  break
+                // Add more actions as needed
+              }
+            }}
+          />
+
+          {/* Session Manager Modal */}
+          <SessionManager
+            isVisible={showSessionManager}
+            onClose={() => setShowSessionManager(false)}
+            onSessionJoined={handleSessionJoined}
+          />
         </div>
-      </Tooltip.Provider>
-    </ThemeProvider>
+        </Tooltip.Provider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }
 

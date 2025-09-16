@@ -21,6 +21,9 @@ export {
 export { ThemeProvider } from './ThemeProvider'
 export { ThemeToggle } from './ThemeToggle'
 
+// Help & Documentation Components
+export { HelpSystem } from './HelpSystem'
+
 // Showcase Components (for development)
 export { ColorPalette } from './ColorSwatch'
 export { TypographyShowcase } from './TypographyShowcase'

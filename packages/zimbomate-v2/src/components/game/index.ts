@@ -12,5 +12,17 @@ export { InventoryStats } from './InventoryStats'
 export { ItemCard } from './ItemCard'
 export { LoadTracker } from './LoadTracker'
 
+// Session Tools Components - Phase 4A
+export { SessionToolsPanel } from './SessionTools'
+
+// Bond Tracker Components - Phase 4A
+export { BondTracker } from './BondTracker'
+
+// Alignment XP Tracker Components - Phase 4A
+export { AlignmentXPTracker } from './AlignmentXPTracker'
+
+// Debility Tracker Components - Phase 4A
+export { DebilityTracker } from './DebilityTracker'
+
 // Re-export 3D components for convenience
 export { Dice3D } from '../3d/Dice3D'

@@ -1,6 +1,6 @@
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import Example from './src/App.modernstats'
+import Example from './src/App'
 import KombaiWrapper from './KombaiWrapper'
 import ErrorBoundary from '@kombai/react-error-boundary'
 import './src/index.css'
