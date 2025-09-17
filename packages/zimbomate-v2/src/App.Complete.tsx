@@ -21,7 +21,7 @@ import { AccessibilityChecker } from './components/ui/AccessibilityChecker'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { HelpSystem } from './components/ui/HelpSystem'
 import { Sparkles, User, Dice6, Scroll, Settings, Package, Users, NotebookPen, MapPin, FolderOpen } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from './components/ui'
+import { Card, CardContent, Button, Badge, ThemeComponentShowcase } from './components/ui'
 import { DemoQuickAccess } from './components/ui/DemoQuickAccess'
 import { DemoModal } from './components/ui/DemoModal'
 import { CampaignPanel } from './components/game/CampaignPanel'
@@ -107,6 +107,7 @@ const App: React.FC = () => {
   const [showSessionManager, setShowSessionManager] = useState(false)
   const [currentSession, setCurrentSession] = useState<any>(null)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+  const [themeShowcaseOpen, setThemeShowcaseOpen] = useState(false)
   const [buttonDiagnostics, setButtonDiagnostics] = useState<ButtonDiagnostic[]>([])
   const [debuggingEnabled, setDebuggingEnabled] = useState(false)
   const [autoFixCount, setAutoFixCount] = useState(0)
@@ -444,6 +445,53 @@ const App: React.FC = () => {
               {/* Help System */}
               <HelpSystem />
 
+              {/* Theme & Component Showcase */}
+              <Card variant="magical" padding="lg">
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-10 h-10 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: 'var(--color-primary)', opacity: 0.2 }}
+                      >
+                        <Sparkles 
+                          className="w-5 h-5" 
+                          style={{ color: 'var(--color-primary)' }}
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-display">Theme & Component Showcase</h3>
+                        <p 
+                          className="text-sm" 
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          Explore themes, components, and styling utilities for development
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        variant="primary"
+                        onClick={() => setThemeShowcaseOpen(true)}
+                        className="gap-2"
+                      >
+                        <Sparkles size={16} />
+                        Open Theme Showcase
+                      </Button>
+                      <Badge variant="secondary">Development Tool</Badge>
+                    </div>
+                    
+                    <div className="text-sm space-y-2" style={{ color: 'var(--color-text-secondary)' }}>
+                      <p>• Preview all theme variants (Fantasy, Dark, Light, Sci-Fi)</p>
+                      <p>• Explore complete color system and typography</p>
+                      <p>• Test all UI components and their variants</p>
+                      <p>• View layout examples and patterns</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Demo Quick Access Section */}
               <Card variant="magical" padding="lg">
                 <CardContent>
@@ -779,6 +827,12 @@ const App: React.FC = () => {
             onClose={handleCloseDemoModal}
             demoId={selectedDemo?.id || null}
             demoTitle={selectedDemo?.title}
+          />
+
+          {/* Theme Component Showcase */}
+          <ThemeComponentShowcase
+            isOpen={themeShowcaseOpen}
+            onClose={() => setThemeShowcaseOpen(false)}
           />
 
           {/* Command Palette */}

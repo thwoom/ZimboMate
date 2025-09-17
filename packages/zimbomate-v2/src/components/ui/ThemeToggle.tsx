@@ -6,9 +6,14 @@ import { Theme } from '../../types/enums'
 
 const themes = [
   { value: 'fantasy' as Theme, label: 'Fantasy', icon: '🏰' },
-  { value: 'dark' as Theme, label: 'Dark', icon: '🌙' },
+  { value: 'dark' as Theme, label: 'Dark', icon: '🌑' },
   { value: 'light' as Theme, label: 'Light', icon: '☀️' },
-  { value: 'sci-fi' as Theme, label: 'Sci-Fi', icon: '🚀' }
+  { value: 'sci-fi' as Theme, label: 'Sci-Fi', icon: '🚀' },
+  { value: 'moonlit-grimoire' as Theme, label: 'Moonlit Grimoire', icon: '🌙' },
+  { value: 'dragonforge-ember' as Theme, label: 'Dragonforge Ember', icon: '🔥' },
+  { value: 'enchanted-grove' as Theme, label: 'Enchanted Grove', icon: '🌿' },
+  { value: 'arcane-storm' as Theme, label: 'Arcane Storm', icon: '⚡' },
+  { value: 'ancient-sandstone' as Theme, label: 'Ancient Sandstone', icon: '🏺' }
 ] as const
 
 export function ThemeToggle() {

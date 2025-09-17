@@ -207,8 +207,16 @@ export const AccessibilityChecker: React.FC = () => {
                 <Eye className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <h3 className="text-lg font-display">Accessibility Checker</h3>
-                <p className="text-sm text-gray-600">
+                <h3 
+                  className="text-lg font-display"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  Accessibility Checker
+                </h3>
+                <p 
+                  className="text-sm"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
                   Ensure ZimboMate is accessible to all users
                 </p>
               </div>
@@ -225,13 +233,29 @@ export const AccessibilityChecker: React.FC = () => {
           </div>
 
           {/* Accessibility Settings */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-medium mb-3">Accessibility Settings</h4>
+          <div 
+            className="rounded-lg p-4"
+            style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+          >
+            <h4 
+              className="font-medium mb-3"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Accessibility Settings
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <EyeOff className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm">Reduce Motion</span>
+                  <EyeOff 
+                    className="w-4 h-4"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  />
+                  <span 
+                    className="text-sm"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Reduce Motion
+                  </span>
                 </div>
                 <Switch
                   checked={settings.reduceMotion}
@@ -243,8 +267,16 @@ export const AccessibilityChecker: React.FC = () => {
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm">High Contrast</span>
+                  <Palette 
+                    className="w-4 h-4"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  />
+                  <span 
+                    className="text-sm"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    High Contrast
+                  </span>
                 </div>
                 <Switch
                   checked={settings.highContrast}
@@ -256,8 +288,16 @@ export const AccessibilityChecker: React.FC = () => {
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm">Large Text</span>
+                  <Eye 
+                    className="w-4 h-4"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  />
+                  <span 
+                    className="text-sm"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Large Text
+                  </span>
                 </div>
                 <Switch
                   checked={settings.largeText}
@@ -269,8 +309,16 @@ export const AccessibilityChecker: React.FC = () => {
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Keyboard className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm">Keyboard Navigation</span>
+                  <Keyboard 
+                    className="w-4 h-4"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  />
+                  <span 
+                    className="text-sm"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Keyboard Navigation
+                  </span>
                 </div>
                 <Switch
                   checked={settings.keyboardNavigation}
@@ -290,7 +338,13 @@ export const AccessibilityChecker: React.FC = () => {
               className="space-y-4"
             >
               {/* Score */}
-              <div className="bg-white border rounded-lg p-4">
+              <div 
+                className="border rounded-lg p-4"
+                style={{ 
+                  backgroundColor: 'var(--color-surface)',
+                  borderColor: 'var(--color-border)'
+                }}
+              >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     {getScoreIcon(report.score)}
@@ -305,16 +359,25 @@ export const AccessibilityChecker: React.FC = () => {
                   </div>
                   
                   <div className="text-right">
-                    <div className="text-sm text-gray-600">
+                    <div 
+                      className="text-sm"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
                       {report.passedChecks.length} passed
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div 
+                      className="text-sm"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                    >
                       {report.issues.length} issues
                     </div>
                   </div>
                 </div>
                 
-                <div className="text-xs text-gray-500">
+                <div 
+                  className="text-xs"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
                   Last checked: {report.timestamp.toLocaleString()}
                 </div>
               </div>
@@ -322,17 +385,37 @@ export const AccessibilityChecker: React.FC = () => {
               {/* Issues */}
               {report.issues.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="font-medium">Issues Found</h4>
+                  <h4 
+                    className="font-medium"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Issues Found
+                  </h4>
                   {report.issues.map((issue, index) => (
-                    <div key={index} className="bg-white border rounded-lg p-3">
+                    <div 
+                      key={index} 
+                      className="border rounded-lg p-3"
+                      style={{ 
+                        backgroundColor: 'var(--color-surface)',
+                        borderColor: 'var(--color-border)'
+                      }}
+                    >
                       <div className="flex items-start gap-3">
                         <div className="flex items-center gap-2 mt-0.5">
                           {getIssueIcon(issue.type)}
                           {getCategoryIcon(issue.category)}
                         </div>
                         <div className="flex-1">
-                          <div className="font-medium text-sm">{issue.message}</div>
-                          <div className="text-xs text-gray-600 mt-1">
+                          <div 
+                            className="font-medium text-sm"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            {issue.message}
+                          </div>
+                          <div 
+                            className="text-xs mt-1"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                          >
                             {issue.suggestion}
                           </div>
                           {issue.element && (
@@ -364,7 +447,12 @@ export const AccessibilityChecker: React.FC = () => {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <h4 className="font-medium mb-2">Passed Checks</h4>
+                  <h4 
+                    className="font-medium mb-2"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Passed Checks
+                  </h4>
                   <div className="space-y-1">
                     {report.passedChecks.map((check, index) => (
                       <div key={index} className="flex items-center gap-2 text-sm text-green-700">
@@ -379,9 +467,23 @@ export const AccessibilityChecker: React.FC = () => {
           )}
 
           {/* Guidelines */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-800 mb-2">Accessibility Guidelines</h4>
-            <ul className="space-y-1 text-sm text-blue-700">
+          <div 
+            className="border rounded-lg p-4"
+            style={{ 
+              backgroundColor: 'var(--color-surface-elevated)',
+              borderColor: 'var(--color-border)'
+            }}
+          >
+            <h4 
+              className="font-medium mb-2"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Accessibility Guidelines
+            </h4>
+            <ul 
+              className="space-y-1 text-sm"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               <li>• Ensure all interactive elements are keyboard accessible</li>
               <li>• Provide alternative text for images and icons</li>
               <li>• Use proper heading hierarchy (h1 → h2 → h3)</li>

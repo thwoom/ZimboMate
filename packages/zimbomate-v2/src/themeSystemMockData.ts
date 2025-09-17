@@ -58,3 +58,77 @@ export const colorPalettes: Record<string, ColorPaletteInfo> = {
     ]
   }
 }
+
+// New magical theme information with distinct color separation and creative typography
+export const magicalThemes = {
+  'moonlit-grimoire': {
+    name: 'Moonlit Grimoire',
+    description: 'Ancient manuscript style with scholarly elegance - magic written in starlight',
+    primaryColor: '#e2e8f0',
+    backgroundColor: '#0a0e1a',
+    mood: 'Mysterious, scholarly, ethereal',
+    bestFor: 'Night gaming, wizard characters, academic magic',
+    colorFamily: 'Cool Blues & Silver',
+    typography: {
+      display: 'Uncial Antiqua - Ancient manuscript lettering',
+      body: 'Spectral - Elegant scholarly reading',
+      personality: 'Medieval manuscripts meet modern readability'
+    }
+  },
+  'dragonforge-ember': {
+    name: 'Dragonforge Ember',
+    description: 'Bold fantasy lettering forged in dragon fire - power carved in molten steel',
+    primaryColor: '#f97316',
+    backgroundColor: '#450a0a',
+    mood: 'Intense, powerful, fiery',
+    bestFor: 'Combat campaigns, barbarian/fighter characters, epic battles',
+    colorFamily: 'Deep Reds & Molten Orange',
+    typography: {
+      display: 'Metamorphous - Bold fantasy lettering',
+      body: 'Crimson Text - Strong readable serif',
+      personality: 'Epic fantasy meets battle-hardened strength'
+    }
+  },
+  'enchanted-grove': {
+    name: 'Enchanted Grove',
+    description: 'Organic handwritten script flowing like nature - magic written by the forest itself',
+    primaryColor: '#10b981',
+    backgroundColor: '#064e3b',
+    mood: 'Natural, mystical, harmonious',
+    bestFor: 'Nature campaigns, druid/ranger characters, forest adventures',
+    colorFamily: 'Forest Greens & Cyan',
+    typography: {
+      display: 'Kalam - Organic handwritten feel',
+      body: 'Nunito - Natural rounded sans-serif',
+      personality: 'Nature\'s handwriting meets organic harmony'
+    }
+  },
+  'arcane-storm': {
+    name: 'Arcane Storm',
+    description: 'Futuristic electric typography crackling with magical energy - technology meets sorcery',
+    primaryColor: '#e879f9',
+    backgroundColor: '#581c87',
+    mood: 'Electric, chaotic, powerful',
+    bestFor: 'High-magic campaigns, sorcerer characters, planar adventures',
+    colorFamily: 'Electric Purple & Magenta',
+    typography: {
+      display: 'Orbitron - Futuristic electric lettering',
+      body: 'Exo 2 - Modern tech aesthetic',
+      personality: 'Cyberpunk magic meets electric energy'
+    }
+  },
+  'ancient-sandstone': {
+    name: 'Ancient Sandstone',
+    description: 'Classical lettering carved in timeless stone - wisdom of ancient civilizations',
+    primaryColor: '#c2410c',
+    backgroundColor: '#fef7ed',
+    mood: 'Ancient, warm, archaeological',
+    bestFor: 'Desert campaigns, exploration, ancient mysteries',
+    colorFamily: 'Warm Terracotta & Teal',
+    typography: {
+      display: 'Cinzel - Classical carved stone lettering',
+      body: 'Lora - Timeless readable serif',
+      personality: 'Roman inscriptions meet archaeological discovery'
+    }
+  }
+}

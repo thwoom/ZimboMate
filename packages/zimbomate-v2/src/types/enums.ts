@@ -1,6 +1,15 @@
 export type ColorVariant = 'parchment' | 'gold' | 'magic' | 'nature' | 'red' | 'cyber' | 'neon'
 
-export type Theme = 'fantasy' | 'dark' | 'light' | 'sci-fi'
+export type Theme = 
+  | 'fantasy' 
+  | 'dark' 
+  | 'light' 
+  | 'sci-fi'
+  | 'moonlit-grimoire'
+  | 'dragonforge-ember'
+  | 'enchanted-grove'
+  | 'arcane-storm'
+  | 'ancient-sandstone'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline' | 'magical' | 'cyber'
 

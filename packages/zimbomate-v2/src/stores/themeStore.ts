@@ -14,7 +14,7 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      currentTheme: 'fantasy' as Theme,
+      currentTheme: 'moonlit-grimoire' as Theme,
       animations: true,
       sounds: true,
       setTheme: (theme: Theme) => {

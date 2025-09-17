@@ -36,6 +36,16 @@ interface MoveContextAnalyzerProps {
   className?: string
 }
 
+const getStatScore = (stat: any): number => {
+  if (stat == null) return 0
+  if (typeof stat === 'number') return stat
+  if (typeof stat === 'object') {
+    if (typeof (stat as any).value === 'number') return (stat as any).value
+    if (typeof (stat as any).score === 'number') return (stat as any).score
+  }
+  return 0
+}
+
 const analyzeContext = (character: Character, context: GameContext): MoveSuggestion[] => {
   const suggestions: MoveSuggestion[] = []
 
@@ -52,7 +62,7 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
       })
     }
 
-    if (context.hasEnemiesNearby && character.stats.strength.value >= 13) {
+    if (context.hasEnemiesNearby && getStatScore((character as any).stats?.strength) >= 13) {
       suggestions.push({
         moveId: 'hack-and-slash',
         name: 'Hack and Slash',
@@ -63,7 +73,7 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
       })
     }
 
-    if (character.stats.dexterity.value >= 13) {
+    if (getStatScore((character as any).stats?.dexterity) >= 13) {
       suggestions.push({
         moveId: 'volley',
         name: 'Volley',
@@ -77,7 +87,7 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
 
   // Exploration context
   if (context.exploringNew) {
-    if (character.stats.wisdom.value >= 13) {
+    if (getStatScore((character as any).stats?.wisdom) >= 13) {
       suggestions.push({
         moveId: 'discern-realities',
         name: 'Discern Realities',
@@ -88,7 +98,7 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
       })
     }
 
-    if (character.stats.intelligence.value >= 13) {
+    if (getStatScore((character as any).stats?.intelligence) >= 13) {
       suggestions.push({
         moveId: 'spout-lore',
         name: 'Spout Lore',
@@ -102,7 +112,7 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
 
   // Social context
   if (context.socialSituation) {
-    if (character.stats.charisma.value >= 13) {
+    if (getStatScore((character as any).stats?.charisma) >= 13) {
       suggestions.push({
         moveId: 'parley',
         name: 'Parley',

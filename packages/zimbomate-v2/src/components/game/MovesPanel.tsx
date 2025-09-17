@@ -357,7 +357,13 @@ export const MovesPanel: React.FC<MovesPanelProps> = ({
           moveId={selectedMove.id}
           moveName={selectedMove.name}
           stat={selectedMove.stat}
-          modifier={character.stats[selectedMove.stat as keyof typeof character.stats]?.modifier || 0}
+          modifier={(() => {
+            const s: any = (character as any).stats?.[selectedMove.stat as any]
+            if (typeof s === 'number') return Math.floor((s - 10) / 2)
+            if (s && typeof s.modifier === 'number') return s.modifier
+            if (s && typeof s.value === 'number') return Math.floor(((s.value as number) - 10) / 2)
+            return 0
+          })()}
           onRollComplete={handleRollComplete}
           onCancel={handleCancelMove}
           isVisible={showMoveIntegration}

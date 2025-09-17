@@ -27,6 +27,17 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
   character,
   debilities
 }) => {
+  const getScore = (v: any): number => {
+    if (typeof v === 'number') return v
+    if (v && typeof v.value === 'number') return v.value
+    return 10
+  }
+
+  // Normalize attributes to numeric scores in case store holds { value, modifier }
+  const normalizedAttributes = (Object.keys(character.attributes) as Attribute[]).reduce((acc, key) => {
+    ;(acc as any)[key] = getScore((character.attributes as any)[key])
+    return acc
+  }, {} as Record<Attribute, number>) as any
   const getAttributeIcon = (attribute: Attribute) => {
     switch (attribute) {
       case 'STR':
@@ -47,13 +58,14 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
   }
 
   const attributeEffects = (Object.keys(character.attributes) as Attribute[]).map(attr => {
-    const baseModifier = getAttributeModifier(character.attributes[attr])
-    const effectiveModifier = getEffectiveModifier(attr, character.attributes, debilities)
+    const score = getScore((character.attributes as any)[attr])
+    const baseModifier = getAttributeModifier(score)
+    const effectiveModifier = getEffectiveModifier(attr, normalizedAttributes as any, debilities)
     const penalty = baseModifier - effectiveModifier
     
     return {
       attribute: attr,
-      score: character.attributes[attr],
+      score,
       baseModifier,
       effectiveModifier,
       penalty,

@@ -2,6 +2,12 @@
 /* Import Tailwind CSS v4 */
 @import "tailwindcss";
 
+/* === CREATIVE MAGICAL THEME FONTS === */
+/* 
+✅ Google Fonts now loaded via HTML <link> tags in index.html for optimal performance!
+All magical theme fonts are preloaded and ready to use.
+*/
+
 /* === ROOT THEME VARIABLES === */
 :root {
   /* Typography */
@@ -10,6 +16,23 @@
   --font-ui: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-sci-fi: 'Orbitron', sans-serif;
+  
+  /* Creative Magical Theme Fonts with Clean Fallbacks */
+  --font-moonlit: 'Uncial Antiqua', 'Almendra', 'Times New Roman', serif;
+  --font-moonlit-body: 'Spectral', 'Georgia', 'Times New Roman', serif;
+  --font-dragonforge: 'Metamorphous', 'MedievalSharp', 'Papyrus', fantasy;
+  --font-dragonforge-body: 'Crimson Text', 'Georgia', 'Times New Roman', serif;
+  --font-grove: 'Kalam', 'Philosopher', 'Brush Script MT', cursive;
+  --font-grove-body: 'Nunito', 'Verdana', 'Arial', sans-serif;
+  --font-storm: 'Orbitron', 'Courier New', 'Monaco', monospace;
+  --font-storm-body: 'Exo 2', 'Arial', 'Helvetica', sans-serif;
+  --font-sandstone: 'Cinzel', 'Times New Roman', serif;
+  --font-sandstone-body: 'Lora', 'Georgia', 'Times New Roman', serif;
+  
+  /* Fallback creative fonts */
+  --font-mystical: 'Almendra', 'Times New Roman', serif;
+  --font-ancient: 'MedievalSharp', 'Papyrus', fantasy;
+  --font-magical: 'Philosopher', 'Arial', sans-serif;
 
   /* Base Colors - Parchment & Warmth */
   --parchment-50: #fdfcf8;
@@ -179,6 +202,108 @@
   --color-text-muted: #94a3b8;
   --color-border: #334155;
   --color-border-hover: var(--cyber-500);
+}
+
+/* === NEW MAGICAL THEMES === */
+
+/* 🌙 Moonlit Grimoire Theme - Deep Blues & Silver */
+[data-theme="moonlit-grimoire"] {
+  --color-background: #0a0e1a;
+  --color-surface: #1a1f35;
+  --color-surface-elevated: #2a2f45;
+  --color-primary: #e2e8f0;
+  --color-primary-hover: #f1f5f9;
+  --color-secondary: #60a5fa;
+  --color-accent: #fbbf24;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-border: #475569;
+  --color-border-hover: #e2e8f0;
+  
+  /* Theme-specific fonts */
+  --font-display: var(--font-moonlit);
+  --font-body: var(--font-moonlit-body);
+}
+
+/* 🔥 Dragonforge Ember Theme - Deep Reds & Molten Orange */
+[data-theme="dragonforge-ember"] {
+  --color-background: #450a0a;
+  --color-surface: #7f1d1d;
+  --color-surface-elevated: #991b1b;
+  --color-primary: #f97316;
+  --color-primary-hover: #ea580c;
+  --color-secondary: #fbbf24;
+  --color-accent: #dc2626;
+  --color-text-primary: #fef2f2;
+  --color-text-secondary: #fecaca;
+  --color-text-muted: #fca5a5;
+  --color-border: #dc2626;
+  --color-border-hover: #f97316;
+  
+  /* Theme-specific fonts */
+  --font-display: var(--font-dragonforge);
+  --font-body: var(--font-dragonforge-body);
+}
+
+/* 🌿 Enchanted Grove Theme - Rich Forest Greens & Cyan */
+[data-theme="enchanted-grove"] {
+  --color-background: #064e3b;
+  --color-surface: #065f46;
+  --color-surface-elevated: #047857;
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-secondary: #06b6d4;
+  --color-accent: #8b5cf6;
+  --color-text-primary: #ecfdf5;
+  --color-text-secondary: #d1fae5;
+  --color-text-muted: #a7f3d0;
+  --color-border: #10b981;
+  --color-border-hover: #059669;
+  
+  /* Theme-specific fonts */
+  --font-display: var(--font-grove);
+  --font-body: var(--font-grove-body);
+}
+
+/* ⚡ Arcane Storm Theme - Electric Purple & Magenta */
+[data-theme="arcane-storm"] {
+  --color-background: #581c87;
+  --color-surface: #7c2d92;
+  --color-surface-elevated: #a21caf;
+  --color-primary: #e879f9;
+  --color-primary-hover: #d946ef;
+  --color-secondary: #c084fc;
+  --color-accent: #06b6d4;
+  --color-text-primary: #fdf4ff;
+  --color-text-secondary: #f3e8ff;
+  --color-text-muted: #e9d5ff;
+  --color-border: #e879f9;
+  --color-border-hover: #d946ef;
+  
+  /* Theme-specific fonts */
+  --font-display: var(--font-storm);
+  --font-body: var(--font-storm-body);
+}
+
+/* 🏺 Ancient Sandstone Theme - Warm Terracotta & Gold */
+[data-theme="ancient-sandstone"] {
+  --color-background: #fef7ed;
+  --color-surface: #fed7aa;
+  --color-surface-elevated: #fdba74;
+  --color-primary: #c2410c;
+  --color-primary-hover: #9a3412;
+  --color-secondary: #0891b2;
+  --color-accent: #7c3aed;
+  --color-text-primary: #431407;
+  --color-text-secondary: #9a3412;
+  --color-text-muted: #c2410c;
+  --color-border: #c2410c;
+  --color-border-hover: #9a3412;
+  
+  /* Theme-specific fonts */
+  --font-display: var(--font-sandstone);
+  --font-body: var(--font-sandstone-body);
 }
 
 /* === EQUIPMENT & INVENTORY SPECIFIC STYLES === */
@@ -453,7 +578,7 @@
 
 /* === TYPOGRAPHY UTILITIES === */
 .text-display-lg {
-  font-family: var(--font-display);
+  font-family: var(--font-display) !important;
   font-size: 3rem;
   font-weight: 600;
   line-height: 1.1;
@@ -462,7 +587,7 @@
 }
 
 .text-display-md {
-  font-family: var(--font-display);
+  font-family: var(--font-display) !important;
   font-size: 2.25rem;
   font-weight: 600;
   line-height: 1.2;
@@ -471,7 +596,7 @@
 }
 
 .text-display-sm {
-  font-family: var(--font-display);
+  font-family: var(--font-display) !important;
   font-size: 1.875rem;
   font-weight: 500;
   line-height: 1.3;
@@ -479,7 +604,7 @@
 }
 
 .text-body-lg {
-  font-family: var(--font-body);
+  font-family: var(--font-body) !important;
   font-size: 1.125rem;
   font-weight: 400;
   line-height: 1.6;
@@ -487,7 +612,7 @@
 }
 
 .text-body-regular {
-  font-family: var(--font-body);
+  font-family: var(--font-body) !important;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5;
@@ -495,7 +620,7 @@
 }
 
 .text-body-sm {
-  font-family: var(--font-body);
+  font-family: var(--font-body) !important;
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.4;
@@ -524,10 +649,92 @@
 }
 
 body {
-  font-family: var(--font-body);
+  font-family: var(--font-body) !important;
   background-color: var(--color-background);
   color: var(--color-text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Force theme-specific fonts with high specificity */
+[data-theme="enchanted-grove"] .text-display-lg,
+[data-theme="enchanted-grove"] .text-display-md,
+[data-theme="enchanted-grove"] .text-display-sm,
+[data-theme="enchanted-grove"] h1,
+[data-theme="enchanted-grove"] h2,
+[data-theme="enchanted-grove"] h3 {
+  font-family: 'Kalam', cursive !important;
+}
+
+[data-theme="moonlit-grimoire"] .text-display-lg,
+[data-theme="moonlit-grimoire"] .text-display-md,
+[data-theme="moonlit-grimoire"] .text-display-sm,
+[data-theme="moonlit-grimoire"] h1,
+[data-theme="moonlit-grimoire"] h2,
+[data-theme="moonlit-grimoire"] h3 {
+  font-family: 'Uncial Antiqua', serif !important;
+}
+
+[data-theme="dragonforge-ember"] .text-display-lg,
+[data-theme="dragonforge-ember"] .text-display-md,
+[data-theme="dragonforge-ember"] .text-display-sm,
+[data-theme="dragonforge-ember"] h1,
+[data-theme="dragonforge-ember"] h2,
+[data-theme="dragonforge-ember"] h3 {
+  font-family: 'Metamorphous', fantasy !important;
+}
+
+[data-theme="arcane-storm"] .text-display-lg,
+[data-theme="arcane-storm"] .text-display-md,
+[data-theme="arcane-storm"] .text-display-sm,
+[data-theme="arcane-storm"] h1,
+[data-theme="arcane-storm"] h2,
+[data-theme="arcane-storm"] h3 {
+  font-family: 'Orbitron', monospace !important;
+}
+
+[data-theme="ancient-sandstone"] .text-display-lg,
+[data-theme="ancient-sandstone"] .text-display-md,
+[data-theme="ancient-sandstone"] .text-display-sm,
+[data-theme="ancient-sandstone"] h1,
+[data-theme="ancient-sandstone"] h2,
+[data-theme="ancient-sandstone"] h3 {
+  font-family: 'Cinzel', serif !important;
+}
+
+/* Force body fonts for each theme */
+[data-theme="enchanted-grove"] .text-body-lg,
+[data-theme="enchanted-grove"] .text-body-regular,
+[data-theme="enchanted-grove"] .text-body-sm,
+[data-theme="enchanted-grove"] p {
+  font-family: 'Nunito', sans-serif !important;
+}
+
+[data-theme="moonlit-grimoire"] .text-body-lg,
+[data-theme="moonlit-grimoire"] .text-body-regular,
+[data-theme="moonlit-grimoire"] .text-body-sm,
+[data-theme="moonlit-grimoire"] p {
+  font-family: 'Spectral', serif !important;
+}
+
+[data-theme="dragonforge-ember"] .text-body-lg,
+[data-theme="dragonforge-ember"] .text-body-regular,
+[data-theme="dragonforge-ember"] .text-body-sm,
+[data-theme="dragonforge-ember"] p {
+  font-family: 'Crimson Text', serif !important;
+}
+
+[data-theme="arcane-storm"] .text-body-lg,
+[data-theme="arcane-storm"] .text-body-regular,
+[data-theme="arcane-storm"] .text-body-sm,
+[data-theme="arcane-storm"] p {
+  font-family: 'Exo 2', sans-serif !important;
+}
+
+[data-theme="ancient-sandstone"] .text-body-lg,
+[data-theme="ancient-sandstone"] .text-body-regular,
+[data-theme="ancient-sandstone"] .text-body-sm,
+[data-theme="ancient-sandstone"] p {
+  font-family: 'Lora', serif !important;
 }
 
 /* Scrollbar Styling */
@@ -833,6 +1040,78 @@ body {
   color: white;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
+}
+
+/* === MAGICAL THEME EFFECTS === */
+
+/* Moonlit Grimoire Effects - Silver & Blue */
+[data-theme="moonlit-grimoire"] .moonlit-glow {
+  box-shadow: 0 0 20px rgba(226, 232, 240, 0.4), 0 0 40px rgba(96, 165, 250, 0.3);
+}
+
+[data-theme="moonlit-grimoire"] .starfield-bg {
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(226, 232, 240, 0.8), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(96, 165, 250, 0.6), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(226, 232, 240, 0.5), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(251, 191, 36, 0.4), transparent);
+}
+
+/* Dragonforge Ember Effects - Orange & Red */
+[data-theme="dragonforge-ember"] .ember-glow {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.5), 0 0 40px rgba(220, 38, 38, 0.4);
+}
+
+[data-theme="dragonforge-ember"] .forge-sparks {
+  background-image: 
+    radial-gradient(2px 2px at 25px 15px, rgba(249, 115, 22, 0.8), transparent),
+    radial-gradient(1px 1px at 75px 45px, rgba(251, 191, 36, 0.6), transparent),
+    radial-gradient(2px 2px at 120px 25px, rgba(220, 38, 38, 0.7), transparent);
+}
+
+/* Enchanted Grove Effects - Green & Cyan */
+[data-theme="enchanted-grove"] .nature-glow {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(6, 182, 212, 0.3);
+}
+
+[data-theme="enchanted-grove"] .bioluminescent-dots {
+  background-image: 
+    radial-gradient(2px 2px at 30px 20px, rgba(16, 185, 129, 0.7), transparent),
+    radial-gradient(1px 1px at 80px 60px, rgba(6, 182, 212, 0.5), transparent),
+    radial-gradient(2px 2px at 140px 35px, rgba(139, 92, 246, 0.4), transparent);
+}
+
+/* Arcane Storm Effects - Magenta & Purple */
+[data-theme="arcane-storm"] .lightning-glow {
+  box-shadow: 0 0 20px rgba(232, 121, 249, 0.5), 0 0 40px rgba(192, 132, 252, 0.4);
+}
+
+[data-theme="arcane-storm"] .electric-field {
+  background-image: 
+    linear-gradient(45deg, transparent 40%, rgba(232, 121, 249, 0.2) 50%, transparent 60%),
+    linear-gradient(-45deg, transparent 40%, rgba(192, 132, 252, 0.15) 50%, transparent 60%);
+}
+
+/* Ancient Sandstone Effects - Terracotta & Teal */
+[data-theme="ancient-sandstone"] .sandstone-glow {
+  box-shadow: 0 0 20px rgba(194, 65, 12, 0.4), 0 0 40px rgba(8, 145, 178, 0.3);
+}
+
+[data-theme="ancient-sandstone"] .hieroglyph-pattern {
+  background-image: 
+    repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(194, 65, 12, 0.1) 12px, rgba(194, 65, 12, 0.1) 13px),
+    repeating-linear-gradient(-45deg, transparent, transparent 18px, rgba(8, 145, 178, 0.08) 18px, rgba(8, 145, 178, 0.08) 19px);
+}
+
+/* Universal magical shimmer for all new themes */
+[data-theme="moonlit-grimoire"] .magical-shimmer,
+[data-theme="dragonforge-ember"] .magical-shimmer,
+[data-theme="enchanted-grove"] .magical-shimmer,
+[data-theme="arcane-storm"] .magical-shimmer,
+[data-theme="ancient-sandstone"] .magical-shimmer {
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  background-size: 200% 100%;
+  animation: magical-shimmer 3s infinite;
 }
 
 /* Print Styles */

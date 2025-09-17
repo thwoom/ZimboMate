@@ -20,6 +20,7 @@ export {
 // Theme Components
 export { ThemeProvider } from './ThemeProvider'
 export { ThemeToggle } from './ThemeToggle'
+export { ThemeComponentShowcase } from './ThemeComponentShowcase'
 
 // Help & Documentation Components
 export { HelpSystem } from './HelpSystem'

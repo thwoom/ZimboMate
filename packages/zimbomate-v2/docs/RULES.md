@@ -10,10 +10,13 @@ alwaysApply: true
 - Kill strays before switching: `taskkill /F /IM node.exe`
 
 ### Entrypoint and HTML
-- Only one entry: `packages/zimbomate-v2/src/main.tsx`
+- **CURRENT ENTRY**: `packages/zimbomate-v2/main.tsx` (uses App.Enhanced)
+- **BACKUP ENTRY**: `packages/zimbomate-v2/src/main.tsx` (if main.tsx fails)
 - `packages/zimbomate-v2/index.html` must reference:
-  - `<script type="module" src="./src/main.tsx"></script>`
-- Do not keep alternate root entries (e.g., `packages/zimbomate-v2/main.tsx`).
+  - `<script type="module" src="./main.tsx"></script>`
+- **App Versions**:
+  - `App.Enhanced.tsx` - Current version with roll results UI & navigation
+  - `App.Complete.tsx` - Previous stable version (fallback)
 
 ### Radix UI imports
 - Use scoped packages only:
@@ -58,8 +61,9 @@ alwaysApply: true
 ### Pre-commit checklist
 - From `packages/zimbomate-v2`:
   - `npm run dev` → shows http://localhost:3000/
-  - Network tab: `src/main.tsx` and `src/index.css` return 200
+  - Network tab: `main.tsx` and `src/index.css` return 200
   - Terminal: no `vite:import-analysis` or PostCSS errors
-  - Page renders `App.Complete` (not demo UIs)
-
+  - Page renders `App.Enhanced` with roll results UI and navigation
+  - Test: Navigate between tabs, roll dice, see toast notifications
+  - **CRITICAL**: Check console for component import errors
 
