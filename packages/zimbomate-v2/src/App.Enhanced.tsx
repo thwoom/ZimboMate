@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ThemeProvider } from './components/ui/ThemeProvider'
 import { NavigationProvider, useNavigation } from './components/ui/NavigationRouter'
 import { AuthProvider, useAuth } from './components/ui/AuthContext'
-import { RollResultsToast } from './components/ui/RollResultsToast'
-import { useRollResults, createBasicRoll, createAttributeRoll, createDamageRoll, createMoveRoll } from './hooks/useRollResults'
+import { EnhancedRollResultsToast } from './components/ui/EnhancedRollResultsToast'
+import { useEnhancedRollResults, createEnhancedBasicRoll, createEnhancedAttributeRoll, createEnhancedDamageRoll, createEnhancedMoveRoll } from './hooks/useEnhancedRollResults'
 import { ThemeToggle } from './components/ui/ThemeToggle'
 import { CharacterSheet } from './components/game/CharacterSheet'
 import { DiceRoller } from './components/game/DiceRoller'
@@ -28,6 +28,8 @@ import { Sparkles, User, Dice6, Scroll, Settings, Package, Users, NotebookPen, M
 import { Card, CardContent, Button, Badge } from './components/ui'
 import { CampaignPanel } from './components/game/CampaignPanel'
 import { FileManagementPanel } from './components/game/FileManagementPanel'
+import { CombatPanel } from './components/game/CombatPanel'
+import { XPProgressTracker } from './components/game/XPProgressTracker'
 import { FileOperation } from './fileManagementMockData'
 import { useCommandPalette, useNavigationShortcuts, useGlobalShortcuts, useDiceShortcuts } from './hooks/useKeyboardShortcuts'
 import './utils/initializeMockData'
@@ -65,7 +67,7 @@ const mockCharacter = {
 const AppContent: React.FC = () => {
   const { currentRoute, navigate, goBack, canGoBack } = useNavigation()
   const { user } = useAuth()
-  const { currentResult, showRollResult, clearResult } = useRollResults()
+  const { currentResult, showRollResult, clearResult, applyConsequences } = useEnhancedRollResults()
   const [diceModifier, setDiceModifier] = useState(2)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
 
@@ -74,6 +76,7 @@ const AppContent: React.FC = () => {
     { id: 'dice' as const, label: 'Dice', icon: Dice6 },
     { id: 'moves' as const, label: 'Moves', icon: Scroll },
     { id: 'equipment' as const, label: 'Equipment', icon: Package },
+    { id: 'combat' as const, label: 'Combat', icon: Sparkles },
     { id: 'session-tools' as const, label: 'Session Tools', icon: NotebookPen },
     { id: 'campaign' as const, label: 'Campaign', icon: MapPin },
     { id: 'file-management' as const, label: 'File Management', icon: FolderOpen },
@@ -81,21 +84,35 @@ const AppContent: React.FC = () => {
     { id: 'settings' as const, label: 'Settings', icon: Settings }
   ]
 
-  // Enhanced dice roll handler with UI feedback
-  const handleDiceRoll = (dice: number[], modifier: number = 0, context?: { type: string; name?: string; attribute?: string }) => {
+  // Enhanced dice roll handler with game logic integration
+  const handleDiceRoll = (dice: number[], modifier: number = 0, context?: { 
+    type: string; 
+    name?: string; 
+    attribute?: string;
+    moveId?: string;
+    targetId?: string;
+    combatContext?: boolean;
+  }) => {
     let rollResult
+    let moveContext
     
     if (context?.type === 'attribute' && context.attribute) {
-      rollResult = createAttributeRoll(context.attribute, dice, modifier)
+      rollResult = createEnhancedAttributeRoll(context.attribute, dice, modifier)
     } else if (context?.type === 'damage' && context.name) {
-      rollResult = createDamageRoll(context.name, dice)
+      rollResult = createEnhancedDamageRoll(context.name, dice)
     } else if (context?.type === 'move' && context.name) {
-      rollResult = createMoveRoll(context.name, dice, modifier)
+      rollResult = createEnhancedMoveRoll(context.name, dice, modifier, context.moveId)
+      moveContext = {
+        moveId: context.moveId || context.name.toLowerCase().replace(/\s+/g, '-'),
+        moveName: context.name,
+        targetId: context.targetId,
+        combatContext: context.combatContext
+      }
     } else {
-      rollResult = createBasicRoll(dice, modifier)
+      rollResult = createEnhancedBasicRoll(dice, modifier)
     }
     
-    showRollResult(rollResult)
+    showRollResult(rollResult, mockCharacter.id, moveContext)
   }
 
   // Command palette integration
@@ -155,6 +172,7 @@ const AppContent: React.FC = () => {
           <motion.div key="character" variants={tabVariants} initial="hidden" animate="visible" exit="exit">
             <div className="space-y-8">
               <CharacterSheet />
+              <XPProgressTracker />
               <ContextAwareSystem context="character" />
               <BondTracker />
               <AlignmentXPTracker />
@@ -208,6 +226,29 @@ const AppContent: React.FC = () => {
                 onInventoryUpdate={(inventory) => console.log('Inventory updated:', inventory)}
               />
               <ContextAwareSystem context="equipment" compact />
+            </div>
+          </motion.div>
+        )
+      case 'combat':
+        return (
+          <motion.div key="combat" variants={tabVariants} initial="hidden" animate="visible" exit="exit">
+            <div className="space-y-6">
+              <CombatPanel
+                onRollDamage={(weaponName, dice) => {
+                  handleDiceRoll(dice, 0, { type: 'damage', name: weaponName })
+                }}
+                onRollMove={(moveName, moveId, targetId) => {
+                  const dice = [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1]
+                  handleDiceRoll(dice, diceModifier, { 
+                    type: 'move', 
+                    name: moveName, 
+                    moveId,
+                    targetId,
+                    combatContext: true 
+                  })
+                }}
+              />
+              <ContextAwareSystem context="combat" compact />
             </div>
           </motion.div>
         )
@@ -322,10 +363,11 @@ const AppContent: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {/* Roll Results Toast */}
-      <RollResultsToast
+      {/* Enhanced Roll Results Toast */}
+      <EnhancedRollResultsToast
         result={currentResult}
         onClose={clearResult}
+        onApplyConsequences={applyConsequences}
       />
 
       {/* Command Palette */}
