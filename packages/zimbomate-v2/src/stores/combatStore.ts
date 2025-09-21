@@ -5,7 +5,6 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Character } from '../models/Character'
 import { gameLogicService, type CombatResult } from '../services/GameLogicService'
 
 export interface CombatParticipant {

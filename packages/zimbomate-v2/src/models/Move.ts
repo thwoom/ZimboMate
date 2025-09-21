@@ -168,7 +168,7 @@ export const SPECIAL_MOVES: Partial <Move>[] = [
     description: 'When you\'re dying you catch a glimpse of what lies beyond...',
     trigger: 'When you\'re dying (0 HP)',
     triggerType: 'roll',
-    rollStat: 'CON', // No modifier
+    rollStat: undefined, // CORRECTED: Last Breath uses pure 2d6 (no modifiers)
     onSuccess: 'You\'ve cheated death—you\'re in a bad spot but you\'re still alive.',
     onPartial: 'Death will offer you a bargain. Take it and stabilize or refuse and pass beyond.',
     onFailure: 'Your fate is sealed. You\'re marked as Death\'s own.',

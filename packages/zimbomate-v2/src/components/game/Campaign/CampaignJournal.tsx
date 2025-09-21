@@ -4,7 +4,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { 
+import {
   BookOpen,
   Plus,
   Edit,
@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
 import { useCampaignStore } from '../../../stores/campaignStore'
 import { formatDateRelative, JournalSortBy } from '../../../campaignManagementMockData'
+import { JournalEntryModal } from './JournalEntryModal'
 import type { JournalEntry } from '../../../models/Campaign'
 
 interface CampaignJournalProps {
@@ -145,13 +146,15 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, onEdit, onDe
   )
 }
 
-export const CampaignJournal: React.FC<CampaignJournalProps> = ({ 
-  campaignId, 
-  searchQuery = '' 
+export const CampaignJournal: React.FC<CampaignJournalProps> = ({
+  campaignId,
+  searchQuery = ''
 }) => {
   const [sortBy, setSortBy] = useState<JournalSortBy>(JournalSortBy.DATE)
   const [filterByImportance, setFilterByImportance] = useState<boolean | null>(null)
   const [filterByTag, setFilterByTag] = useState<string>('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | undefined>()
   
   const campaign = useCampaignStore(state => state.getCampaign(campaignId))
   const addJournalEntry = useCampaignStore(state => state.addJournalEntry)
@@ -214,8 +217,8 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
   }, [campaign, searchQuery, sortBy, filterByImportance, filterByTag])
 
   const handleEditEntry = (entry: JournalEntry) => {
-    // TODO: Implement edit journal entry modal
-    console.log('Edit journal entry:', entry)
+    setEditingEntry(entry)
+    setIsModalOpen(true)
   }
 
   const handleDeleteEntry = (entryId: string) => {
@@ -225,8 +228,18 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
   }
 
   const handleCreateEntry = () => {
-    // TODO: Implement create journal entry modal
-    console.log('Create journal entry')
+    setEditingEntry(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setEditingEntry(undefined)
+  }
+
+  const handleEntrySaved = (entryId: string) => {
+    // Entry saved successfully - modal will close automatically
+    console.log('Journal entry saved:', entryId)
   }
 
   if (!campaign) {
@@ -244,8 +257,9 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <>
+      <div className="space-y-6">
+        {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl font-display">Campaign Journal</h3>
@@ -372,6 +386,16 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
           ))}
         </div>
       )}
-    </div>
+      </div>
+
+      {/* Journal Entry Modal */}
+      <JournalEntryModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        campaignId={campaignId}
+        entry={editingEntry}
+        onSaved={handleEntrySaved}
+      />
+    </>
   )
 }

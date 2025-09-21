@@ -125,6 +125,7 @@ export interface Character {
   // Spellcasting (for casters)
   knownSpells?: string[]
   preparedSpells?: string[]
+  deity?: string // Deity for divine casters (Cleric, Paladin)
 
   // Advanced Options
   compendiumClasses?: string[] // Compendium class IDs
@@ -177,6 +178,7 @@ export function createDummyCharacter(): Character {
     knownMoves: [],
     knownSpells: [],
     preparedSpells: [],
+    deity: undefined,
     compendiumClasses: [],
     raceMoves: [],
     customMoves: [],
@@ -343,13 +345,15 @@ export function getClassDamageDie(characterClass: CharacterClass): DamageDie {
 }
 
 /**
- * Calculate maximum HP
- * Tests expect: base HP + CON modifier (not raw score)
+ * Calculate maximum HP according to official Dungeon World rules
+ * CORRECTED: Maximum HP is equal to your class's base HP + Constitution SCORE (not modifier)
+ * This was a critical bug - using modifier instead of score is a common mistake
+ * Source: Official DW testing specification
  */
 export function calculateMaxHP(character: Character): number {
   const baseHP = getClassBaseHP(character.class)
-  const conMod = getEffectiveModifier('CON', character.attributes, character.debilities)
-  return Math.max(1, baseHP + conMod)
+  const conScore = character.attributes.CON // Use full CON score, not modifier
+  return Math.max(1, baseHP + conScore)
 }
 
 /**

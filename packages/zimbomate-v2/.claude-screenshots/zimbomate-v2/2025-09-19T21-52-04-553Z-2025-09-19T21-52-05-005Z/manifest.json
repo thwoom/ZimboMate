@@ -1,0 +1,531 @@
+{
+  "captureId": "2025-09-19T21-52-04-553Z-2025-09-19T21-52-05-005Z",
+  "metadata": {
+    "url": "http://localhost:3005",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "userAgent": "Playwright",
+    "timestamp": "2025-09-19T21:52:16.982Z"
+  },
+  "screenshots": [
+    {
+      "filename": "000-0ms.png",
+      "timestamp": 0,
+      "phase": "initial",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": true
+      }
+    },
+    {
+      "filename": "001-1552ms.png",
+      "timestamp": 1552,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "002-2298ms.png",
+      "timestamp": 2298,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "003-3068ms.png",
+      "timestamp": 3068,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "004-3798ms.png",
+      "timestamp": 3798,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "005-4501ms.png",
+      "timestamp": 4501,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "006-5219ms.png",
+      "timestamp": 5219,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "007-5919ms.png",
+      "timestamp": 5919,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "008-6628ms.png",
+      "timestamp": 6628,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "009-7337ms.png",
+      "timestamp": 7337,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "010-8044ms.png",
+      "timestamp": 8044,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "011-8759ms.png",
+      "timestamp": 8759,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "012-9493ms.png",
+      "timestamp": 9493,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "013-10215ms.png",
+      "timestamp": 10215,
+      "phase": "loading",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    },
+    {
+      "filename": "014-11053ms.png",
+      "timestamp": 11053,
+      "phase": "final",
+      "annotations": {
+        "blankScreen": false,
+        "hasContent": true,
+        "loadingIndicators": [],
+        "hasErrors": false,
+        "errorMessages": [],
+        "isKeyFrame": false
+      }
+    }
+  ],
+  "analysis": {
+    "loadingDuration": 11053,
+    "keyFrames": [
+      "000-0ms.png",
+      "014-11053ms.png"
+    ],
+    "issues": [
+      "Consider reducing resource count: 196 resources loaded",
+      "Large total resource size: 11.0MB"
+    ],
+    "recommendations": [
+      "Low key frame ratio - consider checking for loading indicators",
+      "High number of network requests - consider bundling resources",
+      "Large total resource size - consider optimizing assets"
+    ]
+  },
+  "performance": {
+    "metrics": [
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318726700
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318727500
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318728262
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318729005
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318729710
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318730426
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318731130
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318731835
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318732548
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318733255
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318733970
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318734698
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318735421
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318736126
+      },
+      {
+        "navigationStart": 0,
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308,
+        "largestContentfulPaint": 1660,
+        "resourceCount": 196,
+        "totalResourceSize": 11523243,
+        "slowestResource": {
+          "url": "http://localhost:3005/node_modules/.vite/deps/@heroicons_react_24_outline.js?v=49578bef",
+          "duration": 108.09999990463257,
+          "size": 351004
+        },
+        "usedJSHeapSize": 31200000,
+        "totalJSHeapSize": 37300000,
+        "requestCount": 197,
+        "failedRequests": 0,
+        "timestamp": 1758318736960
+      }
+    ],
+    "summary": {
+      "initialLoad": {
+        "domContentLoaded": 702.8000001907349,
+        "loadEvent": 712.6999998092651,
+        "firstContentfulPaint": 1308
+      },
+      "finalState": {
+        "totalRequests": 197,
+        "failedRequests": 0,
+        "totalResourceSize": 11523243,
+        "resourceCount": 196
+      },
+      "webVitals": {
+        "largestContentfulPaint": 1660
+      }
+    }
+  },
+  "outputDir": "..\\.claude-screenshots\\zimbomate-v2\\2025-09-19T21-52-04-553Z-2025-09-19T21-52-05-005Z"
+}

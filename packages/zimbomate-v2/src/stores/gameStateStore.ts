@@ -6,7 +6,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Condition, OngoingModifier, ForwardModifier, ResourceTracker } from '../services/CharacterStateService'
+import type { Condition, OngoingModifier } from '../services/CharacterStateService'
 import { characterStateService } from '../services/CharacterStateService'
 
 // Global game effects that affect multiple characters
@@ -418,8 +418,8 @@ export const useGameStateStore = create<GameStateState>()(
       },
 
       getGameStateSnapshot: () => {
-        const { globalEffects, partyResources, gameTime } = get()
-        
+        const { partyResources, gameTime } = get()
+
         return {
           activeEffects: get().getActiveGlobalEffects().length,
           partyResources: partyResources.length,

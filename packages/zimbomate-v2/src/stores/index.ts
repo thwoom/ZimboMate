@@ -10,6 +10,7 @@ export { useCharacterStore } from './characterStore'
 export { useSessionStore } from './sessionStore'
 export { useCampaignStore } from './campaignStore'
 export { useGameStateStore } from './gameStateStore'
+export { useChronicleStore } from './chronicleStore'
 
 // Type exports for external use
 export type {

@@ -86,24 +86,24 @@ const createSampleItems = (): Item[] => {
   return [
     {
       id: 'longsword-1',
-      name: 'Enchanted Longsword',
+      name: 'Longsword',
       category: 'weapon',
-      tags: [{ name: 'close' }, { name: 'weight', value: 2 }, { name: 'damage', value: '+2' }],
-      description: 'A finely crafted longsword with magical runes etched along the blade.',
+      tags: [{ name: 'close' }, { name: 'messy' }, { name: 'weight', value: 2 }],
+      description: 'A well-balanced blade with a cross-guard and grip wrapped in leather.',
       weight: 2,
-      value: 150,
+      value: 15,
       quantity: 1,
       equipped: true,
-      damage: '+2 damage'
+      damage: '1d8'
     } as Weapon,
     {
       id: 'chainmail-1',
-      name: 'Dwarven Chainmail',
+      name: 'Chainmail',
       category: 'armor',
-      tags: [{ name: 'worn' }, { name: 'weight', value: 3 }, { name: 'armor', value: 2 }],
-      description: 'Expertly crafted chainmail forged by dwarven smiths.',
+      tags: [{ name: 'worn' }, { name: 'mail' }, { name: 'weight', value: 3 }],
+      description: 'Interlocking metal rings that provide flexible protection.',
       weight: 3,
-      value: 80,
+      value: 40,
       quantity: 1,
       equipped: true,
       armorValue: 2

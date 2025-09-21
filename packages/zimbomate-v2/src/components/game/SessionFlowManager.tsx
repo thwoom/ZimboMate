@@ -28,6 +28,7 @@ import { Card, CardContent, Button, Badge, Progress } from '../ui'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useGameStateStore } from '../../stores/gameStateStore'
+import { XPAwardModal } from './XPAwardModal'
 import type { Character } from '../../models/Character'
 
 // Session phases
@@ -112,6 +113,29 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
   const [sessionEvents, setSessionEvents] = useState<SessionEvent[]>([])
   const [isExpanded, setIsExpanded] = useState(!compact)
   const [autoTrackingEnabled, setAutoTrackingEnabled] = useState(true)
+  const [showXPModal, setShowXPModal] = useState(false)
+
+  // Handle XP award completion
+  const handleXPAwarded = (totalXPAwarded: number, charactersAffected: number) => {
+    // Add to session events for tracking
+    const event: SessionEvent = {
+      id: crypto.randomUUID(),
+      type: 'xp-awarded',
+      timestamp: new Date(),
+      description: `Awarded ${totalXPAwarded} XP to ${charactersAffected} character${charactersAffected !== 1 ? 's' : ''}`,
+      metadata: {
+        totalXP: totalXPAwarded,
+        charactersCount: charactersAffected
+      }
+    }
+    setSessionEvents(prev => [...prev, event])
+
+    // Update session flow
+    setSessionFlow(prev => ({
+      ...prev,
+      suggestedNextActions: prev.suggestedNextActions.filter(action => action !== 'Award XP')
+    }))
+  }
 
   // Auto-track session events
   useEffect(() => {
@@ -342,8 +366,7 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
       label: 'Award XP',
       icon: TrendingUp,
       onClick: () => {
-        // This would open XP award dialog
-        console.log('Award XP dialog')
+        setShowXPModal(true)
       },
       disabled: false
     }
@@ -385,7 +408,8 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
   const PhaseIcon = getPhaseIcon(sessionFlow.phase)
 
   return (
-    <Card variant="magical" padding="md">
+    <>
+      <Card variant="magical" padding="md">
       <CardContent>
         <div className="space-y-4">
           {/* Header */}
@@ -584,7 +608,15 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
           </AnimatePresence>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+
+      {/* XP Award Modal */}
+      <XPAwardModal
+        isOpen={showXPModal}
+        onClose={() => setShowXPModal(false)}
+        onAwarded={handleXPAwarded}
+      />
+    </>
   )
 }
 

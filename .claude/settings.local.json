@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run test:run:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm install:*)",
+      "Bash(npx playwright test --ui)",
+      "WebSearch",
+      "WebFetch(domain:www.dungeonworldsrd.com)",
+      "WebFetch(domain:roll20.net)",
+      "Bash(npx vite:*)",
+      "Bash(node:*)",
+      "Bash(npx playwright screenshot:*)",
+      "Bash(npm run screenshot:*)",
+      "Bash(npm run e2e:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run dev:*)",
+      "Bash(rustc --version)",
+      "Bash(cargo --version)",
+      "Bash(curl:*)",
+      "Bash(sh:*)",
+      "Bash(export PATH=\"$PATH:/c/Users/dan/.cargo/bin\")",
+      "Bash(cargo install:*)",
+      "Bash(npx tauri init:*)",
+      "Bash(npx tauri dev:*)",
+      "Bash(npm run tauri:dev:*)",
+      "Bash(tasklist)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

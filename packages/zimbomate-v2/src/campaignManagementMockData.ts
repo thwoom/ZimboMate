@@ -119,8 +119,8 @@ export const formatLocationType = (type: LocationType): string => {
 export const mockCampaigns = [
   {
     id: 'campaign-1',
-    name: 'The Shattered Crown',
-    description: 'A tale of political intrigue and ancient magic in the kingdom of Valdris',
+    name: 'The Sundered Realm',
+    description: 'A tale of political intrigue and ancient magic in the borderlands of Kaeroth',
     created: new Date('2024-01-15'),
     lastModified: new Date('2024-12-18'),
     playerNotes: 'Remember to investigate the mysterious cult activities in the capital',
@@ -131,7 +131,7 @@ export const mockCampaigns = [
         title: 'The Tavern Meeting',
         date: new Date('2024-01-20'),
         duration: 180,
-        summary: 'The party met in the Prancing Pony and received their first quest',
+        summary: 'The party met in the Silver Flagon and received their first quest',
         notes: 'Great roleplay between characters, established party dynamics',
         xpGained: 2,
         highlights: ['Epic bar fight', 'Mysterious hooded figure'],

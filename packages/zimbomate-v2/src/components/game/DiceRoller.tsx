@@ -200,7 +200,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
               initial="hidden"
               animate="visible"
               exit="hidden"
-              className="space-y-3"
+              className="space-y-3 dice-result roll-result"
             >
               <div className="text-center">
                 <div className="text-sm text-(--color-text-secondary) font-mono">

@@ -1,0 +1,345 @@
+/**
+ * Accessibility CSS - High Contrast and Reduced Motion Support
+ * Ensures the dice system is usable for users with visual and vestibular needs
+ */
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    /* Enhanced contrast colors */
+    --color-primary: #0066cc;
+    --color-primary-dark: #004499;
+    --color-success: #00aa00;
+    --color-warning: #cc6600;
+    --color-error: #cc0000;
+
+    /* High contrast backgrounds */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-hover: #e0e0e0;
+    --bg-active: #d0d0d0;
+
+    /* High contrast borders */
+    --border-width: 2px;
+    --border-color: #000000;
+    --border-focus: #0066cc;
+  }
+
+  /* Force higher contrast on all interactive elements */
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    border: var(--border-width) solid var(--border-color) !important;
+    background: var(--bg-primary) !important;
+    color: #000000 !important;
+  }
+
+  button:hover,
+  [role="button"]:hover {
+    background: var(--bg-hover) !important;
+    border-color: var(--color-primary) !important;
+  }
+
+  button:focus,
+  [role="button"]:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 3px solid var(--border-focus) !important;
+    outline-offset: 2px !important;
+    border-color: var(--border-focus) !important;
+  }
+
+  /* Enhanced dice roll results visibility */
+  .dice-result,
+  [data-outcome="success"] {
+    background: var(--color-success) !important;
+    color: #ffffff !important;
+    border: var(--border-width) solid #000000 !important;
+  }
+
+  [data-outcome="partial"] {
+    background: var(--color-warning) !important;
+    color: #ffffff !important;
+    border: var(--border-width) solid #000000 !important;
+  }
+
+  [data-outcome="failure"] {
+    background: var(--color-error) !important;
+    color: #ffffff !important;
+    border: var(--border-width) solid #000000 !important;
+  }
+
+  /* High contrast sidebar */
+  #dice-history-content {
+    border: var(--border-width) solid var(--border-color) !important;
+    background: var(--bg-primary) !important;
+  }
+
+  /* High contrast notifications */
+  .notification-item {
+    border: var(--border-width) solid var(--border-color) !important;
+    background: var(--bg-primary) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* Remove subtle styling that doesn't work in high contrast */
+  .glass-surface,
+  [class*="backdrop-blur"],
+  [class*="bg-opacity"] {
+    backdrop-filter: none !important;
+    background-color: var(--bg-primary) !important;
+    border: var(--border-width) solid var(--border-color) !important;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations and transitions */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable framer-motion animations */
+  [data-framer-motion] {
+    transform: none !important;
+  }
+
+  /* Replace animations with instant state changes */
+  .dice-rolling {
+    /* Instead of rotation animation, show static "rolling" state */
+    opacity: 0.7;
+  }
+
+  .dice-rolling::after {
+    content: " (Rolling...)";
+    font-size: 0.8em;
+    color: var(--color-primary);
+  }
+
+  /* Instant hover states instead of transitions */
+  .rollable-element:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--color-primary);
+  }
+
+  /* Show static indicators instead of animated ones */
+  .hover-dice-indicator {
+    opacity: 1;
+    transform: none;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+  }
+
+  /* Notification appears instantly */
+  .notification-enter,
+  .notification-exit {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Sidebar collapse happens instantly */
+  .sidebar-collapsing,
+  .sidebar-expanding {
+    width: var(--sidebar-target-width);
+  }
+
+  /* Progress indicators show completion state instantly */
+  .progress-bar {
+    width: 100%;
+  }
+
+  .progress-bar[aria-valuenow] {
+    width: calc(var(--progress-value) * 1%);
+    transition: none;
+  }
+}
+
+/* Force Focus Indicators for Keyboard Users */
+.keyboard-user button:focus,
+.keyboard-user [role="button"]:focus,
+.keyboard-user input:focus,
+.keyboard-user select:focus,
+.keyboard-user textarea:focus {
+  outline: 3px solid #0066cc !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px rgba(0, 102, 204, 0.2) !important;
+}
+
+/* Enhanced focus for dice system elements */
+.keyboard-user .rollable-element:focus {
+  outline: 3px solid #0066cc !important;
+  outline-offset: 2px !important;
+  background: rgba(0, 102, 204, 0.1) !important;
+}
+
+.keyboard-user .dice-history-item:focus {
+  outline: 3px solid #0066cc !important;
+  outline-offset: 2px !important;
+  background: rgba(0, 102, 204, 0.05) !important;
+}
+
+/* Touch-friendly sizing */
+@media (pointer: coarse) {
+  /* Larger touch targets for mobile/touch devices */
+  button,
+  [role="button"],
+  .rollable-element {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+  }
+
+  /* Larger dice history items */
+  .dice-history-item {
+    padding: 16px;
+    margin-bottom: 8px;
+  }
+
+  /* Larger quick roll zones for drag & drop */
+  .quick-roll-zone {
+    min-width: 120px;
+    min-height: 120px;
+    padding: 20px;
+  }
+
+  /* Larger notification dismiss buttons */
+  .notification-dismiss {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Print styles (for character sheets) */
+@media print {
+  /* Hide interactive elements that don't make sense on paper */
+  .dice-history-sidebar,
+  .notification-manager,
+  .quick-roll-zones,
+  .command-palette,
+  button:not(.print-visible),
+  [role="button"]:not(.print-visible) {
+    display: none !important;
+  }
+
+  /* Optimize dice results for printing */
+  .dice-result {
+    border: 2px solid #000;
+    background: white !important;
+    color: black !important;
+    page-break-inside: avoid;
+  }
+
+  /* Print-friendly colors */
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Error state accessibility */
+[data-error="true"],
+.error-state {
+  border: 2px solid #cc0000 !important;
+  background: rgba(204, 0, 0, 0.1) !important;
+  color: #cc0000 !important;
+}
+
+[data-error="true"]:focus,
+.error-state:focus {
+  outline: 3px solid #cc0000 !important;
+  outline-offset: 2px !important;
+}
+
+/* Success state accessibility */
+[data-success="true"],
+.success-state {
+  border: 2px solid #00aa00 !important;
+  background: rgba(0, 170, 0, 0.1) !important;
+  color: #00aa00 !important;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip links for keyboard navigation */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Ensure sufficient color contrast ratios */
+:root {
+  --min-contrast-text: #000000;
+  --min-contrast-bg: #ffffff;
+  --focus-color: #0066cc;
+  --error-color: #cc0000;
+  --success-color: #00aa00;
+  --warning-color: #cc6600;
+}
+
+/* Dark mode accessibility improvements */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --min-contrast-text: #ffffff;
+    --min-contrast-bg: #000000;
+    --focus-color: #4da6ff;
+    --error-color: #ff6666;
+    --success-color: #66cc66;
+    --warning-color: #ffaa66;
+  }
+}
+
+/* Utility classes for programmatic accessibility */
+.visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.high-contrast {
+  border: 2px solid currentColor !important;
+  background: var(--min-contrast-bg) !important;
+  color: var(--min-contrast-text) !important;
+}
+
+.focus-visible {
+  outline: 3px solid var(--focus-color) !important;
+  outline-offset: 2px !important;
+}

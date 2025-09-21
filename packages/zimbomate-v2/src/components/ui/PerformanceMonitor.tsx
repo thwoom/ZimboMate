@@ -12,9 +12,8 @@ interface PerformanceMonitorProps {
 }
 
 export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ className }) => {
-  const { start, stop, isMonitoring, getReport, getMetrics } = usePerformanceMonitor()
-  const [report, setReport] = React.useState(getReport())
-  const [showDetails, setShowDetails] = React.useState(false)
+  // PERFORMANCE: Monitor completely removed to reduce overhead
+  return null
 
   // Update report every 2 seconds when monitoring
   React.useEffect(() => {
@@ -44,7 +43,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`
   }
 
   return (

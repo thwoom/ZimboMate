@@ -176,7 +176,7 @@ export class SpellCastingService {
     // Apply DW outcomes
     let updated: Character = { ...character, updatedAt: new Date() }
     let tier: CastingTier
-    let spellLost = false
+    const spellLost = false
     const consequences: string[] = []
 
     if (roll.total >= 10) {
@@ -205,7 +205,7 @@ export class SpellCastingService {
     spell: ServiceSpell, 
     consequence: SevenToNineConsequence
   ): Character {
-    let updated = { ...character, updatedAt: new Date() }
+    const updated = { ...character, updatedAt: new Date() }
 
     switch (consequence) {
       case 'forget':

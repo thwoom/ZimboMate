@@ -4,125 +4,65 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ThemeProvider } from './components/ui/ThemeProvider'
 import { ThemeToggle } from './components/ui/ThemeToggle'
 import { CharacterSheet } from './components/game/CharacterSheet'
-import { DiceRoller } from './components/game/DiceRoller'
-import { MovesPanel } from './components/game/MovesPanel'
-import { EquipmentPanel } from './components/game/EquipmentPanel'
+import { StatRoller } from './components/game/StatRoller'
+import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
+import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
 import { SessionManager } from './components/game/SessionManager'
-import { SessionToolsPanel } from './components/game/SessionTools'
-import { BondTracker } from './components/game/BondTracker'
 import { AlignmentXPTracker } from './components/game/AlignmentXPTracker'
 import { DebilityTracker } from './components/game/DebilityTracker'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
-import { SessionFlowManager } from './components/game/SessionFlowManager'
 import { CommandPalette } from './components/ui/CommandPalette'
-import { KeyboardShortcutsPanel } from './components/ui/KeyboardShortcutsPanel'
-import PerformanceMonitor from '@/components/ui/PerformanceMonitor'
-import { AccessibilityChecker } from './components/ui/AccessibilityChecker'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
-import { HelpSystem } from './components/ui/HelpSystem'
-import { Sparkles, User, Dice6, Scroll, Settings, Package, Users, NotebookPen, MapPin, FolderOpen } from 'lucide-react'
+import { Sparkles, User, Dice6, Settings, NotebookPen, Play } from 'lucide-react'
 import { Card, CardContent, Button, Badge, ThemeComponentShowcase } from './components/ui'
-import { DemoQuickAccess } from './components/ui/DemoQuickAccess'
 import { DemoModal } from './components/ui/DemoModal'
-import { CampaignPanel } from './components/game/CampaignPanel'
-import { FileManagementPanel } from './components/game/FileManagementPanel'
-import { FileOperation } from './fileManagementMockData'
+import { DiceHistorySidebar } from './components/dice/DiceHistorySidebar'
+import { QuickRollZones } from './components/dice/QuickRollZones'
+import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
+import { PlayTab } from './components/game/PlayTab'
+import { GameManagementTab } from './components/game/GameManagementTab'
+import { SettingsPanel } from './components/ui/SettingsPanel'
+import { useCharacterStore } from './stores/characterStore'
 import { useCommandPalette, useNavigationShortcuts, useGlobalShortcuts, useDiceShortcuts } from './hooks/useKeyboardShortcuts'
+import { useDiceKeyboardShortcuts } from './hooks/useDiceKeyboardShortcuts'
 import './utils/initializeMockData' // Initialize mock data for development
 import { ButtonDebugger } from './components/ui/ButtonDebugger'
-import { 
-  diagnoseAllButtons, 
-  enableButtonDebugging, 
-  autoFixAllButtons, 
+import {
+  diagnoseAllButtons,
+  enableButtonDebugging,
+  autoFixAllButtons,
   generateButtonReport,
-  type ButtonDiagnostic 
+  type ButtonDiagnostic
 } from './utils/buttonUtils'
-import { BugAntIcon, WrenchScrewdriverIcon, DocumentTextIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { BugAntIcon, WrenchScrewdriverIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
 
-type ActiveTab = 'character' | 'dice' | 'moves' | 'equipment' | 'session-tools' | 'campaign' | 'file-management' | 'multiplayer' | 'settings' | 'button-debug'
+type ActiveTab = 'play' | 'character' | 'dice' | 'game-management' | 'settings' | 'button-debug'
 
-// Mock character data for EquipmentPanel and MovesPanel
-const mockCharacter = {
-  id: 'char-1',
-  name: "Eldara Moonwhisper",
-  class: "wizard",
-  level: 5,
-  hp: { current: 18, max: 25 },
-  stats: {
-    strength: { value: 12, modifier: 1 },
-    dexterity: { value: 14, modifier: 2 },
-    constitution: { value: 13, modifier: 1 },
-    intelligence: { value: 18, modifier: 4 },
-    wisdom: { value: 16, modifier: 3 },
-    charisma: { value: 15, modifier: 2 }
-  },
-  load: { current: 8, max: 12 },
-  inventory: [
-    {
-      id: 'staff-of-power',
-      name: 'Staff of Power',
-      description: 'A magical staff crackling with arcane energy',
-      category: 'weapon',
-      weight: 1,
-      equipped: true,
-      damage: '1d8',
-      tags: ['magical', 'two-handed']
-    },
-    {
-      id: 'healing-potion',
-      name: 'Healing Potion',
-      description: 'Restores 2d4+2 HP when consumed',
-      category: 'consumable',
-      weight: 0,
-      equipped: false,
-      uses: 3
-    },
-    {
-      id: 'spellbook',
-      name: 'Arcane Spellbook',
-      description: 'Contains prepared spells and magical knowledge',
-      category: 'treasure',
-      weight: 1,
-      equipped: true,
-      tags: ['magical', 'spellbook']
-    },
-    {
-      id: 'leather-armor',
-      name: 'Leather Armor',
-      description: 'Light armor providing basic protection',
-      category: 'armor',
-      weight: 1,
-      equipped: true,
-      armor: 1,
-      tags: ['worn']
-    }
-  ]
-}
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('character')
-  const [diceModifier, setDiceModifier] = useState(2)
+  const { characters, getActiveCharacter } = useCharacterStore()
+  const activeCharacter = getActiveCharacter()
+  const [activeTab, setActiveTab] = useState<ActiveTab>('play')
+  const [showCharacterBuilder, setShowCharacterBuilder] = useState(false)
   const [demoModalOpen, setDemoModalOpen] = useState(false)
   const [selectedDemo, setSelectedDemo] = useState<{ id: string; title: string } | null>(null)
   const [showSessionManager, setShowSessionManager] = useState(false)
-  const [currentSession, setCurrentSession] = useState<any>(null)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [themeShowcaseOpen, setThemeShowcaseOpen] = useState(false)
   const [buttonDiagnostics, setButtonDiagnostics] = useState<ButtonDiagnostic[]>([])
   const [debuggingEnabled, setDebuggingEnabled] = useState(false)
   const [autoFixCount, setAutoFixCount] = useState(0)
 
+  // Dice sidebar state
+  const [diceHistoryCollapsed, setDiceHistoryCollapsed] = useState(false)
+
   const tabs = [
+    { id: 'play' as const, label: 'Play', icon: Play, featured: true },
     { id: 'character' as const, label: 'Character', icon: User },
     { id: 'dice' as const, label: 'Dice', icon: Dice6 },
-    { id: 'moves' as const, label: 'Moves', icon: Scroll },
-    { id: 'equipment' as const, label: 'Equipment', icon: Package },
-    { id: 'session-tools' as const, label: 'Session Tools', icon: NotebookPen },
-    { id: 'campaign' as const, label: 'Campaign', icon: MapPin },
-    { id: 'file-management' as const, label: 'File Management', icon: FolderOpen },
-    { id: 'multiplayer' as const, label: 'Multiplayer', icon: Users },
-    { id: 'settings' as const, label: 'Settings', icon: Settings },
-    { id: 'button-debug' as const, label: 'Button Debug', icon: WrenchScrewdriverIcon }
+    { id: 'game-management' as const, label: 'Game Management', icon: NotebookPen, description: 'Chronicle, Campaign, Monsters & More' },
+    { id: 'settings' as const, label: 'Settings', icon: Settings, enhanced: true },
+    ...(process.env.NODE_ENV === 'development' ? [{ id: 'button-debug' as const, label: 'Button Debug', icon: WrenchScrewdriverIcon }] : [])
   ]
 
   // Command palette integration
@@ -152,22 +92,17 @@ const App: React.FC = () => {
     }
   })
 
-  // Dice shortcuts
-  useDiceShortcuts((stat) => {
-    if (stat) {
-      // Set modifier based on stat and switch to dice tab
-      const statModifiers = {
-        strength: 1,
-        dexterity: 2,
-        constitution: 1,
-        intelligence: 4,
-        wisdom: 3,
-        charisma: 2
-      }
-      setDiceModifier(statModifiers[stat as keyof typeof statModifiers] || 0)
-    }
+  // Dice shortcuts (legacy system)
+  useDiceShortcuts((_stat) => {
     setActiveTab('dice')
   }, activeTab === 'dice' || activeTab === 'character')
+
+  // New advanced dice keyboard shortcuts
+  useDiceKeyboardShortcuts({
+    characterId: 'eldara-moonwhisper', // TODO: Use actual active character ID
+    enabled: true,
+    modifierKey: 'none' // Direct key presses for fast gameplay
+  })
 
   const tabVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -191,6 +126,20 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'play':
+        return (
+          <motion.div
+            key="play"
+            variants={tabVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <div>
+              <PlayTab />
+            </div>
+          </motion.div>
+        )
       case 'character':
         return (
           <motion.div
@@ -201,11 +150,36 @@ const App: React.FC = () => {
             exit="exit"
           >
             <div className="space-y-8">
-              <CharacterSheet />
-              <ContextAwareSystem context="character" />
-              <BondTracker />
-              <AlignmentXPTracker />
-              <DebilityTracker />
+              {characters.length === 0 || showCharacterBuilder ? (
+                <div className="space-y-4">
+                  {characters.length > 0 && (
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold">Create New Character</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowCharacterBuilder(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                  <CharacterBuilder onFinished={() => setShowCharacterBuilder(false)} />
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-end">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setShowCharacterBuilder(true)}
+                    >
+                      Create Character
+                    </Button>
+                  </div>
+                  <CharacterSheet />
+                </>
+              )}
             </div>
           </motion.div>
         )
@@ -220,207 +194,45 @@ const App: React.FC = () => {
             className="max-w-2xl mx-auto"
           >
             <div className="space-y-6">
-              <DiceRoller 
-                modifier={diceModifier}
-                onRoll={(result) => {
-                  console.log('Dice roll result:', result)
+              <UnifiedRollSystem
+                characterId="eldara-moonwhisper"
+                layout="inline"
+                showHistory={true}
+                showQuickRolls={true}
+                showCustomRolls={true}
+                className="max-w-full"
+              />
+
+              {/* Chronicle-Enabled Stat Rolling */}
+              <StatRoller
+                characterName="Eldara Moonwhisper"
+                statModifiers={{
+                  STR: 1,
+                  DEX: 2,
+                  CON: 1,
+                  INT: 4,
+                  WIS: 3,
+                  CHA: 2
+                }}
+                onStatRoll={(stat, result) => {
+                  console.log(`${stat} roll result:`, result)
                 }}
               />
+
               <ContextAwareSystem context="dice" compact />
             </div>
           </motion.div>
         )
-      case 'moves':
+      case 'game-management':
         return (
           <motion.div
-            key="moves"
+            key="game-management"
             variants={tabVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
           >
-            <div className="space-y-6">
-              <MovesPanel 
-                character={mockCharacter as any}
-                characterClass="wizard"
-                onMoveSelect={(move) => {
-                  console.log('Selected move:', move)
-                  // Switch to dice tab when a move is selected
-                  setActiveTab('dice')
-                }}
-                onRollComplete={(result) => {
-                  console.log('Roll completed:', result)
-                }}
-              />
-              <ContextAwareSystem context="moves" compact />
-            </div>
-          </motion.div>
-        )
-      case 'equipment':
-        return (
-          <motion.div
-            key="equipment"
-            variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <div className="space-y-6">
-              <EquipmentPanel
-                character={mockCharacter as any}
-                onItemEquip={(item) => console.log('Equipped:', item)}
-                onItemUnequip={(item) => console.log('Unequipped:', item)}
-                onItemUse={(item) => console.log('Used:', item)}
-                onItemDrop={(item) => console.log('Dropped:', item)}
-                onInventoryUpdate={(inventory) => console.log('Inventory updated:', inventory)}
-              />
-              <ContextAwareSystem context="equipment" compact />
-            </div>
-          </motion.div>
-        )
-      case 'session-tools':
-        return (
-          <motion.div
-            key="session-tools"
-            variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <div className="space-y-6">
-              <SessionFlowManager />
-              <SessionToolsPanel />
-              <ContextAwareSystem context="session" compact />
-            </div>
-          </motion.div>
-        )
-      case 'campaign':
-        return (
-          <motion.div
-            key="campaign"
-            variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <div className="space-y-6">
-              <CampaignPanel />
-              <ContextAwareSystem context="campaign" compact />
-            </div>
-          </motion.div>
-        )
-      case 'file-management':
-        return (
-          <motion.div
-            key="file-management"
-            variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <div className="space-y-6">
-              <FileManagementPanel
-                onFileOperation={(operation: FileOperation, data: any) => {
-                  console.log('File operation:', operation, data)
-                  // Handle file operations here
-                  switch (operation) {
-                    case FileOperation.IMPORT:
-                      console.log('Importing files:', data)
-                      break
-                    case FileOperation.EXPORT:
-                      console.log('Exporting data:', data)
-                      break
-                    case FileOperation.BACKUP:
-                      console.log('Creating backup:', data)
-                      break
-                    case FileOperation.RESTORE:
-                      console.log('Restoring backup:', data)
-                      break
-                    case FileOperation.DELETE:
-                      console.log('Deleting files:', data)
-                      break
-                    case FileOperation.RENAME:
-                      console.log('Renaming file:', data)
-                      break
-                    case FileOperation.DUPLICATE:
-                      console.log('Duplicating file:', data)
-                      break
-                    default:
-                      console.log('Unknown operation:', operation, data)
-                  }
-                }}
-              />
-            </div>
-          </motion.div>
-        )
-      case 'multiplayer':
-        return (
-          <motion.div
-            key="multiplayer"
-            variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <div className="max-w-4xl mx-auto space-y-8">
-              <Card variant="magical" padding="lg">
-                <CardContent>
-                  <div className="text-center space-y-6">
-                    <div 
-                      className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: 'var(--color-primary)', opacity: 0.2 }}
-                    >
-                      <Users 
-                        size={32} 
-                        style={{ color: 'var(--color-primary)' }}
-                      />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-display mb-2">Multiplayer Sessions</h2>
-                      <p 
-                        className="max-w-md mx-auto"
-                        style={{ color: 'var(--color-text-secondary)' }}
-                      >
-                        Connect with friends for shared adventures and real-time dice rolling.
-                        Phase 3.2 Advanced Features Complete!
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-3 justify-center">
-                      <Badge variant="default">Real-time Dice Sharing ✅</Badge>
-                      <Badge variant="default">Session Management ✅</Badge>
-                      <Badge variant="default">WebSocket Integration ✅</Badge>
-                      <Badge variant="secondary">Voice Chat 🔄</Badge>
-                    </div>
-                    {!currentSession ? (
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        onClick={() => setShowSessionManager(true)}
-                        className="gap-2 magical-glow"
-                      >
-                        <Users size={20} />
-                        Start Multiplayer Session
-                      </Button>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="p-4 bg-green-100 rounded-lg">
-                          <h4 className="font-medium text-green-800">Connected to: {currentSession.name}</h4>
-                          <p className="text-sm text-green-600">
-                            {currentSession.players?.length || 1} players online
-                          </p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          onClick={() => setCurrentSession(null)}
-                        >
-                          Leave Session
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <GameManagementTab />
           </motion.div>
         )
       case 'settings':
@@ -432,75 +244,7 @@ const App: React.FC = () => {
             animate="visible"
             exit="exit"
           >
-            <div className="max-w-4xl mx-auto space-y-8">
-              {/* Keyboard Shortcuts Panel */}
-              <KeyboardShortcutsPanel />
-
-              {/* Performance Monitor */}
-              <PerformanceMonitor />
-
-              {/* Accessibility Checker */}
-              <AccessibilityChecker />
-
-              {/* Help System */}
-              <HelpSystem />
-
-              {/* Theme & Component Showcase */}
-              <Card variant="magical" padding="lg">
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-10 h-10 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: 'var(--color-primary)', opacity: 0.2 }}
-                      >
-                        <Sparkles 
-                          className="w-5 h-5" 
-                          style={{ color: 'var(--color-primary)' }}
-                        />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-display">Theme & Component Showcase</h3>
-                        <p 
-                          className="text-sm" 
-                          style={{ color: 'var(--color-text-secondary)' }}
-                        >
-                          Explore themes, components, and styling utilities for development
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-3">
-                      <Button
-                        variant="primary"
-                        onClick={() => setThemeShowcaseOpen(true)}
-                        className="gap-2"
-                      >
-                        <Sparkles size={16} />
-                        Open Theme Showcase
-                      </Button>
-                      <Badge variant="secondary">Development Tool</Badge>
-                    </div>
-                    
-                    <div className="text-sm space-y-2" style={{ color: 'var(--color-text-secondary)' }}>
-                      <p>• Preview all theme variants (Fantasy, Dark, Light, Sci-Fi)</p>
-                      <p>• Explore complete color system and typography</p>
-                      <p>• Test all UI components and their variants</p>
-                      <p>• View layout examples and patterns</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Demo Quick Access Section */}
-              <Card variant="magical" padding="lg">
-                <CardContent>
-                  <DemoQuickAccess 
-                    onDemoNavigate={handleDemoNavigate}
-                  />
-                </CardContent>
-              </Card>
-            </div>
+            <SettingsPanel onDemoNavigate={handleDemoNavigate} />
           </motion.div>
         )
       case 'button-debug':
@@ -662,7 +406,17 @@ const App: React.FC = () => {
           </motion.div>
         )
       default:
-        return <CharacterSheet />
+        return (
+          <motion.div
+            key="play"
+            variants={tabVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <PlayTab />
+          </motion.div>
+        )
     }
   }
 
@@ -677,7 +431,6 @@ const App: React.FC = () => {
   }
 
   const handleSessionJoined = (session: any) => {
-    setCurrentSession(session)
     setShowSessionManager(false)
     console.log('Joined session:', session)
   }
@@ -685,7 +438,8 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <Tooltip.Provider delayDuration={200} skipDelayDuration={300}>
+        <ChronicleProvider defaultEnabled={true}>
+          <Tooltip.Provider delayDuration={200} skipDelayDuration={300}>
         <div 
           className="min-h-screen transition-colors duration-300"
           style={{ backgroundColor: 'var(--color-background)' }}
@@ -757,10 +511,23 @@ const App: React.FC = () => {
                         variant={isActive ? 'primary' : 'ghost'}
                         size="sm"
                         onClick={() => setActiveTab(tab.id)}
-                        className="relative whitespace-nowrap"
+                        className={`relative whitespace-nowrap ${
+                          tab.featured ? 'ring-2 ring-blue-200 dark:ring-blue-800' : ''
+                        }`}
+                        title={tab.description || tab.label}
                       >
                         <Icon size={16} />
                         {tab.label}
+                        {tab.featured && !isActive && (
+                          <Badge variant="secondary" className="ml-1 text-xs">
+                            ★
+                          </Badge>
+                        )}
+                        {tab.enhanced && !isActive && (
+                          <Badge variant="default" className="ml-1 text-xs">
+                            ✨
+                          </Badge>
+                        )}
                         {isActive && (
                           <motion.div
                             className="absolute bottom-0 left-0 right-0 h-0.5"
@@ -777,12 +544,27 @@ const App: React.FC = () => {
             </div>
           </nav>
 
-          {/* Main Content */}
-          <main className="container mx-auto px-6 py-8">
-            <AnimatePresence mode="wait">
-              {renderContent()}
-            </AnimatePresence>
-          </main>
+          {/* Main Content Layout with Sidebar */}
+          <div className="flex h-screen">
+            {/* Dice History Sidebar */}
+            <DiceHistorySidebar
+              characterId={activeCharacter?.id || "fallback-character-id"}
+              collapsed={diceHistoryCollapsed}
+              onToggleCollapse={() => setDiceHistoryCollapsed(!diceHistoryCollapsed)}
+            />
+
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-y-auto">
+              <div className="container mx-auto px-6 py-8">
+                <AnimatePresence mode="wait">
+                  {renderContent()}
+                </AnimatePresence>
+              </div>
+            </main>
+          </div>
+
+          {/* Quick Roll Zones for Drag & Drop */}
+          <QuickRollZones characterId="eldara-moonwhisper" />
 
           {/* Footer */}
           <footer 
@@ -868,7 +650,8 @@ const App: React.FC = () => {
             onSessionJoined={handleSessionJoined}
           />
         </div>
-        </Tooltip.Provider>
+          </Tooltip.Provider>
+        </ChronicleProvider>
       </ThemeProvider>
     </ErrorBoundary>
   )

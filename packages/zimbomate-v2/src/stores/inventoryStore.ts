@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { Item } from '../models/Equipment'
-import { Inventory, addItem, removeItem, moveItem, toggleEquipped, calculateInventoryStats } from '../models/Inventory'
+import { Inventory, addItem, removeItem, moveItem, toggleEquipped } from '../models/Inventory'
 import { InventoryView, ItemSortBy, InventoryFilter } from '../equipmentSystemMockData'
 
 interface InventoryState {

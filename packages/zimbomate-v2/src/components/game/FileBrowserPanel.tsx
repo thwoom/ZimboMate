@@ -33,7 +33,7 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
   const files = mockFileManagement.recentFiles
 
   const filteredAndSortedFiles = useMemo(() => {
-    let filtered = files.filter(file => {
+    const filtered = files.filter(file => {
       const matchesSearch = file.name.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesType = filterType === 'all' || file.type === filterType
       return matchesSearch && matchesType

@@ -19,6 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
 import { useCampaignStore } from '../../../stores/campaignStore'
 import { formatSessionDuration, formatXPTotal, formatDateRelative, SessionSortBy } from '../../../campaignManagementMockData'
+import { SessionModal } from './SessionModal'
 import type { CampaignSession } from '../../../models/Campaign'
 
 interface SessionHistoryProps {
@@ -198,6 +199,8 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({
 }) => {
   const [sortBy, setSortBy] = useState<SessionSortBy>(SessionSortBy.DATE)
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingSession, setEditingSession] = useState<CampaignSession | undefined>()
   
   const campaign = useCampaignStore(state => state.getCampaign(campaignId))
   const addSession = useCampaignStore(state => state.addSession)
@@ -241,8 +244,8 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({
   }, [campaign, searchQuery, sortBy])
 
   const handleEditSession = (session: CampaignSession) => {
-    // TODO: Implement edit session modal
-    console.log('Edit session:', session)
+    setEditingSession(session)
+    setIsModalOpen(true)
   }
 
   const handleDeleteSession = (sessionId: string) => {
@@ -252,8 +255,17 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({
   }
 
   const handleCreateSession = () => {
-    // TODO: Implement create session modal
-    setShowCreateForm(true)
+    setEditingSession(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setEditingSession(undefined)
+  }
+
+  const handleSessionSaved = (sessionId: string) => {
+    console.log('Session saved:', sessionId)
   }
 
   if (!campaign) {
@@ -271,7 +283,8 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -357,6 +370,16 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({
           ))}
         </div>
       )}
-    </div>
+      </div>
+
+      {/* Session Modal */}
+      <SessionModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        campaignId={campaignId}
+        session={editingSession}
+        onSaved={handleSessionSaved}
+      />
+    </>
   )
 }

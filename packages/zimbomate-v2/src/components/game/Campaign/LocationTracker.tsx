@@ -24,6 +24,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
 import { useCampaignStore } from '../../../stores/campaignStore'
 import { formatDateRelative, formatLocationType, LocationType } from '../../../campaignManagementMockData'
+import { LocationModal } from './LocationModal'
 import type { Location } from '../../../models/Campaign'
 
 interface LocationTrackerProps {
@@ -210,12 +211,14 @@ const LocationCard: React.FC<LocationCardProps> = ({ location, onEdit, onDelete 
   )
 }
 
-export const LocationTracker: React.FC<LocationTrackerProps> = ({ 
-  campaignId, 
-  searchQuery = '' 
+export const LocationTracker: React.FC<LocationTrackerProps> = ({
+  campaignId,
+  searchQuery = ''
 }) => {
   const [filterByType, setFilterByType] = useState<LocationType | ''>('')
   const [sortBy, setSortBy] = useState<'name' | 'type' | 'discovered' | 'visited'>('name')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingLocation, setEditingLocation] = useState<Location | undefined>()
   
   const campaign = useCampaignStore(state => state.getCampaign(campaignId))
   const addLocation = useCampaignStore(state => state.addLocation)
@@ -264,8 +267,8 @@ export const LocationTracker: React.FC<LocationTrackerProps> = ({
   }, [campaign, searchQuery, filterByType, sortBy])
 
   const handleEditLocation = (location: Location) => {
-    // TODO: Implement edit location modal
-    console.log('Edit location:', location)
+    setEditingLocation(location)
+    setIsModalOpen(true)
   }
 
   const handleDeleteLocation = (locationId: string) => {
@@ -275,8 +278,17 @@ export const LocationTracker: React.FC<LocationTrackerProps> = ({
   }
 
   const handleCreateLocation = () => {
-    // TODO: Implement create location modal
-    console.log('Create location')
+    setEditingLocation(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setEditingLocation(undefined)
+  }
+
+  const handleLocationSaved = (locationId: string) => {
+    console.log('Location saved:', locationId)
   }
 
   if (!campaign) {
@@ -294,7 +306,8 @@ export const LocationTracker: React.FC<LocationTrackerProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -405,6 +418,16 @@ export const LocationTracker: React.FC<LocationTrackerProps> = ({
           ))}
         </div>
       )}
-    </div>
+      </div>
+
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        campaignId={campaignId}
+        location={editingLocation}
+        onSaved={handleLocationSaved}
+      />
+    </>
   )
 }

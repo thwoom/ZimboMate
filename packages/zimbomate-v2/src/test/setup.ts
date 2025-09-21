@@ -91,12 +91,12 @@ beforeAll(() => {
 
   // Mock localStorage
   const localStorageMock = {
-    getItem: (key: string) => null,
-    setItem: (key: string, value: string) => {},
-    removeItem: (key: string) => {},
+    getItem: (_key: string) => null,
+    setItem: (_key: string, _value: string) => {},
+    removeItem: (_key: string) => {},
     clear: () => {},
     length: 0,
-    key: (index: number) => null,
+    key: (_index: number) => null,
   }
 
   Object.defineProperty(window, 'localStorage', {
@@ -115,7 +115,7 @@ beforeAll(() => {
   // Mock Clipboard API
   Object.defineProperty(navigator, 'clipboard', {
     value: {
-      writeText: async (text: string) => {},
+      writeText: async (_text: string) => {},
       readText: async () => 'mock-text',
     },
     writable: true,
@@ -159,10 +159,8 @@ afterAll(() => {
 
 // Global test utilities
 declare global {
-  namespace Vi {
-    interface JestAssertion<T = any> {
-      toHaveAccessibleName(expectedName: string): T
-      toBeWithinPerformanceBudget(budget: number): T
-    }
+  interface CustomMatchers<R = unknown> {
+    toHaveAccessibleName(expectedName: string): R
+    toBeWithinPerformanceBudget(budget: number): R
   }
 }

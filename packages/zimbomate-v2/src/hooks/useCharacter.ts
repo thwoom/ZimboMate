@@ -135,7 +135,7 @@ export function useCharacter(characterId?: string): UseCharacterReturn {
 
   const canLevelUp = useMemo(() => {
     if (!character) return false
-    return advancementService.canLevelUp(character)
+    return advancementService.shouldLevelUp(character)
   }, [character])
 
   // Character state integration

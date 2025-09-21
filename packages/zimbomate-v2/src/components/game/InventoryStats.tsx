@@ -262,21 +262,21 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
 
               <div className="grid grid-cols-3 gap-4 text-center text-xs">
                 <div>
-                  <div className="w-3 h-3 bg-(--nature-500) rounded-full mx-auto mb-1"></div>
+                  <div className="w-3 h-3 bg-(--nature-500) rounded-full mx-auto mb-1" />
                   <span className="text-(--parchment-600) font-ui">Normal</span>
                   <p className="font-mono text-(--parchment-800)">
                     0 - {character.load.max} lbs
                   </p>
                 </div>
                 <div>
-                  <div className="w-3 h-3 bg-(--gold-500) rounded-full mx-auto mb-1"></div>
+                  <div className="w-3 h-3 bg-(--gold-500) rounded-full mx-auto mb-1" />
                   <span className="text-(--parchment-600) font-ui">Encumbered</span>
                   <p className="font-mono text-(--parchment-800)">
                     {character.load.max + 1} - {character.load.max + 2} lbs
                   </p>
                 </div>
                 <div>
-                  <div className="w-3 h-3 bg-(--danger-500) rounded-full mx-auto mb-1"></div>
+                  <div className="w-3 h-3 bg-(--danger-500) rounded-full mx-auto mb-1" />
                   <span className="text-(--parchment-600) font-ui">Overloaded</span>
                   <p className="font-mono text-(--parchment-800)">
                     {character.load.max + 3}+ lbs

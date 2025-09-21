@@ -28,12 +28,12 @@ const initializeMockData = () => {
       race: "Elf",
       alignment: "Good",
       attributes: {
-        STR: { value: 12, modifier: 1 },
-        DEX: { value: 14, modifier: 2 },
-        CON: { value: 13, modifier: 1 },
-        INT: { value: 18, modifier: 4 },
-        WIS: { value: 16, modifier: 3 },
-        CHA: { value: 15, modifier: 2 }
+        STR: 12,
+        DEX: 14,
+        CON: 13,
+        INT: 18,
+        WIS: 16,
+        CHA: 15
       },
       hp: { current: 18, max: 25 },
       load: { current: 8, max: 12 },
@@ -58,12 +58,12 @@ const initializeMockData = () => {
       race: "Human",
       alignment: "Lawful",
       attributes: {
-        STR: { value: 16, modifier: 3 },
-        DEX: { value: 13, modifier: 1 },
-        CON: { value: 15, modifier: 2 },
-        INT: { value: 12, modifier: 1 },
-        WIS: { value: 14, modifier: 2 },
-        CHA: { value: 11, modifier: 0 }
+        STR: 16,
+        DEX: 13,
+        CON: 15,
+        INT: 12,
+        WIS: 14,
+        CHA: 11
       },
       hp: { current: 28, max: 32 },
       load: { current: 15, max: 18 },
@@ -88,12 +88,12 @@ const initializeMockData = () => {
       race: "Halfling",
       alignment: "Neutral",
       attributes: {
-        STR: { value: 13, modifier: 1 },
-        DEX: { value: 17, modifier: 3 },
-        CON: { value: 14, modifier: 2 },
-        INT: { value: 12, modifier: 1 },
-        WIS: { value: 16, modifier: 3 },
-        CHA: { value: 10, modifier: 0 }
+        STR: 13,
+        DEX: 17,
+        CON: 14,
+        INT: 12,
+        WIS: 16,
+        CHA: 10
       },
       hp: { current: 22, max: 24 },
       load: { current: 10, max: 14 },

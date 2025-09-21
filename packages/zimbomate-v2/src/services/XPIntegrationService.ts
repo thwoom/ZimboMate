@@ -3,6 +3,8 @@
  * Centralized XP management from all sources with notifications and analytics
  */
 
+import { getXPThreshold } from '../models/Character'
+
 export interface XPSource {
   id: string
   name: string
@@ -341,22 +343,16 @@ class XPIntegrationService {
   private checkLevelUp(characterId: string) {
     const totalXP = this.getTotalXP(characterId)
     
-    // Dungeon World level up thresholds: 7, 15, 24, 34, 45, 57, 70, 84, 99, 115+
-    const levelThresholds = [7, 15, 24, 34, 45, 57, 70, 84, 99, 115]
+    // Use official DW rule: Current Level + 7
     
-    // Find current level based on XP
+    // Find current level based on XP using official DW rules
     let currentLevel = 1
-    for (let i = 0; i < levelThresholds.length; i++) {
-      if (totalXP >= levelThresholds[i]) {
-        currentLevel = i + 2 // Level 2, 3, 4, etc.
-      } else {
-        break
-      }
+    while (totalXP >= getXPThreshold(currentLevel)) {
+      currentLevel++
     }
 
     // Check if character has enough XP for next level
-    const nextThreshold = levelThresholds[currentLevel - 1]
-    if (nextThreshold && totalXP >= nextThreshold) {
+    if (totalXP >= getXPThreshold(currentLevel)) {
       this.createLevelUpNotification(characterId, currentLevel + 1)
     }
   }

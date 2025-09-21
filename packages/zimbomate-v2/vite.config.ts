@@ -8,20 +8,15 @@ export default defineConfig({
   plugins: [
     react({
       // Enable React Fast Refresh
-      fastRefresh: true,
-      // Optimize for production
-      babel: {
-        plugins: process.env.NODE_ENV === 'production' ? [
-          ['babel-plugin-react-remove-properties', { properties: ['data-testid'] }]
-        ] : []
-      }
+      fastRefresh: true
     }),
     tailwindcss()
   ],
   server: {
-    port: 3000,
-    strictPort: true,
-    open: false
+    port: 3001,
+    strictPort: false,
+    open: false, // Let Tauri handle opening
+    host: '127.0.0.1'
   },
   resolve: {
     alias: {

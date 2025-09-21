@@ -25,7 +25,7 @@ import {
 // Mock data
 const mockCharacter = {
   id: 'char-1',
-  name: 'Gandalf the Grey',
+  name: 'Theron the Wise',
   class: 'wizard',
   level: 5,
   hp: { current: 18, max: 25 },
