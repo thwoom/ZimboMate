@@ -23,8 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 /dist
- 
-# Playwright
-playwright-report
-test-results
-packages/zimbomate-v2/test-results

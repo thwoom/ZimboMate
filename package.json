@@ -1,5 +1,5 @@
 {
-  "name": "ecfd75438ff5b4ec6ff983c077a3085442c64947ed671b289597b049c8dc4864",
+  "name": "dc83324accfcb714e348c8231c977b93f5c6c8e9fbe9455513bfddc105628fab",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -23,9 +23,7 @@
     "react-router": "^7.9.1",
     "react-router-dom": "^7.9.1",
     "tailwindcss": "^4.1.13",
-    "zustand": "^5.0.8",
-    "framer-motion": "latest",
-    "@radix-ui/react-tooltip": "latest"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
@@ -62,6 +60,8 @@
     "react-router-dom": "^7.9.1",
     "tailwindcss": "^4.1.13",
     "zustand": "^5.0.8",
+    "framer-motion": "latest",
+    "@radix-ui/react-tooltip": "latest",
     "@eslint/js": "^9.21.0",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^24.5.1",

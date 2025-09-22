@@ -11,6 +11,7 @@ import { Card, CardContent, Button } from '../ui'
 import { Dice6, Plus, Minus, BookOpen, Feather } from 'lucide-react'
 import { MagicalParticles } from '../animations/MagicalParticles'
 import { useChronicle } from '../chronicle/ChronicleProvider'
+import { cn } from '@/lib/utils'
 
 interface DiceResult {
   dice1: number
@@ -82,10 +83,10 @@ const getOutcome = (total: number): 'success' | 'partial' | 'failure' => {
 
 const getOutcomeColor = (outcome: string) => {
   switch (outcome) {
-    case 'success': return 'text-green-500'
-    case 'partial': return 'text-yellow-500'
-    case 'failure': return 'text-red-500'
-    default: return 'text-gray-700 dark:text-gray-300'
+    case 'success': return 'text-success'
+    case 'partial': return 'text-(--color-warning)'
+    case 'failure': return 'text-error'
+    default: return 'text-(--color-text-primary)'
   }
 }
 
@@ -217,8 +218,8 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
       <MagicalParticles
         trigger={showParticles}
         color={
-          result?.outcome === 'success' ? '#22c55e' :
-          result?.outcome === 'partial' ? '#d4af37' : '#ef4444'
+          result?.outcome === 'success' ? 'var(--color-success)' :
+          result?.outcome === 'partial' ? 'var(--color-warning)' : 'var(--color-error)'
         }
         count={result?.outcome === 'success' ? 30 : 20}
       />
@@ -258,13 +259,13 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
             animate={isRolling ? "rolling" : result ? "result" : "idle"}
             className="relative"
           >
-            <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-200 dark:border-blue-800 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-(--color-surface-elevated) rounded-lg border-2 border-(--color-primary)/30 flex items-center justify-center shadow-lg">
               {isRolling ? (
-                <Dice6 size={32} className="text-blue-600" />
+                <Dice6 size={32} className="text-(--color-primary)" />
               ) : result ? (
                 <span className="text-2xl font-bold font-display">{result.dice1}</span>
               ) : (
-                <Dice6 size={32} className="text-gray-400" />
+                <Dice6 size={32} className="text-(--color-text-muted)" />
               )}
             </div>
           </motion.div>
@@ -282,13 +283,13 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
             animate={isRolling ? "rolling" : result ? "result" : "idle"}
             className="relative"
           >
-            <div className="w-16 h-16 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-200 dark:border-blue-800 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-(--color-surface-elevated) rounded-lg border-2 border-(--color-primary)/30 flex items-center justify-center shadow-lg">
               {isRolling ? (
-                <Dice6 size={32} className="text-blue-600" />
+                <Dice6 size={32} className="text-(--color-primary)" />
               ) : result ? (
                 <span className="text-2xl font-bold font-display">{result.dice2}</span>
               ) : (
-                <Dice6 size={32} className="text-gray-400" />
+                <Dice6 size={32} className="text-(--color-text-muted)" />
               )}
             </div>
           </motion.div>

@@ -6,6 +6,7 @@ import {
   Progress,
   Badge
 } from '../ui'
+import { cn } from '@/lib/utils'
 import { Heart, Star, Eye, Brain, BicepsFlexed, Users, Edit3, AlertTriangle, Scale } from 'lucide-react'
 import { getXPThreshold, type Attributes } from '../../models/Character'
 import { useXPStore } from '../../stores/xpStore'
@@ -55,12 +56,12 @@ const getActiveDebilities = (character: any) => {
   if (!character.debilities) return []
 
   const debilityList = [
-    { key: 'weak', name: 'Weak', color: 'text-red-600' },
-    { key: 'shaky', name: 'Shaky', color: 'text-orange-600' },
-    { key: 'sick', name: 'Sick', color: 'text-green-600' },
-    { key: 'stunned', name: 'Stunned', color: 'text-purple-600' },
-    { key: 'confused', name: 'Confused', color: 'text-blue-600' },
-    { key: 'scarred', name: 'Scarred', color: 'text-gray-600' }
+    { key: 'weak', name: 'Weak', color: 'text-error' },
+    { key: 'shaky', name: 'Shaky', color: 'text-(--orange-600)' },
+    { key: 'sick', name: 'Sick', color: 'text-success' },
+    { key: 'stunned', name: 'Stunned', color: 'text-(--magic-600)' },
+    { key: 'confused', name: 'Confused', color: 'text-info' },
+    { key: 'scarred', name: 'Scarred', color: 'text-(--color-text-muted)' }
   ]
 
   return debilityList.filter(debility => character.debilities[debility.key])

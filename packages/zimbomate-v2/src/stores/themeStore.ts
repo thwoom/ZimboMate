@@ -1,12 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Theme } from '../types/enums'
 
 interface ThemeState {
-  currentTheme: Theme
+  isDark: boolean
   animations: boolean
   sounds: boolean
-  setTheme: (theme: Theme) => void
+  toggleDark: () => void
   toggleAnimations: () => void
   toggleSounds: () => void
 }
@@ -14,23 +13,32 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      currentTheme: 'moonlit-grimoire' as Theme,
+      isDark: false,
       animations: true,
       sounds: true,
-      setTheme: (theme: Theme) => {
-        set({ currentTheme: theme })
-        // Update the document data-theme attribute
-        document.documentElement.setAttribute('data-theme', theme)
+      toggleDark: () => {
+        set((state) => {
+          const newDark = !state.isDark
+          // Update the document class for dark mode
+          if (newDark) {
+            document.documentElement.classList.add('dark')
+          } else {
+            document.documentElement.classList.remove('dark')
+          }
+          return { isDark: newDark }
+        })
       },
       toggleAnimations: () => set((state) => ({ animations: !state.animations })),
       toggleSounds: () => set((state) => ({ sounds: !state.sounds })),
     }),
     {
-      name: 'zimbomate-theme-storage',
+      name: 'zimbomate-matsu-theme-storage',
       onRehydrateStorage: () => (state) => {
-        // Apply theme on hydration
-        if (state?.currentTheme) {
-          document.documentElement.setAttribute('data-theme', state.currentTheme)
+        // Apply dark mode on hydration
+        if (state?.isDark) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
         }
       },
     }

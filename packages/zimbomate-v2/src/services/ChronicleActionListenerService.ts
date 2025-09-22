@@ -99,8 +99,9 @@ export interface ChroniclePrompt {
 export type ActionListener = (context: ActionContext) => void
 
 // Prompt generation strategies for different action types
+type MaybePromise<T> = T | Promise<T>
 interface PromptStrategy {
-  generatePrompt(context: ActionContext): Promise<ChroniclePrompt | null>
+  generatePrompt(context: ActionContext): MaybePromise<ChroniclePrompt | null>
   shouldPrompt(context: ActionContext): boolean
 }
 
@@ -257,12 +258,17 @@ export class ChronicleActionListenerService {
       return
     }
 
-    // Generate prompt
-    const prompt = strategy.generatePrompt(context)
-    if (prompt) {
-      this.activePrompts.push(prompt)
-      this.lastPromptTime = now
-    }
+    // Generate prompt (supports sync or async strategies)
+    Promise.resolve(strategy.generatePrompt(context))
+      .then((prompt) => {
+        if (prompt) {
+          this.activePrompts.push(prompt)
+          this.lastPromptTime = now
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to generate Chronicle prompt:', err)
+      })
   }
 
   private initializePromptStrategies(): void {

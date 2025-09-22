@@ -18,6 +18,7 @@ import {
   Eye,        // WIS
   Sparkles    // CHA
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export type Stat = 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA'
 
@@ -37,7 +38,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Physical power and athleticism',
     icon: <Zap size={16} />,
     examples: ['Lifting heavy objects', 'Breaking down doors', 'Wrestling', 'Climbing'],
-    color: 'text-red-600 dark:text-red-400'
+    color: 'text-red-600'
   },
   DEX: {
     name: 'DEX',
@@ -45,7 +46,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Agility, reflexes, and precision',
     icon: <Wind size={16} />,
     examples: ['Dodging attacks', 'Sneaking quietly', 'Picking locks', 'Aiming accurately'],
-    color: 'text-green-600 dark:text-green-400'
+    color: 'text-green-600'
   },
   CON: {
     name: 'CON',
@@ -53,7 +54,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Endurance and physical resilience',
     icon: <Heart size={16} />,
     examples: ['Resisting poison', 'Enduring harsh weather', 'Holding breath', 'Fighting fatigue'],
-    color: 'text-pink-600 dark:text-pink-400'
+    color: 'text-pink-600'
   },
   INT: {
     name: 'INT',
@@ -61,7 +62,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Reasoning and memory',
     icon: <Brain size={16} />,
     examples: ['Recalling lore', 'Solving puzzles', 'Understanding magic', 'Analyzing clues'],
-    color: 'text-blue-600 dark:text-blue-400'
+    color: 'text-blue-600'
   },
   WIS: {
     name: 'WIS',
@@ -69,7 +70,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Awareness and intuition',
     icon: <Eye size={16} />,
     examples: ['Noticing details', 'Reading people', 'Tracking', 'Sensing danger'],
-    color: 'text-purple-600 dark:text-purple-400'
+    color: 'text-purple-600'
   },
   CHA: {
     name: 'CHA',
@@ -77,7 +78,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Force of personality and leadership',
     icon: <Sparkles size={16} />,
     examples: ['Persuading others', 'Intimidating foes', 'Performing', 'Leading'],
-    color: 'text-yellow-600 dark:text-yellow-400'
+    color: 'text-yellow-600'
   }
 }
 
@@ -130,7 +131,7 @@ const StatButton: React.FC<{
         {modifier !== 0 && (
           <div className={`
             text-xs font-mono px-2 py-1 rounded
-            ${modifier >= 0 ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'}
+            ${modifier >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
           `}>
             {modifier >= 0 ? '+' : ''}{modifier}
           </div>

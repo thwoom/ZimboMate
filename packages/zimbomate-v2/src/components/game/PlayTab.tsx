@@ -645,13 +645,14 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     }, 100)
   }
 
-  const handleDiceRoll = (result: number, modifier: number, stat: string) => {
+  const handleDiceRoll = (roll: { finalResult: number; modifier: number; outcome: string }) => {
     const diceContext: DiceRollContext = {
       id: Math.random().toString(36).substr(2, 9),
-      result: result + modifier,
-      modifier,
-      stat,
-      timestamp: new Date()
+      result: roll.finalResult,
+      modifier: roll.modifier,
+      stat: 'move',
+      timestamp: new Date(),
+      outcome: roll.outcome
     }
     setPendingDiceContext(diceContext)
   }
@@ -752,10 +753,11 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
 
               {/* Campaign Vibe Selector */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="campaign-setting" className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Campaign Setting
                 </label>
                 <select
+                  id="campaign-setting"
                   value={campaignVibe}
                   onChange={(e) => setCampaignVibe(e.target.value as CampaignVibe)}
                   className="w-full text-xs p-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
@@ -1013,12 +1015,8 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                       ) : (
                         <div className="space-y-4">
                           <ChronicleEnabledDiceRoller
-                            stat="custom"
-                            moveName="Story Roll"
-                            characterId={activeCharacter.id}
-                            context="storyteller_mode"
-                            size="large"
-                            showStatSelector={true}
+                            move="Story Roll"
+                            characterName={activeCharacter.name}
                             onRoll={handleDiceRoll}
                           />
                           <div className="text-xs text-center text-gray-500">

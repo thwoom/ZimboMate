@@ -525,7 +525,7 @@ export class ChronicleContextIntelligence {
       } else if (result === 'success') {
         suggestions.push(`${character} accomplished the goal`)
         suggestions.push(`Things went according to plan`)
-      } else if (result === 'partial_success') {
+      } else if (result === 'partial') {
         suggestions.push(`${character} succeeded, but with complications`)
         suggestions.push(`There was a cost to this success`)
       } else if (result === 'failure') {

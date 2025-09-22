@@ -14,13 +14,15 @@ export default defineConfig({
   ],
   server: {
     port: 3001,
-    strictPort: false,
+    strictPort: true,
     open: false, // Let Tauri handle opening
     host: '127.0.0.1'
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './src'),
+      // Resolve legacy imports like "src/lib/utils" without breaking
+      'src': path.resolve(__dirname, './src')
     }
   },
   build: {
