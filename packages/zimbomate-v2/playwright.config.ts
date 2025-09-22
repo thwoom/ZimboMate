@@ -23,9 +23,48 @@ export default defineConfig({
     video: 'off'
   },
   projects: [
+    // Desktop testing
     {
-      name: 'chromium',
+      name: 'Desktop Chrome',
       use: { ...devices['Desktop Chrome'] }
+    },
+    {
+      name: 'Desktop Safari',
+      use: { ...devices['Desktop Safari'] }
+    },
+    {
+      name: 'Desktop Firefox',
+      use: { ...devices['Desktop Firefox'] }
+    },
+
+    // Mobile testing
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] }
+    },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] }
+    },
+    {
+      name: 'Tablet iPad',
+      use: { ...devices['iPad Pro'] }
+    },
+
+    // Gaming-specific device testing
+    {
+      name: 'Large Desktop',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1920, height: 1080 }
+      }
+    },
+    {
+      name: 'Gaming Laptop',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1366, height: 768 }
+      }
     }
   ],
   webServer: {

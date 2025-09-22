@@ -21,6 +21,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
 import { useCampaignStore } from '../../../stores/campaignStore'
 import { formatDateRelative, formatNPCDisposition, NPCImportance, NPCDisposition } from '../../../campaignManagementMockData'
+import { NPCModal } from './NPCModal'
 import type { NPC } from '../../../models/Campaign'
 
 interface NPCManagerProps {
@@ -190,12 +191,14 @@ const NPCCard: React.FC<NPCCardProps> = ({ npc, onEdit, onDelete }) => {
   )
 }
 
-export const NPCManager: React.FC<NPCManagerProps> = ({ 
-  campaignId, 
-  searchQuery = '' 
+export const NPCManager: React.FC<NPCManagerProps> = ({
+  campaignId,
+  searchQuery = ''
 }) => {
   const [filterByImportance, setFilterByImportance] = useState<NPCImportance | ''>('')
   const [filterByDisposition, setFilterByDisposition] = useState<NPCDisposition | ''>('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingNPC, setEditingNPC] = useState<NPC | undefined>()
   const [sortBy, setSortBy] = useState<'name' | 'importance' | 'firstMet' | 'lastSeen'>('name')
   
   const campaign = useCampaignStore(state => state.getCampaign(campaignId))
@@ -255,8 +258,8 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
   }, [campaign, searchQuery, filterByImportance, filterByDisposition, sortBy])
 
   const handleEditNPC = (npc: NPC) => {
-    // TODO: Implement edit NPC modal
-    console.log('Edit NPC:', npc)
+    setEditingNPC(npc)
+    setIsModalOpen(true)
   }
 
   const handleDeleteNPC = (npcId: string) => {
@@ -266,8 +269,17 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
   }
 
   const handleCreateNPC = () => {
-    // TODO: Implement create NPC modal
-    console.log('Create NPC')
+    setEditingNPC(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setEditingNPC(undefined)
+  }
+
+  const handleNPCSaved = (npcId: string) => {
+    console.log('NPC saved:', npcId)
   }
 
   if (!campaign) {
@@ -285,7 +297,8 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -410,6 +423,16 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
           ))}
         </div>
       )}
-    </div>
+      </div>
+
+      {/* NPC Modal */}
+      <NPCModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        campaignId={campaignId}
+        npc={editingNPC}
+        onSaved={handleNPCSaved}
+      />
+    </>
   )
 }

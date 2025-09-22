@@ -1,252 +1,369 @@
 import React, { useState } from 'react'
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent,
+import {
+  Card,
   Button,
   Input,
   Progress,
   Badge
 } from '../ui'
-import { Heart, Zap, Star, Sword, Shield, Eye, Brain, BicepsFlexed, Users, Sparkles } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Heart, Star, Eye, Brain, BicepsFlexed, Users, Edit3, AlertTriangle, Scale } from 'lucide-react'
+import { getXPThreshold, type Attributes } from '../../models/Character'
+import { useXPStore } from '../../stores/xpStore'
+import { useCharacterStore } from '../../stores/characterStore'
 
-interface CharacterStats {
-  strength: number
-  dexterity: number
-  constitution: number
-  intelligence: number
-  wisdom: number
-  charisma: number
-}
+// Use the standard Attributes from Character model
+type CharacterStats = Attributes
 
 interface CharacterData {
+  id: string
   name: string
   class: string
   level: number
   hp: { current: number; max: number }
-  mana: { current: number; max: number }
-  experience: { current: number; max: number }
+  xp: number // Dungeon World uses simple XP, not current/max
   stats: CharacterStats
 }
 
 const mockCharacter: CharacterData = {
+  id: "eldara-moonwhisper",
   name: "Eldara Moonwhisper",
   class: "Wizard",
   level: 5,
-  hp: { current: 32, max: 45 },
-  mana: { current: 28, max: 40 },
-  experience: { current: 2750, max: 3000 },
+  hp: { current: 16, max: 18 }, // Corrected: Base 4 + Constitution 14 = 18
+  xp: 11, // Corrected: Level 5 character with 11 XP (needs 12 to level up: 5+7)
   stats: {
-    strength: 8,
-    dexterity: 12,
-    constitution: 14,
-    intelligence: 18,
-    wisdom: 16,
-    charisma: 10
+    STR: 8,
+    DEX: 12,
+    CON: 14,
+    INT: 18,
+    WIS: 16,
+    CHA: 10
   }
 }
 
 const statIcons = {
-  strength: BicepsFlexed,
-  dexterity: Eye,
-  constitution: Heart,
-  intelligence: Brain,
-  wisdom: Eye,
-  charisma: Users
+  STR: BicepsFlexed,
+  DEX: Eye,
+  CON: Heart,
+  INT: Brain,
+  WIS: Eye,
+  CHA: Users
+}
+
+// Helper function to get active debilities
+const getActiveDebilities = (character: any) => {
+  if (!character.debilities) return []
+
+  const debilityList = [
+    { key: 'weak', name: 'Weak', color: 'text-error' },
+    { key: 'shaky', name: 'Shaky', color: 'text-(--orange-600)' },
+    { key: 'sick', name: 'Sick', color: 'text-success' },
+    { key: 'stunned', name: 'Stunned', color: 'text-(--magic-600)' },
+    { key: 'confused', name: 'Confused', color: 'text-info' },
+    { key: 'scarred', name: 'Scarred', color: 'text-(--color-text-muted)' }
+  ]
+
+  return debilityList.filter(debility => character.debilities[debility.key])
+}
+
+// Helper function to get active bonds summary
+const getActiveBonds = (character: any) => {
+  if (!character.bonds) return []
+  return character.bonds.filter((bond: any) => !bond.resolved).slice(0, 3) // Show max 3
 }
 
 export const CharacterSheet: React.FC = () => {
-  const [character, setCharacter] = useState<CharacterData>(mockCharacter)
+  // Connect to character store
+  const { getActiveCharacter, updateCharacter } = useCharacterStore()
+  const activeCharacter = getActiveCharacter()
+
+  // Convert store character to display format if needed
+  const character = activeCharacter ? {
+    id: activeCharacter.id,
+    name: activeCharacter.name,
+    class: activeCharacter.class,
+    level: activeCharacter.level,
+    hp: activeCharacter.hp,
+    xp: activeCharacter.xp,
+    stats: activeCharacter.attributes // Use attributes from store
+  } : mockCharacter // Fallback to mock for demo
+
+  // Ensure stats are numbers, not {value, modifier} objects
+  const normalizedStats = React.useMemo(() => {
+    const stats = character.stats || {}
+    const normalized: Attributes = {
+      STR: typeof stats.STR === 'object' ? stats.STR.value : stats.STR || 10,
+      DEX: typeof stats.DEX === 'object' ? stats.DEX.value : stats.DEX || 10,
+      CON: typeof stats.CON === 'object' ? stats.CON.value : stats.CON || 10,
+      INT: typeof stats.INT === 'object' ? stats.INT.value : stats.INT || 10,
+      WIS: typeof stats.WIS === 'object' ? stats.WIS.value : stats.WIS || 10,
+      CHA: typeof stats.CHA === 'object' ? stats.CHA.value : stats.CHA || 10,
+    }
+    return normalized
+  }, [character.stats])
+
+  // Use normalized stats for display
+  const displayCharacter = { ...character, stats: normalizedStats }
+
   const [isEditing, setIsEditing] = useState(false)
-  const [hoveredStat, setHoveredStat] = useState<string | null>(null)
+
+  // Connect to XP store for display only
+  const { characterXP, characterLevel } = useXPStore()
+
+  // Use real-time data if available, otherwise fall back to character data
+  const realTimeXP = characterXP[displayCharacter.id] !== undefined ? characterXP[displayCharacter.id] : displayCharacter.xp
+  const realTimeLevel = characterLevel[displayCharacter.id] !== undefined ? characterLevel[displayCharacter.id] : displayCharacter.level
+
+  // Get essential info for display
+  const activeDebilities = getActiveDebilities(character)
+  const activeBonds = getActiveBonds(character)
+  const alignment = character.alignment || 'Neutral'
 
   const getStatModifier = (stat: number): string => {
     const modifier = Math.floor((stat - 10) / 2)
     return modifier >= 0 ? `+${modifier}` : `${modifier}`
   }
 
-  const handleStatChange = (stat: keyof CharacterStats, value: number) => {
-    setCharacter(prev => ({
-      ...prev,
-      stats: {
-        ...prev.stats,
-        [stat]: Math.max(1, Math.min(20, value))
-      }
-    }))
-  }
-
-  const handleQuickAction = (action: string) => {
-    console.log(`Performing action: ${action}`)
+  const handleStatChange = (stat: keyof Attributes, value: number) => {
+    const clampedValue = Math.max(1, Math.min(20, value))
+    if (activeCharacter) {
+      updateCharacter(displayCharacter.id, {
+        attributes: {
+          ...activeCharacter.attributes,
+          [stat]: clampedValue
+        }
+      })
+    }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Character Header */}
-      <Card variant="magical" padding="lg">
-        <CardHeader>
+    <div className="space-y-4">
+      {/* Compact Header with Key Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Character Identity */}
+        <Card variant="magical" padding="md" className="lg:col-span-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl flex items-center gap-2">
-                {character.name}
-                <Sparkles size={20} className="text-(--color-primary)" />
-              </CardTitle>
-              <CardDescription className="text-lg">
-                Level {character.level} {character.class}
-              </CardDescription>
+              <h1 className="text-xl font-display font-bold flex items-center gap-2">
+                {displayCharacter.name}
+                <Button
+                  variant={isEditing ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="opacity-60 hover:opacity-100 h-6 w-6 p-0"
+                >
+                  <Edit3 size={12} />
+                </Button>
+              </h1>
+              <div className="text-sm text-muted-foreground flex items-center gap-2">
+                Level {realTimeLevel} {displayCharacter.class}
+                {/* Alignment indicator */}
+                <Badge variant="secondary" className="gap-1 text-xs">
+                  <Scale size={10} />
+                  {alignment}
+                </Badge>
+                {/* Debility warnings */}
+                {activeDebilities.length > 0 && (
+                  <Badge variant="destructive" className="gap-1 text-xs">
+                    <AlertTriangle size={10} />
+                    {activeDebilities.length} Debil{activeDebilities.length === 1 ? 'ity' : 'ities'}
+                  </Badge>
+                )}
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Badge variant="experience">
-                <Star size={14} />
-                Level {character.level}
-              </Badge>
-              <Button 
-                variant={isEditing ? "secondary" : "outline"} 
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                {isEditing ? "Save" : "Edit"}
-              </Button>
-            </div>
+            <Badge variant="experience" className="shrink-0">
+              <Star size={12} />
+              Level {realTimeLevel}
+            </Badge>
           </div>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Health */}
+        </Card>
+
+        {/* Health & XP */}
+        <Card variant="glass" padding="md">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium">Health</span>
+              <span className="text-xs font-mono">{displayCharacter.hp.current}/{displayCharacter.hp.max}</span>
+            </div>
             <Progress
               variant="health"
-              value={character.hp.current}
-              max={character.hp.max}
-              showLabel
-              label="Health Points"
+              value={displayCharacter.hp.current}
+              max={displayCharacter.hp.max}
+              className="h-2"
             />
-            
-            {/* Mana */}
-            <Progress
-              variant="mana"
-              value={character.mana.current}
-              max={character.mana.max}
-              showLabel
-              label="Mana Points"
-            />
-            
-            {/* Experience */}
+
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium">Experience</span>
+              <span className="text-xs font-mono">{realTimeXP}/{getXPThreshold(realTimeLevel)}</span>
+            </div>
             <Progress
               variant="experience"
-              value={character.experience.current}
-              max={character.experience.max}
-              showLabel
-              label="Experience"
+              value={realTimeXP}
+              max={getXPThreshold(realTimeLevel)}
+              className="h-2"
             />
           </div>
-        </CardContent>
-      </Card>
+        </Card>
+      </div>
 
-      {/* Character Stats */}
-      <Card variant="parchment" padding="lg">
-        <CardHeader>
-          <CardTitle>Ability Scores</CardTitle>
-          <CardDescription>
-            Core character attributes and modifiers
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {Object.entries(character.stats).map(([statName, statValue]) => {
-              const StatIcon = statIcons[statName as keyof CharacterStats]
-              const modifier = getStatModifier(statValue)
-              const isHovered = hoveredStat === statName
-              
-              return (
-                <Card 
-                  key={statName}
-                  variant="glass" 
-                  padding="md" 
-                  className={`text-center transition-all duration-300 cursor-pointer ${
-                    isHovered ? 'ring-2 ring-(--color-primary)/50 scale-105' : ''
-                  }`}
-                  onMouseEnter={() => setHoveredStat(statName)}
-                  onMouseLeave={() => setHoveredStat(null)}
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-center gap-2">
-                      <StatIcon 
-                        size={16} 
-                        className={`text-(--color-primary) transition-colors duration-300 ${
-                          isHovered ? 'text-(--color-primary)' : ''
-                        }`} 
-                      />
-                      <span className="text-sm font-medium font-ui capitalize">
-                        {statName.slice(0, 3)}
-                      </span>
-                    </div>
-                    
-                    {isEditing ? (
-                      <Input
-                        type="number"
-                        value={statValue}
-                        onChange={(e) => handleStatChange(
-                          statName as keyof CharacterStats, 
-                          parseInt(e.target.value) || 0
+      {/* Main Character Sheet Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* Left Column - Stats */}
+        <div className="space-y-3">
+          <Card variant="parchment" padding="sm">
+            <h3 className="text-sm font-semibold mb-3 text-center">Ability Scores</h3>
+            <div className="space-y-2">
+              {Object.entries(displayCharacter.stats).map(([statName, statValue]) => {
+                const StatIcon = statIcons[statName as keyof Attributes]
+                const modifier = getStatModifier(statValue)
+
+                return (
+                  <div key={statName} className="flex items-center gap-2 p-2 rounded bg-background/50">
+                    <StatIcon size={14} className="text-primary shrink-0" />
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="text-xs font-medium">{statName}</span>
+                      <div className="flex items-center gap-2">
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            value={statValue}
+                            onChange={(e) => handleStatChange(
+                              statName as keyof Attributes,
+                              parseInt(e.target.value) || 0
+                            )}
+                            className="w-12 h-6 text-xs text-center p-0"
+                            min="1"
+                            max="20"
+                          />
+                        ) : (
+                          <span className="text-sm font-bold w-6 text-center">{statValue}</span>
                         )}
-                        className="text-center h-8"
-                        min="1"
-                        max="20"
-                      />
-                    ) : (
-                      <div className="text-2xl font-bold font-display">
-                        {statValue}
+                        <Badge
+                          variant={parseInt(modifier) >= 0 ? "success" : "secondary"}
+                          className="text-xs min-w-8 justify-center"
+                        >
+                          {modifier}
+                        </Badge>
                       </div>
-                    )}
-                    
-                    <Badge 
-                      variant={parseInt(modifier) >= 0 ? "success" : "secondary"}
-                      className="text-xs"
-                    >
-                      {modifier}
-                    </Badge>
+                    </div>
                   </div>
-                </Card>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                )
+              })}
+            </div>
+          </Card>
+        </div>
 
-      {/* Quick Actions */}
-      <Card variant="elevated" padding="lg">
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Common character actions and abilities
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            {[
-              { variant: "primary", icon: Sword, label: "Attack", action: "attack" },
-              { variant: "secondary", icon: Shield, label: "Defend", action: "defend" },
-              { variant: "magical", icon: Zap, label: "Cast Spell", action: "cast-spell" },
-              { variant: "outline", icon: Heart, label: "Heal", action: "heal" },
-              { variant: "ghost", icon: Eye, label: "Investigate", action: "investigate" }
-            ].map(({ variant, icon: Icon, label, action }) => (
-              <Button 
-                key={action}
-                variant={variant as any}
-                onClick={() => handleQuickAction(action)}
-                className="transition-transform hover:scale-105"
-              >
-                <Icon size={16} />
-                {label}
-              </Button>
-            ))}
+        {/* Middle Columns - Moves & Equipment */}
+        <div className="lg:col-span-2 grid md:grid-cols-2 gap-4">
+          {/* Class Moves */}
+          <Card variant="elevated" padding="sm">
+            <h3 className="text-sm font-semibold mb-3">Class Moves</h3>
+            <div className="space-y-2 text-xs">
+              <div>
+                <div className="font-medium mb-1">Starting:</div>
+                <ul className="space-y-0.5 text-muted-foreground">
+                  <li>• Cast a Spell {realTimeLevel >= 1 && <span className="text-green-600">✓</span>}</li>
+                  <li>• Spellbook {realTimeLevel >= 1 && <span className="text-green-600">✓</span>}</li>
+                  <li>• Prepare Spells {realTimeLevel >= 1 && <span className="text-green-600">✓</span>}</li>
+                  <li>• Ritual</li>
+                </ul>
+              </div>
+              {realTimeLevel >= 6 && (
+                <div>
+                  <div className="font-medium mb-1">Advanced (6+):</div>
+                  <ul className="space-y-0.5 text-muted-foreground">
+                    <li>• Prodigy</li>
+                    <li>• Empowered Magic</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Equipment */}
+          <Card variant="elevated" padding="sm">
+            <h3 className="text-sm font-semibold mb-3">Equipment</h3>
+            <div className="space-y-2 text-xs">
+              <div>
+                <div className="font-medium mb-1">Weapons:</div>
+                <ul className="space-y-0.5 text-muted-foreground">
+                  <li>• Staff <span className="text-xs opacity-60">(close, two-handed)</span></li>
+                  <li>• Dagger <span className="text-xs opacity-60">(hand)</span></li>
+                </ul>
+              </div>
+              <div>
+                <div className="font-medium mb-1">Armor & Gear:</div>
+                <ul className="space-y-0.5 text-muted-foreground">
+                  <li>• Leather armor <span className="text-xs opacity-60">(1 armor, worn)</span></li>
+                  <li>• Spellbook</li>
+                  <li>• Dungeon rations <span className="text-xs opacity-60">(5 uses)</span></li>
+                  <li>• Healing potion</li>
+                  <li>• Adventuring gear</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right Column - Bonds & Notes */}
+        <Card variant="parchment" padding="sm">
+          <h3 className="text-sm font-semibold mb-3">Bonds & Status</h3>
+          <div className="space-y-3 text-xs">
+            {/* Active Bonds */}
+            <div>
+              <div className="font-medium mb-1 flex items-center justify-between">
+                Active Bonds
+                {activeBonds.length > 0 && (
+                  <Badge variant="default" className="text-xs">
+                    {activeBonds.length}
+                  </Badge>
+                )}
+              </div>
+              <div className="space-y-1 text-muted-foreground">
+                {activeBonds.length > 0 ? (
+                  activeBonds.map((bond: any, index: number) => (
+                    <div key={index} className="text-xs">
+                      • {bond.text.length > 40 ? `${bond.text.slice(0, 40)}...` : bond.text}
+                      {bond.characterName && (
+                        <span className="text-primary ml-1">({bond.characterName})</span>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs italic">No active bonds</div>
+                )}
+              </div>
+            </div>
+
+            {/* Active Debilities */}
+            {activeDebilities.length > 0 && (
+              <div>
+                <div className="font-medium mb-1 text-orange-600">Active Debilities:</div>
+                <div className="flex flex-wrap gap-1">
+                  {activeDebilities.map((debility, index) => (
+                    <Badge
+                      key={index}
+                      variant="destructive"
+                      className={`text-xs ${debility.color}`}
+                    >
+                      {debility.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div>
+              <div className="font-medium mb-1">Notes:</div>
+              <div className="p-2 rounded bg-background/50 min-h-16 text-muted-foreground italic text-xs">
+                Character background, important story details, campaign notes...
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

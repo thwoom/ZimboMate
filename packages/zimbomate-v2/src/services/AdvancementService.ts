@@ -273,7 +273,7 @@ export class AdvancementService {
       timestamp: new Date(),
     }
 
-    let updated = {
+    const updated = {
       ...character,
       advancements: [...character.advancements, advancement],
       updatedAt: new Date(),

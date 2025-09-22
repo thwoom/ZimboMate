@@ -37,6 +37,9 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
             className="equipment-slot equipment-slot-filled group relative"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleUnequip}
+            style={{ cursor: 'pointer' }}
+            title={`Click to unequip ${equippedItem.name}`}
           >
             <div className="flex flex-col items-center gap-2 p-3">
               <SlotIcon size={24} className="text-(--gold-600)" />
@@ -50,10 +53,10 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
               </div>
             </div>
 
-            {/* Unequip Button - appears on hover */}
+            {/* Unequip Button - always visible with subtle styling */}
             <motion.div
-              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"
-              initial={{ opacity: 0, scale: 0.8 }}
+              className="absolute top-1 right-1 opacity-60 group-hover:opacity-100"
+              initial={{ opacity: 0.6, scale: 0.8 }}
               whileHover={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
             >

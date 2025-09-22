@@ -311,7 +311,7 @@ class DiceModifierService {
     }>
   } {
     const modifiers = this.getActiveModifiers(context.characterId)
-    let applicableModifiers: ActiveModifier[] = []
+    const applicableModifiers: ActiveModifier[] = []
 
     // Filter modifiers based on context
     for (const modifier of modifiers) {

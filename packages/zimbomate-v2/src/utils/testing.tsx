@@ -1,6 +1,7 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor, RenderOptions } from '@testing-library/react'
+import { render, screen, waitFor, RenderOptions } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import { ThemeProvider } from '../components/ui/ThemeProvider'
 import { ErrorBoundary } from '../components/ui/ErrorBoundary'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -301,38 +302,39 @@ export const simulateUserFlow = {
 export const mockImplementations = {
   // Mock Three.js for 3D components
   mockThreeJS: () => {
-    jest.mock('three', () => ({
-      Scene: jest.fn(),
-      PerspectiveCamera: jest.fn(),
-      WebGLRenderer: jest.fn(() => ({
-        setSize: jest.fn(),
-        render: jest.fn(),
+    // This should be handled at the test file level with vi.mock()
+    return {
+      Scene: vi.fn(),
+      PerspectiveCamera: vi.fn(),
+      WebGLRenderer: vi.fn(() => ({
+        setSize: vi.fn(),
+        render: vi.fn(),
         domElement: document.createElement('canvas')
       })),
-      BoxGeometry: jest.fn(),
-      MeshBasicMaterial: jest.fn(),
-      Mesh: jest.fn()
-    }))
+      BoxGeometry: vi.fn(),
+      MeshBasicMaterial: vi.fn(),
+      Mesh: vi.fn()
+    }
   },
-  
+
   // Mock Howler for audio
   mockHowler: () => {
-    jest.mock('howler', () => ({
-      Howl: jest.fn(() => ({
-        play: jest.fn(),
-        stop: jest.fn(),
-        volume: jest.fn()
+    return {
+      Howl: vi.fn(() => ({
+        play: vi.fn(),
+        stop: vi.fn(),
+        volume: vi.fn()
       }))
-    }))
+    }
   },
-  
+
   // Mock localStorage
   mockLocalStorage: () => {
     const localStorageMock = {
-      getItem: jest.fn(),
-      setItem: jest.fn(),
-      removeItem: jest.fn(),
-      clear: jest.fn()
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn()
     }
     Object.defineProperty(window, 'localStorage', {
       value: localStorageMock

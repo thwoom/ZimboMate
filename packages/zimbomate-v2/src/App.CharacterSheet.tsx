@@ -4,7 +4,7 @@ import { ThemeProvider } from './components/ui/ThemeProvider'
 import { ThemeToggle } from './components/ui/ThemeToggle'
 import { CharacterSheet } from './components/game/CharacterSheet'
 import { Sparkles, User, Dice6, Scroll, Settings } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from './components/ui'
+import { Card, CardContent, Button } from './components/ui'
 
 type ActiveTab = 'character' | 'dice' | 'moves' | 'settings'
 

@@ -4,11 +4,8 @@
 
 import React, { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import * as Form from '@radix-ui/react-form'
 import { X, Scroll, Plus } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button } from '../../ui'
-import { Input } from '../../ui/Input'
-import { Textarea } from '../../ui/Textarea'
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea } from '../../ui'
 import { useCampaignStore } from '../../../stores/campaignStore'
 
 interface CreateCampaignModalProps {
@@ -143,8 +140,8 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
             </CardHeader>
             
             <CardContent>
-              <Form.Root onSubmit={handleSubmit} className="space-y-6">
-                <Form.Field name="name">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
                   <Input
                     label="Campaign Name"
                     placeholder="Enter campaign name..."
@@ -155,9 +152,9 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                     required
                     maxLength={100}
                   />
-                </Form.Field>
+                </div>
 
-                <Form.Field name="description">
+                <div>
                   <Textarea
                     label="Description (Optional)"
                     placeholder="Describe your campaign world, themes, or goals..."
@@ -168,7 +165,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                     rows={4}
                     maxLength={500}
                   />
-                </Form.Field>
+                </div>
 
                 <div className="flex items-center justify-end gap-3 pt-4">
                   <Button
@@ -179,28 +176,26 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                   >
                     Cancel
                   </Button>
-                  <Form.Submit asChild>
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      disabled={isSubmitting || !formData.name.trim()}
-                      className="gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={16} />
-                          Create Campaign
-                        </>
-                      )}
-                    </Button>
-                  </Form.Submit>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={isSubmitting || !formData.name.trim()}
+                    className="gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={16} />
+                        Create Campaign
+                      </>
+                    )}
+                  </Button>
                 </div>
-              </Form.Root>
+              </form>
             </CardContent>
           </Card>
         </Dialog.Content>

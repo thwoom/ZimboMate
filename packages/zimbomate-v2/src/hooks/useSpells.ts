@@ -1,479 +1,282 @@
 /**
  * useSpells Hook for ZimboMate V2
- * Spell preparation and casting system for Wizard/Cleric classes
- * Integrates SpellCastingService with character management
+ * Authentic Dungeon World spell preparation and casting system
+ * No spell slots - uses DW's prepare/cast mechanics
  */
 
 import { useCallback, useMemo, useState } from 'react'
 import { useCharacter } from './useCharacter'
 import { useDiceRoll } from './useDiceRoll'
-import { spellCastingService } from '../services/SpellCastingService'
-import { characterStateService } from '../services/CharacterStateService'
-import type { ServiceSpell, SpellClass, CastingTier, SpellCastingResult } from '../services/SpellCastingService'
+import { allDWSpells, dwWizardSpells, dwClericSpells, DWSpellClass } from '../spellBookMockData'
 
-export interface PreparedSpell extends ServiceSpell {
-  isPrepared: boolean
-  timesUsed: number
-  maxUses: number
-  canCast: boolean
-}
-
-export interface SpellSlot {
+export interface DWSpell {
+  id: string
+  name: string
   level: number
-  total: number
-  used: number
-  available: number
+  class: 'wizard' | 'cleric'
+  range: string
+  ongoing: boolean
+  description: string
+  preparationStatus: 'available' | 'prepared' | 'cast'
 }
 
-export interface CastingResult extends SpellCastingResult {
-  animationTrigger: {
+export interface SpellCastingResult {
+  success: boolean
+  roll?: number
+  modifier?: number
+  total?: number
+  result: 'success' | 'partial' | 'failure'
+  description: string
+  animationTrigger?: {
     type: 'success' | 'partial' | 'failure'
     spellLevel: number
-    spellSchool: string
+    spellClass: string
     particleColor: string
   }
 }
 
-export interface UseSpellsReturn {
+export interface UseDWSpellsReturn {
   // Character spell info
-  spellcastingClass: SpellClass | null
+  spellcastingClass: 'wizard' | 'cleric' | null
   canCastSpells: boolean
-  castingTier: CastingTier
-  
-  // Spell library
-  allSpells: ServiceSpell[]
-  availableSpells: ServiceSpell[]
-  knownSpells: ServiceSpell[]
-  preparedSpells: PreparedSpell[]
-  
-  // Spell slots
-  spellSlots: SpellSlot[]
-  hasAvailableSlots: boolean
+  characterLevel: number
+
+  // Spell library (DW system)
+  allSpells: DWSpell[]
+  availableSpells: DWSpell[]
+  preparedSpells: DWSpell[]
+  castSpells: DWSpell[] // Spells already cast today
+
+  // DW spell preparation (no slots!)
+  maxPreparedSpells: number
+  preparedCount: number
   canPrepareMore: boolean
-  
-  // Spell preparation
-  prepareSpell: (spellId: string) => void
-  unprepareSpell: (spellId: string) => void
-  prepareSpellList: (spellIds: string[]) => void
-  clearPreparedSpells: () => void
-  
-  // Spell casting
-  castSpell: (spellId: string, options?: {
-    targetId?: string
-    customModifier?: number
-    upcast?: boolean
-  }) => Promise<CastingResult>
-  castPreparedSpell: (spellId: string, options?: {
-    targetId?: string
-    customModifier?: number
-  }) => Promise<CastingResult>
-  
-  // Quick casting
-  castCantrip: (spellId: string) => Promise<CastingResult>
-  castHealingSpell: (targetId?: string) => Promise<CastingResult>
-  castDamageSpell: (targetId: string) => Promise<CastingResult>
-  
-  // Spell management
-  learnSpell: (spellId: string) => void
-  forgetSpell: (spellId: string) => void
-  getSpellsForLevel: (level: number) => ServiceSpell[]
-  searchSpells: (query: string) => ServiceSpell[]
-  
-  // Rest and recovery
-  shortRest: () => void
-  longRest: () => void
-  recoverSpellSlot: (level: number) => void
-  
-  // Spell state
-  isCasting: boolean
-  lastCastResult: CastingResult | null
-  
-  // Character context
-  character: any
-  isLoading: boolean
-  error: string | null
+
+  // Actions
+  prepareSpell: (spellId: string) => boolean
+  unprepareSpell: (spellId: string) => boolean
+  castSpell: (spellId: string) => Promise<SpellCastingResult>
+  restoreSpells: () => void // Long rest equivalent
+
+  // Character progression
+  getSpellsForLevel: (level: number) => DWSpell[]
+  canLearnSpell: (spellId: string) => boolean
 }
 
-/**
- * Hook for managing character spells and spellcasting
- * @param characterId - Character ID (optional, uses active character if not provided)
- */
-export function useSpells(characterId?: string): UseSpellsReturn {
-  const { character, isLoading, error } = useCharacter(characterId)
-  const { roll } = useDiceRoll()
-  
-  const [isCasting, setIsCasting] = useState(false)
-  const [lastCastResult, setLastCastResult] = useState<CastingResult | null>(null)
+export const useDWSpells = (): UseDWSpellsReturn => {
+  const { character } = useCharacter()
+  const { rollDice } = useDiceRoll()
+
+  const [preparedSpellIds, setPreparedSpellIds] = useState<string[]>([
+    'light', 'magic-missile', 'cure-light-wounds', 'guidance'
+  ])
+  const [castSpellIds, setCastSpellIds] = useState<string[]>([])
 
   // Determine spellcasting class
-  const spellcastingClass = useMemo((): SpellClass | null => {
-    if (!character) return null
-    
-    const className = character.class.toLowerCase()
-    if (className === 'wizard') return 'wizard'
-    if (className === 'cleric') return 'cleric'
+  const spellcastingClass = useMemo((): 'wizard' | 'cleric' | null => {
+    if (!character?.class) return null
+    if (character.class.toLowerCase() === 'wizard') return 'wizard'
+    if (character.class.toLowerCase() === 'cleric') return 'cleric'
     return null
   }, [character?.class])
 
-  const canCastSpells = useMemo(() => spellcastingClass !== null, [spellcastingClass])
+  const canCastSpells = spellcastingClass !== null
+  const characterLevel = character?.level || 1
 
-  const castingTier = useMemo((): CastingTier => {
-    if (!character || !spellcastingClass) return 'none'
-    
-    // Determine casting tier based on level
-    if (character.level >= 7) return 'full'
-    if (character.level >= 3) return 'partial'
-    return 'cantrip'
-  }, [character?.level, spellcastingClass])
+  // DW spell system calculations - CORRECTED TO USE SPELL LEVELS NOT SPELL COUNT
+  const maxPreparedSpellLevels = useMemo(() => {
+    if (!spellcastingClass) return 0
 
-  // Get all spells for the character's class
-  const allSpells = useMemo(() => {
-    if (!spellcastingClass) return []
-    return spellCastingService.getSpellsForClass(spellcastingClass)
-  }, [spellcastingClass])
+    if (spellcastingClass === 'wizard') {
+      // CORRECTED: Wizards prepare spell LEVELS totaling Level + 1 (not individual spells)
+      return characterLevel + 1
+    } else if (spellcastingClass === 'cleric') {
+      // Clerics get access to all spells of their level, but limited daily casts
+      // For simplicity, we'll say they can "prepare" Level + Wisdom modifier spell levels
+      const wisModifier = character?.stats?.wisdom ?
+        Math.floor((character.stats.wisdom - 10) / 2) : 0
+      return characterLevel + Math.max(1, wisModifier)
+    }
 
+    return 0
+  }, [spellcastingClass, characterLevel, character?.stats?.wisdom])
+
+  // Calculate total spell levels currently prepared
+  const preparedSpellLevels = useMemo(() => {
+    return preparedSpellIds.reduce((total, spellId) => {
+      const spell = availableSpells.find(s => s.id === spellId)
+      return total + (spell?.level || 0)
+    }, 0)
+  }, [preparedSpellIds, availableSpells])
+
+  // Get spells available to this class and level
   const availableSpells = useMemo(() => {
-    if (!character || !spellcastingClass) return []
-    return spellCastingService.getAvailableSpells(character, spellcastingClass)
-  }, [character, spellcastingClass])
+    if (!spellcastingClass) return []
 
-  // Get character's known and prepared spells
-  const knownSpells = useMemo(() => {
-    if (!character) return []
-    
-    // This would come from character data or be calculated based on class/level
-    // For now, assume all available spells are known
-    return availableSpells
-  }, [availableSpells])
+    const classSpells = spellcastingClass === 'wizard' ? dwWizardSpells : dwClericSpells
 
-  const preparedSpells = useMemo((): PreparedSpell[] => {
-    if (!character) return []
-
-    const characterState = characterStateService.getCharacterState(character.id)
-    const spellResources = characterState.resources.filter(r => r.type === 'spell_slots')
-
-    return knownSpells.map(spell => {
-      const resource = spellResources.find(r => r.name === spell.name)
-      const maxUses = spellcastingClass === 'wizard' ? 1 : (resource?.max || 0)
-      const timesUsed = resource ? (resource.max - resource.current) : 0
-
-      return {
+    // Can access spells of current level and below
+    return classSpells.filter(spell => spell.level <= characterLevel)
+      .map(spell => ({
         ...spell,
-        isPrepared: resource !== undefined,
-        timesUsed,
-        maxUses,
-        canCast: resource ? resource.current > 0 : false,
-      }
-    }).filter(spell => spell.isPrepared)
-  }, [character, knownSpells, spellcastingClass])
+        preparationStatus: preparedSpellIds.includes(spell.id) ?
+          (castSpellIds.includes(spell.id) ? 'cast' : 'prepared') :
+          'available'
+      })) as DWSpell[]
+  }, [spellcastingClass, characterLevel, preparedSpellIds, castSpellIds])
 
-  // Calculate spell slots
-  const spellSlots = useMemo((): SpellSlot[] => {
-    if (!character || !spellcastingClass) return []
+  const preparedSpells = availableSpells.filter(spell =>
+    preparedSpellIds.includes(spell.id) && !castSpellIds.includes(spell.id)
+  )
 
-    const slots: SpellSlot[] = []
-    const maxLevel = Math.min(9, Math.ceil(character.level / 2))
+  const castSpells = availableSpells.filter(spell =>
+    castSpellIds.includes(spell.id)
+  )
 
-    for (let level = 1; level <= maxLevel; level++) {
-      const total = spellCastingService.getSpellSlotsForLevel(character.level, level)
-      const characterState = characterStateService.getCharacterState(character.id)
-      const usedSlots = characterState.resources
-        .filter(r => r.name === `Level ${level} Spell Slot`)
-        .reduce((sum, r) => sum + (r.max - r.current), 0)
+  const preparedCount = preparedSpellIds.length
+  // CORRECTED: Check if we can prepare more based on spell LEVELS not spell COUNT
+  const canPrepareSpell = (spellLevel: number) => {
+    return preparedSpellLevels + spellLevel <= maxPreparedSpellLevels
+  }
 
-      slots.push({
-        level,
-        total,
-        used: usedSlots,
-        available: total - usedSlots,
-      })
-    }
+  // Spell actions - CORRECTED to use spell level validation
+  const prepareSpell = useCallback((spellId: string): boolean => {
+    const spell = availableSpells.find(s => s.id === spellId)
+    if (!spell || preparedSpellIds.includes(spellId)) return false
 
-    return slots
-  }, [character, spellcastingClass])
+    // Check if we have enough spell level capacity
+    if (!canPrepareSpell(spell.level)) return false
 
-  const hasAvailableSlots = useMemo(() => 
-    spellSlots.some(slot => slot.available > 0), [spellSlots])
+    setPreparedSpellIds(prev => [...prev, spellId])
+    return true
+  }, [availableSpells, preparedSpellIds, canPrepareSpell])
 
-  const canPrepareMore = useMemo(() => {
-    if (!character || !spellcastingClass) return false
-    
-    const maxPrepared = spellCastingService.getMaxPreparedSpells(character, spellcastingClass)
-    return preparedSpells.length < maxPrepared
-  }, [character, spellcastingClass, preparedSpells])
+  const unprepareSpell = useCallback((spellId: string): boolean => {
+    if (!preparedSpellIds.includes(spellId)) return false
 
-  // Spell preparation
-  const prepareSpell = useCallback((spellId: string) => {
-    if (!character || !canPrepareMore) return
+    setPreparedSpellIds(prev => prev.filter(id => id !== spellId))
+    // Also remove from cast if it was cast
+    setCastSpellIds(prev => prev.filter(id => id !== spellId))
+    return true
+  }, [preparedSpellIds])
 
-    const spell = knownSpells.find(s => s.id === spellId)
-    if (!spell) return
+  const castSpell = useCallback(async (spellId: string): Promise<SpellCastingResult> => {
+    const spell = availableSpells.find(s => s.id === spellId)
 
-    // Add spell as a resource
-    characterStateService.setResource(character.id, {
-      id: `spell-${spellId}`,
-      name: spell.name,
-      current: 1,
-      max: 1,
-      type: 'spell_slots',
-      source: 'Prepared Spell',
-      refreshOn: 'rest',
-    })
-  }, [character, canPrepareMore, knownSpells])
-
-  const unprepareSpell = useCallback((spellId: string) => {
-    if (!character) return
-
-    const characterState = characterStateService.getCharacterState(character.id)
-    const updatedResources = characterState.resources.filter(r => r.id !== `spell-${spellId}`)
-    
-    characterStateService.updateCharacterState(character.id, {
-      resources: updatedResources
-    })
-  }, [character])
-
-  const prepareSpellList = useCallback((spellIds: string[]) => {
-    clearPreparedSpells()
-    spellIds.forEach(spellId => prepareSpell(spellId))
-  }, [prepareSpell])
-
-  const clearPreparedSpells = useCallback(() => {
-    if (!character) return
-
-    const characterState = characterStateService.getCharacterState(character.id)
-    const updatedResources = characterState.resources.filter(r => r.type !== 'spell_slots')
-    
-    characterStateService.updateCharacterState(character.id, {
-      resources: updatedResources
-    })
-  }, [character])
-
-  // Spell casting
-  const castSpell = useCallback(async (spellId: string, options = {}): Promise<CastingResult> => {
-    if (!character || !spellcastingClass) {
-      throw new Error('Cannot cast spells: no character or spellcasting class')
-    }
-
-    setIsCasting(true)
-
-    try {
-      const spell = allSpells.find(s => s.id === spellId)
-      if (!spell) {
-        throw new Error(`Spell not found: ${spellId}`)
-      }
-
-      // Check if spell can be cast
-      const canCast = spellCastingService.canCastSpell(character, spell, spellcastingClass)
-      if (!canCast.canCast) {
-        throw new Error(canCast.reason)
-      }
-
-      // Roll for spell casting if required
-      let rollResult = null
-      if (spell.requiresRoll) {
-        rollResult = await roll({
-          stat: spellcastingClass === 'wizard' ? 'intelligence' : 'wisdom',
-          modifier: options.customModifier,
-          description: `Cast ${spell.name}`,
-          characterId: character.id,
-        })
-      }
-
-      // Execute spell casting
-      const castingResult = await spellCastingService.castSpell(
-        character,
-        spell,
-        spellcastingClass,
-        {
-          rollResult: rollResult?.total,
-          targetId: options.targetId,
-          upcast: options.upcast,
-        }
-      )
-
-      // Create enhanced result with animation data
-      const enhancedResult: CastingResult = {
-        ...castingResult,
-        animationTrigger: {
-          type: rollResult ? (rollResult.result as any) : 'success',
-          spellLevel: spell.level,
-          spellSchool: spell.school || 'evocation',
-          particleColor: getSpellParticleColor(spell.school || 'evocation'),
-        }
-      }
-
-      // Update spell slot usage
-      if (spell.level > 0) {
-        const slotResource = characterStateService.getCharacterState(character.id).resources
-          .find(r => r.name === `Level ${spell.level} Spell Slot`)
-        
-        if (slotResource) {
-          characterStateService.updateResource(character.id, slotResource.id, slotResource.current - 1)
-        }
-      }
-
-      setLastCastResult(enhancedResult)
-      return enhancedResult
-
-    } finally {
-      setIsCasting(false)
-    }
-  }, [character, spellcastingClass, allSpells, roll])
-
-  const castPreparedSpell = useCallback(async (spellId: string, options = {}) => {
-    const preparedSpell = preparedSpells.find(s => s.id === spellId)
-    if (!preparedSpell || !preparedSpell.canCast) {
-      throw new Error('Spell not prepared or cannot be cast')
-    }
-
-    return castSpell(spellId, options)
-  }, [preparedSpells, castSpell])
-
-  // Quick casting functions
-  const castCantrip = useCallback(async (spellId: string) => {
-    const spell = allSpells.find(s => s.id === spellId && s.level === 0)
     if (!spell) {
-      throw new Error('Cantrip not found')
+      return {
+        success: false,
+        result: 'failure',
+        description: 'Spell not found'
+      }
     }
 
-    return castSpell(spellId)
-  }, [allSpells, castSpell])
-
-  const castHealingSpell = useCallback(async (targetId?: string) => {
-    const healingSpells = preparedSpells.filter(s => 
-      s.tags?.includes('healing') && s.canCast
-    )
-    
-    if (healingSpells.length === 0) {
-      throw new Error('No healing spells available')
+    if (!preparedSpellIds.includes(spellId)) {
+      return {
+        success: false,
+        result: 'failure',
+        description: 'Spell not prepared'
+      }
     }
 
-    // Cast the lowest level healing spell available
-    const spell = healingSpells.sort((a, b) => a.level - b.level)[0]
-    return castPreparedSpell(spell.id, { targetId })
-  }, [preparedSpells, castPreparedSpell])
-
-  const castDamageSpell = useCallback(async (targetId: string) => {
-    const damageSpells = preparedSpells.filter(s => 
-      s.tags?.includes('damage') && s.canCast
-    )
-    
-    if (damageSpells.length === 0) {
-      throw new Error('No damage spells available')
+    if (castSpellIds.includes(spellId)) {
+      return {
+        success: false,
+        result: 'failure',
+        description: 'Spell already cast today'
+      }
     }
 
-    // Cast the highest level damage spell available
-    const spell = damageSpells.sort((a, b) => b.level - a.level)[0]
-    return castPreparedSpell(spell.id, { targetId })
-  }, [preparedSpells, castPreparedSpell])
+    // DW uses Cast a Spell move for most spells (roll+INT for wizard, roll+WIS for cleric)
+    const stat = spellcastingClass === 'wizard' ? 'intelligence' : 'wisdom'
+    const statValue = character?.stats?.[stat as keyof typeof character.stats] || 10
+    const modifier = Math.floor((statValue - 10) / 2)
 
-  // Spell management
-  const learnSpell = useCallback((spellId: string) => {
-    // This would add the spell to the character's known spells
-    // Implementation depends on how spells are stored on the character
+    const rollResult = rollDice(`2d6+${modifier}`)
+    const total = rollResult.total
+
+    let result: 'success' | 'partial' | 'failure'
+    let description: string
+    let success: boolean
+
+    if (total >= 10) {
+      result = 'success'
+      success = true
+      description = `${spell.name} cast successfully! ${spell.description}`
+    } else if (total >= 7) {
+      result = 'partial'
+      success = true
+      description = `${spell.name} cast with complications. The GM will describe what happens.`
+    } else {
+      result = 'failure'
+      success = false
+      description = `${spell.name} fails to take hold. The GM makes a move.`
+    }
+
+    // Mark spell as cast (DW spells can usually only be cast once per day when prepared)
+    setCastSpellIds(prev => [...prev, spellId])
+
+    return {
+      success,
+      roll: rollResult.rolls[0],
+      modifier,
+      total,
+      result,
+      description,
+      animationTrigger: {
+        type: result,
+        spellLevel: spell.level,
+        spellClass: spell.class,
+        particleColor: spell.class === 'wizard' ? '#8B5CF6' : '#F59E0B'
+      }
+    }
+  }, [availableSpells, preparedSpellIds, castSpellIds, spellcastingClass, character, rollDice])
+
+  const restoreSpells = useCallback(() => {
+    // DW "Make Camp" equivalent - restore all cast spells
+    setCastSpellIds([])
   }, [])
 
-  const forgetSpell = useCallback((spellId: string) => {
-    // This would remove the spell from the character's known spells
-    unprepareSpell(spellId)
-  }, [unprepareSpell])
-
   const getSpellsForLevel = useCallback((level: number) => {
-    return allSpells.filter(spell => spell.level === level)
-  }, [allSpells])
+    return availableSpells.filter(spell => spell.level === level)
+  }, [availableSpells])
 
-  const searchSpells = useCallback((query: string) => {
-    return spellCastingService.searchSpells(query, spellcastingClass)
-  }, [spellcastingClass])
+  const canLearnSpell = useCallback((spellId: string): boolean => {
+    const spell = allDWSpells.find(s => s.id === spellId)
+    if (!spell) return false
 
-  // Rest and recovery
-  const shortRest = useCallback(() => {
-    if (!character) return
-    characterStateService.refreshResources(character.id, 'scene')
-  }, [character])
+    // Must be the right class and level
+    if (spell.class !== spellcastingClass) return false
+    if (spell.level > characterLevel) return false
 
-  const longRest = useCallback(() => {
-    if (!character) return
-    characterStateService.refreshResources(character.id, 'rest')
-  }, [character])
-
-  const recoverSpellSlot = useCallback((level: number) => {
-    if (!character) return
-
-    const slotResource = characterStateService.getCharacterState(character.id).resources
-      .find(r => r.name === `Level ${level} Spell Slot`)
-    
-    if (slotResource && slotResource.current < slotResource.max) {
-      characterStateService.updateResource(character.id, slotResource.id, slotResource.current + 1)
-    }
-  }, [character])
+    return true
+  }, [spellcastingClass, characterLevel])
 
   return {
-    // Character spell info
     spellcastingClass,
     canCastSpells,
-    castingTier,
-    
-    // Spell library
-    allSpells,
+    characterLevel,
+
+    allSpells: allDWSpells as DWSpell[],
     availableSpells,
-    knownSpells,
     preparedSpells,
-    
-    // Spell slots
-    spellSlots,
-    hasAvailableSlots,
-    canPrepareMore,
-    
-    // Spell preparation
+    castSpells,
+
+    // CORRECTED: Return spell level information instead of spell count
+    maxPreparedSpellLevels,
+    preparedSpellLevels,
+    preparedCount, // Keep for backward compatibility
+    canPrepareSpell, // New function that takes spell level
+
     prepareSpell,
     unprepareSpell,
-    prepareSpellList,
-    clearPreparedSpells,
-    
-    // Spell casting
     castSpell,
-    castPreparedSpell,
-    
-    // Quick casting
-    castCantrip,
-    castHealingSpell,
-    castDamageSpell,
-    
-    // Spell management
-    learnSpell,
-    forgetSpell,
+    restoreSpells,
+
     getSpellsForLevel,
-    searchSpells,
-    
-    // Rest and recovery
-    shortRest,
-    longRest,
-    recoverSpellSlot,
-    
-    // Spell state
-    isCasting,
-    lastCastResult,
-    
-    // Character context
-    character,
-    isLoading,
-    error,
+    canLearnSpell
   }
 }
 
-// Helper function to get particle colors for spell schools
-function getSpellParticleColor(school: string): string {
-  const colors = {
-    evocation: '#FF6B35',     // Orange-red
-    abjuration: '#4A90E2',    // Blue
-    conjuration: '#7B68EE',   // Purple
-    divination: '#FFD700',    // Gold
-    enchantment: '#FF69B4',   // Pink
-    illusion: '#9370DB',      // Violet
-    necromancy: '#2F4F2F',    // Dark green
-    transmutation: '#32CD32', // Lime green
-  }
-  
-  return colors[school.toLowerCase()] || '#FFFFFF'
-}
+// Keep the old export name for backwards compatibility, but use the new DW system
+export const useSpells = useDWSpells

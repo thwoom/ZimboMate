@@ -103,7 +103,7 @@ export const GlassMorphismShowcase: React.FC = () => {
         <h3 className="text-display-sm">Layered Effects</h3>
         
         <div className="relative p-8 glass-surface rounded-xl">
-          <div className="absolute inset-4 glass-surface rounded-lg opacity-50"></div>
+          <div className="absolute inset-4 glass-surface rounded-lg opacity-50" />
           <div className="relative z-10 text-center space-y-4">
             <h4 className="text-xl font-display">Layered Glass Morphism</h4>
             <p className="text-body">

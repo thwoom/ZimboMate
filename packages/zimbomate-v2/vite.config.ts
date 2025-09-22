@@ -8,24 +8,21 @@ export default defineConfig({
   plugins: [
     react({
       // Enable React Fast Refresh
-      fastRefresh: true,
-      // Optimize for production
-      babel: {
-        plugins: process.env.NODE_ENV === 'production' ? [
-          ['babel-plugin-react-remove-properties', { properties: ['data-testid'] }]
-        ] : []
-      }
+      fastRefresh: true
     }),
     tailwindcss()
   ],
   server: {
-    port: 3000,
+    port: 3001,
     strictPort: true,
-    open: false
+    open: false, // Let Tauri handle opening
+    host: '127.0.0.1'
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './src'),
+      // Resolve legacy imports like "src/lib/utils" without breaking
+      'src': path.resolve(__dirname, './src')
     }
   },
   build: {

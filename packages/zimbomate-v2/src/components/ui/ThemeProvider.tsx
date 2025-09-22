@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useEffect } from 'react'
 import { useThemeStore } from '../../stores/themeStore'
-import { Theme } from '../../types/enums'
 
 interface ThemeContextType {
-  theme: Theme
-  setTheme: (theme: Theme) => void
+  isDark: boolean
+  toggleDark: () => void
   animations: boolean
   sounds: boolean
   toggleAnimations: () => void
@@ -27,8 +26,8 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const { 
-    currentTheme, 
-    setTheme, 
+    isDark, 
+    toggleDark, 
     animations, 
     sounds, 
     toggleAnimations, 
@@ -36,15 +35,17 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   } = useThemeStore()
 
   useEffect(() => {
-    const root = window.document.documentElement
-    const body = window.document.body
-    root.setAttribute('data-theme', currentTheme)
-    body.setAttribute('data-theme', currentTheme)
-  }, [currentTheme])
+    // Apply dark mode class on mount and changes
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [isDark])
 
   const value = {
-    theme: currentTheme,
-    setTheme,
+    isDark,
+    toggleDark,
     animations,
     sounds,
     toggleAnimations,

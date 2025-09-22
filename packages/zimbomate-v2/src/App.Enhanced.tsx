@@ -42,12 +42,12 @@ const mockCharacter = {
   level: 5,
   hp: { current: 18, max: 25 },
   stats: {
-    strength: { value: 12, modifier: 1 },
-    dexterity: { value: 14, modifier: 2 },
-    constitution: { value: 13, modifier: 1 },
-    intelligence: { value: 18, modifier: 4 },
-    wisdom: { value: 16, modifier: 3 },
-    charisma: { value: 15, modifier: 2 }
+    STR: { value: 12, modifier: 1 },
+    DEX: { value: 14, modifier: 2 },
+    CON: { value: 13, modifier: 1 },
+    INT: { value: 18, modifier: 4 },
+    WIS: { value: 16, modifier: 3 },
+    CHA: { value: 15, modifier: 2 }
   },
   load: { current: 8, max: 12 },
   inventory: [

@@ -1,20 +1,12 @@
-export type ColorVariant = 'parchment' | 'gold' | 'magic' | 'nature' | 'red' | 'cyber' | 'neon'
+export type ColorVariant = 'primary' | 'secondary' | 'accent' | 'muted' | 'destructive'
 
-export type Theme = 
-  | 'fantasy' 
-  | 'dark' 
-  | 'light' 
-  | 'sci-fi'
-  | 'moonlit-grimoire'
-  | 'dragonforge-ember'
-  | 'enchanted-grove'
-  | 'arcane-storm'
-  | 'ancient-sandstone'
+// Simplified theme system - only light/dark variants of Matsu theme
+export type Theme = 'light' | 'dark'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline' | 'magical' | 'cyber'
+export type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'magical'
 
-export type CardVariant = 'default' | 'elevated' | 'magical' | 'cyber' | 'glass' | 'parchment' | 'spell'
+export type CardVariant = 'default' | 'elevated' | 'magical' | 'parchment' | 'spell'
 
-export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'success' | 'warning' | 'magical' | 'outline' | 'health' | 'mana' | 'experience'
+export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'health' | 'mana' | 'experience'
 
 export type ProgressVariant = 'default' | 'health' | 'mana' | 'experience'

@@ -4,18 +4,19 @@ import { motion } from 'framer-motion'
 import { ThemeProvider } from './components/ui/ThemeProvider'
 import { ThemeToggle } from './components/ui/ThemeToggle'
 import { Card, CardContent } from './components/ui'
-import { 
-  BicepsFlexed, 
-  Feather, 
-  Shield, 
-  Brain, 
-  Eye, 
+import {
+  BicepsFlexed,
+  Feather,
+  Shield,
+  Brain,
+  Eye,
   Sparkles,
   Heart,
   Zap,
   Star,
   User
 } from 'lucide-react'
+import { getXPThreshold } from './models/Character'
 
 // Mock data for Eldara Moonwhisper
 const characterData = {
@@ -32,9 +33,9 @@ const characterData = {
     WIS: 12,
     CHA: 9,
   },
-  hp: { current: 32, max: 45 },
+  hp: { current: 17, max: 19 }, // CORRECTED: Wizard base 4 + Constitution 15 = 19
   mana: { current: 28, max: 40 },
-  experience: { current: 2750, max: 3000 },
+  xp: 10, // CORRECTED: Level 5 character with 10 XP (needs 12 to level up: 5+7)
 }
 
 const getModifier = (score: number): number => {
@@ -193,15 +194,15 @@ const HealthManaStats: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-(--parchment-900)">
-                  {characterData.experience.current}/{characterData.experience.max}
+                  {characterData.xp}/{getXPThreshold(characterData.level)}
                 </span>
               </div>
               <div className="w-full bg-(--parchment-200) rounded-full h-3 overflow-hidden">
                 <motion.div
                   className="h-3 rounded-full bg-(--gold-500) transition-all duration-300"
-                  style={{ width: `${(characterData.experience.current / characterData.experience.max) * 100}%` }}
+                  style={{ width: `${(characterData.xp / getXPThreshold(characterData.level)) * 100}%` }}
                   initial={{ width: 0 }}
-                  animate={{ width: `${(characterData.experience.current / characterData.experience.max) * 100}%` }}
+                  animate={{ width: `${(characterData.xp / getXPThreshold(characterData.level)) * 100}%` }}
                   transition={{ delay: 0.9, duration: 1 }}
                 />
               </div>

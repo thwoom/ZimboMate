@@ -1,1124 +1,201 @@
-/* === ZIMBOMATE V2 THEME SYSTEM === */
-/* Import Tailwind CSS v4 */
+/* === ZIMBOMATE V2 - MATSU THEME (GHIBLI INSPIRED) === */
 @import "tailwindcss";
 
-/* === CREATIVE MAGICAL THEME FONTS === */
-/* 
-✅ Google Fonts now loaded via HTML <link> tags in index.html for optimal performance!
-All magical theme fonts are preloaded and ready to use.
-*/
+/* === MATSU THEME FONTS === */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap');
 
-/* === ROOT THEME VARIABLES === */
-:root {
-  /* Typography */
-  --font-display: 'Cinzel', serif;
-  --font-body: 'Crimson Text', serif;
-  --font-ui: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-sci-fi: 'Orbitron', sans-serif;
+/* === SHADCN/UI BASE LAYER WITH MATSU THEME === */
+@layer base {
+  :root {
+    /* Matsu Theme - Ghibli Studio Inspired Colors */
+    --background: 48 46% 95%;
+    --foreground: 25 25% 15%;
+    --card: 48 46% 92%;
+    --card-foreground: 25 25% 15%;
+    --popover: 48 46% 92%;
+    --popover-foreground: 25 25% 15%;
+    --primary: 25 85% 45%;
+    --primary-foreground: 48 46% 95%;
+    --secondary: 48 30% 85%;
+    --secondary-foreground: 25 25% 15%;
+    --muted: 48 30% 88%;
+    --muted-foreground: 25 15% 45%;
+    --accent: 142 40% 60%;
+    --accent-foreground: 25 25% 15%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 48 46% 95%;
+    --border: 48 30% 82%;
+    --input: 48 30% 82%;
+    --ring: 25 85% 45%;
+    --radius: 0.75rem;
+
+    /* Typography - Matsu Theme Fonts */
+    --font-sans: 'Nunito', system-ui, sans-serif;
+    --font-serif: 'PT Sans', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    
+    /* Gaming-specific colors (keeping for ZimboMate functionality) */
+    --health: 142 70% 50%;
+    --mana: 217 70% 60%;
+    --experience: 43 85% 55%;
+    --equipment: 25 85% 45%;
+    
+    /* Font synthesis and rendering */
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark {
+    --background: 25 25% 8%;
+    --foreground: 48 46% 95%;
+    --card: 25 25% 12%;
+    --card-foreground: 48 46% 95%;
+    --popover: 25 25% 12%;
+    --popover-foreground: 48 46% 95%;
+    --primary: 25 85% 65%;
+    --primary-foreground: 25 25% 8%;
+    --secondary: 25 15% 18%;
+    --secondary-foreground: 48 46% 95%;
+    --muted: 25 15% 18%;
+    --muted-foreground: 48 20% 65%;
+    --accent: 142 40% 70%;
+    --accent-foreground: 25 25% 8%;
+    --destructive: 0 65% 65%;
+    --destructive-foreground: 25 25% 8%;
+    --border: 25 15% 18%;
+    --input: 25 15% 18%;
+    --ring: 25 85% 65%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    position: relative;
+  }
+
+  /* Matsu Theme Texture Background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: -1;
+    background-image: 
+      radial-gradient(circle at 25% 25%, hsl(var(--primary)) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, hsl(var(--accent)) 0%, transparent 50%),
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        hsl(var(--primary) / 0.03) 2px,
+        hsl(var(--primary) / 0.03) 4px
+      );
+    background-size: 200px 200px, 150px 150px, 20px 20px;
+  }
+}
+
+/* === MATSU THEME UTILITIES === */
+@layer components {
+  /* Gaming-specific badge variants for ZimboMate */
+  .badge-health {
+    @apply bg-green-500 text-white hover:bg-green-600;
+  }
   
-  /* Creative Magical Theme Fonts with Clean Fallbacks */
-  --font-moonlit: 'Uncial Antiqua', 'Almendra', 'Times New Roman', serif;
-  --font-moonlit-body: 'Spectral', 'Georgia', 'Times New Roman', serif;
-  --font-dragonforge: 'Metamorphous', 'MedievalSharp', 'Papyrus', fantasy;
-  --font-dragonforge-body: 'Crimson Text', 'Georgia', 'Times New Roman', serif;
-  --font-grove: 'Kalam', 'Philosopher', 'Brush Script MT', cursive;
-  --font-grove-body: 'Nunito', 'Verdana', 'Arial', sans-serif;
-  --font-storm: 'Orbitron', 'Courier New', 'Monaco', monospace;
-  --font-storm-body: 'Exo 2', 'Arial', 'Helvetica', sans-serif;
-  --font-sandstone: 'Cinzel', 'Times New Roman', serif;
-  --font-sandstone-body: 'Lora', 'Georgia', 'Times New Roman', serif;
+  .badge-mana {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
   
-  /* Fallback creative fonts */
-  --font-mystical: 'Almendra', 'Times New Roman', serif;
-  --font-ancient: 'MedievalSharp', 'Papyrus', fantasy;
-  --font-magical: 'Philosopher', 'Arial', sans-serif;
+  .badge-experience {
+    @apply bg-yellow-500 text-white hover:bg-yellow-600;
+  }
 
-  /* Base Colors - Parchment & Warmth */
-  --parchment-50: #fdfcf8;
-  --parchment-100: #f9f6ed;
-  --parchment-200: #f3ede0;
-  --parchment-300: #e8dcc6;
-  --parchment-400: #dcc9a0;
-  --parchment-500: #d4c8a8;
-  --parchment-600: #c4b088;
-  --parchment-700: #a89d7e;
-  --parchment-800: #8b7355;
-  --parchment-900: #6b5940;
-  --parchment-950: #4a3d2a;
-
-  /* Mystical Gold */
-  --gold-50: #fefce8;
-  --gold-100: #fef9c3;
-  --gold-200: #fef08a;
-  --gold-300: #fde047;
-  --gold-400: #f4d03f;
-  --gold-500: #d4af37;
-  --gold-600: #ca8a04;
-  --gold-700: #a67c00;
-  --gold-800: #854d0e;
-  --gold-900: #713f12;
-  --gold-950: #422006;
-
-  /* Enchanted Purple */
-  --magic-50: #faf5ff;
-  --magic-100: #f3e8ff;
-  --magic-200: #e9d5ff;
-  --magic-300: #d8b4fe;
-  --magic-400: #c084fc;
-  --magic-500: #a855f7;
-  --magic-600: #9333ea;
-  --magic-700: #7c3aed;
-  --magic-800: #6b21a8;
-  --magic-900: #581c87;
-  --magic-950: #3b0764;
-
-  /* Nature Green */
-  --nature-50: #f0fdf4;
-  --nature-100: #dcfce7;
-  --nature-200: #bbf7d0;
-  --nature-300: #86efac;
-  --nature-400: #4ade80;
-  --nature-500: #22c55e;
-  --nature-600: #16a34a;
-  --nature-700: #15803d;
-  --nature-800: #166534;
-  --nature-900: #14532d;
-  --nature-950: #052e16;
-
-  /* Status Colors */
-  --red-50: #fef2f2;
-  --red-400: #f87171;
-  --red-500: #ef4444;
-  --red-600: #dc2626;
-  --red-700: #b91c1c;
-
-  --yellow-400: #facc15;
-  --yellow-500: #eab308;
-  --yellow-600: #ca8a04;
-
-  --orange-500: #f97316;
-  --orange-600: #ea580c;
-
-  --blue-600: #2563eb;
-  --blue-700: #1d4ed8;
-
-  --green-600: #16a34a;
-  --green-700: #15803d;
-
-  /* Cyber/Sci-Fi Colors */
-  --cyber-50: #eff6ff;
-  --cyber-100: #dbeafe;
-  --cyber-200: #bfdbfe;
-  --cyber-300: #93c5fd;
-  --cyber-400: #60a5fa;
-  --cyber-500: #3b82f6;
-  --cyber-600: #2563eb;
-  --cyber-700: #1d4ed8;
-  --cyber-800: #1e40af;
-  --cyber-900: #1e3a8a;
-  --cyber-950: #172554;
-
-  --neon-50: #f0fdf4;
-  --neon-100: #dcfce7;
-  --neon-200: #bbf7d0;
-  --neon-300: #86efac;
-  --neon-400: #4ade80;
-  --neon-500: #00ff88;
-  --neon-600: #00c853;
-  --neon-700: #00a142;
-  --neon-800: #047857;
-  --neon-900: #065f46;
-  --neon-950: #004d1c;
-
-  /* Font synthesis and rendering */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* === THEME VARIANTS === */
-/* Fantasy Theme (Default) */
-:root,
-[data-theme="fantasy"] {
-  --color-background: var(--parchment-50);
-  --color-surface: var(--parchment-100);
-  --color-surface-elevated: var(--parchment-200);
-  --color-primary: var(--gold-500);
-  --color-primary-hover: var(--gold-600);
-  --color-secondary: var(--magic-500);
-  --color-accent: var(--nature-500);
-  --color-text-primary: var(--parchment-900);
-  --color-text-secondary: var(--parchment-700);
-  --color-text-muted: var(--parchment-600);
-  --color-border: var(--parchment-300);
-  --color-border-hover: var(--gold-300);
-}
-
-/* Dark Theme */
-[data-theme="dark"] {
-  --color-background: #0a0a0a;
-  --color-surface: #1a1a1a;
-  --color-surface-elevated: #2a2a2a;
-  --color-primary: var(--gold-400);
-  --color-primary-hover: var(--gold-300);
-  --color-secondary: var(--magic-400);
-  --color-accent: var(--nature-400);
-  --color-text-primary: #f5f5f5;
-  --color-text-secondary: #d4d4d4;
-  --color-text-muted: #a3a3a3;
-  --color-border: #404040;
-  --color-border-hover: var(--gold-600);
-}
-
-/* Light Theme */
-[data-theme="light"] {
-  --color-background: #ffffff;
-  --color-surface: #f8fafc;
-  --color-surface-elevated: #f1f5f9;
-  --color-primary: var(--gold-600);
-  --color-primary-hover: var(--gold-700);
-  --color-secondary: var(--magic-600);
-  --color-accent: var(--nature-600);
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #475569;
-  --color-text-muted: #64748b;
-  --color-border: #e2e8f0;
-  --color-border-hover: var(--gold-400);
-}
-
-/* Sci-Fi Theme */
-[data-theme="sci-fi"] {
-  --color-background: #0c0c0f;
-  --color-surface: #1a1a2e;
-  --color-surface-elevated: #16213e;
-  --color-primary: var(--cyber-400);
-  --color-primary-hover: var(--cyber-300);
-  --color-secondary: var(--neon-400);
-  --color-accent: var(--magic-400);
-  --color-text-primary: #e2e8f0;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #94a3b8;
-  --color-border: #334155;
-  --color-border-hover: var(--cyber-500);
-}
-
-/* === NEW MAGICAL THEMES === */
-
-/* 🌙 Moonlit Grimoire Theme - Deep Blues & Silver */
-[data-theme="moonlit-grimoire"] {
-  --color-background: #0a0e1a;
-  --color-surface: #1a1f35;
-  --color-surface-elevated: #2a2f45;
-  --color-primary: #e2e8f0;
-  --color-primary-hover: #f1f5f9;
-  --color-secondary: #60a5fa;
-  --color-accent: #fbbf24;
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #94a3b8;
-  --color-border: #475569;
-  --color-border-hover: #e2e8f0;
+  /* Gaming-specific progress variants */
+  .progress-health .progress-indicator {
+    @apply bg-green-500;
+  }
   
-  /* Theme-specific fonts */
-  --font-display: var(--font-moonlit);
-  --font-body: var(--font-moonlit-body);
-}
-
-/* 🔥 Dragonforge Ember Theme - Deep Reds & Molten Orange */
-[data-theme="dragonforge-ember"] {
-  --color-background: #450a0a;
-  --color-surface: #7f1d1d;
-  --color-surface-elevated: #991b1b;
-  --color-primary: #f97316;
-  --color-primary-hover: #ea580c;
-  --color-secondary: #fbbf24;
-  --color-accent: #dc2626;
-  --color-text-primary: #fef2f2;
-  --color-text-secondary: #fecaca;
-  --color-text-muted: #fca5a5;
-  --color-border: #dc2626;
-  --color-border-hover: #f97316;
+  .progress-mana .progress-indicator {
+    @apply bg-blue-500;
+  }
   
-  /* Theme-specific fonts */
-  --font-display: var(--font-dragonforge);
-  --font-body: var(--font-dragonforge-body);
-}
+  .progress-experience .progress-indicator {
+    @apply bg-yellow-500;
+  }
 
-/* 🌿 Enchanted Grove Theme - Rich Forest Greens & Cyan */
-[data-theme="enchanted-grove"] {
-  --color-background: #064e3b;
-  --color-surface: #065f46;
-  --color-surface-elevated: #047857;
-  --color-primary: #10b981;
-  --color-primary-hover: #059669;
-  --color-secondary: #06b6d4;
-  --color-accent: #8b5cf6;
-  --color-text-primary: #ecfdf5;
-  --color-text-secondary: #d1fae5;
-  --color-text-muted: #a7f3d0;
-  --color-border: #10b981;
-  --color-border-hover: #059669;
+  /* Matsu-themed card variants */
+  .card-magical {
+    @apply bg-gradient-to-br from-card to-card/80 border-primary/20 shadow-lg hover:shadow-xl hover:shadow-primary/10;
+  }
   
-  /* Theme-specific fonts */
-  --font-display: var(--font-grove);
-  --font-body: var(--font-grove-body);
-}
-
-/* ⚡ Arcane Storm Theme - Electric Purple & Magenta */
-[data-theme="arcane-storm"] {
-  --color-background: #581c87;
-  --color-surface: #7c2d92;
-  --color-surface-elevated: #a21caf;
-  --color-primary: #e879f9;
-  --color-primary-hover: #d946ef;
-  --color-secondary: #c084fc;
-  --color-accent: #06b6d4;
-  --color-text-primary: #fdf4ff;
-  --color-text-secondary: #f3e8ff;
-  --color-text-muted: #e9d5ff;
-  --color-border: #e879f9;
-  --color-border-hover: #d946ef;
+  .card-parchment {
+    @apply bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm;
+  }
   
-  /* Theme-specific fonts */
-  --font-display: var(--font-storm);
-  --font-body: var(--font-storm-body);
-}
+  .card-spell {
+    @apply bg-gradient-to-br from-card to-card/90 border-l-4 border-l-primary relative overflow-hidden;
+  }
 
-/* 🏺 Ancient Sandstone Theme - Warm Terracotta & Gold */
-[data-theme="ancient-sandstone"] {
-  --color-background: #fef7ed;
-  --color-surface: #fed7aa;
-  --color-surface-elevated: #fdba74;
-  --color-primary: #c2410c;
-  --color-primary-hover: #9a3412;
-  --color-secondary: #0891b2;
-  --color-accent: #7c3aed;
-  --color-text-primary: #431407;
-  --color-text-secondary: #9a3412;
-  --color-text-muted: #c2410c;
-  --color-border: #c2410c;
-  --color-border-hover: #9a3412;
-  
-  /* Theme-specific fonts */
-  --font-display: var(--font-sandstone);
-  --font-body: var(--font-sandstone-body);
-}
-
-/* === EQUIPMENT & INVENTORY SPECIFIC STYLES === */
-:root {
-  --equipment-equipped: var(--gold-500);
-  --equipment-weapon: var(--red-600);
-  --equipment-armor: var(--blue-600);
-  --equipment-consumable: var(--green-600);
-  --equipment-treasure: var(--gold-400);
-  --equipment-magical: var(--magic-500);
-  
-  /* Load tracking colors */
-  --load-normal: var(--nature-500);
-  --load-encumbered: var(--yellow-500);
-  --load-overloaded: var(--red-500);
-  
-  /* Drag and drop feedback */
-  --drag-active: var(--magic-400);
-  --drop-zone-valid: var(--nature-400);
-  --drop-zone-invalid: var(--red-400);
-  
-  /* Campaign-specific color variables */
-  --color-campaign-primary: var(--color-primary);
-  --color-campaign-secondary: var(--color-secondary);
-  --color-session: var(--nature-500);
-  --color-journal: var(--magic-500);
-  --color-npc: var(--gold-500);
-  --color-location: var(--parchment-600);
-  
-  /* Importance levels */
-  --color-importance-high: var(--red-500);
-  --color-importance-medium: var(--yellow-500);
-  --color-importance-low: #9ca3af;
-  
-  /* NPC disposition colors */
-  --color-disposition-friendly: var(--nature-500);
-  --color-disposition-neutral: #6b7280;
-  --color-disposition-hostile: var(--red-500);
-  --color-disposition-unknown: var(--magic-500);
-  
-  /* Location type colors */
-  --color-location-city: var(--blue-600);
-  --color-location-town: var(--nature-500);
-  --color-location-village: var(--yellow-500);
-  --color-location-dungeon: var(--red-500);
-  --color-location-wilderness: var(--parchment-600);
-  --color-location-other: #6b7280;
-}
-
-/* === CUSTOM UTILITIES === */
-.glass-surface {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.magical-glow {
-  box-shadow: 0 0 20px var(--color-primary), 0 4px 12px rgba(212, 175, 55, 0.3);
-}
-
-.cyber-glow {
-  box-shadow: 0 0 20px var(--cyber-400), 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.character-card {
-  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-elevated) 100%);
-  border: 1px solid var(--color-border);
-}
-
-.cyber-card {
-  background: linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(22, 33, 62, 0.8) 100%);
-  border: 1px solid var(--cyber-600);
-}
-
-.parchment-texture {
-  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-elevated) 100%);
-  background-image: 
-    radial-gradient(circle at 25% 25%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(168, 157, 126, 0.1) 0%, transparent 50%);
-}
-
-.enchanted-button {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  border: 1px solid var(--color-primary);
-}
-
-.magical-border {
-  border: 2px solid;
-  border-image: linear-gradient(45deg, var(--gold-400), var(--magic-400), var(--gold-400)) 1;
-}
-
-.spell-book-page {
-  background: linear-gradient(135deg, var(--parchment-50) 0%, var(--parchment-100) 100%);
-  border-left: 4px solid var(--gold-500);
-  position: relative;
-}
-
-.spell-book-page::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.1) 2%, transparent 4%),
-    repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(212, 175, 55, 0.1) 25px);
-  pointer-events: none;
-}
-
-.equipment-glow {
-  box-shadow: 0 0 20px var(--equipment-magical), 0 4px 12px rgba(147, 51, 234, 0.3);
-}
-
-.load-bar-gradient {
-  background: linear-gradient(90deg, var(--load-normal) 0%, var(--load-encumbered) 70%, var(--load-overloaded) 100%);
-}
-
-.drag-preview {
-  transform: rotate(5deg) scale(1.05);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-}
-
-.drop-zone-active {
-  border: 2px dashed var(--drop-zone-valid);
-  background: rgba(34, 197, 94, 0.1);
-}
-
-.item-equipped {
-  border-color: var(--equipment-equipped);
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
-}
-
-.container-highlight {
-  background: linear-gradient(135deg, var(--parchment-50) 0%, var(--parchment-100) 100%);
-  border: 1px solid var(--parchment-300);
-}
-
-/* Campaign-specific utility classes */
-.campaign-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-primary);
-  border-opacity: 0.2;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-}
-
-.campaign-card-hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border-color: var(--color-primary);
-  border-opacity: 0.3;
-  transform: translateY(-1px);
-}
-
-.campaign-stat-card {
-  background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-background) 100%);
-  text-align: center;
-  padding: 1rem;
-}
-
-.importance-badge-high {
-  background-color: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.importance-badge-medium {
-  background-color: #fefce8;
-  color: #a16207;
-  border: 1px solid #fde68a;
-}
-
-.importance-badge-low {
-  background-color: #f9fafb;
-  color: #4b5563;
-  border: 1px solid #e5e7eb;
-}
-
-.disposition-badge-friendly {
-  background-color: #f0fdf4;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-}
-
-.disposition-badge-neutral {
-  background-color: #f9fafb;
-  color: #4b5563;
-  border: 1px solid #e5e7eb;
-}
-
-.disposition-badge-hostile {
-  background-color: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.disposition-badge-unknown {
-  background-color: #faf5ff;
-  color: #7c3aed;
-  border: 1px solid #e9d5ff;
-}
-
-.campaign-tab-active {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary) 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
-}
-
-.campaign-empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: var(--color-text-muted);
-  background: radial-gradient(circle at center, var(--color-surface) 0%, var(--color-background) 100%);
-}
-
-/* Modal and Dialog Styles */
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal-content {
-  background: var(--color-surface);
-  border: 1px solid var(--color-primary);
-  border-opacity: 0.2;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-/* Select Component Styles */
-.select-trigger {
-  background: var(--color-surface);
-  border: 1px solid var(--color-primary);
-  border-opacity: 0.2;
-  color: var(--color-text-primary);
-}
-
-.select-trigger:hover {
-  border-opacity: 0.4;
-}
-
-.select-content {
-  background: var(--color-surface);
-  border: 1px solid var(--color-primary);
-  border-opacity: 0.2;
-  box-shadow: 0 10px 38px -10px rgba(0, 0, 0, 0.35), 0 10px 20px -15px rgba(0, 0, 0, 0.2);
-}
-
-/* Loading Spinner */
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* Line clamp utility */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
-
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-/* === TYPOGRAPHY UTILITIES === */
-.text-display-lg {
-  font-family: var(--font-display) !important;
-  font-size: 3rem;
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--color-text-primary);
-}
-
-.text-display-md {
-  font-family: var(--font-display) !important;
-  font-size: 2.25rem;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: var(--color-text-primary);
-}
-
-.text-display-sm {
-  font-family: var(--font-display) !important;
-  font-size: 1.875rem;
-  font-weight: 500;
-  line-height: 1.3;
-  color: var(--color-text-primary);
-}
-
-.text-body-lg {
-  font-family: var(--font-body) !important;
-  font-size: 1.125rem;
-  font-weight: 400;
-  line-height: 1.6;
-  color: var(--color-text-secondary);
-}
-
-.text-body-regular {
-  font-family: var(--font-body) !important;
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: var(--color-text-secondary);
-}
-
-.text-body-sm {
-  font-family: var(--font-body) !important;
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.4;
-  color: var(--color-text-secondary);
-}
-
-.text-ui-regular {
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--color-text-primary);
-}
-
-.text-ui-small {
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.3;
-  color: var(--color-text-muted);
+  /* Matsu-themed button variants */
+  .button-magical {
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground hover:from-primary/90 hover:to-accent/90 shadow-lg hover:shadow-xl;
+  }
 }
 
 /* === GLOBAL STYLES === */
 #root {
   margin: auto;
+  min-height: 100vh;
 }
 
-body {
-  font-family: var(--font-body) !important;
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+/* Typography classes using Matsu fonts */
+.font-display {
+  font-family: var(--font-serif);
+  font-weight: 700;
 }
 
-/* Force theme-specific fonts with high specificity */
-[data-theme="enchanted-grove"] .text-display-lg,
-[data-theme="enchanted-grove"] .text-display-md,
-[data-theme="enchanted-grove"] .text-display-sm,
-[data-theme="enchanted-grove"] h1,
-[data-theme="enchanted-grove"] h2,
-[data-theme="enchanted-grove"] h3 {
-  font-family: 'Kalam', cursive !important;
+.font-body {
+  font-family: var(--font-sans);
+  font-weight: 400;
 }
 
-[data-theme="moonlit-grimoire"] .text-display-lg,
-[data-theme="moonlit-grimoire"] .text-display-md,
-[data-theme="moonlit-grimoire"] .text-display-sm,
-[data-theme="moonlit-grimoire"] h1,
-[data-theme="moonlit-grimoire"] h2,
-[data-theme="moonlit-grimoire"] h3 {
-  font-family: 'Uncial Antiqua', serif !important;
-}
-
-[data-theme="dragonforge-ember"] .text-display-lg,
-[data-theme="dragonforge-ember"] .text-display-md,
-[data-theme="dragonforge-ember"] .text-display-sm,
-[data-theme="dragonforge-ember"] h1,
-[data-theme="dragonforge-ember"] h2,
-[data-theme="dragonforge-ember"] h3 {
-  font-family: 'Metamorphous', fantasy !important;
-}
-
-[data-theme="arcane-storm"] .text-display-lg,
-[data-theme="arcane-storm"] .text-display-md,
-[data-theme="arcane-storm"] .text-display-sm,
-[data-theme="arcane-storm"] h1,
-[data-theme="arcane-storm"] h2,
-[data-theme="arcane-storm"] h3 {
-  font-family: 'Orbitron', monospace !important;
-}
-
-[data-theme="ancient-sandstone"] .text-display-lg,
-[data-theme="ancient-sandstone"] .text-display-md,
-[data-theme="ancient-sandstone"] .text-display-sm,
-[data-theme="ancient-sandstone"] h1,
-[data-theme="ancient-sandstone"] h2,
-[data-theme="ancient-sandstone"] h3 {
-  font-family: 'Cinzel', serif !important;
-}
-
-/* Force body fonts for each theme */
-[data-theme="enchanted-grove"] .text-body-lg,
-[data-theme="enchanted-grove"] .text-body-regular,
-[data-theme="enchanted-grove"] .text-body-sm,
-[data-theme="enchanted-grove"] p {
-  font-family: 'Nunito', sans-serif !important;
-}
-
-[data-theme="moonlit-grimoire"] .text-body-lg,
-[data-theme="moonlit-grimoire"] .text-body-regular,
-[data-theme="moonlit-grimoire"] .text-body-sm,
-[data-theme="moonlit-grimoire"] p {
-  font-family: 'Spectral', serif !important;
-}
-
-[data-theme="dragonforge-ember"] .text-body-lg,
-[data-theme="dragonforge-ember"] .text-body-regular,
-[data-theme="dragonforge-ember"] .text-body-sm,
-[data-theme="dragonforge-ember"] p {
-  font-family: 'Crimson Text', serif !important;
-}
-
-[data-theme="arcane-storm"] .text-body-lg,
-[data-theme="arcane-storm"] .text-body-regular,
-[data-theme="arcane-storm"] .text-body-sm,
-[data-theme="arcane-storm"] p {
-  font-family: 'Exo 2', sans-serif !important;
-}
-
-[data-theme="ancient-sandstone"] .text-body-lg,
-[data-theme="ancient-sandstone"] .text-body-regular,
-[data-theme="ancient-sandstone"] .text-body-sm,
-[data-theme="ancient-sandstone"] p {
-  font-family: 'Lora', serif !important;
-}
-
-/* Scrollbar Styling */
+/* Scrollbar styling with Matsu theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-surface);
+  background: hsl(var(--muted));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
+  background: hsl(var(--primary));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-hover);
+  background: hsl(var(--primary) / 0.8);
 }
 
-/* Selection Styling */
+/* Selection styling */
 ::selection {
-  background: var(--color-primary);
-  color: var(--color-background);
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
 }
 
-/* Focus Styles */
+/* Focus styles */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
-}
-
-/* Animation Utilities */
-@keyframes magical-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.shimmer-effect {
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
-  background-size: 200% 100%;
-  animation: magical-shimmer 2s infinite;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .text-display-lg {
-    font-size: 2.25rem;
-  }
-  
-  .text-display-md {
-    font-size: 1.875rem;
-  }
-}
-
-/* === SPELL BOOK SPECIFIC STYLES === */
-:root {
-  /* Spell Book specific colors */
-  --spell-book-leather: #8B4513;
-  --spell-book-leather-dark: #654321;
-  --spell-book-pages: #F5F5DC;
-  --spell-book-pages-aged: #F0E68C;
-  --spell-book-text: #2F1B14;
-  --spell-book-gold-accent: #FFD700;
-  --spell-book-magical-glow: #9370DB;
-  
-  /* Spell school colors */
-  --spell-abjuration: #4169E1;
-  --spell-conjuration: #32CD32;
-  --spell-divination: #FFD700;
-  --spell-enchantment: #FF69B4;
-  --spell-evocation: #FF4500;
-  --spell-illusion: #9370DB;
-  --spell-necromancy: #2F4F4F;
-  --spell-transmutation: #FF6347;
-  
-  /* Spell slot gem colors */
-  --spell-slot-available: #00FF7F;
-  --spell-slot-used: #696969;
-  --spell-slot-prepared: #4169E1;
-  
-  /* Animation variables */
-  --page-turn-duration: 0.8s;
-  --magical-glow-intensity: 0.6;
-  --particle-count: 20;
-}
-
-.spell-book-container {
-  background: linear-gradient(45deg, var(--spell-book-leather), var(--spell-book-leather-dark));
-  border: 3px solid var(--spell-book-gold-accent);
-  border-radius: 12px;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 2px 4px rgba(255, 215, 0, 0.2);
-  transform-style: preserve-3d;
-  perspective: 1000px;
-}
-
-.spell-book-page-turning {
-  transform: rotateY(-180deg);
-  z-index: 10;
-}
-
-.spell-slot-gem {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid var(--spell-book-gold-accent);
-  position: relative;
-  overflow: hidden;
-}
-
-.spell-slot-gem::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transform: rotate(45deg);
-  animation: gem-shine 3s linear infinite;
-}
-
-@keyframes gem-shine {
-  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-}
-
-.spell-school-abjuration { background-color: var(--spell-abjuration); }
-.spell-school-conjuration { background-color: var(--spell-conjuration); }
-.spell-school-divination { background-color: var(--spell-divination); }
-.spell-school-enchantment { background-color: var(--spell-enchantment); }
-.spell-school-evocation { background-color: var(--spell-evocation); }
-.spell-school-illusion { background-color: var(--spell-illusion); }
-.spell-school-necromancy { background-color: var(--spell-necromancy); }
-.spell-school-transmutation { background-color: var(--spell-transmutation); }
-
-/* === FILE MANAGEMENT UTILITIES === */
-.file-dropzone {
-  border: 2px dashed var(--color-primary);
-  border-radius: 12px;
-  background: var(--color-surface);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    border-color: var(--color-primary-hover);
-    background: var(--color-surface-elevated);
-  }
-  
-  &[data-dragover="true"] {
-    border-color: var(--nature-500);
-    background: rgba(34, 197, 94, 0.1);
-    transform: scale(1.02);
-  }
-}
-
-.file-item-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-  }
-  
-  &[data-selected="true"] {
-    border-color: var(--color-primary);
-    background: rgba(212, 175, 55, 0.1);
-  }
-}
-
-.validation-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  
-  &[data-status="valid"] {
-    background: rgba(34, 197, 94, 0.1);
-    color: var(--nature-600);
-  }
-  
-  &[data-status="invalid"] {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--red-600);
-  }
-  
-  &[data-status="warning"] {
-    background: rgba(234, 179, 8, 0.1);
-    color: var(--yellow-600);
-  }
-}
-
-.progress-ring {
-  transform: rotate(-90deg);
-  
-  circle {
-    fill: none;
-    stroke-width: 3;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.3s ease;
-  }
-  
-  .progress-bg {
-    stroke: var(--color-border);
-  }
-  
-  .progress-fill {
-    stroke: var(--color-primary);
-  }
-}
-
-/* File management specific variables */
-:root {
-  --color-success: var(--nature-500);
-  --color-success-light: rgba(34, 197, 94, 0.1);
-  --color-success-dark: var(--nature-600);
-  --color-error: var(--red-500);
-  --color-error-light: rgba(239, 68, 68, 0.1);
-  --color-error-dark: var(--red-600);
-  --color-warning: var(--yellow-500);
-  --color-warning-light: rgba(234, 179, 8, 0.1);
-  --color-warning-dark: var(--yellow-600);
-  --color-primary-light: rgba(212, 175, 55, 0.1);
-  --color-shadow: rgba(0, 0, 0, 0.1);
-}
-
-/* Help System Utilities */
-.help-content {
-  line-height: 1.7;
-}
-
-.help-content h1, .help-content h2, .help-content h3 {
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-}
-
-.help-content h1:first-child, .help-content h2:first-child, .help-content h3:first-child {
-  margin-top: 0;
-}
-
-.help-content p {
-  margin-bottom: 1rem;
-}
-
-.help-content ul, .help-content ol {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-}
-
-.help-content li {
-  margin-bottom: 0.5rem;
-}
-
-.help-content table {
-  margin-bottom: 1.5rem;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.help-content th, .help-content td {
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
-  text-align: left;
-}
-
-.help-content th {
-  font-weight: 600;
-  background-color: var(--color-surface-elevated);
-  border-bottom: 2px solid var(--color-border);
-}
-
-.help-content code {
-  background-color: var(--color-surface-elevated);
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
-  font-size: 0.875em;
-  font-family: var(--font-mono);
-}
-
-.help-content pre {
-  background-color: var(--color-surface-elevated);
-  padding: 1rem;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-  margin-bottom: 1rem;
-}
-
-.help-content pre code {
-  background: none;
-  padding: 0;
-}
-
-.help-search-highlight {
-  background-color: var(--color-primary);
-  color: white;
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
-}
-
-/* === MAGICAL THEME EFFECTS === */
-
-/* Moonlit Grimoire Effects - Silver & Blue */
-[data-theme="moonlit-grimoire"] .moonlit-glow {
-  box-shadow: 0 0 20px rgba(226, 232, 240, 0.4), 0 0 40px rgba(96, 165, 250, 0.3);
-}
-
-[data-theme="moonlit-grimoire"] .starfield-bg {
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, rgba(226, 232, 240, 0.8), transparent),
-    radial-gradient(2px 2px at 40px 70px, rgba(96, 165, 250, 0.6), transparent),
-    radial-gradient(1px 1px at 90px 40px, rgba(226, 232, 240, 0.5), transparent),
-    radial-gradient(1px 1px at 130px 80px, rgba(251, 191, 36, 0.4), transparent);
-}
-
-/* Dragonforge Ember Effects - Orange & Red */
-[data-theme="dragonforge-ember"] .ember-glow {
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.5), 0 0 40px rgba(220, 38, 38, 0.4);
-}
-
-[data-theme="dragonforge-ember"] .forge-sparks {
-  background-image: 
-    radial-gradient(2px 2px at 25px 15px, rgba(249, 115, 22, 0.8), transparent),
-    radial-gradient(1px 1px at 75px 45px, rgba(251, 191, 36, 0.6), transparent),
-    radial-gradient(2px 2px at 120px 25px, rgba(220, 38, 38, 0.7), transparent);
-}
-
-/* Enchanted Grove Effects - Green & Cyan */
-[data-theme="enchanted-grove"] .nature-glow {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(6, 182, 212, 0.3);
-}
-
-[data-theme="enchanted-grove"] .bioluminescent-dots {
-  background-image: 
-    radial-gradient(2px 2px at 30px 20px, rgba(16, 185, 129, 0.7), transparent),
-    radial-gradient(1px 1px at 80px 60px, rgba(6, 182, 212, 0.5), transparent),
-    radial-gradient(2px 2px at 140px 35px, rgba(139, 92, 246, 0.4), transparent);
-}
-
-/* Arcane Storm Effects - Magenta & Purple */
-[data-theme="arcane-storm"] .lightning-glow {
-  box-shadow: 0 0 20px rgba(232, 121, 249, 0.5), 0 0 40px rgba(192, 132, 252, 0.4);
-}
-
-[data-theme="arcane-storm"] .electric-field {
-  background-image: 
-    linear-gradient(45deg, transparent 40%, rgba(232, 121, 249, 0.2) 50%, transparent 60%),
-    linear-gradient(-45deg, transparent 40%, rgba(192, 132, 252, 0.15) 50%, transparent 60%);
-}
-
-/* Ancient Sandstone Effects - Terracotta & Teal */
-[data-theme="ancient-sandstone"] .sandstone-glow {
-  box-shadow: 0 0 20px rgba(194, 65, 12, 0.4), 0 0 40px rgba(8, 145, 178, 0.3);
-}
-
-[data-theme="ancient-sandstone"] .hieroglyph-pattern {
-  background-image: 
-    repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(194, 65, 12, 0.1) 12px, rgba(194, 65, 12, 0.1) 13px),
-    repeating-linear-gradient(-45deg, transparent, transparent 18px, rgba(8, 145, 178, 0.08) 18px, rgba(8, 145, 178, 0.08) 19px);
-}
-
-/* Universal magical shimmer for all new themes */
-[data-theme="moonlit-grimoire"] .magical-shimmer,
-[data-theme="dragonforge-ember"] .magical-shimmer,
-[data-theme="enchanted-grove"] .magical-shimmer,
-[data-theme="arcane-storm"] .magical-shimmer,
-[data-theme="ancient-sandstone"] .magical-shimmer {
-  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-  background-size: 200% 100%;
-  animation: magical-shimmer 3s infinite;
-}
-
-/* Print Styles */
-@media print {
-  * {
-    background: transparent !important;
-    color: black !important;
-    box-shadow: none !important;
-  }
 }

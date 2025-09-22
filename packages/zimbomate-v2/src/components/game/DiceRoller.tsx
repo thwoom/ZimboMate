@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, Button } from '../ui'
 import { Dice6, Plus, Minus } from 'lucide-react'
 import { MagicalParticles } from '../animations/MagicalParticles'
+import { cn } from '@/lib/utils'
 
 interface DiceResult {
   dice1: number
@@ -69,10 +70,10 @@ const getOutcome = (total: number): 'success' | 'partial' | 'failure' => {
 
 const getOutcomeColor = (outcome: string) => {
   switch (outcome) {
-    case 'success': return 'text-(--nature-500)'
-    case 'partial': return 'text-(--gold-500)'
-    case 'failure': return 'text-(--red-500)'
-    default: return 'text-(--color-text-primary)'
+    case 'success': return 'text-green-600'
+    case 'partial': return 'text-yellow-600'
+    case 'failure': return 'text-red-600'
+    default: return 'text-foreground'
   }
 }
 
@@ -133,7 +134,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
     <Card variant="magical" padding="lg" className="relative overflow-hidden">
       <MagicalParticles 
         trigger={showParticles} 
-        color={result?.outcome === 'success' ? '#22c55e' : result?.outcome === 'partial' ? '#d4af37' : '#ef4444'}
+        color={result?.outcome === 'success' ? '#16a34a' : result?.outcome === 'partial' ? '#ca8a04' : '#dc2626'}
         count={result?.outcome === 'success' ? 30 : 20}
       />
       
@@ -200,7 +201,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
               initial="hidden"
               animate="visible"
               exit="hidden"
-              className="space-y-3"
+              className="space-y-3 dice-result roll-result"
             >
               <div className="text-center">
                 <div className="text-sm text-(--color-text-secondary) font-mono">

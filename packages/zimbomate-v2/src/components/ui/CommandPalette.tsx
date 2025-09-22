@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import * as Dialog from '@radix-ui/react-dialog'
-import { Search, Command, Zap, User, Dice6, Scroll, Package, NotebookPen, MapPin, Settings } from 'lucide-react'
+import { Search, Command, Zap, User, Dice6, Scroll, Package, NotebookPen, MapPin, Settings, Sword, Shield, Eye, Brain, BicepsFlexed, Users } from 'lucide-react'
 import { keyboardShortcutsService, type KeyboardShortcut } from '../../services/KeyboardShortcutsService'
+import { useDiceStore } from '../../stores/diceStore'
 
 interface CommandPaletteProps {
   isOpen: boolean
@@ -30,6 +31,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Access dice store for rolling
+  const { rollStat, rollMove, rollCustom, clearAllHistory } = useDiceStore()
 
   // Define available commands
   const commands: CommandAction[] = useMemo(() => [
@@ -97,7 +101,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => onNavigate?.('settings')
     },
 
-    // Quick Actions
+    // Quick Dice Actions
     {
       id: 'quick-roll-2d6',
       title: 'Quick 2d6 Roll',
@@ -106,36 +110,127 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: Dice6,
       shortcut: 'Space',
       action: () => {
-        onAction?.('quick-roll-2d6')
-        onNavigate?.('dice')
+        rollCustom(0, { label: 'Quick Roll', description: 'Command Palette Quick Roll' }, 'eldara-moonwhisper')
+        onClose()
       }
     },
+
+    // Stat Roll Commands
     {
       id: 'roll-strength',
-      title: 'Roll + Strength',
-      description: 'Roll 2d6 + Strength modifier',
+      title: 'Roll Strength',
+      description: 'Roll 2d6 + STR modifier',
       category: 'dice',
-      icon: Zap,
-      shortcut: '1 (in dice tab)',
+      icon: BicepsFlexed,
+      shortcut: 'S',
       action: () => {
-        onAction?.('roll-strength')
-        onNavigate?.('dice')
+        rollStat('STR', 'eldara-moonwhisper', 'Command Palette STR Roll')
+        onClose()
       }
     },
     {
       id: 'roll-dexterity',
-      title: 'Roll + Dexterity',
-      description: 'Roll 2d6 + Dexterity modifier',
+      title: 'Roll Dexterity',
+      description: 'Roll 2d6 + DEX modifier',
       category: 'dice',
-      icon: Zap,
-      shortcut: '2 (in dice tab)',
+      icon: Eye,
+      shortcut: 'D',
       action: () => {
-        onAction?.('roll-dexterity')
-        onNavigate?.('dice')
+        rollStat('DEX', 'eldara-moonwhisper', 'Command Palette DEX Roll')
+        onClose()
       }
     },
     {
       id: 'roll-constitution',
+      title: 'Roll Constitution',
+      description: 'Roll 2d6 + CON modifier',
+      category: 'dice',
+      icon: Shield,
+      shortcut: 'C',
+      action: () => {
+        rollStat('CON', 'eldara-moonwhisper', 'Command Palette CON Roll')
+        onClose()
+      }
+    },
+    {
+      id: 'roll-intelligence',
+      title: 'Roll Intelligence',
+      description: 'Roll 2d6 + INT modifier',
+      category: 'dice',
+      icon: Brain,
+      shortcut: 'I',
+      action: () => {
+        rollStat('INT', 'eldara-moonwhisper', 'Command Palette INT Roll')
+        onClose()
+      }
+    },
+    {
+      id: 'roll-wisdom',
+      title: 'Roll Wisdom',
+      description: 'Roll 2d6 + WIS modifier',
+      category: 'dice',
+      icon: Eye,
+      shortcut: 'W',
+      action: () => {
+        rollStat('WIS', 'eldara-moonwhisper', 'Command Palette WIS Roll')
+        onClose()
+      }
+    },
+    {
+      id: 'roll-charisma',
+      title: 'Roll Charisma',
+      description: 'Roll 2d6 + CHA modifier',
+      category: 'dice',
+      icon: Users,
+      shortcut: 'H',
+      action: () => {
+        rollStat('CHA', 'eldara-moonwhisper', 'Command Palette CHA Roll')
+        onClose()
+      }
+    },
+
+    // Move Roll Commands
+    {
+      id: 'roll-hack-and-slash',
+      title: 'Hack and Slash',
+      description: 'Roll STR for melee attack',
+      category: 'dice',
+      icon: Sword,
+      shortcut: 'Shift+Q',
+      action: () => {
+        rollMove('hack-and-slash', 'STR', 'eldara-moonwhisper')
+        onClose()
+      }
+    },
+    {
+      id: 'roll-defend',
+      title: 'Defend',
+      description: 'Roll CON to defend',
+      category: 'dice',
+      icon: Shield,
+      shortcut: 'Shift+E',
+      action: () => {
+        rollMove('defend', 'CON', 'eldara-moonwhisper')
+        onClose()
+      }
+    },
+
+    // Utility Commands
+    {
+      id: 'clear-dice-history',
+      title: 'Clear Dice History',
+      description: 'Clear all dice roll history',
+      category: 'dice',
+      icon: Dice6,
+      action: () => {
+        clearAllHistory()
+        onClose()
+      }
+    },
+
+    // Legacy compatibility
+    {
+      id: 'roll-constitution-old',
       title: 'Roll + Constitution',
       description: 'Roll 2d6 + Constitution modifier',
       category: 'dice',

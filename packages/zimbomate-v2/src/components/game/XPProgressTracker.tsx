@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { xpIntegrationService, type XPEntry, type XPNotification } from '../../services/XPIntegrationService'
 import { useCharacterStore } from '../../stores/characterStore'
+import { getXPThreshold } from '../../models/Character'
 
 interface XPProgressTrackerProps {
   characterId?: string
@@ -85,45 +86,36 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
     }
   }
 
-  const getLevelThresholds = () => {
-    return [7, 15, 24, 34, 45, 57, 70, 84, 99, 115]
+  const getLevelThresholds = (level: number) => {
+    // Use official DW rule: Current Level + 7
+    return getXPThreshold(level)
   }
 
   const getCurrentLevel = (totalXP: number) => {
-    const thresholds = getLevelThresholds()
+    // Start at level 1, check if we can level up
     let level = 1
-    for (let i = 0; i < thresholds.length; i++) {
-      if (totalXP >= thresholds[i]) {
-        level = i + 2
-      } else {
-        break
-      }
+    while (totalXP >= getXPThreshold(level)) {
+      level++
     }
     return level
   }
 
   const getXPToNextLevel = (totalXP: number) => {
-    const thresholds = getLevelThresholds()
     const currentLevel = getCurrentLevel(totalXP)
-    const nextThreshold = thresholds[currentLevel - 1]
-    
-    if (!nextThreshold) return 0 // Max level
+    const nextThreshold = getXPThreshold(currentLevel)
+
+    if (currentLevel >= 10) return 0 // Max level (arbitrary cap)
     return nextThreshold - totalXP
   }
 
   const getXPProgress = (totalXP: number) => {
-    const thresholds = getLevelThresholds()
     const currentLevel = getCurrentLevel(totalXP)
-    
-    if (currentLevel === 1) {
-      return (totalXP / thresholds[0]) * 100
-    }
-    
-    const prevThreshold = thresholds[currentLevel - 3] || 0
-    const nextThreshold = thresholds[currentLevel - 1]
-    
-    if (!nextThreshold) return 100 // Max level
-    
+
+    if (currentLevel >= 10) return 100 // Max level
+
+    const prevThreshold = currentLevel === 1 ? 0 : getXPThreshold(currentLevel - 1)
+    const nextThreshold = getXPThreshold(currentLevel)
+
     const progress = ((totalXP - prevThreshold) / (nextThreshold - prevThreshold)) * 100
     return Math.min(100, Math.max(0, progress))
   }

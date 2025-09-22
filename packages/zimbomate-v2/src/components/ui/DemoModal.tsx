@@ -80,7 +80,7 @@ export const DemoModal: React.FC<DemoModalProps> = ({
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-(--color-border) bg-(--color-surface) rounded-t-lg">
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-(--nature-500)"></div>
+                <div className="w-2 h-2 rounded-full bg-(--nature-500)" />
                 <Dialog.Title className="font-display font-bold text-(--color-text-primary)">
                   {title}
                 </Dialog.Title>

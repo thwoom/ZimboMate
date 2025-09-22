@@ -28,6 +28,11 @@ export interface Enhanced3DParticlesProps {
   position?: [number, number, number]
   type: 'success' | 'partial' | 'failure' | 'collision' | 'magical' | 'trail'
   intensity?: number
+}
+
+// PERFORMANCE: 3D Particles completely removed
+export const Enhanced3DParticles: React.FC<Enhanced3DParticlesProps> = () => {
+  return null
   theme?: 'fantasy' | 'sci-fi' | 'dark' | 'light'
   duration?: number
   onComplete?: () => void

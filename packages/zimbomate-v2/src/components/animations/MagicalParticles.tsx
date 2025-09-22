@@ -28,9 +28,8 @@ export const MagicalParticles: React.FC<MagicalParticlesProps> = ({
   duration = 2000,
   className = ''
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const particlesRef = useRef<Particle[]>([])
-  const animationRef = useRef<number>()
+  // PERFORMANCE: Particles completely removed
+  return null
 
   const createParticle = (x: number, y: number): Particle => ({
     id: Math.random(),
@@ -88,6 +87,8 @@ export const MagicalParticles: React.FC<MagicalParticlesProps> = ({
   }
 
   const triggerParticles = () => {
+    if (DISABLE_PARTICLES) return
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -137,6 +138,10 @@ export const MagicalParticles: React.FC<MagicalParticlesProps> = ({
     }
   }, [])
 
+  if (DISABLE_PARTICLES) {
+    return null
+  }
+
   return (
     <canvas
       ref={canvasRef}
@@ -148,6 +153,9 @@ export const MagicalParticles: React.FC<MagicalParticlesProps> = ({
 
 // Floating sparkles component for ambient magic
 export const FloatingSparkles: React.FC<{ count?: number }> = ({ count = 5 }) => {
+  // PERFORMANCE: Sparkles completely removed
+  return null
+
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {Array.from({ length: count }).map((_, i) => (
@@ -155,8 +163,8 @@ export const FloatingSparkles: React.FC<{ count?: number }> = ({ count = 5 }) =>
           key={i}
           className="absolute w-1 h-1 bg-(--color-primary) rounded-full"
           initial={{
-            x: Math.random() * 100 + '%',
-            y: Math.random() * 100 + '%',
+            x: `${Math.random() * 100  }%`,
+            y: `${Math.random() * 100  }%`,
             opacity: 0
           }}
           animate={{

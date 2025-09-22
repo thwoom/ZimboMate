@@ -11,6 +11,8 @@ interface ErrorInfo {
   timestamp: Date
   userAgent: string
   url: string
+  consoleWarnings: string[]
+  consoleErrors: string[]
 }
 
 interface ErrorBoundaryState {
@@ -23,6 +25,8 @@ interface ErrorBoundaryState {
 // Enhanced error logging
 class ErrorLogger {
   private static errors: ErrorInfo[] = []
+  private static consoleWarnings: string[] = []
+  private static consoleErrors: string[] = []
 
   static logError(error: Error, errorInfo: React.ErrorInfo) {
     const errorData: ErrorInfo = {
@@ -30,7 +34,9 @@ class ErrorLogger {
       errorInfo,
       timestamp: new Date(),
       userAgent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
+      consoleWarnings: [...this.consoleWarnings],
+      consoleErrors: [...this.consoleErrors]
     }
 
     this.errors.push(errorData)
@@ -62,6 +68,32 @@ class ErrorLogger {
 
   static clearErrors() {
     this.errors = []
+    this.consoleWarnings = []
+    this.consoleErrors = []
+  }
+
+  static captureConsoleWarnings() {
+    const originalWarn = console.warn
+    const originalError = console.error
+
+    console.warn = (...args: any[]) => {
+      const message = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ')
+      this.consoleWarnings.push(`[${new Date().toISOString()}] ${message}`)
+      if (this.consoleWarnings.length > 20) this.consoleWarnings.shift()
+      originalWarn.apply(console, args)
+    }
+
+    console.error = (...args: any[]) => {
+      const message = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ')
+      this.consoleErrors.push(`[${new Date().toISOString()}] ${message}`)
+      if (this.consoleErrors.length > 20) this.consoleErrors.shift()
+      originalError.apply(console, args)
+    }
+
+    return () => {
+      console.warn = originalWarn
+      console.error = originalError
+    }
   }
 }
 
@@ -72,13 +104,20 @@ interface ErrorFallbackProps {
   errorId: string
 }
 
-const ErrorFallback: React.FC<ErrorFallbackProps> = ({ 
-  error, 
-  resetErrorBoundary, 
-  errorId 
+const ErrorFallback: React.FC<ErrorFallbackProps> = ({
+  error,
+  resetErrorBoundary,
+  errorId
 }) => {
   const [showDetails, setShowDetails] = React.useState(false)
   const [copied, setCopied] = React.useState(false)
+  const [showConsole, setShowConsole] = React.useState(false)
+
+  // Get the latest error info which includes console warnings
+  const latestErrorInfo = React.useMemo(() => {
+    const errors = ErrorLogger.getErrors()
+    return errors[errors.length - 1]
+  }, [error])
 
   const copyErrorDetails = async () => {
     const errorDetails = {
@@ -177,6 +216,15 @@ URL: ${window.location.href}
 
                 <Button
                   variant="outline"
+                  onClick={() => setShowConsole(!showConsole)}
+                  className="gap-2"
+                >
+                  <Bug size={16} />
+                  {showConsole ? 'Hide' : 'Show'} Console
+                </Button>
+
+                <Button
+                  variant="outline"
                   onClick={reportIssue}
                   className="gap-2"
                 >
@@ -207,6 +255,50 @@ URL: ${window.location.href}
                         {error.stack}
                       </pre>
                     </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Console Warnings & Errors */}
+              {showConsole && latestErrorInfo && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-6 text-left"
+                >
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                    {latestErrorInfo.consoleErrors.length > 0 && (
+                      <div>
+                        <h3 className="font-medium text-red-700 mb-2">Console Errors:</h3>
+                        <div className="bg-red-50 rounded p-3 max-h-40 overflow-auto">
+                          {latestErrorInfo.consoleErrors.map((error, idx) => (
+                            <pre key={idx} className="text-xs text-red-600 whitespace-pre-wrap mb-1">
+                              {error}
+                            </pre>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {latestErrorInfo.consoleWarnings.length > 0 && (
+                      <div>
+                        <h3 className="font-medium text-yellow-700 mb-2">Console Warnings:</h3>
+                        <div className="bg-yellow-50 rounded p-3 max-h-40 overflow-auto">
+                          {latestErrorInfo.consoleWarnings.map((warning, idx) => (
+                            <pre key={idx} className="text-xs text-yellow-600 whitespace-pre-wrap mb-1">
+                              {warning}
+                            </pre>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(!latestErrorInfo.consoleErrors.length && !latestErrorInfo.consoleWarnings.length) && (
+                      <div className="text-sm text-gray-500">
+                        No console warnings or errors captured before this error.
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -308,6 +400,9 @@ export const useErrorHandler = () => {
 
 // Async error boundary for handling promise rejections
 export const setupGlobalErrorHandling = () => {
+  // Start capturing console warnings and errors
+  ErrorLogger.captureConsoleWarnings()
+
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     const error = new Error(`Unhandled Promise Rejection: ${event.reason}`)
