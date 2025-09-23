@@ -16,7 +16,6 @@ import {
   HelpCircle,
   BookOpen,
   ChevronDown,
-  ChevronUp,
   Search,
   Toggle,
   Keyboard,
@@ -36,14 +35,12 @@ import { KeyboardShortcutsPanel } from './KeyboardShortcutsPanel'
 import { PerformanceMonitor } from './PerformanceMonitor'
 import { AccessibilityChecker } from './AccessibilityChecker'
 import { HelpSystem } from './HelpSystem'
-import { DemoQuickAccess } from './DemoQuickAccess'
 import { FileManagementPanel } from '../game/FileManagementPanel'
 import { ThemeComponentShowcase } from './ThemeComponentShowcase'
 import { useChronicle } from '../chronicle/ChronicleProvider'
 
 interface SettingsPanelProps {
   className?: string
-  onDemoNavigate?: (demoId: string, demoTitle: string) => void
 }
 
 interface SettingsCategory {
@@ -300,8 +297,7 @@ const GameplaySettingsContent: React.FC = () => {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
-  className = '',
-  onDemoNavigate
+  className = ''
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['gameplay'])
@@ -341,7 +337,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       id: 'help',
       title: 'Help & Support',
       icon: HelpCircle,
-      description: 'Help system, demos, and keyboard shortcuts reference',
+      description: 'Help system, guides, and keyboard shortcuts reference',
       color: 'var(--purple-500)'
     }
   ]
@@ -408,9 +404,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <div className="space-y-4">
             <HelpSystem />
             <KeyboardShortcutsPanel />
-            {onDemoNavigate && (
-              <DemoQuickAccess onDemoNavigate={onDemoNavigate} />
-            )}
+            <div
+              className="p-4 rounded-lg border"
+              style={{
+                backgroundColor: 'var(--color-surface-elevated)',
+                borderColor: 'var(--color-border)'
+              }}
+            >
+              <h4 className="text-sm font-semibold mb-2">Need more assistance?</h4>
+              <p className="text-xs mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+                Explore the in-app help center, review the latest release notes, or reach out to your GM for tailored guidance.
+              </p>
+              <ul className="text-xs space-y-2" style={{ color: 'var(--color-text-secondary)' }}>
+                <li>• Use the Command Palette (<kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd>) to jump to tools quickly.</li>
+                <li>• Visit the Knowledge Base from the Help menu for setup walkthroughs and FAQs.</li>
+                <li>• Join the community Discord to share rulings, house rules, and collaborative campaigns.</li>
+              </ul>
+            </div>
           </div>
         )
 
