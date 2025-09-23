@@ -101,7 +101,7 @@ export const XPProgressBar: React.FC<{
   }
 
   return (
-    <div className={`p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border ${className}`}>
+    <div className={`p-4 bg-white rounded-lg shadow-sm border ${className}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <TrendingUp size={16} className="text-blue-600" />

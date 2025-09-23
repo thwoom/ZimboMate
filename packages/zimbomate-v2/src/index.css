@@ -40,34 +40,60 @@
     --mana: 217 70% 60%;
     --experience: 43 85% 55%;
     --equipment: 25 85% 45%;
+
+    /* Legacy alias tokens for components expecting bespoke variables */
+    --color-background: hsl(var(--background));
+    --color-bg: hsl(var(--card));
+    --color-surface: hsl(var(--card));
+    --color-surface-elevated: hsl(var(--popover));
+    --color-surface-muted: hsl(var(--muted));
+    --color-border: hsl(var(--border));
+    --color-text: hsl(var(--foreground));
+    --color-text-primary: hsl(var(--foreground));
+    --color-text-secondary: hsl(var(--muted-foreground));
+    --color-text-muted: hsl(var(--muted-foreground) / 0.85);
+    --color-primary: hsl(var(--primary));
+    --color-primary-light: hsl(var(--primary) / 0.18);
+    --color-primary-dark: hsl(var(--primary) / 0.6);
+    --color-secondary: hsl(var(--secondary));
+    --color-accent: hsl(var(--accent));
+    --color-success: hsl(var(--health));
+    --color-success-light: hsl(var(--health) / 0.2);
+    --color-warning: hsl(var(--experience));
+    --color-warning-light: hsl(var(--experience) / 0.25);
+    --color-danger: hsl(var(--destructive));
+    --color-error: hsl(var(--destructive));
+    --color-info: hsl(var(--mana));
+    --color-session: hsl(var(--primary));
+    --color-journal: hsl(var(--accent));
+    --color-npc: hsl(var(--secondary));
+    --color-location: hsl(var(--equipment));
+    --color-blue-500: #3b82f6;
+    --color-green-500: #22c55e;
+    --color-orange-500: #f97316;
+    --color-indigo-500: #6366f1;
+    --color-purple-500: #a855f7;
+    --color-red-500: #ef4444;
+    --color-gray-400: #9ca3af;
+    --color-gray-500: #6b7280;
+    --color-location-city: #2d6a8a;
+    --color-location-town: #d97706;
+    --color-location-village: #4d7c0f;
+    --color-location-dungeon: #3f3f46;
+    --color-location-wilderness: #166534;
+    --color-location-other: #7c3aed;
+    --color-disposition-friendly: hsl(var(--health));
+    --color-disposition-neutral: hsl(var(--muted-foreground));
+    --color-disposition-hostile: hsl(var(--destructive));
+    --color-disposition-unknown: hsl(var(--accent));
+    --color-importance-high: hsl(var(--destructive));
+    --color-importance-medium: hsl(var(--experience));
     
     /* Font synthesis and rendering */
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  .dark {
-    --background: 25 25% 8%;
-    --foreground: 48 46% 95%;
-    --card: 25 25% 12%;
-    --card-foreground: 48 46% 95%;
-    --popover: 25 25% 12%;
-    --popover-foreground: 48 46% 95%;
-    --primary: 25 85% 65%;
-    --primary-foreground: 25 25% 8%;
-    --secondary: 25 15% 18%;
-    --secondary-foreground: 48 46% 95%;
-    --muted: 25 15% 18%;
-    --muted-foreground: 48 20% 65%;
-    --accent: 142 40% 70%;
-    --accent-foreground: 25 25% 8%;
-    --destructive: 0 65% 65%;
-    --destructive-foreground: 25 25% 8%;
-    --border: 25 15% 18%;
-    --input: 25 15% 18%;
-    --ring: 25 85% 65%;
   }
 
   * {
@@ -136,20 +162,56 @@
 
   /* Matsu-themed card variants */
   .card-magical {
-    @apply bg-gradient-to-br from-card to-card/80 border-primary/20 shadow-lg hover:shadow-xl hover:shadow-primary/10;
+    background-image: linear-gradient(
+      to bottom right,
+      hsl(var(--card)),
+      hsl(var(--card) / 0.8)
+    );
+    border: 1px solid hsl(var(--primary) / 0.2);
+    box-shadow: 0 10px 25px hsl(var(--primary) / 0.15);
+    transition: box-shadow 0.2s ease;
   }
-  
+
+  .card-magical:hover {
+    box-shadow: 0 20px 45px hsl(var(--primary) / 0.2);
+  }
+
   .card-parchment {
-    @apply bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm;
+    background-image: linear-gradient(to bottom right, hsl(45 100% 95%), hsl(45 100% 88%));
+    border: 1px solid hsl(45 70% 80%);
+    box-shadow: 0 2px 6px hsl(25 30% 40% / 0.12);
   }
-  
+
   .card-spell {
-    @apply bg-gradient-to-br from-card to-card/90 border-l-4 border-l-primary relative overflow-hidden;
+    background-image: linear-gradient(
+      to bottom right,
+      hsl(var(--card)),
+      hsl(var(--card) / 0.9)
+    );
+    border-left: 4px solid hsl(var(--primary));
+    position: relative;
+    overflow: hidden;
   }
 
   /* Matsu-themed button variants */
   .button-magical {
-    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground hover:from-primary/90 hover:to-accent/90 shadow-lg hover:shadow-xl;
+    color: hsl(var(--primary-foreground));
+    background-image: linear-gradient(
+      to right,
+      hsl(var(--primary)),
+      hsl(var(--accent))
+    );
+    box-shadow: 0 10px 25px hsl(var(--primary) / 0.15);
+    transition: box-shadow 0.2s ease, filter 0.2s ease;
+  }
+
+  .button-magical:hover {
+    background-image: linear-gradient(
+      to right,
+      hsl(var(--primary) / 0.9),
+      hsl(var(--accent) / 0.9)
+    );
+    box-shadow: 0 15px 30px hsl(var(--primary) / 0.2);
   }
 }
 

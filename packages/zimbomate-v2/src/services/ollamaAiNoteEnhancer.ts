@@ -28,7 +28,7 @@ export interface ModelInfo {
 }
 
 export class OllamaAiNoteEnhancer {
-  private isReady = false;
+  private ready = false;
   private initializationPromise?: Promise<void>;
   public onProgress?: (progress: AIProgress) => void;
   private currentModel = 'calebfahlgren/natural-functions';
@@ -105,19 +105,19 @@ export class OllamaAiNoteEnhancer {
       // Initialize the LLM service
       await invoke('initialize_llm', { modelName: model });
 
-      this.isReady = true;
+      this.ready = true;
       this.currentModel = model;
 
       console.log(`✅ AI Note Enhancer ready with ${model}!`);
     } catch (error) {
       console.error('❌ Failed to initialize AI Note Enhancer:', error);
-      this.isReady = false;
+      this.ready = false;
       throw error;
     }
   }
 
   async enhance(note: string, vibe: CampaignVibe = 'fantasy'): Promise<EnhancementResult> {
-    if (!this.isReady) {
+    if (!this.ready) {
       throw new Error('AI not ready - call initialize() first');
     }
 
@@ -169,7 +169,7 @@ export class OllamaAiNoteEnhancer {
 
   // Legacy method for compatibility with existing code
   isReady(): boolean {
-    return this.isReady;
+    return this.ready;
   }
 
   async dispose(): Promise<void> {
@@ -184,7 +184,7 @@ export class OllamaAiNoteEnhancer {
       }
     }
 
-    this.isReady = false;
+    this.ready = false;
     this.initializationPromise = undefined;
     console.log('🧹 AI Note Enhancer disposed');
   }
@@ -196,7 +196,7 @@ export class OllamaAiNoteEnhancer {
 
   // Method to switch models if needed
   async switchModel(modelName: string): Promise<void> {
-    this.isReady = false;
+    this.ready = false;
     this.initializationPromise = undefined;
     this.currentModel = modelName;
 

@@ -5,17 +5,13 @@ import * as RechartsPrimitive from "recharts"
 
 import { cn } from "src/lib/utils"
 
-// Format: { THEME_NAME: CSS_SELECTOR }
-const THEMES = { light: "", dark: ".dark" } as const
-
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode
     icon?: React.ComponentType
-  } & (
-    | { color?: string; theme?: never }
-    | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  )
+    color?: string
+    theme?: Record<string, string | undefined>
+  }
 }
 
 type ChartContextProps = {
@@ -70,33 +66,30 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme || config.color
-  )
+  const declarations = Object.entries(config)
+    .map(([key, itemConfig]) => {
+      const themeValues = itemConfig.theme ?? {}
+      const resolvedColor =
+        itemConfig.color ??
+        themeValues.light ??
+        themeValues.default ??
+        themeValues.base ??
+        themeValues.dark ??
+        Object.values(themeValues).find(Boolean)
 
-  if (!colorConfig.length) {
+      return resolvedColor ? ` --color-${key}: ${resolvedColor};` : ""
+    })
+    .filter(Boolean)
+    .join("\n")
+
+  if (!declarations) {
     return null
   }
 
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
+        __html: `[data-chart=${id}] {${declarations}}`,
       }}
     />
   )
