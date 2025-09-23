@@ -88,6 +88,55 @@
     --color-disposition-unknown: hsl(var(--accent));
     --color-importance-high: hsl(var(--destructive));
     --color-importance-medium: hsl(var(--experience));
+
+    /* Legacy palette compatibility - mapped to Matsu theme */
+    --parchment-50: hsl(45 55% 96%);
+    --parchment-100: hsl(45 52% 93%);
+    --parchment-200: hsl(45 48% 89%);
+    --parchment-300: hsl(42 44% 83%);
+    --parchment-400: hsl(40 40% 76%);
+    --parchment-500: hsl(38 36% 68%);
+    --parchment-600: hsl(36 32% 60%);
+    --parchment-700: hsl(34 30% 50%);
+    --parchment-800: hsl(32 28% 40%);
+    --parchment-900: hsl(30 26% 32%);
+
+    --gold-200: hsl(43 90% 82%);
+    --gold-300: hsl(43 88% 72%);
+    --gold-400: hsl(43 86% 63%);
+    --gold-500: hsl(var(--experience));
+    --gold-600: hsl(38 82% 50%);
+    --gold-700: hsl(34 78% 42%);
+
+    --magic-300: hsl(258 70% 72%);
+    --magic-400: hsl(258 66% 64%);
+    --magic-500: hsl(258 62% 56%);
+    --magic-600: hsl(258 58% 48%);
+    --magic-700: hsl(258 55% 40%);
+
+    --nature-300: hsl(142 48% 70%);
+    --nature-400: hsl(142 50% 60%);
+    --nature-500: hsl(142 55% 50%);
+    --nature-600: hsl(142 58% 40%);
+    --nature-700: hsl(142 60% 32%);
+
+    --red-500: hsl(var(--destructive));
+    --red-600: hsl(0 70% 45%);
+    --red-700: hsl(0 72% 38%);
+
+    --yellow-500: hsl(43 92% 62%);
+
+    --green-500: hsl(var(--health));
+    --green-600: hsl(142 75% 42%);
+
+    --blue-500: hsl(var(--mana));
+    --blue-600: hsl(217 75% 52%);
+
+    --danger-100: hsl(0 65% 94%);
+    --danger-500: hsl(var(--destructive));
+    --danger-600: hsl(0 70% 45%);
+
+    --purple-500: hsl(275 60% 55%);
     
     /* Font synthesis and rendering */
     font-synthesis: none;
