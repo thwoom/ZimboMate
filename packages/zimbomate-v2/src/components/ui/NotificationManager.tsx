@@ -21,10 +21,10 @@ const NotificationItem: React.FC<{
 }> = ({ notification, onDismiss, index }) => {
   const getPriorityColor = (priority: Notification['priority']) => {
     switch (priority) {
-      case 'urgent': return 'border-red-500 bg-red-50 dark:bg-red-900/20'
-      case 'high': return 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
-      case 'medium': return 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-      case 'low': return 'border-gray-300 bg-white dark:bg-gray-800'
+      case 'urgent': return 'border-red-500 bg-red-50'
+      case 'high': return 'border-orange-500 bg-orange-50'
+      case 'medium': return 'border-blue-500 bg-blue-50'
+      case 'low': return 'border-gray-300 bg-white'
     }
   }
 
@@ -57,12 +57,12 @@ const NotificationItem: React.FC<{
             {notification.icon && (
               <span className="text-lg">{notification.icon}</span>
             )}
-            <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+            <h4 className="font-semibold text-sm text-gray-900 ">
               {notification.title}
             </h4>
           </div>
 
-          <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+          <p className="text-sm text-gray-700 mb-3">
             {notification.message}
           </p>
 
@@ -148,7 +148,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => isMuted ? unmuteNotifications() : muteNotifications(5 * 60 * 1000)}
-          className="p-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+          className="p-1 bg-white/80 backdrop-blur-sm"
           title={isMuted ? 'Unmute notifications' : 'Mute for 5 minutes'}
         >
           {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
@@ -159,7 +159,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
             variant="ghost"
             size="sm"
             onClick={dismissAllNotifications}
-            className="p-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+            className="p-1 bg-white/80 backdrop-blur-sm"
             title="Dismiss all notifications"
           >
             <X size={14} />
@@ -187,7 +187,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
           animate={{ opacity: 1 }}
           className="text-center mt-2"
         >
-          <div className="text-xs text-gray-500 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded px-2 py-1">
+          <div className="text-xs text-gray-500 bg-white/80 backdrop-blur-sm rounded px-2 py-1">
             Notifications muted
           </div>
         </motion.div>
@@ -207,7 +207,7 @@ export const NotificationSettings: React.FC<{
   }
 
   return (
-    <div className={`p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border ${className}`}>
+    <div className={`p-4 bg-white rounded-lg shadow-sm border ${className}`}>
       <div className="flex items-center gap-2 mb-4">
         <Settings size={16} className="text-gray-600" />
         <h3 className="font-semibold">Notification Settings</h3>

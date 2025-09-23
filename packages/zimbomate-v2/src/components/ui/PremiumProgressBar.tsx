@@ -116,7 +116,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
   return (
     <Card
       variant="magical"
-      className={`relative overflow-hidden backdrop-blur-md bg-gradient-to-br from-white/80 to-white/60 dark:from-gray-900/80 dark:to-gray-800/60 border border-white/20 shadow-2xl ${className}`}
+      className={`relative overflow-hidden backdrop-blur-md bg-gradient-to-br from-white/80 to-white/60 border border-white/20 shadow-2xl ${className}`}
     >
       <CardContent className="p-6">
         {/* Floating Particles Background */}
@@ -179,7 +179,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
 
             <div>
               <h3 className="text-lg font-display font-semibold">AI Model {stage === 'downloading' ? 'Download' : 'Loading'}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 ">
                 {stage === 'downloading' && modelSize ? `Natural Functions 7B (${modelSize})` : 'Preparing your intelligent companion'}
               </p>
             </div>
@@ -193,7 +193,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
         {/* Progress Bar */}
         <div className="space-y-3 relative z-10">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[280px]">
+            <span className="font-medium text-gray-700 truncate max-w-[280px]">
               {text}
             </span>
             {progress > 0 && stage !== 'error' && (
@@ -212,7 +212,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
           </div>
 
           {/* Main Progress Bar */}
-          <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden shadow-inner">
+          <div className="relative w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
             {stage === 'error' ? (
               // Error state with pulsing red background
               <motion.div
@@ -292,9 +292,9 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700"
+                    className="flex items-center justify-between pt-2 border-t border-gray-200 "
                   >
-                    <p className="text-xs text-red-600 dark:text-red-400">
+                    <p className="text-xs text-red-600 ">
                       Failed to load AI model. Please check your connection.
                     </p>
                     <Button
@@ -314,7 +314,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-center gap-2 pt-2 text-green-600 dark:text-green-400"
+                    className="flex items-center justify-center gap-2 pt-2 text-green-600 "
                   >
                     <Sparkles className="w-4 h-4" />
                     <span className="text-sm font-medium">AI companion is ready to enhance your story!</span>

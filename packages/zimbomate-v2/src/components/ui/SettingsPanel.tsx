@@ -116,7 +116,7 @@ const ExpandableSettingsCard: React.FC<{
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <CardContent className="pt-0 border-t border-gray-200 dark:border-gray-700">
+            <CardContent className="pt-0 border-t border-gray-200 ">
               {children}
             </CardContent>
           </motion.div>
@@ -143,10 +143,10 @@ const GameplaySettingsContent: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Chronicle Settings - Featured */}
-      <div className="p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+      <div className="p-4 rounded-lg border-2 border-blue-200 bg-blue-50/50 ">
         <div className="flex items-center gap-2 mb-4">
           <BookOpen size={20} className="text-blue-600" />
-          <h4 className="font-semibold text-blue-900 dark:text-blue-100">Chronicle Settings</h4>
+          <h4 className="font-semibold text-blue-900 ">Chronicle Settings</h4>
           <Badge variant="default" className="text-xs">Featured</Badge>
         </div>
 
@@ -154,7 +154,7 @@ const GameplaySettingsContent: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <label className="text-sm font-medium">Chronicle Overlay</label>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-gray-600 ">
                 Show contextual chronicle prompts during gameplay
               </p>
             </div>
@@ -172,7 +172,7 @@ const GameplaySettingsContent: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-sm font-medium">Overlay Position</label>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-xs text-gray-600 ">
                     Where chronicle prompts appear on screen
                   </p>
                 </div>
@@ -196,7 +196,7 @@ const GameplaySettingsContent: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-sm font-medium">Max Prompts</label>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-xs text-gray-600 ">
                     Maximum number of prompts shown at once
                   </p>
                 </div>
@@ -231,7 +231,7 @@ const GameplaySettingsContent: React.FC = () => {
              style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
           <div>
             <label className="text-sm font-medium">Auto-save</label>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 ">
               Automatically save character data
             </p>
           </div>
@@ -248,7 +248,7 @@ const GameplaySettingsContent: React.FC = () => {
              style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
           <div>
             <label className="text-sm font-medium">Dice Sound Effects</label>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 ">
               Play sounds when rolling dice
             </p>
           </div>
@@ -265,7 +265,7 @@ const GameplaySettingsContent: React.FC = () => {
              style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
           <div>
             <label className="text-sm font-medium">Quick Rolls</label>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 ">
               Enable keyboard shortcuts for stat rolls
             </p>
           </div>
@@ -282,7 +282,7 @@ const GameplaySettingsContent: React.FC = () => {
              style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
           <div>
             <label className="text-sm font-medium">Keyboard Shortcuts</label>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 ">
               View and customize keyboard shortcuts
             </p>
           </div>
@@ -371,7 +371,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                  style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
               <div>
                 <label className="text-sm font-medium">Theme Showcase</label>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-gray-600 ">
                   Preview all themes and components
                 </p>
               </div>
