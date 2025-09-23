@@ -4,8 +4,7 @@
  * Provides staggered animations, particle systems, and performance optimization
  */
 
-import { useCallback, useMemo, useState, useEffect, useRef } from 'react'
-import { useThemeStore } from '../stores/themeStore'
+import { useCallback, useState, useEffect, useRef } from 'react'
 
 export interface AnimationPreferences {
   reduceMotion: boolean
@@ -88,8 +87,6 @@ export interface UseAnimationsReturn {
  * Hook for managing animations and visual effects
  */
 export function useAnimations(): UseAnimationsReturn {
-  const { theme } = useThemeStore()
-  
   const [preferences, setPreferences] = useState<AnimationPreferences>(() => {
     // Check for user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -128,26 +125,15 @@ export function useAnimations(): UseAnimationsReturn {
 
   // Get theme colors
   const getThemeColors = useCallback(() => {
-    const colors = {
-      primary: 'var(--color-primary)',
-      secondary: 'var(--color-secondary)',
-      accent: 'var(--color-accent)',
+    return {
+      primary: 'var(--matsu-primary, var(--color-primary))',
+      secondary: 'var(--matsu-secondary, var(--color-secondary))',
+      accent: 'var(--matsu-accent, var(--color-accent))',
       success: 'var(--color-success)',
       warning: 'var(--color-warning)',
       error: 'var(--color-error)',
     }
-
-    if (theme === 'matsu') {
-      return {
-        ...colors,
-        primary: 'var(--matsu-primary, var(--color-primary))',
-        secondary: 'var(--matsu-secondary, var(--color-secondary))',
-        accent: 'var(--matsu-accent, var(--color-accent))',
-      }
-    }
-
-    return colors
-  }, [theme])
+  }, [])
 
   // Particle effects
   const triggerParticles = useCallback((
