@@ -388,8 +388,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       <Dialog.Portal>
         <Dialog.Overlay asChild>
           <motion.div
-            className="fixed inset-0 z-50 glass-surface"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -398,8 +397,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </Dialog.Overlay>
         <Dialog.Content asChild>
           <motion.div
-            className="fixed top-[20%] left-1/2 z-50 w-full max-w-2xl -translate-x-1/2 glass-surface rounded-xl border shadow-2xl"
-            style={{ 
+            className="fixed top-[20%] left-1/2 z-50 w-full max-w-2xl -translate-x-1/2 rounded-xl border border-border/60 bg-card/95 backdrop-blur shadow-2xl"
+            style={{
               borderColor: 'var(--color-primary)',
               borderOpacity: 0.3,
               backgroundColor: 'var(--color-surface)'
@@ -453,13 +452,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     return (
                       <motion.div
                         key={command.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                          isSelected ? 'glass-surface' : ''
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${
+                          isSelected
+                            ? 'border-primary/40 bg-primary/10 shadow-sm supports-[backdrop-filter]:backdrop-blur-sm'
+                            : 'hover:bg-card/80'
                         }`}
-                        style={{
-                          backgroundColor: isSelected ? 'var(--color-primary)' : 'transparent',
-                          backgroundOpacity: isSelected ? 0.1 : 0
-                        }}
                         onClick={() => {
                           command.action()
                           onClose()

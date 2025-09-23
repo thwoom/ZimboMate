@@ -13,7 +13,7 @@ export const TypographyShowcase: React.FC = () => {
       {/* Display Typography */}
       <div className="space-y-4">
         <h3 className="text-display-sm">Display Typography</h3>
-        <div className="space-y-3 p-6 glass-surface rounded-xl">
+        <div className="space-y-3 p-6 rounded-xl border border-border/60 bg-card/90 backdrop-blur-sm">
           <h1 className="text-display-lg">The Ancient Tome of Adventures</h1>
           <h2 className="text-display-md">Chapter: The Goblin King's Lair</h2>
           <h3 className="text-display-sm">Section: The Final Battle</h3>
@@ -23,7 +23,7 @@ export const TypographyShowcase: React.FC = () => {
       {/* Body Typography */}
       <div className="space-y-4">
         <h3 className="text-display-sm">Body Typography</h3>
-        <div className="space-y-4 p-6 glass-surface rounded-xl">
+        <div className="space-y-4 p-6 rounded-xl border border-border/60 bg-card/90 backdrop-blur-sm">
           <p className="text-body-lg">
             <strong>Large Body Text:</strong> The ancient dragon stirred in its slumber, 
             golden scales catching the flickering torchlight as our heroes approached 
@@ -44,7 +44,7 @@ export const TypographyShowcase: React.FC = () => {
       {/* UI Typography */}
       <div className="space-y-4">
         <h3 className="text-display-sm">UI Typography</h3>
-        <div className="space-y-4 p-6 glass-surface rounded-xl">
+        <div className="space-y-4 p-6 rounded-xl border border-border/60 bg-card/90 backdrop-blur-sm">
           <div className="text-ui">
             <strong>UI Text:</strong> Character Sheet • Equipment • Spells
           </div>
@@ -58,25 +58,25 @@ export const TypographyShowcase: React.FC = () => {
       <div className="space-y-4">
         <h3 className="text-display-sm">Font Families</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-6 glass-surface rounded-xl">
+          <div className="p-6 rounded-xl border border-border/60 bg-card/90 backdrop-blur-sm">
             <h4 className="font-display text-xl mb-3">Cinzel Display</h4>
             <p className="font-display">The Enchanted Realm Awaits</p>
             <p className="text-sm text-(--color-text-secondary) mt-2">Used for headings and magical titles</p>
           </div>
           
-          <div className="p-6 glass-surface rounded-xl">
+          <div className="p-6 rounded-xl border border-border/60 bg-card/90 backdrop-blur-sm">
             <h4 className="font-body text-xl mb-3">Crimson Text Body</h4>
             <p className="font-body">Readable text for long passages and storytelling</p>
             <p className="text-sm text-(--color-text-secondary) mt-2">Used for body text and descriptions</p>
           </div>
           
-          <div className="p-6 glass-surface rounded-xl">
+          <div className="p-6 rounded-xl border border-border/60 bg-card/90 backdrop-blur-sm">
             <h4 className="font-ui text-xl mb-3">Inter UI</h4>
             <p className="font-ui">Clean interface elements and controls</p>
             <p className="text-sm text-(--color-text-secondary) mt-2">Used for UI elements and buttons</p>
           </div>
           
-          <div className="p-6 glass-surface rounded-xl">
+          <div className="p-6 rounded-xl border border-border/60 bg-card/90 backdrop-blur-sm">
             <h4 className="font-mono text-xl mb-3">JetBrains Mono</h4>
             <p className="font-mono">STR: 16 (+2) • DEX: 14 (+1)</p>
             <p className="text-sm text-(--color-text-secondary) mt-2">Used for stats and code</p>

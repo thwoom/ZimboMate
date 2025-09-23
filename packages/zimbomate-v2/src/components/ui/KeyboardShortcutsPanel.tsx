@@ -126,14 +126,11 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
                   <motion.button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isSelected ? 'glass-surface' : ''
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors border border-transparent ${
+                      isSelected
+                        ? 'border-primary/40 bg-primary/10 text-primary shadow-sm supports-[backdrop-filter]:backdrop-blur-sm'
+                        : 'text-muted-foreground hover:bg-card/80 hover:text-foreground'
                     }`}
-                    style={{
-                      backgroundColor: isSelected ? 'var(--color-primary)' : 'transparent',
-                      backgroundOpacity: isSelected ? 0.1 : 0,
-                      color: isSelected ? 'var(--color-primary)' : 'var(--color-text-secondary)'
-                    }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -198,7 +195,7 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
                       {category.shortcuts.map((shortcut, index) => (
                         <motion.div
                           key={shortcut.id}
-                          className="flex items-center justify-between p-3 rounded-lg glass-surface"
+                          className="flex items-center justify-between p-3 rounded-lg border border-border/60 bg-card/90 backdrop-blur-sm"
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.2, delay: index * 0.05 }}
