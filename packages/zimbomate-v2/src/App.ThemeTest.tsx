@@ -4,30 +4,17 @@ import { ThemeProvider, useTheme } from './components/ui/ThemeProvider'
 import { ThemeToggle } from './components/ui/ThemeToggle'
 import { Button } from './components/ui/Button'
 import { Card, CardContent } from './components/ui'
-import { Sparkles, Palette, Moon, Sun, Rocket } from 'lucide-react'
+import { Sparkles, Palette } from 'lucide-react'
 
 const ThemeShowcase: React.FC = () => {
   const { theme, animations, sounds, toggleAnimations, toggleSounds } = useTheme()
 
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'fantasy': return <Sparkles className="w-8 h-8" />
-      case 'dark': return <Moon className="w-8 h-8" />
-      case 'light': return <Sun className="w-8 h-8" />
-      case 'sci-fi': return <Rocket className="w-8 h-8" />
-      default: return <Palette className="w-8 h-8" />
-    }
-  }
+  const themeDisplayName = theme === 'matsu' ? 'Matsu' : theme
 
-  const getThemeDescription = () => {
-    switch (theme) {
-      case 'fantasy': return 'Magical parchment with golden accents and mystical purple highlights'
-      case 'dark': return 'Dark mode with golden highlights and purple magical elements'
-      case 'light': return 'Clean light theme with subtle golden touches'
-      case 'sci-fi': return 'Futuristic cyber theme with neon blue and green accents'
-      default: return 'Unknown theme'
-    }
-  }
+  const getThemeIcon = () => <Sparkles className="w-8 h-8" />
+
+  const getThemeDescription = () =>
+    'Ghibli-inspired visuals with warm parchment textures and magical accents.'
 
   return (
     <div 
@@ -91,7 +78,7 @@ const ThemeShowcase: React.FC = () => {
                       className="text-sm"
                       style={{ color: 'var(--color-text-secondary)' }}
                     >
-                      Current: {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                      Current: {themeDisplayName}
                     </p>
                   </div>
                 </div>

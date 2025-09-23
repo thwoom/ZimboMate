@@ -1,7 +1,7 @@
 export type ColorVariant = 'primary' | 'secondary' | 'accent' | 'muted' | 'destructive'
 
-// Simplified theme system - only light/dark variants of Matsu theme
-export type Theme = 'light' | 'dark'
+// Simplified theme system - single Matsu theme
+export type Theme = 'matsu'
 
 export type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'magical'
 

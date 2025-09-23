@@ -88,7 +88,7 @@ export interface UseAnimationsReturn {
  * Hook for managing animations and visual effects
  */
 export function useAnimations(): UseAnimationsReturn {
-  const { currentTheme } = useThemeStore()
+  const { theme } = useThemeStore()
   
   const [preferences, setPreferences] = useState<AnimationPreferences>(() => {
     // Check for user's motion preferences
@@ -137,25 +137,17 @@ export function useAnimations(): UseAnimationsReturn {
       error: 'var(--color-error)',
     }
 
-    // Override with theme-specific colors if available
-    if (currentTheme === 'fantasy') {
+    if (theme === 'matsu') {
       return {
         ...colors,
-        primary: 'var(--color-gold)',
-        secondary: 'var(--color-parchment)',
-        accent: 'var(--color-mystical-purple)',
-      }
-    } else if (currentTheme === 'sci-fi') {
-      return {
-        ...colors,
-        primary: 'var(--color-cyber-blue)',
-        secondary: 'var(--color-neon-green)',
-        accent: 'var(--color-electric-purple)',
+        primary: 'var(--matsu-primary, var(--color-primary))',
+        secondary: 'var(--matsu-secondary, var(--color-secondary))',
+        accent: 'var(--matsu-accent, var(--color-accent))',
       }
     }
 
     return colors
-  }, [currentTheme])
+  }, [theme])
 
   // Particle effects
   const triggerParticles = useCallback((

@@ -28,22 +28,24 @@ export interface Enhanced3DParticlesProps {
   position?: [number, number, number]
   type: 'success' | 'partial' | 'failure' | 'collision' | 'magical' | 'trail'
   intensity?: number
+  theme?: 'matsu'
+  duration?: number
+  onComplete?: () => void
 }
 
 // PERFORMANCE: 3D Particles completely removed
 export const Enhanced3DParticles: React.FC<Enhanced3DParticlesProps> = () => {
   return null
-  theme?: 'fantasy' | 'sci-fi' | 'dark' | 'light'
-  duration?: number
-  onComplete?: () => void
 }
 
 // Particle configurations for different effects
 const getParticleConfig = (
-  type: string, 
-  theme: string, 
+  type: string,
+  theme: string,
   intensity = 1
 ): ParticleConfig => {
+  const resolvedTheme = theme === 'matsu' ? 'fantasy' : theme
+
   const configs = {
     success: {
       fantasy: {
@@ -324,7 +326,7 @@ const getParticleConfig = (
   }
   
   const themeConfigs = configs[type as keyof typeof configs]
-  return themeConfigs[theme as keyof typeof themeConfigs] || themeConfigs.fantasy
+  return themeConfigs[resolvedTheme as keyof typeof themeConfigs] || themeConfigs.fantasy
 }
 
 // Individual particle class
