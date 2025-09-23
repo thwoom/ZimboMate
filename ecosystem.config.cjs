@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'zimbomate-v2',
-      cwd: 'C:/ZimboMate/packages/zimbomate-v2',
+      cwd: 'C:/ZimboMate',
       script: 'node',
       args: 'dev-direct.js',
       windowsHide: true,

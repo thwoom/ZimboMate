@@ -1,1 +1,0 @@
-export { Dice3D } from './Dice3D'

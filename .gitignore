@@ -23,3 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 /dist
+
+# Generated artifacts
+playwright-report/
+screenshots/
+test-output/
+test-results/
+visual-baselines/
+visual-current/
+visual-diffs/

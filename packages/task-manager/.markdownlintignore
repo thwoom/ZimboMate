@@ -1,6 +1,0 @@
-# Ignore all documentation files for formatting issues
-docs/
-*.md
-
-# Keep linting for important project files
-!README.md

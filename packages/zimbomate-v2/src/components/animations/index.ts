@@ -1,1 +1,0 @@
-export { MagicalParticles, FloatingSparkles } from './MagicalParticles'
