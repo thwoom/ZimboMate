@@ -34,7 +34,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
 
   if (!character) {
     return (
-      <Card variant="glass" padding="lg" className={className}>
+      <Card variant="surface" className={className}>
         <CardContent>
           <div className="text-center py-8">
             <Users 
@@ -161,7 +161,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       </div>
 
       {/* Overview Card */}
-      <Card variant={debilityCount > 0 ? "magical" : "glass"} padding="lg">
+      <Card variant={debilityCount > 0 ? "magical" : "surface"}>
         <CardContent>
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-3">
@@ -229,7 +229,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       )}
 
       {/* Help Text */}
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardContent>
           <div className="space-y-4">
             <h4 className="font-medium flex items-center gap-2">

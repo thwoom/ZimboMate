@@ -97,8 +97,8 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
       </div>
 
       {/* Search and Filter */}
-      <Card variant="glass" padding="md">
-        <CardContent>
+      <Card variant="surface">
+        <CardContent className="p-4">
           <div className="space-y-4">
             {/* Search */}
             <div className="relative">
@@ -153,8 +153,8 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
       {/* Shortcuts List */}
       <div className="space-y-6">
         {filteredCategories.length === 0 ? (
-          <Card variant="glass" padding="lg">
-            <CardContent>
+          <Card variant="surface">
+            <CardContent className="p-6">
               <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
                 <Search size={32} className="mx-auto mb-3 opacity-50" />
                 <p>No shortcuts found for "{searchQuery}"</p>
@@ -173,8 +173,8 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: categoryIndex * 0.1 }}
               >
-                <Card variant="magical" padding="lg">
-                  <CardContent>
+                <Card variant="magical">
+                  <CardContent className="p-6">
                     {/* Category Header */}
                     <div className="flex items-center gap-3 mb-6">
                       <div 
@@ -250,8 +250,8 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
       </div>
 
       {/* Tips */}
-      <Card variant="glass" padding="md">
-        <CardContent>
+      <Card variant="surface">
+        <CardContent className="p-4">
           <div className="space-y-3">
             <h4 className="font-medium flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
               <Zap size={16} style={{ color: 'var(--color-accent)' }} />

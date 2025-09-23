@@ -112,7 +112,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 p-4">
-          <Card variant="magical" padding="none">
+          <Card variant="magical">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

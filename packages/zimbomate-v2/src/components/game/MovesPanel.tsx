@@ -212,7 +212,7 @@ export const MovesPanel: React.FC<MovesPanelProps> = ({
       )}
 
       {/* Category Selector */}
-      <Card variant="glass" padding="md">
+      <Card variant="surface">
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="flex gap-2">
@@ -277,7 +277,6 @@ export const MovesPanel: React.FC<MovesPanelProps> = ({
               >
                 <Card
                   variant="parchment"
-                  padding="lg"
                   onClick={() => handleMoveClick(move)}
                 >
                 <CardHeader>
@@ -361,7 +360,7 @@ export const MovesPanel: React.FC<MovesPanelProps> = ({
             exit={{ opacity: 0, scale: 0.95 }}
             className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
           >
-            <Card variant="magical" padding="md" className="shadow-2xl">
+            <Card variant="magical" className="shadow-2xl">
               <CardContent>
                 <div className="flex items-center gap-4">
                   <div className="text-sm font-medium">

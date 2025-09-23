@@ -233,8 +233,8 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
         {filteredContent.map((item, index) => {
           const SectionIcon = item.sectionIcon
           return (
-            <Card key={index} variant="default" padding="md" className="hover:shadow-md transition-shadow">
-              <CardContent>
+            <Card key={index} variant="default" className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <SectionIcon size={20} style={{ color: 'var(--color-primary)' }} className="mt-1 flex-shrink-0" />
                   <div className="flex-1">
@@ -270,8 +270,8 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
 
   if (compact) {
     return (
-      <Card variant="magical" padding="lg">
-        <CardContent>
+      <Card variant="magical">
+        <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <CircleHelp size={24} style={{ color: 'var(--color-primary)' }} />
             <h3 className="text-display-sm">Help & Documentation</h3>
@@ -300,8 +300,8 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
   }
 
   return (
-    <Card variant="magical" padding="lg">
-      <CardContent>
+    <Card variant="magical">
+      <CardContent className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <CircleHelp size={28} style={{ color: 'var(--color-primary)' }} />

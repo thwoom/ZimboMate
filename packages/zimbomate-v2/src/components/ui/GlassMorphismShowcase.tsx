@@ -1,117 +1,109 @@
 import React from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Badge } from './index'
-import { Sparkles, Zap, Shield, Heart } from 'lucide-react'
+import { Sparkles, Zap, BookOpen, Heart } from 'lucide-react'
 
 export const GlassMorphismShowcase: React.FC = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-display-md mb-4">Glass Morphism Effects</h2>
+        <h2 className="text-display-md mb-4">Matsu Surface Showcase</h2>
         <p className="text-body text-(--color-text-secondary)">
-          Magical glass effects and enchanted surfaces for the fantasy theme
+          Explore the layered surfaces available in the Matsu theme—soft card panels, magical glow states, and parchment-inspired containers.
         </p>
       </div>
 
-      {/* Glass Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card variant="glass" padding="lg">
+        <Card variant="surface">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles size={20} />
-              Glass Surface
+              Soft Surface
             </CardTitle>
             <CardDescription>
-              Translucent magical surface with backdrop blur
+              Neutral container using the elevated surface tokens for everyday UI sections.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-body-sm">
-              This card demonstrates the glass morphism effect with subtle transparency 
-              and backdrop filtering.
+              Surface cards pair the base card colors with subtle shadows so secondary panels feel grounded without stealing focus.
             </p>
           </CardContent>
         </Card>
 
-        <Card variant="magical" padding="lg">
+        <Card variant="magical">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap size={20} />
-              Magical Glow
+              Magical Highlight
             </CardTitle>
             <CardDescription>
-              Enchanted surface with golden magical effects
+              Gradient glow and bespoke border styling for celebratory or spotlight content.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-body-sm">
-              Features parchment texture with magical glow effects and 
-              golden border highlights.
+              Use the magical variant for achievements, hero panels, or system feedback that deserves extra attention.
             </p>
           </CardContent>
         </Card>
 
-        <Card variant="cyber" padding="lg">
+        <Card variant="parchment">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield size={20} />
-              Cyber Glass
+              <BookOpen size={20} />
+              Parchment Panel
             </CardTitle>
             <CardDescription>
-              Futuristic glass surface with neon accents
+              Warm parchment tones suited to lore entries, journals, or campaign notes.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-body-sm">
-              Sci-fi themed glass effect with circuit patterns and 
-              cyber blue glow effects.
+              The parchment styling embraces the tabletop vibe with gentle gradients and vintage paper hues.
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Interactive Elements */}
       <div className="space-y-6">
-        <h3 className="text-display-sm">Interactive Glass Elements</h3>
-        
-        <Card variant="glass" padding="lg">
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-3">
-                <Button variant="primary">Primary Action</Button>
-                <Button variant="magical">Magical Spell</Button>
-                <Button variant="cyber">Cyber Command</Button>
-                <Button variant="ghost">Ghost Button</Button>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="magical">
-                  <Heart size={12} />
-                  Magical
-                </Badge>
-                <Badge variant="success">Success</Badge>
-                <Badge variant="warning">Warning</Badge>
-                <Badge variant="health">Health</Badge>
-                <Badge variant="mana">Mana</Badge>
-              </div>
+        <h3 className="text-display-sm">Interactive Surfaces</h3>
+
+        <Card variant="surface">
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-3">
+              <Button variant="primary">Primary Action</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="magical">Magical Spell</Button>
+              <Button variant="outline">Outline</Button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="magical" className="gap-1">
+                <Heart size={12} />
+                Magical
+              </Badge>
+              <Badge variant="success">Success</Badge>
+              <Badge variant="warning">Warning</Badge>
+              <Badge variant="health">Health</Badge>
+              <Badge variant="mana">Mana</Badge>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Layered Glass Effects */}
       <div className="space-y-4">
-        <h3 className="text-display-sm">Layered Effects</h3>
-        
-        <div className="relative p-8 glass-surface rounded-xl">
-          <div className="absolute inset-4 glass-surface rounded-lg opacity-50" />
+        <h3 className="text-display-sm">Layered Depth</h3>
+
+        <div className="relative rounded-xl bg-(--color-surface-elevated) p-10 shadow-lg">
+          <div className="absolute inset-2 rounded-lg border border-(--color-border) opacity-60" />
           <div className="relative z-10 text-center space-y-4">
-            <h4 className="text-xl font-display">Layered Glass Morphism</h4>
+            <h4 className="text-xl font-display">Stacked Panels</h4>
             <p className="text-body">
-              Multiple layers of glass effects create depth and magical atmosphere
+              Combine surface variants and border accents to create depth without relying on frosted-glass blur effects.
             </p>
             <Button variant="magical">
               <Sparkles size={16} />
-              Cast Enchantment
+              Activate Glow
             </Button>
           </div>
         </div>

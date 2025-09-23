@@ -238,7 +238,6 @@ export const CharacterStatusWidget: React.FC<CharacterStatusWidgetProps> = ({
   return (
     <Card
       variant={cardVariant}
-      padding="lg"
       className={`h-full relative overflow-hidden ${className}`}
     >
       <CardContent className="h-full flex flex-col">

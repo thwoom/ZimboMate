@@ -212,7 +212,6 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
   return (
     <Card
       variant="magical"
-      padding="lg"
       className={`relative overflow-hidden ${className}`}
     >
       <MagicalParticles

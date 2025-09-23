@@ -323,7 +323,6 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
   return (
     <Card
       variant={cardVariant}
-      padding="md"
       className={`h-full overflow-y-auto ${className}`}
     >
       <CardHeader className="pb-3">

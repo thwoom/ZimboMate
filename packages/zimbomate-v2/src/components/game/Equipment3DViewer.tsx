@@ -231,7 +231,7 @@ export const Equipment3DViewer: React.FC<Equipment3DViewerProps> = ({
 
   return (
     <div className={`relative ${className}`}>
-      <Card variant="glass" padding="none" className="overflow-hidden">
+      <Card variant="surface" className="overflow-hidden">
         <div 
           className="relative bg-gradient-to-br from-(--parchment-100) to-(--parchment-200)"
           style={{ width, height }}

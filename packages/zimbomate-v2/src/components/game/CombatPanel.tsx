@@ -110,8 +110,8 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
 
   if (!currentEncounter) {
     return (
-      <Card variant="magical" padding="lg">
-        <CardContent className="text-center space-y-6">
+      <Card variant="magical">
+        <CardContent className="text-center space-y-6 p-6 pt-6">
           <div className="space-y-2">
             <Sword size={48} className="mx-auto text-(--color-primary)" />
             <h3 className="text-xl font-display">Combat Tracker</h3>

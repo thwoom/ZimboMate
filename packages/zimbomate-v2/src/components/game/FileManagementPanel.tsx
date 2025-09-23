@@ -115,7 +115,7 @@ export const FileManagementPanel: React.FC<FileManagementPanelProps> = ({
   }
 
   return (
-    <Card variant="magical" padding="none" className="w-full max-w-6xl mx-auto">
+    <Card variant="magical" className="w-full max-w-6xl mx-auto">
       <CardHeader className="pb-0">
         <div className="flex items-center justify-between">
           <div>

@@ -109,7 +109,7 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
         className="w-full max-w-2xl max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <Card variant="magical" padding="none">
+        <Card variant="magical">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">

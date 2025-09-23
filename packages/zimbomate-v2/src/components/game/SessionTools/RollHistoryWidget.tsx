@@ -178,8 +178,8 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card variant="magical" padding="lg">
-              <CardContent>
+            <Card variant="magical">
+              <CardContent className="p-6">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
                   <div>
                     <div className="text-2xl font-bold text-green-600">{stats.successes}</div>
@@ -250,8 +250,8 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3, delay: index * 0.02 }}
             >
-              <Card variant="glass" padding="md">
-                <CardContent>
+              <Card variant="surface">
+                <CardContent className="p-4 pt-4">
                   <div className="space-y-3">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
@@ -314,8 +314,8 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
 
       {/* Empty State */}
       {sortedRolls.length === 0 && (
-        <Card variant="glass" padding="lg">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
               <Dice6 
                 size={48} 
@@ -338,8 +338,8 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
 
       {/* Quick Actions */}
       {rollHistory.length > 0 && (
-        <Card variant="glass" padding="sm">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between text-sm">
               <div style={{ color: 'var(--color-text-secondary)' }}>
                 Last roll: {rollHistory.length > 0 ? formatTimestamp(rollHistory[0].timestamp) : 'Never'}

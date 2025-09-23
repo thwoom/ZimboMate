@@ -198,8 +198,8 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
       </div>
 
       {/* Session Time */}
-      <Card variant="magical" padding="lg">
-        <CardContent>
+      <Card variant="magical">
+        <CardContent className="text-center space-y-2 p-6 pt-6">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2">
               <Clock size={20} />
@@ -246,8 +246,8 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card variant="magical" padding="lg">
-              <CardContent>
+        <Card variant="magical">
+          <CardContent className="p-6">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -367,8 +367,8 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card variant="magical" padding="lg">
-              <CardContent>
+            <Card variant="magical">
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -446,8 +446,8 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <Card variant={isTimerExpired(timer) ? "magical" : "glass"} padding="md">
-                  <CardContent>
+                <Card variant={isTimerExpired(timer) ? "magical" : "surface"}>
+                  <CardContent className="p-4 pt-4">
                     <div className="space-y-3">
                       {/* Header */}
                       <div className="flex items-start justify-between gap-2">
@@ -551,8 +551,8 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.02 }}
                 >
-                  <Card variant="glass" padding="sm">
-                    <CardContent>
+                  <Card variant="surface">
+                    <CardContent className="p-4 pt-4">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <Bookmark size={14} className="text-blue-500" />
@@ -588,8 +588,8 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
 
       {/* Empty State */}
       {sessionTimers.length === 0 && timeBookmarks.length === 0 && (
-        <Card variant="glass" padding="lg">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
               <Timer 
                 size={48} 

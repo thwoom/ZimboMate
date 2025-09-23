@@ -53,7 +53,7 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
 
   if (!character) {
     return (
-      <Card variant="glass" padding="lg" className={className}>
+      <Card variant="surface" className={className}>
         <CardContent>
           <div className="text-center py-8">
             <Scale 
@@ -182,7 +182,7 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
       </div>
 
       {/* Current Alignment Info */}
-      <Card variant="magical" padding="lg">
+      <Card variant="magical">
         <CardContent>
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-3">
@@ -225,7 +225,7 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
       </Card>
 
       {/* Create Action Button */}
-      <Card variant="glass" padding="sm">
+      <Card variant="surface">
         <CardContent>
           <Button
             variant="primary"
@@ -248,7 +248,7 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card variant="magical" padding="lg">
+            <Card variant="magical">
               <CardContent>
                 <div className="space-y-4">
                   <div>
@@ -322,7 +322,7 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
       {/* Alignment Actions History */}
       <div className="space-y-3">
         {alignmentActions.length === 0 ? (
-          <Card variant="glass" padding="lg">
+          <Card variant="surface">
             <CardContent>
               <div className="text-center py-8">
                 <Target 

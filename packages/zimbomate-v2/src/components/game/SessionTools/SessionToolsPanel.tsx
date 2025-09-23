@@ -90,8 +90,8 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
       </div>
 
       {/* Tab Navigation */}
-      <Card variant="glass" padding="sm">
-        <CardContent>
+      <Card variant="surface">
+        <CardContent className="p-4">
           <div className="flex flex-wrap gap-2">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -125,8 +125,8 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
 
       {/* Search Bar (for notes and history) */}
       {(activeTab === 'notes' || activeTab === 'history') && (
-        <Card variant="glass" padding="sm">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-4">
             <div className="relative">
               <Search 
                 size={16} 

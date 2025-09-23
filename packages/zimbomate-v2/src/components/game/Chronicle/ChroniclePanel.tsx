@@ -230,7 +230,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
       </div>
 
       {/* View Toggle */}
-      <Card variant="glass" padding="sm">
+      <Card variant="surface">
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="flex gap-2">
@@ -296,7 +296,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
           >
             {/* Quick Templates */}
             {!isWriting && (
-              <Card variant="glass" padding="md" className="mb-4">
+              <Card variant="surface" className="mb-4">
                 <CardContent>
                   <div className="space-y-3">
                     <h4 className="font-medium flex items-center gap-2">
@@ -326,7 +326,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
 
             {/* Writing Area */}
             <div className="relative">
-              <Card variant="magical" padding="none" className="overflow-hidden">
+              <Card variant="magical" className="overflow-hidden">
                 <CardContent>
                   <div className="relative">
                     {/* Writing Textarea with Visual Feedback */}
@@ -515,8 +515,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                 .map((entity) => (
                   <Card
                     key={entity.id}
-                    variant="glass"
-                    padding="md"
+                    variant="surface"
                     className="cursor-pointer hover:shadow-lg transition-all"
                     onClick={() => setSelectedEntity(entity)}
                   >
@@ -547,7 +546,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
             </div>
 
             {entities.length === 0 && (
-              <Card variant="glass" padding="lg">
+              <Card variant="surface">
                 <CardContent>
                   <div className="text-center py-8">
                     <Users size={48} className="mx-auto mb-4 opacity-50" />
@@ -576,7 +575,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
 
       {/* Helpful Tips */}
       {entries.length === 0 && activeView === 'write' && !isWriting && (
-        <Card variant="glass" padding="md">
+        <Card variant="surface">
           <CardContent>
             <div className="text-sm space-y-2">
               <h4 className="font-medium flex items-center gap-2">

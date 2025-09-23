@@ -97,7 +97,7 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
     >
       {/* Overview Stats */}
       <motion.div variants={cardVariants}>
-        <Card variant="magical" padding="lg">
+        <Card variant="magical">
           <CardHeader>
             <CardTitle className="text-xl font-display text-(--parchment-900) flex items-center gap-2">
               <TrendingUp size={20} className="text-(--parchment-800)" />
@@ -174,7 +174,7 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
 
       {/* Weight Distribution */}
       <motion.div variants={cardVariants}>
-        <Card variant="parchment" padding="lg">
+        <Card variant="parchment">
           <CardHeader>
             <CardTitle className="text-lg font-display text-(--parchment-900) flex items-center gap-2">
               <Weight size={18} className="text-(--parchment-800)" />
@@ -233,7 +233,7 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
 
       {/* Load Capacity Visualization */}
       <motion.div variants={cardVariants}>
-        <Card variant="glass" padding="lg">
+        <Card variant="surface">
           <CardHeader>
             <CardTitle className="text-lg font-display text-(--parchment-900) flex items-center gap-2">
               <Shield size={18} className="text-(--parchment-800)" />

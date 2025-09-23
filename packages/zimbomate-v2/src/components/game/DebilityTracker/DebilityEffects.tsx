@@ -85,7 +85,7 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card variant="magical" padding="lg">
+      <Card variant="magical">
         <CardContent>
           <div className="space-y-4">
             {/* Header */}

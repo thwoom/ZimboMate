@@ -106,7 +106,6 @@ const QuickItemCard: React.FC<{
     >
       <Card
         variant={isActive ? 'magical' : 'glass'}
-        padding="sm"
         className={`cursor-pointer transition-all hover:shadow-md ${item.color}`}
         onClick={onClick}
       >
@@ -316,7 +315,6 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
   return (
     <Card
       variant={cardVariant}
-      padding="sm"
       className={`h-full overflow-y-auto ${className}`}
     >
       <CardHeader className="pb-2">

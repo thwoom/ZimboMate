@@ -245,8 +245,8 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card variant="magical" padding="lg">
-              <CardContent>
+            <Card variant="magical">
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   {/* Name */}
                   <div>
@@ -442,8 +442,8 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <Card variant="glass" padding="md">
-                  <CardContent>
+                <Card variant="surface">
+                  <CardContent className="p-4 pt-4">
                     <div className="space-y-3">
                       {/* Header */}
                       <div className="flex items-start justify-between gap-2">
@@ -539,8 +539,8 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
 
       {/* Empty State */}
       {sessionTrackers.length === 0 && (
-        <Card variant="glass" padding="lg">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
               <Target 
                 size={48} 

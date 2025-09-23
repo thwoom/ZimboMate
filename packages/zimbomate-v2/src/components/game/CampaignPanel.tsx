@@ -81,8 +81,8 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
   const renderContent = () => {
     if (!activeCampaign) {
       return (
-        <Card variant="glass" padding="lg">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-6">
             <div className="text-center space-y-6">
               <div 
                 className="w-16 h-16 mx-auto rounded-full flex items-center justify-center"
@@ -162,8 +162,8 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
       {activeCampaign && (
         <>
           {/* Tab Navigation */}
-          <Card variant="glass" padding="sm">
-            <CardContent>
+          <Card variant="surface">
+            <CardContent className="p-4">
               <div className="flex flex-wrap gap-2">
                 {tabs.map((tab) => {
                   const Icon = tab.icon
@@ -197,8 +197,8 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
 
           {/* Search Bar (for applicable tabs) */}
           {(activeTab === 'sessions' || activeTab === 'journal' || activeTab === 'npcs' || activeTab === 'locations') && (
-            <Card variant="glass" padding="sm">
-              <CardContent>
+            <Card variant="surface">
+              <CardContent className="p-4">
                 <div className="relative">
                   <Search 
                     size={16} 

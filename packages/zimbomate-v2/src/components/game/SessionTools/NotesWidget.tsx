@@ -208,8 +208,8 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card variant="magical" padding="lg">
-              <CardContent>
+            <Card variant="magical">
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   {/* Note Content */}
                   <div>
@@ -322,8 +322,8 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
-              <Card variant="glass" padding="md">
-                <CardContent>
+              <Card variant="surface">
+                <CardContent className="p-4 pt-4">
                   <div className="space-y-3">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
@@ -387,8 +387,8 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
 
       {/* Empty State */}
       {sortedNotes.length === 0 && (
-        <Card variant="glass" padding="lg">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
               <NotebookPen 
                 size={48} 
@@ -411,8 +411,8 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
 
       {/* Quick Stats */}
       {sessionNotes.length > 0 && (
-        <Card variant="glass" padding="sm">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-4">
             <div className="grid grid-cols-4 gap-4 text-center text-sm">
               <div>
                 <div className="font-medium">{sessionNotes.length}</div>

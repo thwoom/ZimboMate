@@ -378,7 +378,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
   }
 
   return (
-    <Card variant="magical" padding="md">
+    <Card variant="magical">
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -406,8 +406,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <Card 
-                    variant="outline" 
-                    padding="sm"
+                    variant="outline"
                     className={`cursor-pointer transition-all duration-200 ${
                       isExpanded ? 'ring-2' : 'hover:shadow-md'
                     }`}

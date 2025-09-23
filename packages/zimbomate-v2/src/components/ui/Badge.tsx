@@ -8,9 +8,17 @@ export const badgeVariants = cva(
     variants: {
       variant: {
         default: 'bg-(--color-primary) text-white border-transparent',
+        primary: 'bg-(--color-primary) text-white border-transparent',
         secondary: 'bg-(--color-surface-elevated) text-(--color-text-primary) border-(--color-border)',
-        outline: 'border-(--color-border) text-(--color-text-primary)',
-        destructive: 'bg-(--red-600) text-white border-transparent',
+        outline: 'border-(--color-border) bg-transparent text-(--color-text-primary)',
+        destructive: 'bg-(--color-danger) text-white border-transparent',
+        success: 'bg-[color:var(--color-success)] text-white border-transparent',
+        warning: 'bg-[color:var(--color-warning)] text-[color:var(--color-text-primary)] border-transparent',
+        magical:
+          'bg-gradient-to-r from-(--color-primary) to-(--color-accent) text-white border-transparent shadow-sm',
+        health: 'bg-[color:var(--color-success)] text-white border-transparent',
+        mana: 'bg-[color:var(--color-mana)] text-white border-transparent',
+        experience: 'bg-[color:var(--color-experience)] text-[color:var(--color-text-primary)] border-transparent',
       },
     },
     defaultVariants: {

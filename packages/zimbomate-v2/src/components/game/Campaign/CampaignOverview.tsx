@@ -30,7 +30,7 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
 
   if (!campaign || !stats) {
     return (
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardContent>
           <div className="text-center">
             <p style={{ color: 'var(--color-text-muted)' }}>
@@ -105,7 +105,7 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
   return (
     <div className="space-y-6">
       {/* Campaign Info */}
-      <Card variant="magical" padding="lg">
+      <Card variant="magical">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
@@ -146,7 +146,7 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <Card variant="glass" padding="md" className="campaign-stat-card">
+              <Card variant="surface" className="campaign-stat-card">
                 <CardContent>
                   <div className="space-y-3">
                     <div 
@@ -181,7 +181,7 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
       </div>
 
       {/* Quick Actions */}
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
@@ -208,7 +208,7 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
       </Card>
 
       {/* Recent Activity */}
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
@@ -258,7 +258,7 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
 
       {/* Player Notes */}
       {campaign.playerNotes && (
-        <Card variant="parchment" padding="lg">
+        <Card variant="parchment">
           <CardHeader>
             <CardTitle>Campaign Notes</CardTitle>
           </CardHeader>

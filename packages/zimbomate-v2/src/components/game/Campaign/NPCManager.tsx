@@ -68,8 +68,7 @@ const NPCCard: React.FC<NPCCardProps> = ({ npc, onEdit, onDelete }) => {
 
   return (
     <Card 
-      variant={npc.importance === NPCImportance.HIGH ? "magical" : "glass"} 
-      padding="md" 
+      variant={npc.importance === NPCImportance.HIGH ? "magical" : "surface"} 
       className="campaign-card campaign-card-hover"
     >
       <CardContent>
@@ -284,7 +283,7 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
 
   if (!campaign) {
     return (
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardContent>
           <div className="text-center">
             <p style={{ color: 'var(--color-text-muted)' }}>
@@ -319,7 +318,7 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
       </div>
 
       {/* Filters */}
-      <Card variant="glass" padding="sm">
+      <Card variant="surface">
         <CardContent>
           <div className="flex flex-wrap items-center gap-4">
             <select
@@ -376,7 +375,7 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
 
       {/* NPCs List */}
       {filteredAndSortedNPCs.length === 0 ? (
-        <Card variant="glass" padding="lg" className="campaign-empty-state">
+        <Card variant="surface" className="campaign-empty-state">
           <CardContent>
             <div className="text-center space-y-4">
               <Users size={48} style={{ color: 'var(--color-text-muted)', margin: '0 auto' }} />

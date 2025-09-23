@@ -83,13 +83,12 @@ export const DemoCard: React.FC<DemoCardProps> = ({ demo, onNavigate, className 
       transition={{ duration: 0.2 }}
       className={className}
     >
-      <Card 
-        variant="magical" 
-        padding="lg" 
+      <Card
+        variant="magical"
         className={`h-full cursor-pointer group hover:shadow-lg transition-all duration-300 ${statusInfo.borderColor}`}
         onClick={() => onNavigate(demo.id)}
       >
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-6 pt-6">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
