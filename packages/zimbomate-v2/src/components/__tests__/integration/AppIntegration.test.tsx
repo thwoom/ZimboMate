@@ -178,25 +178,14 @@ describe('App Integration Tests', () => {
   })
 
   describe('Theme Integration', () => {
-    it('applies theme consistently across components', async () => {
+    it('displays the Matsu theme indicator across components', async () => {
       const { user } = renderWithProviders(<App />)
 
-      // Toggle theme
-      const themeToggle = screen.getByRole('button', { name: /toggle theme/i })
-      await user.click(themeToggle)
+      const themeIndicator = await screen.findByRole('status', { name: /active theme/i })
+      expect(themeIndicator).toHaveTextContent(/matsu/i)
 
-      // Check that theme is applied to different components
-      await waitFor(() => {
-        const characterSheet = screen.getByTestId('character-sheet')
-        expect(characterSheet).toHaveClass('dark')
-      })
-
-      // Switch tabs and verify theme persistence
       await user.click(screen.getByRole('tab', { name: /dice/i }))
-      await waitFor(() => {
-        const diceRoller = screen.getByTestId('dice-roller')
-        expect(diceRoller).toHaveClass('dark')
-      })
+      expect(screen.getByRole('status', { name: /active theme/i })).toBeInTheDocument()
     })
   })
 

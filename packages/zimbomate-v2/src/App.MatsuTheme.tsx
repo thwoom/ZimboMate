@@ -4,20 +4,17 @@ import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Progress } fro
 import { DiceRoller } from './components/game/DiceRoller'
 import { StatRoller } from './components/game/StatRoller'
 import { CharacterSheet } from './components/game/CharacterSheet'
-import { Moon, Sun, Sparkles, Dice6, User } from 'lucide-react'
+import { Sparkles, Dice6, User } from 'lucide-react'
 
-const ThemeToggle: React.FC = () => {
-  const { isDark, toggleDark } = useTheme()
-  
+const ThemeIndicator: React.FC = () => {
+  const { theme } = useTheme()
+
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      onClick={toggleDark}
-      className="fixed top-4 right-4 z-50"
-    >
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </Button>
+    <div className="fixed top-4 right-4 z-50">
+      <Badge variant="magical" aria-label={`Active theme: ${theme}`}>
+        {theme === 'matsu' ? 'Matsu Theme' : theme}
+      </Badge>
+    </div>
   )
 }
 
@@ -26,7 +23,7 @@ const MatsuShowcase: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <ThemeToggle />
+      <ThemeIndicator />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}

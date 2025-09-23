@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { createContext, useContext } from 'react'
 import { useThemeStore } from '../../stores/themeStore'
 
 interface ThemeContextType {
-  isDark: boolean
-  toggleDark: () => void
+  readonly theme: 'matsu'
   animations: boolean
   sounds: boolean
   toggleAnimations: () => void
@@ -22,30 +21,20 @@ export function useTheme() {
 
 interface ThemeProviderProps {
   children: React.ReactNode
+  defaultTheme?: 'matsu'
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { 
-    isDark, 
-    toggleDark, 
-    animations, 
-    sounds, 
-    toggleAnimations, 
-    toggleSounds 
+  const {
+    theme,
+    animations,
+    sounds,
+    toggleAnimations,
+    toggleSounds
   } = useThemeStore()
 
-  useEffect(() => {
-    // Apply dark mode class on mount and changes
-    if (isDark) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [isDark])
-
   const value = {
-    isDark,
-    toggleDark,
+    theme,
     animations,
     sounds,
     toggleAnimations,

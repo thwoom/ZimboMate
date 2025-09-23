@@ -8,52 +8,26 @@ import { Card } from './components/ui/Card'
 import { Badge } from './components/ui/Badge'
 import { Progress } from './components/ui/Progress'
 import { useTheme } from './components/ui/ThemeProvider'
-import { 
-  Sparkles, 
-  Flame, 
-  Leaf, 
-  Zap, 
-  Mountain, 
-  Moon, 
-  Star,
+import {
+  Sparkles,
+  Flame,
   Heart,
   Shield,
   Sword,
-  Wand2,
-  Crown
+  Wand2
 } from 'lucide-react'
 
-const themeDescriptions = {
-  'fantasy': 'Classic parchment and gold fantasy theme with warm, magical tones',
-  'dark': 'Sleek dark theme with golden accents for nighttime gaming',
-  'light': 'Clean light theme with subtle golden touches for bright environments',
-  'sci-fi': 'Futuristic cyber theme with neon blue and green accents',
-  'moonlit-grimoire': 'Ancient manuscript style with Uncial Antiqua headers - scholarly magic under starlit skies',
-  'dragonforge-ember': 'Bold Metamorphous lettering with crimson flames - the power of dragon-forged steel',
-  'enchanted-grove': 'Organic Kalam script with forest greens - where nature\'s handwriting meets mysticism',
-  'arcane-storm': 'Futuristic Orbitron typography with electric energy - technology meets raw magical force',
-  'ancient-sandstone': 'Classical Cinzel carved in stone - timeless mysteries of ancient civilizations'
-}
-
-const themeIcons = {
-  'fantasy': Crown,
-  'dark': Moon,
-  'light': Star,
-  'sci-fi': Zap,
-  'moonlit-grimoire': Moon,
-  'dragonforge-ember': Flame,
-  'enchanted-grove': Leaf,
-  'arcane-storm': Zap,
-  'ancient-sandstone': Mountain
-}
+const matsuThemeDescription =
+  'Ghibli-inspired parchment textures, gentle greens, and hand-painted accents define the Matsu visual identity.'
 
 function ThemeShowcaseContent() {
   const { theme } = useTheme()
+  const themeLabel = theme === 'matsu' ? 'Matsu' : theme
   const [selectedCard, setSelectedCard] = useState<string | null>(null)
   const [progress, setProgress] = useState(75)
   const [fontsLoaded, setFontsLoaded] = useState(false)
-  
-  const ThemeIcon = themeIcons[theme as keyof typeof themeIcons] || Crown
+
+  const ThemeIcon = Sparkles
   
   const handleFontsLoaded = (loaded: boolean) => {
     setFontsLoaded(loaded)
@@ -62,27 +36,9 @@ function ThemeShowcaseContent() {
     console.log('Document data-theme attribute:', document.documentElement.getAttribute('data-theme'))
   }
   
-  const getThemeSpecificClass = () => {
-    switch (theme) {
-      case 'moonlit-grimoire': return 'starfield-bg'
-      case 'dragonforge-ember': return 'forge-sparks'
-      case 'enchanted-grove': return 'bioluminescent-dots'
-      case 'arcane-storm': return 'electric-field'
-      case 'ancient-sandstone': return 'hieroglyph-pattern'
-      default: return ''
-    }
-  }
-  
-  const getThemeGlowClass = () => {
-    switch (theme) {
-      case 'moonlit-grimoire': return 'moonlit-glow'
-      case 'dragonforge-ember': return 'ember-glow'
-      case 'enchanted-grove': return 'nature-glow'
-      case 'arcane-storm': return 'lightning-glow'
-      case 'ancient-sandstone': return 'sandstone-glow'
-      default: return 'magical-glow'
-    }
-  }
+  const getThemeSpecificClass = () => 'matsu-theme-surface'
+
+  const getThemeGlowClass = () => 'magical-glow'
 
   return (
     <div className={`min-h-screen transition-all duration-500 ${getThemeSpecificClass()}`}>
@@ -102,20 +58,13 @@ function ThemeShowcaseContent() {
             >
               <ThemeIcon size={48} className="text-primary" />
             </motion.div>
-            <h1 className="text-display-lg" style={{ 
-              fontFamily: theme === 'enchanted-grove' ? 'Kalam, cursive' : 
-                         theme === 'moonlit-grimoire' ? 'Uncial Antiqua, serif' :
-                         theme === 'dragonforge-ember' ? 'Metamorphous, fantasy' :
-                         theme === 'arcane-storm' ? 'Orbitron, monospace' :
-                         theme === 'ancient-sandstone' ? 'Cinzel, serif' :
-                         'var(--font-display)'
-            }}>
+            <h1 className="text-display-lg" style={{ fontFamily: 'var(--font-display)' }}>
               ZimboMate V2: Magical Themes
             </h1>
           </div>
-          
+
           <p className="text-body-lg max-w-2xl mx-auto mb-8">
-            {themeDescriptions[theme as keyof typeof themeDescriptions]}
+            {matsuThemeDescription}
           </p>
           
           <div className="flex justify-center">
@@ -290,17 +239,10 @@ function ThemeShowcaseContent() {
                   Font Status: {fontsLoaded ? '✅ Google Fonts Loaded' : '⏳ Loading Google Fonts...'}
                 </p>
                 <p className="text-body-sm">
-                  Current Theme: <strong>{theme}</strong>
+                  Current Theme: <strong>{themeLabel}</strong>
                 </p>
                 <p className="text-body-sm">
-                  Expected Display Font: {
-                    theme === 'enchanted-grove' ? 'Kalam (handwritten)' :
-                    theme === 'moonlit-grimoire' ? 'Uncial Antiqua (medieval)' :
-                    theme === 'dragonforge-ember' ? 'Metamorphous (fantasy)' :
-                    theme === 'arcane-storm' ? 'Orbitron (futuristic)' :
-                    theme === 'ancient-sandstone' ? 'Cinzel (classical)' :
-                    'Default'
-                  }
+                  Featured Fonts: Nunito (display) & PT Sans (body)
                 </p>
                 <div className="mt-2 p-2 rounded text-body-sm" style={{ backgroundColor: 'var(--color-surface-elevated)' }}>
                   <p className="font-semibold">⚠️ For optimal font loading:</p>
@@ -345,9 +287,9 @@ function ThemeShowcaseContent() {
                 </div>
                 
                 <div>
-                  <p>Theme-specific variables:</p>
-                  <p>Grove: <span style={{ fontFamily: 'var(--font-grove)' }}>Should be Kalam handwriting</span></p>
-                  <p>Moonlit: <span style={{ fontFamily: 'var(--font-moonlit)' }}>Should be Uncial Antiqua</span></p>
+                  <p>Theme variables:</p>
+                  <p>Matsu Display: <span style={{ fontFamily: 'var(--font-display)' }}>Hand-painted headline style</span></p>
+                  <p>Matsu Body: <span style={{ fontFamily: 'var(--font-body)' }}>Readable body copy</span></p>
                 </div>
               </div>
             </div>
@@ -425,15 +367,13 @@ function ThemeShowcaseContent() {
         >
           <Card className={`p-8 text-center ${getThemeGlowClass()}`}>
             <h2 className="text-display-md mb-4">
-              Current Theme: {theme.split('-').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1)
-              ).join(' ')}
+              Current Theme: {themeLabel}
             </h2>
             <p className="text-body-lg mb-6">
-              {themeDescriptions[theme as keyof typeof themeDescriptions]}
+              {matsuThemeDescription}
             </p>
             <div className="flex justify-center gap-4">
-              <Badge variant="magical">9 Themes Available</Badge>
+              <Badge variant="magical">Matsu Theme Included</Badge>
               <Badge variant="success">Fully Responsive</Badge>
               <Badge variant="outline">Magical Effects</Badge>
             </div>
