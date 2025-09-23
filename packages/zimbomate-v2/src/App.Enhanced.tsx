@@ -6,7 +6,7 @@ import { NavigationProvider, useNavigation } from './components/ui/NavigationRou
 import { AuthProvider, useAuth } from './components/ui/AuthContext'
 import { EnhancedRollResultsToast } from './components/ui/EnhancedRollResultsToast'
 import { useEnhancedRollResults, createEnhancedBasicRoll, createEnhancedAttributeRoll, createEnhancedDamageRoll, createEnhancedMoveRoll } from './hooks/useEnhancedRollResults'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { CharacterSheet } from './components/game/CharacterSheet'
 import { DiceRoller } from './components/game/DiceRoller'
 import { MovesPanel } from './components/game/MovesPanel'
@@ -342,7 +342,7 @@ const AppContent: React.FC = () => {
                   <span className="font-medium">{user.name}</span>
                 </div>
               )}
-              <ThemeToggle />
+              <ThemeStatusBadge />
               <Button
                 variant="ghost"
                 size="sm"

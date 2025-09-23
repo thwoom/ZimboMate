@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { ThemeProvider, useTheme } from './components/ui/ThemeProvider'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { Button } from './components/ui/Button'
 import { Card, CardContent } from './components/ui'
 import { Sparkles, Palette } from 'lucide-react'
@@ -82,7 +82,7 @@ const ThemeShowcase: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <ThemeToggle />
+                <ThemeStatusBadge />
               </div>
             </CardContent>
           </Card>

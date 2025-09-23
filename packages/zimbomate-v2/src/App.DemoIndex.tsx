@@ -16,7 +16,7 @@ import {
   Wand2
 } from 'lucide-react'
 import { ThemeProvider } from './components/ui/ThemeProvider'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { DemoCard, type DemoInfo } from './components/ui/DemoCard'
 import { DemoNavigation } from './components/ui/DemoNavigation'
 import { Card, CardContent, Badge } from './components/ui'
@@ -246,7 +246,7 @@ const DemoIndexApp: React.FC = () => {
                 showFilters={showFilters}
                 onToggleFilters={() => setShowFilters(!showFilters)}
               />
-              <ThemeToggle />
+              <ThemeStatusBadge />
             </div>
           </div>
         </header>

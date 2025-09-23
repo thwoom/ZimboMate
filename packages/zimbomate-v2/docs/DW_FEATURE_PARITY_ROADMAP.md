@@ -435,7 +435,7 @@ Acceptance Criteria:
   - Trackers: `src/components/game/BondTracker/*`, `src/components/game/AlignmentXPTracker/*`, `src/components/game/DebilityTracker/*`
   - Session: `src/components/game/SessionTools/*`, `src/components/game/SessionFlowManager.tsx`
   - 3D: `src/components/3d/*`
-  - UI: `src/components/ui/*`, `src/components/ui/ThemeProvider`, `src/components/ui/ThemeToggle`
+  - UI: `src/components/ui/*`, `src/components/ui/ThemeProvider`, `src/components/ui/ThemeStatusBadge`
 
 
 ## Milestones & Progress

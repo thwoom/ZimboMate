@@ -33,7 +33,7 @@ export {
 
 // Theme Components
 export { ThemeProvider } from './ThemeProvider'
-export { ThemeToggle } from './ThemeToggle'
+export { ThemeStatusBadge } from './ThemeStatusBadge'
 
 // Text inputs
 export { Textarea, textareaVariants, type TextareaProps } from './Textarea'

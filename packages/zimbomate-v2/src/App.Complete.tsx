@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ThemeProvider } from './components/ui/ThemeProvider'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { CharacterSheet } from './components/game/CharacterSheet'
 import { StatRoller } from './components/game/StatRoller'
 import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
@@ -483,7 +483,7 @@ const App: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  <ThemeToggle />
+                  <ThemeStatusBadge />
                 </motion.div>
               </div>
             </div>
