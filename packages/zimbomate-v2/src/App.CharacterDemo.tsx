@@ -2,7 +2,7 @@ import React from 'react'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { motion } from 'framer-motion'
 import { ThemeProvider } from './components/ui/ThemeProvider'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { Card, CardContent } from './components/ui'
 import {
   BicepsFlexed,
@@ -308,7 +308,7 @@ const App: React.FC = () => {
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <ThemeToggle />
+                  <ThemeStatusBadge />
                 </motion.div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ThemeProvider } from './components/ui/ThemeProvider'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { FontLoader } from './components/ui/FontLoader'
 import { Button } from './components/ui/Button'
 import { Card } from './components/ui/Card'
@@ -68,7 +68,7 @@ function ThemeShowcaseContent() {
           </p>
           
           <div className="flex justify-center">
-            <ThemeToggle />
+            <ThemeStatusBadge />
           </div>
         </motion.div>
 

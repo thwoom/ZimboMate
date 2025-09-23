@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { motion } from 'framer-motion'
 import { ThemeProvider } from './components/ui/ThemeProvider'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { Dice3D } from './components/3d/Dice3D'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge } from './components/ui'
 import { Box, Sparkles, Settings, RotateCcw, Volume2, VolumeX } from 'lucide-react'
@@ -64,7 +64,7 @@ const App: React.FC = () => {
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <ThemeToggle />
+                  <ThemeStatusBadge />
                 </motion.div>
               </div>
             </div>

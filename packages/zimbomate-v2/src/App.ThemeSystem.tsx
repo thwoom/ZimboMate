@@ -2,7 +2,7 @@ import React from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { ThemeProvider } from './components/ui/ThemeProvider'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { ColorPalette } from './components/ui/ColorSwatch'
 import { TypographyShowcase } from './components/ui/TypographyShowcase'
 import { GlassMorphismShowcase } from './components/ui/GlassMorphismShowcase'
@@ -28,7 +28,7 @@ const App: React.FC = () => {
                     <p className="text-sm text-(--color-text-secondary)">Fantasy Theme System</p>
                   </div>
                 </div>
-                <ThemeToggle />
+                <ThemeStatusBadge />
               </div>
             </div>
           </header>

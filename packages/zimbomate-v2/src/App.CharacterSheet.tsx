@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import { ThemeProvider } from './components/ui/ThemeProvider'
-import { ThemeToggle } from './components/ui/ThemeToggle'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { CharacterSheet } from './components/game/CharacterSheet'
 import { Sparkles, User, Dice6, Scroll, Settings } from 'lucide-react'
 import { Card, CardContent, Button } from './components/ui'
@@ -90,7 +90,7 @@ const App: React.FC = () => {
                     <p className="text-sm text-(--color-text-secondary)">Dungeon World Companion</p>
                   </div>
                 </div>
-                <ThemeToggle />
+                <ThemeStatusBadge />
               </div>
             </div>
           </header>
