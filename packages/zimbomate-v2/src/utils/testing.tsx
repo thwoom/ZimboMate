@@ -10,7 +10,7 @@ import * as Tooltip from '@radix-ui/react-tooltip'
 // Test utilities for ZimboMate V2
 interface TestWrapperProps {
   children: React.ReactNode
-  theme?: 'fantasy' | 'dark' | 'light'
+  theme?: 'matsu'
   withErrorBoundary?: boolean
   withQueryClient?: boolean
   withTooltips?: boolean
@@ -19,7 +19,7 @@ interface TestWrapperProps {
 // Custom test wrapper with all providers
 const TestWrapper: React.FC<TestWrapperProps> = ({
   children,
-  theme = 'fantasy',
+  theme = 'matsu',
   withErrorBoundary = true,
   withQueryClient = true,
   withTooltips = true
@@ -74,7 +74,7 @@ const TestWrapper: React.FC<TestWrapperProps> = ({
 
 // Enhanced render function with custom wrapper
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  theme?: 'fantasy' | 'dark' | 'light'
+  theme?: 'matsu'
   withErrorBoundary?: boolean
   withQueryClient?: boolean
   withTooltips?: boolean
@@ -85,7 +85,7 @@ export const renderWithProviders = (
   options: CustomRenderOptions = {}
 ) => {
   const {
-    theme = 'fantasy',
+    theme = 'matsu',
     withErrorBoundary = true,
     withQueryClient = true,
     withTooltips = true,
