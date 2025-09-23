@@ -130,7 +130,11 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
           }}
           className="fixed top-4 right-4 z-50 max-w-md"
         >
-          <Card variant="magical" className="glass-surface border-2" style={{ borderColor: getOutcomeColor(result.outcome) }}>
+          <Card
+            variant="magical"
+            className="border-2 border-primary/30 bg-card/95 backdrop-blur shadow-lg"
+            style={{ borderColor: getOutcomeColor(result.outcome) }}
+          >
             <CardContent className="p-4">
               <div className="space-y-3">
                 {/* Header */}

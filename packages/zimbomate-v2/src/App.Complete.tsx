@@ -432,8 +432,8 @@ const App: React.FC = () => {
           style={{ backgroundColor: 'var(--color-background)' }}
         >
           {/* Header */}
-          <header 
-            className="sticky top-0 z-50 glass-surface border-b"
+          <header
+            className="sticky top-0 z-50 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm"
             style={{ borderColor: 'var(--color-primary)', borderOpacity: 0.2 }}
           >
             <div className="container mx-auto px-6 py-4">
@@ -477,8 +477,8 @@ const App: React.FC = () => {
           </header>
 
           {/* Navigation Tabs */}
-          <nav 
-            className="sticky top-[73px] z-40 glass-surface border-b"
+          <nav
+            className="sticky top-[73px] z-40 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80"
             style={{ borderColor: 'var(--color-primary)', borderOpacity: 0.1 }}
           >
             <div className="container mx-auto px-6">
@@ -554,8 +554,8 @@ const App: React.FC = () => {
           <QuickRollZones characterId="eldara-moonwhisper" />
 
           {/* Footer */}
-          <footer 
-            className="mt-16 glass-surface border-t"
+          <footer
+            className="mt-16 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85"
             style={{ borderColor: 'var(--color-primary)', borderOpacity: 0.2 }}
           >
             <div className="container mx-auto px-6 py-8">
