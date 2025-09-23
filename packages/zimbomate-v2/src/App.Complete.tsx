@@ -15,7 +15,6 @@ import { CommandPalette } from './components/ui/CommandPalette'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { Sparkles, User, Dice6, Settings, NotebookPen, Play } from 'lucide-react'
 import { Card, CardContent, Button, Badge, ThemeComponentShowcase } from './components/ui'
-import { DemoModal } from './components/ui/DemoModal'
 import { DiceHistorySidebar } from './components/dice/DiceHistorySidebar'
 import { QuickRollZones } from './components/dice/QuickRollZones'
 import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
@@ -44,8 +43,6 @@ const App: React.FC = () => {
   const activeCharacter = getActiveCharacter()
   const [activeTab, setActiveTab] = useState<ActiveTab>('play')
   const [showCharacterBuilder, setShowCharacterBuilder] = useState(false)
-  const [demoModalOpen, setDemoModalOpen] = useState(false)
-  const [selectedDemo, setSelectedDemo] = useState<{ id: string; title: string } | null>(null)
   const [showSessionManager, setShowSessionManager] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [themeShowcaseOpen, setThemeShowcaseOpen] = useState(false)
@@ -244,7 +241,7 @@ const App: React.FC = () => {
             animate="visible"
             exit="exit"
           >
-            <SettingsPanel onDemoNavigate={handleDemoNavigate} />
+            <SettingsPanel />
           </motion.div>
         )
       case 'button-debug':
@@ -420,16 +417,6 @@ const App: React.FC = () => {
     }
   }
 
-  const handleDemoNavigate = (demoId: string, demoTitle: string) => {
-    setSelectedDemo({ id: demoId, title: demoTitle })
-    setDemoModalOpen(true)
-  }
-
-  const handleCloseDemoModal = () => {
-    setDemoModalOpen(false)
-    setSelectedDemo(null)
-  }
-
   const handleSessionJoined = (session: any) => {
     setShowSessionManager(false)
     console.log('Joined session:', session)
@@ -602,14 +589,6 @@ const App: React.FC = () => {
               </div>
             </div>
           </footer>
-
-          {/* Demo Modal */}
-          <DemoModal
-            isOpen={demoModalOpen}
-            onClose={handleCloseDemoModal}
-            demoId={selectedDemo?.id || null}
-            demoTitle={selectedDemo?.title}
-          />
 
           {/* Theme Component Showcase */}
           <ThemeComponentShowcase
