@@ -64,7 +64,7 @@ export const MonsterManager: React.FC<MonsterManagerProps> = ({
 
   return (
     <div className="space-y-6">
-      <Card variant="elevated" padding="lg">
+      <Card variant="elevated">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Skull size={20} className="text-primary" />
@@ -101,27 +101,33 @@ export const MonsterManager: React.FC<MonsterManagerProps> = ({
       </div>
 
       {activeTab === 'templates' && (
-        <Card variant="glass" padding="md">
-          <p>Templates: {filteredMonsters.length} monsters found</p>
-          <div className="grid gap-2 mt-4">
-            {filteredMonsters.slice(0, 5).map((monster) => (
-              <div key={monster.id} className="p-2 bg-background/50 rounded">
-                <span className="font-medium">{monster.name}</span> - {monster.hp} HP
-              </div>
-            ))}
-          </div>
+        <Card variant="surface">
+          <CardContent className="p-4 pt-4">
+            <p>Templates: {filteredMonsters.length} monsters found</p>
+            <div className="grid gap-2 mt-4">
+              {filteredMonsters.slice(0, 5).map((monster) => (
+                <div key={monster.id} className="p-2 bg-background/50 rounded">
+                  <span className="font-medium">{monster.name}</span> - {monster.hp} HP
+                </div>
+              ))}
+            </div>
+          </CardContent>
         </Card>
       )}
 
       {activeTab === 'quick' && (
-        <Card variant="glass" padding="md">
-          <p>Quick monsters: {quickMonsters.length}</p>
+        <Card variant="surface">
+          <CardContent className="p-4 pt-4">
+            <p>Quick monsters: {quickMonsters.length}</p>
+          </CardContent>
         </Card>
       )}
 
       {activeTab === 'create' && (
-        <Card variant="glass" padding="md">
-          <p>Create new monster form will go here</p>
+        <Card variant="surface">
+          <CardContent className="p-4 pt-4">
+            <p>Create new monster form will go here</p>
+          </CardContent>
         </Card>
       )}
     </div>

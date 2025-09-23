@@ -37,8 +37,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, onEdit, onDe
 
   return (
     <Card 
-      variant={entry.isImportant ? "magical" : "glass"} 
-      padding="md" 
+      variant={entry.isImportant ? "magical" : "surface"} 
       className="campaign-card campaign-card-hover"
     >
       <CardContent>
@@ -244,7 +243,7 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
 
   if (!campaign) {
     return (
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardContent>
           <div className="text-center">
             <p style={{ color: 'var(--color-text-muted)' }}>
@@ -279,7 +278,7 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
       </div>
 
       {/* Filters */}
-      <Card variant="glass" padding="sm">
+      <Card variant="surface">
         <CardContent>
           <div className="flex flex-wrap items-center gap-4">
             <select
@@ -339,7 +338,7 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
 
       {/* Journal Entries */}
       {filteredAndSortedEntries.length === 0 ? (
-        <Card variant="glass" padding="lg" className="campaign-empty-state">
+        <Card variant="surface" className="campaign-empty-state">
           <CardContent>
             <div className="text-center space-y-4">
               <BookOpen size={48} style={{ color: 'var(--color-text-muted)', margin: '0 auto' }} />

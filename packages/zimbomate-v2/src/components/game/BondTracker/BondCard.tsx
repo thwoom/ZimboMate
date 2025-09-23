@@ -54,12 +54,11 @@ export const BondCard: React.FC<BondCardProps> = ({
   }
 
   return (
-    <Card 
-      variant={isResolved ? "glass" : "magical"} 
-      padding="lg"
+    <Card
+      variant={isResolved ? "surface" : "magical"}
       className={`relative ${isResolved ? 'opacity-75' : ''}`}
     >
-      <CardContent>
+      <CardContent className="p-6 pt-6">
         {isEditing ? (
           // Edit Mode
           <div className="space-y-4">

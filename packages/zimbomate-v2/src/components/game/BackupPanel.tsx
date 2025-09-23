@@ -244,7 +244,7 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
 
       {/* Backup Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card variant="glass">
+        <Card variant="surface">
           <CardContent className="text-center py-6">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-success)', opacity: 0.2 }}>
               <ShieldCheck size={24} style={{ color: 'var(--color-success)' }} />
@@ -256,7 +256,7 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
           </CardContent>
         </Card>
 
-        <Card variant="glass">
+        <Card variant="surface">
           <CardContent className="text-center py-6">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-primary)', opacity: 0.2 }}>
               <Archive size={24} style={{ color: 'var(--color-primary)' }} />
@@ -268,7 +268,7 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
           </CardContent>
         </Card>
 
-        <Card variant="glass">
+        <Card variant="surface">
           <CardContent className="text-center py-6">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-warning)', opacity: 0.2 }}>
               <Clock size={24} style={{ color: 'var(--color-warning)' }} />

@@ -104,8 +104,8 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
   }
 
   return (
-    <Card variant="glass" padding="lg">
-      <CardContent>
+    <Card variant="surface">
+      <CardContent className="p-6 pt-6">
         {isEditing ? (
           // Edit Mode
           <div className="space-y-4">

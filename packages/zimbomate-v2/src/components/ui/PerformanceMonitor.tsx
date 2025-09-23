@@ -48,8 +48,8 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
 
   return (
     <div className={className}>
-      <Card variant="magical" padding="lg">
-        <CardContent>
+      <Card variant="magical">
+        <CardContent className="p-6">
           <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">

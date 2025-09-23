@@ -388,7 +388,6 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
               <Card
                 key={session.id}
                 variant="outline"
-                padding="sm"
                 className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => handleJoinSession(session.id)}
               >
@@ -453,7 +452,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={e => e.stopPropagation()}
           >
-            <Card variant="magical" padding="lg">
+            <Card variant="magical">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users size={24} className="text-(--color-primary)" />

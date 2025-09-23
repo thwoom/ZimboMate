@@ -65,7 +65,7 @@ export const EquippedItemsDisplay: React.FC<EquippedItemsDisplayProps> = ({
   }
 
   return (
-    <Card variant="magical" padding="lg">
+    <Card variant="magical">
       <CardHeader>
         <CardTitle className="text-xl font-display text-(--parchment-900) flex items-center gap-2">
           <Sword size={20} className="text-(--parchment-800)" />

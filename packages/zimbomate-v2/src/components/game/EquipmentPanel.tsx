@@ -144,8 +144,8 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
 
   if (!inventory) {
     return (
-      <Card variant="parchment" padding="lg">
-        <CardContent>
+      <Card variant="parchment">
+        <CardContent className="p-6 pt-6">
           <div className="text-center py-8">
             <div className="animate-spin w-8 h-8 border-2 border-(--color-primary) border-t-transparent rounded-full mx-auto mb-4" />
             <p className="text-(--color-text-secondary)">Loading inventory...</p>
@@ -164,7 +164,7 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
     >
       {/* Header with Load Tracking */}
       <motion.div variants={cardVariants}>
-        <Card variant="magical" padding="lg">
+        <Card variant="magical">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -191,8 +191,9 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
 
       {/* Main Equipment Interface */}
       <motion.div variants={cardVariants}>
-        <Card variant="parchment" padding="lg">
-          <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
+        <Card variant="parchment">
+          <CardContent className="p-6">
+            <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
             {/* Tab Navigation */}
             <Tabs.List className="flex gap-1 p-1 bg-(--parchment-200) rounded-lg mb-6">
               {tabs.map((tab, index) => {
@@ -292,7 +293,8 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
                 )}
               </motion.div>
             </Tabs.Content>
-          </Tabs.Root>
+            </Tabs.Root>
+          </CardContent>
         </Card>
       </motion.div>
     </motion.div>

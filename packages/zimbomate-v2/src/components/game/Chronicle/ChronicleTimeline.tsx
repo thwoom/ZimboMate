@@ -123,7 +123,7 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
 
   if (filteredEntries.length === 0) {
     return (
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardContent>
           <div className="text-center py-8">
             <Clock size={48} className="mx-auto mb-4 opacity-50" />
@@ -163,7 +163,6 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
           >
             <Card
               variant={entry.isSceneBreak ? 'magical' : 'glass'}
-              padding="lg"
               className="relative"
             >
               {/* Timeline Connector */}
@@ -300,7 +299,7 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
 
       {/* Timeline Footer */}
       {filteredEntries.length > 0 && (
-        <Card variant="glass" padding="sm">
+        <Card variant="surface">
           <CardContent>
             <div className="text-center text-sm" style={{ color: 'var(--color-text-muted)' }}>
               📚 That's the complete chronicle so far

@@ -62,7 +62,7 @@ const ExpandableSettingsCard: React.FC<{
   const Icon = category.icon
 
   return (
-    <Card variant="glass" padding="none" className="overflow-hidden">
+    <Card variant="surface" className="overflow-hidden">
       <motion.div
         className="cursor-pointer"
         onClick={onToggle}
@@ -446,8 +446,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
 
         {/* Search */}
-        <Card variant="glass" padding="sm">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-4">
             <div className="relative">
               <Search
                 size={16}
@@ -486,8 +486,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
 
         {filteredCategories.length === 0 && (
-          <Card variant="glass" padding="lg">
-            <CardContent>
+          <Card variant="surface">
+            <CardContent className="p-6">
               <div className="text-center py-8">
                 <Search size={48} className="mx-auto mb-4 opacity-30" />
                 <h3 className="text-lg font-semibold mb-2">No settings found</h3>

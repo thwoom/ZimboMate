@@ -77,8 +77,7 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
 
   return (
     <Card 
-      variant={debility.active ? "magical" : "glass"} 
-      padding="lg"
+      variant={debility.active ? "magical" : "surface"}
       className={`relative transition-all duration-300 ${
         debility.active ? 'ring-2 ring-red-200' : ''
       }`}

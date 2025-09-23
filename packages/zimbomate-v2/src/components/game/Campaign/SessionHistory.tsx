@@ -37,7 +37,7 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onEdit, onDelete }) 
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <Card variant="glass" padding="md" className="campaign-card campaign-card-hover">
+    <Card variant="surface" className="campaign-card campaign-card-hover">
       <CardContent>
         <div className="space-y-4">
           {/* Header */}
@@ -270,7 +270,7 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({
 
   if (!campaign) {
     return (
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardContent>
           <div className="text-center">
             <p style={{ color: 'var(--color-text-muted)' }}>
@@ -323,7 +323,7 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({
 
       {/* Sessions List */}
       {filteredAndSortedSessions.length === 0 ? (
-        <Card variant="glass" padding="lg" className="campaign-empty-state">
+        <Card variant="surface" className="campaign-empty-state">
           <CardContent>
             <div className="text-center space-y-4">
               <Calendar size={48} style={{ color: 'var(--color-text-muted)', margin: '0 auto' }} />

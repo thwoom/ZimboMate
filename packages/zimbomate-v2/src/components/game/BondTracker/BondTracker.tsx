@@ -41,8 +41,8 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
 
   if (!character) {
     return (
-      <Card variant="glass" padding="lg" className={className}>
-        <CardContent>
+      <Card variant="surface" className={className}>
+        <CardContent className="p-6 pt-6">
           <div className="text-center py-8">
             <Users 
               size={48} 
@@ -124,8 +124,8 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
       </div>
 
       {/* Statistics */}
-      <Card variant="magical" padding="lg">
-        <CardContent>
+      <Card variant="magical">
+        <CardContent className="p-6">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold mb-1">{bonds.length}</div>
@@ -150,8 +150,8 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
       </Card>
 
       {/* Create Bond Button */}
-      <Card variant="glass" padding="sm">
-        <CardContent>
+      <Card variant="surface">
+        <CardContent className="p-4">
           <Button
             variant="primary"
             size="sm"
@@ -173,8 +173,8 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card variant="magical" padding="lg">
-              <CardContent>
+            <Card variant="magical">
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -295,8 +295,8 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
 
       {/* Empty State */}
       {bonds.length === 0 && (
-        <Card variant="glass" padding="lg">
-          <CardContent>
+        <Card variant="surface">
+          <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
               <Heart 
                 size={48} 

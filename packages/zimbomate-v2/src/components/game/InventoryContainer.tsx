@@ -170,7 +170,7 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
       initial="hidden"
       animate="visible"
     >
-      <Card variant="glass" padding="none">
+      <Card variant="surface">
         <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
           <Collapsible.Trigger asChild>
             <CardHeader className="cursor-pointer hover:bg-(--parchment-100) transition-colors">

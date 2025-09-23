@@ -93,7 +93,7 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
         return <MonsterManager />
       case 'multiplayer':
         return (
-          <Card variant="magical" padding="lg">
+          <Card variant="magical">
             <CardContent>
               <div className="text-center space-y-6">
                 <div
@@ -135,7 +135,7 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
         )
       case 'tools':
         return (
-          <Card variant="magical" padding="lg">
+          <Card variant="magical">
             <CardContent>
               <div className="space-y-8">
                 <div className="text-center">
@@ -147,7 +147,7 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
 
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Session Timer */}
-                  <Card variant="glass" padding="md">
+                  <Card variant="surface">
                     <CardContent>
                       <div className="flex items-center gap-3 mb-3">
                         <CalendarClock size={20} className="text-blue-600" />
@@ -161,7 +161,7 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
                   </Card>
 
                   {/* Random Tables */}
-                  <Card variant="glass" padding="md">
+                  <Card variant="surface">
                     <CardContent>
                       <div className="flex items-center gap-3 mb-3">
                         <Sparkles size={20} className="text-purple-600" />
@@ -175,7 +175,7 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
                   </Card>
 
                   {/* Initiative Tracker */}
-                  <Card variant="glass" padding="md">
+                  <Card variant="surface">
                     <CardContent>
                       <div className="flex items-center gap-3 mb-3">
                         <LayoutPanelLeft size={20} className="text-green-600" />
@@ -189,7 +189,7 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
                   </Card>
 
                   {/* Notes & References */}
-                  <Card variant="glass" padding="md">
+                  <Card variant="surface">
                     <CardContent>
                       <div className="flex items-center gap-3 mb-3">
                         <BookOpenText size={20} className="text-orange-600" />
@@ -227,7 +227,7 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
       </div>
 
       {/* Tab Navigation */}
-      <Card variant="glass" padding="sm">
+      <Card variant="surface">
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {tabs.map((tab) => {
@@ -269,7 +269,7 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
 
       {/* Search Bar (for applicable tabs) */}
       {(activeTab === 'chronicle' || activeTab === 'campaign' || activeTab === 'monsters') && (
-        <Card variant="glass" padding="sm">
+        <Card variant="surface">
           <CardContent>
             <div className="relative">
               <Search

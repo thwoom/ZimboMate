@@ -547,8 +547,8 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
         <div className="text-sm text-(--color-text-secondary)">Standard Array: {pool.join(', ')}</div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {(Object.keys(assignments) as (keyof Attributes)[]).map(attr => (
-            <Card key={attr} variant="glass" padding="md">
-              <CardContent>
+            <Card key={attr} variant="surface">
+              <CardContent className="p-4 pt-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="font-medium">{attr}</div>
                   <Badge variant="secondary">mod {getAttributeModifier(assignments[attr]) >= 0 ? `+${getAttributeModifier(assignments[attr])}` : getAttributeModifier(assignments[attr])}</Badge>
@@ -573,7 +573,7 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
   }
 
   return (
-    <Card variant="magical" padding="lg">
+    <Card variant="magical">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -650,8 +650,8 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
 
             {/* Show racial move for selected class/race */}
             {draft.class && draft.race && RACIAL_MOVES[draft.class]?.[draft.race]?.length > 0 && (
-              <Card variant="glass" padding="md">
-                <CardContent>
+              <Card variant="surface">
+                <CardContent className="p-4 pt-4">
                   <div className="space-y-2">
                     <div className="font-medium text-sm text-(--color-primary)">Racial Move</div>
                     {RACIAL_MOVES[draft.class][draft.race].map((move, i) => (
@@ -696,24 +696,24 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
 
         {step === 'derived' && (
           <div className="grid md:grid-cols-3 gap-4">
-            <Card variant="parchment" padding="md">
-              <CardContent>
+            <Card variant="parchment">
+              <CardContent className="p-4 pt-4">
                 <div className="text-sm text-(--color-text-secondary)">Base HP + CON mod</div>
                 <div className="text-2xl font-display">
                   {draft.class ? getClassBaseHP(draft.class) : '-'} + {getAttributeModifier(draft.attributes.CON)} = <b>{derivedPreview?.maxHp ?? '-'}</b>
                 </div>
               </CardContent>
             </Card>
-            <Card variant="parchment" padding="md">
-              <CardContent>
+            <Card variant="parchment">
+              <CardContent className="p-4 pt-4">
                 <div className="text-sm text-(--color-text-secondary)">Base Load + STR mod</div>
                 <div className="text-2xl font-display">
                   {draft.class ? getClassBaseLoad(draft.class) : '-'} + {getAttributeModifier(draft.attributes.STR)} = <b>{derivedPreview?.maxLoad ?? '-'}</b>
                 </div>
               </CardContent>
             </Card>
-            <Card variant="parchment" padding="md">
-              <CardContent>
+            <Card variant="parchment">
+              <CardContent className="p-4 pt-4">
                 <div className="text-sm text-(--color-text-secondary)">Damage Die</div>
                 <div className="text-2xl font-display">{draft.class ? getClassDamageDie(draft.class) : '-'}</div>
               </CardContent>

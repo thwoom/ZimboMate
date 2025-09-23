@@ -211,12 +211,11 @@ export const MoveContextAnalyzer: React.FC<MoveContextAnalyzerProps> = ({
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               <Card
-                variant="glass"
-                padding="sm"
+                variant="surface"
                 className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
                 onClick={() => onMoveSuggestion(suggestion.moveId)}
               >
-                <CardContent>
+                <CardContent className="p-4 pt-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-(--color-primary)/20 flex items-center justify-center flex-shrink-0">
                       <Icon size={16} className="text-(--color-primary)" />

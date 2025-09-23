@@ -374,7 +374,7 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
 
   if (!isSessionActive) {
     return (
-      <Card variant="outline" padding="md">
+      <Card variant="outline">
         <CardContent>
           <div className="text-center space-y-4">
             <div 
@@ -409,7 +409,7 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
 
   return (
     <>
-      <Card variant="magical" padding="md">
+      <Card variant="magical">
       <CardContent>
         <div className="space-y-4">
           {/* Header */}

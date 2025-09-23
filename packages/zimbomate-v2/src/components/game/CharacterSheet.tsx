@@ -142,11 +142,12 @@ export const CharacterSheet: React.FC = () => {
       {/* Compact Header with Key Info */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Character Identity */}
-        <Card variant="magical" padding="md" className="lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-display font-bold flex items-center gap-2">
-                {displayCharacter.name}
+        <Card variant="magical" className="lg:col-span-2">
+          <CardContent className="p-4 pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-display font-bold flex items-center gap-2">
+                  {displayCharacter.name}
                 <Button
                   variant={isEditing ? "secondary" : "ghost"}
                   size="sm"
@@ -176,12 +177,13 @@ export const CharacterSheet: React.FC = () => {
               <Star size={12} />
               Level {realTimeLevel}
             </Badge>
-          </div>
+            </div>
+          </CardContent>
         </Card>
 
         {/* Health & XP */}
-        <Card variant="glass" padding="md">
-          <div className="space-y-3">
+        <Card variant="surface">
+          <CardContent className="p-4 pt-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium">Health</span>
               <span className="text-xs font-mono">{displayCharacter.hp.current}/{displayCharacter.hp.max}</span>
@@ -203,7 +205,7 @@ export const CharacterSheet: React.FC = () => {
               max={getXPThreshold(realTimeLevel)}
               className="h-2"
             />
-          </div>
+          </CardContent>
         </Card>
       </div>
 
@@ -211,10 +213,11 @@ export const CharacterSheet: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Left Column - Stats */}
         <div className="space-y-3">
-          <Card variant="parchment" padding="sm">
-            <h3 className="text-sm font-semibold mb-3 text-center">Ability Scores</h3>
-            <div className="space-y-2">
-              {Object.entries(displayCharacter.stats).map(([statName, statValue]) => {
+          <Card variant="parchment">
+            <CardContent className="p-3 pt-3">
+              <h3 className="text-sm font-semibold mb-3 text-center">Ability Scores</h3>
+              <div className="space-y-2">
+                {Object.entries(displayCharacter.stats).map(([statName, statValue]) => {
                 const StatIcon = statIcons[statName as keyof Attributes]
                 const modifier = getStatModifier(statValue)
 
@@ -249,17 +252,19 @@ export const CharacterSheet: React.FC = () => {
                     </div>
                   </div>
                 )
-              })}
-            </div>
+                })}
+              </div>
+            </CardContent>
           </Card>
         </div>
 
         {/* Middle Columns - Moves & Equipment */}
         <div className="lg:col-span-2 grid md:grid-cols-2 gap-4">
           {/* Class Moves */}
-          <Card variant="elevated" padding="sm">
-            <h3 className="text-sm font-semibold mb-3">Class Moves</h3>
-            <div className="space-y-2 text-xs">
+          <Card variant="elevated">
+            <CardContent className="p-3 pt-3">
+              <h3 className="text-sm font-semibold mb-3">Class Moves</h3>
+              <div className="space-y-2 text-xs">
               <div>
                 <div className="font-medium mb-1">Starting:</div>
                 <ul className="space-y-0.5 text-muted-foreground">
@@ -278,13 +283,15 @@ export const CharacterSheet: React.FC = () => {
                   </ul>
                 </div>
               )}
-            </div>
+              </div>
+            </CardContent>
           </Card>
 
           {/* Equipment */}
-          <Card variant="elevated" padding="sm">
-            <h3 className="text-sm font-semibold mb-3">Equipment</h3>
-            <div className="space-y-2 text-xs">
+          <Card variant="elevated">
+            <CardContent className="p-3 pt-3">
+              <h3 className="text-sm font-semibold mb-3">Equipment</h3>
+              <div className="space-y-2 text-xs">
               <div>
                 <div className="font-medium mb-1">Weapons:</div>
                 <ul className="space-y-0.5 text-muted-foreground">
@@ -302,14 +309,15 @@ export const CharacterSheet: React.FC = () => {
                   <li>• Adventuring gear</li>
                 </ul>
               </div>
-            </div>
+              </div>
+            </CardContent>
           </Card>
         </div>
 
         {/* Right Column - Bonds & Notes */}
-        <Card variant="parchment" padding="sm">
-          <h3 className="text-sm font-semibold mb-3">Bonds & Status</h3>
-          <div className="space-y-3 text-xs">
+        <Card variant="parchment">
+          <CardContent className="p-3 pt-3 space-y-3 text-xs">
+            <h3 className="text-sm font-semibold mb-3">Bonds & Status</h3>
             {/* Active Bonds */}
             <div>
               <div className="font-medium mb-1 flex items-center justify-between">
@@ -361,7 +369,7 @@ export const CharacterSheet: React.FC = () => {
                 Character background, important story details, campaign notes...
               </div>
             </div>
-          </div>
+          </CardContent>
         </Card>
       </div>
     </div>

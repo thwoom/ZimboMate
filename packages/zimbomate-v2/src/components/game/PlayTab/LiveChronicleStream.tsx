@@ -386,7 +386,6 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
   return (
     <Card
       variant={cardVariant}
-      padding="md"
       className={`h-full flex flex-col ${className}`}
     >
       <CardHeader className="pb-2 flex-shrink-0">

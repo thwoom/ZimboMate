@@ -85,7 +85,7 @@ const DemoSection: React.FC<{
     animate={{ opacity: 1, y: 0 }}
     className={`space-y-4 ${className}`}
   >
-    <Card variant="magical" padding="lg">
+    <Card variant="magical">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           {icon}

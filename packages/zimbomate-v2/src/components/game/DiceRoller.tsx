@@ -131,7 +131,7 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
   }, [isRolling, disabled, modifier, onRoll])
 
   return (
-    <Card variant="magical" padding="lg" className="relative overflow-hidden">
+    <Card variant="magical" className="relative overflow-hidden">
       <MagicalParticles 
         trigger={showParticles} 
         color={result?.outcome === 'success' ? '#16a34a' : result?.outcome === 'partial' ? '#ca8a04' : '#dc2626'}

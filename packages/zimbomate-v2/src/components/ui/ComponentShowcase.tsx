@@ -25,7 +25,7 @@ export const ComponentShowcase: React.FC = () => {
         <div className="grid gap-8">
           
           {/* Buttons Section */}
-          <Card variant="elevated" padding="lg">
+          <Card variant="elevated">
             <CardHeader>
               <CardTitle>Buttons</CardTitle>
               <CardDescription>
@@ -73,7 +73,7 @@ export const ComponentShowcase: React.FC = () => {
           </Card>
 
           {/* Inputs Section */}
-          <Card variant="magical" padding="lg">
+          <Card variant="magical">
             <CardHeader>
               <CardTitle>Form Inputs</CardTitle>
               <CardDescription>
@@ -132,7 +132,7 @@ export const ComponentShowcase: React.FC = () => {
           </Card>
 
           {/* Badges Section */}
-          <Card variant="glass" padding="lg">
+          <Card variant="surface">
             <CardHeader>
               <CardTitle>Badges & Status Indicators</CardTitle>
               <CardDescription>
@@ -170,7 +170,7 @@ export const ComponentShowcase: React.FC = () => {
           </Card>
 
           {/* Progress Bars Section */}
-          <Card variant="parchment" padding="lg">
+          <Card variant="parchment">
             <CardHeader>
               <CardTitle>Progress Indicators</CardTitle>
               <CardDescription>
@@ -265,19 +265,19 @@ export const ComponentShowcase: React.FC = () => {
               </CardFooter>
             </Card>
             
-            <Card variant="cyber">
+            <Card variant="surface">
               <CardHeader>
-                <CardTitle>Cyber Card</CardTitle>
-                <CardDescription>Futuristic sci-fi styling</CardDescription>
+                <CardTitle>Surface Card</CardTitle>
+                <CardDescription>Neutral elevated styling</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-body-sm">
-                  This card features cyber styling with circuit patterns and neon effects.
+                  This card features the neutral surface treatment used throughout the application shell.
                 </p>
               </CardContent>
               <CardFooter>
-                <Button variant="cyber" size="sm">
-                  Execute
+                <Button variant="secondary" size="sm">
+                  Secondary
                 </Button>
               </CardFooter>
             </Card>

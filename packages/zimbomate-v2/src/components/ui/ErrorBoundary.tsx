@@ -158,8 +158,8 @@ URL: ${window.location.href}
         transition={{ duration: 0.3 }}
         className="max-w-2xl w-full"
       >
-        <Card variant="magical" padding="lg">
-          <CardContent>
+        <Card variant="magical">
+          <CardContent className="p-6">
             <div className="text-center space-y-6">
               {/* Error Icon */}
               <motion.div

@@ -148,7 +148,7 @@ export const Move3DIntegration: React.FC<Move3DIntegrationProps> = ({
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={e => e.stopPropagation()}
           >
-            <Card variant="magical" padding="lg" className="relative overflow-hidden">
+            <Card variant="magical" className="relative overflow-hidden">
               {/* Background 3D Scene */}
               <div className="absolute inset-0 opacity-20">
                 <Canvas camera={{ position: [0, 0, 5] }}>
@@ -158,7 +158,7 @@ export const Move3DIntegration: React.FC<Move3DIntegrationProps> = ({
                 </Canvas>
               </div>
 
-              <CardContent className="relative z-10">
+              <CardContent className="relative z-10 p-6">
                 <div className="text-center space-y-6">
                   {/* Move Header */}
                   <motion.div

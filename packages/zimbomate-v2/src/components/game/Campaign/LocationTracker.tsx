@@ -62,8 +62,7 @@ const LocationCard: React.FC<LocationCardProps> = ({ location, onEdit, onDelete 
 
   return (
     <Card 
-      variant="glass" 
-      padding="md" 
+      variant="surface" 
       className="campaign-card campaign-card-hover"
     >
       <CardContent>
@@ -293,7 +292,7 @@ export const LocationTracker: React.FC<LocationTrackerProps> = ({
 
   if (!campaign) {
     return (
-      <Card variant="glass" padding="lg">
+      <Card variant="surface">
         <CardContent>
           <div className="text-center">
             <p style={{ color: 'var(--color-text-muted)' }}>
@@ -328,7 +327,7 @@ export const LocationTracker: React.FC<LocationTrackerProps> = ({
       </div>
 
       {/* Filters */}
-      <Card variant="glass" padding="sm">
+      <Card variant="surface">
         <CardContent>
           <div className="flex flex-wrap items-center gap-4">
             <select
@@ -371,7 +370,7 @@ export const LocationTracker: React.FC<LocationTrackerProps> = ({
 
       {/* Locations List */}
       {filteredAndSortedLocations.length === 0 ? (
-        <Card variant="glass" padding="lg" className="campaign-empty-state">
+        <Card variant="surface" className="campaign-empty-state">
           <CardContent>
             <div className="text-center space-y-4">
               <MapPin size={48} style={{ color: 'var(--color-text-muted)', margin: '0 auto' }} />

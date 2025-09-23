@@ -170,7 +170,7 @@ const CombatMode: React.FC<{
       </div>
 
       {/* Quick Damage Roll */}
-      <Card variant="glass" padding="md">
+      <Card variant="surface">
         <div className="text-center">
           <h4 className="font-medium mb-2">Quick Damage Roll</h4>
           <ChronicleEnabledDiceRoller
@@ -225,7 +225,7 @@ const ExplorationMode: React.FC<{
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card variant="glass" padding="md">
+              <Card variant="surface">
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-lg ${action.color} text-white`}>
                     <Icon size={20} />
@@ -279,7 +279,7 @@ const SocialMode: React.FC<{
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Parley */}
-        <Card variant="glass" padding="md">
+        <Card variant="surface">
           <div className="text-center space-y-3">
             <div className="w-12 h-12 mx-auto bg-blue-500 rounded-full flex items-center justify-center text-white">
               <Users size={20} />
@@ -303,7 +303,7 @@ const SocialMode: React.FC<{
         </Card>
 
         {/* Read Person */}
-        <Card variant="glass" padding="md">
+        <Card variant="surface">
           <div className="text-center space-y-3">
             <div className="w-12 h-12 mx-auto bg-purple-500 rounded-full flex items-center justify-center text-white">
               <Eye size={20} />
@@ -328,7 +328,7 @@ const SocialMode: React.FC<{
       </div>
 
       {/* Bond Management Quick Access */}
-      <Card variant="parchment" padding="md">
+      <Card variant="parchment">
         <div className="text-center">
           <h4 className="font-medium mb-3">Active Bonds</h4>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -361,7 +361,7 @@ const RestMode: React.FC<{
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card variant="magical" padding="md">
+        <Card variant="magical">
           <div className="text-center space-y-3">
             <Heart size={32} className="mx-auto text-red-500" />
             <div>
@@ -379,7 +379,7 @@ const RestMode: React.FC<{
           </div>
         </Card>
 
-        <Card variant="magical" padding="md">
+        <Card variant="magical">
           <div className="text-center space-y-3">
             <Sparkles size={32} className="mx-auto text-blue-500" />
             <div>
@@ -455,7 +455,6 @@ export const ContextualActionZone: React.FC<ContextualActionZoneProps> = ({
   return (
     <Card
       variant={cardVariant}
-      padding="lg"
       className={`h-full overflow-y-auto ${className}`}
     >
       <CardContent>

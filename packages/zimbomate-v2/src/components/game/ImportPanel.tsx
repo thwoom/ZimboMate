@@ -173,7 +173,7 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
     <div className="space-y-6">
       {/* Drag and Drop Zone */}
       <Card 
-        variant="glass" 
+        variant="surface" 
         className={`
           relative border-2 border-dashed transition-all duration-300 cursor-pointer
           ${dragActive ? 'file-dropzone scale-105' : 'hover:file-dropzone'}

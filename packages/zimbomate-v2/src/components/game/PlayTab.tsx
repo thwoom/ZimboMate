@@ -694,8 +694,8 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
         animate={{ opacity: 1 }}
         className={`p-4 ${className}`}
       >
-        <Card variant="magical" padding="lg">
-          <CardContent>
+        <Card variant="magical">
+          <CardContent className="p-6 pt-6">
             <div className="text-center space-y-4">
               <div className="w-12 h-12 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                 <BookOpen size={24} className="text-gray-400" />
@@ -941,7 +941,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                 {/* Recent Entries & Dice Context */}
                 <div className="grid grid-cols-2 gap-6">
                   {/* Recent Chronicle Entries */}
-                  <Card variant="glass">
+                  <Card variant="surface">
                     <CardContent className="p-4">
                       <h3 className="font-semibold mb-3 flex items-center gap-2">
                         <BookOpen size={16} />
@@ -1096,7 +1096,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                   </Card>
 
                   {/* Created Items List */}
-                  <Card variant="glass">
+                  <Card variant="surface">
                     <CardContent className="p-4">
                       <h3 className="font-semibold mb-3">
                         Your {toolsSubTab.charAt(0).toUpperCase() + toolsSubTab.slice(1)}

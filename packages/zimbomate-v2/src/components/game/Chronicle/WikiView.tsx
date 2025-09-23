@@ -145,7 +145,7 @@ export const WikiView: React.FC<WikiViewProps> = ({
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         onClick={onClose}
       >
-        <Card variant="magical" padding="lg">
+        <Card variant="magical">
           <CardContent>
             <div className="text-center py-8">
               <div className="animate-pulse">
@@ -178,7 +178,7 @@ export const WikiView: React.FC<WikiViewProps> = ({
         className="w-full max-w-4xl max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <Card variant="magical" padding="none">
+        <Card variant="magical">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
