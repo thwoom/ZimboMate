@@ -65,7 +65,7 @@ class XPIntegrationService {
       description: 'XP gained from rolling 6- on a move',
       category: 'failure',
       color: 'var(--chart-4)',
-      icon: 'AlertTriangle'
+      icon: 'AlertTriangle',
     }],
     ['bond-resolution', {
       id: 'bond-resolution',
@@ -73,7 +73,7 @@ class XPIntegrationService {
       description: 'XP gained from resolving a bond with another character',
       category: 'bond',
       color: 'var(--chart-2)',
-      icon: 'Heart'
+      icon: 'Heart',
     }],
     ['alignment-good', {
       id: 'alignment-good',
@@ -81,7 +81,7 @@ class XPIntegrationService {
       description: 'XP gained from acting according to Good alignment',
       category: 'alignment',
       color: 'var(--chart-3)',
-      icon: 'Heart'
+      icon: 'Heart',
     }],
     ['alignment-lawful', {
       id: 'alignment-lawful',
@@ -89,7 +89,7 @@ class XPIntegrationService {
       description: 'XP gained from acting according to Lawful alignment',
       category: 'alignment',
       color: 'var(--primary)',
-      icon: 'Shield'
+      icon: 'Shield',
     }],
     ['alignment-neutral', {
       id: 'alignment-neutral',
@@ -97,7 +97,7 @@ class XPIntegrationService {
       description: 'XP gained from acting according to Neutral alignment',
       category: 'alignment',
       color: 'var(--muted-foreground)',
-      icon: 'Scale'
+      icon: 'Scale',
     }],
     ['alignment-chaotic', {
       id: 'alignment-chaotic',
@@ -105,7 +105,7 @@ class XPIntegrationService {
       description: 'XP gained from acting according to Chaotic alignment',
       category: 'alignment',
       color: 'var(--accent)',
-      icon: 'Zap'
+      icon: 'Zap',
     }],
     ['alignment-evil', {
       id: 'alignment-evil',
@@ -113,7 +113,7 @@ class XPIntegrationService {
       description: 'XP gained from acting according to Evil alignment',
       category: 'alignment',
       color: 'var(--destructive)',
-      icon: 'Skull'
+      icon: 'Skull',
     }],
     ['level-up', {
       id: 'level-up',
@@ -121,7 +121,7 @@ class XPIntegrationService {
       description: 'XP reset when leveling up',
       category: 'advancement',
       color: 'var(--chart-2)',
-      icon: 'Star'
+      icon: 'Star',
     }],
     ['gm-award', {
       id: 'gm-award',
@@ -129,7 +129,7 @@ class XPIntegrationService {
       description: 'XP awarded by the GM for exceptional roleplay',
       category: 'gm-award',
       color: 'var(--primary)',
-      icon: 'Award'
+      icon: 'Award',
     }],
     ['end-of-session', {
       id: 'end-of-session',
@@ -137,8 +137,8 @@ class XPIntegrationService {
       description: 'XP gained at the end of a session',
       category: 'special',
       color: 'var(--accent)',
-      icon: 'Calendar'
-    }]
+      icon: 'Calendar',
+    }],
   ])
 
   /**
@@ -150,7 +150,7 @@ class XPIntegrationService {
     amount: number,
     reason: string,
     sessionId?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): XPEntry {
     const source = this.xpSources.get(sourceId)
     if (!source) {
@@ -165,7 +165,7 @@ class XPIntegrationService {
       reason,
       timestamp: new Date(),
       sessionId,
-      metadata
+      metadata,
     }
 
     // Add to character's XP entries
@@ -212,17 +212,17 @@ class XPIntegrationService {
     }
 
     const entries = this.xpEntries.get(characterId) || []
-    
+
     // Calculate analytics
     const totalXP = entries.reduce((sum, entry) => sum + entry.amount, 0)
-    
+
     const xpBySource: Record<string, number> = {}
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       xpBySource[entry.source.id] = (xpBySource[entry.source.id] || 0) + entry.amount
     })
 
     const xpBySession: Record<string, number> = {}
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       if (entry.sessionId) {
         xpBySession[entry.sessionId] = (xpBySession[entry.sessionId] || 0) + entry.amount
       }
@@ -243,10 +243,10 @@ class XPIntegrationService {
         trend.push({
           date: entry.timestamp,
           amount: entry.amount,
-          cumulative
+          cumulative,
         })
         return trend
-      }, [] as Array<{ date: Date; amount: number; cumulative: number }>)
+      }, [] as Array<{ date: Date, amount: number, cumulative: number }>)
 
     const analytics: XPAnalytics = {
       totalXP,
@@ -254,7 +254,7 @@ class XPIntegrationService {
       xpBySession,
       averageXPPerSession,
       mostCommonSource,
-      xpTrend
+      xpTrend,
     }
 
     this.analyticsCache.set(characterId, analytics)
@@ -313,13 +313,13 @@ class XPIntegrationService {
           action: () => {
             // Navigate to character sheet
             console.log('Navigate to character sheet')
-          }
-        }
-      ] : undefined
+          },
+        },
+      ] : undefined,
     }
 
     this.notifications.push(notification)
-    
+
     // Notify listeners
     this.listeners.forEach(listener => listener(notification))
 
@@ -342,9 +342,9 @@ class XPIntegrationService {
    */
   private checkLevelUp(characterId: string) {
     const totalXP = this.getTotalXP(characterId)
-    
+
     // Use official DW rule: Current Level + 7
-    
+
     // Find current level based on XP using official DW rules
     let currentLevel = 1
     while (totalXP >= getXPThreshold(currentLevel)) {
@@ -370,7 +370,7 @@ class XPIntegrationService {
         source: this.xpSources.get('level-up')!,
         amount: 0,
         reason: `Ready to advance to level ${newLevel}`,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       message: `🎉 Ready to Level Up! You can advance to level ${newLevel}`,
       type: 'level-up',
@@ -380,15 +380,15 @@ class XPIntegrationService {
           label: 'Level Up Now',
           action: () => {
             console.log('Trigger level up process')
-          }
+          },
         },
         {
           label: 'View Character',
           action: () => {
             console.log('Navigate to character sheet')
-          }
-        }
-      ]
+          },
+        },
+      ],
     }
 
     this.notifications.push(notification)
@@ -403,7 +403,7 @@ class XPIntegrationService {
       characterId,
       entries: this.xpEntries.get(characterId) || [],
       analytics: this.getAnalytics(characterId),
-      exportDate: new Date()
+      exportDate: new Date(),
     }
   }
 
@@ -419,7 +419,8 @@ class XPIntegrationService {
       this.xpEntries.set(data.characterId, data.entries)
       this.analyticsCache.delete(data.characterId)
       return true
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to import XP data:', error)
       return false
     }

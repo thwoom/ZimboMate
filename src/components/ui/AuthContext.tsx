@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import React, { createContext, useCallback, useEffect, useState } from 'react'
 
 export interface User {
   id: string
@@ -17,7 +17,7 @@ export interface User {
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
-  login: (credentials: { name: string; email?: string }) => Promise<void>
+  login: (credentials: { name: string, email?: string }) => Promise<void>
   logout: () => void
   updateUser: (updates: Partial<User>) => void
   isLoading: boolean
@@ -43,13 +43,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser({
             ...userData,
             createdAt: new Date(userData.createdAt),
-            lastActive: new Date(userData.lastActive)
+            lastActive: new Date(userData.lastActive),
           })
         }
-      } catch (error) {
+      }
+      catch (error) {
         console.warn('Failed to load user data from localStorage:', error)
         localStorage.removeItem('zimbomate-user')
-      } finally {
+      }
+      finally {
         setIsLoading(false)
       }
     }
@@ -72,17 +74,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     if (user) {
       localStorage.setItem('zimbomate-user', JSON.stringify(user))
-    } else {
+    }
+    else {
       localStorage.removeItem('zimbomate-user')
     }
   }, [user])
 
-  const login = useCallback(async (credentials: { name: string; email?: string }) => {
+  const login = useCallback(async (credentials: { name: string, email?: string }) => {
     setIsLoading(true)
-    
+
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500))
-    
+
     const newUser: User = {
       id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: credentials.name,
@@ -90,12 +93,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       preferences: {
         theme: 'fantasy',
         language: 'en',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       createdAt: new Date(),
-      lastActive: new Date()
+      lastActive: new Date(),
     }
-    
+
     setUser(newUser)
     setIsLoading(false)
   }, [])
@@ -119,18 +122,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     updateUser,
-    isLoading
+    isLoading,
   }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext value={value}>
       {children}
-    </AuthContext.Provider>
+    </AuthContext>
   )
 }
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext)
+export function useAuth(): AuthContextType {
+  const context = use(AuthContext)
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
@@ -138,30 +141,31 @@ export const useAuth = (): AuthContextType => {
 }
 
 // Helper function to get current user ID for services
-export const getCurrentUserId = (): string | null => {
+export function getCurrentUserId(): string | null {
   try {
     const storedUser = localStorage.getItem('zimbomate-user')
     if (storedUser) {
       const userData = JSON.parse(storedUser)
       return userData.id
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.warn('Failed to get current user ID:', error)
   }
   return null
 }
 
 // Guest user creation for offline usage
-export const createGuestUser = (): User => {
+export function createGuestUser(): User {
   return {
     id: `guest-${Date.now()}`,
     name: 'Guest Player',
     preferences: {
       theme: 'fantasy',
       language: 'en',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     createdAt: new Date(),
-    lastActive: new Date()
+    lastActive: new Date(),
   }
 }

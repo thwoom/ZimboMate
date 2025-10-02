@@ -4,28 +4,28 @@
  * Most commonly used hook for character operations
  */
 
+import type { Character } from '../models/Character'
 import { useCallback, useMemo } from 'react'
 import { useCharacterStore } from '../stores/characterStore'
 import { useCharacter } from './useCharacter'
-import type { Character } from '../models/Character'
 
 export interface UseActiveCharacterReturn {
   // Active character data
   activeCharacter: Character | undefined
   activeCharacterId: string | null
   hasActiveCharacter: boolean
-  
+
   // Character switching
   setActiveCharacter: (characterId: string | null) => void
   switchToCharacter: (characterId: string) => void
   clearActiveCharacter: () => void
-  
+
   // Quick character operations (on active character)
   updateActiveCharacter: (updates: Partial<Character>) => void
   healActive: (amount: number) => void
   damageActive: (amount: number) => void
   addXPToActive: (amount: number, source: string, description: string) => void
-  
+
   // Character list for switching
   availableCharacters: Array<{
     id: string
@@ -34,7 +34,7 @@ export interface UseActiveCharacterReturn {
     level: number
     isActive: boolean
   }>
-  
+
   // Utility
   isLoading: boolean
   error: string | null
@@ -100,21 +100,21 @@ export function useActiveCharacter(): UseActiveCharacterReturn {
     activeCharacter,
     activeCharacterId,
     hasActiveCharacter,
-    
+
     // Character switching
     setActiveCharacter,
     switchToCharacter,
     clearActiveCharacter,
-    
+
     // Quick character operations
     updateActiveCharacter,
     healActive,
     damageActive,
     addXPToActive,
-    
+
     // Character list for switching
     availableCharacters,
-    
+
     // Utility
     isLoading,
     error,

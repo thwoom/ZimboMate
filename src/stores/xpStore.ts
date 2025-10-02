@@ -34,7 +34,7 @@ interface XPState {
   calculateLevelFromXP: (xp: number) => number
   getXPForNextLevel: (characterId: string) => number
   canLevelUp: (characterId: string) => boolean
-  getXPProgress: (characterId: string) => { current: number; needed: number; percent: number }
+  getXPProgress: (characterId: string) => { current: number, needed: number, percent: number }
   getXPEventsForCharacter: (characterId: string) => XPEvent[]
   clearXPHistory: (characterId: string) => void
   setAutoAwardFailedRolls: (enabled: boolean) => void
@@ -95,7 +95,7 @@ export const useXPStore = create<XPState>()(
         return {
           current: currentXP,
           needed: xpNeededForNextLevel,
-          percent: Math.round(percent)
+          percent: Math.round(percent),
         }
       },
 
@@ -117,7 +117,7 @@ export const useXPStore = create<XPState>()(
             amount,
             reason,
             rollId,
-            moveId
+            moveId,
           }
 
           console.log(`[XP] Added ${amount} XP to ${characterId}: ${reason} (Total: ${newXP})`)
@@ -141,13 +141,13 @@ Visit your character sheet to make your selections.`)
           return {
             characterXP: {
               ...state.characterXP,
-              [characterId]: newXP
+              [characterId]: newXP,
             },
             characterLevel: {
               ...state.characterLevel,
-              [characterId]: newLevel
+              [characterId]: newLevel,
             },
-            xpEvents: [...state.xpEvents, xpEvent]
+            xpEvents: [...state.xpEvents, xpEvent],
           }
         })
       },
@@ -155,7 +155,8 @@ Visit your character sheet to make your selections.`)
       // Auto-award XP for failed rolls (6-)
       awardFailedRoll: (characterId, rollId, moveId) => {
         const state = get()
-        if (!state.autoAwardFailedRolls) return
+        if (!state.autoAwardFailedRolls)
+          return
 
         const reason = moveId
           ? `Failed ${moveId.replace('-', ' ')} roll`
@@ -174,16 +175,16 @@ Visit your character sheet to make your selections.`)
 
       // Clear XP history for a character
       clearXPHistory: (characterId) => {
-        set((state) => ({
+        set(state => ({
           xpEvents: state.xpEvents.filter(event => event.characterId !== characterId),
           characterXP: {
             ...state.characterXP,
-            [characterId]: 0
+            [characterId]: 0,
           },
           characterLevel: {
             ...state.characterLevel,
-            [characterId]: 1
-          }
+            [characterId]: 1,
+          },
         }))
       },
 
@@ -194,11 +195,11 @@ Visit your character sheet to make your selections.`)
 
       setShowXPNotifications: (enabled) => {
         set({ showXPNotifications: enabled })
-      }
+      },
     }),
     {
       name: 'zimbomate-xp-store',
-      version: 1
-    }
-  )
+      version: 1,
+    },
+  ),
 )

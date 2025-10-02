@@ -5,29 +5,25 @@
  * and emergency actions during active gameplay.
  */
 
-import React, { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Zap,
-  Heart,
-  Shield,
-  Sword,
-  Package,
-  RotateCcw,
-  AlertTriangle,
-  Users,
-  Star,
-  Timer,
-  Sparkles,
-  Droplets,
-  Flame,
-  Plus,
-  Minus
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
-import { useChronicle } from '../../chronicle/ChronicleProvider'
 import type { Character, Inventory } from '../../../models/Character'
 import type { GameMode, PlayTabTheme } from '../PlayTab'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  AlertTriangle,
+  Droplets,
+  Heart,
+  Minus,
+  Package,
+  Plus,
+  Shield,
+  Star,
+  Sword,
+  Users,
+  Zap,
+} from 'lucide-react'
+import React, { useCallback, useState } from 'react'
+import { useChronicle } from '../../chronicle/ChronicleProvider'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
 
 interface QuickActionBarProps {
   character: Character
@@ -40,7 +36,7 @@ interface QuickItem {
   id: string
   name: string
   description: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
   type: 'consumable' | 'equipment' | 'emergency'
   uses?: number
   maxUses?: number
@@ -52,7 +48,7 @@ interface EmergencyAction {
   id: string
   name: string
   description: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
   color: string
   hotkey?: string
   action: () => void
@@ -117,7 +113,9 @@ const QuickItemCard: React.FC<{
             <div className="text-xs font-medium truncate">{item.name}</div>
             {item.uses !== undefined && item.maxUses && (
               <div className="text-xs text-white/80">
-                {item.uses}/{item.maxUses}
+                {item.uses}
+                /
+                {item.maxUses}
               </div>
             )}
           </div>
@@ -168,14 +166,14 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
   character,
   gameMode,
   theme,
-  className = ''
+  className = '',
 }) => {
   const { emitEquipmentAction } = useChronicle()
   const [selectedCategory, setSelectedCategory] = useState<'consumables' | 'equipment' | 'emergency'>('consumables')
 
   // Extract consumable items from inventory
   const consumableItems = character.inventory?.filter(
-    item => item.category === 'consumable' && (item.uses || 0) > 0
+    item => item.category === 'consumable' && (item.uses || 0) > 0,
   ) || []
 
   // Convert inventory items to QuickItems
@@ -188,7 +186,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
     uses: item.uses || 0,
     maxUses: item.uses || 1, // This would come from item definition
     color: getItemColor(item),
-    action: () => useItem(item)
+    action: () => useItem(item),
   }))
 
   // Quick equipment items (equipped weapons/armor)
@@ -200,7 +198,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
     icon: getItemIcon(item),
     type: 'equipment',
     color: getItemColor(item),
-    action: () => swapEquipment(item)
+    action: () => swapEquipment(item),
   }))
 
   // Emergency actions based on game mode
@@ -212,7 +210,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
       icon: Users,
       color: 'bg-primary/100 hover:bg-primary text-white',
       hotkey: 'A',
-      action: () => triggerEmergencyAction('aid')
+      action: () => triggerEmergencyAction('aid'),
     },
     {
       id: 'last-breath',
@@ -221,7 +219,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
       icon: Heart,
       color: 'bg-destructive hover:bg-destructive/75 text-white',
       hotkey: 'L',
-      action: () => triggerEmergencyAction('last-breath')
+      action: () => triggerEmergencyAction('last-breath'),
     },
     {
       id: 'mark-xp',
@@ -230,8 +228,8 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
       icon: Star,
       color: 'bg-accent hover:bg-accent text-white',
       hotkey: 'X',
-      action: () => triggerEmergencyAction('mark-xp')
-    }
+      action: () => triggerEmergencyAction('mark-xp'),
+    },
   ]
 
   // Add game mode specific emergency actions
@@ -243,15 +241,17 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
       icon: Shield,
       color: 'bg-chart-2 hover:bg-chart-2/85 text-white',
       hotkey: 'D',
-      action: () => triggerEmergencyAction('defend-other')
+      action: () => triggerEmergencyAction('defend-other'),
     })
   }
 
   function getItemIcon(item: Inventory) {
     switch (item.category) {
       case 'consumable':
-        if (item.name.toLowerCase().includes('healing')) return Heart
-        if (item.name.toLowerCase().includes('potion')) return Droplets
+        if (item.name.toLowerCase().includes('healing'))
+          return Heart
+        if (item.name.toLowerCase().includes('potion'))
+          return Droplets
         return Package
       case 'weapon':
         return Sword
@@ -283,7 +283,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
       characterName: character.name,
       action: 'use',
       itemName: item.name,
-      itemType: item.category || 'item'
+      itemType: item.category || 'item',
     })
 
     // TODO: Implement actual item usage logic
@@ -301,16 +301,21 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
     // TODO: Implement emergency actions
   }, [])
 
-  const currentItems =
-    selectedCategory === 'consumables' ? quickConsumables :
-    selectedCategory === 'equipment' ? quickEquipment :
-    []
+  const currentItems
+    = selectedCategory === 'consumables'
+      ? quickConsumables
+      : selectedCategory === 'equipment'
+        ? quickEquipment
+        : []
 
-  const cardVariant =
-    theme === 'combat' ? 'elevated' :
-    theme === 'dungeon' ? 'parchment' :
-    theme === 'tavern' ? 'magical' :
-    'glass'
+  const cardVariant
+    = theme === 'combat'
+      ? 'elevated'
+      : theme === 'dungeon'
+        ? 'parchment'
+        : theme === 'tavern'
+          ? 'magical'
+          : 'glass'
 
   return (
     <Card
@@ -368,23 +373,25 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-3"
               >
-                {quickConsumables.length === 0 ? (
-                  <div className="text-center text-xs text-muted-foreground py-8">
-                    <Package size={24} className="mx-auto mb-2 opacity-50" />
-                    <p>No consumable items</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    {quickConsumables.map(item => (
-                      <QuickItemCard
-                        key={item.id}
-                        item={item}
-                        isActive={false}
-                        onClick={item.action}
-                      />
-                    ))}
-                  </div>
-                )}
+                {quickConsumables.length === 0
+                  ? (
+                      <div className="text-center text-xs text-muted-foreground py-8">
+                        <Package size={24} className="mx-auto mb-2 opacity-50" />
+                        <p>No consumable items</p>
+                      </div>
+                    )
+                  : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {quickConsumables.map(item => (
+                          <QuickItemCard
+                            key={item.id}
+                            item={item}
+                            isActive={false}
+                            onClick={item.action}
+                          />
+                        ))}
+                      </div>
+                    )}
               </motion.div>
             )}
 
@@ -397,23 +404,25 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-3"
               >
-                {quickEquipment.length === 0 ? (
-                  <div className="text-center text-xs text-muted-foreground py-8">
-                    <Sword size={24} className="mx-auto mb-2 opacity-50" />
-                    <p>No equipped items</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {quickEquipment.map(item => (
-                      <QuickItemCard
-                        key={item.id}
-                        item={item}
-                        isActive={false}
-                        onClick={item.action}
-                      />
-                    ))}
-                  </div>
-                )}
+                {quickEquipment.length === 0
+                  ? (
+                      <div className="text-center text-xs text-muted-foreground py-8">
+                        <Sword size={24} className="mx-auto mb-2 opacity-50" />
+                        <p>No equipped items</p>
+                      </div>
+                    )
+                  : (
+                      <div className="space-y-2">
+                        {quickEquipment.map(item => (
+                          <QuickItemCard
+                            key={item.id}
+                            item={item}
+                            isActive={false}
+                            onClick={item.action}
+                          />
+                        ))}
+                      </div>
+                    )}
               </motion.div>
             )}
 
@@ -453,8 +462,3 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
 }
 
 export default QuickActionBar
-
-
-
-
-

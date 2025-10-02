@@ -4,7 +4,7 @@
  * Provides staggered animations, particle systems, and performance optimization
  */
 
-import { useCallback, useState, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export interface AnimationPreferences {
   reduceMotion: boolean
@@ -17,8 +17,8 @@ export interface AnimationPreferences {
 export interface ParticleConfig {
   count: number
   colors: string[]
-  size: { min: number; max: number }
-  speed: { min: number; max: number }
+  size: { min: number, max: number }
+  speed: { min: number, max: number }
   lifetime: number
   gravity: number
   spread: number
@@ -35,7 +35,7 @@ export interface UseAnimationsReturn {
   // Animation preferences
   preferences: AnimationPreferences
   updatePreferences: (updates: Partial<AnimationPreferences>) => void
-  
+
   // Particle effects
   triggerParticles: (
     element: HTMLElement | null,
@@ -46,7 +46,7 @@ export interface UseAnimationsReturn {
     container: HTMLElement,
     config: ParticleConfig
   ) => () => void // Returns cleanup function
-  
+
   // Staggered animations
   useStaggeredAnimation: (
     elements: HTMLElement[],
@@ -56,22 +56,22 @@ export interface UseAnimationsReturn {
     selector: string,
     config?: Partial<StaggerConfig>
   ) => void
-  
+
   // Magical effects
   addMagicalGlow: (element: HTMLElement | null, color?: string, intensity?: number) => void
   removeMagicalGlow: (element: HTMLElement | null) => void
   pulseElement: (element: HTMLElement | null, duration?: number) => void
   shimmerEffect: (element: HTMLElement | null, duration?: number) => void
-  
+
   // Animation utilities
   getAnimationDuration: (baseMs: number) => number
   shouldAnimate: (animationType: 'particle' | 'stagger' | 'glow' | 'transition') => boolean
   createSpringConfig: (type: 'gentle' | 'wobbly' | 'stiff' | 'slow') => any
-  
+
   // Performance
   isHighPerformance: boolean
   togglePerformanceMode: () => void
-  
+
   // Theme integration
   getThemeColors: () => {
     primary: string
@@ -90,7 +90,7 @@ export function useAnimations(): UseAnimationsReturn {
   const [preferences, setPreferences] = useState<AnimationPreferences>(() => {
     // Check for user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    
+
     return {
       reduceMotion: prefersReducedMotion,
       particleEffects: !prefersReducedMotion,
@@ -139,9 +139,10 @@ export function useAnimations(): UseAnimationsReturn {
   const triggerParticles = useCallback((
     element: HTMLElement | null,
     type: 'success' | 'failure' | 'damage' | 'healing' | 'magic' | 'custom',
-    config: Partial<ParticleConfig> = {}
+    config: Partial<ParticleConfig> = {},
   ) => {
-    if (!element || !preferences.particleEffects || preferences.reduceMotion) return
+    if (!element || !preferences.particleEffects || preferences.reduceMotion)
+      return
 
     const themeColors = getThemeColors()
     const defaultConfigs: Record<string, ParticleConfig> = {
@@ -202,7 +203,7 @@ export function useAnimations(): UseAnimationsReturn {
     }
 
     const finalConfig = { ...defaultConfigs[type], ...config }
-    
+
     // Create particle system
     const rect = element.getBoundingClientRect()
     const container = document.createElement('div')
@@ -213,7 +214,7 @@ export function useAnimations(): UseAnimationsReturn {
     container.style.height = '100vh'
     container.style.pointerEvents = 'none'
     container.style.zIndex = '9999'
-    
+
     document.body.appendChild(container)
 
     // Generate particles
@@ -223,7 +224,7 @@ export function useAnimations(): UseAnimationsReturn {
       const color = finalConfig.colors[Math.floor(Math.random() * finalConfig.colors.length)]
       const angle = (Math.random() - 0.5) * finalConfig.spread * (Math.PI / 180)
       const speed = Math.random() * (finalConfig.speed.max - finalConfig.speed.min) + finalConfig.speed.min
-      
+
       particle.style.position = 'absolute'
       particle.style.width = `${size}px`
       particle.style.height = `${size}px`
@@ -232,7 +233,7 @@ export function useAnimations(): UseAnimationsReturn {
       particle.style.left = `${rect.left + rect.width / 2}px`
       particle.style.top = `${rect.top + rect.height / 2}px`
       particle.style.boxShadow = `0 0 ${size * 2}px ${color}`
-      
+
       container.appendChild(particle)
 
       // Animate particle
@@ -247,7 +248,7 @@ export function useAnimations(): UseAnimationsReturn {
         }
 
         const x = Math.cos(angle) * speed * (elapsed / 1000)
-        const y = Math.sin(angle) * speed * (elapsed / 1000) + finalConfig.gravity * Math.pow(elapsed / 1000, 2) * 100
+        const y = Math.sin(angle) * speed * (elapsed / 1000) + finalConfig.gravity * (elapsed / 1000) ** 2 * 100
         const opacity = 1 - progress
 
         particle.style.transform = `translate(${x}px, ${y}px)`
@@ -270,7 +271,7 @@ export function useAnimations(): UseAnimationsReturn {
   // Create persistent particle system
   const createParticleSystem = useCallback((
     container: HTMLElement,
-    config: ParticleConfig
+    config: ParticleConfig,
   ) => {
     if (!preferences.particleEffects || preferences.reduceMotion) {
       return () => {} // Return empty cleanup function
@@ -280,19 +281,20 @@ export function useAnimations(): UseAnimationsReturn {
     let isActive = true
 
     const generateParticle = () => {
-      if (!isActive) return
+      if (!isActive)
+        return
 
       const particle = document.createElement('div')
       const size = Math.random() * (config.size.max - config.size.min) + config.size.min
       const color = config.colors[Math.floor(Math.random() * config.colors.length)]
-      
+
       particle.style.position = 'absolute'
       particle.style.width = `${size}px`
       particle.style.height = `${size}px`
       particle.style.backgroundColor = color
       particle.style.borderRadius = '50%'
       particle.style.pointerEvents = 'none'
-      
+
       container.appendChild(particle)
 
       // Animate and remove particle
@@ -324,9 +326,10 @@ export function useAnimations(): UseAnimationsReturn {
   // Staggered animations
   const useStaggeredAnimation = useCallback((
     elements: HTMLElement[],
-    config: Partial<StaggerConfig> = {}
+    config: Partial<StaggerConfig> = {},
   ) => {
-    if (!preferences.staggeredAnimations || preferences.reduceMotion) return
+    if (!preferences.staggeredAnimations || preferences.reduceMotion)
+      return
 
     const defaultConfig: StaggerConfig = {
       delay: 100,
@@ -338,10 +341,11 @@ export function useAnimations(): UseAnimationsReturn {
     const finalConfig = { ...defaultConfig, ...config }
 
     elements.forEach((element, index) => {
-      if (!element) return
+      if (!element)
+        return
 
       const delay = index * finalConfig.delay
-      
+
       // Set initial state
       element.style.opacity = '0'
       element.style.transform = getInitialTransform(finalConfig.direction)
@@ -357,7 +361,7 @@ export function useAnimations(): UseAnimationsReturn {
 
   const createStaggeredEntrance = useCallback((
     selector: string,
-    config: Partial<StaggerConfig> = {}
+    config: Partial<StaggerConfig> = {},
   ) => {
     const elements = Array.from(document.querySelectorAll(selector)) as HTMLElement[]
     useStaggeredAnimation(elements, config)
@@ -367,9 +371,10 @@ export function useAnimations(): UseAnimationsReturn {
   const addMagicalGlow = useCallback((
     element: HTMLElement | null,
     color = 'var(--primary)',
-    intensity = 1
+    intensity = 1,
   ) => {
-    if (!element || !preferences.glowEffects) return
+    if (!element || !preferences.glowEffects)
+      return
 
     const glowSize = 10 * intensity
     element.style.boxShadow = `0 0 ${glowSize}px ${color}, 0 0 ${glowSize * 2}px ${color}`
@@ -377,15 +382,17 @@ export function useAnimations(): UseAnimationsReturn {
   }, [preferences])
 
   const removeMagicalGlow = useCallback((element: HTMLElement | null) => {
-    if (!element) return
+    if (!element)
+      return
     element.style.boxShadow = ''
   }, [])
 
   const pulseElement = useCallback((element: HTMLElement | null, duration = 1000) => {
-    if (!element || preferences.reduceMotion) return
+    if (!element || preferences.reduceMotion)
+      return
 
     element.style.animation = `pulse ${duration}ms ease-in-out`
-    
+
     // Remove animation after completion
     setTimeout(() => {
       element.style.animation = ''
@@ -393,10 +400,11 @@ export function useAnimations(): UseAnimationsReturn {
   }, [preferences])
 
   const shimmerEffect = useCallback((element: HTMLElement | null, duration = 2000) => {
-    if (!element || preferences.reduceMotion) return
+    if (!element || preferences.reduceMotion)
+      return
 
     element.style.animation = `shimmer ${duration}ms ease-in-out infinite`
-    
+
     // Remove animation after specified duration
     setTimeout(() => {
       element.style.animation = ''
@@ -405,21 +413,24 @@ export function useAnimations(): UseAnimationsReturn {
 
   // Animation utilities
   const getAnimationDuration = useCallback((baseMs: number) => {
-    if (preferences.reduceMotion) return 0
-    
+    if (preferences.reduceMotion)
+      return 0
+
     const speedMultipliers = {
       slow: 1.5,
       normal: 1,
       fast: 0.7,
     }
-    
+
     return baseMs * speedMultipliers[preferences.transitionSpeed]
   }, [preferences])
 
   const shouldAnimate = useCallback((animationType: 'particle' | 'stagger' | 'glow' | 'transition') => {
-    if (preferences.reduceMotion) return false
-    if (!isHighPerformance && (animationType === 'particle' || animationType === 'stagger')) return false
-    
+    if (preferences.reduceMotion)
+      return false
+    if (!isHighPerformance && (animationType === 'particle' || animationType === 'stagger'))
+      return false
+
     switch (animationType) {
       case 'particle': return preferences.particleEffects
       case 'stagger': return preferences.staggeredAnimations
@@ -436,7 +447,7 @@ export function useAnimations(): UseAnimationsReturn {
       stiff: { tension: 210, friction: 20 },
       slow: { tension: 280, friction: 60 },
     }
-    
+
     return configs[type]
   }, [])
 
@@ -457,30 +468,30 @@ export function useAnimations(): UseAnimationsReturn {
     // Animation preferences
     preferences,
     updatePreferences,
-    
+
     // Particle effects
     triggerParticles,
     createParticleSystem,
-    
+
     // Staggered animations
     useStaggeredAnimation,
     createStaggeredEntrance,
-    
+
     // Magical effects
     addMagicalGlow,
     removeMagicalGlow,
     pulseElement,
     shimmerEffect,
-    
+
     // Animation utilities
     getAnimationDuration,
     shouldAnimate,
     createSpringConfig,
-    
+
     // Performance
     isHighPerformance,
     togglePerformanceMode,
-    
+
     // Theme integration
     getThemeColors,
   }

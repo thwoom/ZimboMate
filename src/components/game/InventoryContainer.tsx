@@ -1,19 +1,19 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import type { Container, Inventory } from '../../models/Inventory'
 import * as Collapsible from '@radix-ui/react-collapsible'
-import { Card, CardHeader, CardTitle, CardContent, Button } from '../ui'
-import { Container, Inventory, getContainerItems } from '../../models/Inventory'
-import { ItemCard } from './ItemCard'
-import { useInventoryStore } from '../../stores/inventoryStore'
-import { 
-  ChevronDown, 
-  ChevronRight, 
-  Backpack, 
-  Wine, 
-  Gem, 
+import { motion } from 'framer-motion'
+import {
+  Backpack,
+  ChevronRight,
+  Gem,
   Package,
-  Plus
+  Plus,
+  Wine,
 } from 'lucide-react'
+import React, { useState } from 'react'
+import { getContainerItems } from '../../models/Inventory'
+import { useInventoryStore } from '../../stores/inventoryStore'
+import { Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
+import { ItemCard } from './ItemCard'
 
 interface InventoryContainerProps {
   container: Container
@@ -23,7 +23,7 @@ interface InventoryContainerProps {
   onItemDrop: (itemId: string) => void
 }
 
-const getCategoryIcon = (category: string) => {
+function getCategoryIcon(category: string) {
   switch (category) {
     case 'carried':
       return Backpack
@@ -38,34 +38,34 @@ const getCategoryIcon = (category: string) => {
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 100,
-      damping: 15
-    }
-  }
+      damping: 15,
+    },
+  },
 }
 
 const contentVariants = {
-  closed: { 
+  closed: {
     opacity: 0,
     height: 0,
     transition: {
       duration: 0.3,
-      ease: "easeInOut"
-    }
+      ease: 'easeInOut',
+    },
   },
-  open: { 
+  open: {
     opacity: 1,
     height: 'auto',
     transition: {
       duration: 0.3,
-      ease: "easeInOut"
-    }
-  }
+      ease: 'easeInOut',
+    },
+  },
 }
 
 const itemsGridVariants = {
@@ -73,22 +73,22 @@ const itemsGridVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05
-    }
-  }
+      staggerChildren: 0.05,
+    },
+  },
 }
 
 const itemVariants = {
   hidden: { opacity: 0, scale: 0.8 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     scale: 1,
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 200,
-      damping: 20
-    }
-  }
+      damping: 20,
+    },
+  },
 }
 
 export const InventoryContainer: React.FC<InventoryContainerProps> = ({
@@ -96,11 +96,11 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
   inventory,
   onItemEquip,
   onItemUse,
-  onItemDrop
+  onItemDrop,
 }) => {
   const [isOpen, setIsOpen] = useState(true)
   const { inventoryView, filterBy, searchQuery, sortBy } = useInventoryStore()
-  
+
   const items = getContainerItems(inventory, container.id)
   const CategoryIcon = getCategoryIcon(container.category)
 
@@ -110,14 +110,14 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
   // Apply search filter
   if (searchQuery) {
     filteredItems = filteredItems.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      || (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase())),
     )
   }
 
   // Apply category filter
   if (filterBy !== 'all') {
-    filteredItems = filteredItems.filter(item => {
+    filteredItems = filteredItems.filter((item) => {
       switch (filterBy) {
         case 'weapons':
           return item.category === 'weapon'
@@ -182,16 +182,22 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
                       {container.name}
                     </CardTitle>
                     <p className="text-sm text-(--parchment-600) font-ui">
-                      {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
+                      {filteredItems.length}
+                      {' '}
+                      {filteredItems.length === 1 ? 'item' : 'items'}
                       {container.maxWeight && (
                         <span className="ml-2">
-                          • Max: {container.maxWeight} lbs
+                          • Max:
+                          {' '}
+                          {container.maxWeight}
+                          {' '}
+                          lbs
                         </span>
                       )}
                     </p>
                   </div>
                 </div>
-                
+
                 <motion.div
                   animate={{ rotate: isOpen ? 90 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -206,7 +212,7 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
             <motion.div
               variants={contentVariants}
               initial="closed"
-              animate={isOpen ? "open" : "closed"}
+              animate={isOpen ? 'open' : 'closed'}
             >
               <CardContent className="pt-0">
                 {filteredItems.length > 0 ? (
@@ -216,7 +222,7 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
                     initial="hidden"
                     animate="visible"
                   >
-                    {filteredItems.map((item) => (
+                    {filteredItems.map(item => (
                       <motion.div
                         key={item.id}
                         variants={itemVariants}
@@ -249,12 +255,11 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
                       {searchQuery || filterBy !== 'all' ? 'No matching items' : `No ${container.name.toLowerCase()}`}
                     </h3>
                     <p className="text-(--parchment-600) font-body mb-4">
-                      {searchQuery || filterBy !== 'all' 
+                      {searchQuery || filterBy !== 'all'
                         ? 'Try adjusting your search or filter criteria.'
-                        : `Add items to your ${container.name.toLowerCase()} to see them here.`
-                      }
+                        : `Add items to your ${container.name.toLowerCase()} to see them here.`}
                     </p>
-                    
+
                     {container.category === 'carried' && !searchQuery && filterBy === 'all' && (
                       <Button variant="outline" size="sm">
                         <Plus size={16} />

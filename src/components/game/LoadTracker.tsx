@@ -1,9 +1,9 @@
-import React from 'react'
+import type { EncumbranceStatus } from '../../models/Inventory'
 import { motion } from 'framer-motion'
-import { Progress, Badge } from '../ui'
-import { EncumbranceStatus } from '../../models/Inventory'
+import { AlertTriangle, CheckCircle, Weight } from 'lucide-react'
+import React from 'react'
 import { formatLoadStatus } from '../../equipmentSystemMockData'
-import { Weight, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Badge, Progress } from '../ui'
 
 interface LoadTrackerProps {
   currentLoad: number
@@ -14,10 +14,10 @@ interface LoadTrackerProps {
 export const LoadTracker: React.FC<LoadTrackerProps> = ({
   currentLoad,
   maxLoad,
-  encumbranceStatus
+  encumbranceStatus,
 }) => {
   const percentage = Math.min((currentLoad / maxLoad) * 100, 120) // Cap at 120% for overloaded
-  
+
   const getStatusColor = (status: EncumbranceStatus) => {
     switch (status) {
       case 'normal':
@@ -50,14 +50,16 @@ export const LoadTracker: React.FC<LoadTrackerProps> = ({
   let progressVariant: 'default' | 'health' | 'health-injured' | 'health-critical' = 'default'
   if (percentage > 100) {
     progressVariant = 'health-critical'
-  } else if (percentage > 80) {
+  }
+  else if (percentage > 80) {
     progressVariant = 'health-injured'
-  } else {
+  }
+  else {
     progressVariant = 'health'
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="load-tracker space-y-3"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -70,12 +72,12 @@ export const LoadTracker: React.FC<LoadTrackerProps> = ({
             Load Capacity
           </span>
         </div>
-        
+
         <motion.div
           key={encumbranceStatus}
           initial={{ scale: 1.2, opacity: 0.7 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300 }}
+          transition={{ type: 'spring', stiffness: 300 }}
         >
           <Badge variant={statusColor} className="flex items-center gap-1">
             <StatusIcon size={12} />
@@ -92,13 +94,19 @@ export const LoadTracker: React.FC<LoadTrackerProps> = ({
           max={maxLoad}
           showLabel={false}
         />
-        
+
         <div className="flex justify-between items-center text-xs text-(--parchment-600) font-mono">
           <span>
-            {currentLoad} / {maxLoad} lbs
+            {currentLoad}
+            {' '}
+            /
+            {maxLoad}
+            {' '}
+            lbs
           </span>
           <span>
-            {percentage.toFixed(0)}%
+            {percentage.toFixed(0)}
+            %
           </span>
         </div>
       </div>
@@ -113,12 +121,16 @@ export const LoadTracker: React.FC<LoadTrackerProps> = ({
         >
           {encumbranceStatus === 'encumbered' && (
             <p>
-              <strong>Encumbered:</strong> You take -1 ongoing to all rolls until you lighten your load.
+              <strong>Encumbered:</strong>
+              {' '}
+              You take -1 ongoing to all rolls until you lighten your load.
             </p>
           )}
           {encumbranceStatus === 'overloaded' && (
             <p>
-              <strong>Overloaded:</strong> You can barely move. Drop items or find another way to reduce your load.
+              <strong>Overloaded:</strong>
+              {' '}
+              You can barely move. Drop items or find another way to reduce your load.
             </p>
           )}
         </motion.div>

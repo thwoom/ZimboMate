@@ -6,19 +6,18 @@
  * type questions after each roll.
  */
 
-import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChronicleEnabledDiceRoller } from './ChronicleEnabledDiceRoller'
-import { Card, CardContent, Button } from '../ui'
 import {
-  Zap,        // STR
-  Wind,       // DEX
-  Heart,      // CON
-  Brain,      // INT
-  Eye,        // WIS
-  Sparkles    // CHA
+  Brain, // INT
+  Eye, // WIS
+  Heart, // CON
+  Sparkles, // CHA
+  Wind, // DEX
+  Zap, // STR
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import React, { useState } from 'react'
+import { Button } from '../ui'
+import { ChronicleEnabledDiceRoller } from './ChronicleEnabledDiceRoller'
 
 export type Stat = 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA'
 
@@ -38,7 +37,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Physical power and athleticism',
     icon: <Zap size={16} />,
     examples: ['Lifting heavy objects', 'Breaking down doors', 'Wrestling', 'Climbing'],
-    color: 'text-destructive'
+    color: 'text-destructive',
   },
   DEX: {
     name: 'DEX',
@@ -46,7 +45,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Agility, reflexes, and precision',
     icon: <Wind size={16} />,
     examples: ['Dodging attacks', 'Sneaking quietly', 'Picking locks', 'Aiming accurately'],
-    color: 'text-chart-2'
+    color: 'text-chart-2',
   },
   CON: {
     name: 'CON',
@@ -54,7 +53,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Endurance and physical resilience',
     icon: <Heart size={16} />,
     examples: ['Resisting poison', 'Enduring harsh weather', 'Holding breath', 'Fighting fatigue'],
-    color: 'text-accent'
+    color: 'text-accent',
   },
   INT: {
     name: 'INT',
@@ -62,7 +61,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Reasoning and memory',
     icon: <Brain size={16} />,
     examples: ['Recalling lore', 'Solving puzzles', 'Understanding magic', 'Analyzing clues'],
-    color: 'text-primary'
+    color: 'text-primary',
   },
   WIS: {
     name: 'WIS',
@@ -70,7 +69,7 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Awareness and intuition',
     icon: <Eye size={16} />,
     examples: ['Noticing details', 'Reading people', 'Tracking', 'Sensing danger'],
-    color: 'text-accent'
+    color: 'text-accent',
   },
   CHA: {
     name: 'CHA',
@@ -78,8 +77,8 @@ const STAT_INFO: Record<Stat, StatInfo> = {
     description: 'Force of personality and leadership',
     icon: <Sparkles size={16} />,
     examples: ['Persuading others', 'Intimidating foes', 'Performing', 'Leading'],
-    color: 'text-chart-4'
-  }
+    color: 'text-chart-4',
+  },
 }
 
 interface StatRollerProps {
@@ -132,8 +131,10 @@ const StatButton: React.FC<{
           <div className={`
             text-xs font-mono px-2 py-1 rounded
             ${modifier >= 0 ? 'bg-chart-2/15 text-chart-2' : 'bg-destructive/15 text-destructive'}
-          `}>
-            {modifier >= 0 ? '+' : ''}{modifier}
+          `}
+          >
+            {modifier >= 0 ? '+' : ''}
+            {modifier}
           </div>
         )}
       </Button>
@@ -152,7 +153,12 @@ const StatExamples: React.FC<{ stat: Stat }> = ({ stat }) => {
     >
       <div className="text-sm font-medium mb-2 flex items-center gap-2">
         <span className={info.color}>{info.icon}</span>
-        <span>Common {info.fullName} uses:</span>
+        <span>
+          Common
+          {info.fullName}
+          {' '}
+          uses:
+        </span>
       </div>
       <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground ">
         {info.examples.map((example, index) => (
@@ -172,7 +178,7 @@ export const StatRoller: React.FC<StatRollerProps> = ({
   onStatRoll,
   disabled = false,
   showExamples = true,
-  className = ''
+  className = '',
 }) => {
   const [selectedStat, setSelectedStat] = useState<Stat | null>(null)
   const [isRolling, setIsRolling] = useState(false)
@@ -212,7 +218,11 @@ export const StatRoller: React.FC<StatRollerProps> = ({
           </Button>
           <div className={`flex items-center gap-2 ${STAT_INFO[selectedStat].color}`}>
             {STAT_INFO[selectedStat].icon}
-            <span className="font-medium">{STAT_INFO[selectedStat].fullName} Roll</span>
+            <span className="font-medium">
+              {STAT_INFO[selectedStat].fullName}
+              {' '}
+              Roll
+            </span>
           </div>
         </div>
 
@@ -239,7 +249,12 @@ export const StatRoller: React.FC<StatRollerProps> = ({
         <h3 className="text-xl font-display mb-2">Attribute Tests</h3>
         <p className="text-sm text-muted-foreground ">
           Choose an attribute to test
-          {characterName && <span className="block text-primary mt-1">for {characterName}</span>}
+          {characterName && (
+            <span className="block text-primary mt-1">
+              for
+              {characterName}
+            </span>
+          )}
         </p>
       </div>
 
@@ -291,8 +306,3 @@ export const QuickStatRoll: React.FC<{
     />
   )
 }
-
-
-
-
-

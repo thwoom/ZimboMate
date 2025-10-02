@@ -4,7 +4,7 @@
  * Prevents performance issues with large numbers of rollable elements
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface LazyHoverOptions {
   enabled?: boolean
@@ -19,42 +19,43 @@ interface HoverState {
   isHovered: boolean
 }
 
-export const useLazyHover = ({
+export function useLazyHover({
   enabled = true,
   rootMargin = '50px',
   threshold = 0.1,
-  enabledDistance = 100
-}: LazyHoverOptions = {}) => {
+  enabledDistance = 100,
+}: LazyHoverOptions = {}) {
   const elementRef = useRef<HTMLElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
   const [hoverState, setHoverState] = useState<HoverState>({
     isVisible: false,
     isHoverEnabled: false,
-    isHovered: false
+    isHovered: false,
   })
 
   // Intersection Observer callback
   const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       const isVisible = entry.isIntersecting
-      const isNearViewport = entry.boundingClientRect.top < (window.innerHeight + enabledDistance) &&
-                            entry.boundingClientRect.bottom > -enabledDistance
+      const isNearViewport = entry.boundingClientRect.top < (window.innerHeight + enabledDistance)
+        && entry.boundingClientRect.bottom > -enabledDistance
 
       setHoverState(prev => ({
         ...prev,
         isVisible,
-        isHoverEnabled: isNearViewport
+        isHoverEnabled: isNearViewport,
       }))
     })
   }, [enabledDistance])
 
   // Set up intersection observer
   useEffect(() => {
-    if (!enabled || !elementRef.current) return
+    if (!enabled || !elementRef.current)
+      return
 
     observerRef.current = new IntersectionObserver(handleIntersection, {
       rootMargin,
-      threshold
+      threshold,
     })
 
     observerRef.current.observe(elementRef.current)
@@ -93,15 +94,17 @@ export const useLazyHover = ({
     isVisible: hoverState.isVisible,
     isHoverEnabled: hoverState.isHoverEnabled,
     isHovered: hoverState.isHovered && hoverState.isHoverEnabled,
-    hoverProps: hoverState.isHoverEnabled ? {
-      onMouseEnter: handleMouseEnter,
-      onMouseLeave: handleMouseLeave
-    } : {}
+    hoverProps: hoverState.isHoverEnabled
+      ? {
+          onMouseEnter: handleMouseEnter,
+          onMouseLeave: handleMouseLeave,
+        }
+      : {},
   }
 }
 
 // Hook for managing multiple lazy hover elements efficiently
-export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
+export function useLazyHoverManager(options: LazyHoverOptions = {}) {
   const [elements, setElements] = useState<Map<string, HoverState>>(new Map())
   const observerRef = useRef<IntersectionObserver | null>(null)
   const elementsRef = useRef<Map<string, HTMLElement>>(new Map())
@@ -112,7 +115,7 @@ export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
     setElements(prev => new Map(prev.set(id, {
       isVisible: false,
       isHoverEnabled: false,
-      isHovered: false
+      isHovered: false,
     })))
 
     if (observerRef.current) {
@@ -127,7 +130,7 @@ export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
     }
 
     elementsRef.current.delete(id)
-    setElements(prev => {
+    setElements((prev) => {
       const next = new Map(prev)
       next.delete(id)
       return next
@@ -135,9 +138,10 @@ export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
   }, [])
 
   const setHoverState = useCallback((id: string, isHovered: boolean) => {
-    setElements(prev => {
+    setElements((prev) => {
       const current = prev.get(id)
-      if (!current || !current.isHoverEnabled) return prev
+      if (!current || !current.isHoverEnabled)
+        return prev
 
       const next = new Map(prev)
       next.set(id, { ...current, isHovered })
@@ -147,10 +151,11 @@ export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
 
   // Set up intersection observer
   useEffect(() => {
-    if (!options.enabled) return
+    if (!options.enabled)
+      return
 
     const handleIntersection = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         // Find the element ID
         let elementId: string | null = null
         for (const [id, element] of elementsRef.current) {
@@ -160,21 +165,23 @@ export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
           }
         }
 
-        if (!elementId) return
+        if (!elementId)
+          return
 
         const isVisible = entry.isIntersecting
-        const isNearViewport = entry.boundingClientRect.top < (window.innerHeight + (options.enabledDistance || 100)) &&
-                              entry.boundingClientRect.bottom > -(options.enabledDistance || 100)
+        const isNearViewport = entry.boundingClientRect.top < (window.innerHeight + (options.enabledDistance || 100))
+          && entry.boundingClientRect.bottom > -(options.enabledDistance || 100)
 
-        setElements(prev => {
+        setElements((prev) => {
           const current = prev.get(elementId!)
-          if (!current) return prev
+          if (!current)
+            return prev
 
           const next = new Map(prev)
           next.set(elementId!, {
             ...current,
             isVisible,
-            isHoverEnabled: isNearViewport
+            isHoverEnabled: isNearViewport,
           })
           return next
         })
@@ -183,11 +190,11 @@ export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
 
     observerRef.current = new IntersectionObserver(handleIntersection, {
       rootMargin: options.rootMargin || '50px',
-      threshold: options.threshold || 0.1
+      threshold: options.threshold || 0.1,
     })
 
     // Observe existing elements
-    elementsRef.current.forEach(element => {
+    elementsRef.current.forEach((element) => {
       observerRef.current!.observe(element)
     })
 
@@ -210,7 +217,7 @@ export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
 
     return {
       onMouseEnter: () => setHoverState(id, true),
-      onMouseLeave: () => setHoverState(id, false)
+      onMouseLeave: () => setHoverState(id, false),
     }
   }, [elements, setHoverState])
 
@@ -223,18 +230,18 @@ export const useLazyHoverManager = (options: LazyHoverOptions = {}) => {
       totalElements: elements.size,
       visibleElements: Array.from(elements.values()).filter(s => s.isVisible).length,
       hoverEnabledElements: Array.from(elements.values()).filter(s => s.isHoverEnabled).length,
-      hoveredElements: Array.from(elements.values()).filter(s => s.isHovered).length
-    })
+      hoveredElements: Array.from(elements.values()).filter(s => s.isHovered).length,
+    }),
   }
 }
 
 // Performance monitoring hook
-export const useHoverPerformanceMonitor = () => {
+export function useHoverPerformanceMonitor() {
   const [metrics, setMetrics] = useState({
     totalHoverElements: 0,
     activeHoverElements: 0,
     averageHoverEnableTime: 0,
-    performanceScore: 100
+    performanceScore: 100,
   })
 
   const startTime = useRef<number>(0)
@@ -248,20 +255,20 @@ export const useHoverPerformanceMonitor = () => {
       const duration = performance.now() - startTime.current
       setMetrics(prev => ({
         ...prev,
-        averageHoverEnableTime: (prev.averageHoverEnableTime + duration) / 2
+        averageHoverEnableTime: (prev.averageHoverEnableTime + duration) / 2,
       }))
     }
   }, [])
 
   const updateElementCounts = useCallback((total: number, active: number) => {
-    setMetrics(prev => {
+    setMetrics((prev) => {
       const performanceScore = total > 0 ? Math.max(0, 100 - ((active / total) * 50)) : 100
 
       return {
         ...prev,
         totalHoverElements: total,
         activeHoverElements: active,
-        performanceScore
+        performanceScore,
       }
     })
   }, [])
@@ -270,6 +277,6 @@ export const useHoverPerformanceMonitor = () => {
     metrics,
     trackHoverEnable,
     trackHoverDisable,
-    updateElementCounts
+    updateElementCounts,
   }
 }

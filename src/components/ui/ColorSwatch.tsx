@@ -1,6 +1,6 @@
-import React from 'react'
+import type { ColorVariant } from '../../types/enums'
 import * as Tooltip from '@radix-ui/react-tooltip'
-import { ColorVariant } from '../../types/enums'
+import React from 'react'
 
 interface ColorSwatchProps {
   variant: ColorVariant
@@ -16,9 +16,9 @@ export const ColorSwatch: React.FC<ColorSwatchProps> = ({ variant, shade, value,
         <div className="group cursor-pointer">
           <div
             className="w-16 h-16 rounded-lg border-2 shadow-md transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: `var(--${variant}-${shade})`,
-              borderColor: 'var(--popover)'
+              borderColor: 'var(--popover)',
             }}
           />
           <div className="mt-2 text-center">
@@ -30,16 +30,21 @@ export const ColorSwatch: React.FC<ColorSwatchProps> = ({ variant, shade, value,
       <Tooltip.Portal>
         <Tooltip.Content
           className="px-3 py-2 text-sm rounded-md shadow-lg backdrop-blur-sm"
-          style={{ 
-            fontFamily: 'var(--font-mono)', 
-            backgroundColor: 'var(--card)', 
-            borderColor: 'var(--primary)' 
+          style={{
+            fontFamily: 'var(--font-mono)',
+            backgroundColor: 'var(--card)',
+            borderColor: 'var(--primary)',
           }}
           sideOffset={5}
         >
           <div>
             <div className="font-semibold">{name}</div>
-            <div className="text-muted-foreground">--{variant}-{shade}</div>
+            <div className="text-muted-foreground">
+              --
+              {variant}
+              -
+              {shade}
+            </div>
             <div className="text-muted-foreground">{value}</div>
           </div>
           <Tooltip.Arrow className="fill-[color:var(--card)]" />
@@ -52,7 +57,7 @@ export const ColorSwatch: React.FC<ColorSwatchProps> = ({ variant, shade, value,
 interface ColorPaletteProps {
   variant: ColorVariant
   title: string
-  colors: Array<{ shade: string; value: string; name: string }>
+  colors: Array<{ shade: string, value: string, name: string }>
 }
 
 export const ColorPalette: React.FC<ColorPaletteProps> = ({ variant, title, colors }) => {
@@ -60,7 +65,7 @@ export const ColorPalette: React.FC<ColorPaletteProps> = ({ variant, title, colo
     <div className="space-y-4">
       <h3 className="text-display-sm">{title}</h3>
       <div className="grid grid-cols-5 gap-4">
-        {colors.map((color) => (
+        {colors.map(color => (
           <ColorSwatch
             key={color.shade}
             variant={variant}

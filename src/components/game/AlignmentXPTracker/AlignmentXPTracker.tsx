@@ -3,23 +3,23 @@
  * Phase 4A: Essential for Dungeon World alignment-based XP system
  */
 
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Scale, 
-  Shield, 
-  Heart, 
-  Zap,
-  Skull,
-  Plus, 
+import type { Alignment } from '../../../models/Character'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
   Award,
   Calendar,
-  Target
+  Heart,
+  Plus,
+  Scale,
+  Shield,
+  Skull,
+  Target,
+  Zap,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../../ui'
-import { AlignmentActionCard } from './AlignmentActionCard'
+import React, { useState } from 'react'
 import { useCharacterStore } from '../../../stores'
-import type { Alignment } from '../../../models/Character'
+import { Badge, Button, Card, CardContent } from '../../ui'
+import { AlignmentActionCard } from './AlignmentActionCard'
 
 interface AlignmentAction {
   id: string
@@ -34,31 +34,29 @@ interface AlignmentXPTrackerProps {
   className?: string
 }
 
-export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({ 
+export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
   characterId,
-  className = '' 
+  className = '',
 }) => {
-  const { getActiveCharacter, updateCharacter, addXP } = useCharacterStore()
+  const addXP = useCharacterStore(state => state.addXP)
+  const character = useCharacterStore(state => (
+    characterId ? state.getCharacter(characterId) : state.getActiveCharacter()
+  ))
   const [alignmentActions, setAlignmentActions] = useState<AlignmentAction[]>([])
   const [isCreating, setIsCreating] = useState(false)
   const [newAction, setNewAction] = useState({
     description: '',
-    xpAmount: 1
+    xpAmount: 1,
   })
-
-  // Get character (use active if not specified)
-  const character = characterId 
-    ? useCharacterStore(state => state.getCharacter(characterId))
-    : getActiveCharacter()
-
   if (!character) {
     return (
       <Card variant="surface" className={className}>
         <CardContent>
           <div className="text-center py-8">
-            <Scale 
-              size={48} 
-              className="mx-auto mb-4 opacity-50 text-muted-foreground" />
+            <Scale
+              size={48}
+              className="mx-auto mb-4 opacity-50 text-muted-foreground"
+            />
             <h3 className="text-lg font-medium mb-2">No Character Selected</h3>
             <p className="text-muted-foreground">
               Select a character to track their alignment actions.
@@ -121,33 +119,34 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
   }
 
   const createAlignmentAction = () => {
-    if (!newAction.description.trim()) return
+    if (!newAction.description.trim())
+      return
 
     const action: AlignmentAction = {
       id: `alignment-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       description: newAction.description.trim(),
       timestamp: new Date(),
       xpAwarded: newAction.xpAmount,
-      alignment: character.alignment
+      alignment: character.alignment,
     }
 
     setAlignmentActions(prev => [action, ...prev])
-    
+
     // Award XP to character
     addXP(
-      character.id, 
-      newAction.xpAmount, 
-      'alignment_action', 
-      `Alignment action: ${newAction.description.slice(0, 50)}${newAction.description.length > 50 ? '...' : ''}`
+      character.id,
+      newAction.xpAmount,
+      'alignment_action',
+      `Alignment action: ${newAction.description.slice(0, 50)}${newAction.description.length > 50 ? '...' : ''}`,
     )
-    
+
     setNewAction({ description: '', xpAmount: 1 })
     setIsCreating(false)
   }
 
   const updateAlignmentAction = (actionId: string, updates: Partial<AlignmentAction>) => {
-    setAlignmentActions(prev => prev.map(action => 
-      action.id === actionId ? { ...action, ...updates } : action
+    setAlignmentActions(prev => prev.map(action =>
+      action.id === actionId ? { ...action, ...updates } : action,
     ))
   }
 
@@ -174,7 +173,10 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
           </Badge>
           <Badge variant="secondary" className="gap-1">
             <Award size={12} />
-            +{totalXPFromAlignment} XP
+            +
+            {totalXPFromAlignment}
+            {' '}
+            XP
           </Badge>
         </div>
       </div>
@@ -185,11 +187,16 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-3">
               {getAlignmentIcon(character.alignment)}
-              <h3 className="text-xl font-medium">{character.alignment} Alignment</h3>
+              <h3 className="text-xl font-medium">
+                {character.alignment}
+                {' '}
+                Alignment
+              </h3>
             </div>
-            
-            <p 
-              className="max-w-md mx-auto text-muted-foreground">
+
+            <p
+              className="max-w-md mx-auto text-muted-foreground"
+            >
               {getAlignmentDescription(character.alignment)}
             </p>
 
@@ -210,7 +217,10 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold mb-1 text-chart-2">+{totalXPFromAlignment}</div>
+                <div className="text-2xl font-bold mb-1 text-chart-2">
+                  +
+                  {totalXPFromAlignment}
+                </div>
                 <div className="text-sm text-muted-foreground">
                   XP Earned
                 </div>
@@ -253,7 +263,7 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
                     </label>
                     <textarea
                       value={newAction.description}
-                      onChange={(e) => setNewAction(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={e => setNewAction(prev => ({ ...prev, description: e.target.value }))}
                       placeholder={`Describe how you acted according to your ${character.alignment} alignment...`}
                       rows={3}
                       className="w-full px-3 py-2 rounded-lg border transition-colors resize-none"
@@ -261,7 +271,7 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                       autoFocus
                     />
@@ -273,13 +283,13 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
                     </label>
                     <select
                       value={newAction.xpAmount}
-                      onChange={(e) => setNewAction(prev => ({ ...prev, xpAmount: parseInt(e.target.value) }))}
+                      onChange={e => setNewAction(prev => ({ ...prev, xpAmount: Number.parseInt(e.target.value) }))}
                       className="w-full px-3 py-2 rounded-lg border transition-colors"
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                     >
                       <option value={1}>1 XP (Standard alignment action)</option>
@@ -317,57 +327,62 @@ export const AlignmentXPTracker: React.FC<AlignmentXPTrackerProps> = ({
 
       {/* Alignment Actions History */}
       <div className="space-y-3">
-        {alignmentActions.length === 0 ? (
-          <Card variant="surface">
-            <CardContent>
-              <div className="text-center py-8">
-                <Target 
-                  size={48} 
-                  className="mx-auto mb-4 opacity-50 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">No Alignment Actions Yet</h3>
-                <p className="text-muted-foreground">
-                  Start recording actions that match your {character.alignment} alignment to earn XP!
-                </p>
-                <div className="mt-4 p-4 bg-chart-2/12 rounded-lg">
-                  <p className="text-sm text-chart-2">
-                    <strong>Dungeon World Rule:</strong> When you act according to your alignment, 
-                    the GM may award you XP for good roleplay.
-                  </p>
-                </div>
+        {alignmentActions.length === 0
+          ? (
+              <Card variant="surface">
+                <CardContent>
+                  <div className="text-center py-8">
+                    <Target
+                      size={48}
+                      className="mx-auto mb-4 opacity-50 text-muted-foreground"
+                    />
+                    <h3 className="text-lg font-medium mb-2">No Alignment Actions Yet</h3>
+                    <p className="text-muted-foreground">
+                      Start recording actions that match your
+                      {' '}
+                      {character.alignment}
+                      {' '}
+                      alignment to earn XP!
+                    </p>
+                    <div className="mt-4 p-4 bg-chart-2/12 rounded-lg">
+                      <p className="text-sm text-chart-2">
+                        <strong>Dungeon World Rule:</strong>
+                        {' '}
+                        When you act according to your alignment,
+                        the GM may award you XP for good roleplay.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          : (
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium flex items-center gap-2">
+                  <Calendar size={20} />
+                  Alignment Actions History
+                </h3>
+                <AnimatePresence>
+                  {alignmentActions.map((action, index) => (
+                    <motion.div
+                      key={action.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <AlignmentActionCard
+                        action={action}
+                        onUpdate={updates => updateAlignmentAction(action.id, updates)}
+                        onDelete={() => deleteAlignmentAction(action.id)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            <h3 className="text-lg font-medium flex items-center gap-2">
-              <Calendar size={20} />
-              Alignment Actions History
-            </h3>
-            <AnimatePresence>
-              {alignmentActions.map((action, index) => (
-                <motion.div
-                  key={action.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <AlignmentActionCard
-                    action={action}
-                    onUpdate={(updates) => updateAlignmentAction(action.id, updates)}
-                    onDelete={() => deleteAlignmentAction(action.id)}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
+            )}
       </div>
     </div>
   )
 }
-
-
-
-
 

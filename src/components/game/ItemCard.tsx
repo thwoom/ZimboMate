@@ -1,22 +1,23 @@
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import * as Tooltip from '@radix-ui/react-tooltip'
+import type { Item } from '../../models/Equipment'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Card, CardContent, Button, Badge } from '../ui'
-import { Item, isWeapon, isArmor, formatTags } from '../../models/Equipment'
-import { formatWeight, formatValue, formatItemQuantity } from '../../equipmentSystemMockData'
-import { 
-  Sword, 
-  Shield, 
-  Wine, 
-  Gem, 
-  Package, 
-  MoreHorizontal,
-  Eye,
-  Trash2,
+import * as Tooltip from '@radix-ui/react-tooltip'
+import { motion } from 'framer-motion'
+import {
+  ArrowDownRight,
   ArrowUpRight,
-  ArrowDownRight
+  Eye,
+  Gem,
+  MoreHorizontal,
+  Package,
+  Shield,
+  Sword,
+  Trash2,
+  Wine,
 } from 'lucide-react'
+import React, { useState } from 'react'
+import { formatItemQuantity, formatValue, formatWeight } from '../../equipmentSystemMockData'
+import { formatTags, isArmor, isWeapon } from '../../models/Equipment'
+import { Badge, Button } from '../ui'
 
 interface ItemCardProps {
   item: Item
@@ -31,7 +32,7 @@ interface ItemCardProps {
   isDragging?: boolean
 }
 
-const getItemIcon = (item: Item) => {
+function getItemIcon(item: Item) {
   switch (item.category) {
     case 'weapon':
       return Sword
@@ -46,12 +47,16 @@ const getItemIcon = (item: Item) => {
   }
 }
 
-const getRarityColor = (item: Item) => {
+function getRarityColor(item: Item) {
   // Simple rarity detection based on value
-  if (!item.value) return 'item-common'
-  if (item.value > 200) return 'item-legendary'
-  if (item.value > 100) return 'item-rare'
-  if (item.value > 50) return 'item-uncommon'
+  if (!item.value)
+    return 'item-common'
+  if (item.value > 200)
+    return 'item-legendary'
+  if (item.value > 100)
+    return 'item-rare'
+  if (item.value > 50)
+    return 'item-uncommon'
   return 'item-common'
 }
 
@@ -65,7 +70,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   onInspect,
   showActions = true,
   compact = false,
-  isDragging = false
+  isDragging = false,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const ItemIcon = getItemIcon(item)
@@ -76,20 +81,21 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       scale: 1.02,
       y: -2,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 400,
-        damping: 25
-      }
+        damping: 25,
+      },
     },
     tap: {
-      scale: 0.98
-    }
+      scale: 0.98,
+    },
   }
 
   const handleEquipToggle = () => {
     if (isEquipped && onUnequip) {
       onUnequip(item.id)
-    } else if (!isEquipped && onEquip) {
+    }
+    else if (!isEquipped && onEquip) {
       onEquip(item.id)
     }
   }
@@ -172,7 +178,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         <div className="text-xs">
           <span className="text-(--parchment-600)">Armor:</span>
           <span className="ml-1 text-(--parchment-800) font-medium">
-            {item.armorValue} AC
+            {item.armorValue}
+            {' '}
+            AC
           </span>
         </div>
       )}
@@ -190,7 +198,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         <div className="text-xs">
           <span className="text-(--parchment-600)">Uses:</span>
           <span className="ml-1 text-(--parchment-800) font-medium">
-            {item.uses.current}/{item.uses.max}
+            {item.uses.current}
+            /
+            {item.uses.max}
           </span>
         </div>
       )}
@@ -212,7 +222,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             <ItemIcon size={16} className="text-(--parchment-800)" />
           </motion.div>
         </Tooltip.Trigger>
-        
+
         <Tooltip.Portal>
           <Tooltip.Content
             className="bg-card border border-(--parchment-300) rounded-lg p-3 shadow-lg z-50"
@@ -241,7 +251,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             <div className="flex-shrink-0">
               <ItemIcon size={20} className="text-(--parchment-800)" />
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -347,7 +357,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           </div>
         </motion.div>
       </Tooltip.Trigger>
-      
+
       <Tooltip.Portal>
         <Tooltip.Content
           className="bg-card border border-(--parchment-300) rounded-lg p-3 shadow-lg z-50"

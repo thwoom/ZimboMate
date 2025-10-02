@@ -3,50 +3,48 @@
  * Phase 4A: Essential for Dungeon World XP system
  */
 
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Heart, 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  Check,
-  Star,
-  Users,
-  Award
-} from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../../ui'
-import { BondCard } from './BondCard'
-import { useCharacterStore } from '../../../stores'
 import type { Bond } from '../../../models/Character'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Award,
+  Heart,
+  Plus,
+  Users,
+} from 'lucide-react'
+import React, { useState } from 'react'
+import { useCharacterStore } from '../../../stores'
+import { Badge, Button, Card, CardContent } from '../../ui'
+import { BondCard } from './BondCard'
 
 interface BondTrackerProps {
   characterId?: string
   className?: string
 }
 
-export const BondTracker: React.FC<BondTrackerProps> = ({ 
+export const BondTracker: React.FC<BondTrackerProps> = ({
   characterId,
-  className = '' 
+  className = '',
 }) => {
-  const { getActiveCharacter, updateCharacter, addXP } = useCharacterStore()
+  const addXP = useCharacterStore(state => state.addXP)
+  const updateCharacter = useCharacterStore(state => state.updateCharacter)
+  const character = useCharacterStore(state => (
+    characterId ? state.getCharacter(characterId) : state.getActiveCharacter()
+  ))
   const [isCreating, setIsCreating] = useState(false)
   const [newBondText, setNewBondText] = useState('')
   const [newBondCharacter, setNewBondCharacter] = useState('')
 
   // Get character (use active if not specified)
-  const character = characterId 
-    ? useCharacterStore(state => state.getCharacter(characterId))
-    : getActiveCharacter()
 
   if (!character) {
     return (
       <Card variant="surface" className={className}>
         <CardContent className="p-6 pt-6">
           <div className="text-center py-8">
-            <Users 
-              size={48} 
-              className="mx-auto mb-4 opacity-50 text-muted-foreground" />
+            <Users
+              size={48}
+              className="mx-auto mb-4 opacity-50 text-muted-foreground"
+            />
             <h3 className="text-lg font-medium mb-2">No Character Selected</h3>
             <p className="text-muted-foreground">
               Select a character to manage their bonds.
@@ -62,26 +60,27 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
   const activeBonds = bonds.filter(bond => !bond.resolved)
 
   const createBond = () => {
-    if (!newBondText.trim()) return
+    if (!newBondText.trim())
+      return
 
     const newBond: Bond = {
       id: `bond-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       text: newBondText.trim(),
       characterName: newBondCharacter.trim() || undefined,
-      resolved: false
+      resolved: false,
     }
 
     const updatedBonds = [...bonds, newBond]
     updateCharacter(character.id, { bonds: updatedBonds })
-    
+
     setNewBondText('')
     setNewBondCharacter('')
     setIsCreating(false)
   }
 
   const updateBond = (bondId: string, updates: Partial<Bond>) => {
-    const updatedBonds = bonds.map(bond => 
-      bond.id === bondId ? { ...bond, ...updates } : bond
+    const updatedBonds = bonds.map(bond =>
+      bond.id === bondId ? { ...bond, ...updates } : bond,
     )
     updateCharacter(character.id, { bonds: updatedBonds })
   }
@@ -94,7 +93,7 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
   const resolveBond = (bondId: string) => {
     // Mark bond as resolved
     updateBond(bondId, { resolved: true })
-    
+
     // Award XP for bond resolution (official Dungeon World rule)
     addXP(character.id, 1, 'bond_resolution', 'Resolved a bond with another character')
   }
@@ -112,11 +111,15 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
         <div className="flex items-center gap-2">
           <Badge variant="default" className="gap-1">
             <Heart size={12} />
-            {activeBonds.length} Active
+            {activeBonds.length}
+            {' '}
+            Active
           </Badge>
           <Badge variant="secondary" className="gap-1">
             <Award size={12} />
-            {resolvedBonds.length} Resolved
+            {resolvedBonds.length}
+            {' '}
+            Resolved
           </Badge>
         </div>
       </div>
@@ -180,7 +183,7 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
                     </label>
                     <textarea
                       value={newBondText}
-                      onChange={(e) => setNewBondText(e.target.value)}
+                      onChange={e => setNewBondText(e.target.value)}
                       placeholder="e.g., I will prove my worth to Theron by..."
                       rows={3}
                       className="w-full px-3 py-2 rounded-lg border transition-colors resize-none"
@@ -188,7 +191,7 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                       autoFocus
                     />
@@ -201,14 +204,14 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
                     <input
                       type="text"
                       value={newBondCharacter}
-                      onChange={(e) => setNewBondCharacter(e.target.value)}
+                      onChange={e => setNewBondCharacter(e.target.value)}
                       placeholder="Name of the character this bond is with"
                       className="w-full px-3 py-2 rounded-lg border transition-colors"
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                     />
                   </div>
@@ -257,7 +260,7 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
             >
               <BondCard
                 bond={bond}
-                onUpdate={(updates) => updateBond(bond.id, updates)}
+                onUpdate={updates => updateBond(bond.id, updates)}
                 onDelete={() => deleteBond(bond.id)}
                 onResolve={() => resolveBond(bond.id)}
               />
@@ -271,7 +274,10 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
         <div className="space-y-3">
           <h3 className="text-lg font-medium flex items-center gap-2">
             <Award size={20} className="text-chart-2" />
-            Resolved Bonds (+{resolvedBonds.length} XP)
+            Resolved Bonds (+
+            {resolvedBonds.length}
+            {' '}
+            XP)
           </h3>
           {resolvedBonds.map((bond, index) => (
             <motion.div
@@ -282,7 +288,7 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
             >
               <BondCard
                 bond={bond}
-                onUpdate={(updates) => updateBond(bond.id, updates)}
+                onUpdate={updates => updateBond(bond.id, updates)}
                 onDelete={() => deleteBond(bond.id)}
                 isResolved
               />
@@ -296,16 +302,19 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
         <Card variant="surface">
           <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
-              <Heart 
-                size={48} 
-                className="mx-auto mb-4 opacity-50 text-muted-foreground" />
+              <Heart
+                size={48}
+                className="mx-auto mb-4 opacity-50 text-muted-foreground"
+              />
               <h3 className="text-lg font-medium mb-2">No Bonds Yet</h3>
               <p className="text-muted-foreground">
                 Create bonds with other characters to earn XP through roleplay and relationships!
               </p>
               <div className="mt-4 p-4 bg-primary/10 rounded-lg">
                 <p className="text-sm text-primary">
-                  <strong>Dungeon World Rule:</strong> When you resolve a bond, mark XP and write a new bond or strengthen an existing one.
+                  <strong>Dungeon World Rule:</strong>
+                  {' '}
+                  When you resolve a bond, mark XP and write a new bond or strengthen an existing one.
                 </p>
               </div>
             </div>
@@ -315,6 +324,3 @@ export const BondTracker: React.FC<BondTrackerProps> = ({
     </div>
   )
 }
-
-
-

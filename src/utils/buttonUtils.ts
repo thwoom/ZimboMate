@@ -15,64 +15,64 @@ export interface ButtonDiagnostic {
 export function diagnoseButton(button: HTMLButtonElement): ButtonDiagnostic {
   const issues: string[] = []
   const fixes: string[] = []
-  
+
   // Check if button is disabled
   if (button.disabled) {
     issues.push('Button is disabled')
     fixes.push('Remove disabled attribute or check disable condition')
   }
-  
+
   // Check for click handlers
   const hasOnClick = button.onclick !== null
   const hasEventListeners = (button as any).getEventListeners?.('click')?.length > 0
-  
+
   if (!hasOnClick && !hasEventListeners) {
     issues.push('No click handler found')
     fixes.push('Add onClick handler or addEventListener')
   }
-  
+
   // Check CSS pointer-events
   const computedStyle = window.getComputedStyle(button)
   if (computedStyle.pointerEvents === 'none') {
     issues.push('CSS pointer-events is set to none')
     fixes.push('Remove pointer-events: none from CSS')
   }
-  
+
   // Check if button is hidden
   if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
     issues.push('Button is hidden')
     fixes.push('Make button visible')
   }
-  
+
   // Check z-index issues
-  const zIndex = parseInt(computedStyle.zIndex) || 0
+  const zIndex = Number.parseInt(computedStyle.zIndex) || 0
   if (zIndex < 0) {
     issues.push('Button has negative z-index')
     fixes.push('Increase z-index value')
   }
-  
+
   // Check for overlapping elements
   const rect = button.getBoundingClientRect()
   const centerX = rect.left + rect.width / 2
   const centerY = rect.top + rect.height / 2
   const elementAtCenter = document.elementFromPoint(centerX, centerY)
-  
+
   if (elementAtCenter && elementAtCenter !== button && !button.contains(elementAtCenter)) {
     issues.push('Button is covered by another element')
     fixes.push('Adjust z-index or element positioning')
   }
-  
+
   // Check for form submission issues
   if (button.type === 'submit' && !button.form) {
     issues.push('Submit button not inside a form')
     fixes.push('Place button inside a form element or change type')
   }
-  
+
   return {
     element: button,
     issues,
     fixes,
-    working: issues.length === 0
+    working: issues.length === 0,
   }
 }
 
@@ -89,22 +89,22 @@ export function diagnoseAllButtons(): ButtonDiagnostic[] {
  */
 export function fixButtonIssues(button: HTMLButtonElement): boolean {
   let fixed = false
-  
+
   // Remove pointer-events: none if present
   if (button.style.pointerEvents === 'none') {
     button.style.pointerEvents = 'auto'
     fixed = true
   }
-  
+
   // Ensure button is focusable
   if (button.tabIndex < 0) {
     button.tabIndex = 0
     fixed = true
   }
-  
+
   // Add basic click handler if none exists
   if (!button.onclick && !button.hasAttribute('data-has-listeners')) {
-    button.onclick = function(e) {
+    button.onclick = function (e) {
       console.log('🔧 Auto-fixed button clicked:', this)
       // Prevent default if it's a submit button without a form
       if (this.type === 'submit' && !this.form) {
@@ -114,7 +114,7 @@ export function fixButtonIssues(button: HTMLButtonElement): boolean {
     button.setAttribute('data-has-listeners', 'true')
     fixed = true
   }
-  
+
   return fixed
 }
 
@@ -133,11 +133,11 @@ export function enableButtonDebugging(): void {
         className: e.target.className,
         hasOnClick: !!e.target.onclick,
         variant: e.target.getAttribute('data-variant'),
-        event: e
+        event: e,
       })
     }
   }, true)
-  
+
   // Add visual debugging
   const style = document.createElement('style')
   style.id = 'zimbomate-button-debug'
@@ -185,13 +185,13 @@ export function generateButtonReport(): string {
   const diagnostics = diagnoseAllButtons()
   const workingButtons = diagnostics.filter(d => d.working).length
   const brokenButtons = diagnostics.filter(d => !d.working)
-  
+
   let report = `ZimboMate v2 Button Functionality Report\n`
   report += `========================================\n\n`
   report += `Total buttons: ${diagnostics.length}\n`
   report += `Working buttons: ${workingButtons}\n`
   report += `Problematic buttons: ${brokenButtons.length}\n\n`
-  
+
   if (brokenButtons.length > 0) {
     report += `Issues found:\n`
     brokenButtons.forEach((diagnostic, index) => {
@@ -199,16 +199,16 @@ export function generateButtonReport(): string {
       report += `   Class: ${diagnostic.element.className}\n`
       report += `   Variant: ${diagnostic.element.getAttribute('data-variant') || 'unknown'}\n`
       report += `   Issues:\n`
-      diagnostic.issues.forEach(issue => {
+      diagnostic.issues.forEach((issue) => {
         report += `   - ${issue}\n`
       })
       report += `   Suggested fixes:\n`
-      diagnostic.fixes.forEach(fix => {
+      diagnostic.fixes.forEach((fix) => {
         report += `   - ${fix}\n`
       })
     })
   }
-  
+
   return report
 }
 
@@ -218,13 +218,13 @@ export function generateButtonReport(): string {
 export function autoFixAllButtons(): number {
   const buttons = document.querySelectorAll('button')
   let fixedCount = 0
-  
-  buttons.forEach(button => {
+
+  buttons.forEach((button) => {
     if (fixButtonIssues(button as HTMLButtonElement)) {
       fixedCount++
     }
   })
-  
+
   return fixedCount
 }
 

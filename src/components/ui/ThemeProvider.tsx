@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext, use } from 'react'
 import { useThemeStore } from '../../stores/themeStore'
 
 interface ThemeContextType {
@@ -12,7 +12,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function useTheme() {
-  const context = useContext(ThemeContext)
+  const context = use(ThemeContext)
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider')
   }
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     animations,
     sounds,
     toggleAnimations,
-    toggleSounds
+    toggleSounds,
   } = useThemeStore()
 
   const value = {
@@ -42,8 +42,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   }
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext value={value}>
       {children}
-    </ThemeContext.Provider>
+    </ThemeContext>
   )
 }

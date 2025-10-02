@@ -2,10 +2,10 @@
  * Entity Suggestion Panel - Autocomplete dropdown for @ mentions
  */
 
-import React, { useEffect, useRef } from 'react'
+import type { Entity, EntityType } from '../../../types/chronicle'
 import { motion } from 'framer-motion'
-import { Users, MapPin, Package, Calendar, HelpCircle, Building } from 'lucide-react'
-import { Entity, EntityType } from '../../../types/chronicle'
+import { Building, Calendar, HelpCircle, MapPin, Package, Users } from 'lucide-react'
+import React, { useEffect, useRef } from 'react'
 import { Badge } from '../../ui'
 
 interface EntitySuggestionPanelProps {
@@ -15,7 +15,7 @@ interface EntitySuggestionPanelProps {
 }
 
 // Icon mapping for entity types
-const getEntityIcon = (type: EntityType) => {
+function getEntityIcon(type: EntityType) {
   switch (type) {
     case 'character':
       return Users
@@ -33,7 +33,7 @@ const getEntityIcon = (type: EntityType) => {
 }
 
 // Color mapping for entity types
-const getEntityColor = (type: EntityType) => {
+function getEntityColor(type: EntityType) {
   switch (type) {
     case 'character':
       return 'bg-primary/10 text-primary'
@@ -55,7 +55,7 @@ const getEntityColor = (type: EntityType) => {
 export const EntitySuggestionPanel: React.FC<EntitySuggestionPanelProps> = ({
   suggestions,
   onSelect,
-  onClose
+  onClose,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -99,7 +99,7 @@ export const EntitySuggestionPanel: React.FC<EntitySuggestionPanelProps> = ({
         backgroundColor: 'var(--card)',
         borderColor: 'var(--border)',
         top: '100%',
-        left: 0
+        left: 0,
       }}
     >
       <div className="p-2">
@@ -133,15 +133,19 @@ export const EntitySuggestionPanel: React.FC<EntitySuggestionPanelProps> = ({
 
                   {entity.description && (
                     <div
-                      className="text-xs mt-1 line-clamp-1 text-muted-foreground">
+                      className="text-xs mt-1 line-clamp-1 text-muted-foreground"
+                    >
                       {entity.description}
                     </div>
                   )}
 
                   <div className="flex items-center gap-2 mt-1">
                     <span
-                      className="text-xs text-muted-foreground">
-                      {entity.appearances.length} mentions
+                      className="text-xs text-muted-foreground"
+                    >
+                      {entity.appearances.length}
+                      {' '}
+                      mentions
                     </span>
                     {entity.importance > 75 && (
                       <span className="text-xs text-chart-4">★</span>
@@ -162,7 +166,3 @@ export const EntitySuggestionPanel: React.FC<EntitySuggestionPanelProps> = ({
     </motion.div>
   )
 }
-
-
-
-

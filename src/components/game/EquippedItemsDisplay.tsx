@@ -1,10 +1,11 @@
-import React from 'react'
+import type { Inventory } from '../../models/Inventory'
 import { motion } from 'framer-motion'
-import { Card, CardHeader, CardTitle, CardContent } from '../ui'
-import { Inventory, getContainerItems } from '../../models/Inventory'
-import { ItemCard } from './ItemCard'
+import { Crown, Footprints, Hand, Shield, Shirt, Sword } from 'lucide-react'
+import React from 'react'
+import { getContainerItems } from '../../models/Inventory'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui'
 import { EquipmentSlot } from './EquipmentSlot'
-import { Sword, Shield, Shirt, Crown, Footprints, Hand } from 'lucide-react'
+import { ItemCard } from './ItemCard'
 
 interface EquippedItemsDisplayProps {
   inventory: Inventory
@@ -18,7 +19,7 @@ const equipmentSlots = [
   { id: 'armor', name: 'Armor', icon: Shirt, category: 'armor' },
   { id: 'helmet', name: 'Helmet', icon: Crown, category: 'armor' },
   { id: 'boots', name: 'Boots', icon: Footprints, category: 'gear' },
-  { id: 'accessory', name: 'Accessory', icon: Hand, category: 'gear' }
+  { id: 'accessory', name: 'Accessory', icon: Hand, category: 'gear' },
 ]
 
 const containerVariants = {
@@ -26,34 +27,34 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 }
 
 const slotVariants = {
   hidden: { opacity: 0, scale: 0.8 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     scale: 1,
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 200,
-      damping: 20
-    }
-  }
+      damping: 20,
+    },
+  },
 }
 
 export const EquippedItemsDisplay: React.FC<EquippedItemsDisplayProps> = ({
   inventory,
   onItemUnequip,
-  onItemUse
+  onItemUse,
 }) => {
   const equippedItems = getContainerItems(inventory, 'equipped')
 
   // Group equipped items by type for slot assignment
   const getItemForSlot = (slotCategory: string) => {
-    return equippedItems.find(item => {
+    return equippedItems.find((item) => {
       if (slotCategory === 'weapon') {
         return item.category === 'weapon'
       }
@@ -84,13 +85,13 @@ export const EquippedItemsDisplay: React.FC<EquippedItemsDisplayProps> = ({
           animate="visible"
         >
           {/* Equipment Slots Grid */}
-          <motion.div 
+          <motion.div
             className="grid grid-cols-2 md:grid-cols-3 gap-4"
             variants={containerVariants}
           >
             {equipmentSlots.map((slot) => {
               const equippedItem = getItemForSlot(slot.category)
-              
+
               return (
                 <motion.div
                   key={slot.id}
@@ -117,9 +118,9 @@ export const EquippedItemsDisplay: React.FC<EquippedItemsDisplayProps> = ({
               <h3 className="text-lg font-semibold text-(--parchment-900) font-display">
                 All Equipped Items
               </h3>
-              
+
               <div className="space-y-2">
-                {equippedItems.map((item) => (
+                {equippedItems.map(item => (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, x: -20 }}

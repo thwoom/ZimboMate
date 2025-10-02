@@ -3,10 +3,10 @@
  * Comprehensive spell information display with casting details
  */
 
-import React from 'react'
 import { motion } from 'framer-motion'
-import { Wand, Clock, Target, Zap, Eye, Sparkles } from 'lucide-react'
-import { Card, Badge, Button } from '../../ui'
+import { Clock, Eye, Sparkles, Target, Wand, Zap } from 'lucide-react'
+import React from 'react'
+import { Badge, Button } from '../../ui'
 
 interface Spell {
   id: string
@@ -34,11 +34,11 @@ interface SpellDetailsProps {
   className?: string
 }
 
-export function SpellDetails({ 
-  spell, 
-  onCast, 
-  onPrepare, 
-  className = '' 
+export function SpellDetails({
+  spell,
+  onCast,
+  onPrepare,
+  className = '',
 }: SpellDetailsProps) {
   if (!spell) {
     return (
@@ -64,7 +64,7 @@ export function SpellDetails({
       evocation: 'text-destructive',
       illusion: 'text-accent',
       necromancy: 'text-muted-foreground',
-      transmutation: 'text-chart-4'
+      transmutation: 'text-chart-4',
     }
     return colors[school.toLowerCase()] || 'text-muted-foreground'
   }
@@ -94,7 +94,7 @@ export function SpellDetails({
             )}
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2 mb-4">
           <Badge variant="outline" className="font-display">
             {spell.level === 0 ? 'Cantrip' : `${spell.level}${getOrdinalSuffix(spell.level)} Level`}
@@ -115,7 +115,7 @@ export function SpellDetails({
               <div className="text-ui-regular">{spell.castingTime}</div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Target size={16} className="text-muted-foreground" />
             <div>
@@ -136,7 +136,7 @@ export function SpellDetails({
               </div>
             </div>
           </div>
-          
+
           <div>
             <div className="text-ui-small text-muted-foreground">Components</div>
             <div className="text-ui-regular">{spell.components.join(', ').toUpperCase()}</div>
@@ -167,7 +167,9 @@ export function SpellDetails({
           <div className="text-ui-regular font-mono">{spell.damage}</div>
           {spell.savingThrow && (
             <div className="text-ui-small text-destructive mt-1">
-              Saving Throw: {spell.savingThrow}
+              Saving Throw:
+              {' '}
+              {spell.savingThrow}
             </div>
           )}
         </div>
@@ -192,7 +194,7 @@ export function SpellDetails({
             Prepare Spell
           </Button>
         )}
-        
+
         {canCast && onCast && (
           <Button
             variant="default"
@@ -214,7 +216,3 @@ function getOrdinalSuffix(num: number): string {
   const remainder = num % 100
   return suffixes[(remainder - 20) % 10] || suffixes[remainder] || suffixes[0]
 }
-
-
-
-

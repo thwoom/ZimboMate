@@ -3,23 +3,21 @@
  * Phase 4A: Essential for tracking session duration and important moments
  */
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Timer, 
-  Play, 
-  Pause,
-  Square,
-  RotateCcw,
-  Plus,
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Bell,
   Bookmark,
   Clock,
-  Edit3,
+  Pause,
+  Play,
+  Plus,
+  RotateCcw,
+  Timer,
   Trash2,
-  Bell
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../../ui'
+import React, { useEffect, useState } from 'react'
 import { useSessionStore } from '../../../stores'
+import { Badge, Button, Card, CardContent } from '../../ui'
 
 export interface SessionTimer {
   id: string
@@ -45,8 +43,8 @@ interface TimersWidgetProps {
   className?: string
 }
 
-export const TimersWidget: React.FC<TimersWidgetProps> = ({ 
-  className = '' 
+export const TimersWidget: React.FC<TimersWidgetProps> = ({
+  className = '',
 }) => {
   const { sessionTimers, timeBookmarks, sessionStartTime, addTimer, updateTimer, deleteTimer, addBookmark, deleteBookmark } = useSessionStore()
   const [isCreatingTimer, setIsCreatingTimer] = useState(false)
@@ -55,21 +53,22 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
     name: '',
     type: 'countdown' as const,
     duration: 300, // 5 minutes default
-    description: ''
+    description: '',
   })
   const [newBookmark, setNewBookmark] = useState({
     name: '',
-    description: ''
+    description: '',
   })
 
   // Update timers every second
   useEffect(() => {
     const interval = setInterval(() => {
-      sessionTimers.forEach(timer => {
+      sessionTimers.forEach((timer) => {
         if (timer.isRunning) {
           if (timer.type === 'countdown' && timer.remaining > 0) {
             updateTimer(timer.id, { remaining: timer.remaining - 1 })
-          } else if (timer.type === 'stopwatch') {
+          }
+          else if (timer.type === 'stopwatch') {
             updateTimer(timer.id, { remaining: timer.remaining + 1 })
           }
         }
@@ -80,7 +79,8 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
   }, [sessionTimers, updateTimer])
 
   const createTimer = () => {
-    if (!newTimer.name.trim()) return
+    if (!newTimer.name.trim())
+      return
 
     const timer: SessionTimer = {
       id: `timer-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
@@ -89,7 +89,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
       duration: newTimer.duration,
       remaining: newTimer.type === 'countdown' ? newTimer.duration : 0,
       isRunning: false,
-      description: newTimer.description.trim() || undefined
+      description: newTimer.description.trim() || undefined,
     }
 
     addTimer(timer)
@@ -97,15 +97,16 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
       name: '',
       type: 'countdown',
       duration: 300,
-      description: ''
+      description: '',
     })
     setIsCreatingTimer(false)
   }
 
   const createBookmark = () => {
-    if (!newBookmark.name.trim()) return
+    if (!newBookmark.name.trim())
+      return
 
-    const sessionTime = sessionStartTime 
+    const sessionTime = sessionStartTime
       ? Math.floor((Date.now() - sessionStartTime.getTime()) / 1000)
       : 0
 
@@ -114,7 +115,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
       name: newBookmark.name.trim(),
       timestamp: new Date(),
       sessionTime,
-      description: newBookmark.description.trim() || undefined
+      description: newBookmark.description.trim() || undefined,
     }
 
     addBookmark(bookmark)
@@ -124,30 +125,33 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
 
   const toggleTimer = (timerId: string) => {
     const timer = sessionTimers.find(t => t.id === timerId)
-    if (!timer) return
+    if (!timer)
+      return
 
     if (timer.isRunning) {
-      updateTimer(timerId, { 
+      updateTimer(timerId, {
         isRunning: false,
-        endTime: new Date()
+        endTime: new Date(),
       })
-    } else {
-      updateTimer(timerId, { 
+    }
+    else {
+      updateTimer(timerId, {
         isRunning: true,
-        startTime: new Date()
+        startTime: new Date(),
       })
     }
   }
 
   const resetTimer = (timerId: string) => {
     const timer = sessionTimers.find(t => t.id === timerId)
-    if (!timer) return
+    if (!timer)
+      return
 
     updateTimer(timerId, {
       remaining: timer.type === 'countdown' ? timer.duration : 0,
       isRunning: false,
       startTime: undefined,
-      endTime: undefined
+      endTime: undefined,
     })
   }
 
@@ -165,7 +169,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`
     }
@@ -173,12 +177,14 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
   }
 
   const getCurrentSessionTime = () => {
-    if (!sessionStartTime) return 0
+    if (!sessionStartTime)
+      return 0
     return Math.floor((Date.now() - sessionStartTime.getTime()) / 1000)
   }
 
   const getTimerProgress = (timer: SessionTimer) => {
-    if (timer.type === 'stopwatch') return 0
+    if (timer.type === 'stopwatch')
+      return 0
     return timer.duration > 0 ? ((timer.duration - timer.remaining) / timer.duration) * 100 : 0
   }
 
@@ -209,7 +215,9 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
               {formatTime(getCurrentSessionTime())}
             </div>
             <div className="text-sm text-muted-foreground">
-              Started: {sessionStartTime ? sessionStartTime.toLocaleTimeString() : 'Not started'}
+              Started:
+              {' '}
+              {sessionStartTime ? sessionStartTime.toLocaleTimeString() : 'Not started'}
             </div>
           </div>
         </CardContent>
@@ -246,8 +254,8 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-        <Card variant="magical">
-          <CardContent className="p-6">
+            <Card variant="magical">
+              <CardContent className="p-6">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -256,14 +264,14 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                     <input
                       type="text"
                       value={newTimer.name}
-                      onChange={(e) => setNewTimer(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={e => setNewTimer(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="Combat Round, Torch Duration, etc."
                       className="w-full px-3 py-2 rounded-lg border transition-colors"
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                       autoFocus
                     />
@@ -276,16 +284,16 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                       </label>
                       <select
                         value={newTimer.type}
-                        onChange={(e) => setNewTimer(prev => ({ 
-                          ...prev, 
-                          type: e.target.value as 'countdown' | 'stopwatch' 
+                        onChange={e => setNewTimer(prev => ({
+                          ...prev,
+                          type: e.target.value as 'countdown' | 'stopwatch',
                         }))}
                         className="w-full px-3 py-2 rounded-lg border transition-colors"
                         style={{
                           backgroundColor: 'var(--card)',
                           borderColor: 'var(--primary)',
                           borderOpacity: 0.2,
-                          color: 'var(--foreground)'
+                          color: 'var(--foreground)',
                         }}
                       >
                         <option value="countdown">Countdown</option>
@@ -299,9 +307,9 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                       <input
                         type="number"
                         value={Math.floor(newTimer.duration / 60)}
-                        onChange={(e) => setNewTimer(prev => ({ 
-                          ...prev, 
-                          duration: (parseInt(e.target.value) || 5) * 60 
+                        onChange={e => setNewTimer(prev => ({
+                          ...prev,
+                          duration: (Number.parseInt(e.target.value) || 5) * 60,
                         }))}
                         min="1"
                         className="w-full px-3 py-2 rounded-lg border transition-colors"
@@ -309,7 +317,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                           backgroundColor: 'var(--card)',
                           borderColor: 'var(--primary)',
                           borderOpacity: 0.2,
-                          color: 'var(--foreground)'
+                          color: 'var(--foreground)',
                         }}
                       />
                     </div>
@@ -322,14 +330,14 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                     <input
                       type="text"
                       value={newTimer.description}
-                      onChange={(e) => setNewTimer(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={e => setNewTimer(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="What is this timer for?"
                       className="w-full px-3 py-2 rounded-lg border transition-colors"
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                     />
                   </div>
@@ -377,14 +385,14 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                     <input
                       type="text"
                       value={newBookmark.name}
-                      onChange={(e) => setNewBookmark(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={e => setNewBookmark(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="Important Discovery, Boss Fight, etc."
                       className="w-full px-3 py-2 rounded-lg border transition-colors"
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                       autoFocus
                     />
@@ -396,7 +404,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                     </label>
                     <textarea
                       value={newBookmark.description}
-                      onChange={(e) => setNewBookmark(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={e => setNewBookmark(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="What happened at this moment?"
                       rows={2}
                       className="w-full px-3 py-2 rounded-lg border transition-colors resize-none"
@@ -404,7 +412,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                     />
                   </div>
@@ -446,7 +454,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <Card variant={isTimerExpired(timer) ? "magical" : "surface"}>
+                <Card variant={isTimerExpired(timer) ? 'magical' : 'surface'}>
                   <CardContent className="p-4 pt-4">
                     <div className="space-y-3">
                       {/* Header */}
@@ -470,7 +478,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                             </div>
                           )}
                         </div>
-                        
+
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
@@ -490,7 +498,9 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                         </div>
                         {timer.type === 'countdown' && (
                           <div className="text-xs text-muted-foreground">
-                            of {formatTime(timer.duration)}
+                            of
+                            {' '}
+                            {formatTime(timer.duration)}
                           </div>
                         )}
                       </div>
@@ -498,7 +508,7 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                       {/* Progress Bar (countdown only) */}
                       {timer.type === 'countdown' && (
                         <div className="w-full bg-muted rounded-full h-2">
-                          <div 
+                          <div
                             className={`h-2 rounded-full transition-all duration-300 ${
                               isTimerExpired(timer) ? 'bg-destructive/120' : 'bg-primary/100'
                             }`}
@@ -559,7 +569,9 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
                           <div>
                             <div className="font-medium text-sm">{bookmark.name}</div>
                             <div className="text-xs text-muted-foreground">
-                              {formatTime(bookmark.sessionTime)} into session
+                              {formatTime(bookmark.sessionTime)}
+                              {' '}
+                              into session
                             </div>
                             {bookmark.description && (
                               <div className="text-xs mt-1 text-muted-foreground">
@@ -591,12 +603,13 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
         <Card variant="surface">
           <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
-              <Timer 
-                size={48} 
-                className="mx-auto mb-4 opacity-50 text-muted-foreground" />
+              <Timer
+                size={48}
+                className="mx-auto mb-4 opacity-50 text-muted-foreground"
+              />
               <h3 className="text-lg font-medium mb-2">No Timers or Bookmarks</h3>
               <p className="text-muted-foreground">
-                Create timers for combat rounds, torch duration, or other time-sensitive events. 
+                Create timers for combat rounds, torch duration, or other time-sensitive events.
                 Add bookmarks to mark important moments in your session!
               </p>
             </div>
@@ -606,6 +619,3 @@ export const TimersWidget: React.FC<TimersWidgetProps> = ({
     </div>
   )
 }
-
-
-

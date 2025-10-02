@@ -2,30 +2,30 @@
  * Wiki View - Display auto-generated wiki pages for entities
  */
 
-import React from 'react'
+import type { Entity, EntityType, WikiPage } from '../../../types/chronicle'
 import { motion } from 'framer-motion'
 import {
+  Bookmark,
+  BookmarkCheck,
   BookOpen,
-  Clock,
-  Users,
-  MapPin,
-  Package,
-  Calendar,
-  HelpCircle,
   Building,
-  Star,
-  Hash,
-  Eye,
+  Calendar,
+  Clock,
   Edit,
   ExternalLink,
+  Eye,
+  Hash,
+  HelpCircle,
   Lightbulb,
+  MapPin,
+  Package,
   Search,
-  Bookmark,
-  BookmarkCheck
+  Star,
+  Users,
 } from 'lucide-react'
-import { Entity, WikiPage, EntityType } from '../../../types/chronicle'
+import React from 'react'
 import { useChronicleStore } from '../../../stores'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
 
 interface WikiViewProps {
   entity: Entity
@@ -34,7 +34,7 @@ interface WikiViewProps {
 }
 
 // Icon mapping for entity types
-const getEntityIcon = (type: EntityType) => {
+function getEntityIcon(type: EntityType) {
   switch (type) {
     case 'character':
       return Users
@@ -52,7 +52,7 @@ const getEntityIcon = (type: EntityType) => {
 }
 
 // Color mapping for entity types
-const getEntityColor = (type: EntityType) => {
+function getEntityColor(type: EntityType) {
   switch (type) {
     case 'character':
       return 'bg-primary/10 text-primary'
@@ -72,7 +72,7 @@ const getEntityColor = (type: EntityType) => {
 }
 
 // Format timeline importance
-const getTimelineImportanceColor = (importance: string) => {
+function getTimelineImportanceColor(importance: string) {
   switch (importance) {
     case 'high':
       return 'bg-destructive/15 text-destructive'
@@ -88,14 +88,14 @@ const getTimelineImportanceColor = (importance: string) => {
 export const WikiView: React.FC<WikiViewProps> = ({
   entity,
   wikiPage,
-  onClose
+  onClose,
 }) => {
   const {
     generateWikiPage,
     getWikiPage,
     incrementWikiView,
     updateWikiPage,
-    getEntry
+    getEntry,
   } = useChronicleStore()
 
   // Get or generate wiki page
@@ -104,7 +104,8 @@ export const WikiView: React.FC<WikiViewProps> = ({
   React.useEffect(() => {
     if (!currentWikiPage) {
       generateWikiPage(entity.id)
-    } else {
+    }
+    else {
       incrementWikiView(entity.id)
     }
   }, [entity.id, currentWikiPage, generateWikiPage, incrementWikiView])
@@ -120,14 +121,14 @@ export const WikiView: React.FC<WikiViewProps> = ({
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
   const handleBookmarkToggle = () => {
     if (displayWikiPage) {
       updateWikiPage(entity.id, {
-        bookmarked: !displayWikiPage.bookmarked
+        bookmarked: !displayWikiPage.bookmarked,
       })
     }
   }
@@ -153,7 +154,10 @@ export const WikiView: React.FC<WikiViewProps> = ({
               </div>
               <h3 className="text-lg font-medium mb-2">Generating Wiki Page</h3>
               <p className="text-muted-foreground">
-                Analyzing chronicle entries for {entity.name}...
+                Analyzing chronicle entries for
+                {' '}
+                {entity.name}
+                ...
               </p>
             </div>
           </CardContent>
@@ -176,21 +180,26 @@ export const WikiView: React.FC<WikiViewProps> = ({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         className="w-full max-w-4xl max-h-[90vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <Card variant="magical">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center bg-primary/20">
-                  <IconComponent className="text-primary"
-                    size={24} />
+                  className="w-12 h-12 rounded-lg flex items-center justify-center bg-primary/20"
+                >
+                  <IconComponent
+                    className="text-primary"
+                    size={24}
+                  />
                 </div>
                 <div>
                   <CardTitle className="text-xl flex items-center gap-2">
                     <BookOpen size={20} />
-                    {entity.name} - Wiki
+                    {entity.name}
+                    {' '}
+                    - Wiki
                   </CardTitle>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge
@@ -207,7 +216,9 @@ export const WikiView: React.FC<WikiViewProps> = ({
                     )}
                     <Badge variant="outline" className="gap-1 text-xs">
                       <Eye size={12} />
-                      {displayWikiPage.viewCount} views
+                      {displayWikiPage.viewCount}
+                      {' '}
+                      views
                     </Badge>
                   </div>
                 </div>
@@ -219,11 +230,13 @@ export const WikiView: React.FC<WikiViewProps> = ({
                   onClick={handleBookmarkToggle}
                   className="flex-shrink-0"
                 >
-                  {displayWikiPage.bookmarked ? (
-                    <BookmarkCheck size={16} className="text-chart-4" />
-                  ) : (
-                    <Bookmark size={16} />
-                  )}
+                  {displayWikiPage.bookmarked
+                    ? (
+                        <BookmarkCheck size={16} className="text-chart-4" />
+                      )
+                    : (
+                        <Bookmark size={16} />
+                      )}
                 </Button>
                 <Button
                   variant="ghost"
@@ -257,7 +270,9 @@ export const WikiView: React.FC<WikiViewProps> = ({
                   {displayWikiPage.autoGeneratedSummary}
                 </p>
                 <div className="text-xs text-primary mt-2">
-                  Last generated: {formatTimestamp(displayWikiPage.lastGenerated)}
+                  Last generated:
+                  {' '}
+                  {formatTimestamp(displayWikiPage.lastGenerated)}
                 </div>
               </div>
             </div>
@@ -279,7 +294,7 @@ export const WikiView: React.FC<WikiViewProps> = ({
                       className="p-3 rounded-lg border"
                       style={{
                         backgroundColor: 'var(--card)',
-                        borderColor: 'var(--border)'
+                        borderColor: 'var(--border)',
                       }}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -288,7 +303,8 @@ export const WikiView: React.FC<WikiViewProps> = ({
                         </p>
                         <div className="flex items-center gap-1">
                           <Badge variant="outline" className="text-xs">
-                            {Math.round(fact.confidence * 100)}% confident
+                            {Math.round(fact.confidence * 100)}
+                            % confident
                           </Badge>
                           <Button
                             variant="ghost"
@@ -332,12 +348,13 @@ export const WikiView: React.FC<WikiViewProps> = ({
                             backgroundColor: timelineEntry.importance === 'high'
                               ? 'var(--primary)'
                               : 'var(--card)',
-                            borderColor: 'var(--primary)'
+                            borderColor: 'var(--primary)',
                           }}
                         />
                         {index < displayWikiPage.timeline.length - 1 && (
                           <div
-                            className="w-0.5 h-8 mt-2 bg-[color:var(--border)]" />
+                            className="w-0.5 h-8 mt-2 bg-[color:var(--border)]"
+                          />
                         )}
                       </div>
 
@@ -367,7 +384,9 @@ export const WikiView: React.FC<WikiViewProps> = ({
                         </p>
 
                         <div className="text-xs text-muted-foreground">
-                          Context: {timelineEntry.context}
+                          Context:
+                          {' '}
+                          {timelineEntry.context}
                         </div>
                       </div>
                     </motion.div>
@@ -387,7 +406,7 @@ export const WikiView: React.FC<WikiViewProps> = ({
                   className="p-4 rounded-lg border"
                   style={{
                     backgroundColor: 'var(--card)',
-                    borderColor: 'var(--border)'
+                    borderColor: 'var(--border)',
                   }}
                 >
                   <p className="text-sm leading-relaxed">
@@ -430,7 +449,7 @@ export const WikiView: React.FC<WikiViewProps> = ({
                   className="p-4 rounded-lg border"
                   style={{
                     backgroundColor: 'var(--card)',
-                    borderColor: 'var(--border)'
+                    borderColor: 'var(--border)',
                   }}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -448,7 +467,11 @@ export const WikiView: React.FC<WikiViewProps> = ({
                 </div>
                 <h3 className="text-lg font-medium mb-2">Wiki Page Generated</h3>
                 <p className="text-muted-foreground">
-                  As you mention {entity.name} in your chronicle entries, this wiki will automatically populate with facts, timeline events, and relationships.
+                  As you mention
+                  {' '}
+                  {entity.name}
+                  {' '}
+                  in your chronicle entries, this wiki will automatically populate with facts, timeline events, and relationships.
                 </p>
               </div>
             )}
@@ -458,8 +481,3 @@ export const WikiView: React.FC<WikiViewProps> = ({
     </motion.div>
   )
 }
-
-
-
-
-

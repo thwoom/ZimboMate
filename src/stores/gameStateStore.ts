@@ -4,9 +4,9 @@
  * Integrates with CharacterStateService and other game services
  */
 
+import type { Condition, OngoingModifier } from '../services/CharacterStateService'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Condition, OngoingModifier } from '../services/CharacterStateService'
 import { characterStateService } from '../services/CharacterStateService'
 
 // Global game effects that affect multiple characters
@@ -51,13 +51,13 @@ interface PartyResource {
 interface GameStateState {
   // Global effects
   globalEffects: GlobalEffect[]
-  
+
   // Time tracking
   gameTime: GameTime
-  
+
   // Party resources
   partyResources: PartyResource[]
-  
+
   // Environmental conditions
   environment: {
     location: string
@@ -66,7 +66,7 @@ interface GameStateState {
     temperature: 'freezing' | 'cold' | 'cool' | 'warm' | 'hot' | 'scorching'
     hazards: string[]
   }
-  
+
   // Global modifiers (affect all characters)
   globalModifiers: {
     statModifiers: Record<string, number> // stat -> modifier
@@ -76,35 +76,35 @@ interface GameStateState {
       outgoing: number
     }
   }
-  
+
   // Global effect management
   addGlobalEffect: (effect: Omit<GlobalEffect, 'id' | 'createdAt'>) => void
   removeGlobalEffect: (effectId: string) => void
   updateGlobalEffect: (effectId: string, updates: Partial<GlobalEffect>) => void
   getActiveGlobalEffects: () => GlobalEffect[]
-  
+
   // Time management
   advanceTime: (type: 'turn' | 'scene' | 'encounter', amount?: number) => void
   setGameTime: (time: Partial<GameTime['gameTime']>) => void
   resetTime: () => void
-  
+
   // Party resource management
   addPartyResource: (resource: Omit<PartyResource, 'id'>) => void
   updatePartyResource: (resourceId: string, updates: Partial<PartyResource>) => void
   removePartyResource: (resourceId: string) => void
   refreshPartyResources: (trigger: 'rest' | 'scene' | 'session') => void
-  
+
   // Environment management
   setEnvironment: (environment: Partial<GameStateState['environment']>) => void
   addHazard: (hazard: string) => void
   removeHazard: (hazard: string) => void
-  
+
   // Global modifier management
   setGlobalStatModifier: (stat: string, modifier: number) => void
   setGlobalMoveModifier: (move: string, modifier: number) => void
   setGlobalDamageModifier: (type: 'incoming' | 'outgoing', modifier: number) => void
   clearGlobalModifiers: () => void
-  
+
   // Utility
   applyGlobalEffectsToCharacter: (characterId: string) => void
   removeGlobalEffectsFromCharacter: (characterId: string) => void
@@ -158,19 +158,22 @@ export const useGameStateStore = create<GameStateState>()(
           createdAt: new Date(),
         }
 
-        set((state) => ({
-          globalEffects: [...state.globalEffects, effect]
+        set(state => ({
+          globalEffects: [...state.globalEffects, effect],
         }))
 
         // Apply effect to affected characters
-        const characterIds = effect.affects === 'all' ? ['all'] : 
-                           effect.affects === 'party' ? ['party'] : 
-                           effect.affects as string[]
+        const characterIds = effect.affects === 'all'
+          ? ['all']
+          : effect.affects === 'party'
+            ? ['party']
+            : effect.affects as string[]
 
         if (characterIds.includes('all') || characterIds.includes('party')) {
           // This would need to get character IDs from character store
           // For now, we'll just track the effect
-        } else {
+        }
+        else {
           for (const characterId of characterIds) {
             get().applyGlobalEffectsToCharacter(characterId)
           }
@@ -180,12 +183,14 @@ export const useGameStateStore = create<GameStateState>()(
       removeGlobalEffect: (effectId) => {
         const { globalEffects } = get()
         const effect = globalEffects.find(e => e.id === effectId)
-        
+
         if (effect) {
           // Remove effect from affected characters
-          const characterIds = effect.affects === 'all' ? ['all'] : 
-                             effect.affects === 'party' ? ['party'] : 
-                             effect.affects as string[]
+          const characterIds = effect.affects === 'all'
+            ? ['all']
+            : effect.affects === 'party'
+              ? ['party']
+              : effect.affects as string[]
 
           if (!characterIds.includes('all') && !characterIds.includes('party')) {
             for (const characterId of characterIds) {
@@ -194,24 +199,26 @@ export const useGameStateStore = create<GameStateState>()(
           }
         }
 
-        set((state) => ({
-          globalEffects: state.globalEffects.filter(e => e.id !== effectId)
+        set(state => ({
+          globalEffects: state.globalEffects.filter(e => e.id !== effectId),
         }))
       },
 
       updateGlobalEffect: (effectId, updates) => {
-        set((state) => ({
+        set(state => ({
           globalEffects: state.globalEffects.map(effect =>
-            effect.id === effectId ? { ...effect, ...updates } : effect
-          )
+            effect.id === effectId ? { ...effect, ...updates } : effect,
+          ),
         }))
       },
 
       getActiveGlobalEffects: () => {
         const { globalEffects } = get()
-        return globalEffects.filter(effect => {
-          if (effect.duration === 'permanent') return true
-          if (typeof effect.duration === 'number') return effect.duration > 0
+        return globalEffects.filter((effect) => {
+          if (effect.duration === 'permanent')
+            return true
+          if (typeof effect.duration === 'number')
+            return effect.duration > 0
           return true // Scene/encounter/session effects are active until explicitly removed
         })
       },
@@ -238,26 +245,26 @@ export const useGameStateStore = create<GameStateState>()(
         })
 
         // Update global effect durations
-        set((state) => ({
-          globalEffects: state.globalEffects.map(effect => {
+        set(state => ({
+          globalEffects: state.globalEffects.map((effect) => {
             if (typeof effect.duration === 'number') {
               return { ...effect, duration: Math.max(0, effect.duration - amount) }
             }
             return effect
-          }).filter(effect => 
-            effect.duration === 'permanent' || 
-            (typeof effect.duration === 'number' && effect.duration > 0) ||
-            typeof effect.duration === 'string'
-          )
+          }).filter(effect =>
+            effect.duration === 'permanent'
+            || (typeof effect.duration === 'number' && effect.duration > 0)
+            || typeof effect.duration === 'string',
+          ),
         }))
       },
 
       setGameTime: (time) => {
-        set((state) => ({
+        set(state => ({
           gameTime: {
             ...state.gameTime,
-            gameTime: { ...state.gameTime.gameTime, ...time }
-          }
+            gameTime: { ...state.gameTime.gameTime, ...time },
+          },
         }))
       },
 
@@ -274,7 +281,7 @@ export const useGameStateStore = create<GameStateState>()(
               hours: 0,
               minutes: 0,
             },
-          }
+          },
         })
       },
 
@@ -285,94 +292,94 @@ export const useGameStateStore = create<GameStateState>()(
           id: `resource-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
         }
 
-        set((state) => ({
-          partyResources: [...state.partyResources, resource]
+        set(state => ({
+          partyResources: [...state.partyResources, resource],
         }))
       },
 
       updatePartyResource: (resourceId, updates) => {
-        set((state) => ({
+        set(state => ({
           partyResources: state.partyResources.map(resource =>
-            resource.id === resourceId ? { ...resource, ...updates } : resource
-          )
+            resource.id === resourceId ? { ...resource, ...updates } : resource,
+          ),
         }))
       },
 
       removePartyResource: (resourceId) => {
-        set((state) => ({
-          partyResources: state.partyResources.filter(r => r.id !== resourceId)
+        set(state => ({
+          partyResources: state.partyResources.filter(r => r.id !== resourceId),
         }))
       },
 
       refreshPartyResources: (trigger) => {
-        set((state) => ({
+        set(state => ({
           partyResources: state.partyResources.map(resource =>
             resource.refreshOn === trigger
               ? { ...resource, current: resource.max }
-              : resource
-          )
+              : resource,
+          ),
         }))
       },
 
       // Environment management
       setEnvironment: (environment) => {
-        set((state) => ({
-          environment: { ...state.environment, ...environment }
+        set(state => ({
+          environment: { ...state.environment, ...environment },
         }))
       },
 
       addHazard: (hazard) => {
-        set((state) => ({
+        set(state => ({
           environment: {
             ...state.environment,
-            hazards: [...state.environment.hazards, hazard]
-          }
+            hazards: [...state.environment.hazards, hazard],
+          },
         }))
       },
 
       removeHazard: (hazard) => {
-        set((state) => ({
+        set(state => ({
           environment: {
             ...state.environment,
-            hazards: state.environment.hazards.filter(h => h !== hazard)
-          }
+            hazards: state.environment.hazards.filter(h => h !== hazard),
+          },
         }))
       },
 
       // Global modifier management
       setGlobalStatModifier: (stat, modifier) => {
-        set((state) => ({
+        set(state => ({
           globalModifiers: {
             ...state.globalModifiers,
             statModifiers: {
               ...state.globalModifiers.statModifiers,
-              [stat]: modifier
-            }
-          }
+              [stat]: modifier,
+            },
+          },
         }))
       },
 
       setGlobalMoveModifier: (move, modifier) => {
-        set((state) => ({
+        set(state => ({
           globalModifiers: {
             ...state.globalModifiers,
             moveModifiers: {
               ...state.globalModifiers.moveModifiers,
-              [move]: modifier
-            }
-          }
+              [move]: modifier,
+            },
+          },
         }))
       },
 
       setGlobalDamageModifier: (type, modifier) => {
-        set((state) => ({
+        set(state => ({
           globalModifiers: {
             ...state.globalModifiers,
             damageModifiers: {
               ...state.globalModifiers.damageModifiers,
-              [type]: modifier
-            }
-          }
+              [type]: modifier,
+            },
+          },
         }))
       },
 
@@ -385,20 +392,20 @@ export const useGameStateStore = create<GameStateState>()(
               incoming: 0,
               outgoing: 0,
             },
-          }
+          },
         })
       },
 
       // Utility
       applyGlobalEffectsToCharacter: (characterId) => {
         const { globalEffects } = get()
-        
+
         for (const effect of globalEffects) {
           // Apply conditions
           for (const condition of effect.conditions) {
             characterStateService.addCondition(characterId, condition)
           }
-          
+
           // Apply modifiers
           for (const modifier of effect.modifiers) {
             characterStateService.addOngoingModifier(characterId, modifier)
@@ -408,7 +415,7 @@ export const useGameStateStore = create<GameStateState>()(
 
       removeGlobalEffectsFromCharacter: (characterId) => {
         const { globalEffects } = get()
-        
+
         for (const effect of globalEffects) {
           // Remove conditions
           for (const condition of effect.conditions) {
@@ -430,12 +437,12 @@ export const useGameStateStore = create<GameStateState>()(
     }),
     {
       name: 'zimbomate-gamestate-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         gameTime: state.gameTime,
         environment: state.environment,
         globalModifiers: state.globalModifiers,
         partyResources: state.partyResources,
       }),
-    }
-  )
+    },
+  ),
 )

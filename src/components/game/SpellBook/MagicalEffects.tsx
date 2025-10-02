@@ -3,9 +3,9 @@
  * Ambient magical particles and effects around the spell book
  */
 
-import React, { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 
 interface Particle {
   id: string
@@ -24,11 +24,11 @@ interface MagicalEffectsProps {
   className?: string
 }
 
-export function MagicalEffects({ 
-  isActive = true, 
+export function MagicalEffects({
+  isActive = true,
   intensity = 'medium',
   spellSchool,
-  className = '' 
+  className = '',
 }: MagicalEffectsProps) {
   const [particles, setParticles] = useState<Particle[]>([])
 
@@ -41,7 +41,7 @@ export function MagicalEffects({
       evocation: '#ef4444',
       illusion: '#8b5cf6',
       necromancy: '#6b7280',
-      transmutation: '#f97316'
+      transmutation: '#f97316',
     }
     return school ? colors[school.toLowerCase()] || '#d4af37' : '#d4af37'
   }
@@ -74,7 +74,7 @@ export function MagicalEffects({
           size: Math.random() * 4 + 2,
           color,
           duration: Math.random() * 3 + 2,
-          delay: Math.random() * 2
+          delay: Math.random() * 2,
         })
       }
 
@@ -87,7 +87,8 @@ export function MagicalEffects({
     return () => clearInterval(interval)
   }, [isActive, intensity, spellSchool])
 
-  if (!isActive) return null
+  if (!isActive)
+    return null
 
   return (
     <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}>
@@ -99,12 +100,12 @@ export function MagicalEffects({
             `radial-gradient(circle at 20% 20%, ${getSchoolColor(spellSchool)}20 0%, transparent 50%)`,
             `radial-gradient(circle at 80% 80%, ${getSchoolColor(spellSchool)}20 0%, transparent 50%)`,
             `radial-gradient(circle at 50% 50%, ${getSchoolColor(spellSchool)}20 0%, transparent 50%)`,
-          ]
+          ],
         }}
         transition={{
           duration: 8,
           repeat: Infinity,
-          ease: 'easeInOut'
+          ease: 'easeInOut',
         }}
       />
 
@@ -118,27 +119,27 @@ export function MagicalEffects({
               left: `${particle.x}%`,
               top: `${particle.y}%`,
             }}
-            initial={{ 
-              opacity: 0, 
+            initial={{
+              opacity: 0,
               scale: 0,
-              rotate: 0
+              rotate: 0,
             }}
-            animate={{ 
+            animate={{
               opacity: [0, 1, 1, 0],
               scale: [0, 1, 1.2, 0],
               rotate: 360,
               x: [0, Math.random() * 40 - 20],
-              y: [0, Math.random() * 40 - 20]
+              y: [0, Math.random() * 40 - 20],
             }}
             transition={{
               duration: particle.duration,
               delay: particle.delay,
               repeat: Infinity,
-              ease: 'easeInOut'
+              ease: 'easeInOut',
             }}
           >
-            <Sparkles 
-              size={particle.size} 
+            <Sparkles
+              size={particle.size}
               style={{ color: particle.color }}
             />
           </motion.div>
@@ -150,16 +151,16 @@ export function MagicalEffects({
         className="absolute top-4 left-4"
         animate={{
           rotate: [0, 360],
-          scale: [1, 1.1, 1]
+          scale: [1, 1.1, 1],
         }}
         transition={{
           duration: 6,
           repeat: Infinity,
-          ease: 'easeInOut'
+          ease: 'easeInOut',
         }}
       >
-        <Sparkles 
-          size={24} 
+        <Sparkles
+          size={24}
           style={{ color: getSchoolColor(spellSchool) }}
           className="opacity-60"
         />
@@ -169,17 +170,17 @@ export function MagicalEffects({
         className="absolute top-4 right-4"
         animate={{
           rotate: [360, 0],
-          scale: [1, 1.2, 1]
+          scale: [1, 1.2, 1],
         }}
         transition={{
           duration: 8,
           repeat: Infinity,
           ease: 'easeInOut',
-          delay: 1
+          delay: 1,
         }}
       >
-        <Sparkles 
-          size={20} 
+        <Sparkles
+          size={20}
           style={{ color: getSchoolColor(spellSchool) }}
           className="opacity-50"
         />
@@ -189,17 +190,17 @@ export function MagicalEffects({
         className="absolute bottom-4 left-4"
         animate={{
           rotate: [0, -360],
-          scale: [1, 1.15, 1]
+          scale: [1, 1.15, 1],
         }}
         transition={{
           duration: 7,
           repeat: Infinity,
           ease: 'easeInOut',
-          delay: 2
+          delay: 2,
         }}
       >
-        <Sparkles 
-          size={18} 
+        <Sparkles
+          size={18}
           style={{ color: getSchoolColor(spellSchool) }}
           className="opacity-40"
         />
@@ -209,17 +210,17 @@ export function MagicalEffects({
         className="absolute bottom-4 right-4"
         animate={{
           rotate: [360, 0],
-          scale: [1, 1.3, 1]
+          scale: [1, 1.3, 1],
         }}
         transition={{
           duration: 9,
           repeat: Infinity,
           ease: 'easeInOut',
-          delay: 3
+          delay: 3,
         }}
       >
-        <Sparkles 
-          size={22} 
+        <Sparkles
+          size={22}
           style={{ color: getSchoolColor(spellSchool) }}
           className="opacity-70"
         />
@@ -231,12 +232,12 @@ export function MagicalEffects({
         style={{ color: getSchoolColor(spellSchool) }}
         animate={{
           opacity: [0.1, 0.3, 0.1],
-          scale: [1, 1.02, 1]
+          scale: [1, 1.02, 1],
         }}
         transition={{
           duration: 4,
           repeat: Infinity,
-          ease: 'easeInOut'
+          ease: 'easeInOut',
         }}
       />
     </div>

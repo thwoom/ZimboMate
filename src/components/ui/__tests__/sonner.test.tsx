@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import { Toaster } from '../sonner'
 
-describe('Toaster', () => {
+describe('toaster', () => {
   it('applies Matsu theme styles to the Sonner container', async () => {
     const { unmount } = render(<Toaster />)
 
@@ -12,7 +12,7 @@ describe('Toaster', () => {
 
     await waitFor(() => {
       expect(
-        document.querySelector('[data-sonner-toaster]')
+        document.querySelector('[data-sonner-toaster]'),
       ).toBeInTheDocument()
     })
 

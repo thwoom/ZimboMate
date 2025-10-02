@@ -5,9 +5,9 @@
  */
 
 import { useCallback, useMemo, useState } from 'react'
+import { allDWSpells, dwClericSpells, dwWizardSpells } from '../spellBookMockData'
 import { useCharacter } from './useCharacter'
 import { useDiceRoll } from './useDiceRoll'
-import { allDWSpells, dwWizardSpells, dwClericSpells, DWSpellClass } from '../spellBookMockData'
 
 export interface DWSpell {
   id: string
@@ -63,20 +63,26 @@ export interface UseDWSpellsReturn {
   canLearnSpell: (spellId: string) => boolean
 }
 
-export const useDWSpells = (): UseDWSpellsReturn => {
+export function useDWSpells(): UseDWSpellsReturn {
   const { character } = useCharacter()
   const { rollDice } = useDiceRoll()
 
   const [preparedSpellIds, setPreparedSpellIds] = useState<string[]>([
-    'light', 'magic-missile', 'cure-light-wounds', 'guidance'
+    'light',
+    'magic-missile',
+    'cure-light-wounds',
+    'guidance',
   ])
   const [castSpellIds, setCastSpellIds] = useState<string[]>([])
 
   // Determine spellcasting class
   const spellcastingClass = useMemo((): 'wizard' | 'cleric' | null => {
-    if (!character?.class) return null
-    if (character.class.toLowerCase() === 'wizard') return 'wizard'
-    if (character.class.toLowerCase() === 'cleric') return 'cleric'
+    if (!character?.class)
+      return null
+    if (character.class.toLowerCase() === 'wizard')
+      return 'wizard'
+    if (character.class.toLowerCase() === 'cleric')
+      return 'cleric'
     return null
   }, [character?.class])
 
@@ -85,16 +91,19 @@ export const useDWSpells = (): UseDWSpellsReturn => {
 
   // DW spell system calculations - CORRECTED TO USE SPELL LEVELS NOT SPELL COUNT
   const maxPreparedSpellLevels = useMemo(() => {
-    if (!spellcastingClass) return 0
+    if (!spellcastingClass)
+      return 0
 
     if (spellcastingClass === 'wizard') {
       // CORRECTED: Wizards prepare spell LEVELS totaling Level + 1 (not individual spells)
       return characterLevel + 1
-    } else if (spellcastingClass === 'cleric') {
+    }
+    else if (spellcastingClass === 'cleric') {
       // Clerics get access to all spells of their level, but limited daily casts
       // For simplicity, we'll say they can "prepare" Level + Wisdom modifier spell levels
-      const wisModifier = character?.stats?.wisdom ?
-        Math.floor((character.stats.wisdom - 10) / 2) : 0
+      const wisModifier = character?.stats?.wisdom
+        ? Math.floor((character.stats.wisdom - 10) / 2)
+        : 0
       return characterLevel + Math.max(1, wisModifier)
     }
 
@@ -111,7 +120,8 @@ export const useDWSpells = (): UseDWSpellsReturn => {
 
   // Get spells available to this class and level
   const availableSpells = useMemo(() => {
-    if (!spellcastingClass) return []
+    if (!spellcastingClass)
+      return []
 
     const classSpells = spellcastingClass === 'wizard' ? dwWizardSpells : dwClericSpells
 
@@ -119,18 +129,18 @@ export const useDWSpells = (): UseDWSpellsReturn => {
     return classSpells.filter(spell => spell.level <= characterLevel)
       .map(spell => ({
         ...spell,
-        preparationStatus: preparedSpellIds.includes(spell.id) ?
-          (castSpellIds.includes(spell.id) ? 'cast' : 'prepared') :
-          'available'
+        preparationStatus: preparedSpellIds.includes(spell.id)
+          ? (castSpellIds.includes(spell.id) ? 'cast' : 'prepared')
+          : 'available',
       })) as DWSpell[]
   }, [spellcastingClass, characterLevel, preparedSpellIds, castSpellIds])
 
   const preparedSpells = availableSpells.filter(spell =>
-    preparedSpellIds.includes(spell.id) && !castSpellIds.includes(spell.id)
+    preparedSpellIds.includes(spell.id) && !castSpellIds.includes(spell.id),
   )
 
   const castSpells = availableSpells.filter(spell =>
-    castSpellIds.includes(spell.id)
+    castSpellIds.includes(spell.id),
   )
 
   const preparedCount = preparedSpellIds.length
@@ -142,17 +152,20 @@ export const useDWSpells = (): UseDWSpellsReturn => {
   // Spell actions - CORRECTED to use spell level validation
   const prepareSpell = useCallback((spellId: string): boolean => {
     const spell = availableSpells.find(s => s.id === spellId)
-    if (!spell || preparedSpellIds.includes(spellId)) return false
+    if (!spell || preparedSpellIds.includes(spellId))
+      return false
 
     // Check if we have enough spell level capacity
-    if (!canPrepareSpell(spell.level)) return false
+    if (!canPrepareSpell(spell.level))
+      return false
 
     setPreparedSpellIds(prev => [...prev, spellId])
     return true
   }, [availableSpells, preparedSpellIds, canPrepareSpell])
 
   const unprepareSpell = useCallback((spellId: string): boolean => {
-    if (!preparedSpellIds.includes(spellId)) return false
+    if (!preparedSpellIds.includes(spellId))
+      return false
 
     setPreparedSpellIds(prev => prev.filter(id => id !== spellId))
     // Also remove from cast if it was cast
@@ -167,7 +180,7 @@ export const useDWSpells = (): UseDWSpellsReturn => {
       return {
         success: false,
         result: 'failure',
-        description: 'Spell not found'
+        description: 'Spell not found',
       }
     }
 
@@ -175,7 +188,7 @@ export const useDWSpells = (): UseDWSpellsReturn => {
       return {
         success: false,
         result: 'failure',
-        description: 'Spell not prepared'
+        description: 'Spell not prepared',
       }
     }
 
@@ -183,7 +196,7 @@ export const useDWSpells = (): UseDWSpellsReturn => {
       return {
         success: false,
         result: 'failure',
-        description: 'Spell already cast today'
+        description: 'Spell already cast today',
       }
     }
 
@@ -203,11 +216,13 @@ export const useDWSpells = (): UseDWSpellsReturn => {
       result = 'success'
       success = true
       description = `${spell.name} cast successfully! ${spell.description}`
-    } else if (total >= 7) {
+    }
+    else if (total >= 7) {
       result = 'partial'
       success = true
       description = `${spell.name} cast with complications. The GM will describe what happens.`
-    } else {
+    }
+    else {
       result = 'failure'
       success = false
       description = `${spell.name} fails to take hold. The GM makes a move.`
@@ -227,8 +242,8 @@ export const useDWSpells = (): UseDWSpellsReturn => {
         type: result,
         spellLevel: spell.level,
         spellClass: spell.class,
-        particleColor: spell.class === 'wizard' ? '#8B5CF6' : '#F59E0B'
-      }
+        particleColor: spell.class === 'wizard' ? '#8B5CF6' : '#F59E0B',
+      },
     }
   }, [availableSpells, preparedSpellIds, castSpellIds, spellcastingClass, character, rollDice])
 
@@ -243,11 +258,14 @@ export const useDWSpells = (): UseDWSpellsReturn => {
 
   const canLearnSpell = useCallback((spellId: string): boolean => {
     const spell = allDWSpells.find(s => s.id === spellId)
-    if (!spell) return false
+    if (!spell)
+      return false
 
     // Must be the right class and level
-    if (spell.class !== spellcastingClass) return false
-    if (spell.level > characterLevel) return false
+    if (spell.class !== spellcastingClass)
+      return false
+    if (spell.level > characterLevel)
+      return false
 
     return true
   }, [spellcastingClass, characterLevel])
@@ -274,7 +292,7 @@ export const useDWSpells = (): UseDWSpellsReturn => {
     restoreSpells,
 
     getSpellsForLevel,
-    canLearnSpell
+    canLearnSpell,
   }
 }
 

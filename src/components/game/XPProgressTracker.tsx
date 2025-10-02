@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, Button, Badge } from '../ui'
-import { 
-  Star, TrendingUp, Award, Heart, Shield, Zap, 
-  Calendar, AlertTriangle, ChevronRight, BarChart3
+import type { XPEntry, XPNotification } from '../../services/XPIntegrationService'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  AlertTriangle,
+  Award,
+  BarChart3,
+  Calendar,
+  Heart,
+  Shield,
+  Star,
+  TrendingUp,
+  Zap,
 } from 'lucide-react'
-import { xpIntegrationService, type XPEntry, type XPNotification } from '../../services/XPIntegrationService'
-import { useCharacterStore } from '../../stores/characterStore'
+import React, { useEffect, useState } from 'react'
 import { getXPThreshold } from '../../models/Character'
+import { xpIntegrationService } from '../../services/XPIntegrationService'
+import { useCharacterStore } from '../../stores/characterStore'
+import { Badge, Button, Card, CardContent } from '../ui'
 
 interface XPProgressTrackerProps {
   characterId?: string
@@ -18,7 +26,7 @@ interface XPProgressTrackerProps {
 export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
   characterId,
   compact = false,
-  showNotifications = true
+  showNotifications = true,
 }) => {
   const { getActiveCharacter, levelUpCharacter } = useCharacterStore()
   const [xpEntries, setXpEntries] = useState<XPEntry[]>([])
@@ -30,12 +38,13 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
   const effectiveCharacterId = characterId || activeCharacter?.id
 
   useEffect(() => {
-    if (!effectiveCharacterId) return
+    if (!effectiveCharacterId)
+      return
 
     // Load XP data
     const entries = xpIntegrationService.getXPEntries(effectiveCharacterId, 20)
     const analyticsData = xpIntegrationService.getAnalytics(effectiveCharacterId)
-    
+
     setXpEntries(entries)
     setAnalytics(analyticsData)
 
@@ -47,7 +56,7 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
     }
 
     xpIntegrationService.addNotificationListener(handleNotification)
-    
+
     // Load existing notifications
     const existingNotifications = xpIntegrationService.getNotifications()
       .filter(n => n.characterId === effectiveCharacterId)
@@ -104,14 +113,16 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
     const currentLevel = getCurrentLevel(totalXP)
     const nextThreshold = getXPThreshold(currentLevel)
 
-    if (currentLevel >= 10) return 0 // Max level (arbitrary cap)
+    if (currentLevel >= 10)
+      return 0 // Max level (arbitrary cap)
     return nextThreshold - totalXP
   }
 
   const getXPProgress = (totalXP: number) => {
     const currentLevel = getCurrentLevel(totalXP)
 
-    if (currentLevel >= 10) return 100 // Max level
+    if (currentLevel >= 10)
+      return 100 // Max level
 
     const prevThreshold = currentLevel === 1 ? 0 : getXPThreshold(currentLevel - 1)
     const nextThreshold = getXPThreshold(currentLevel)
@@ -146,24 +157,34 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 <Star size={16} className="text-primary" />
-                <span className="font-semibold">{analytics.totalXP} XP</span>
+                <span className="font-semibold">
+                  {analytics.totalXP}
+                  {' '}
+                  XP
+                </span>
               </div>
               <Badge variant="secondary" size="sm">
-                Level {currentLevel}
+                Level
+                {' '}
+                {currentLevel}
               </Badge>
             </div>
-            
-            {canLevelUp ? (
-              <Button variant="primary" size="sm" onClick={handleLevelUp}>
-                Level Up!
-              </Button>
-            ) : (
-              <span className="text-xs text-muted-foreground">
-                {xpToNext} to next
-              </span>
-            )}
+
+            {canLevelUp
+              ? (
+                  <Button variant="primary" size="sm" onClick={handleLevelUp}>
+                    Level Up!
+                  </Button>
+                )
+              : (
+                  <span className="text-xs text-muted-foreground">
+                    {xpToNext}
+                    {' '}
+                    to next
+                  </span>
+                )}
           </div>
-          
+
           <div className="mt-2">
             <div className="w-full bg-muted rounded-full h-1.5">
               <motion.div
@@ -183,7 +204,7 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
     <div className="space-y-4">
       {/* Notifications */}
       <AnimatePresence>
-        {showNotifications && notifications.map((notification) => (
+        {showNotifications && notifications.map(notification => (
           <motion.div
             key={notification.id}
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -195,18 +216,18 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div 
+                    <div
                       className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ 
+                      style={{
                         backgroundColor: notification.entry.source.color,
-                        opacity: 0.2 
+                        opacity: 0.2,
                       }}
                     >
                       <div style={{ color: notification.entry.source.color }}>
                         {getSourceIcon(notification.entry.source.id)}
                       </div>
                     </div>
-                    
+
                     <div className="flex-1">
                       <p className="font-medium text-sm">{notification.message}</p>
                       {notification.actions && (
@@ -225,7 +246,7 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                       )}
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => handleDismissNotification(notification.id)}
                     className="text-xs opacity-50 hover:opacity-100 transition-opacity"
@@ -254,7 +275,7 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                   </p>
                 </div>
               </div>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -262,7 +283,9 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                 className="gap-2"
               >
                 <BarChart3 size={16} />
-                {showHistory ? 'Hide' : 'Show'} Details
+                {showHistory ? 'Hide' : 'Show'}
+                {' '}
+                Details
               </Button>
             </div>
 
@@ -270,26 +293,33 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
             <div className="text-center space-y-4">
               <div className="space-y-2">
                 <div className="text-4xl font-bold font-display">
-                  Level {currentLevel}
+                  Level
+                  {' '}
+                  {currentLevel}
                 </div>
                 <div className="text-xl font-semibold">
-                  {analytics.totalXP} XP
+                  {analytics.totalXP}
+                  {' '}
+                  XP
                 </div>
               </div>
 
               {/* Progress Bar */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Progress to Level {currentLevel + 1}</span>
+                  <span>
+                    Progress to Level
+                    {currentLevel + 1}
+                  </span>
                   <span>{canLevelUp ? 'Ready!' : `${xpToNext} XP needed`}</span>
                 </div>
-                
+
                 <div className="w-full bg-muted rounded-full h-3">
                   <motion.div
                     className="h-3 rounded-full bg-gradient-to-r from-primary to-accent"
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercent}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
                   />
                 </div>
               </div>
@@ -299,7 +329,7 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
                 >
                   <Button
                     variant="primary"
@@ -308,7 +338,10 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                     className="gap-2"
                   >
                     <TrendingUp size={20} />
-                    Level Up to {currentLevel + 1}!
+                    Level Up to
+                    {' '}
+                    {currentLevel + 1}
+                    !
                   </Button>
                 </motion.div>
               )}
@@ -333,8 +366,9 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                 <div className="space-y-2">
                   {Object.entries(analytics.xpBySource).map(([sourceId, amount]) => {
                     const source = xpIntegrationService.getXPSources().find(s => s.id === sourceId)
-                    if (!source || amount === 0) return null
-                    
+                    if (!source || amount === 0)
+                      return null
+
                     return (
                       <div key={sourceId} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -344,7 +378,9 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                           <span className="text-sm">{source.name}</span>
                         </div>
                         <Badge variant="secondary" size="sm">
-                          {amount} XP
+                          {amount}
+                          {' '}
+                          XP
                         </Badge>
                       </div>
                     )
@@ -358,24 +394,27 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
               <CardContent className="p-4">
                 <h4 className="font-semibold mb-3">Recent XP Gains</h4>
                 <div className="space-y-3">
-                  {xpEntries.slice(0, 10).map((entry) => (
+                  {xpEntries.slice(0, 10).map(entry => (
                     <div key={entry.id} className="flex items-start gap-3">
-                      <div 
+                      <div
                         className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                        style={{ 
+                        style={{
                           backgroundColor: entry.source.color,
-                          opacity: 0.2 
+                          opacity: 0.2,
                         }}
                       >
                         <div style={{ color: entry.source.color }}>
                           {getSourceIcon(entry.source.id)}
                         </div>
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">
-                            +{entry.amount} XP
+                            +
+                            {entry.amount}
+                            {' '}
+                            XP
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {entry.timestamp.toLocaleDateString()}
@@ -387,7 +426,7 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                       </div>
                     </div>
                   ))}
-                  
+
                   {xpEntries.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">
                       No XP gained yet. Start adventuring!

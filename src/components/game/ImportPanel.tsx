@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { FileUp, Upload, X, CircleCheck, TriangleAlert, File } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
-import { Button } from '../ui/Button'
+import { AnimatePresence, motion } from 'framer-motion'
+import { CircleCheck, File, FileUp, TriangleAlert, Upload, X } from 'lucide-react'
+import React, { useCallback, useRef, useState } from 'react'
+import { FileType, formatFileSize, ImportStatus, mockFileManagement } from '../../fileManagementMockData'
 import { Badge } from '../ui/Badge'
+import { Button } from '../ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
 import { Progress } from '../ui/Progress'
-import { ImportStatus, FileType, formatFileSize, mockFileManagement } from '../../fileManagementMockData'
 
 interface ImportFile {
   id: string
@@ -23,7 +23,7 @@ interface ImportPanelProps {
 
 export const ImportPanel: React.FC<ImportPanelProps> = ({
   onFileImport,
-  operationInProgress
+  operationInProgress,
 }) => {
   const [dragActive, setDragActive] = useState(false)
   const [importFiles, setImportFiles] = useState<ImportFile[]>([])
@@ -31,15 +31,20 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
 
   const detectFileType = (file: File): FileType => {
     const name = file.name.toLowerCase()
-    if (name.includes('character')) return FileType.CHARACTER
-    if (name.includes('campaign')) return FileType.CAMPAIGN
-    if (name.includes('notes') || name.includes('session')) return FileType.NOTES
-    if (name.includes('settings') || name.includes('config')) return FileType.SETTINGS
-    if (name.includes('backup')) return FileType.BACKUP
+    if (name.includes('character'))
+      return FileType.CHARACTER
+    if (name.includes('campaign'))
+      return FileType.CAMPAIGN
+    if (name.includes('notes') || name.includes('session'))
+      return FileType.NOTES
+    if (name.includes('settings') || name.includes('config'))
+      return FileType.SETTINGS
+    if (name.includes('backup'))
+      return FileType.BACKUP
     return FileType.UNKNOWN
   }
 
-  const validateFile = (file: File): { isValid: boolean; error?: string } => {
+  const validateFile = (file: File): { isValid: boolean, error?: string } => {
     // File size validation (10MB max)
     if (file.size > 10 * 1024 * 1024) {
       return { isValid: false, error: 'File size exceeds 10MB limit' }
@@ -56,7 +61,7 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     const newImportFiles: ImportFile[] = []
-    
+
     Array.from(files).forEach((file, index) => {
       const validation = validateFile(file)
       const importFile: ImportFile = {
@@ -65,7 +70,7 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
         type: detectFileType(file),
         status: validation.isValid ? ImportStatus.PENDING : ImportStatus.ERROR,
         progress: 0,
-        error: validation.error
+        error: validation.error,
       }
       newImportFiles.push(importFile)
     })
@@ -78,7 +83,8 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
     e.stopPropagation()
     if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true)
-    } else if (e.type === 'dragleave') {
+    }
+    else if (e.type === 'dragleave') {
       setDragActive(false)
     }
   }, [])
@@ -87,7 +93,7 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFiles(e.dataTransfer.files)
     }
@@ -105,29 +111,30 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
 
   const startImport = useCallback(() => {
     const validFiles = importFiles.filter(f => f.status !== ImportStatus.ERROR)
-    if (validFiles.length === 0) return
+    if (validFiles.length === 0)
+      return
 
     // Simulate import process
     validFiles.forEach((file, index) => {
       setTimeout(() => {
-        setImportFiles(prev => prev.map(f => 
-          f.id === file.id 
+        setImportFiles(prev => prev.map(f =>
+          f.id === file.id
             ? { ...f, status: ImportStatus.VALIDATING, progress: 25 }
-            : f
+            : f,
         ))
-        
+
         setTimeout(() => {
-          setImportFiles(prev => prev.map(f => 
-            f.id === file.id 
+          setImportFiles(prev => prev.map(f =>
+            f.id === file.id
               ? { ...f, status: ImportStatus.IMPORTING, progress: 75 }
-              : f
+              : f,
           ))
-          
+
           setTimeout(() => {
-            setImportFiles(prev => prev.map(f => 
-              f.id === file.id 
+            setImportFiles(prev => prev.map(f =>
+              f.id === file.id
                 ? { ...f, status: ImportStatus.SUCCESS, progress: 100 }
-                : f
+                : f,
             ))
           }, 1000)
         }, 1000)
@@ -172,15 +179,15 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
   return (
     <div className="space-y-6">
       {/* Drag and Drop Zone */}
-      <Card 
-        variant="surface" 
+      <Card
+        variant="surface"
         className={`
           relative border-2 border-dashed transition-all duration-300 cursor-pointer
           ${dragActive ? 'file-dropzone scale-105' : 'hover:file-dropzone'}
         `}
         style={{
           borderColor: dragActive ? 'var(--chart-2)' : 'var(--primary)',
-          backgroundColor: dragActive ? 'var(--chart-2)' : 'var(--card)'
+          backgroundColor: dragActive ? 'var(--chart-2)' : 'var(--card)',
         }}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -190,21 +197,23 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
       >
         <CardContent className="py-12 text-center">
           <motion.div
-            animate={{ 
+            animate={{
               scale: dragActive ? 1.1 : 1,
-              rotate: dragActive ? 5 : 0 
+              rotate: dragActive ? 5 : 0,
             }}
-            transition={{ type: "spring", stiffness: 300 }}
+            transition={{ type: 'spring', stiffness: 300 }}
           >
-            <FileUp 
-              size={48} 
-              className="mx-auto mb-4 text-primary" />
+            <FileUp
+              size={48}
+              className="mx-auto mb-4 text-primary"
+            />
           </motion.div>
           <h3 className="text-lg font-medium mb-2">
             {dragActive ? 'Drop files here' : 'Drop files here or click to browse'}
           </h3>
-          <p 
-            className="text-sm mb-4 text-muted-foreground">
+          <p
+            className="text-sm mb-4 text-muted-foreground"
+          >
             Supported formats: JSON, CSV, XML, ZIP (Max 10MB per file)
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
@@ -231,7 +240,9 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Upload size={20} />
-                Import Queue ({importFiles.length})
+                Import Queue (
+                {importFiles.length}
+                )
               </CardTitle>
               <div className="flex gap-2">
                 <Button
@@ -256,7 +267,7 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
           <CardContent>
             <div className="space-y-3">
               <AnimatePresence>
-                {importFiles.map((importFile) => (
+                {importFiles.map(importFile => (
                   <motion.div
                     key={importFile.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -275,9 +286,13 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
                             </Badge>
                           </div>
                           <div className="flex items-center gap-4 mt-1">
-                            <p 
-                              className="text-sm text-muted-foreground">
-                              {formatFileSize(importFile.file.size)} • {importFile.type}
+                            <p
+                              className="text-sm text-muted-foreground"
+                            >
+                              {formatFileSize(importFile.file.size)}
+                              {' '}
+                              •
+                              {importFile.type}
                             </p>
                             {importFile.error && (
                               <p className="text-sm text-destructive">{importFile.error}</p>
@@ -288,9 +303,9 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
                       <div className="flex items-center gap-3">
                         {(importFile.status === ImportStatus.VALIDATING || importFile.status === ImportStatus.IMPORTING) && (
                           <div className="w-24">
-                            <Progress 
-                              value={importFile.progress} 
-                              max={100} 
+                            <Progress
+                              value={importFile.progress}
+                              max={100}
                               variant="default"
                             />
                           </div>
@@ -320,15 +335,19 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {mockFileManagement.recentFiles.slice(0, 3).map((file) => (
+            {mockFileManagement.recentFiles.slice(0, 3).map(file => (
               <div key={file.id} className="flex items-center justify-between p-3 rounded-lg bg-surface-elevated">
                 <div className="flex items-center gap-3">
                   <File className="text-muted-foreground" size={16} />
                   <div>
                     <p className="font-medium">{file.name}</p>
-                    <p 
-                      className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)} • {file.lastModified.toLocaleDateString()}
+                    <p
+                      className="text-sm text-muted-foreground"
+                    >
+                      {formatFileSize(file.size)}
+                      {' '}
+                      •
+                      {file.lastModified.toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -341,6 +360,3 @@ export const ImportPanel: React.FC<ImportPanelProps> = ({
     </div>
   )
 }
-
-
-

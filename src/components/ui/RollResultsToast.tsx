@@ -1,8 +1,8 @@
+import { AnimatePresence, motion } from 'framer-motion'
+import { Dice6, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Dice6, TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { Card, CardContent } from './Card'
 import { Badge } from './Badge'
+import { Card, CardContent } from './Card'
 
 export interface RollResult {
   id: string
@@ -25,7 +25,7 @@ interface RollResultsToastProps {
 export const RollResultsToast: React.FC<RollResultsToastProps> = ({
   result,
   onClose,
-  duration = 4000
+  duration = 4000,
 }) => {
   React.useEffect(() => {
     if (result) {
@@ -69,9 +69,9 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -100, scale: 0.8 }}
           transition={{
-            type: "spring",
+            type: 'spring',
             stiffness: 300,
-            damping: 30
+            damping: 30,
           }}
           className="fixed top-4 right-4 z-50 max-w-sm"
         >
@@ -85,7 +85,7 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="w-8 h-8 rounded-full flex items-center justify-center"
                       style={{ backgroundColor: getOutcomeColor(result.outcome), opacity: 0.2 }}
                     >
@@ -118,30 +118,31 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ delay: index * 0.1 }}
                         className="w-8 h-8 rounded border-2 flex items-center justify-center font-bold text-sm"
-                        style={{ 
+                        style={{
                           borderColor: 'var(--primary)',
                           backgroundColor: 'var(--popover)',
-                          color: 'var(--foreground)'
+                          color: 'var(--foreground)',
                         }}
                       >
                         {die}
                       </motion.div>
                     ))}
                   </div>
-                  
+
                   {result.modifier !== 0 && (
                     <>
                       <span className="text-muted-foreground">
-                        {result.modifier > 0 ? '+' : ''}{result.modifier}
+                        {result.modifier > 0 ? '+' : ''}
+                        {result.modifier}
                       </span>
                       <span className="text-muted-foreground">=</span>
                     </>
                   )}
-                  
+
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ delay: 0.3, type: "spring", stiffness: 400 }}
+                    transition={{ delay: 0.3, type: 'spring', stiffness: 400 }}
                     className="text-2xl font-bold"
                     style={{ color: getOutcomeColor(result.outcome) }}
                   >
@@ -156,7 +157,7 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <Badge 
+                    <Badge
                       variant={result.outcome === 'success' ? 'default' : result.outcome === 'partial' ? 'secondary' : 'outline'}
                       className="gap-1"
                     >
@@ -172,7 +173,8 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="text-xs text-muted-foreground">
+                    className="text-xs text-muted-foreground"
+                  >
                     {result.description}
                   </motion.p>
                 )}

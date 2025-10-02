@@ -1,17 +1,17 @@
+import type { Attributes } from '../../models/Character'
+import { AlertTriangle, BicepsFlexed, Brain, Edit3, Eye, Heart, Scale, Star, Users } from 'lucide-react'
 import React, { useState } from 'react'
+import { getXPThreshold } from '../../models/Character'
+import { useCharacterStore } from '../../stores/characterStore'
+import { useXPStore } from '../../stores/xpStore'
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
-  Button,
   Input,
   Progress,
-  Badge
 } from '../ui'
-import { cn } from '@/lib/utils'
-import { Heart, Star, Eye, Brain, BicepsFlexed, Users, Edit3, AlertTriangle, Scale } from 'lucide-react'
-import { getXPThreshold, type Attributes } from '../../models/Character'
-import { useXPStore } from '../../stores/xpStore'
-import { useCharacterStore } from '../../stores/characterStore'
 
 // Use the standard Attributes from Character model
 type CharacterStats = Attributes
@@ -21,15 +21,15 @@ interface CharacterData {
   name: string
   class: string
   level: number
-  hp: { current: number; max: number }
+  hp: { current: number, max: number }
   xp: number // Dungeon World uses simple XP, not current/max
   stats: CharacterStats
 }
 
 const mockCharacter: CharacterData = {
-  id: "eldara-moonwhisper",
-  name: "Eldara Moonwhisper",
-  class: "Wizard",
+  id: 'eldara-moonwhisper',
+  name: 'Eldara Moonwhisper',
+  class: 'Wizard',
   level: 5,
   hp: { current: 16, max: 18 }, // Corrected: Base 4 + Constitution 14 = 18
   xp: 11, // Corrected: Level 5 character with 11 XP (needs 12 to level up: 5+7)
@@ -39,8 +39,8 @@ const mockCharacter: CharacterData = {
     CON: 14,
     INT: 18,
     WIS: 16,
-    CHA: 10
-  }
+    CHA: 10,
+  },
 }
 
 const statIcons = {
@@ -49,12 +49,13 @@ const statIcons = {
   CON: Heart,
   INT: Brain,
   WIS: Eye,
-  CHA: Users
+  CHA: Users,
 }
 
 // Helper function to get active debilities
-const getActiveDebilities = (character: any) => {
-  if (!character.debilities) return []
+function getActiveDebilities(character: any) {
+  if (!character.debilities)
+    return []
 
   const debilityList = [
     { key: 'weak', name: 'Weak', color: 'text-error' },
@@ -62,15 +63,16 @@ const getActiveDebilities = (character: any) => {
     { key: 'sick', name: 'Sick', color: 'text-success' },
     { key: 'stunned', name: 'Stunned', color: 'text-(--magic-600)' },
     { key: 'confused', name: 'Confused', color: 'text-info' },
-    { key: 'scarred', name: 'Scarred', color: 'text-muted-foreground' }
+    { key: 'scarred', name: 'Scarred', color: 'text-muted-foreground' },
   ]
 
   return debilityList.filter(debility => character.debilities[debility.key])
 }
 
 // Helper function to get active bonds summary
-const getActiveBonds = (character: any) => {
-  if (!character.bonds) return []
+function getActiveBonds(character: any) {
+  if (!character.bonds)
+    return []
   return character.bonds.filter((bond: any) => !bond.resolved).slice(0, 3) // Show max 3
 }
 
@@ -87,7 +89,7 @@ export const CharacterSheet: React.FC = () => {
     level: activeCharacter.level,
     hp: activeCharacter.hp,
     xp: activeCharacter.xp,
-    stats: activeCharacter.attributes // Use attributes from store
+    stats: activeCharacter.attributes, // Use attributes from store
   } : mockCharacter // Fallback to mock for demo
 
   // Ensure stats are numbers, not {value, modifier} objects
@@ -132,8 +134,8 @@ export const CharacterSheet: React.FC = () => {
       updateCharacter(displayCharacter.id, {
         attributes: {
           ...activeCharacter.attributes,
-          [stat]: clampedValue
-        }
+          [stat]: clampedValue,
+        },
       })
     }
   }
@@ -149,35 +151,45 @@ export const CharacterSheet: React.FC = () => {
               <div>
                 <h1 className="text-xl font-display font-bold flex items-center gap-2">
                   {displayCharacter.name}
-                <Button
-                  variant={isEditing ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="opacity-60 hover:opacity-100 h-6 w-6 p-0"
-                >
-                  <Edit3 size={12} />
-                </Button>
-              </h1>
-              <div className="text-sm text-muted-foreground flex items-center gap-2">
-                Level {realTimeLevel} {displayCharacter.class}
-                {/* Alignment indicator */}
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  <Scale size={10} />
-                  {alignment}
-                </Badge>
-                {/* Debility warnings */}
-                {activeDebilities.length > 0 && (
-                  <Badge variant="destructive" className="gap-1 text-xs">
-                    <AlertTriangle size={10} />
-                    {activeDebilities.length} Debil{activeDebilities.length === 1 ? 'ity' : 'ities'}
+                  <Button
+                    variant={isEditing ? 'secondary' : 'ghost'}
+                    size="sm"
+                    aria-label={isEditing ? 'Stop editing stats' : 'Edit stats'}
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="opacity-60 hover:opacity-100 h-6 w-6 p-0"
+                  >
+                    <Edit3 size={12} />
+                  </Button>
+                </h1>
+                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                  Level
+                  {' '}
+                  {realTimeLevel}
+                  {' '}
+                  {displayCharacter.class}
+                  {/* Alignment indicator */}
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    <Scale size={10} />
+                    {alignment}
                   </Badge>
-                )}
+                  {/* Debility warnings */}
+                  {activeDebilities.length > 0 && (
+                    <Badge variant="destructive" className="gap-1 text-xs">
+                      <AlertTriangle size={10} />
+                      {activeDebilities.length}
+                      {' '}
+                      Debil
+                      {activeDebilities.length === 1 ? 'ity' : 'ities'}
+                    </Badge>
+                  )}
+                </div>
               </div>
-            </div>
-            <Badge variant="experience" className="shrink-0">
-              <Star size={12} />
-              Level {realTimeLevel}
-            </Badge>
+              <Badge variant="experience" className="shrink-0">
+                <Star size={12} />
+                Level
+                {' '}
+                {realTimeLevel}
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -187,7 +199,11 @@ export const CharacterSheet: React.FC = () => {
           <CardContent className="p-4 pt-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium">Health</span>
-              <span className="text-xs font-mono">{displayCharacter.hp.current}/{displayCharacter.hp.max}</span>
+              <span className="text-xs font-mono">
+                {displayCharacter.hp.current}
+                /
+                {displayCharacter.hp.max}
+              </span>
             </div>
             <Progress
               variant="health"
@@ -198,7 +214,11 @@ export const CharacterSheet: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium">Experience</span>
-              <span className="text-xs font-mono">{realTimeXP}/{getXPThreshold(realTimeLevel)}</span>
+              <span className="text-xs font-mono">
+                {realTimeXP}
+                /
+                {getXPThreshold(realTimeLevel)}
+              </span>
             </div>
             <Progress
               variant="experience"
@@ -219,40 +239,42 @@ export const CharacterSheet: React.FC = () => {
               <h3 className="text-sm font-semibold mb-3 text-center">Ability Scores</h3>
               <div className="space-y-2">
                 {Object.entries(displayCharacter.stats).map(([statName, statValue]) => {
-                const StatIcon = statIcons[statName as keyof Attributes]
-                const modifier = getStatModifier(statValue)
+                  const StatIcon = statIcons[statName as keyof Attributes]
+                  const modifier = getStatModifier(statValue)
 
-                return (
-                  <div key={statName} className="flex items-center gap-2 p-2 rounded bg-background/50">
-                    <StatIcon size={14} className="text-primary shrink-0" />
-                    <div className="flex-1 flex items-center justify-between">
-                      <span className="text-xs font-medium">{statName}</span>
-                      <div className="flex items-center gap-2">
-                        {isEditing ? (
-                          <Input
-                            type="number"
-                            value={statValue}
-                            onChange={(e) => handleStatChange(
-                              statName as keyof Attributes,
-                              parseInt(e.target.value) || 0
-                            )}
-                            className="w-12 h-6 text-xs text-center p-0"
-                            min="1"
-                            max="20"
-                          />
-                        ) : (
-                          <span className="text-sm font-bold w-6 text-center">{statValue}</span>
-                        )}
-                        <Badge
-                          variant={parseInt(modifier) >= 0 ? "success" : "secondary"}
-                          className="text-xs min-w-8 justify-center"
-                        >
-                          {modifier}
-                        </Badge>
+                  return (
+                    <div key={statName} className="flex items-center gap-2 p-2 rounded bg-background/50">
+                      <StatIcon size={14} className="text-primary shrink-0" />
+                      <div className="flex-1 flex items-center justify-between">
+                        <span className="text-xs font-medium">{statName}</span>
+                        <div className="flex items-center gap-2">
+                          {isEditing
+                            ? (
+                                <Input
+                                  type="number"
+                                  value={statValue}
+                                  onChange={e => handleStatChange(
+                                    statName as keyof Attributes,
+                                    Number.parseInt(e.target.value) || 0,
+                                  )}
+                                  className="w-12 h-6 text-xs text-center p-0"
+                                  min="1"
+                                  max="20"
+                                />
+                              )
+                            : (
+                                <span className="text-sm font-bold w-6 text-center">{statValue}</span>
+                              )}
+                          <Badge
+                            variant={Number.parseInt(modifier) >= 0 ? 'success' : 'secondary'}
+                            className="text-xs min-w-8 justify-center"
+                          >
+                            {modifier}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
+                  )
                 })}
               </div>
             </CardContent>
@@ -266,24 +288,33 @@ export const CharacterSheet: React.FC = () => {
             <CardContent className="p-3 pt-3">
               <h3 className="text-sm font-semibold mb-3">Class Moves</h3>
               <div className="space-y-2 text-xs">
-              <div>
-                <div className="font-medium mb-1">Starting:</div>
-                <ul className="space-y-0.5 text-muted-foreground">
-                  <li>• Cast a Spell {realTimeLevel >= 1 && <span className="text-chart-2">✓</span>}</li>
-                  <li>• Spellbook {realTimeLevel >= 1 && <span className="text-chart-2">✓</span>}</li>
-                  <li>• Prepare Spells {realTimeLevel >= 1 && <span className="text-chart-2">✓</span>}</li>
-                  <li>• Ritual</li>
-                </ul>
-              </div>
-              {realTimeLevel >= 6 && (
                 <div>
-                  <div className="font-medium mb-1">Advanced (6+):</div>
+                  <div className="font-medium mb-1">Starting:</div>
                   <ul className="space-y-0.5 text-muted-foreground">
-                    <li>• Prodigy</li>
-                    <li>• Empowered Magic</li>
+                    <li>
+                      • Cast a Spell
+                      {realTimeLevel >= 1 && <span className="text-chart-2">✓</span>}
+                    </li>
+                    <li>
+                      • Spellbook
+                      {realTimeLevel >= 1 && <span className="text-chart-2">✓</span>}
+                    </li>
+                    <li>
+                      • Prepare Spells
+                      {realTimeLevel >= 1 && <span className="text-chart-2">✓</span>}
+                    </li>
+                    <li>• Ritual</li>
                   </ul>
                 </div>
-              )}
+                {realTimeLevel >= 6 && (
+                  <div>
+                    <div className="font-medium mb-1">Advanced (6+):</div>
+                    <ul className="space-y-0.5 text-muted-foreground">
+                      <li>• Prodigy</li>
+                      <li>• Empowered Magic</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -293,23 +324,35 @@ export const CharacterSheet: React.FC = () => {
             <CardContent className="p-3 pt-3">
               <h3 className="text-sm font-semibold mb-3">Equipment</h3>
               <div className="space-y-2 text-xs">
-              <div>
-                <div className="font-medium mb-1">Weapons:</div>
-                <ul className="space-y-0.5 text-muted-foreground">
-                  <li>• Staff <span className="text-xs opacity-60">(close, two-handed)</span></li>
-                  <li>• Dagger <span className="text-xs opacity-60">(hand)</span></li>
-                </ul>
-              </div>
-              <div>
-                <div className="font-medium mb-1">Armor & Gear:</div>
-                <ul className="space-y-0.5 text-muted-foreground">
-                  <li>• Leather armor <span className="text-xs opacity-60">(1 armor, worn)</span></li>
-                  <li>• Spellbook</li>
-                  <li>• Dungeon rations <span className="text-xs opacity-60">(5 uses)</span></li>
-                  <li>• Healing potion</li>
-                  <li>• Adventuring gear</li>
-                </ul>
-              </div>
+                <div>
+                  <div className="font-medium mb-1">Weapons:</div>
+                  <ul className="space-y-0.5 text-muted-foreground">
+                    <li>
+                      • Staff
+                      <span className="text-xs opacity-60">(close, two-handed)</span>
+                    </li>
+                    <li>
+                      • Dagger
+                      <span className="text-xs opacity-60">(hand)</span>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="font-medium mb-1">Armor & Gear:</div>
+                  <ul className="space-y-0.5 text-muted-foreground">
+                    <li>
+                      • Leather armor
+                      <span className="text-xs opacity-60">(1 armor, worn)</span>
+                    </li>
+                    <li>• Spellbook</li>
+                    <li>
+                      • Dungeon rations
+                      <span className="text-xs opacity-60">(5 uses)</span>
+                    </li>
+                    <li>• Healing potion</li>
+                    <li>• Adventuring gear</li>
+                  </ul>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -330,18 +373,26 @@ export const CharacterSheet: React.FC = () => {
                 )}
               </div>
               <div className="space-y-1 text-muted-foreground">
-                {activeBonds.length > 0 ? (
-                  activeBonds.map((bond: any, index: number) => (
-                    <div key={index} className="text-xs">
-                      • {bond.text.length > 40 ? `${bond.text.slice(0, 40)}...` : bond.text}
-                      {bond.characterName && (
-                        <span className="text-primary ml-1">({bond.characterName})</span>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-xs italic">No active bonds</div>
-                )}
+                {activeBonds.length > 0
+                  ? (
+                      activeBonds.map((bond: any, index: number) => (
+                        <div key={index} className="text-xs">
+                          •
+                          {' '}
+                          {bond.text.length > 40 ? `${bond.text.slice(0, 40)}...` : bond.text}
+                          {bond.characterName && (
+                            <span className="text-primary ml-1">
+                              (
+                              {bond.characterName}
+                              )
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    )
+                  : (
+                      <div className="text-xs italic">No active bonds</div>
+                    )}
               </div>
             </div>
 
@@ -376,4 +427,3 @@ export const CharacterSheet: React.FC = () => {
     </div>
   )
 }
-

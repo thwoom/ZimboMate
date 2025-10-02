@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Download,
-  Loader2,
-  CheckCircle,
   AlertTriangle,
-  RefreshCw,
   Brain,
+  CheckCircle,
+  Clock,
+  Download,
+  HardDrive,
+  Loader2,
+  RefreshCw,
   Sparkles,
   Zap,
-  Clock,
-  HardDrive
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from './'
+import React, { useEffect, useState } from 'react'
+import { Badge, Button, Card, CardContent } from './'
 
 interface PremiumProgressBarProps {
   progress: number // 0-100
@@ -44,7 +44,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
   modelSize,
   downloadSpeed,
   onRetry,
-  className = ''
+  className = '',
 }) => {
   const [particles, setParticles] = useState<FloatingParticle[]>([])
 
@@ -59,11 +59,12 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
           y: Math.random() * 100,
           delay: Math.random() * 2,
           size: Math.random() * 4 + 2,
-          color: stage === 'downloading' ? '#3b82f6' : '#8b5cf6'
+          color: stage === 'downloading' ? '#3b82f6' : '#8b5cf6',
         })
       }
       setParticles(newParticles)
-    } else {
+    }
+    else {
       setParticles([])
     }
   }, [stage])
@@ -122,7 +123,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
         {/* Floating Particles Background */}
         <div className="absolute inset-0 pointer-events-none">
           <AnimatePresence>
-            {particles.map((particle) => (
+            {particles.map(particle => (
               <motion.div
                 key={particle.id}
                 initial={{ opacity: 0, scale: 0 }}
@@ -137,7 +138,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   duration: 3,
                   repeat: Infinity,
                   delay: particle.delay,
-                  ease: "easeInOut"
+                  ease: 'easeInOut',
                 }}
                 className="absolute rounded-full"
                 style={{
@@ -168,7 +169,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   transition={{
                     duration: 2,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: 'easeInOut',
                   }}
                   style={{
                     background: `radial-gradient(circle, ${stage === 'downloading' ? '#3b82f6' : '#8b5cf6'}40, transparent 70%)`,
@@ -178,7 +179,10 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
             </div>
 
             <div>
-              <h3 className="text-lg font-display font-semibold">AI Model {stage === 'downloading' ? 'Download' : 'Loading'}</h3>
+              <h3 className="text-lg font-display font-semibold">
+                AI Model
+                {stage === 'downloading' ? 'Download' : 'Loading'}
+              </h3>
               <p className="text-sm text-muted-foreground ">
                 {stage === 'downloading' && modelSize ? `Natural Functions 7B (${modelSize})` : 'Preparing your intelligent companion'}
               </p>
@@ -199,7 +203,8 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
             {progress > 0 && stage !== 'error' && (
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent from-primary to-accent">
-                  {Math.round(progress)}%
+                  {Math.round(progress)}
+                  %
                 </span>
                 {timeRemaining && (
                   <div className="flex items-center gap-1 text-muted-foreground">
@@ -226,14 +231,14 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.max(progress, 2)}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
                   className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getStageColor()} rounded-full shadow-lg`}
                 >
                   {/* Shimmer effect */}
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full"
                     animate={{ x: ['-100%', '100%'] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                   />
 
                   {/* Highlight effect */}
@@ -244,7 +249,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.max(progress, 2)}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
                   className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getStageColor()} rounded-full blur-sm opacity-50`}
                 />
               </>
@@ -255,7 +260,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent rounded-full"
                   animate={{ x: ['-100%', '100%'] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                 />
               </>
             )}
@@ -352,7 +357,3 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
 }
 
 export default PremiumProgressBar
-
-
-
-

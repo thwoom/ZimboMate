@@ -3,23 +3,22 @@
  * Phase 4A: Essential for tracking alignment-based XP actions
  */
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { 
-  Scale, 
-  Shield, 
-  Heart, 
-  Zap,
-  Skull,
-  Edit3, 
-  Trash2, 
-  Check, 
-  X,
-  Award,
-  Calendar
-} from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../../ui'
 import type { Alignment } from '../../../models/Character'
+import {
+  Award,
+  Calendar,
+  Check,
+  Edit3,
+  Heart,
+  Scale,
+  Shield,
+  Skull,
+  Trash2,
+  X,
+  Zap,
+} from 'lucide-react'
+import React, { useState } from 'react'
+import { Badge, Button, Card, CardContent } from '../../ui'
 
 interface AlignmentAction {
   id: string
@@ -38,7 +37,7 @@ interface AlignmentActionCardProps {
 export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
   action,
   onUpdate,
-  onDelete
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editDescription, setEditDescription] = useState(action.description)
@@ -79,11 +78,12 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
   }
 
   const handleSaveEdit = () => {
-    if (!editDescription.trim()) return
-    
+    if (!editDescription.trim())
+      return
+
     onUpdate({
       description: editDescription.trim(),
-      xpAwarded: editXP
+      xpAwarded: editXP,
     })
     setIsEditing(false)
   }
@@ -95,11 +95,11 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
   }
 
   const formatTime = (date: Date) => {
-    return date.toLocaleString([], { 
-      month: 'short', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
@@ -115,14 +115,14 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
               </label>
               <textarea
                 value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
+                onChange={e => setEditDescription(e.target.value)}
                 rows={3}
                 className="w-full px-3 py-2 rounded-lg border transition-colors resize-none"
                 style={{
                   backgroundColor: 'var(--card)',
                   borderColor: 'var(--primary)',
                   borderOpacity: 0.2,
-                  color: 'var(--foreground)'
+                  color: 'var(--foreground)',
                 }}
                 autoFocus
               />
@@ -134,13 +134,13 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
               </label>
               <select
                 value={editXP}
-                onChange={(e) => setEditXP(parseInt(e.target.value))}
+                onChange={e => setEditXP(Number.parseInt(e.target.value))}
                 className="w-full px-3 py-2 rounded-lg border transition-colors"
                 style={{
                   backgroundColor: 'var(--card)',
                   borderColor: 'var(--primary)',
                   borderOpacity: 0.2,
-                  color: 'var(--foreground)'
+                  color: 'var(--foreground)',
                 }}
               >
                 <option value={1}>1 XP (Standard)</option>
@@ -183,12 +183,16 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
                   </Badge>
                   <Badge variant="default" className="gap-1 bg-chart-2/15 text-chart-2">
                     <Award size={10} />
-                    +{action.xpAwarded} XP
+                    +
+                    {action.xpAwarded}
+                    {' '}
+                    XP
                   </Badge>
                 </div>
-                
-                <p 
-                  className="text-sm leading-relaxed mb-2 text-foreground">
+
+                <p
+                  className="text-sm leading-relaxed mb-2 text-foreground"
+                >
                   {action.description}
                 </p>
 
@@ -197,7 +201,7 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
                   <span>{formatTime(action.timestamp)}</span>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-1 ml-4">
                 <Button
                   variant="ghost"
@@ -207,7 +211,7 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
                 >
                   <Edit3 size={14} />
                 </Button>
-                
+
                 <Button
                   variant="ghost"
                   size="xs"
@@ -225,7 +229,3 @@ export const AlignmentActionCard: React.FC<AlignmentActionCardProps> = ({
     </Card>
   )
 }
-
-
-
-

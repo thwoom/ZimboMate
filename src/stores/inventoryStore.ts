@@ -1,8 +1,9 @@
+import type { Item } from '../models/Equipment'
+import type { Inventory } from '../models/Inventory'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Item } from '../models/Equipment'
-import { Inventory, addItem, removeItem, moveItem, toggleEquipped } from '../models/Inventory'
-import { InventoryView, ItemSortBy, InventoryFilter } from '../equipmentSystemMockData'
+import { InventoryFilter, InventoryView, ItemSortBy } from '../equipmentSystemMockData'
+import { addItem, moveItem, removeItem, toggleEquipped } from '../models/Inventory'
 
 interface InventoryState {
   inventory: Inventory | null
@@ -13,7 +14,7 @@ interface InventoryState {
   filterBy: InventoryFilter
   searchQuery: string
   isLoading: boolean
-  
+
   // Actions
   setInventory: (inventory: Inventory) => void
   addItemToInventory: (item: Item, containerId?: string) => void
@@ -45,32 +46,36 @@ export const useInventoryStore = create<InventoryState>()(
 
       addItemToInventory: (item: Item, containerId?: string) => {
         const { inventory } = get()
-        if (!inventory) return
-        
+        if (!inventory)
+          return
+
         const updatedInventory = addItem(inventory, item, containerId)
         set({ inventory: updatedInventory })
       },
 
       removeItemFromInventory: (itemId: string) => {
         const { inventory } = get()
-        if (!inventory) return
-        
+        if (!inventory)
+          return
+
         const updatedInventory = removeItem(inventory, itemId)
         set({ inventory: updatedInventory })
       },
 
       moveItemBetweenContainers: (itemId: string, fromContainer: string, toContainer: string) => {
         const { inventory } = get()
-        if (!inventory) return
-        
+        if (!inventory)
+          return
+
         const updatedInventory = moveItem(inventory, itemId, fromContainer, toContainer)
         set({ inventory: updatedInventory })
       },
 
       toggleItemEquipped: (itemId: string) => {
         const { inventory } = get()
-        if (!inventory) return
-        
+        if (!inventory)
+          return
+
         const updatedInventory = toggleEquipped(inventory, itemId)
         set({ inventory: updatedInventory })
       },
@@ -87,15 +92,15 @@ export const useInventoryStore = create<InventoryState>()(
 
       setSearchQuery: (query: string) => set({ searchQuery: query }),
 
-      setLoading: (loading: boolean) => set({ isLoading: loading })
+      setLoading: (loading: boolean) => set({ isLoading: loading }),
     }),
     {
       name: 'zimbomate-inventory-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         inventoryView: state.inventoryView,
         sortBy: state.sortBy,
-        filterBy: state.filterBy
-      })
-    }
-  )
+        filterBy: state.filterBy,
+      }),
+    },
+  ),
 )

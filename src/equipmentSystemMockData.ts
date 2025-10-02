@@ -1,13 +1,16 @@
+import type { Character } from './models/Character'
 // Mock data for Equipment & Inventory System
-import { Item, Weapon, Armor, COMMON_ITEMS } from './models/Equipment';
-import { Inventory, createEmptyInventory, addItem } from './models/Inventory';
-import { Character, createDummyCharacter } from './models/Character';
+import type { Armor, Item, Weapon } from './models/Equipment'
+import type { Inventory } from './models/Inventory'
+import { createDummyCharacter } from './models/Character'
+import { createEmptyInventory } from './models/Inventory'
+import { logger } from './utils/logger'
 
 // Equipment and Inventory related enums
 export enum InventoryView {
   GRID = 'grid',
   LIST = 'list',
-  COMPACT = 'compact'
+  COMPACT = 'compact',
 }
 
 export enum ItemSortBy {
@@ -15,7 +18,7 @@ export enum ItemSortBy {
   WEIGHT = 'weight',
   VALUE = 'value',
   CATEGORY = 'category',
-  RECENTLY_ADDED = 'recently_added'
+  RECENTLY_ADDED = 'recently_added',
 }
 
 export enum InventoryFilter {
@@ -25,12 +28,12 @@ export enum InventoryFilter {
   CONSUMABLES = 'consumables',
   TREASURE = 'treasure',
   MAGICAL = 'magical',
-  EQUIPPED = 'equipped'
+  EQUIPPED = 'equipped',
 }
 
 export enum DragDropType {
   ITEM = 'item',
-  CONTAINER = 'container'
+  CONTAINER = 'container',
 }
 
 export enum ItemAction {
@@ -40,49 +43,51 @@ export enum ItemAction {
   DROP = 'drop',
   SPLIT = 'split',
   COMBINE = 'combine',
-  INSPECT = 'inspect'
+  INSPECT = 'inspect',
 }
 
 // String formatting functions for equipment and inventory
-export const formatWeight = (weight: number): string => {
-  return weight === 1 ? `${weight} lb` : `${weight} lbs`;
-};
+export function formatWeight(weight: number): string {
+  return weight === 1 ? `${weight} lb` : `${weight} lbs`
+}
 
-export const formatValue = (value: number): string => {
+export function formatValue(value: number): string {
   if (value >= 1000) {
-    return `${(value / 1000).toFixed(1)}k coins`;
+    return `${(value / 1000).toFixed(1)}k coins`
   }
-  return `${value} coins`;
-};
+  return `${value} coins`
+}
 
-export const formatLoadStatus = (current: number, max: number): string => {
-  const percentage = (current / max) * 100;
-  if (percentage <= 100) return "Normal";
-  if (percentage <= 120) return "Encumbered (-1 ongoing)";
-  return "Overloaded (can barely move)";
-};
+export function formatLoadStatus(current: number, max: number): string {
+  const percentage = (current / max) * 100
+  if (percentage <= 100)
+    return 'Normal'
+  if (percentage <= 120)
+    return 'Encumbered (-1 ongoing)'
+  return 'Overloaded (can barely move)'
+}
 
-export const formatItemQuantity = (quantity: number): string => {
-  return quantity > 1 ? `x${quantity}` : '';
-};
+export function formatItemQuantity(quantity: number): string {
+  return quantity > 1 ? `x${quantity}` : ''
+}
 
-export const formatEncumbranceStatus = (status: string): string => {
+export function formatEncumbranceStatus(status: string): string {
   switch (status) {
-    case 'normal': return 'Normal';
-    case 'encumbered': return 'Encumbered';
-    case 'overloaded': return 'Overloaded';
-    default: return 'Unknown';
+    case 'normal': return 'Normal'
+    case 'encumbered': return 'Encumbered'
+    case 'overloaded': return 'Overloaded'
+    default: return 'Unknown'
   }
-};
+}
 
-export const formatItemTags = (tags: Array<{name: string, value?: string | number}>): string => {
-  return tags.map(tag => 
-    tag.value ? `${tag.name} ${tag.value}` : tag.name
-  ).join(', ');
-};
+export function formatItemTags(tags: Array<{ name: string, value?: string | number }>): string {
+  return tags.map(tag =>
+    tag.value ? `${tag.name} ${tag.value}` : tag.name,
+  ).join(', ')
+}
 
 // Create sample items with proper IDs and full data
-const createSampleItems = (): Item[] => {
+function createSampleItems(): Item[] {
   return [
     {
       id: 'longsword-1',
@@ -94,7 +99,7 @@ const createSampleItems = (): Item[] => {
       value: 15,
       quantity: 1,
       equipped: true,
-      damage: '1d8'
+      damage: '1d8',
     } as Weapon,
     {
       id: 'chainmail-1',
@@ -106,7 +111,7 @@ const createSampleItems = (): Item[] => {
       value: 40,
       quantity: 1,
       equipped: true,
-      armorValue: 2
+      armorValue: 2,
     } as Armor,
     {
       id: 'healing-potion-1',
@@ -117,7 +122,7 @@ const createSampleItems = (): Item[] => {
       weight: 0,
       value: 50,
       quantity: 3,
-      equipped: false
+      equipped: false,
     },
     {
       id: 'rations-1',
@@ -129,18 +134,18 @@ const createSampleItems = (): Item[] => {
       value: 10,
       quantity: 1,
       equipped: false,
-      uses: { current: 5, max: 5 }
+      uses: { current: 5, max: 5 },
     },
     {
       id: 'thieves-tools-1',
-      name: "Thieves' Tools",
+      name: 'Thieves\' Tools',
       category: 'gear',
       tags: [{ name: 'weight', value: 1 }],
       description: 'Lockpicks, small files, and other tools for bypassing security.',
       weight: 1,
       value: 25,
       quantity: 1,
-      equipped: false
+      equipped: false,
     },
     {
       id: 'gold-coins-1',
@@ -151,7 +156,7 @@ const createSampleItems = (): Item[] => {
       weight: 0,
       value: 1,
       quantity: 247,
-      equipped: false
+      equipped: false,
     },
     {
       id: 'rope-1',
@@ -162,54 +167,56 @@ const createSampleItems = (): Item[] => {
       weight: 2,
       value: 5,
       quantity: 1,
-      equipped: false
-    }
-  ];
-};
+      equipped: false,
+    },
+  ]
+}
 
 // Mock inventory with organized containers
-const createMockInventory = (): Inventory => {
-  const inventory = createEmptyInventory();
-  const items = createSampleItems();
-  
+function createMockInventory(): Inventory {
+  const inventory = createEmptyInventory()
+  const items = createSampleItems()
+
   // Add items to inventory and organize them
-  items.forEach(item => {
-    inventory.items[item.id] = item;
-    
+  items.forEach((item) => {
+    inventory.items[item.id] = item
+
     // Organize into appropriate containers
     if (item.equipped) {
-      const equippedContainer = inventory.containers.find(c => c.category === 'equipped');
+      const equippedContainer = inventory.containers.find(c => c.category === 'equipped')
       if (equippedContainer) {
-        equippedContainer.items.push(item.id);
-      }
-    } else if (item.category === 'consumable') {
-      const consumablesContainer = inventory.containers.find(c => c.category === 'consumables');
-      if (consumablesContainer) {
-        consumablesContainer.items.push(item.id);
-      }
-    } else {
-      const carriedContainer = inventory.containers.find(c => c.category === 'carried');
-      if (carriedContainer) {
-        carriedContainer.items.push(item.id);
+        equippedContainer.items.push(item.id)
       }
     }
-  });
-  
-  return inventory;
-};
+    else if (item.category === 'consumable') {
+      const consumablesContainer = inventory.containers.find(c => c.category === 'consumables')
+      if (consumablesContainer) {
+        consumablesContainer.items.push(item.id)
+      }
+    }
+    else {
+      const carriedContainer = inventory.containers.find(c => c.category === 'carried')
+      if (carriedContainer) {
+        carriedContainer.items.push(item.id)
+      }
+    }
+  })
+
+  return inventory
+}
 
 // Mock character with inventory
-export const mockCharacterWithInventory = (): Character => {
-  const character = createDummyCharacter();
-  const inventory = createMockInventory();
-  
+export function mockCharacterWithInventory(): Character {
+  const character = createDummyCharacter()
+  const inventory = createMockInventory()
+
   // Update character with inventory items
-  character.inventory = Object.values(inventory.items);
-  character.load.current = 8; // Total weight from equipped + carried items
-  character.load.max = 14; // STR modifier + base load
-  
-  return character;
-};
+  character.inventory = Object.values(inventory.items)
+  character.load.current = 8 // Total weight from equipped + carried items
+  character.load.max = 14 // STR modifier + base load
+
+  return character
+}
 
 // Mock data for store
 export const mockStore = {
@@ -220,15 +227,15 @@ export const mockStore = {
   inventoryView: InventoryView.GRID,
   sortBy: ItemSortBy.NAME,
   filterBy: InventoryFilter.ALL,
-  searchQuery: ''
-};
+  searchQuery: '',
+}
 
 // Mock data for props
 export const mockRootProps = {
   character: mockCharacterWithInventory(),
-  onItemEquip: (itemId: string) => console.log('Equipping item:', itemId),
-  onItemUnequip: (itemId: string) => console.log('Unequipping item:', itemId),
-  onItemUse: (itemId: string) => console.log('Using item:', itemId),
-  onItemDrop: (itemId: string) => console.log('Dropping item:', itemId),
-  onInventoryUpdate: (inventory: Inventory) => console.log('Inventory updated:', inventory)
-};
+  onItemEquip: (itemId: string) => logger.debug('Equipping item:', itemId),
+  onItemUnequip: (itemId: string) => logger.debug('Unequipping item:', itemId),
+  onItemUse: (itemId: string) => logger.debug('Using item:', itemId),
+  onItemDrop: (itemId: string) => logger.debug('Dropping item:', itemId),
+  onInventoryUpdate: (inventory: Inventory) => logger.debug('Inventory updated:', inventory),
+}

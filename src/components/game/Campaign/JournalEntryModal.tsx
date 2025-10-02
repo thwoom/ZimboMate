@@ -1,32 +1,71 @@
 /**
- * Journal Entry Modal - Modal dialog for creating and editing journal entries
+ * Journal Entry Modal - Rich journal creation and editing surface
  */
 
-import React, { useState, useEffect } from 'react'
+import type { JournalEntry } from '../../../models/Campaign'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, BookOpen, Plus, Tag as TagIcon, Star } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
+import { BookOpen, Plus, Star, Tag as TagIcon, X } from 'lucide-react'
+import React, { useCallback, useEffect, useReducer } from 'react'
+
+import { useModalForm } from '../../../hooks/useModalForm'
+import { useStringListField } from '../../../hooks/useStringListField'
+import { useCampaignStore } from '../../../stores/campaignStore'
+
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
 import { Input } from '../../ui/Input'
 import { Textarea } from '../../ui/Textarea'
-import { useCampaignStore } from '../../../stores/campaignStore'
-import type { JournalEntry } from '../../../models/Campaign'
 
 interface JournalEntryModalProps {
   isOpen: boolean
   onClose: () => void
   campaignId: string
-  entry?: JournalEntry // If provided, we're editing; otherwise creating
-  onSaved?: (entryId: string) => void
+  entry?: JournalEntry
 }
 
-interface JournalEntryFormData {
+interface JournalEntryFormState {
   title: string
   content: string
-  tags: string[]
   isImportant: boolean
   relatedSessionId?: string
   relatedNpcId?: string
   relatedLocationId?: string
+}
+
+interface JournalEntryFormErrors {
+  title?: string
+  content?: string
+}
+
+const MAX_JOURNAL_TAGS = 10
+
+function createInitialState(entry?: JournalEntry): JournalEntryFormState {
+  return {
+    title: entry?.title ?? '',
+    content: entry?.content ?? '',
+    isImportant: entry?.isImportant ?? false,
+    relatedSessionId: entry?.relatedSessionId,
+    relatedNpcId: entry?.relatedNpcId,
+    relatedLocationId: entry?.relatedLocationId,
+  }
+}
+
+function validateJournalEntry(state: JournalEntryFormState): JournalEntryFormErrors {
+  const errors: JournalEntryFormErrors = {}
+
+  const trimmedTitle = state.title.trim()
+  const trimmedContent = state.content.trim()
+
+  if (!trimmedTitle)
+    errors.title = 'Title is required'
+  else if (trimmedTitle.length < 3)
+    errors.title = 'Title must be at least 3 characters'
+
+  if (!trimmedContent)
+    errors.content = 'Content is required'
+  else if (trimmedContent.length < 10)
+    errors.content = 'Content must be at least 10 characters'
+
+  return errors
 }
 
 export const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
@@ -34,259 +73,256 @@ export const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   onClose,
   campaignId,
   entry,
-  onSaved
 }) => {
-  const [formData, setFormData] = useState<JournalEntryFormData>({
-    title: '',
-    content: '',
-    tags: [],
-    isImportant: false
-  })
-  const [errors, setErrors] = useState<Partial<JournalEntryFormData>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [newTag, setNewTag] = useState('')
-
   const addJournalEntry = useCampaignStore(state => state.addJournalEntry)
   const updateJournalEntry = useCampaignStore(state => state.updateJournalEntry)
 
-  // Initialize form data when modal opens or entry changes
-  useEffect(() => {
+  const [newTag, dispatchNewTag] = useReducer((_: string, value: string) => value, '')
+  const {
+    items: tags,
+    addItem: addTag,
+    removeItem: removeTag,
+    replaceAll: replaceTags,
+    canAddMore: canAddMoreTags,
+  } = useStringListField(entry?.tags ?? [], { limit: MAX_JOURNAL_TAGS })
+
+  const handleSubmitForm = useCallback(async (formState: JournalEntryFormState): Promise<string> => {
+    const trimmedData = {
+      ...formState,
+      title: formState.title.trim(),
+      content: formState.content.trim(),
+      tags,
+    }
+
     if (entry) {
-      setFormData({
-        title: entry.title,
-        content: entry.content,
-        tags: [...entry.tags],
-        isImportant: entry.isImportant,
-        relatedSessionId: entry.relatedSessionId,
-        relatedNpcId: entry.relatedNpcId,
-        relatedLocationId: entry.relatedLocationId
-      })
-    } else {
-      setFormData({
-        title: '',
-        content: '',
-        tags: [],
-        isImportant: false
-      })
-    }
-    setErrors({})
-    setNewTag('')
-  }, [entry, isOpen])
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<JournalEntryFormData> = {}
-
-    // Validate title
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required'
-    } else if (formData.title.trim().length < 3) {
-      newErrors.title = 'Title must be at least 3 characters'
+      updateJournalEntry(campaignId, entry.id, trimmedData)
+      return entry.id
     }
 
-    // Validate content
-    if (!formData.content.trim()) {
-      newErrors.content = 'Content is required'
-    } else if (formData.content.trim().length < 10) {
-      newErrors.content = 'Content must be at least 10 characters'
+    const newEntryId = crypto.randomUUID()
+    const newEntry: JournalEntry = {
+      id: newEntryId,
+      date: new Date(),
+      ...trimmedData,
     }
+    addJournalEntry(campaignId, newEntry)
+    return newEntryId
+  }, [addJournalEntry, campaignId, entry, tags, updateJournalEntry])
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+  const {
+    state,
+    setState,
+    reset: resetForm,
+    errors,
+    submit,
+    isSubmitting,
+  } = useModalForm<JournalEntryFormState, JournalEntryFormErrors, string>({
+    getInitialState: useCallback(() => createInitialState(entry), [entry]),
+    getInitialErrors: () => ({}),
+    validate: validateJournalEntry,
+    onSubmit: handleSubmitForm,
+  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!validateForm()) {
+  useEffect(() => {
+    if (!isOpen)
       return
-    }
 
-    setIsSubmitting(true)
+    resetForm(createInitialState(entry))
+    replaceTags(entry?.tags ?? [])
+    dispatchNewTag('')
+  }, [entry, isOpen, replaceTags, resetForm])
 
-    try {
-      const trimmedData = {
-        ...formData,
-        title: formData.title.trim(),
-        content: formData.content.trim()
-      }
+  const handleAddTag = useCallback(() => {
+    if (!newTag.trim() || !canAddMoreTags)
+      return
 
-      let entryId: string
+    if (addTag(newTag))
+      dispatchNewTag('')
+  }, [addTag, canAddMoreTags, newTag])
 
-      if (entry) {
-        // Editing existing entry
-        updateJournalEntry(campaignId, entry.id, trimmedData)
-        entryId = entry.id
-      } else {
-        // Creating new entry
-        entryId = crypto.randomUUID()
-        const newEntry: JournalEntry = {
-          id: entryId,
-          date: new Date(),
-          ...trimmedData
-        }
-        addJournalEntry(campaignId, newEntry)
-      }
+  const handleRemoveTag = useCallback((tag: string) => {
+    removeTag(tag)
+  }, [removeTag])
 
-      onSaved?.(entryId)
+  const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const result = await submit()
+
+    if (result.status === 'success') {
       onClose()
-    } catch (error) {
-      console.error('Error saving journal entry:', error)
-      // In a real app, you'd show an error toast or message
-    } finally {
-      setIsSubmitting(false)
+      dispatchNewTag('')
     }
-  }
-
-  const handleAddTag = () => {
-    const tag = newTag.trim().toLowerCase()
-    if (tag && !formData.tags.includes(tag) && formData.tags.length < 10) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }))
-      setNewTag('')
+    else if (result.status === 'error') {
+      console.error('Error saving journal entry:', result.error)
     }
-  }
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }))
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTag.trim()) {
-      e.preventDefault()
-      handleAddTag()
-    }
-  }
+  }, [dispatchNewTag, onClose, submit])
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose()
+          dispatchNewTag('')
+        }
+      }}
+    >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 border shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-lg max-h-[90vh] overflow-y-auto">
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 w-[95vw] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card shadow-primary focus:outline-none">
           <Card variant="surface">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <div className="flex items-center gap-3">
-                <BookOpen className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl">
-                  {entry ? 'Edit Journal Entry' : 'New Journal Entry'}
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-display">
+                  {entry ? 'Edit Journal Entry' : 'Create Journal Entry'}
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Capture key campaign moments and tag them for quick discovery later.
+                </p>
               </div>
               <Dialog.Close asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <X className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <X size={16} />
                 </Button>
               </Dialog.Close>
             </CardHeader>
-
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Title Field */}
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <BookOpen size={20} className="text-primary" />
+                    <div>
+                      <p className="font-semibold">Campaign Journal</p>
+                      <p className="text-sm text-muted-foreground">
+                        Share session highlights, mysteries, and pivotal decisions with your party.
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {`${tags.length} tags`}
+                  </Badge>
+                </div>
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">
-                      Title
-                    </label>
-                    <button
+                    <label className="text-sm font-medium">Title</label>
+                    <Button
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, isImportant: !prev.isImportant }))}
-                      className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                        formData.isImportant
-                          ? 'bg-chart-4/120/20 text-chart-4 border border-yellow-500/30'
-                          : 'bg-muted/500/20 text-muted-foreground border border-border/30'
+                      variant="ghost"
+                      size="sm"
+                      className={`gap-1 px-2 py-1 text-xs ${
+                        state.isImportant
+                          ? 'border border-yellow-500/30 bg-chart-4/120/20 text-chart-4'
+                          : 'border border-border/30 bg-muted/500/20 text-muted-foreground'
                       }`}
+                      onClick={() => {
+                        setState(prev => ({
+                          ...prev,
+                          isImportant: !prev.isImportant,
+                        }))
+                      }}
                     >
-                      <Star size={12} className={formData.isImportant ? 'fill-current' : ''} />
-                      {formData.isImportant ? 'Important' : 'Mark Important'}
-                    </button>
+                      <Star size={12} className={state.isImportant ? 'fill-current' : ''} />
+                      {state.isImportant ? 'Important' : 'Mark Important'}
+                    </Button>
                   </div>
                   <Input
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    value={state.title}
+                    onChange={(event) => {
+                      const { value } = event.target
+                      setState(prev => ({
+                        ...prev,
+                        title: value,
+                      }))
+                    }}
                     placeholder="Enter a descriptive title..."
                     className={errors.title ? 'border-destructive/40' : ''}
                   />
                   {errors.title && (
-                    <p className="text-destructive text-sm">{errors.title}</p>
+                    <p className="text-sm text-destructive">{errors.title}</p>
                   )}
                 </div>
 
-                {/* Content Field */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Content
-                  </label>
+                  <label className="text-sm font-medium">Content</label>
                   <Textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                    value={state.content}
+                    onChange={(event) => {
+                      const { value } = event.target
+                      setState(prev => ({
+                        ...prev,
+                        content: value,
+                      }))
+                    }}
                     placeholder="Write about what happened, key decisions, important discoveries..."
                     className={`min-h-32 ${errors.content ? 'border-destructive/40' : ''}`}
                   />
                   {errors.content && (
-                    <p className="text-destructive text-sm">{errors.content}</p>
+                    <p className="text-sm text-destructive">{errors.content}</p>
                   )}
                 </div>
 
-                {/* Tags Field */}
                 <div className="space-y-3">
-                  <label className="text-sm font-medium flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
                     <TagIcon size={16} />
                     Tags
                   </label>
 
-                  {/* Existing Tags */}
-                  {formData.tags.length > 0 && (
+                  {tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {formData.tags.map(tag => (
+                      {tags.map(tag => (
                         <Badge
                           key={tag}
                           variant="secondary"
-                          className="text-xs cursor-pointer hover:bg-destructive/20"
+                          className="cursor-pointer text-xs hover:bg-destructive/20"
                           onClick={() => handleRemoveTag(tag)}
                         >
-                          #{tag} ×
+                          {`#${tag} ×`}
                         </Badge>
                       ))}
                     </div>
                   )}
 
-                  {/* Add New Tag */}
                   <div className="flex gap-2">
                     <Input
                       value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyPress={handleKeyPress}
+                      onChange={event => dispatchNewTag(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault()
+                          handleAddTag()
+                        }
+                      }}
                       placeholder="Add a tag..."
                       className="flex-1"
                     />
                     <Button
                       type="button"
-                      onClick={handleAddTag}
                       variant="ghost"
                       size="sm"
-                      disabled={!newTag.trim() || formData.tags.length >= 10}
+                      onClick={handleAddTag}
+                      disabled={!canAddMoreTags || !newTag.trim()}
                     >
                       <Plus size={16} />
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Press Enter or click + to add tags. Click tags to remove them. ({formData.tags.length}/10)
+                    {`Press Enter or click + to add tags. Click tags to remove them. ${tags.length}/${MAX_JOURNAL_TAGS}`}
                   </p>
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center justify-between pt-4">
                   <div className="text-sm text-muted-foreground">
-                    {entry ? `Last updated: ${  entry.date.toLocaleDateString()}` : 'Will be created today'}
+                    {entry ? `Last updated: ${entry.date.toLocaleDateString()}` : 'Will be created today'}
                   </div>
                   <div className="flex gap-3">
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={onClose}
+                      onClick={() => {
+                        onClose()
+                        dispatchNewTag('')
+                      }}
                       disabled={isSubmitting}
                     >
                       Cancel
@@ -294,8 +330,8 @@ export const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     <Button
                       type="submit"
                       variant="primary"
-                      disabled={isSubmitting}
                       className="min-w-20"
+                      disabled={isSubmitting}
                     >
                       {isSubmitting ? 'Saving...' : (entry ? 'Update' : 'Create')}
                     </Button>
@@ -309,6 +345,3 @@ export const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     </Dialog.Root>
   )
 }
-
-
-

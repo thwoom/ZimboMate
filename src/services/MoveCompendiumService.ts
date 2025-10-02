@@ -4,22 +4,22 @@
  * Modernized from V1 with improved TypeScript patterns and V2 model integration
  */
 
-import type { Move, MoveCategory, MoveTrigger, RollResult } from '../models/Move'
 import type { Attribute, CharacterClass } from '../models/Character'
+import type { Move, MoveCategory, MoveTrigger } from '../models/Move'
 import { BASIC_MOVES, SPECIAL_MOVES } from '../models/Move'
 
 // Move type for better categorization
-export type MoveType = 
-  | 'combat'
-  | 'social' 
-  | 'exploration'
-  | 'utility'
-  | 'defensive'
-  | 'offensive'
-  | 'movement'
-  | 'magical'
-  | 'ritual'
-  | 'special'
+export type MoveType
+  = | 'combat'
+    | 'social'
+    | 'exploration'
+    | 'utility'
+    | 'defensive'
+    | 'offensive'
+    | 'movement'
+    | 'magical'
+    | 'ritual'
+    | 'special'
 
 // Extended move interface for compendium
 export interface CompendiumMove extends Move {
@@ -141,12 +141,18 @@ export class MoveCompendiumService {
    */
   private inferMoveType(moveName: string): MoveType {
     const name = moveName.toLowerCase()
-    if (name.includes('hack') || name.includes('slash') || name.includes('volley')) return 'combat'
-    if (name.includes('parley')) return 'social'
-    if (name.includes('spout') || name.includes('discern')) return 'exploration'
-    if (name.includes('defend')) return 'defensive'
-    if (name.includes('aid') || name.includes('interfere')) return 'utility'
-    if (name.includes('defy')) return 'utility'
+    if (name.includes('hack') || name.includes('slash') || name.includes('volley'))
+      return 'combat'
+    if (name.includes('parley'))
+      return 'social'
+    if (name.includes('spout') || name.includes('discern'))
+      return 'exploration'
+    if (name.includes('defend'))
+      return 'defensive'
+    if (name.includes('aid') || name.includes('interfere'))
+      return 'utility'
+    if (name.includes('defy'))
+      return 'utility'
     return 'utility'
   }
 
@@ -161,16 +167,19 @@ export class MoveCompendiumService {
    * Get moves available to a character of a specific class and level
    */
   getAvailableMoves(characterClass: CharacterClass, level: number): CompendiumMove[] {
-    return this.moves.filter(move => {
+    return this.moves.filter((move) => {
       // Basic moves are always available
-      if (move.category === 'basic') return true
-      
+      if (move.category === 'basic')
+        return true
+
       // Check class requirement
-      if (move.requiresClass && move.requiresClass !== characterClass) return false
-      
+      if (move.requiresClass && move.requiresClass !== characterClass)
+        return false
+
       // Check level requirement
-      if (move.level && move.level > level) return false
-      
+      if (move.level && move.level > level)
+        return false
+
       return true
     })
   }
@@ -185,10 +194,10 @@ export class MoveCompendiumService {
     if (options.query) {
       const query = options.query.toLowerCase()
       results = results.filter(move =>
-        move.name.toLowerCase().includes(query) ||
-        move.description.toLowerCase().includes(query) ||
-        move.trigger.toLowerCase().includes(query) ||
-        (move.tags && move.tags.some(tag => tag.toLowerCase().includes(query)))
+        move.name.toLowerCase().includes(query)
+        || move.description.toLowerCase().includes(query)
+        || move.trigger.toLowerCase().includes(query)
+        || (move.tags && move.tags.some(tag => tag.toLowerCase().includes(query))),
       )
     }
 
@@ -210,14 +219,14 @@ export class MoveCompendiumService {
     // Class filter
     if (options.characterClass) {
       results = results.filter(move =>
-        move.requiresClass === options.characterClass || move.category === 'basic'
+        move.requiresClass === options.characterClass || move.category === 'basic',
       )
     }
 
     // Level filter
     if (options.level !== undefined) {
       results = results.filter(move =>
-        !move.level || move.level <= options.level!
+        !move.level || move.level <= options.level!,
       )
     }
 
@@ -229,7 +238,7 @@ export class MoveCompendiumService {
     // Tags filter
     if (options.tags && options.tags.length > 0) {
       results = results.filter(move =>
-        move.tags && options.tags!.some(tag => move.tags!.includes(tag))
+        move.tags && options.tags!.some(tag => move.tags!.includes(tag)),
       )
     }
 
@@ -251,7 +260,7 @@ export class MoveCompendiumService {
    */
   getMovesByClass(characterClass: CharacterClass): CompendiumMove[] {
     return this.moves.filter(move =>
-      move.requiresClass === characterClass || move.category === 'basic'
+      move.requiresClass === characterClass || move.category === 'basic',
     )
   }
 
@@ -302,7 +311,8 @@ export class MoveCompendiumService {
    */
   updateCustomMove(id: string, updates: Partial<CompendiumMove>): boolean {
     const moveIndex = this.moves.findIndex(m => m.id === id && m.custom)
-    if (moveIndex === -1) return false
+    if (moveIndex === -1)
+      return false
 
     this.moves[moveIndex] = { ...this.moves[moveIndex], ...updates }
     return true
@@ -356,7 +366,8 @@ export class MoveCompendiumService {
     const move1 = this.getMoveById(move1Id)
     const move2 = this.getMoveById(move2Id)
 
-    if (!move1 || !move2) return null
+    if (!move1 || !move2)
+      return null
 
     const similarities: string[] = []
     const differences: string[] = []
@@ -365,21 +376,24 @@ export class MoveCompendiumService {
     // Compare categories
     if (move1.category === move2.category) {
       similarities.push(`Both are ${move1.category} moves`)
-    } else {
+    }
+    else {
       differences.push(`${move1.name} is a ${move1.category} move, ${move2.name} is a ${move2.category} move`)
     }
 
     // Compare types
     if (move1.type === move2.type) {
       similarities.push(`Both are ${move1.type} type moves`)
-    } else {
+    }
+    else {
       differences.push(`${move1.name} is a ${move1.type} move, ${move2.name} is a ${move2.type} move`)
     }
 
     // Compare trigger types
     if (move1.triggerType === move2.triggerType) {
       similarities.push(`Both are ${move1.triggerType} trigger moves`)
-    } else {
+    }
+    else {
       differences.push(`${move1.name} is a ${move1.triggerType} trigger, ${move2.name} is a ${move2.triggerType} trigger`)
     }
 
@@ -387,7 +401,8 @@ export class MoveCompendiumService {
     if (move1.rollStat && move2.rollStat) {
       if (move1.rollStat === move2.rollStat) {
         similarities.push(`Both use ${move1.rollStat} for rolls`)
-      } else {
+      }
+      else {
         differences.push(`${move1.name} uses ${move1.rollStat}, ${move2.name} uses ${move2.rollStat}`)
       }
     }
@@ -417,7 +432,7 @@ export class MoveCompendiumService {
     characterClass: CharacterClass,
     level: number,
     currentMoves: string[],
-    stats: Record<Attribute, number>
+    stats: Record<Attribute, number>,
   ): PrerequisiteCheck {
     const move = this.getMoveById(moveId)
     if (!move) {
@@ -484,7 +499,7 @@ export class MoveCompendiumService {
     characterClass: CharacterClass,
     level: number,
     currentMoves: string[],
-    playstyle?: MoveType
+    playstyle?: MoveType,
   ): CompendiumMove[] {
     const availableMoves = this.getAvailableMoves(characterClass, level)
     const takenMoves = new Set(currentMoves)

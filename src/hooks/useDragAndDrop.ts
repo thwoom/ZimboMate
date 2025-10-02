@@ -3,9 +3,9 @@
  * Provides desktop-optimized drag and drop functionality for stats to quick roll zones
  */
 
-import { useState, useCallback, useRef } from 'react'
+import type { Attributes } from '../models/Character'
+import { useCallback, useRef, useState } from 'react'
 import { useDiceStore } from '../stores/diceStore'
-import { type Attributes } from '../models/Character'
 
 interface DragData {
   type: 'stat' | 'move' | 'custom'
@@ -25,11 +25,11 @@ interface DropZone {
   className?: string
 }
 
-export const useDragAndDrop = (characterId: string) => {
+export function useDragAndDrop(characterId: string) {
   const [isDragging, setIsDragging] = useState(false)
   const [dragData, setDragData] = useState<DragData | null>(null)
   const [activeDropZone, setActiveDropZone] = useState<string | null>(null)
-  const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+  const dragStartPos = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
 
   const { rollStat, rollMove, rollCustom } = useDiceStore()
 
@@ -79,7 +79,8 @@ export const useDragAndDrop = (characterId: string) => {
 
     try {
       const dataString = event.dataTransfer.getData('application/json')
-      if (!dataString) return
+      if (!dataString)
+        return
 
       const data: DragData = JSON.parse(dataString)
       console.log('[DragDrop] Handling drop:', data, 'to zone:', dropZoneId)
@@ -108,22 +109,25 @@ export const useDragAndDrop = (characterId: string) => {
         await rollCustom(finalModifier, {
           label: rollLabel,
           type: 'stat',
-          stat: data.stat
+          stat: data.stat,
         }, characterId)
-      } else if (data.type === 'move' && data.moveId && data.stat) {
+      }
+      else if (data.type === 'move' && data.moveId && data.stat) {
         await rollCustom(finalModifier, {
           label: rollLabel,
           type: 'move',
           moveId: data.moveId,
-          stat: data.stat
+          stat: data.stat,
         }, characterId)
-      } else if (data.type === 'custom') {
+      }
+      else if (data.type === 'custom') {
         await rollCustom(finalModifier, { label: rollLabel, type: 'custom' }, characterId)
       }
-
-    } catch (error) {
+    }
+    catch (error) {
       console.error('[DragDrop] Drop failed:', error)
-    } finally {
+    }
+    finally {
       endDrag()
     }
   }, [characterId, rollStat, rollMove, rollCustom, endDrag])
@@ -151,7 +155,7 @@ export const useDragAndDrop = (characterId: string) => {
     draggable: true,
     onDragStart: (e: React.DragEvent) => startDrag(data, e),
     onDragEnd: endDrag,
-    className: isDragging && dragData === data ? 'opacity-50 cursor-grabbing' : 'cursor-grab'
+    className: isDragging && dragData === data ? 'opacity-50 cursor-grabbing' : 'cursor-grab',
   }), [startDrag, endDrag, isDragging, dragData])
 
   // Create drop zone props for components
@@ -159,7 +163,7 @@ export const useDragAndDrop = (characterId: string) => {
     onDrop: (e: React.DragEvent) => handleDrop(e, dropZoneId),
     onDragOver: (e: React.DragEvent) => handleDragOver(e, dropZoneId),
     onDragLeave: handleDragLeave,
-    className: `${activeDropZone === dropZoneId ? 'bg-primary/10 border-primary/30 border-2 border-dashed' : 'border-2 border-transparent'} transition-all duration-200`
+    className: `${activeDropZone === dropZoneId ? 'bg-primary/10 border-primary/30 border-2 border-dashed' : 'border-2 border-transparent'} transition-all duration-200`,
   }), [handleDrop, handleDragOver, handleDragLeave, activeDropZone])
 
   return {
@@ -170,31 +174,30 @@ export const useDragAndDrop = (characterId: string) => {
     getDropZoneProps,
     startDrag,
     endDrag,
-    handleDrop
+    handleDrop,
   }
 }
 
 // Convenience hook for stat dragging
-export const useStatDrag = (stat: keyof Attributes, statValue: number, label?: string) => {
+export function useStatDrag(stat: keyof Attributes, statValue: number, label?: string) {
   const { getDraggableProps } = useDragAndDrop('') // Character ID will be provided by parent
 
   return getDraggableProps({
     type: 'stat',
     stat,
     statValue,
-    label: label || stat
+    label: label || stat,
   })
 }
 
 // Convenience hook for move dragging
-export const useMoveDrag = (moveId: string, moveName: string, stat: keyof Attributes) => {
+export function useMoveDrag(moveId: string, moveName: string, stat: keyof Attributes) {
   const { getDraggableProps } = useDragAndDrop('') // Character ID will be provided by parent
 
   return getDraggableProps({
     type: 'move',
     moveId,
     moveName,
-    stat
+    stat,
   })
 }
-

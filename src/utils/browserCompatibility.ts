@@ -1,3 +1,4 @@
+import { logger } from './logger'
 /**
  * Browser Compatibility and Progressive Enhancement
  * Ensures core dice functionality works across browsers with graceful degradation
@@ -14,7 +15,8 @@ export const BrowserFeatures = {
       localStorage.setItem(test, test)
       localStorage.removeItem(test)
       return true
-    } catch {
+    }
+    catch {
       return false
     }
   },
@@ -40,10 +42,11 @@ export const BrowserFeatures = {
     try {
       const canvas = document.createElement('canvas')
       return !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
-    } catch {
+    }
+    catch {
       return false
     }
-  }
+  },
 }
 
 // Browser-specific compatibility layers
@@ -59,7 +62,7 @@ export class CompatibilityLayer {
       this.features[feature] = detector()
     })
 
-    console.log('[Compatibility] Browser features:', this.features)
+    logger.info('[Compatibility] Browser features:', this.features)
   }
 
   // Clipboard API with fallback
@@ -68,8 +71,9 @@ export class CompatibilityLayer {
       try {
         await navigator.clipboard.writeText(text)
         return true
-      } catch (error) {
-        console.warn('[Compatibility] Clipboard API failed, using fallback:', error)
+      }
+      catch (error) {
+        logger.warn('[Compatibility] Clipboard API failed, using fallback:', error)
       }
     }
 
@@ -89,7 +93,8 @@ export class CompatibilityLayer {
       document.body.removeChild(textArea)
 
       return success
-    } catch {
+    }
+    catch {
       return false
     }
   }
@@ -100,15 +105,17 @@ export class CompatibilityLayer {
       try {
         localStorage.setItem(key, value)
         return true
-      } catch (error) {
-        console.warn('[Compatibility] LocalStorage failed:', error)
+      }
+      catch (error) {
+        logger.warn('[Compatibility] LocalStorage failed:', error)
       }
     }
 
     // Fallback to in-memory storage
     if (typeof window !== 'undefined') {
-      ;(window as any).__zimboFallbackStorage = (window as any).__zimboFallbackStorage || {}
-      ;(window as any).__zimboFallbackStorage[key] = value
+      const zimboWindow = window as WindowWithZimboStorage
+      zimboWindow.__zimboFallbackStorage = zimboWindow.__zimboFallbackStorage ?? {}
+      zimboWindow.__zimboFallbackStorage[key] = value
       return true
     }
 
@@ -119,14 +126,15 @@ export class CompatibilityLayer {
     if (this.features.localStorage) {
       try {
         return localStorage.getItem(key)
-      } catch {
+      }
+      catch {
         // Fall through to fallback
       }
     }
 
-    // Fallback storage
-    if (typeof window !== 'undefined' && (window as any).__zimboFallbackStorage) {
-      return (window as any).__zimboFallbackStorage[key] || null
+    if (typeof window !== 'undefined') {
+      const zimboWindow = window as WindowWithZimboStorage
+      return zimboWindow.__zimboFallbackStorage?.[key] ?? null
     }
 
     return null
@@ -134,26 +142,29 @@ export class CompatibilityLayer {
 
   // Intersection Observer with fallback
   createIntersectionObserver(
-    callback: (entries: any[]) => void,
-    options?: IntersectionObserverInit
-  ): { observe: (el: Element) => void; unobserve: (el: Element) => void; disconnect: () => void } {
+    callback: (entries: ReadonlyArray<CompatibilityObserverEntry>) => void,
+    options?: IntersectionObserverInit,
+  ): CompatibilityObserver {
     if (this.features.intersectionObserver) {
-      const observer = new IntersectionObserver(callback, options)
-      return observer
+      const observer = new IntersectionObserver(entries => callback(entries), options)
+      return {
+        observe: (element: Element) => observer.observe(element),
+        unobserve: (element: Element) => observer.unobserve(element),
+        disconnect: () => observer.disconnect(),
+      }
     }
 
-    // Fallback: use scroll events and manual calculations
     const observedElements = new Set<Element>()
 
     const checkVisibility = () => {
-      const entries = Array.from(observedElements).map(element => {
+      const entries: CompatibilityObserverEntry[] = Array.from(observedElements).map((element) => {
         const rect = element.getBoundingClientRect()
         const isIntersecting = rect.top < window.innerHeight && rect.bottom > 0
 
         return {
           target: element,
           isIntersecting,
-          boundingClientRect: rect
+          boundingClientRect: rect,
         }
       })
 
@@ -168,7 +179,7 @@ export class CompatibilityLayer {
     return {
       observe: (element: Element) => {
         observedElements.add(element)
-        checkVisibility() // Initial check
+        checkVisibility()
       },
       unobserve: (element: Element) => {
         observedElements.delete(element)
@@ -177,7 +188,7 @@ export class CompatibilityLayer {
         observedElements.clear()
         window.removeEventListener('scroll', throttledCheck)
         window.removeEventListener('resize', throttledCheck)
-      }
+      },
     }
   }
 
@@ -195,52 +206,37 @@ export class CompatibilityLayer {
 
     // Apply final state
     if (animations.length > 0) {
-      const finalFrame = animations[animations.length - 1] as any
-      Object.assign(element.style, finalFrame)
+      const finalFrame = animations[animations.length - 1]
+      if (finalFrame && typeof finalFrame === 'object') {
+        Object.entries(finalFrame).forEach(([property, value]) => {
+          if (value !== undefined && value !== null) {
+            element.style.setProperty(property, String(value))
+          }
+        })
+      }
     }
 
     // Return a fake animation object
     return {
-      finished: new Promise(resolve => setTimeout(resolve, duration)),
+      finished: new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), duration)
+      }),
       cancel: () => {
         element.style.transition = ''
-      }
+      },
     }
   }
 
   // Utility methods
-  private throttle<T extends (...args: any[]) => any>(func: T, limit: number): T {
-    let inThrottle: boolean
-    return ((...args: any[]) => {
+  private throttle<T extends (...args: unknown[]) => void>(func: T, limit: number): (...args: Parameters<T>) => void {
+    let inThrottle = false
+    return (...args: Parameters<T>) => {
       if (!inThrottle) {
         func.apply(this, args)
         inThrottle = true
-        setTimeout(() => inThrottle = false, limit)
-      }
-    }) as T
-  }
-
-  // Get feature support status
-  hasFeature(feature: keyof typeof BrowserFeatures): boolean {
-    return this.features[feature] || false
-  }
-
-  // Get browser info for debugging
-  getBrowserInfo() {
-    return {
-      userAgent: navigator.userAgent,
-      features: this.features,
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight
-      },
-      colorScheme: this.features.darkMode ? 'dark' : 'light',
-      reducedMotion: this.features.reducedMotion,
-      highContrast: this.features.highContrast,
-      inputMethods: {
-        touch: this.features.touch,
-        mouse: this.features.mouse,
-        keyboard: this.features.keyboard
+        setTimeout(() => {
+          inThrottle = false
+        }, limit)
       }
     }
   }
@@ -260,7 +256,7 @@ export const ProgressiveEnhancement = {
       enableAnimations: hasAnimations,
       enableLazyLoading: hasAdvancedFeatures,
       enableAdvancedHover: compatibility.hasFeature('mouse'),
-      enableDragDrop: compatibility.hasFeature('dragAndDrop') && compatibility.hasFeature('mouse')
+      enableDragDrop: compatibility.hasFeature('dragAndDrop') && compatibility.hasFeature('mouse'),
     }
   },
 
@@ -274,41 +270,37 @@ export const ProgressiveEnhancement = {
       enableComplexAnimations: !compatibility.hasFeature('reducedMotion'),
       enableHighContrast: compatibility.hasFeature('highContrast'),
       showTooltips: compatibility.hasFeature('mouse'), // Touch users don't need hover tooltips
-      enableRightClick: compatibility.hasFeature('mouse')
+      enableRightClick: compatibility.hasFeature('mouse'),
     }
   },
 
   // Performance optimizations
   getPerformanceConfig: () => {
-    const isLowEnd = !compatibility.hasFeature('webGL') ||
-                     navigator.hardwareConcurrency < 4 ||
-                     navigator.deviceMemory < 4
+    const isLowEnd = !compatibility.hasFeature('webGL')
+      || navigator.hardwareConcurrency < 4
+      || navigator.deviceMemory < 4
 
     return {
       enableLazyLoading: compatibility.hasFeature('intersectionObserver'),
       reduceAnimations: compatibility.hasFeature('reducedMotion') || isLowEnd,
       limitNotifications: isLowEnd ? 2 : 3,
       enableVirtualization: isLowEnd,
-      preloadImages: !isLowEnd
+      preloadImages: !isLowEnd,
     }
-  }
+  },
 }
 
 // CSS custom properties for progressive enhancement
-export const setCSSFeatures = () => {
+export function setCSSFeatures() {
   const root = document.documentElement
 
-  root.style.setProperty('--supports-backdrop-filter',
-    CSS.supports('backdrop-filter', 'blur(10px)') ? '1' : '0')
+  root.style.setProperty('--supports-backdrop-filter', CSS.supports('backdrop-filter', 'blur(10px)') ? '1' : '0')
 
-  root.style.setProperty('--supports-sticky',
-    CSS.supports('position', 'sticky') ? '1' : '0')
+  root.style.setProperty('--supports-sticky', CSS.supports('position', 'sticky') ? '1' : '0')
 
-  root.style.setProperty('--supports-grid',
-    CSS.supports('display', 'grid') ? '1' : '0')
+  root.style.setProperty('--supports-grid', CSS.supports('display', 'grid') ? '1' : '0')
 
-  root.style.setProperty('--supports-aspect-ratio',
-    CSS.supports('aspect-ratio', '1/1') ? '1' : '0')
+  root.style.setProperty('--supports-aspect-ratio', CSS.supports('aspect-ratio', '1/1') ? '1' : '0')
 
   // Set feature classes on body
   document.body.classList.toggle('supports-hover', compatibility.hasFeature('mouse'))
@@ -318,11 +310,11 @@ export const setCSSFeatures = () => {
 }
 
 // Initialize compatibility features
-export const initCompatibility = () => {
+export function initCompatibility() {
   setCSSFeatures()
 
   // Log browser support for debugging
-  console.log('[Compatibility] Browser info:', compatibility.getBrowserInfo())
-  console.log('[Compatibility] UI config:', ProgressiveEnhancement.getUIConfig())
-  console.log('[Compatibility] Performance config:', ProgressiveEnhancement.getPerformanceConfig())
+  logger.info('[Compatibility] Browser info:', compatibility.getBrowserInfo())
+  logger.info('[Compatibility] UI config:', ProgressiveEnhancement.getUIConfig())
+  logger.info('[Compatibility] Performance config:', ProgressiveEnhancement.getPerformanceConfig())
 }

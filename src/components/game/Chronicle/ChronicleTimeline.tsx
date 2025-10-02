@@ -2,20 +2,20 @@
  * Chronicle Timeline - Chronological view of all chronicle entries
  */
 
-import React from 'react'
+import type { ChronicleEntry, Entity, EntityType } from '../../../types/chronicle'
 import { motion } from 'framer-motion'
 import {
+  AtSign,
+  Calendar,
   Clock,
   Hash,
-  AtSign,
-  Sparkles,
-  Users,
   MapPin,
   Package,
-  Calendar
+  Sparkles,
+  Users,
 } from 'lucide-react'
-import { ChronicleEntry, Entity, EntityType } from '../../../types/chronicle'
-import { Card, CardContent, Badge } from '../../ui'
+import React from 'react'
+import { Badge, Card, CardContent } from '../../ui'
 
 interface ChronicleTimelineProps {
   entries: ChronicleEntry[]
@@ -25,7 +25,7 @@ interface ChronicleTimelineProps {
 }
 
 // Icon mapping for entity types
-const getEntityIcon = (type: EntityType) => {
+function getEntityIcon(type: EntityType) {
   switch (type) {
     case 'character':
       return Users
@@ -41,7 +41,7 @@ const getEntityIcon = (type: EntityType) => {
 }
 
 // Color mapping for emotional tones
-const getToneColor = (tone?: string) => {
+function getToneColor(tone?: string) {
   switch (tone) {
     case 'tense':
       return 'bg-destructive/15 text-destructive'
@@ -62,17 +62,18 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
   entries,
   entities,
   searchQuery = '',
-  onEntitySelect
+  onEntitySelect,
 }) => {
   // Filter entries based on search query
-  const filteredEntries = entries.filter(entry => {
-    if (!searchQuery) return true
+  const filteredEntries = entries.filter((entry) => {
+    if (!searchQuery)
+      return true
 
     const lowerQuery = searchQuery.toLowerCase()
     return (
-      entry.rawText.toLowerCase().includes(lowerQuery) ||
-      entry.tags.some(tag => tag.toLowerCase().includes(lowerQuery)) ||
-      entry.parsedEntities.some(mention => {
+      entry.rawText.toLowerCase().includes(lowerQuery)
+      || entry.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+      || entry.parsedEntities.some((mention) => {
         const entity = entities.find(e => e.id === mention.entityId)
         return entity?.name.toLowerCase().includes(lowerQuery)
       })
@@ -87,10 +88,14 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
     const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
-    if (diffDays < 7) return `${diffDays}d ago`
+    if (diffMins < 1)
+      return 'Just now'
+    if (diffMins < 60)
+      return `${diffMins}m ago`
+    if (diffHours < 24)
+      return `${diffHours}h ago`
+    if (diffDays < 7)
+      return `${diffDays}d ago`
     return date.toLocaleDateString()
   }
 
@@ -100,7 +105,8 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
   // Render entity mention as clickable badge
   const renderEntityMention = (mention: any, entry: ChronicleEntry) => {
     const entity = getEntity(mention.entityId)
-    if (!entity) return null
+    if (!entity)
+      return null
 
     const IconComponent = getEntityIcon(entity.type)
 
@@ -112,7 +118,7 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
         style={{
           backgroundColor: 'var(--card)',
           borderColor: 'var(--border)',
-          color: 'var(--foreground)'
+          color: 'var(--foreground)',
         }}
       >
         <IconComponent size={12} />
@@ -149,7 +155,11 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
           <Clock size={16} />
           Chronicle Timeline
         </h3>
-        <Badge variant="secondary">{filteredEntries.length} entries</Badge>
+        <Badge variant="secondary">
+          {filteredEntries.length}
+          {' '}
+          entries
+        </Badge>
       </div>
 
       {/* Timeline Entries */}
@@ -168,7 +178,8 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
               {/* Timeline Connector */}
               {index < filteredEntries.length - 1 && (
                 <div
-                  className="absolute left-6 -bottom-4 w-0.5 h-8 z-10 bg-[color:var(--border)]" />
+                  className="absolute left-6 -bottom-4 w-0.5 h-8 z-10 bg-[color:var(--border)]"
+                />
               )}
 
               {/* Timeline Dot */}
@@ -176,7 +187,7 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                 className="absolute left-4 top-6 w-4 h-4 rounded-full border-2 z-20"
                 style={{
                   backgroundColor: entry.isSceneBreak ? 'var(--primary)' : 'var(--card)',
-                  borderColor: entry.isSceneBreak ? 'var(--primary)' : 'var(--border)'
+                  borderColor: entry.isSceneBreak ? 'var(--primary)' : 'var(--border)',
                 }}
               >
                 {entry.isSceneBreak && (
@@ -219,24 +230,28 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                   <div className="prose prose-sm max-w-none">
                     <div className="text-base leading-relaxed whitespace-pre-wrap">
                       {/* Highlight search query if present */}
-                      {searchQuery ? (
-                        entry.rawText
-                          .split(new RegExp(`(${searchQuery})`, 'gi'))
-                          .map((part, partIndex) =>
-                            part.toLowerCase() === searchQuery.toLowerCase() ? (
-                              <mark
-                                key={partIndex}
-                                className="bg-yellow-200 text-chart-4 px-1 rounded"
-                              >
-                                {part}
-                              </mark>
-                            ) : (
-                              part
-                            )
+                      {searchQuery
+                        ? (
+                            entry.rawText
+                              .split(new RegExp(`(${searchQuery})`, 'gi'))
+                              .map((part, partIndex) =>
+                                part.toLowerCase() === searchQuery.toLowerCase()
+                                  ? (
+                                      <mark
+                                        key={partIndex}
+                                        className="bg-yellow-200 text-chart-4 px-1 rounded"
+                                      >
+                                        {part}
+                                      </mark>
+                                    )
+                                  : (
+                                      part
+                                    ),
+                              )
                           )
-                      ) : (
-                        entry.rawText
-                      )}
+                        : (
+                            entry.rawText
+                          )}
                     </div>
                   </div>
 
@@ -248,8 +263,8 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                         Entities Mentioned
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {entry.parsedEntities.map((mention) =>
-                          renderEntityMention(mention, entry)
+                        {entry.parsedEntities.map(mention =>
+                          renderEntityMention(mention, entry),
                         )}
                       </div>
                     </div>
@@ -265,7 +280,8 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                       <div className="flex flex-wrap gap-2">
                         {entry.tags.map((tag, tagIndex) => (
                           <Badge key={tagIndex} variant="secondary" className="text-xs">
-                            #{tag}
+                            #
+                            {tag}
                           </Badge>
                         ))}
                       </div>
@@ -277,13 +293,24 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                     <div className="pt-2 border-t text-xs border-border">
                       <div className="flex items-center gap-4 text-muted-foreground">
                         {entry.narrativeContext && (
-                          <span>Context: {entry.narrativeContext}</span>
+                          <span>
+                            Context:
+                            {entry.narrativeContext}
+                          </span>
                         )}
                         {entry.emotionalTone && (
-                          <span>Tone: {entry.emotionalTone}</span>
+                          <span>
+                            Tone:
+                            {entry.emotionalTone}
+                          </span>
                         )}
                         <span>
-                          {entry.parsedEntities.length} entities • {entry.tags.length} tags
+                          {entry.parsedEntities.length}
+                          {' '}
+                          entities •
+                          {entry.tags.length}
+                          {' '}
+                          tags
                         </span>
                       </div>
                     </div>
@@ -308,7 +335,3 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
     </div>
   )
 }
-
-
-
-

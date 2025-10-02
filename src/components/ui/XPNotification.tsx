@@ -3,9 +3,9 @@
  * Shows animated notifications when XP is awarded for failed rolls
  */
 
-import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Star, TrendingUp } from 'lucide-react'
+import React from 'react'
 import { useXPStore } from '../../stores/xpStore'
 
 interface XPNotificationProps {
@@ -15,11 +15,12 @@ interface XPNotificationProps {
 
 export const XPNotification: React.FC<XPNotificationProps> = ({
   characterId,
-  className = ''
+  className = '',
 }) => {
   const { characterXP, characterLevel, showXPNotifications } = useXPStore()
 
-  if (!showXPNotifications) return null
+  if (!showXPNotifications)
+    return null
 
   const currentXP = characterXP[characterId] || 0
   const currentLevel = characterLevel[characterId] || 1
@@ -36,7 +37,7 @@ export const XPNotification: React.FC<XPNotificationProps> = ({
         >
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           >
             <Star size={20} className="text-chart-4" />
           </motion.div>
@@ -51,7 +52,9 @@ export const XPNotification: React.FC<XPNotificationProps> = ({
           <div className="text-right">
             <div className="text-lg font-bold">+1</div>
             <div className="text-xs text-chart-4">
-              Level {currentLevel}
+              Level
+              {' '}
+              {currentLevel}
             </div>
           </div>
         </motion.div>
@@ -85,7 +88,9 @@ export const XPProgressBar: React.FC<{
       <div className={`flex items-center gap-2 ${className}`}>
         <Star size={14} className="text-chart-4" />
         <div className="text-sm font-medium">
-          Level {currentLevel}
+          Level
+          {' '}
+          {currentLevel}
         </div>
         <div className="flex-1 bg-muted rounded-full h-2 min-w-[60px]">
           <div
@@ -94,7 +99,9 @@ export const XPProgressBar: React.FC<{
           />
         </div>
         <div className="text-xs text-muted-foreground">
-          {xpInCurrentLevel}/{xpForNextLevel}
+          {xpInCurrentLevel}
+          /
+          {xpForNextLevel}
         </div>
       </div>
     )
@@ -108,34 +115,49 @@ export const XPProgressBar: React.FC<{
           <span className="font-semibold text-sm">Experience</span>
         </div>
         <div className="text-sm text-muted-foreground">
-          Level {currentLevel}
+          Level
+          {' '}
+          {currentLevel}
         </div>
       </div>
 
       <div className="mb-2">
         <div className="flex justify-between text-xs text-muted-foreground mb-1">
-          <span>{xpInCurrentLevel} / {xpForNextLevel} XP</span>
-          <span>{Math.round(progressPercentage)}%</span>
+          <span>
+            {xpInCurrentLevel}
+            {' '}
+            /
+            {' '}
+            {xpForNextLevel}
+            {' '}
+            XP
+          </span>
+          <span>
+            {Math.round(progressPercentage)}
+            %
+          </span>
         </div>
         <div className="w-full bg-muted rounded-full h-3">
           <motion.div
             className="bg-gradient-to-r from-chart-4 to-chart-4 h-3 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
           />
         </div>
       </div>
 
       <div className="text-xs text-muted-foreground">
-        Total XP: {totalXP} - Next level needs {xpForNextLevel} XP
+        Total XP:
+        {' '}
+        {totalXP}
+        {' '}
+        - Next level needs
+        {' '}
+        {xpForNextLevel}
+        {' '}
+        XP
       </div>
     </div>
   )
 }
-
-
-
-
-
-

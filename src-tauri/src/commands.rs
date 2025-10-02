@@ -1,6 +1,6 @@
-use crate::llm_service::{LlmService, CampaignVibe, EnhancementResult, ModelInfo};
+use crate::llm_service::{CampaignVibe, EnhancementResult, LlmService, ModelInfo};
 use std::sync::Arc;
-use tauri::{State, AppHandle};
+use tauri::{AppHandle, State};
 use tokio::sync::Mutex;
 
 // Global state for the LLM service
@@ -9,29 +9,29 @@ pub struct AppState {
 }
 
 #[tauri::command]
-pub async fn check_ollama_status(
+pub async fn check_llm_status(
+    model_name: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<bool, String> {
     let service = state.llm_service.lock().await;
-    service.check_ollama_status().await
+    service.check_service_status(model_name.as_deref()).await
 }
 
 #[tauri::command]
-pub async fn list_models(
-    state: State<'_, AppState>,
-) -> Result<Vec<ModelInfo>, String> {
+pub async fn list_models(state: State<'_, AppState>) -> Result<Vec<ModelInfo>, String> {
     let service = state.llm_service.lock().await;
     service.list_models().await
 }
 
 #[tauri::command]
 pub async fn initialize_llm(
-    model_name: String,
+    model_name: Option<String>,
     app_handle: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<(), String> {
     let service = state.llm_service.lock().await;
-    service.initialize(&model_name, app_handle).await
+    let model = model_name.unwrap_or_default();
+    service.initialize(&model, app_handle).await
 }
 
 #[tauri::command]
@@ -45,19 +45,7 @@ pub async fn enhance_note(
 }
 
 #[tauri::command]
-pub async fn is_llm_ready(
-    state: State<'_, AppState>,
-) -> Result<bool, String> {
+pub async fn is_llm_ready(state: State<'_, AppState>) -> Result<bool, String> {
     let service = state.llm_service.lock().await;
     Ok(service.is_initialized().await)
-}
-
-#[tauri::command]
-pub async fn ensure_model(
-    model_name: String,
-    app_handle: AppHandle,
-    state: State<'_, AppState>,
-) -> Result<(), String> {
-    let service = state.llm_service.lock().await;
-    service.ensure_model(&model_name, app_handle).await
 }

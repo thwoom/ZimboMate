@@ -5,30 +5,26 @@
  * the current game mode: combat, exploration, social, or rest.
  */
 
-import React, { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Swords,
-  Target,
-  Shield,
-  Eye,
-  Brain,
-  Users,
-  Map,
-  Search,
-  Dice6,
-  Zap,
-  Wind,
-  Heart,
-  BicepsFlexed,
-  Sparkles
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
-import { StatRoller } from '../StatRoller'
-import { ChronicleEnabledDiceRoller } from '../ChronicleEnabledDiceRoller'
-import { useChronicle } from '../../chronicle/ChronicleProvider'
 import type { Character } from '../../../models/Character'
 import type { GameMode, PlayTabTheme } from '../PlayTab'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Brain,
+  Eye,
+  Heart,
+  Shield,
+  Sparkles,
+  Swords,
+  Target,
+  Users,
+  Zap,
+} from 'lucide-react'
+import React, { useCallback } from 'react'
+import { logger } from '../../../utils/logger'
+import { useChronicle } from '../../chronicle/ChronicleProvider'
+import { Badge, Button, Card, CardContent } from '../../ui'
+import { ChronicleEnabledDiceRoller } from '../ChronicleEnabledDiceRoller'
+import { StatRoller } from '../StatRoller'
 
 interface ContextualActionZoneProps {
   character: Character
@@ -42,7 +38,7 @@ interface CombatAction {
   id: string
   name: string
   description: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
   stat: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA'
   damage?: string
   color: string
@@ -56,7 +52,7 @@ const combatActions: CombatAction[] = [
     icon: Swords,
     stat: 'STR',
     damage: '1d8+STR',
-    color: 'bg-destructive/120 hover:bg-destructive'
+    color: 'bg-destructive/120 hover:bg-destructive',
   },
   {
     id: 'volley',
@@ -65,7 +61,7 @@ const combatActions: CombatAction[] = [
     icon: Target,
     stat: 'DEX',
     damage: '1d6+DEX',
-    color: 'bg-chart-2 hover:bg-chart-2/85'
+    color: 'bg-chart-2 hover:bg-chart-2/85',
   },
   {
     id: 'defend',
@@ -73,15 +69,15 @@ const combatActions: CombatAction[] = [
     description: 'Protect yourself or ally',
     icon: Shield,
     stat: 'CON',
-    color: 'bg-primary/100 hover:bg-primary'
-  }
+    color: 'bg-primary/100 hover:bg-primary',
+  },
 ]
 
 interface ExplorationAction {
   id: string
   name: string
   description: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
   stat: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA'
   color: string
   examples: string[]
@@ -95,7 +91,7 @@ const explorationActions: ExplorationAction[] = [
     icon: Eye,
     stat: 'WIS',
     color: 'bg-accent hover:bg-accent',
-    examples: ['What happened here?', 'What should I be wary of?', 'What is useful or valuable?']
+    examples: ['What happened here?', 'What should I be wary of?', 'What is useful or valuable?'],
   },
   {
     id: 'spout-lore',
@@ -104,7 +100,7 @@ const explorationActions: ExplorationAction[] = [
     icon: Brain,
     stat: 'INT',
     color: 'bg-primary/100 hover:bg-primary',
-    examples: ['Ancient history', 'Monster weaknesses', 'Local customs']
+    examples: ['Ancient history', 'Monster weaknesses', 'Local customs'],
   },
   {
     id: 'defy-danger',
@@ -113,8 +109,8 @@ const explorationActions: ExplorationAction[] = [
     icon: Zap,
     stat: 'DEX', // Most common, but varies
     color: 'bg-chart-4/120 hover:bg-yellow-600',
-    examples: ['Dodge a trap', 'Resist poison', 'Stay calm under pressure']
-  }
+    examples: ['Dodge a trap', 'Resist poison', 'Stay calm under pressure'],
+  },
 ]
 
 const CombatMode: React.FC<{
@@ -161,7 +157,10 @@ const CombatMode: React.FC<{
                   )}
                 </div>
                 <Badge variant="secondary" className="self-start">
-                  {action.stat} {modifier >= 0 ? '+' : ''}{modifier}
+                  {action.stat}
+                  {' '}
+                  {modifier >= 0 ? '+' : ''}
+                  {modifier}
                 </Badge>
               </Button>
             </motion.div>
@@ -207,7 +206,7 @@ const ExplorationMode: React.FC<{
           CON: Math.floor(((character.attributes?.CON || 10) - 10) / 2),
           INT: Math.floor(((character.attributes?.INT || 10) - 10) / 2),
           WIS: Math.floor(((character.attributes?.WIS || 10) - 10) / 2),
-          CHA: Math.floor(((character.attributes?.CHA || 10) - 10) / 2)
+          CHA: Math.floor(((character.attributes?.CHA || 10) - 10) / 2),
         }}
       />
 
@@ -234,14 +233,19 @@ const ExplorationMode: React.FC<{
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="font-medium">{action.name}</h4>
                       <Badge variant="secondary">
-                        {action.stat} {modifier >= 0 ? '+' : ''}{modifier}
+                        {action.stat}
+                        {' '}
+                        {modifier >= 0 ? '+' : ''}
+                        {modifier}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground  mb-2">
                       {action.description}
                     </p>
                     <div className="text-xs text-muted-foreground">
-                      <strong>Examples:</strong> {action.examples.join(', ')}
+                      <strong>Examples:</strong>
+                      {' '}
+                      {action.examples.join(', ')}
                     </div>
                   </div>
                   <Button
@@ -291,7 +295,10 @@ const SocialMode: React.FC<{
               </p>
             </div>
             <Badge variant="secondary">
-              CHA {chaModifier >= 0 ? '+' : ''}{chaModifier}
+              CHA
+              {' '}
+              {chaModifier >= 0 ? '+' : ''}
+              {chaModifier}
             </Badge>
             <Button
               className="w-full bg-primary/100 hover:bg-primary"
@@ -315,7 +322,10 @@ const SocialMode: React.FC<{
               </p>
             </div>
             <Badge variant="secondary">
-              WIS {wisModifier >= 0 ? '+' : ''}{wisModifier}
+              WIS
+              {' '}
+              {wisModifier >= 0 ? '+' : ''}
+              {wisModifier}
             </Badge>
             <Button
               className="w-full bg-accent hover:bg-accent"
@@ -406,51 +416,54 @@ export const ContextualActionZone: React.FC<ContextualActionZoneProps> = ({
   gameMode,
   theme,
   onGameModeChange,
-  className = ''
+  className = '',
 }) => {
   const { emitDiceRoll, promptForChronicle } = useChronicle()
 
   const handleCombatAction = useCallback((action: CombatAction) => {
-    console.log('Combat action:', action)
+    logger.info('Combat action:', action)
     promptForChronicle(
       `${character.name} attempts to ${action.name.toLowerCase()}`,
       'combat_action',
-      character.name
+      character.name,
     )
   }, [character.name, promptForChronicle])
 
   const handleExplorationAction = useCallback((action: ExplorationAction) => {
-    console.log('Exploration action:', action)
+    logger.info('Exploration action:', action)
     promptForChronicle(
       `${character.name} tries to ${action.name.toLowerCase()}`,
       'exploration_action',
-      character.name
+      character.name,
     )
   }, [character.name, promptForChronicle])
 
   const handleSocialAction = useCallback((actionId: string) => {
-    console.log('Social action:', actionId)
+    logger.info('Social action:', actionId)
     promptForChronicle(
       `${character.name} engages in social interaction`,
       'social_action',
-      character.name
+      character.name,
     )
   }, [character.name, promptForChronicle])
 
   const handleRestAction = useCallback((actionId: string) => {
-    console.log('Rest action:', actionId)
+    logger.info('Rest action:', actionId)
     promptForChronicle(
       `${character.name} takes time to rest and recover`,
       'rest_action',
-      character.name
+      character.name,
     )
   }, [character.name, promptForChronicle])
 
-  const cardVariant =
-    theme === 'combat' ? 'elevated' :
-    theme === 'dungeon' ? 'parchment' :
-    theme === 'tavern' ? 'magical' :
-    'glass'
+  const cardVariant
+    = theme === 'combat'
+      ? 'elevated'
+      : theme === 'dungeon'
+        ? 'parchment'
+        : theme === 'tavern'
+          ? 'magical'
+          : 'glass'
 
   return (
     <Card
@@ -513,7 +526,3 @@ export const ContextualActionZone: React.FC<ContextualActionZoneProps> = ({
 }
 
 export default ContextualActionZone
-
-
-
-

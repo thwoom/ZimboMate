@@ -1,20 +1,20 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import type { InventoryFilter, InventoryView, ItemSortBy } from '../../equipmentSystemMockData'
 import * as Select from '@radix-ui/react-select'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import { Input, Button } from '../ui'
-import { useInventoryStore } from '../../stores/inventoryStore'
-import { InventoryView, ItemSortBy, InventoryFilter } from '../../equipmentSystemMockData'
-import { 
-  Search, 
-  Filter, 
-  SortAsc, 
-  Grid3X3, 
-  List, 
-  MoreHorizontal,
+import { motion } from 'framer-motion'
+import {
   ChevronDown,
-  X
+  Filter,
+  Grid3X3,
+  List,
+  MoreHorizontal,
+  Search,
+  SortAsc,
+  X,
 } from 'lucide-react'
+import React from 'react'
+import { useInventoryStore } from '../../stores/inventoryStore'
+import { Button, Input } from '../ui'
 
 export const InventoryControls: React.FC = () => {
   const {
@@ -25,7 +25,7 @@ export const InventoryControls: React.FC = () => {
     setInventoryView,
     setSortBy,
     setFilterBy,
-    setSearchQuery
+    setSearchQuery,
   } = useInventoryStore()
 
   const handleClearSearch = () => {
@@ -39,7 +39,7 @@ export const InventoryControls: React.FC = () => {
     { value: 'consumables', label: 'Consumables' },
     { value: 'treasure', label: 'Treasure' },
     { value: 'magical', label: 'Magical' },
-    { value: 'equipped', label: 'Equipped' }
+    { value: 'equipped', label: 'Equipped' },
   ]
 
   const sortOptions = [
@@ -47,7 +47,7 @@ export const InventoryControls: React.FC = () => {
     { value: 'weight', label: 'Weight' },
     { value: 'value', label: 'Value' },
     { value: 'category', label: 'Category' },
-    { value: 'recently_added', label: 'Recently Added' }
+    { value: 'recently_added', label: 'Recently Added' },
   ]
 
   return (
@@ -67,7 +67,7 @@ export const InventoryControls: React.FC = () => {
           <Input
             placeholder="Search items..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10 pr-10"
           />
           {searchQuery && (
@@ -86,7 +86,7 @@ export const InventoryControls: React.FC = () => {
         <ToggleGroup.Root
           type="single"
           value={inventoryView}
-          onValueChange={(value) => value && setInventoryView(value as InventoryView)}
+          onValueChange={value => value && setInventoryView(value as InventoryView)}
           className="flex border border-(--parchment-300) rounded-lg p-1 bg-card"
         >
           <ToggleGroup.Item
@@ -117,7 +117,7 @@ export const InventoryControls: React.FC = () => {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Filter Select */}
         <div className="flex-1">
-          <Select.Root value={filterBy} onValueChange={(value) => setFilterBy(value as InventoryFilter)}>
+          <Select.Root value={filterBy} onValueChange={value => setFilterBy(value as InventoryFilter)}>
             <Select.Trigger className="flex items-center justify-between w-full px-3 py-2 text-sm bg-card border border-(--parchment-300) rounded-lg hover:border-(--parchment-400) focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
               <div className="flex items-center gap-2">
                 <Filter size={14} className="text-(--parchment-600)" />
@@ -131,7 +131,7 @@ export const InventoryControls: React.FC = () => {
             <Select.Portal>
               <Select.Content className="bg-card border border-(--parchment-300) rounded-lg shadow-lg z-50 overflow-hidden">
                 <Select.Viewport className="p-1">
-                  {filterOptions.map((option) => (
+                  {filterOptions.map(option => (
                     <Select.Item
                       key={option.value}
                       value={option.value}
@@ -148,7 +148,7 @@ export const InventoryControls: React.FC = () => {
 
         {/* Sort Select */}
         <div className="flex-1">
-          <Select.Root value={sortBy} onValueChange={(value) => setSortBy(value as ItemSortBy)}>
+          <Select.Root value={sortBy} onValueChange={value => setSortBy(value as ItemSortBy)}>
             <Select.Trigger className="flex items-center justify-between w-full px-3 py-2 text-sm bg-card border border-(--parchment-300) rounded-lg hover:border-(--parchment-400) focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors">
               <div className="flex items-center gap-2">
                 <SortAsc size={14} className="text-(--parchment-600)" />
@@ -162,7 +162,7 @@ export const InventoryControls: React.FC = () => {
             <Select.Portal>
               <Select.Content className="bg-card border border-(--parchment-300) rounded-lg shadow-lg z-50 overflow-hidden">
                 <Select.Viewport className="p-1">
-                  {sortOptions.map((option) => (
+                  {sortOptions.map(option => (
                     <Select.Item
                       key={option.value}
                       value={option.value}
@@ -187,11 +187,15 @@ export const InventoryControls: React.FC = () => {
           transition={{ duration: 0.2 }}
         >
           <span className="text-xs text-(--parchment-600) font-medium">Active filters:</span>
-          
+
           {searchQuery && (
             <div className="flex items-center gap-1 px-2 py-1 bg-(--parchment-200) text-(--parchment-800) text-xs rounded-md">
               <Search size={12} />
-              <span>"{searchQuery}"</span>
+              <span>
+                "
+                {searchQuery}
+                "
+              </span>
               <Button
                 variant="ghost"
                 size="icon"
@@ -202,7 +206,7 @@ export const InventoryControls: React.FC = () => {
               </Button>
             </div>
           )}
-          
+
           {filterBy !== 'all' && (
             <div className="flex items-center gap-1 px-2 py-1 bg-(--parchment-200) text-(--parchment-800) text-xs rounded-md">
               <Filter size={12} />

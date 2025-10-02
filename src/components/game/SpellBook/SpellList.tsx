@@ -3,9 +3,9 @@
  * Scrollable list of spells with filtering and selection
  */
 
-import React, { useMemo } from 'react'
-import { motion } from 'framer-motion'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
+import { motion } from 'framer-motion'
+import React, { useMemo } from 'react'
 import { SpellItem } from './SpellItem'
 
 interface Spell {
@@ -48,14 +48,14 @@ export function SpellList({
   searchQuery,
   selectedSchool,
   selectedLevel,
-  className = ''
+  className = '',
 }: SpellListProps) {
   // Filter spells based on search criteria
   const filteredSpells = useMemo(() => {
-    return spells.filter(spell => {
+    return spells.filter((spell) => {
       // Search query filter
-      if (searchQuery && !spell.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-          !spell.description.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (searchQuery && !spell.name.toLowerCase().includes(searchQuery.toLowerCase())
+        && !spell.description.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false
       }
 
@@ -76,8 +76,8 @@ export function SpellList({
   // Group spells by level for better organization
   const groupedSpells = useMemo(() => {
     const groups: Record<number, Spell[]> = {}
-    
-    filteredSpells.forEach(spell => {
+
+    filteredSpells.forEach((spell) => {
       if (!groups[spell.level]) {
         groups[spell.level] = []
       }
@@ -85,15 +85,15 @@ export function SpellList({
     })
 
     // Sort spells within each level by name
-    Object.keys(groups).forEach(level => {
-      groups[parseInt(level)].sort((a, b) => a.name.localeCompare(b.name))
+    Object.keys(groups).forEach((level) => {
+      groups[Number.parseInt(level)].sort((a, b) => a.name.localeCompare(b.name))
     })
 
     return groups
   }, [filteredSpells])
 
   const spellLevels = Object.keys(groupedSpells)
-    .map(level => parseInt(level))
+    .map(level => Number.parseInt(level))
     .sort((a, b) => a - b)
 
   if (filteredSpells.length === 0) {
@@ -135,7 +135,10 @@ export function SpellList({
                   </h3>
                   <div className="flex-1 h-px bg-gold-300/30" />
                   <span className="text-ui-small text-muted-foreground">
-                    {groupedSpells[level].length} spell{groupedSpells[level].length !== 1 ? 's' : ''}
+                    {groupedSpells[level].length}
+                    {' '}
+                    spell
+                    {groupedSpells[level].length !== 1 ? 's' : ''}
                   </span>
                 </div>
 

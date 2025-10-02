@@ -5,6 +5,7 @@
  */
 
 import type { RollResult } from '../stores/diceStore'
+import { logger } from '../utils/logger'
 
 // Historical data formats for migration
 interface RollResultV0 {
@@ -37,7 +38,7 @@ export type AnyRollResult = RollResultV0 | RollResultV1
  */
 const MIGRATION_STEPS = {
   0: (data: RollResultV0): RollResultV1 => {
-    console.log('[DiceMigration] Migrating roll from v0 to v1:', data.id)
+    logger.info('[DiceMigration] Migrating roll from v0 to v1:', data.id)
 
     return {
       version: 1,
@@ -56,12 +57,12 @@ const MIGRATION_STEPS = {
       context: {
         label: data.context || 'Legacy Roll',
         moveId: data.moveId,
-        description: data.context ? `Migrated: ${data.context}` : 'Migrated from legacy format'
+        description: data.context ? `Migrated: ${data.context}` : 'Migrated from legacy format',
       },
 
-      effects: {} // No effects data in v0
+      effects: {}, // No effects data in v0
     }
-  }
+  },
 
   // Future migration steps would go here:
   // 1: (data: RollResultV1): RollResultV2 => { ... }
@@ -70,7 +71,7 @@ const MIGRATION_STEPS = {
 /**
  * Detects the version of a roll result object
  */
-const detectVersion = (data: any): number => {
+function detectVersion(data: any): number {
   if (typeof data.version === 'number') {
     return data.version
   }
@@ -86,7 +87,7 @@ const detectVersion = (data: any): number => {
 /**
  * Migrates a single roll result to the latest version
  */
-export const migrateRollResult = (data: AnyRollResult): RollResultV1 => {
+export function migrateRollResult(data: AnyRollResult): RollResultV1 {
   const currentVersion = detectVersion(data)
   const TARGET_VERSION = 1
 
@@ -97,7 +98,8 @@ export const migrateRollResult = (data: AnyRollResult): RollResultV1 => {
     const migrationStep = MIGRATION_STEPS[version as keyof typeof MIGRATION_STEPS]
     if (migrationStep) {
       result = migrationStep(result)
-    } else {
+    }
+    else {
       throw new Error(`No migration step defined for version ${version} -> ${version + 1}`)
     }
   }
@@ -108,37 +110,36 @@ export const migrateRollResult = (data: AnyRollResult): RollResultV1 => {
 /**
  * Migrates an array of roll results, handling mixed versions
  */
-export const migrateRollHistory = (data: AnyRollResult[]): RollResultV1[] => {
+export function migrateRollHistory(data: AnyRollResult[]): RollResultV1[] {
   const migrated: RollResultV1[] = []
   const errors: { index: number, error: string, data: any }[] = []
 
   data.forEach((item, index) => {
     try {
       migrated.push(migrateRollResult(item))
-    } catch (error) {
-      console.error(`[DiceMigration] Failed to migrate roll at index ${index}:`, error)
+    }
+    catch (error) {
+      logger.error(`[DiceMigration] Failed to migrate roll at index ${index}:`, error)
       errors.push({
         index,
         error: error instanceof Error ? error.message : String(error),
-        data: item
+        data: item,
       })
     }
   })
 
   if (errors.length > 0) {
-    console.warn(`[DiceMigration] ${errors.length} rolls failed to migrate:`, errors)
+    logger.warn(`[DiceMigration] ${errors.length} rolls failed to migrate:`, errors)
   }
 
-  console.log(`[DiceMigration] Successfully migrated ${migrated.length}/${data.length} rolls`)
+  logger.info(`[DiceMigration] Successfully migrated ${migrated.length}/${data.length} rolls`)
   return migrated
 }
 
 /**
  * Migrates character-scoped roll history map
  */
-export const migrateCharacterRollHistory = (
-  data: Record<string, AnyRollResult[]>
-): Map<string, RollResultV1[]> => {
+export function migrateCharacterRollHistory(data: Record<string, AnyRollResult[]>): Map<string, RollResultV1[]> {
   const migratedMap = new Map<string, RollResultV1[]>()
 
   Object.entries(data).forEach(([characterId, rolls]) => {
@@ -147,8 +148,9 @@ export const migrateCharacterRollHistory = (
       if (migratedRolls.length > 0) {
         migratedMap.set(characterId, migratedRolls)
       }
-    } catch (error) {
-      console.error(`[DiceMigration] Failed to migrate rolls for character ${characterId}:`, error)
+    }
+    catch (error) {
+      logger.error(`[DiceMigration] Failed to migrate rolls for character ${characterId}:`, error)
     }
   })
 
@@ -158,36 +160,37 @@ export const migrateCharacterRollHistory = (
 /**
  * Validates that a roll result conforms to the expected schema
  */
-export const validateRollResult = (data: any): data is RollResultV1 => {
+export function validateRollResult(data: any): data is RollResultV1 {
   const required = ['version', 'id', 'timestamp', 'characterId', 'dice1', 'dice2', 'diceTotal', 'modifier', 'finalResult', 'outcome', 'type', 'context', 'effects']
 
-  return required.every(field => field in data) &&
-    typeof data.version === 'number' &&
-    typeof data.id === 'string' &&
-    typeof data.timestamp === 'number' &&
-    typeof data.characterId === 'string' &&
-    typeof data.dice1 === 'number' &&
-    typeof data.dice2 === 'number' &&
-    typeof data.diceTotal === 'number' &&
-    typeof data.modifier === 'number' &&
-    typeof data.finalResult === 'number' &&
-    ['success', 'partial', 'failure'].includes(data.outcome) &&
-    ['stat', 'move', 'custom'].includes(data.type) &&
-    typeof data.context === 'object' &&
-    typeof data.effects === 'object'
+  return required.every(field => field in data)
+    && typeof data.version === 'number'
+    && typeof data.id === 'string'
+    && typeof data.timestamp === 'number'
+    && typeof data.characterId === 'string'
+    && typeof data.dice1 === 'number'
+    && typeof data.dice2 === 'number'
+    && typeof data.diceTotal === 'number'
+    && typeof data.modifier === 'number'
+    && typeof data.finalResult === 'number'
+    && ['success', 'partial', 'failure'].includes(data.outcome)
+    && ['stat', 'move', 'custom'].includes(data.type)
+    && typeof data.context === 'object'
+    && typeof data.effects === 'object'
 }
 
 /**
  * Cleans up invalid or corrupted roll data
  */
-export const cleanRollHistory = (data: AnyRollResult[]): RollResultV1[] => {
+export function cleanRollHistory(data: AnyRollResult[]): RollResultV1[] {
   return data
-    .filter(roll => {
+    .filter((roll) => {
       try {
         const migrated = migrateRollResult(roll)
         return validateRollResult(migrated)
-      } catch {
-        console.warn('[DiceMigration] Removing invalid roll:', roll)
+      }
+      catch {
+        logger.warn('[DiceMigration] Removing invalid roll:', roll)
         return false
       }
     })
@@ -213,20 +216,22 @@ export class DiceDataMigrationService {
   migrateLocalStorage(storageKey: string = 'zimbomate-dice-store'): void {
     try {
       const rawData = localStorage.getItem(storageKey)
-      if (!rawData) return
+      if (!rawData)
+        return
 
       const parsed = JSON.parse(rawData)
       const state = parsed.state || parsed
 
       if (state.rollHistoryByCharacter) {
-        console.log('[DiceMigration] Starting localStorage migration...')
+        logger.info('[DiceMigration] Starting localStorage migration...')
 
         // Handle both Map format and Object format
         let historyData: Record<string, AnyRollResult[]>
         if (Array.isArray(state.rollHistoryByCharacter)) {
           // Convert Map entries array back to object
           historyData = Object.fromEntries(state.rollHistoryByCharacter)
-        } else {
+        }
+        else {
           historyData = state.rollHistoryByCharacter
         }
 
@@ -237,14 +242,15 @@ export class DiceDataMigrationService {
 
         const updatedState = {
           ...state,
-          rollHistoryByCharacter: serializedHistory
+          rollHistoryByCharacter: serializedHistory,
         }
 
         localStorage.setItem(storageKey, JSON.stringify({ state: updatedState }))
-        console.log('[DiceMigration] localStorage migration completed')
+        logger.info('[DiceMigration] localStorage migration completed')
       }
-    } catch (error) {
-      console.error('[DiceMigration] Failed to migrate localStorage:', error)
+    }
+    catch (error) {
+      logger.error('[DiceMigration] Failed to migrate localStorage:', error)
       // Don't throw - let the app continue with empty state
     }
   }
@@ -266,14 +272,14 @@ export class DiceDataMigrationService {
             roll.dice2,
             roll.modifier,
             roll.finalResult,
-            roll.outcome
-          ].join(',')
+            roll.outcome,
+          ].join(','),
         ).join('\n')
         return headers + rows
 
       case 'text':
         return rolls.map(roll =>
-          `${new Date(roll.timestamp).toLocaleString()} - ${roll.context.label}: ${roll.dice1}+${roll.dice2}+${roll.modifier}=${roll.finalResult} (${roll.outcome})`
+          `${new Date(roll.timestamp).toLocaleString()} - ${roll.context.label}: ${roll.dice1}+${roll.dice2}+${roll.modifier}=${roll.finalResult} (${roll.outcome})`,
         ).join('\n')
 
       case 'json':
@@ -295,8 +301,9 @@ export class DiceDataMigrationService {
 
       // CSV import would be implemented here if needed
       throw new Error('CSV import not yet implemented')
-    } catch (error) {
-      console.error('[DiceMigration] Failed to import history:', error)
+    }
+    catch (error) {
+      logger.error('[DiceMigration] Failed to import history:', error)
       throw error
     }
   }

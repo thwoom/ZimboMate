@@ -44,7 +44,7 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl'],
         description: 'Open Command Palette',
         category: 'global',
-        enabled: true
+        enabled: true,
       },
       {
         id: 'toggle-theme',
@@ -52,7 +52,7 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl', 'shift'],
         description: 'Toggle Theme',
         category: 'global',
-        enabled: true
+        enabled: true,
       },
       {
         id: 'save-character',
@@ -60,9 +60,9 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl'],
         description: 'Save Character',
         category: 'character',
-        enabled: true
+        enabled: true,
       },
-      
+
       // Tab Navigation
       {
         id: 'tab-character',
@@ -70,7 +70,7 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl'],
         description: 'Go to Character Tab',
         category: 'navigation',
-        enabled: true
+        enabled: true,
       },
       {
         id: 'tab-dice',
@@ -78,7 +78,7 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl'],
         description: 'Go to Dice Tab',
         category: 'navigation',
-        enabled: true
+        enabled: true,
       },
       {
         id: 'tab-moves',
@@ -86,7 +86,7 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl'],
         description: 'Go to Moves Tab',
         category: 'navigation',
-        enabled: true
+        enabled: true,
       },
       {
         id: 'tab-equipment',
@@ -94,7 +94,7 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl'],
         description: 'Go to Equipment Tab',
         category: 'navigation',
-        enabled: true
+        enabled: true,
       },
       {
         id: 'tab-session-tools',
@@ -102,7 +102,7 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl'],
         description: 'Go to Session Tools Tab',
         category: 'navigation',
-        enabled: true
+        enabled: true,
       },
       {
         id: 'tab-campaign',
@@ -110,7 +110,7 @@ class KeyboardShortcutsService {
         modifiers: ['ctrl'],
         description: 'Go to Campaign Tab',
         category: 'navigation',
-        enabled: true
+        enabled: true,
       },
 
       // Quick Dice Rolling
@@ -121,7 +121,7 @@ class KeyboardShortcutsService {
         description: 'Quick 2d6 Roll',
         category: 'dice',
         context: ['dice', 'character'],
-        enabled: true
+        enabled: true,
       },
       {
         id: 'roll-strength',
@@ -130,7 +130,7 @@ class KeyboardShortcutsService {
         description: 'Roll + Strength',
         category: 'dice',
         context: ['dice'],
-        enabled: true
+        enabled: true,
       },
       {
         id: 'roll-dexterity',
@@ -139,7 +139,7 @@ class KeyboardShortcutsService {
         description: 'Roll + Dexterity',
         category: 'dice',
         context: ['dice'],
-        enabled: true
+        enabled: true,
       },
       {
         id: 'roll-constitution',
@@ -148,7 +148,7 @@ class KeyboardShortcutsService {
         description: 'Roll + Constitution',
         category: 'dice',
         context: ['dice'],
-        enabled: true
+        enabled: true,
       },
       {
         id: 'roll-intelligence',
@@ -157,7 +157,7 @@ class KeyboardShortcutsService {
         description: 'Roll + Intelligence',
         category: 'dice',
         context: ['dice'],
-        enabled: true
+        enabled: true,
       },
       {
         id: 'roll-wisdom',
@@ -166,7 +166,7 @@ class KeyboardShortcutsService {
         description: 'Roll + Wisdom',
         category: 'dice',
         context: ['dice'],
-        enabled: true
+        enabled: true,
       },
       {
         id: 'roll-charisma',
@@ -175,7 +175,7 @@ class KeyboardShortcutsService {
         description: 'Roll + Charisma',
         category: 'dice',
         context: ['dice'],
-        enabled: true
+        enabled: true,
       },
 
       // Session Management
@@ -186,7 +186,7 @@ class KeyboardShortcutsService {
         description: 'New Note',
         category: 'session',
         context: ['session-tools'],
-        enabled: true
+        enabled: true,
       },
       {
         id: 'search-notes',
@@ -195,7 +195,7 @@ class KeyboardShortcutsService {
         description: 'Search Notes',
         category: 'session',
         context: ['session-tools'],
-        enabled: true
+        enabled: true,
       },
       {
         id: 'start-timer',
@@ -204,15 +204,15 @@ class KeyboardShortcutsService {
         description: 'Start Timer',
         category: 'session',
         context: ['session-tools'],
-        enabled: true
-      }
+        enabled: true,
+      },
     ]
 
     // Register shortcuts with placeholder actions
-    defaultShortcuts.forEach(shortcut => {
+    defaultShortcuts.forEach((shortcut) => {
       this.registerShortcut({
         ...shortcut,
-        action: () => console.log(`Shortcut triggered: ${shortcut.id}`)
+        action: () => console.log(`Shortcut triggered: ${shortcut.id}`),
       })
     })
   }
@@ -222,7 +222,7 @@ class KeyboardShortcutsService {
    */
   registerShortcut(shortcut: KeyboardShortcut): boolean {
     const keyCombo = this.createKeyCombo(shortcut.key, shortcut.modifiers)
-    
+
     // Check for conflicts
     if (this.keyMap.has(keyCombo)) {
       console.warn(`Keyboard shortcut conflict: ${keyCombo} already registered`)
@@ -239,7 +239,8 @@ class KeyboardShortcutsService {
    */
   unregisterShortcut(shortcutId: string): boolean {
     const shortcut = this.shortcuts.get(shortcutId)
-    if (!shortcut) return false
+    if (!shortcut)
+      return false
 
     const keyCombo = this.createKeyCombo(shortcut.key, shortcut.modifiers)
     this.shortcuts.delete(shortcutId)
@@ -252,7 +253,8 @@ class KeyboardShortcutsService {
    */
   updateShortcutAction(shortcutId: string, action: () => void): boolean {
     const shortcut = this.shortcuts.get(shortcutId)
-    if (!shortcut) return false
+    if (!shortcut)
+      return false
 
     shortcut.action = action
     return true
@@ -270,8 +272,8 @@ class KeyboardShortcutsService {
    */
   getShortcutsByCategory(): ShortcutCategory[] {
     const categories = new Map<string, KeyboardShortcut[]>()
-    
-    this.shortcuts.forEach(shortcut => {
+
+    this.shortcuts.forEach((shortcut) => {
       if (!categories.has(shortcut.category)) {
         categories.set(shortcut.category, [])
       }
@@ -281,7 +283,7 @@ class KeyboardShortcutsService {
     return Array.from(categories.entries()).map(([id, shortcuts]) => ({
       id,
       name: this.getCategoryName(id),
-      shortcuts: shortcuts.sort((a, b) => a.description.localeCompare(b.description))
+      shortcuts: shortcuts.sort((a, b) => a.description.localeCompare(b.description)),
     }))
   }
 
@@ -314,10 +316,14 @@ class KeyboardShortcutsService {
    */
   private parseKeyEvent(event: KeyboardEvent): string {
     const modifiers: string[] = []
-    if (event.ctrlKey) modifiers.push('ctrl')
-    if (event.shiftKey) modifiers.push('shift')
-    if (event.altKey) modifiers.push('alt')
-    if (event.metaKey) modifiers.push('meta')
+    if (event.ctrlKey)
+      modifiers.push('ctrl')
+    if (event.shiftKey)
+      modifiers.push('shift')
+    if (event.altKey)
+      modifiers.push('alt')
+    if (event.metaKey)
+      modifiers.push('meta')
 
     return this.createKeyCombo(event.key, modifiers)
   }
@@ -326,11 +332,13 @@ class KeyboardShortcutsService {
    * Check if shortcut is active in current context
    */
   private isShortcutActive(shortcut: KeyboardShortcut): boolean {
-    if (!shortcut.enabled) return false
-    if (!shortcut.context) return true
-    
-    return shortcut.context.some(context => 
-      this.currentContext.includes(context)
+    if (!shortcut.enabled)
+      return false
+    if (!shortcut.context)
+      return true
+
+    return shortcut.context.some(context =>
+      this.currentContext.includes(context),
     )
   }
 
@@ -339,7 +347,8 @@ class KeyboardShortcutsService {
    */
   private bindGlobalListener() {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!this.isEnabled) return
+      if (!this.isEnabled)
+        return
 
       // Skip if user is typing in input fields
       const target = event.target as HTMLElement
@@ -349,7 +358,7 @@ class KeyboardShortcutsService {
 
       const keyCombo = this.parseKeyEvent(event)
       const shortcutId = this.keyMap.get(keyCombo)
-      
+
       if (shortcutId) {
         const shortcut = this.shortcuts.get(shortcutId)
         if (shortcut && this.isShortcutActive(shortcut)) {
@@ -372,7 +381,7 @@ class KeyboardShortcutsService {
       navigation: 'Navigation',
       dice: 'Dice Rolling',
       character: 'Character',
-      session: 'Session Tools'
+      session: 'Session Tools',
     }
     return names[categoryId] || categoryId
   }
@@ -385,12 +394,12 @@ class KeyboardShortcutsService {
       ctrl: navigator.platform.includes('Mac') ? '⌘' : 'Ctrl',
       shift: '⇧',
       alt: navigator.platform.includes('Mac') ? '⌥' : 'Alt',
-      meta: '⌘'
+      meta: '⌘',
     }
 
     const parts = [
       ...shortcut.modifiers.map(mod => modifierMap[mod] || mod),
-      shortcut.key === ' ' ? 'Space' : shortcut.key.toUpperCase()
+      shortcut.key === ' ' ? 'Space' : shortcut.key.toUpperCase(),
     ]
 
     return parts.join(navigator.platform.includes('Mac') ? '' : '+')

@@ -3,18 +3,18 @@
  * Main animated spell book interface with magical effects
  */
 
-import React, { useState, useCallback, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import * as Dialog from '@radix-ui/react-dialog'
-import { useSpells } from '../../../hooks/useSpells'
+import { AnimatePresence, motion } from 'framer-motion'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useKeyboardShortcuts } from '../../../hooks/useKeyboardShortcuts'
-import { SpellBookPage } from './SpellBookPage'
-import { PageNavigation } from './PageNavigation'
-import { SpellSearch } from './SpellSearch'
-import { SpellList } from './SpellList'
-import { SpellDetails } from './SpellDetails'
-import { SpellSlotTracker } from './SpellSlotTracker'
+import { useSpells } from '../../../hooks/useSpells'
 import { MagicalEffects } from './MagicalEffects'
+import { PageNavigation } from './PageNavigation'
+import { SpellBookPage } from './SpellBookPage'
+import { SpellDetails } from './SpellDetails'
+import { SpellList } from './SpellList'
+import { SpellSearch } from './SpellSearch'
+import { SpellSlotTracker } from './SpellSlotTracker'
 
 interface SpellBookProps {
   characterId?: string
@@ -37,7 +37,7 @@ export function SpellBook({
   enableAudio = true,
   onSpellCast,
   onSpellPrepared,
-  onSpellUnprepared
+  onSpellUnprepared,
 }: SpellBookProps) {
   // Spell management
   const {
@@ -50,7 +50,7 @@ export function SpellBook({
     longRest,
     shortRest,
     isCasting,
-    character
+    character,
   } = useSpells(characterId)
 
   // UI state
@@ -66,10 +66,11 @@ export function SpellBook({
 
   // Page navigation with animation
   const handlePageChange = useCallback((newPage: number) => {
-    if (newPage === currentPage || isAnimating) return
+    if (newPage === currentPage || isAnimating)
+      return
 
     setIsAnimating(true)
-    
+
     setTimeout(() => {
       setCurrentPage(newPage)
       setIsAnimating(false)
@@ -86,24 +87,28 @@ export function SpellBook({
 
   const handleSpellPrepare = useCallback(async (spellId: string) => {
     const spell = allSpells.find(s => s.id === spellId)
-    if (!spell) return
+    if (!spell)
+      return
 
     try {
       prepareSpell(spellId)
       onSpellPrepared?.(spell)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to prepare spell:', error)
     }
   }, [allSpells, prepareSpell, onSpellPrepared])
 
   const handleSpellCast = useCallback(async (spellId: string, level: number) => {
     const spell = allSpells.find(s => s.id === spellId)
-    if (!spell) return
+    if (!spell)
+      return
 
     try {
       const result = await castSpell(spellId, { upcast: level > spell.level })
       onSpellCast?.(spell, level)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to cast spell:', error)
     }
   }, [allSpells, castSpell, onSpellCast])
@@ -121,13 +126,13 @@ export function SpellBook({
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
-    'ArrowLeft': () => currentPage > 0 && handlePageChange(currentPage - 1),
-    'ArrowRight': () => currentPage < totalPages - 1 && handlePageChange(currentPage + 1),
-    'Escape': onClose,
-    '1': () => handlePageChange(0),
-    '2': () => handlePageChange(1),
-    '3': () => handlePageChange(2),
-    '4': () => handlePageChange(3)
+    ArrowLeft: () => currentPage > 0 && handlePageChange(currentPage - 1),
+    ArrowRight: () => currentPage < totalPages - 1 && handlePageChange(currentPage + 1),
+    Escape: onClose,
+    1: () => handlePageChange(0),
+    2: () => handlePageChange(1),
+    3: () => handlePageChange(2),
+    4: () => handlePageChange(3),
   })
 
   // Auto-select first spell when opening spells page
@@ -149,7 +154,7 @@ export function SpellBook({
             initial={{ opacity: 0, scale: 0.9, rotateX: -15 }}
             animate={{ opacity: 1, scale: 1, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.9, rotateX: -15 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
           >
             {/* Magical effects overlay */}
             <MagicalEffects
@@ -200,13 +205,13 @@ export function SpellBook({
                       />
                     </div>
                   )}
-                  
+
                   {currentPage === 2 && (
                     <SpellSlotTracker
                       slots={spellSlots.reduce((acc, slot) => {
                         acc[slot.level] = { total: slot.total, used: slot.used }
                         return acc
-                      }, {} as Record<number, { total: number; used: number }>)}
+                      }, {} as Record<number, { total: number, used: number }>)}
                       onRefresh={handleSlotRefresh}
                       className="h-full"
                     />
@@ -235,7 +240,7 @@ export function SpellBook({
                       className="h-full"
                     />
                   )}
-                  
+
                   {currentPage === 3 && (
                     <SpellList
                       spells={preparedSpells}
@@ -266,12 +271,12 @@ export function SpellBook({
                     className="text-display-md font-display text-accent"
                     animate={{
                       scale: [1, 1.1, 1],
-                      opacity: [0.7, 1, 0.7]
+                      opacity: [0.7, 1, 0.7],
                     }}
                     transition={{
                       duration: 1,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: 'easeInOut',
                     }}
                   >
                     Casting Spell...

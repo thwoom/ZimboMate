@@ -62,14 +62,14 @@ const DEFAULT_DURATIONS: Record<NotificationType, number> = {
   'level-up': 8000,
   'achievement': 6000,
   'error': 6000,
-  'info': 4000
+  'info': 4000,
 }
 
 const PRIORITY_WEIGHTS: Record<Notification['priority'], number> = {
-  'urgent': 1000,
-  'high': 100,
-  'medium': 10,
-  'low': 1
+  urgent: 1000,
+  high: 100,
+  medium: 10,
+  low: 1,
 }
 
 export const useNotificationStore = create<NotificationState>()(
@@ -86,7 +86,7 @@ export const useNotificationStore = create<NotificationState>()(
         enableHoldGrants: true,
         enableLevelUps: true,
         enableAchievements: true,
-        mutedDuration: 0
+        mutedDuration: 0,
       },
 
       // Add notification with intelligent queuing
@@ -110,13 +110,14 @@ export const useNotificationStore = create<NotificationState>()(
           }
         })()
 
-        if (!typeEnabled) return
+        if (!typeEnabled)
+          return
 
         const notification: Notification = {
           ...notificationData,
           id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           timestamp: Date.now(),
-          duration: notificationData.duration || DEFAULT_DURATIONS[notificationData.type] || 4000
+          duration: notificationData.duration || DEFAULT_DURATIONS[notificationData.type] || 4000,
         }
 
         set((state) => {
@@ -133,7 +134,8 @@ export const useNotificationStore = create<NotificationState>()(
           // Sort by priority and timestamp
           newActive.sort((a, b) => {
             const priorityDiff = PRIORITY_WEIGHTS[b.priority] - PRIORITY_WEIGHTS[a.priority]
-            if (priorityDiff !== 0) return priorityDiff
+            if (priorityDiff !== 0)
+              return priorityDiff
             return b.timestamp - a.timestamp
           })
 
@@ -143,7 +145,7 @@ export const useNotificationStore = create<NotificationState>()(
             const removed = newActive.splice(state.maxActiveNotifications)
 
             // But keep urgent notifications
-            removed.forEach(removedNotification => {
+            removed.forEach((removedNotification) => {
               if (removedNotification.priority === 'urgent') {
                 newActive[newActive.length - 1] = removedNotification
               }
@@ -157,7 +159,7 @@ export const useNotificationStore = create<NotificationState>()(
 
           return {
             activeNotifications: newActive,
-            notificationHistory: newHistory
+            notificationHistory: newHistory,
           }
         })
 
@@ -171,8 +173,8 @@ export const useNotificationStore = create<NotificationState>()(
 
       // Dismiss specific notification
       dismissNotification: (id) => {
-        set((state) => ({
-          activeNotifications: state.activeNotifications.filter(n => n.id !== id)
+        set(state => ({
+          activeNotifications: state.activeNotifications.filter(n => n.id !== id),
         }))
       },
 
@@ -183,31 +185,31 @@ export const useNotificationStore = create<NotificationState>()(
 
       // Mute notifications temporarily
       muteNotifications: (durationMs) => {
-        set((state) => ({
+        set(state => ({
           preferences: {
             ...state.preferences,
-            mutedDuration: Date.now() + durationMs
-          }
+            mutedDuration: Date.now() + durationMs,
+          },
         }))
       },
 
       // Unmute notifications
       unmuteNotifications: () => {
-        set((state) => ({
+        set(state => ({
           preferences: {
             ...state.preferences,
-            mutedDuration: 0
-          }
+            mutedDuration: 0,
+          },
         }))
       },
 
       // Update preferences
       setPreference: (key, value) => {
-        set((state) => ({
+        set(state => ({
           preferences: {
             ...state.preferences,
-            [key]: value
-          }
+            [key]: value,
+          },
         }))
       },
 
@@ -226,40 +228,34 @@ export const useNotificationStore = create<NotificationState>()(
       getNotificationsByCharacter: (characterId) => {
         const state = get()
         return state.notificationHistory.filter(n => n.characterId === characterId)
-      }
+      },
     }),
     {
       name: 'zimbomate-notification-store',
       version: 1,
       // Don't persist active notifications - they should reset on page reload
-      partialize: (state) => ({
+      partialize: state => ({
         preferences: state.preferences,
         notificationHistory: state.notificationHistory,
         maxActiveNotifications: state.maxActiveNotifications,
-        isEnabled: state.isEnabled
-      })
-    }
-  )
+        isEnabled: state.isEnabled,
+      }),
+    },
+  ),
 )
 
 // Convenience functions for common notification types
-export const notifyDiceRoll = (
-  result: number,
-  outcome: 'success' | 'partial' | 'failure',
-  context: string,
-  characterId: string,
-  rollId: string
-) => {
+export function notifyDiceRoll(result: number, outcome: 'success' | 'partial' | 'failure', context: string, characterId: string, rollId: string) {
   const outcomeEmojis = {
     success: '🎉',
     partial: '⚡',
-    failure: '💪'
+    failure: '💪',
   }
 
   const outcomeMessages = {
     success: 'Great success!',
     partial: 'Partial success',
-    failure: 'Learn from failure'
+    failure: 'Learn from failure',
   }
 
   useNotificationStore.getState().addNotification({
@@ -271,16 +267,11 @@ export const notifyDiceRoll = (
     duration: 3000,
     characterId,
     rollId,
-    dismissible: true
+    dismissible: true,
   })
 }
 
-export const notifyXPAward = (
-  amount: number,
-  reason: string,
-  characterId: string,
-  newTotal?: number
-) => {
+export function notifyXPAward(amount: number, reason: string, characterId: string, newTotal?: number) {
   useNotificationStore.getState().addNotification({
     type: 'xp-award',
     title: `+${amount} XP`,
@@ -289,15 +280,11 @@ export const notifyXPAward = (
     priority: 'medium',
     duration: 4000,
     characterId,
-    dismissible: true
+    dismissible: true,
   })
 }
 
-export const notifyHoldGranted = (
-  amount: number,
-  moveName: string,
-  characterId: string
-) => {
+export function notifyHoldGranted(amount: number, moveName: string, characterId: string) {
   useNotificationStore.getState().addNotification({
     type: 'hold-granted',
     title: `${moveName}`,
@@ -306,14 +293,11 @@ export const notifyHoldGranted = (
     priority: 'medium',
     duration: 3500,
     characterId,
-    dismissible: true
+    dismissible: true,
   })
 }
 
-export const notifyLevelUp = (
-  newLevel: number,
-  characterId: string
-) => {
+export function notifyLevelUp(newLevel: number, characterId: string) {
   useNotificationStore.getState().addNotification({
     type: 'level-up',
     title: `Level Up!`,
@@ -330,8 +314,8 @@ export const notifyLevelUp = (
           // Navigate to character sheet
           console.log('Navigate to character sheet')
         },
-        style: 'primary'
-      }
-    ]
+        style: 'primary',
+      },
+    ],
   })
 }

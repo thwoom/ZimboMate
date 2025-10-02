@@ -1,46 +1,43 @@
+import type { GameSession } from './services/MultiplayerService'
+import type { ButtonDiagnostic } from './utils/buttonUtils'
+import { BugAntIcon, DocumentTextIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline'
+import { TooltipProvider } from './components/ui/tooltip'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Dice6, NotebookPen, Play, Settings, Sparkles, User } from 'lucide-react'
 import React, { useState } from 'react'
-import * as Tooltip from '@radix-ui/react-tooltip'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ThemeProvider } from './components/ui/ThemeProvider'
-import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
-import { CharacterSheet } from './components/game/CharacterSheet'
-import { StatRoller } from './components/game/StatRoller'
-import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
 import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
-import { SessionManager } from './components/game/SessionManager'
-import { AlignmentXPTracker } from './components/game/AlignmentXPTracker'
-import { DebilityTracker } from './components/game/DebilityTracker'
+import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
+import { CharacterSheet } from './components/game/CharacterSheet'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
+import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
+import { GameManagementTab } from './components/game/GameManagementTab'
+import { PlayTab } from './components/game/PlayTab'
+import { SessionManager } from './components/game/SessionManager'
+import { StatRoller } from './components/game/StatRoller'
+import { Badge, Button, Card, CardContent, ThemeComponentShowcase } from './components/ui'
+import { ButtonDebugger } from './components/ui/ButtonDebugger'
 import { CommandPalette } from './components/ui/CommandPalette'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
-import { Sparkles, User, Dice6, Settings, NotebookPen, Play } from 'lucide-react'
-import { Card, CardContent, Button, Badge, ThemeComponentShowcase } from './components/ui'
-import { DiceHistorySidebar } from './components/dice/DiceHistorySidebar'
-import { QuickRollZones } from './components/dice/QuickRollZones'
-import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
-import { PlayTab } from './components/game/PlayTab'
-import { GameManagementTab } from './components/game/GameManagementTab'
 import { SettingsPanel } from './components/ui/SettingsPanel'
-import { useCharacterStore } from './stores/characterStore'
-import { useCommandPalette, useNavigationShortcuts, useGlobalShortcuts, useDiceShortcuts } from './hooks/useKeyboardShortcuts'
+import { ThemeProvider } from './components/ui/ThemeProvider'
+import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { useDiceKeyboardShortcuts } from './hooks/useDiceKeyboardShortcuts'
-import './utils/initializeMockData' // Initialize mock data for development
-import { ButtonDebugger } from './components/ui/ButtonDebugger'
+import { useCommandPalette, useDiceShortcuts, useGlobalShortcuts, useNavigationShortcuts } from './hooks/useKeyboardShortcuts'
+import { useCharacterStore } from './stores/characterStore'
 import {
+  autoFixAllButtons,
+
   diagnoseAllButtons,
   enableButtonDebugging,
-  autoFixAllButtons,
   generateButtonReport,
-  type ButtonDiagnostic
 } from './utils/buttonUtils'
-import { BugAntIcon, WrenchScrewdriverIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
+import { logger } from './utils/logger'
+import './utils/initializeMockData' // Initialize mock data for development
 
 type ActiveTab = 'play' | 'character' | 'dice' | 'game-management' | 'settings' | 'button-debug'
 
-
 const App: React.FC = () => {
-  const { characters, getActiveCharacter } = useCharacterStore()
-  const activeCharacter = getActiveCharacter()
+  const { characters } = useCharacterStore()
   const [activeTab, setActiveTab] = useState<ActiveTab>('play')
   const [showCharacterBuilder, setShowCharacterBuilder] = useState(false)
   const [showSessionManager, setShowSessionManager] = useState(false)
@@ -51,7 +48,6 @@ const App: React.FC = () => {
   const [autoFixCount, setAutoFixCount] = useState(0)
 
   // Dice sidebar state
-  const [diceHistoryCollapsed, setDiceHistoryCollapsed] = useState(false)
 
   const tabs = [
     { id: 'play' as const, label: 'Play', icon: Play, featured: true },
@@ -59,16 +55,16 @@ const App: React.FC = () => {
     { id: 'dice' as const, label: 'Dice', icon: Dice6 },
     { id: 'game-management' as const, label: 'Game Management', icon: NotebookPen, description: 'Chronicle, Campaign, Monsters & More' },
     { id: 'settings' as const, label: 'Settings', icon: Settings, enhanced: true },
-    ...(process.env.NODE_ENV === 'development' ? [{ id: 'button-debug' as const, label: 'Button Debug', icon: WrenchScrewdriverIcon }] : [])
+    ...(import.meta.env.DEV ? [{ id: 'button-debug' as const, label: 'Button Debug', icon: WrenchScrewdriverIcon }] : []),
   ]
 
   // Command palette integration
   const { registerCommandPalette, setIsOpen } = useCommandPalette()
-  
+
   React.useEffect(() => {
     registerCommandPalette(
       () => setCommandPaletteOpen(true),
-      () => setCommandPaletteOpen(false)
+      () => setCommandPaletteOpen(false),
     )
   }, [registerCommandPalette])
 
@@ -85,8 +81,8 @@ const App: React.FC = () => {
   useGlobalShortcuts({
     onToggleTheme: () => {
       // Theme toggle logic would go here
-      console.log('Toggle theme')
-    }
+      logger.info('Toggle theme')
+    },
   })
 
   // Dice shortcuts (legacy system)
@@ -98,27 +94,27 @@ const App: React.FC = () => {
   useDiceKeyboardShortcuts({
     characterId: 'eldara-moonwhisper', // TODO: Use actual active character ID
     enabled: true,
-    modifierKey: 'none' // Direct key presses for fast gameplay
+    modifierKey: 'none', // Direct key presses for fast gameplay
   })
 
   const tabVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: 0.3,
-        ease: "easeOut"
-      }
+        ease: 'easeOut',
+      },
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       y: -20,
       transition: {
         duration: 0.2,
-        ease: "easeIn"
-      }
-    }
+        ease: 'easeIn',
+      },
+    },
   }
 
   const renderContent = () => {
@@ -147,36 +143,38 @@ const App: React.FC = () => {
             exit="exit"
           >
             <div className="space-y-8">
-              {characters.length === 0 || showCharacterBuilder ? (
-                <div className="space-y-4">
-                  {characters.length > 0 && (
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-semibold">Create New Character</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowCharacterBuilder(false)}
-                      >
-                        Cancel
-                      </Button>
+              {characters.length === 0 || showCharacterBuilder
+                ? (
+                    <div className="space-y-4">
+                      {characters.length > 0 && (
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-semibold">Create New Character</h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowCharacterBuilder(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
+                      <CharacterBuilder onFinished={() => setShowCharacterBuilder(false)} />
                     </div>
+                  )
+                : (
+                    <>
+                      <div className="flex justify-end">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => setShowCharacterBuilder(true)}
+                        >
+                          Create Character
+                        </Button>
+                      </div>
+                      <CharacterSheet />
+                    </>
                   )}
-                  <CharacterBuilder onFinished={() => setShowCharacterBuilder(false)} />
-                </div>
-              ) : (
-                <>
-                  <div className="flex justify-end">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setShowCharacterBuilder(true)}
-                    >
-                      Create Character
-                    </Button>
-                  </div>
-                  <CharacterSheet />
-                </>
-              )}
             </div>
           </motion.div>
         )
@@ -209,10 +207,10 @@ const App: React.FC = () => {
                   CON: 1,
                   INT: 4,
                   WIS: 3,
-                  CHA: 2
+                  CHA: 2,
                 }}
                 onStatRoll={(stat, result) => {
-                  console.log(`${stat} roll result:`, result)
+                  logger.info(`${stat} roll result:`, result)
                 }}
               />
 
@@ -264,51 +262,51 @@ const App: React.FC = () => {
                         Diagnose and fix button functionality issues throughout the application
                       </p>
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-4">
-                      <Button 
-                        variant="cyber" 
+                      <Button
+                        variant="cyber"
                         onClick={() => {
                           const results = diagnoseAllButtons()
                           setButtonDiagnostics(results)
-                          console.log('🔍 Button diagnosis completed:', results)
+                          logger.info('🔍 Button diagnosis completed:', results)
                         }}
                       >
                         <BugAntIcon size={16} />
                         Run Diagnosis
                       </Button>
-                      
-                      <Button 
-                        variant="secondary" 
+
+                      <Button
+                        variant="secondary"
                         onClick={() => {
                           enableButtonDebugging()
                           setDebuggingEnabled(true)
-                          console.log('🔧 Button debugging enabled')
+                          logger.info('🔧 Button debugging enabled')
                         }}
                         disabled={debuggingEnabled}
                       >
                         <WrenchScrewdriverIcon size={16} />
                         {debuggingEnabled ? 'Debugging Active' : 'Enable Debug Mode'}
                       </Button>
-                      
-                      <Button 
-                        variant="magical" 
+
+                      <Button
+                        variant="magical"
                         onClick={() => {
                           const fixed = autoFixAllButtons()
                           setAutoFixCount(prev => prev + fixed)
-                          console.log(`🔧 Auto-fixed ${fixed} button issues`)
+                          logger.info(`🔧 Auto-fixed ${fixed} button issues`)
                         }}
                       >
                         <WrenchScrewdriverIcon size={16} />
                         Auto-Fix Issues
                       </Button>
-                      
-                      <Button 
-                        variant="outline" 
+
+                      <Button
+                        variant="outline"
                         onClick={() => {
                           const report = generateButtonReport()
-                          console.log(report)
-                          
+                          logger.info(report)
+
                           // Download report
                           const blob = new Blob([report], { type: 'text/plain' })
                           const url = URL.createObjectURL(blob)
@@ -323,7 +321,7 @@ const App: React.FC = () => {
                         Download Report
                       </Button>
                     </div>
-                    
+
                     {/* Status Summary */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="text-center p-4 rounded-lg bg-popover">
@@ -334,7 +332,7 @@ const App: React.FC = () => {
                           Working Buttons
                         </div>
                       </div>
-                      
+
                       <div className="text-center p-4 rounded-lg bg-popover">
                         <div className="text-2xl font-bold text-[color:var(--red-500)]">
                           {buttonDiagnostics.filter(d => !d.working).length}
@@ -343,7 +341,7 @@ const App: React.FC = () => {
                           Issues Found
                         </div>
                       </div>
-                      
+
                       <div className="text-center p-4 rounded-lg bg-popover">
                         <div className="text-2xl font-bold text-[color:var(--yellow-500)]">
                           {autoFixCount}
@@ -352,7 +350,7 @@ const App: React.FC = () => {
                           Auto-Fixed
                         </div>
                       </div>
-                      
+
                       <div className="text-center p-4 rounded-lg bg-popover">
                         <div className="text-2xl font-bold text-primary">
                           {debuggingEnabled ? '🔧' : '💤'}
@@ -365,14 +363,14 @@ const App: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* Interactive Test Suite */}
-              <ButtonDebugger 
+              <ButtonDebugger
                 onTestResult={(testName, success, details) => {
-                  console.log(`✅ Test result: ${testName} - ${success ? 'SUCCESS' : 'FAILED'}`, details)
+                  logger.info(`✅ Test result: ${testName} - ${success ? 'SUCCESS' : 'FAILED'}`, details)
                 }}
               />
-              
+
               {/* Console Commands Help */}
               <Card>
                 <CardContent>
@@ -417,208 +415,203 @@ const App: React.FC = () => {
     }
   }
 
-  const handleSessionJoined = (session: any) => {
+  const handleSessionJoined = (session: GameSession) => {
     setShowSessionManager(false)
-    console.log('Joined session:', session)
+    logger.info('Joined session:', session)
   }
 
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <ChronicleProvider defaultEnabled={true}>
-          <Tooltip.Provider delayDuration={200} skipDelayDuration={300}>
-          <div className="texture" aria-hidden="true" />
+          <TooltipProvider delayDuration={200} skipDelayDuration={300}>
+            <div className="texture" aria-hidden="true" />
 
-        <div
-          className="relative min-h-screen transition-colors duration-300 bg-background text-foreground"
-        >
-          {/* Header */}
-          <header
-            className="sticky top-0 z-50 border-b border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm"
-          >
-            <div className="container mx-auto px-6 py-4">
-              <div className="flex items-center justify-between">
-                <motion.div 
-                  className="flex items-center gap-3"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <motion.div 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20 text-primary"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Sparkles 
-
-                      className="w-6 h-6 text-primary"
-
-                    />
-                  </motion.div>
-                  <div>
-                    <h1 className="font-display text-xl">ZimboMate V2</h1>
-                                        <p className="text-sm text-muted-foreground">
-                      Dungeon World Companion
-                    </p>
-                  </div>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  <ThemeStatusBadge />
-                </motion.div>
-              </div>
-            </div>
-          </header>
-
-          {/* Navigation Tabs */}
-          <nav
-            className="sticky top-[73px] z-40 border-b border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80"
-          >
-            <div className="container mx-auto px-6">
-              <div className="flex gap-1 py-2 overflow-x-auto">
-                {tabs.map((tab, index) => {
-                  const Icon = tab.icon
-                  const isActive = activeTab === tab.id
-                  
-                  return (
+            <div
+              className="relative min-h-screen transition-colors duration-300 bg-background text-foreground"
+            >
+              {/* Header */}
+              <header
+                className="sticky top-0 z-50 border-b border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm"
+              >
+                <div className="container mx-auto px-6 py-4">
+                  <div className="flex items-center justify-between">
                     <motion.div
-                      key={tab.id}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5 }}
                     >
-                      <Button
-                        variant={isActive ? 'primary' : 'ghost'}
-                        size="sm"
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`relative whitespace-nowrap ${
-                          tab.featured ? 'ring-2 ring-primary/30 ' : ''
-                        }`}
-                        title={tab.description || tab.label}
+                      <motion.div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20 text-primary"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        <Icon size={16} />
-                        {tab.label}
-                        {tab.featured && !isActive && (
-                          <Badge variant="secondary" className="ml-1 text-xs">
-                            ★
-                          </Badge>
-                        )}
-                        {tab.enhanced && !isActive && (
-                          <Badge variant="default" className="ml-1 text-xs">
-                            ✨
-                          </Badge>
-                        )}
-                        {isActive && (
-                          <motion.div
-                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                            
-                            layoutId="activeTab"
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }} />
-                        )}
-                      </Button>
+                        <Sparkles
+
+                          className="w-6 h-6 text-primary"
+
+                        />
+                      </motion.div>
+                      <div>
+                        <h1 className="font-display text-xl">ZimboMate V2</h1>
+                        <p className="text-sm text-muted-foreground">
+                          Dungeon World Companion
+                        </p>
+                      </div>
                     </motion.div>
-                  )
-                })}
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                    >
+                      <ThemeStatusBadge />
+                    </motion.div>
+                  </div>
+                </div>
+              </header>
+
+              {/* Navigation Tabs */}
+              <nav
+                role="navigation"
+                aria-label="Primary"
+                className="sticky top-[73px] z-40 border-b border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80"
+              >
+                <div className="container mx-auto px-6">
+                  <div className="flex gap-1 py-2 overflow-x-auto">
+                    {tabs.map((tab, index) => {
+                      const Icon = tab.icon
+                      const isActive = activeTab === tab.id
+
+                      return (
+                        <motion.div
+                          key={tab.id}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                        >
+                          <Button
+                            variant={isActive ? 'primary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`relative whitespace-nowrap ${
+                              tab.featured ? 'ring-2 ring-primary/30 ' : ''
+                            }`}
+                            title={tab.description || tab.label}
+                          >
+                            <Icon size={16} />
+                            {tab.label}
+                            {tab.featured && !isActive && (
+                              <Badge variant="secondary" className="ml-1 text-xs">
+                                ★
+                              </Badge>
+                            )}
+                            {tab.enhanced && !isActive && (
+                              <Badge variant="default" className="ml-1 text-xs">
+                                ✨
+                              </Badge>
+                            )}
+                            {isActive && (
+                              <motion.div
+                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+
+                                layoutId="activeTab"
+                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                              />
+                            )}
+                          </Button>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </nav>
+
+              {/* Main Content */}
+              <div className="flex h-screen">
+                <main role="main" className="flex-1 overflow-y-auto">
+                  <div className="container mx-auto px-6 py-8">
+                    <AnimatePresence mode="wait">
+                      {renderContent()}
+                    </AnimatePresence>
+                  </div>
+                </main>
               </div>
-            </div>
-          </nav>
 
-          {/* Main Content Layout with Sidebar */}
-          <div className="flex h-screen">
-            {/* Dice History Sidebar */}
-            <DiceHistorySidebar
-              characterId={activeCharacter?.id || "fallback-character-id"}
-              collapsed={diceHistoryCollapsed}
-              onToggleCollapse={() => setDiceHistoryCollapsed(!diceHistoryCollapsed)}
-            />
+              {/* Footer */}
+              <footer
+                className="mt-16 border-t border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85"
+              >
+                <div className="container mx-auto px-6 py-8">
+                  <div className="flex items-center justify-between">
+                    <motion.div
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.5 }}
+                    >
+                      <User
+                        className="w-5 h-5 text-muted-foreground"
+                      />
+                      <span
+                        className="text-sm text-muted-foreground"
+                      >
+                        ZimboMate V2 • Built with React 19 & Tailwind v4
+                      </span>
+                    </motion.div>
+                    <motion.div
+                      className="text-sm text-muted-foreground"
 
-            {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto">
-              <div className="container mx-auto px-6 py-8">
-                <AnimatePresence mode="wait">
-                  {renderContent()}
-                </AnimatePresence>
-              </div>
-            </main>
-          </div>
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.7 }}
+                    >
+                      Phase 4D: Advanced File Management System Complete ✨
+                    </motion.div>
+                  </div>
+                </div>
+              </footer>
 
-          {/* Quick Roll Zones for Drag & Drop */}
-          <QuickRollZones characterId="eldara-moonwhisper" />
+              {/* Theme Component Showcase */}
+              <ThemeComponentShowcase
+                isOpen={themeShowcaseOpen}
+                onClose={() => setThemeShowcaseOpen(false)}
+              />
 
-          {/* Footer */}
-          <footer
-            className="mt-16 border-t border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85"
-          >
-            <div className="container mx-auto px-6 py-8">
-              <div className="flex items-center justify-between">
-                <motion.div 
-                  className="flex items-center gap-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
-                >
-                  <User 
-                    className="w-5 h-5 text-muted-foreground" />
-                  <span 
-                    className="text-sm text-muted-foreground">
-                    ZimboMate V2 • Built with React 19 & Tailwind v4
-                  </span>
-                </motion.div>
-                <motion.div 
-                  className="text-sm text-muted-foreground"
-                  
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.7 }}>
-                  Phase 4D: Advanced File Management System Complete ✨
-                </motion.div>
-              </div>
-            </div>
-          </footer>
-
-          {/* Theme Component Showcase */}
-          <ThemeComponentShowcase
-            isOpen={themeShowcaseOpen}
-            onClose={() => setThemeShowcaseOpen(false)}
-          />
-
-          {/* Command Palette */}
-          <CommandPalette
-            isOpen={commandPaletteOpen}
-            onClose={() => setCommandPaletteOpen(false)}
-            onNavigate={(tabId) => {
-              setActiveTab(tabId as ActiveTab)
-              setCommandPaletteOpen(false)
-            }}
-            onAction={(actionId) => {
-              console.log('Command palette action:', actionId)
-              // Handle various actions here
-              switch (actionId) {
-                case 'quick-roll-2d6':
-                  // Trigger dice roll
-                  break
-                case 'heal-character':
-                  // Heal character
-                  break
-                case 'new-note':
-                  // Create new note
-                  break
+              {/* Command Palette */}
+              <CommandPalette
+                isOpen={commandPaletteOpen}
+                onClose={() => setCommandPaletteOpen(false)}
+                onNavigate={(tabId) => {
+                  setActiveTab(tabId as ActiveTab)
+                  setCommandPaletteOpen(false)
+                }}
+                onAction={(actionId) => {
+                  logger.info('Command palette action:', actionId)
+                  // Handle various actions here
+                  switch (actionId) {
+                    case 'quick-roll-2d6':
+                      // Trigger dice roll
+                      break
+                    case 'heal-character':
+                      // Heal character
+                      break
+                    case 'new-note':
+                      // Create new note
+                      break
                 // Add more actions as needed
-              }
-            }}
-          />
+                  }
+                }}
+              />
 
-          {/* Session Manager Modal */}
-          <SessionManager
-            isVisible={showSessionManager}
-            onClose={() => setShowSessionManager(false)}
-            onSessionJoined={handleSessionJoined}
-          />
-        </div>
-          </Tooltip.Provider>
+              {/* Session Manager Modal */}
+              <SessionManager
+                isVisible={showSessionManager}
+                onClose={() => setShowSessionManager(false)}
+                onSessionJoined={handleSessionJoined}
+              />
+            </div>
+          </TooltipProvider>
         </ChronicleProvider>
       </ThemeProvider>
     </ErrorBoundary>
@@ -626,7 +619,6 @@ const App: React.FC = () => {
 }
 
 export default App
-
 
 
 

@@ -5,29 +5,26 @@
  * with quick-add functionality and auto-suggestions based on recent events.
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  BookOpen,
-  Plus,
-  Send,
-  Mic,
-  MicOff,
-  Edit3,
-  Clock,
-  User,
-  Zap,
-  Sparkles,
-  ArrowDown,
-  Hash,
-  AtSign,
-  Quote,
-  X
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
-import { useChronicle } from '../../chronicle/ChronicleProvider'
 import type { Character } from '../../../models/Character'
 import type { GameMode, PlayTabTheme } from '../PlayTab'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ArrowDown,
+  BookOpen,
+  Clock,
+  Edit3,
+  Mic,
+  MicOff,
+  Quote,
+  Send,
+  Sparkles,
+  User,
+  X,
+  Zap,
+} from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useChronicle } from '../../chronicle/ChronicleProvider'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
 
 interface LiveChronicleStreamProps {
   character: Character
@@ -80,7 +77,8 @@ const ChronicleEntryCard: React.FC<{
     const minutes = Math.floor(diff / 60000)
     const seconds = Math.floor((diff % 60000) / 1000)
 
-    if (minutes > 0) return `${minutes}m ago`
+    if (minutes > 0)
+      return `${minutes}m ago`
     return `${seconds}s ago`
   }, [entry.timestamp])
 
@@ -117,7 +115,8 @@ const ChronicleEntryCard: React.FC<{
             <div className="flex flex-wrap gap-1 mt-2">
               {entry.tags.map(tag => (
                 <Badge key={tag} variant="outline" className="text-xs">
-                  #{tag}
+                  #
+                  {tag}
                 </Badge>
               ))}
             </div>
@@ -187,7 +186,7 @@ const QuickAddForm: React.FC<{
     { id: 'action', label: 'Action', icon: Zap, color: 'text-chart-4' },
     { id: 'dialogue', label: 'Dialogue', icon: Quote, color: 'text-primary' },
     { id: 'discovery', label: 'Discovery', icon: Sparkles, color: 'text-chart-4' },
-    { id: 'reaction', label: 'Reaction', icon: User, color: 'text-chart-2' }
+    { id: 'reaction', label: 'Reaction', icon: User, color: 'text-chart-2' },
   ]
 
   return (
@@ -216,7 +215,7 @@ const QuickAddForm: React.FC<{
       <form onSubmit={handleSubmit} className="space-y-2">
         {/* Type Selector */}
         <div className="flex gap-1">
-          {typeButtons.map(type => {
+          {typeButtons.map((type) => {
             const Icon = type.icon
             const isSelected = selectedType === type.id
 
@@ -241,7 +240,7 @@ const QuickAddForm: React.FC<{
           <textarea
             ref={textareaRef}
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={e => setContent(e.target.value)}
             placeholder={`Add a ${selectedType} to your chronicle...`}
             className="w-full p-2 text-sm border border-border rounded-lg bg-card resize-none"
             rows={2}
@@ -287,7 +286,7 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
   gameMode,
   theme,
   sessionStartTime,
-  className = ''
+  className = '',
 }) => {
   const [entries, setEntries] = useState<ChronicleEntry[]>([])
   const [suggestions, setSuggestions] = useState<QuickSuggestion[]>([])
@@ -306,7 +305,7 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
           baseSuggestions.push(
             { id: '1', text: `${character.name} strikes with fierce determination`, type: 'action', confidence: 0.8 },
             { id: '2', text: `"This ends now!" ${character.name} shouts`, type: 'dialogue', confidence: 0.7 },
-            { id: '3', text: 'The enemy reveals a weakness in their defense', type: 'discovery', confidence: 0.6 }
+            { id: '3', text: 'The enemy reveals a weakness in their defense', type: 'discovery', confidence: 0.6 },
           )
           break
 
@@ -314,7 +313,7 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
           baseSuggestions.push(
             { id: '1', text: `${character.name} carefully examines the area`, type: 'action', confidence: 0.8 },
             { id: '2', text: 'Something glints in the shadows', type: 'discovery', confidence: 0.7 },
-            { id: '3', text: `${character.name} feels a sense of unease`, type: 'reaction', confidence: 0.6 }
+            { id: '3', text: `${character.name} feels a sense of unease`, type: 'reaction', confidence: 0.6 },
           )
           break
 
@@ -322,7 +321,7 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
           baseSuggestions.push(
             { id: '1', text: `${character.name} chooses their words carefully`, type: 'action', confidence: 0.8 },
             { id: '2', text: '"Perhaps we can help each other," they offer', type: 'dialogue', confidence: 0.7 },
-            { id: '3', text: 'The NPC seems to be hiding something', type: 'discovery', confidence: 0.6 }
+            { id: '3', text: 'The NPC seems to be hiding something', type: 'discovery', confidence: 0.6 },
           )
           break
 
@@ -330,7 +329,7 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
           baseSuggestions.push(
             { id: '1', text: `${character.name} reflects on recent events`, type: 'reaction', confidence: 0.8 },
             { id: '2', text: 'The peaceful moment allows for deeper thoughts', type: 'discovery', confidence: 0.7 },
-            { id: '3', text: `${character.name} tends to their equipment`, type: 'action', confidence: 0.6 }
+            { id: '3', text: `${character.name} tends to their equipment`, type: 'action', confidence: 0.6 },
           )
           break
       }
@@ -356,7 +355,7 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
       content,
       type: type as any,
       tags: extractTags(content),
-      isAutoSuggested: false
+      isAutoSuggested: false,
     }
 
     setEntries(prev => [...prev, newEntry])
@@ -377,11 +376,14 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
     return matches ? matches.map(match => match.substring(1)) : []
   }
 
-  const cardVariant =
-    theme === 'combat' ? 'elevated' :
-    theme === 'dungeon' ? 'parchment' :
-    theme === 'tavern' ? 'magical' :
-    'glass'
+  const cardVariant
+    = theme === 'combat'
+      ? 'elevated'
+      : theme === 'dungeon'
+        ? 'parchment'
+        : theme === 'tavern'
+          ? 'magical'
+          : 'glass'
 
   return (
     <Card
@@ -395,7 +397,9 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
             Live Chronicle
             {entries.length > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {entries.length} entries
+                {entries.length}
+                {' '}
+                entries
               </Badge>
             )}
           </CardTitle>
@@ -432,26 +436,28 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
           }}
         >
           <AnimatePresence>
-            {entries.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center text-muted-foreground py-8"
-              >
-                <BookOpen size={24} className="mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Your chronicle begins here</p>
-                <p className="text-xs">Document your adventure as it unfolds</p>
-              </motion.div>
-            ) : (
-              entries.map(entry => (
-                <ChronicleEntryCard
-                  key={entry.id}
-                  entry={entry}
-                  onEdit={editEntry}
-                  onDelete={deleteEntry}
-                />
-              ))
-            )}
+            {entries.length === 0
+              ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center text-muted-foreground py-8"
+                  >
+                    <BookOpen size={24} className="mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Your chronicle begins here</p>
+                    <p className="text-xs">Document your adventure as it unfolds</p>
+                  </motion.div>
+                )
+              : (
+                  entries.map(entry => (
+                    <ChronicleEntryCard
+                      key={entry.id}
+                      entry={entry}
+                      onEdit={editEntry}
+                      onDelete={deleteEntry}
+                    />
+                  ))
+                )}
           </AnimatePresence>
 
           {/* Scroll to Bottom Indicator */}
@@ -490,7 +496,3 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
 }
 
 export default LiveChronicleStream
-
-
-
-

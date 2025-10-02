@@ -6,21 +6,21 @@
  * smart positioning, and integration with the action listener system.
  */
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import type { ChroniclePrompt } from '../../services/ChronicleActionListenerService'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   BookOpen,
-  Feather,
-  X,
   ChevronDown,
   ChevronUp,
   Clock,
+  Feather,
   Target,
-  Zap
+  X,
+  Zap,
 } from 'lucide-react'
-import { chronicleActionListener, type ChroniclePrompt } from '../../services/ChronicleActionListenerService'
+import React, { useCallback, useEffect, useState } from 'react'
+import { chronicleActionListener } from '../../services/ChronicleActionListenerService'
 import { contextIntelligence } from '../../services/ChronicleContextIntelligence'
-import { useChronicleStore } from '../../stores/chronicleStore'
 
 interface ChronicleOverlayProps {
   isEnabled?: boolean
@@ -66,8 +66,9 @@ const ChroniclePromptCard: React.FC<{
   }
 
   const handleQuickInsert = (suggestion: string) => {
-    setCustomText(prev => {
-      if (!prev.trim()) return suggestion
+    setCustomText((prev) => {
+      if (!prev.trim())
+        return suggestion
       return prev + (prev.endsWith('.') || prev.endsWith('!') || prev.endsWith('?') ? ' ' : '. ') + suggestion
     })
   }
@@ -95,10 +96,10 @@ const ChroniclePromptCard: React.FC<{
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.8, y: -20 }}
       transition={{
-        type: "spring",
+        type: 'spring',
         stiffness: 300,
         damping: 25,
-        delay: index * 0.1
+        delay: index * 0.1,
       }}
       className={`
         bg-card
@@ -165,7 +166,7 @@ const ChroniclePromptCard: React.FC<{
                 <div className="relative">
                   <textarea
                     value={customText}
-                    onChange={(e) => setCustomText(e.target.value)}
+                    onChange={e => setCustomText(e.target.value)}
                     placeholder="Describe what happened in this moment..."
                     autoFocus
                     className="
@@ -180,7 +181,9 @@ const ChroniclePromptCard: React.FC<{
                   {customText.length > 0 && (
                     <div className="absolute top-2 right-2">
                       <span className="text-xs text-muted-foreground">
-                        {customText.length} chars
+                        {customText.length}
+                        {' '}
+                        chars
                       </span>
                     </div>
                   )}
@@ -200,7 +203,11 @@ const ChroniclePromptCard: React.FC<{
                       onClick={() => setShowSuggestions(!showSuggestions)}
                       className="text-xs text-primary hover:text-primary"
                     >
-                      {showSuggestions ? 'Hide' : 'Show'} ({prompt.suggestedEntries.length})
+                      {showSuggestions ? 'Hide' : 'Show'}
+                      {' '}
+                      (
+                      {prompt.suggestedEntries.length}
+                      )
                     </motion.button>
                   </div>
 
@@ -212,9 +219,9 @@ const ChroniclePromptCard: React.FC<{
                         exit={{ height: 0, opacity: 0 }}
                         className="flex flex-wrap gap-2"
                       >
-                        {prompt.suggestedEntries.slice(0, 4).map((entry, idx) => (
+                        {prompt.suggestedEntries.slice(0, 4).map(entry => (
                           <motion.button
-                            key={idx}
+                            key={`${prompt.id}-${entry}`}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleQuickInsert(entry)}
@@ -228,7 +235,9 @@ const ChroniclePromptCard: React.FC<{
                             "
                             title={entry}
                           >
-                            + {entry}
+                            +
+                            {' '}
+                            {entry}
                           </motion.button>
                         ))}
                       </motion.div>
@@ -261,7 +270,7 @@ const ChroniclePromptCard: React.FC<{
                   onClick={() => onDismiss(prompt.id)}
                   className="
                     px-3 py-2 text-sm font-medium
-                    bg-muted hover:bg-muted text-foreground 
+                    bg-muted hover:bg-muted text-foreground
                     rounded-lg transition-colors
                   "
                 >
@@ -298,7 +307,7 @@ const ChroniclePromptCard: React.FC<{
             className="
               px-3 py-2 text-xs font-medium
               bg-muted hover:bg-muted text-foreground
-               hover:bg-muted 
+               hover:bg-muted
               rounded transition-colors
             "
           >
@@ -315,14 +324,15 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   isEnabled = true,
   maxPrompts = 2,
   position = 'top-right',
-  className = ''
+  className = '',
 }) => {
   const [activePrompts, setActivePrompts] = useState<ChroniclePrompt[]>([])
   const [isVisible, setIsVisible] = useState(false)
 
   // Subscribe to action listener for new prompts
   useEffect(() => {
-    if (!isEnabled) return
+    if (!isEnabled)
+      return
 
     const updatePrompts = () => {
       const prompts = chronicleActionListener.getActivePrompts()
@@ -349,7 +359,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
       activePrompts.find(p => p.id === promptId)?.actionContext.actionType || 'dice_roll',
       true,
       Date.now(), // Would calculate actual response time
-      customText || selectedEntry
+      customText || selectedEntry,
     )
   }, [activePrompts])
 
@@ -364,7 +374,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
       activePrompts.find(p => p.id === promptId)?.actionContext.actionType || 'dice_roll',
       false,
       Date.now(),
-      ''
+      '',
     )
   }, [activePrompts])
 
@@ -402,22 +412,3 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
 }
 
 // Hook for easy integration
-export const useChronicleOverlay = () => {
-  const [isEnabled, setIsEnabled] = useState(true)
-
-  const enableOverlay = () => setIsEnabled(true)
-  const disableOverlay = () => setIsEnabled(false)
-  const toggleOverlay = () => setIsEnabled(prev => !prev)
-
-  return {
-    isEnabled,
-    enableOverlay,
-    disableOverlay,
-    toggleOverlay
-  }
-}
-
-
-
-
-

@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger'
+
 /**
  * Dice Modifier Service for ZimboMate V2
  * Auto-apply debilities, equipment bonuses, and situational modifiers to dice rolls
@@ -23,7 +25,13 @@ export interface ActiveModifier {
   conditions?: string[] // When this modifier applies
   stackable: boolean
   timestamp: Date
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
+}
+
+interface ModifierExportPayload {
+  characterId: string
+  modifiers: ActiveModifier[]
+  exportDate: Date
 }
 
 export interface ModifierStack {
@@ -37,6 +45,32 @@ export interface ModifierStack {
   }>
 }
 
+interface EquipmentModifierPayload {
+  id: string
+  value: number
+  stat?: string
+  description?: string
+  conditions?: string[]
+  duration?: ActiveModifier['duration']
+  stackable?: boolean
+  remainingRounds?: number
+}
+
+type EquipmentWithModifiers = Item & {
+  modifiers?: EquipmentModifierPayload[]
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isEquipmentModifierPayload(value: unknown): value is EquipmentModifierPayload {
+  if (!isPlainObject(value)) {
+    return false
+  }
+
+  return typeof value.type === 'string' && typeof value.value === 'number'
+}
 export interface RollModifierContext {
   characterId: string
   stat?: string
@@ -67,7 +101,7 @@ class DiceModifierService {
         type: 'debility',
         category: 'debility',
         icon: 'Minus',
-        color: 'var(--destructive)'
+        color: 'var(--destructive)',
       },
       {
         id: 'debility-shaky',
@@ -76,7 +110,7 @@ class DiceModifierService {
         type: 'debility',
         category: 'debility',
         icon: 'Minus',
-        color: 'var(--destructive)'
+        color: 'var(--destructive)',
       },
       {
         id: 'debility-sick',
@@ -85,7 +119,7 @@ class DiceModifierService {
         type: 'debility',
         category: 'debility',
         icon: 'Minus',
-        color: 'var(--destructive)'
+        color: 'var(--destructive)',
       },
       {
         id: 'debility-stunned',
@@ -94,7 +128,7 @@ class DiceModifierService {
         type: 'debility',
         category: 'debility',
         icon: 'Minus',
-        color: 'var(--destructive)'
+        color: 'var(--destructive)',
       },
       {
         id: 'debility-confused',
@@ -103,7 +137,7 @@ class DiceModifierService {
         type: 'debility',
         category: 'debility',
         icon: 'Minus',
-        color: 'var(--destructive)'
+        color: 'var(--destructive)',
       },
       {
         id: 'debility-scarred',
@@ -112,7 +146,7 @@ class DiceModifierService {
         type: 'debility',
         category: 'debility',
         icon: 'Minus',
-        color: 'var(--destructive)'
+        color: 'var(--destructive)',
       },
 
       // Equipment bonuses
@@ -123,7 +157,7 @@ class DiceModifierService {
         type: 'equipment',
         category: 'weapon',
         icon: 'Sword',
-        color: 'var(--accent)'
+        color: 'var(--accent)',
       },
       {
         id: 'equipment-armor-bonus',
@@ -132,7 +166,7 @@ class DiceModifierService {
         type: 'equipment',
         category: 'armor',
         icon: 'Shield',
-        color: 'var(--primary)'
+        color: 'var(--primary)',
       },
 
       // Conditions
@@ -143,7 +177,7 @@ class DiceModifierService {
         type: 'condition',
         category: 'beneficial',
         icon: 'Star',
-        color: 'var(--chart-2)'
+        color: 'var(--chart-2)',
       },
       {
         id: 'condition-cursed',
@@ -152,7 +186,7 @@ class DiceModifierService {
         type: 'condition',
         category: 'detrimental',
         icon: 'Skull',
-        color: 'var(--destructive)'
+        color: 'var(--destructive)',
       },
 
       // Situational
@@ -163,7 +197,7 @@ class DiceModifierService {
         type: 'situational',
         category: 'circumstance',
         icon: 'TrendingUp',
-        color: 'var(--chart-2)'
+        color: 'var(--chart-2)',
       },
       {
         id: 'situational-disadvantage',
@@ -172,11 +206,11 @@ class DiceModifierService {
         type: 'situational',
         category: 'circumstance',
         icon: 'TrendingDown',
-        color: 'var(--chart-4)'
-      }
+        color: 'var(--chart-4)',
+      },
     ]
 
-    sources.forEach(source => {
+    sources.forEach((source) => {
       this.modifierSources.set(source.id, source)
     })
   }
@@ -194,8 +228,8 @@ class DiceModifierService {
       remainingRounds?: number
       conditions?: string[]
       stackable?: boolean
-      metadata?: Record<string, any>
-    } = {}
+      metadata?: Record<string, unknown>
+    } = {},
   ): ActiveModifier {
     const source = this.modifierSources.get(sourceId)
     if (!source) {
@@ -212,7 +246,7 @@ class DiceModifierService {
       conditions: options.conditions,
       stackable: options.stackable !== false,
       timestamp: new Date(),
-      metadata: options.metadata
+      metadata: options.metadata,
     }
 
     if (!this.activeModifiers.has(characterId)) {
@@ -220,11 +254,11 @@ class DiceModifierService {
     }
 
     const characterModifiers = this.activeModifiers.get(characterId)!
-    
+
     // Check if non-stackable modifier already exists
     if (!modifier.stackable) {
-      const existingIndex = characterModifiers.findIndex(m => 
-        m.source.id === sourceId && !m.stackable
+      const existingIndex = characterModifiers.findIndex(m =>
+        m.source.id === sourceId && !m.stackable,
       )
       if (existingIndex !== -1) {
         characterModifiers[existingIndex] = modifier
@@ -241,10 +275,12 @@ class DiceModifierService {
    */
   removeModifier(characterId: string, modifierId: string): boolean {
     const modifiers = this.activeModifiers.get(characterId)
-    if (!modifiers) return false
+    if (!modifiers)
+      return false
 
     const index = modifiers.findIndex(m => m.id === modifierId)
-    if (index === -1) return false
+    if (index === -1)
+      return false
 
     modifiers.splice(index, 1)
     return true
@@ -255,12 +291,13 @@ class DiceModifierService {
    */
   removeModifiersByType(characterId: string, type: string): number {
     const modifiers = this.activeModifiers.get(characterId)
-    if (!modifiers) return 0
+    if (!modifiers)
+      return 0
 
     const initialLength = modifiers.length
     this.activeModifiers.set(
       characterId,
-      modifiers.filter(m => m.source.type !== type)
+      modifiers.filter(m => m.source.type !== type),
     )
 
     return initialLength - (this.activeModifiers.get(characterId)?.length || 0)
@@ -278,23 +315,23 @@ class DiceModifierService {
    */
   getModifierStack(characterId: string, stat: string): ModifierStack {
     const modifiers = this.getActiveModifiers(characterId)
-    const applicableModifiers = modifiers.filter(m => 
-      m.affectedStats.includes(stat) || m.affectedStats.includes('all')
+    const applicableModifiers = modifiers.filter(m =>
+      m.affectedStats.includes(stat) || m.affectedStats.includes('all'),
     )
 
     const totalModifier = applicableModifiers.reduce((sum, m) => sum + m.value, 0)
-    
+
     const breakdown = applicableModifiers.map(m => ({
       source: m.source.name,
       value: m.value,
-      description: m.source.description
+      description: m.source.description,
     }))
 
     return {
       stat,
       modifiers: applicableModifiers,
       totalModifier,
-      breakdown
+      breakdown,
     }
   }
 
@@ -319,8 +356,8 @@ class DiceModifierService {
 
       // Check stat-specific modifiers
       if (context.stat && (
-        modifier.affectedStats.includes(context.stat) ||
-        modifier.affectedStats.includes('all')
+        modifier.affectedStats.includes(context.stat)
+        || modifier.affectedStats.includes('all')
       )) {
         applies = true
       }
@@ -328,7 +365,7 @@ class DiceModifierService {
       // Check conditional modifiers
       if (modifier.conditions && context.situation) {
         const hasMatchingCondition = modifier.conditions.some(condition =>
-          context.situation!.includes(condition)
+          context.situation!.includes(condition),
         )
         if (hasMatchingCondition) {
           applies = true
@@ -337,8 +374,7 @@ class DiceModifierService {
 
       // Equipment modifiers
       if (modifier.source.type === 'equipment' && context.equipment) {
-        const hasMatchingEquipment = context.equipment.some(item =>
-          modifier.metadata?.equipmentId === item
+        const hasMatchingEquipment = context.equipment.includes(modifier.metadata?.equipmentId,
         )
         if (hasMatchingEquipment) {
           applies = true
@@ -351,12 +387,12 @@ class DiceModifierService {
     }
 
     const totalModifier = applicableModifiers.reduce((sum, m) => sum + m.value, 0)
-    
+
     const breakdown = applicableModifiers.map(m => ({
       source: m.source.name,
       value: m.value,
       description: m.source.description,
-      category: m.source.category
+      category: m.source.category,
     }))
 
     return { totalModifier, breakdown }
@@ -376,7 +412,7 @@ class DiceModifierService {
       sick: 'constitution',
       stunned: 'intelligence',
       confused: 'wisdom',
-      scarred: 'charisma'
+      scarred: 'charisma',
     }
 
     Object.entries(debilities).forEach(([debility, isActive]) => {
@@ -386,7 +422,7 @@ class DiceModifierService {
           `debility-${debility}`,
           -1,
           [debilityMap[debility]],
-          { duration: 'permanent', stackable: false }
+          { duration: 'permanent', stackable: false },
         )
       }
     })
@@ -395,26 +431,35 @@ class DiceModifierService {
   /**
    * Apply equipment modifiers
    */
-  applyEquipmentModifiers(characterId: string, equipment: any[]) {
+  applyEquipmentModifiers(characterId: string, equipment: EquipmentWithModifiers[]) {
     // Remove existing equipment modifiers
     this.removeModifiersByType(characterId, 'equipment')
 
-    equipment.forEach(item => {
-      if (item.equipped && item.modifiers) {
-        item.modifiers.forEach((mod: any) => {
+    equipment.forEach((item) => {
+      if (!item.equipped || !Array.isArray(item.modifiers)) {
+        return
+      }
+
+      item.modifiers
+        .filter(isEquipmentModifierPayload)
+        .forEach((mod) => {
+          const affectedStats = mod.affectedStats && mod.affectedStats.length > 0 ? mod.affectedStats : ['all']
+
           this.addModifier(
             characterId,
             `equipment-${mod.type}`,
             mod.value,
-            mod.affectedStats || ['all'],
+            affectedStats,
             {
-              duration: 'permanent',
+              duration: mod.duration ?? 'permanent',
               stackable: mod.stackable !== false,
-              metadata: { equipmentId: item.id, equipmentName: item.name }
-            }
+              metadata: {
+                equipmentId: item.id,
+                equipmentName: item.name,
+              },
+            },
           )
         })
-      }
     })
   }
 
@@ -425,14 +470,15 @@ class DiceModifierService {
     const modifiers = this.getActiveModifiers(characterId)
     const updatedModifiers: ActiveModifier[] = []
 
-    modifiers.forEach(modifier => {
+    modifiers.forEach((modifier) => {
       if (modifier.duration === 'rounds' && modifier.remainingRounds !== undefined) {
         if (modifier.remainingRounds > 1) {
           modifier.remainingRounds--
           updatedModifiers.push(modifier)
         }
         // Modifier expires if remainingRounds reaches 0
-      } else {
+      }
+      else {
         updatedModifiers.push(modifier)
       }
     })
@@ -447,7 +493,7 @@ class DiceModifierService {
     const modifiers = this.getActiveModifiers(characterId)
     this.activeModifiers.set(
       characterId,
-      modifiers.filter(m => m.duration !== 'encounter')
+      modifiers.filter(m => m.duration !== 'encounter'),
     )
   }
 
@@ -461,53 +507,54 @@ class DiceModifierService {
     color: string
   } {
     const stack = this.getModifierStack(characterId, stat)
-    
+
     if (stack.totalModifier === 0) {
       return {
         hasModifiers: false,
         totalModifier: 0,
         preview: '',
-        color: 'var(--muted-foreground)'
+        color: 'var(--muted-foreground)',
       }
     }
 
     const sign = stack.totalModifier > 0 ? '+' : ''
-    const color = stack.totalModifier > 0 
-      ? 'var(--chart-2)' 
+    const color = stack.totalModifier > 0
+      ? 'var(--chart-2)'
       : 'var(--destructive)'
 
     return {
       hasModifiers: true,
       totalModifier: stack.totalModifier,
       preview: `${sign}${stack.totalModifier}`,
-      color
+      color,
     }
   }
 
   /**
    * Export modifier data
    */
-  exportModifierData(characterId: string): any {
+  exportModifierData(characterId: string): ModifierExportPayload {
     return {
       characterId,
       modifiers: this.getActiveModifiers(characterId),
-      exportDate: new Date()
+      exportDate: new Date(),
     }
   }
 
   /**
    * Import modifier data
    */
-  importModifierData(data: any): boolean {
+  importModifierData(data: unknown): boolean {
     try {
-      if (!data.characterId || !Array.isArray(data.modifiers)) {
+      if (!isPlainObject(data) || typeof data.characterId !== 'string' || !Array.isArray(data.modifiers)) {
         return false
       }
 
-      this.activeModifiers.set(data.characterId, data.modifiers)
+      this.activeModifiers.set(data.characterId, data.modifiers as ActiveModifier[])
       return true
-    } catch (error) {
-      console.error('Failed to import modifier data:', error)
+    }
+    catch (error) {
+      logger.error('Failed to import modifier data:', error)
       return false
     }
   }

@@ -4,13 +4,12 @@
  * Handles move selection, execution, outcomes, and follow-up effects
  */
 
+import type { Attribute } from '../models/Character'
+import type { CompendiumMove } from '../services/MoveCompendiumService'
 import { useCallback, useMemo, useState } from 'react'
+import { moveCompendiumService } from '../services/MoveCompendiumService'
 import { useActiveCharacter } from './useActiveCharacter'
 import { useDiceRoll } from './useDiceRoll'
-import { moveCompendiumService } from '../services/MoveCompendiumService'
-import { characterStateService } from '../services/CharacterStateService'
-import type { CompendiumMove, MoveType } from '../services/MoveCompendiumService'
-import type { Attribute } from '../models/Character'
 
 export interface MoveExecutionContext {
   characterId: string
@@ -45,12 +44,12 @@ export interface UseMoveReturn {
   basicMoves: CompendiumMove[]
   specialMoves: CompendiumMove[]
   classMoves: CompendiumMove[]
-  
+
   // Move selection
   selectedMove: CompendiumMove | null
   selectMove: (moveId: string) => void
   clearSelection: () => void
-  
+
   // Move execution
   executeMove: (context: MoveExecutionContext) => Promise<MoveExecutionResult>
   executeSelectedMove: (options?: {
@@ -58,27 +57,27 @@ export interface UseMoveReturn {
     selectedOptions?: string[]
     description?: string
   }) => Promise<MoveExecutionResult>
-  
+
   // Quick move execution
   hackAndSlash: (modifier?: number) => Promise<MoveExecutionResult>
   volley: (modifier?: number) => Promise<MoveExecutionResult>
   defy: (stat: keyof Attribute, modifier?: number) => Promise<MoveExecutionResult>
   aid: (targetCharacterId: string, modifier?: number) => Promise<MoveExecutionResult>
   interfere: (targetCharacterId: string, modifier?: number) => Promise<MoveExecutionResult>
-  
+
   // Move search and filtering
   searchMoves: (query: string) => CompendiumMove[]
   getMovesForClass: (className: string) => CompendiumMove[]
   getMovesForStat: (stat: keyof Attribute) => CompendiumMove[]
-  
+
   // Move state
   isExecuting: boolean
   lastExecution: MoveExecutionResult | null
-  
+
   // Character context
   activeCharacter: any
   availableMoves: CompendiumMove[]
-  
+
   // Utility
   canExecuteMove: (moveId: string) => boolean
   getMovePrerequisites: (moveId: string) => string[]
@@ -90,7 +89,7 @@ export interface UseMoveReturn {
 export function useMove(): UseMoveReturn {
   const { activeCharacter } = useActiveCharacter()
   const { roll } = useDiceRoll()
-  
+
   const [selectedMove, setSelectedMove] = useState<CompendiumMove | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
   const [lastExecution, setLastExecution] = useState<MoveExecutionResult | null>(null)
@@ -110,29 +109,32 @@ export function useMove(): UseMoveReturn {
   }, [allMoves])
 
   const classMoves = useMemo(() => {
-    if (!activeCharacter) return []
-    return allMoves.filter(move => 
-      move.type === 'class' && 
-      move.classes?.includes(activeCharacter.class.toLowerCase())
+    if (!activeCharacter)
+      return []
+    return allMoves.filter(move =>
+      move.type === 'class'
+      && move.classes?.includes(activeCharacter.class.toLowerCase()),
     )
   }, [allMoves, activeCharacter])
 
   // Available moves for the active character
   const availableMoves = useMemo(() => {
-    if (!activeCharacter) return []
-    
-    return allMoves.filter(move => {
+    if (!activeCharacter)
+      return []
+
+    return allMoves.filter((move) => {
       // Basic moves are always available
-      if (move.type === 'basic') return true
-      
+      if (move.type === 'basic')
+        return true
+
       // Special moves are situational
-      if (move.type === 'special') return true
-      
+      if (move.type === 'special')
+        return true
+
       // Class moves must match character class
       if (move.type === 'class') {
         return move.classes?.includes(activeCharacter.class.toLowerCase()) || false
       }
-      
       return false
     })
   }, [allMoves, activeCharacter])
@@ -163,7 +165,7 @@ export function useMove(): UseMoveReturn {
 
       // Determine the stat to roll with
       const rollStat = move.stat as keyof Attribute | undefined
-      
+
       // Execute the roll
       const rollResult = await roll({
         stat: rollStat,
@@ -193,8 +195,8 @@ export function useMove(): UseMoveReturn {
 
       setLastExecution(result)
       return result
-
-    } finally {
+    }
+    finally {
       setIsExecuting(false)
     }
   }, [activeCharacter, roll])
@@ -204,7 +206,6 @@ export function useMove(): UseMoveReturn {
     if (!selectedMove || !activeCharacter) {
       throw new Error('No move selected or no active character')
     }
-
     return executeMove({
       characterId: activeCharacter.id,
       moveId: selectedMove.id,
@@ -218,7 +219,6 @@ export function useMove(): UseMoveReturn {
     if (!hackAndSlashMove || !activeCharacter) {
       throw new Error('Hack and Slash move not found or no active character')
     }
-
     return executeMove({
       characterId: activeCharacter.id,
       moveId: hackAndSlashMove.id,
@@ -231,7 +231,6 @@ export function useMove(): UseMoveReturn {
     if (!volleyMove || !activeCharacter) {
       throw new Error('Volley move not found or no active character')
     }
-
     return executeMove({
       characterId: activeCharacter.id,
       moveId: volleyMove.id,
@@ -244,10 +243,6 @@ export function useMove(): UseMoveReturn {
     if (!defyMove || !activeCharacter) {
       throw new Error('Defy Danger move not found or no active character')
     }
-
-    // Override the move's stat with the chosen one
-    const customMove = { ...defyMove, stat }
-
     return executeMove({
       characterId: activeCharacter.id,
       moveId: defyMove.id,
@@ -261,7 +256,6 @@ export function useMove(): UseMoveReturn {
     if (!aidMove || !activeCharacter) {
       throw new Error('Aid move not found or no active character')
     }
-
     return executeMove({
       characterId: activeCharacter.id,
       moveId: aidMove.id,
@@ -275,7 +269,6 @@ export function useMove(): UseMoveReturn {
     if (!interfereMove || !activeCharacter) {
       throw new Error('Interfere move not found or no active character')
     }
-
     return executeMove({
       characterId: activeCharacter.id,
       moveId: interfereMove.id,
@@ -290,8 +283,8 @@ export function useMove(): UseMoveReturn {
   }, [])
 
   const getMovesForClass = useCallback((className: string) => {
-    return allMoves.filter(move => 
-      move.classes?.includes(className.toLowerCase())
+    return allMoves.filter(move =>
+      move.classes?.includes(className.toLowerCase()),
     )
   }, [allMoves])
 
@@ -301,10 +294,12 @@ export function useMove(): UseMoveReturn {
 
   // Utility functions
   const canExecuteMove = useCallback((moveId: string) => {
-    if (!activeCharacter) return false
-    
+    if (!activeCharacter)
+      return false
+
     const move = moveCompendiumService.getMove(moveId)
-    if (!move) return false
+    if (!move)
+      return false
 
     // Check prerequisites
     const validation = moveCompendiumService.validateMoveExecution(move, activeCharacter)
@@ -313,7 +308,8 @@ export function useMove(): UseMoveReturn {
 
   const getMovePrerequisites = useCallback((moveId: string) => {
     const move = moveCompendiumService.getMove(moveId)
-    if (!move || !activeCharacter) return []
+    if (!move || !activeCharacter)
+      return []
 
     const validation = moveCompendiumService.validateMoveExecution(move, activeCharacter)
     return validation.missingPrerequisites
@@ -325,36 +321,36 @@ export function useMove(): UseMoveReturn {
     basicMoves,
     specialMoves,
     classMoves,
-    
+
     // Move selection
     selectedMove,
     selectMove,
     clearSelection,
-    
+
     // Move execution
     executeMove,
     executeSelectedMove,
-    
+
     // Quick move execution
     hackAndSlash,
     volley,
     defy,
     aid,
     interfere,
-    
+
     // Move search and filtering
     searchMoves,
     getMovesForClass,
     getMovesForStat,
-    
+
     // Move state
     isExecuting,
     lastExecution,
-    
+
     // Character context
     activeCharacter,
     availableMoves,
-    
+
     // Utility
     canExecuteMove,
     getMovePrerequisites,
@@ -363,10 +359,10 @@ export function useMove(): UseMoveReturn {
 
 // Helper function to apply move effects
 async function applyMoveEffects(
-  move: CompendiumMove,
-  outcome: 'success' | 'partial' | 'failure',
-  rollResult: any,
-  context: MoveExecutionContext
+  _move: CompendiumMove,
+  _outcome: 'success' | 'partial' | 'failure',
+  _rollResult: any,
+  _context: MoveExecutionContext,
 ): Promise<Array<{
   type: 'condition' | 'modifier' | 'resource' | 'damage' | 'healing'
   target: string
@@ -382,15 +378,15 @@ async function applyMoveEffects(
 
   // This would be expanded based on specific move implementations
   // For now, return basic effects structure
-  
+
   return effects
 }
 
 // Helper function to create follow-up options
 function createFollowUpOptions(
-  move: CompendiumMove,
-  outcome: 'success' | 'partial' | 'failure',
-  context: MoveExecutionContext
+  _move: CompendiumMove,
+  _outcome: 'success' | 'partial' | 'failure',
+  _context: MoveExecutionContext,
 ): Array<{
   id: string
   name: string
@@ -399,6 +395,6 @@ function createFollowUpOptions(
 }> | undefined {
   // This would be expanded based on specific move requirements
   // Some moves have follow-up choices, especially on 7-9 results
-  
+
   return undefined
 }

@@ -3,22 +3,20 @@
  * Phase 4A: Core Gameplay Features - Essential for actual play
  */
 
-import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  NotebookPen, 
-  Timer, 
-  Target, 
-  History, 
-  Plus,
+import {
+  History,
+  NotebookPen,
   Search,
-  Filter
+  Target,
+  Timer,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../../ui'
+import React, { useState } from 'react'
+import { Badge, Button, Card, CardContent } from '../../ui'
 import { NotesWidget } from './NotesWidget'
-import { TrackersWidget } from './TrackersWidget'
-import { TimersWidget } from './TimersWidget'
 import { RollHistoryWidget } from './RollHistoryWidget'
+import { TimersWidget } from './TimersWidget'
+import { TrackersWidget } from './TrackersWidget'
 
 type SessionToolTab = 'notes' | 'trackers' | 'timers' | 'history'
 
@@ -26,37 +24,37 @@ interface SessionToolsPanelProps {
   className?: string
 }
 
-export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({ 
-  className = '' 
+export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
+  className = '',
 }) => {
   const [activeTab, setActiveTab] = useState<SessionToolTab>('notes')
   const [searchQuery, setSearchQuery] = useState('')
 
   const tabs = [
-    { 
-      id: 'notes' as const, 
-      label: 'Notes', 
+    {
+      id: 'notes' as const,
+      label: 'Notes',
       icon: NotebookPen,
-      description: 'Session notes and important information'
+      description: 'Session notes and important information',
     },
-    { 
-      id: 'trackers' as const, 
-      label: 'Trackers', 
+    {
+      id: 'trackers' as const,
+      label: 'Trackers',
       icon: Target,
-      description: 'Custom counters and progress trackers'
+      description: 'Custom counters and progress trackers',
     },
-    { 
-      id: 'timers' as const, 
-      label: 'Timers', 
+    {
+      id: 'timers' as const,
+      label: 'Timers',
       icon: Timer,
-      description: 'Session timers and bookmarks'
+      description: 'Session timers and bookmarks',
     },
-    { 
-      id: 'history' as const, 
-      label: 'History', 
+    {
+      id: 'history' as const,
+      label: 'History',
       icon: History,
-      description: 'Roll history and event log'
-    }
+      description: 'Roll history and event log',
+    },
   ]
 
   const renderContent = () => {
@@ -96,7 +94,7 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
             {tabs.map((tab) => {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
-              
+
               return (
                 <Button
                   key={tab.id}
@@ -111,9 +109,10 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
                   {isActive && (
                     <motion.div
                       className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                      
+
                       layoutId="sessionToolTab"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    />
                   )}
                 </Button>
               )
@@ -127,20 +126,21 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
         <Card variant="surface">
           <CardContent className="p-4">
             <div className="relative">
-              <Search 
-                size={16} 
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+              />
               <input
                 type="text"
                 placeholder={`Search ${activeTab}...`}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border transition-colors"
                 style={{
                   backgroundColor: 'var(--card)',
                   borderColor: 'var(--primary)',
                   borderOpacity: 0.2,
-                  color: 'var(--foreground)'
+                  color: 'var(--foreground)',
                 }}
               />
             </div>

@@ -3,10 +3,10 @@
  * Individual spell item with preparation and casting functionality
  */
 
-import React from 'react'
 import { motion } from 'framer-motion'
-import { Wand, Sparkles } from 'lucide-react'
-import { Card, Badge, Button } from '../../ui'
+import { Sparkles, Wand } from 'lucide-react'
+import React from 'react'
+import { Badge, Button, Card } from '../../ui'
 
 interface Spell {
   id: string
@@ -42,7 +42,7 @@ export function SpellItem({
   onSelect,
   onPrepare,
   onCast,
-  className = ''
+  className = '',
 }: SpellItemProps) {
   const getSpellSchoolColor = (school: string) => {
     const colors = {
@@ -53,7 +53,7 @@ export function SpellItem({
       evocation: 'bg-destructive/20 text-destructive',
       illusion: 'bg-accent/20 text-accent',
       necromancy: 'bg-muted/500/20 text-muted-foreground',
-      transmutation: 'bg-chart-4/120/20 text-chart-4'
+      transmutation: 'bg-chart-4/120/20 text-chart-4',
     }
     return colors[school.toLowerCase()] || 'bg-muted/500/20 text-muted-foreground'
   }
@@ -108,8 +108,8 @@ export function SpellItem({
             <Badge className={getSpellSchoolColor(spell.school)}>
               {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)}
             </Badge>
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={getPreparationColor(spell.preparationStatus)}
             >
               {spell.preparationStatus.replace('_', ' ')}
@@ -159,7 +159,7 @@ export function SpellItem({
                 Prepare
               </Button>
             )}
-            
+
             {canCast && (
               <Button
                 variant="default"
@@ -181,8 +181,3 @@ export function SpellItem({
     </motion.div>
   )
 }
-
-
-
-
-

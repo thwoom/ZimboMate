@@ -24,14 +24,15 @@ export class EquipmentManagementService {
     try {
       const setsRaw = localStorage.getItem(`zimbomate-equipment-sets:${characterId}`)
       const wishRaw = localStorage.getItem(`zimbomate-equipment-wishlist:${characterId}`)
-      
+
       if (setsRaw) {
         this.setsByCharacter.set(characterId, JSON.parse(setsRaw))
       }
       if (wishRaw) {
         this.wishlistByCharacter.set(characterId, JSON.parse(wishRaw))
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.warn(`Failed to load equipment data for character ${characterId}:`, error)
     }
   }
@@ -43,10 +44,11 @@ export class EquipmentManagementService {
     try {
       const sets = this.setsByCharacter.get(characterId) || []
       const wish = this.wishlistByCharacter.get(characterId) || []
-      
+
       localStorage.setItem(`zimbomate-equipment-sets:${characterId}`, JSON.stringify(sets))
       localStorage.setItem(`zimbomate-equipment-wishlist:${characterId}`, JSON.stringify(wish))
-    } catch (error) {
+    }
+    catch (error) {
       console.warn(`Failed to save equipment data for character ${characterId}:`, error)
     }
   }
@@ -72,7 +74,7 @@ export class EquipmentManagementService {
       description,
       createdAt: new Date(),
     }
-    
+
     const current = this.getSets(characterId)
     this.setsByCharacter.set(characterId, [...current, set])
     this.save(characterId)
@@ -85,15 +87,16 @@ export class EquipmentManagementService {
   updateSet(characterId: string, setId: string, updates: Partial<Omit<EquipmentSet, 'id' | 'createdAt'>>): boolean {
     const sets = this.getSets(characterId)
     const setIndex = sets.findIndex(s => s.id === setId)
-    
-    if (setIndex === -1) return false
+
+    if (setIndex === -1)
+      return false
 
     sets[setIndex] = {
       ...sets[setIndex],
       ...updates,
       lastUsed: new Date(),
     }
-    
+
     this.setsByCharacter.set(characterId, sets)
     this.save(characterId)
     return true
@@ -112,8 +115,9 @@ export class EquipmentManagementService {
   deleteSet(characterId: string, setId: string): boolean {
     const sets = this.getSets(characterId)
     const filteredSets = sets.filter(s => s.id !== setId)
-    
-    if (filteredSets.length === sets.length) return false
+
+    if (filteredSets.length === sets.length)
+      return false
 
     this.setsByCharacter.set(characterId, filteredSets)
     this.save(characterId)
@@ -150,7 +154,7 @@ export class EquipmentManagementService {
     if (!this.wishlistByCharacter.has(characterId)) {
       this.load(characterId)
     }
-    
+
     const list = this.wishlistByCharacter.get(characterId) || []
     if (!list.includes(itemId)) {
       this.wishlistByCharacter.set(characterId, [...list, itemId])
@@ -165,10 +169,10 @@ export class EquipmentManagementService {
     if (!this.wishlistByCharacter.has(characterId)) {
       this.load(characterId)
     }
-    
+
     const list = this.wishlistByCharacter.get(characterId) || []
     const filteredList = list.filter(id => id !== itemId)
-    
+
     this.wishlistByCharacter.set(characterId, filteredList)
     this.save(characterId)
   }
@@ -219,13 +223,13 @@ export class EquipmentManagementService {
       const setsWithUsage = sets.filter(s => s.lastUsed)
       if (setsWithUsage.length > 0) {
         mostRecentlyUsedSet = setsWithUsage.reduce((latest, current) =>
-          (current.lastUsed && (!latest.lastUsed || current.lastUsed > latest.lastUsed)) ? current : latest
+          (current.lastUsed && (!latest.lastUsed || current.lastUsed > latest.lastUsed)) ? current : latest,
         )
       }
 
       // Find oldest set
       oldestSet = sets.reduce((oldest, current) =>
-        current.createdAt < oldest.createdAt ? current : oldest
+        current.createdAt < oldest.createdAt ? current : oldest,
       )
     }
 
@@ -245,8 +249,8 @@ export class EquipmentManagementService {
     const lowerQuery = query.toLowerCase()
 
     return sets.filter(set =>
-      set.name.toLowerCase().includes(lowerQuery) ||
-      (set.description && set.description.toLowerCase().includes(lowerQuery))
+      set.name.toLowerCase().includes(lowerQuery)
+      || (set.description && set.description.toLowerCase().includes(lowerQuery)),
     )
   }
 
@@ -285,11 +289,12 @@ export class EquipmentManagementService {
   clearCharacterData(characterId: string): void {
     this.setsByCharacter.delete(characterId)
     this.wishlistByCharacter.delete(characterId)
-    
+
     try {
       localStorage.removeItem(`zimbomate-equipment-sets:${characterId}`)
       localStorage.removeItem(`zimbomate-equipment-wishlist:${characterId}`)
-    } catch (error) {
+    }
+    catch (error) {
       console.warn(`Failed to clear equipment data for character ${characterId}:`, error)
     }
   }

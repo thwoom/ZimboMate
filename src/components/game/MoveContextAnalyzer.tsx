@@ -3,11 +3,11 @@
  * Analyzes current situation and suggests optimal moves for the player
  */
 
-import React, { useMemo } from 'react'
+import type { Character } from '../../models/Character'
 import { motion } from 'framer-motion'
-import { Card, CardContent, Badge } from '../ui'
-import { Character } from '../../models/Character'
-import { Brain, Target, Users, Eye, Zap, AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Brain, Eye, Target, Users, Zap } from 'lucide-react'
+import React, { useMemo } from 'react'
+import { Badge, Card, CardContent } from '../ui'
 
 interface GameContext {
   inCombat: boolean
@@ -26,7 +26,7 @@ interface MoveSuggestion {
   reason: string
   priority: 'high' | 'medium' | 'low'
   contextMatch: number
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
 }
 
 interface MoveContextAnalyzerProps {
@@ -36,17 +36,11 @@ interface MoveContextAnalyzerProps {
   className?: string
 }
 
-const getStatScore = (stat: any): number => {
-  if (stat == null) return 0
-  if (typeof stat === 'number') return stat
-  if (typeof stat === 'object') {
-    if (typeof (stat as any).value === 'number') return (stat as any).value
-    if (typeof (stat as any).score === 'number') return (stat as any).score
-  }
-  return 0
+function getStatScore(value: number | undefined): number {
+  return typeof value === 'number' ? value : 0
 }
 
-const analyzeContext = (character: Character, context: GameContext): MoveSuggestion[] => {
+function analyzeContext(character: Character, context: GameContext): MoveSuggestion[] {
   const suggestions: MoveSuggestion[] = []
 
   // Combat context analysis
@@ -58,68 +52,68 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
         reason: 'Low health - prioritize defense',
         priority: 'high',
         contextMatch: 0.9,
-        icon: Target
+        icon: Target,
       })
     }
 
-    if (context.hasEnemiesNearby && getStatScore((character as any).stats?.strength) >= 13) {
+    if (context.hasEnemiesNearby && getStatScore(character.attributes.STR) >= 13) {
       suggestions.push({
         moveId: 'hack-and-slash',
         name: 'Hack and Slash',
         reason: 'Strong character in melee range',
         priority: 'high',
         contextMatch: 0.85,
-        icon: Target
+        icon: Target,
       })
     }
 
-    if (getStatScore((character as any).stats?.dexterity) >= 13) {
+    if (getStatScore(character.attributes.DEX) >= 13) {
       suggestions.push({
         moveId: 'volley',
         name: 'Volley',
         reason: 'High dexterity for ranged attacks',
         priority: 'medium',
         contextMatch: 0.7,
-        icon: Target
+        icon: Target,
       })
     }
   }
 
   // Exploration context
   if (context.exploringNew) {
-    if (getStatScore((character as any).stats?.wisdom) >= 13) {
+    if (getStatScore(character.attributes.WIS) >= 13) {
       suggestions.push({
         moveId: 'discern-realities',
         name: 'Discern Realities',
         reason: 'High wisdom for understanding new areas',
         priority: 'high',
         contextMatch: 0.8,
-        icon: Eye
+        icon: Eye,
       })
     }
 
-    if (getStatScore((character as any).stats?.intelligence) >= 13) {
+    if (getStatScore(character.attributes.INT) >= 13) {
       suggestions.push({
         moveId: 'spout-lore',
         name: 'Spout Lore',
         reason: 'Use knowledge to understand situation',
         priority: 'medium',
         contextMatch: 0.75,
-        icon: Brain
+        icon: Brain,
       })
     }
   }
 
   // Social context
   if (context.socialSituation) {
-    if (getStatScore((character as any).stats?.charisma) >= 13) {
+    if (getStatScore(character.attributes.CHA) >= 13) {
       suggestions.push({
         moveId: 'parley',
         name: 'Parley',
         reason: 'High charisma for social manipulation',
         priority: 'high',
         contextMatch: 0.85,
-        icon: Users
+        icon: Users,
       })
     }
   }
@@ -132,7 +126,7 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
       reason: 'Spells prepared and ready to cast',
       priority: 'medium',
       contextMatch: 0.8,
-      icon: Zap
+      icon: Zap,
     })
   }
 
@@ -144,7 +138,7 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
       reason: 'Immediate danger requires action',
       priority: 'high',
       contextMatch: 0.95,
-      icon: AlertTriangle
+      icon: AlertTriangle,
     })
   }
 
@@ -153,16 +147,16 @@ const analyzeContext = (character: Character, context: GameContext): MoveSuggest
     const priorityWeight = { high: 3, medium: 2, low: 1 }
     const aPriority = priorityWeight[a.priority]
     const bPriority = priorityWeight[b.priority]
-    
+
     if (aPriority !== bPriority) {
       return bPriority - aPriority
     }
-    
+
     return b.contextMatch - a.contextMatch
   }).slice(0, 3) // Top 3 suggestions
 }
 
-const getPriorityColor = (priority: MoveSuggestion['priority']) => {
+function getPriorityColor(priority: MoveSuggestion['priority']) {
   switch (priority) {
     case 'high': return 'text-destructive bg-destructive/15'
     case 'medium': return 'text-chart-4 bg-chart-4/15'
@@ -174,12 +168,10 @@ export const MoveContextAnalyzer: React.FC<MoveContextAnalyzerProps> = ({
   character,
   gameContext,
   onMoveSuggestion,
-  className = ''
+  className = '',
 }) => {
-  const suggestions = useMemo(() => 
-    analyzeContext(character, gameContext), 
-    [character, gameContext]
-  )
+  const suggestions = useMemo(() =>
+    analyzeContext(character, gameContext), [character, gameContext])
 
   if (suggestions.length === 0) {
     return null
@@ -202,7 +194,7 @@ export const MoveContextAnalyzer: React.FC<MoveContextAnalyzerProps> = ({
       <div className="space-y-2">
         {suggestions.map((suggestion, index) => {
           const Icon = suggestion.icon
-          
+
           return (
             <motion.div
               key={suggestion.moveId}
@@ -220,28 +212,29 @@ export const MoveContextAnalyzer: React.FC<MoveContextAnalyzerProps> = ({
                     <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
                       <Icon size={16} className="text-primary" />
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="text-ui-small font-medium text-foreground truncate">
                           {suggestion.name}
                         </h4>
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className={`text-xs px-2 py-0.5 ${getPriorityColor(suggestion.priority)}`}
                         >
                           {suggestion.priority}
                         </Badge>
                       </div>
-                      
+
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         {suggestion.reason}
                       </p>
                     </div>
-                    
+
                     <div className="flex-shrink-0">
                       <div className="text-xs text-muted-foreground font-mono">
-                        {Math.round(suggestion.contextMatch * 100)}%
+                        {Math.round(suggestion.contextMatch * 100)}
+                        %
                       </div>
                     </div>
                   </div>
@@ -265,5 +258,3 @@ export const MoveContextAnalyzer: React.FC<MoveContextAnalyzerProps> = ({
     </motion.div>
   )
 }
-
-

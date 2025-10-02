@@ -4,10 +4,10 @@
  * Integrates with character state and triggers particle effects
  */
 
-import { useCallback, useMemo, useState, useEffect } from 'react'
-import { useCharacter } from './useCharacter'
-import { characterStateService } from '../services/CharacterStateService'
 import type { Character } from '../models/Character'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { characterStateService } from '../services/CharacterStateService'
+import { useCharacter } from './useCharacter'
 
 export interface HealthStatus {
   current: number
@@ -40,14 +40,14 @@ export interface UseCharacterHealthReturn {
   isUnconscious: boolean
   isDead: boolean
   isFullHealth: boolean
-  
+
   // Health operations
   updateHP: (newHP: number) => void
   heal: (amount: number, source?: string) => HealingResult
   damage: (amount: number, source?: string) => DamageResult
   setToFullHealth: () => void
   setToUnconscious: () => void
-  
+
   // Death saves (Dungeon World style)
   deathSaves: {
     successes: number
@@ -61,16 +61,16 @@ export interface UseCharacterHealthReturn {
     isStabilized: boolean
     isDead: boolean
   }
-  
+
   // Healing over time
   startRegeneration: (amountPerTurn: number, duration: number) => void
   stopRegeneration: () => void
   isRegenerating: boolean
-  
+
   // Animation triggers
-  lastDamage: { amount: number; timestamp: number } | null
-  lastHealing: { amount: number; timestamp: number } | null
-  
+  lastDamage: { amount: number, timestamp: number } | null
+  lastHealing: { amount: number, timestamp: number } | null
+
   // Utility
   character: Character | undefined
   isLoading: boolean
@@ -94,8 +94,8 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
   // Local state for death saves and animations
   const [deathSaveSuccesses, setDeathSaveSuccesses] = useState(0)
   const [deathSaveFailures, setDeathSaveFailures] = useState(0)
-  const [lastDamage, setLastDamage] = useState<{ amount: number; timestamp: number } | null>(null)
-  const [lastHealing, setLastHealing] = useState<{ amount: number; timestamp: number } | null>(null)
+  const [lastDamage, setLastDamage] = useState<{ amount: number, timestamp: number } | null>(null)
+  const [lastHealing, setLastHealing] = useState<{ amount: number, timestamp: number } | null>(null)
   const [regenerationTimer, setRegenerationTimer] = useState<NodeJS.Timeout | null>(null)
 
   // Health status calculation
@@ -120,16 +120,20 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
     if (current <= 0) {
       status = 'unconscious'
       statusColor = 'red'
-    } else if (percentage <= 25) {
+    }
+    else if (percentage <= 25) {
       status = 'critical'
       statusColor = 'red'
-    } else if (percentage <= 50) {
+    }
+    else if (percentage <= 50) {
       status = 'wounded'
       statusColor = 'orange'
-    } else if (percentage <= 75) {
+    }
+    else if (percentage <= 75) {
       status = 'wounded'
       statusColor = 'yellow'
-    } else {
+    }
+    else {
       status = 'healthy'
       statusColor = 'green'
     }
@@ -166,7 +170,8 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
 
   // Health operations
   const updateHP = useCallback((newHP: number) => {
-    if (!character) return
+    if (!character)
+      return
     storeUpdateHP(newHP)
   }, [character, storeUpdateHP])
 
@@ -249,7 +254,8 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
   }, [character, storeDamageCharacter])
 
   const setToFullHealth = useCallback(() => {
-    if (!character) return
+    if (!character)
+      return
     updateHP(character.hp.max)
   }, [character, updateHP])
 
@@ -268,10 +274,12 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
     if (roll >= 10) {
       result = 'success'
       newSuccesses++
-    } else if (roll >= 12) {
+    }
+    else if (roll >= 12) {
       result = 'critical_success'
       newSuccesses = 3 // Immediately stabilized
-    } else {
+    }
+    else {
       result = 'failure'
       newFailures++
     }
@@ -335,27 +343,27 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
     isUnconscious,
     isDead,
     isFullHealth,
-    
+
     // Health operations
     updateHP,
     heal,
     damage,
     setToFullHealth,
     setToUnconscious,
-    
+
     // Death saves
     deathSaves,
     rollDeathSave,
-    
+
     // Healing over time
     startRegeneration,
     stopRegeneration,
     isRegenerating,
-    
+
     // Animation triggers
     lastDamage,
     lastHealing,
-    
+
     // Utility
     character,
     isLoading,

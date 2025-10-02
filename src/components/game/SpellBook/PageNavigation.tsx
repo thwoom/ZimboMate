@@ -3,9 +3,9 @@
  * Interactive page navigation with animated controls
  */
 
-import React from 'react'
 import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, BookOpen, X } from 'lucide-react'
+import { BookOpen, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import React from 'react'
 import { Button } from '../../ui'
 
 interface PageNavigationProps {
@@ -21,7 +21,7 @@ export function PageNavigation({
   totalPages,
   onPageChange,
   onClose,
-  className = ''
+  className = '',
 }: PageNavigationProps) {
   const canGoBack = currentPage > 0
   const canGoForward = currentPage < totalPages - 1
@@ -62,7 +62,7 @@ export function PageNavigation({
           <ChevronLeft size={16} />
           Previous
         </Button>
-        
+
         {canGoBack && (
           <motion.span
             className="text-ui-small text-muted-foreground"
@@ -82,18 +82,24 @@ export function PageNavigation({
             {getPageName(currentPage)}
           </div>
           <div className="text-ui-small text-muted-foreground">
-            Page {currentPage + 1} of {totalPages}
+            Page
+            {' '}
+            {currentPage + 1}
+            {' '}
+            of
+            {' '}
+            {totalPages}
           </div>
         </div>
-        
+
         {/* Page dots indicator */}
         <div className="flex gap-1 ml-4">
           {Array.from({ length: totalPages }, (_, i) => (
             <motion.button
               key={i}
               className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                i === currentPage 
-                  ? 'bg-gold-500 w-6' 
+                i === currentPage
+                  ? 'bg-gold-500 w-6'
                   : 'bg-parchment-300 hover:bg-parchment-400'
               }`}
               onClick={() => onPageChange(i)}
@@ -115,7 +121,7 @@ export function PageNavigation({
             {getPageName(currentPage + 1)}
           </motion.span>
         )}
-        
+
         <Button
           variant="ghost"
           size="sm"

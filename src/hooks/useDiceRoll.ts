@@ -4,14 +4,14 @@
  * Integrates DiceRollingService with character stats and session tracking
  */
 
+import type { Attribute } from '../models/Character'
+import type { DiceRoll, RollOptions } from '../services/DiceRollingService'
 import { useCallback, useMemo, useState } from 'react'
+import { characterStateService } from '../services/CharacterStateService'
+import { diceRollingService } from '../services/DiceRollingService'
+import { useSessionStore } from '../stores/sessionStore'
 import { useActiveCharacter } from './useActiveCharacter'
 import { useCharacterStats } from './useCharacterStats'
-import { useSessionStore } from '../stores/sessionStore'
-import { diceRollingService } from '../services/DiceRollingService'
-import { characterStateService } from '../services/CharacterStateService'
-import type { DiceRoll, RollModifiers, RollOptions } from '../services/DiceRollingService'
-import type { Attribute } from '../models/Character'
 
 export interface RollRequest {
   // Basic roll parameters
@@ -19,13 +19,13 @@ export interface RollRequest {
   modifier?: number
   moveId?: string
   moveName?: string
-  
+
   // Roll context
   description?: string
   difficulty?: number
   advantage?: boolean
   disadvantage?: boolean
-  
+
   // Character context
   characterId?: string
 }
@@ -36,7 +36,7 @@ export interface RollResult extends DiceRoll {
   wasPartialSuccess: boolean
   wasFailure: boolean
   outcomeDescription: string
-  
+
   // Animation triggers
   shouldTriggerParticles: boolean
   particleType: 'success' | 'partial' | 'failure'
@@ -48,7 +48,7 @@ export interface UseDiceRollReturn {
   roll: (request: RollRequest) => Promise<RollResult>
   rollWithStat: (stat: keyof Attribute, modifier?: number, description?: string) => Promise<RollResult>
   rollBasic: (modifier?: number, description?: string) => Promise<RollResult>
-  
+
   // Quick roll shortcuts
   rollStrength: (modifier?: number) => Promise<RollResult>
   rollDexterity: (modifier?: number) => Promise<RollResult>
@@ -56,16 +56,16 @@ export interface UseDiceRollReturn {
   rollIntelligence: (modifier?: number) => Promise<RollResult>
   rollWisdom: (modifier?: number) => Promise<RollResult>
   rollCharisma: (modifier?: number) => Promise<RollResult>
-  
+
   // Roll history
   recentRolls: DiceRoll[]
   lastRoll: DiceRoll | null
   clearHistory: () => void
-  
+
   // Roll state
   isRolling: boolean
   canRoll: boolean
-  
+
   // Character context
   activeCharacter: any
   availableModifiers: Array<{
@@ -75,7 +75,7 @@ export interface UseDiceRollReturn {
     source: string
     type: 'ongoing' | 'forward'
   }>
-  
+
   // Utility
   getOutcomeDescription: (total: number) => string
   getParticleType: (result: string) => 'success' | 'partial' | 'failure'
@@ -88,7 +88,7 @@ export function useDiceRoll(): UseDiceRollReturn {
   const { activeCharacter } = useActiveCharacter()
   const { getStatModifier, getTotalModifierForStat } = useCharacterStats(activeCharacter?.id)
   const { addRoll, getRecentRolls, clearRollHistory } = useSessionStore()
-  
+
   const [isRolling, setIsRolling] = useState(false)
 
   // Get recent rolls
@@ -102,7 +102,8 @@ export function useDiceRoll(): UseDiceRollReturn {
 
   // Get available modifiers for the active character
   const availableModifiers = useMemo(() => {
-    if (!activeCharacter) return []
+    if (!activeCharacter)
+      return []
 
     const modifiers: Array<{
       id: string
@@ -115,10 +116,10 @@ export function useDiceRoll(): UseDiceRollReturn {
     // Get forward modifiers
     const forwardMods = characterStateService.getAvailableForwardModifiers(
       activeCharacter.id,
-      'next_roll'
+      'next_roll',
     )
-    
-    forwardMods.forEach(mod => {
+
+    forwardMods.forEach((mod) => {
       modifiers.push({
         id: mod.id,
         name: mod.name,
@@ -154,10 +155,10 @@ export function useDiceRoll(): UseDiceRollReturn {
       const characterId = request.characterId || activeCharacter.id
       const forwardMods = characterStateService.getAvailableForwardModifiers(
         characterId,
-        'next_roll'
+        'next_roll',
       )
 
-      forwardMods.forEach(mod => {
+      forwardMods.forEach((mod) => {
         totalModifier += mod.value
         characterStateService.useForwardModifier(characterId, mod.id)
       })
@@ -174,7 +175,7 @@ export function useDiceRoll(): UseDiceRollReturn {
       const rollResult = await diceRollingService.rollDice(
         '2d6',
         { flat: totalModifier },
-        rollOptions
+        rollOptions,
       )
 
       // Add to session history
@@ -196,8 +197,8 @@ export function useDiceRoll(): UseDiceRollReturn {
       }
 
       return enhancedResult
-
-    } finally {
+    }
+    finally {
       setIsRolling(false)
     }
   }, [canRoll, activeCharacter, getStatModifier, getTotalModifierForStat, addRoll])
@@ -206,7 +207,7 @@ export function useDiceRoll(): UseDiceRollReturn {
   const rollWithStat = useCallback(async (
     stat: keyof Attribute,
     modifier = 0,
-    description?: string
+    description?: string,
   ): Promise<RollResult> => {
     return roll({
       stat,
@@ -218,34 +219,36 @@ export function useDiceRoll(): UseDiceRollReturn {
   // Basic roll without stat
   const rollBasic = useCallback(async (
     modifier = 0,
-    description = 'Basic roll'
+    description = 'Basic roll',
   ): Promise<RollResult> => {
     return roll({ modifier, description })
   }, [roll])
 
   // Quick stat roll shortcuts
-  const rollStrength = useCallback((modifier = 0) => 
+  const rollStrength = useCallback((modifier = 0) =>
     rollWithStat('strength', modifier), [rollWithStat])
-  
-  const rollDexterity = useCallback((modifier = 0) => 
+
+  const rollDexterity = useCallback((modifier = 0) =>
     rollWithStat('dexterity', modifier), [rollWithStat])
-  
-  const rollConstitution = useCallback((modifier = 0) => 
+
+  const rollConstitution = useCallback((modifier = 0) =>
     rollWithStat('constitution', modifier), [rollWithStat])
-  
-  const rollIntelligence = useCallback((modifier = 0) => 
+
+  const rollIntelligence = useCallback((modifier = 0) =>
     rollWithStat('intelligence', modifier), [rollWithStat])
-  
-  const rollWisdom = useCallback((modifier = 0) => 
+
+  const rollWisdom = useCallback((modifier = 0) =>
     rollWithStat('wisdom', modifier), [rollWithStat])
-  
-  const rollCharisma = useCallback((modifier = 0) => 
+
+  const rollCharisma = useCallback((modifier = 0) =>
     rollWithStat('charisma', modifier), [rollWithStat])
 
   // Utility functions
   const getOutcomeDescription = useCallback((total: number): string => {
-    if (total >= 10) return 'Success! You do it.'
-    if (total >= 7) return 'Partial success. You do it, but...'
+    if (total >= 10)
+      return 'Success! You do it.'
+    if (total >= 7)
+      return 'Partial success. You do it, but...'
     return 'Failure. The GM makes a move.'
   }, [])
 
@@ -270,7 +273,7 @@ export function useDiceRoll(): UseDiceRollReturn {
     roll,
     rollWithStat,
     rollBasic,
-    
+
     // Quick roll shortcuts
     rollStrength,
     rollDexterity,
@@ -278,20 +281,20 @@ export function useDiceRoll(): UseDiceRollReturn {
     rollIntelligence,
     rollWisdom,
     rollCharisma,
-    
+
     // Roll history
     recentRolls,
     lastRoll,
     clearHistory: clearRollHistory,
-    
+
     // Roll state
     isRolling,
     canRoll,
-    
+
     // Character context
     activeCharacter,
     availableModifiers,
-    
+
     // Utility
     getOutcomeDescription,
     getParticleType,

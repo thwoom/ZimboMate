@@ -32,7 +32,8 @@ export class CampaignService {
 
   updateCampaign(id: string, updates: Partial<Campaign>): Campaign | undefined {
     const campaign = this.campaigns.get(id)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const updated = {
       ...campaign,
@@ -56,7 +57,8 @@ export class CampaignService {
   // Session Management
   addSession(campaignId: string, title: string, summary: string): CampaignSession | undefined {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const session = createSession(title, summary)
     const updated = {
@@ -72,10 +74,12 @@ export class CampaignService {
 
   updateSession(campaignId: string, sessionId: string, updates: Partial<CampaignSession>): CampaignSession | undefined {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const sessionIndex = campaign.sessions.findIndex(s => s.id === sessionId)
-    if (sessionIndex === -1) return undefined
+    if (sessionIndex === -1)
+      return undefined
 
     const updatedSession = { ...campaign.sessions[sessionIndex], ...updates }
     const updatedSessions = [...campaign.sessions]
@@ -94,7 +98,8 @@ export class CampaignService {
 
   deleteSession(campaignId: string, sessionId: string): boolean {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return false
+    if (!campaign)
+      return false
 
     const updatedSessions = campaign.sessions.filter(s => s.id !== sessionId)
     const updated = {
@@ -111,7 +116,8 @@ export class CampaignService {
   // Journal Management
   addJournalEntry(campaignId: string, title: string, content: string): JournalEntry | undefined {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const entry = createJournalEntry(title, content)
     const updated = {
@@ -127,10 +133,12 @@ export class CampaignService {
 
   updateJournalEntry(campaignId: string, entryId: string, updates: Partial<JournalEntry>): JournalEntry | undefined {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const entryIndex = campaign.journal.findIndex(e => e.id === entryId)
-    if (entryIndex === -1) return undefined
+    if (entryIndex === -1)
+      return undefined
 
     const updatedEntry = { ...campaign.journal[entryIndex], ...updates }
     const updatedJournal = [...campaign.journal]
@@ -149,7 +157,8 @@ export class CampaignService {
 
   deleteJournalEntry(campaignId: string, entryId: string): boolean {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return false
+    if (!campaign)
+      return false
 
     const updatedJournal = campaign.journal.filter(e => e.id !== entryId)
     const updated = {
@@ -166,7 +175,8 @@ export class CampaignService {
   // NPC Management
   addNPC(campaignId: string, name: string, description: string, role: string): NPC | undefined {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const npc = createNPC(name, description, role)
     const updated = {
@@ -182,10 +192,12 @@ export class CampaignService {
 
   updateNPC(campaignId: string, npcId: string, updates: Partial<NPC>): NPC | undefined {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const npcIndex = campaign.npcs.findIndex(n => n.id === npcId)
-    if (npcIndex === -1) return undefined
+    if (npcIndex === -1)
+      return undefined
 
     const updatedNPC = { ...campaign.npcs[npcIndex], ...updates }
     const updatedNPCs = [...campaign.npcs]
@@ -204,7 +216,8 @@ export class CampaignService {
 
   deleteNPC(campaignId: string, npcId: string): boolean {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return false
+    if (!campaign)
+      return false
 
     const updatedNPCs = campaign.npcs.filter(n => n.id !== npcId)
     const updated = {
@@ -221,7 +234,8 @@ export class CampaignService {
   // Location Management
   addLocation(campaignId: string, name: string, description: string, type: Location['type']): Location | undefined {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const location = createLocation(name, description, type)
     const updated = {
@@ -237,10 +251,12 @@ export class CampaignService {
 
   updateLocation(campaignId: string, locationId: string, updates: Partial<Location>): Location | undefined {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return undefined
+    if (!campaign)
+      return undefined
 
     const locationIndex = campaign.locations.findIndex(l => l.id === locationId)
-    if (locationIndex === -1) return undefined
+    if (locationIndex === -1)
+      return undefined
 
     const updatedLocation = { ...campaign.locations[locationIndex], ...updates }
     const updatedLocations = [...campaign.locations]
@@ -259,7 +275,8 @@ export class CampaignService {
 
   deleteLocation(campaignId: string, locationId: string): boolean {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return false
+    if (!campaign)
+      return false
 
     const updatedLocations = campaign.locations.filter(l => l.id !== locationId)
     const updated = {
@@ -281,33 +298,34 @@ export class CampaignService {
     locations: Location[]
   } {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return { sessions: [], journal: [], npcs: [], locations: [] }
+    if (!campaign)
+      return { sessions: [], journal: [], npcs: [], locations: [] }
 
     const lowerQuery = query.toLowerCase()
 
     const sessions = campaign.sessions.filter(s =>
-      s.title.toLowerCase().includes(lowerQuery) ||
-      s.summary.toLowerCase().includes(lowerQuery) ||
-      s.notes.toLowerCase().includes(lowerQuery)
+      s.title.toLowerCase().includes(lowerQuery)
+      || s.summary.toLowerCase().includes(lowerQuery)
+      || s.notes.toLowerCase().includes(lowerQuery),
     )
 
     const journal = campaign.journal.filter(e =>
-      e.title.toLowerCase().includes(lowerQuery) ||
-      e.content.toLowerCase().includes(lowerQuery) ||
-      e.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+      e.title.toLowerCase().includes(lowerQuery)
+      || e.content.toLowerCase().includes(lowerQuery)
+      || e.tags.some(tag => tag.toLowerCase().includes(lowerQuery)),
     )
 
     const npcs = campaign.npcs.filter(n =>
-      n.name.toLowerCase().includes(lowerQuery) ||
-      n.description.toLowerCase().includes(lowerQuery) ||
-      n.role.toLowerCase().includes(lowerQuery) ||
-      n.notes.toLowerCase().includes(lowerQuery)
+      n.name.toLowerCase().includes(lowerQuery)
+      || n.description.toLowerCase().includes(lowerQuery)
+      || n.role.toLowerCase().includes(lowerQuery)
+      || n.notes.toLowerCase().includes(lowerQuery),
     )
 
     const locations = campaign.locations.filter(l =>
-      l.name.toLowerCase().includes(lowerQuery) ||
-      l.description.toLowerCase().includes(lowerQuery) ||
-      l.notes.toLowerCase().includes(lowerQuery)
+      l.name.toLowerCase().includes(lowerQuery)
+      || l.description.toLowerCase().includes(lowerQuery)
+      || l.notes.toLowerCase().includes(lowerQuery),
     )
 
     return { sessions, journal, npcs, locations }
@@ -316,7 +334,8 @@ export class CampaignService {
   // Export / Import functionality
   exportCampaign(campaignId: string): string {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) throw new Error('Campaign not found')
+    if (!campaign)
+      throw new Error('Campaign not found')
 
     return JSON.stringify(campaign, null, 2)
   }
@@ -336,7 +355,8 @@ export class CampaignService {
       this.campaigns.set(campaign.id, campaign)
       this.saveToStorage()
       return campaign
-    } catch (error) {
+    }
+    catch (error) {
       throw new Error(`Failed to import campaign: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -344,7 +364,8 @@ export class CampaignService {
   // Character association
   addCharacterToCampaign(campaignId: string, characterId: string): boolean {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return false
+    if (!campaign)
+      return false
 
     if (!campaign.characterIds.includes(characterId)) {
       const updated = {
@@ -360,7 +381,8 @@ export class CampaignService {
 
   removeCharacterFromCampaign(campaignId: string, characterId: string): boolean {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return false
+    if (!campaign)
+      return false
 
     const updated = {
       ...campaign,
@@ -374,7 +396,7 @@ export class CampaignService {
 
   getCampaignsForCharacter(characterId: string): Campaign[] {
     return [...this.campaigns.values()].filter(campaign =>
-      campaign.characterIds.includes(characterId)
+      campaign.characterIds.includes(characterId),
     )
   }
 
@@ -388,7 +410,8 @@ export class CampaignService {
     averageSessionLength: number
   } | null {
     const campaign = this.campaigns.get(campaignId)
-    if (!campaign) return null
+    if (!campaign)
+      return null
 
     const totalXP = campaign.sessions.reduce((sum, session) => sum + session.xpGained, 0)
     const sessionsWithDuration = campaign.sessions.filter(s => s.duration)
@@ -411,7 +434,8 @@ export class CampaignService {
     try {
       const data = [...this.campaigns.entries()]
       localStorage.setItem('zimbomate-campaigns', JSON.stringify(data))
-    } catch (error) {
+    }
+    catch (error) {
       console.warn('Failed to save campaigns to localStorage:', error)
     }
   }
@@ -423,7 +447,8 @@ export class CampaignService {
         const campaigns = JSON.parse(data) as [string, Campaign][]
         this.campaigns = new Map(campaigns)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.warn('Failed to load campaigns from localStorage:', error)
       this.campaigns = new Map()
     }

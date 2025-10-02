@@ -4,8 +4,8 @@
  * New service for V2 to handle character progression
  */
 
-import type { Character, AdvancementChoice, Attribute, CharacterClass } from '../models/Character'
-import { getXPThreshold, calculateMaxHP, calculateMaxLoad } from '../models/Character'
+import type { AdvancementChoice, Attribute, Character } from '../models/Character'
+import { calculateMaxHP, calculateMaxLoad, getXPThreshold } from '../models/Character'
 
 // Advancement options available when leveling up
 export interface AdvancementOption {
@@ -27,13 +27,13 @@ export interface LevelUpResult {
 }
 
 // XP sources for tracking
-export type XPSource = 
-  | 'failed-roll' 
-  | 'end-of-session' 
-  | 'bond-resolution' 
-  | 'alignment-move' 
-  | 'gm-award' 
-  | 'other'
+export type XPSource
+  = | 'failed-roll'
+    | 'end-of-session'
+    | 'bond-resolution'
+    | 'alignment-move'
+    | 'gm-award'
+    | 'other'
 
 // XP entry for history tracking
 export interface XPEntry {
@@ -116,7 +116,7 @@ export class AdvancementService {
     averageXPPerSession: number
   } {
     const history = this.getXPHistory(characterId)
-    
+
     const stats = {
       totalXP: 0,
       xpFromFailedRolls: 0,
@@ -289,7 +289,7 @@ export class AdvancementService {
             ...updated.attributes,
             [stat]: Math.min(18, updated.attributes[stat] + 1),
           }
-          
+
           // Recalculate derived stats if CON or STR changed
           if (stat === 'CON') {
             const newMaxHP = calculateMaxHP(updated)
@@ -299,7 +299,7 @@ export class AdvancementService {
               max: newMaxHP,
             }
           }
-          
+
           if (stat === 'STR') {
             updated.load = {
               ...updated.load,

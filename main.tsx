@@ -1,8 +1,8 @@
+import ErrorBoundary from '@kombai/react-error-boundary'
 import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import Example from './main'
 import KombaiWrapper from './KombaiWrapper'
-import ErrorBoundary from '@kombai/react-error-boundary'
+import Example from './main'
 import './src/index.css'
 
 createRoot(document.getElementById('root')!).render(

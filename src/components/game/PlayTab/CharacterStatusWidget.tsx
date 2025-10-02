@@ -5,25 +5,19 @@
  * load meter, XP progress, active bonds, and debilities.
  */
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Heart,
-  Shield,
-  Package,
-  Star,
-  AlertTriangle,
-  Zap,
-  Eye,
-  Users,
-  Award,
-  Flame,
-  Droplets,
-  Wind
-} from 'lucide-react'
-import { Card, CardContent, Badge, Button } from '../../ui'
 import type { Character } from '../../../models/Character'
 import type { GameMode, PlayTabTheme } from '../PlayTab'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Droplets,
+  Heart,
+  Package,
+  Shield,
+  Star,
+  Wind,
+} from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Badge, Button, Card, CardContent } from '../../ui'
 
 interface CharacterStatusWidgetProps {
   character: Character
@@ -43,20 +37,23 @@ const HealthOrb: React.FC<HealthOrbProps> = ({
   current,
   max,
   size = 80,
-  variant = 'primary'
+  variant = 'primary',
 }) => {
   const percentage = Math.max(0, Math.min(100, (current / max) * 100))
   const strokeDasharray = 2 * Math.PI * (size / 2 - 8)
   const strokeDashoffset = strokeDasharray - (strokeDasharray * percentage) / 100
 
   const getColor = () => {
-    if (percentage <= 25) return 'text-destructive'
-    if (percentage <= 50) return 'text-chart-4'
+    if (percentage <= 25)
+      return 'text-destructive'
+    if (percentage <= 50)
+      return 'text-chart-4'
     return 'text-chart-2'
   }
 
   const getPulseIntensity = () => {
-    if (percentage <= 25) return 'animate-pulse'
+    if (percentage <= 25)
+      return 'animate-pulse'
     return ''
   }
 
@@ -91,7 +88,7 @@ const HealthOrb: React.FC<HealthOrbProps> = ({
           strokeLinecap="round"
           initial={{ strokeDashoffset: strokeDasharray }}
           animate={{ strokeDashoffset }}
-          transition={{ duration: 1, ease: "easeOut" }}
+          transition={{ duration: 1, ease: 'easeOut' }}
         />
       </svg>
 
@@ -101,13 +98,16 @@ const HealthOrb: React.FC<HealthOrbProps> = ({
         <span className="text-lg font-bold font-display">
           {current}
         </span>
-        <span className="text-xs text-muted-foreground">/ {max}</span>
+        <span className="text-xs text-muted-foreground">
+          /
+          {max}
+        </span>
       </div>
     </div>
   )
 }
 
-const LoadMeter: React.FC<{ current: number; max: number }> = ({ current, max }) => {
+const LoadMeter: React.FC<{ current: number, max: number }> = ({ current, max }) => {
   const percentage = Math.max(0, Math.min(100, (current / max) * 100))
   const isNearCapacity = percentage >= 80
   const isOverloaded = current > max
@@ -120,20 +120,24 @@ const LoadMeter: React.FC<{ current: number; max: number }> = ({ current, max })
           Load
         </span>
         <span className={`font-mono ${isOverloaded ? 'text-destructive' : ''}`}>
-          {current}/{max}
+          {current}
+          /
+          {max}
         </span>
       </div>
 
       <div className="relative h-2 bg-muted  rounded-full overflow-hidden">
         <motion.div
           className={`h-full rounded-full ${
-            isOverloaded ? 'bg-destructive/120' :
-            isNearCapacity ? 'bg-chart-4/120' :
-            'bg-chart-2'
+            isOverloaded
+              ? 'bg-destructive/120'
+              : isNearCapacity
+                ? 'bg-chart-4/120'
+                : 'bg-chart-2'
           }`}
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(100, percentage)}%` }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         />
 
         {isOverloaded && (
@@ -149,7 +153,7 @@ const LoadMeter: React.FC<{ current: number; max: number }> = ({ current, max })
   )
 }
 
-const XPTracker: React.FC<{ xp: number; level: number }> = ({ xp, level }) => {
+const XPTracker: React.FC<{ xp: number, level: number }> = ({ xp, level }) => {
   const xpToNext = (level + 1) * 7 - xp
   const progress = xp - (level * 7)
   const progressMax = 7
@@ -159,10 +163,14 @@ const XPTracker: React.FC<{ xp: number; level: number }> = ({ xp, level }) => {
       <div className="flex items-center justify-between text-sm">
         <span className="flex items-center gap-1">
           <Star size={14} />
-          Level {level}
+          Level
+          {' '}
+          {level}
         </span>
         <span className="text-xs text-muted-foreground">
-          {xpToNext} XP to next
+          {xpToNext}
+          {' '}
+          XP to next
         </span>
       </div>
 
@@ -171,7 +179,7 @@ const XPTracker: React.FC<{ xp: number; level: number }> = ({ xp, level }) => {
           className="h-full bg-gradient-to-r from-accent to-primary rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${(progress / progressMax) * 100}%` }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
         />
       </div>
     </div>
@@ -201,7 +209,7 @@ export const CharacterStatusWidget: React.FC<CharacterStatusWidgetProps> = ({
   character,
   gameMode,
   theme,
-  className = ''
+  className = '',
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [recentDamage, setRecentDamage] = useState<number | null>(null)
@@ -229,11 +237,14 @@ export const CharacterStatusWidget: React.FC<CharacterStatusWidgetProps> = ({
     // Add more status effects as needed
   ]
 
-  const cardVariant =
-    theme === 'combat' ? 'elevated' :
-    theme === 'dungeon' ? 'parchment' :
-    theme === 'tavern' ? 'magical' :
-    'glass'
+  const cardVariant
+    = theme === 'combat'
+      ? 'elevated'
+      : theme === 'dungeon'
+        ? 'parchment'
+        : theme === 'tavern'
+          ? 'magical'
+          : 'glass'
 
   return (
     <Card
@@ -254,7 +265,10 @@ export const CharacterStatusWidget: React.FC<CharacterStatusWidgetProps> = ({
             {character.name}
           </h3>
           <p className="text-xs text-muted-foreground capitalize">
-            {character.class} • Level {level}
+            {character.class}
+            {' '}
+            • Level
+            {level}
           </p>
         </div>
 
@@ -276,7 +290,8 @@ export const CharacterStatusWidget: React.FC<CharacterStatusWidgetProps> = ({
               exit={{ opacity: 0, y: -40, scale: 0.6 }}
               className="absolute top-4 right-4 bg-destructive/120 text-white px-2 py-1 rounded text-xs font-bold"
             >
-              -{recentDamage}
+              -
+              {recentDamage}
             </motion.div>
           )}
         </AnimatePresence>
@@ -322,10 +337,13 @@ export const CharacterStatusWidget: React.FC<CharacterStatusWidgetProps> = ({
           <Badge
             variant="secondary"
             className={`w-full justify-center text-xs ${
-              gameMode === 'combat' ? 'bg-destructive/15 text-destructive' :
-              gameMode === 'exploration' ? 'bg-chart-2/15 text-chart-2' :
-              gameMode === 'social' ? 'bg-primary/10 text-primary' :
-              'bg-accent/15 text-accent'
+              gameMode === 'combat'
+                ? 'bg-destructive/15 text-destructive'
+                : gameMode === 'exploration'
+                  ? 'bg-chart-2/15 text-chart-2'
+                  : gameMode === 'social'
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-accent/15 text-accent'
             }`}
           >
             {gameMode.toUpperCase()}
@@ -365,11 +383,3 @@ export const CharacterStatusWidget: React.FC<CharacterStatusWidgetProps> = ({
 }
 
 export default CharacterStatusWidget
-
-
-
-
-
-
-
-

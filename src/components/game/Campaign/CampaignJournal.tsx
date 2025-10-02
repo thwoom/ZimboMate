@@ -2,24 +2,24 @@
  * Campaign Journal - Rich text journal for important campaign events
  */
 
-import React, { useState, useMemo } from 'react'
+import type { JournalEntry } from '../../../models/Campaign'
 import { motion } from 'framer-motion'
 import {
   BookOpen,
-  Plus,
+  Calendar,
   Edit,
-  Trash2,
+  Link,
+  Plus,
   Star,
   Tag,
-  Calendar,
-  Link,
-  Search
+  Trash2,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
-import { useCampaignStore } from '../../../stores/campaignStore'
+import React, { useMemo, useState } from 'react'
 import { formatDateRelative, JournalSortBy } from '../../../campaignManagementMockData'
+import { useCampaignStore } from '../../../stores/campaignStore'
+import { Badge, Button, Card, CardContent } from '../../ui'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../../ui/alert-dialog'
 import { JournalEntryModal } from './JournalEntryModal'
-import type { JournalEntry } from '../../../models/Campaign'
 
 interface CampaignJournalProps {
   campaignId: string
@@ -29,15 +29,15 @@ interface CampaignJournalProps {
 interface JournalEntryCardProps {
   entry: JournalEntry
   onEdit: (entry: JournalEntry) => void
-  onDelete: (entryId: string) => void
+  onDelete: (entry: JournalEntry) => void
 }
 
 const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, onEdit, onDelete }) => {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <Card 
-      variant={entry.isImportant ? "magical" : "surface"} 
+    <Card
+      variant={entry.isImportant ? 'magical' : 'surface'}
       className="campaign-card campaign-card-hover"
     >
       <CardContent>
@@ -64,23 +64,26 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, onEdit, onDe
                 {entry.tags.length > 0 && (
                   <div className="flex items-center gap-1">
                     <Tag size={14} />
-                    {entry.tags.length} tag{entry.tags.length !== 1 ? 's' : ''}
+                    {entry.tags.length}
+                    {' '}
+                    tag
+                    {entry.tags.length !== 1 ? 's' : ''}
                   </div>
                 )}
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => onEdit(entry)}
               >
                 <Edit size={16} />
               </Button>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
-                onClick={() => onDelete(entry.id)}
+                onClick={() => onDelete(entry)}
               >
                 <Trash2 size={16} />
               </Button>
@@ -89,9 +92,9 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, onEdit, onDe
 
           {/* Content Preview */}
           <div>
-            <p 
-              
-              className={expanded ? '' : 'line-clamp-3'}>
+            <p
+              className={expanded ? '' : 'line-clamp-3'}
+            >
               {entry.content}
             </p>
             {entry.content.length > 200 && (
@@ -111,7 +114,8 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, onEdit, onDe
             <div className="flex flex-wrap gap-2">
               {entry.tags.map(tag => (
                 <Badge key={tag} variant="secondary" className="text-xs">
-                  #{tag}
+                  #
+                  {tag}
                 </Badge>
               ))}
             </div>
@@ -146,30 +150,32 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry, onEdit, onDe
 
 export const CampaignJournal: React.FC<CampaignJournalProps> = ({
   campaignId,
-  searchQuery = ''
+  searchQuery = '',
 }) => {
   const [sortBy, setSortBy] = useState<JournalSortBy>(JournalSortBy.DATE)
   const [filterByImportance, setFilterByImportance] = useState<boolean | null>(null)
   const [filterByTag, setFilterByTag] = useState<string>('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEntry, setEditingEntry] = useState<JournalEntry | undefined>()
-  
+  const [entryToDelete, setEntryToDelete] = useState<JournalEntry | null>(null)
+  const isDeleteDialogOpen = entryToDelete !== null
+
   const campaign = useCampaignStore(state => state.getCampaign(campaignId))
-  const addJournalEntry = useCampaignStore(state => state.addJournalEntry)
-  const updateJournalEntry = useCampaignStore(state => state.updateJournalEntry)
   const deleteJournalEntry = useCampaignStore(state => state.deleteJournalEntry)
 
   const allTags = useMemo(() => {
-    if (!campaign) return []
+    if (!campaign)
+      return []
     const tagSet = new Set<string>()
-    campaign.journal.forEach(entry => {
+    campaign.journal.forEach((entry) => {
       entry.tags.forEach(tag => tagSet.add(tag))
     })
     return Array.from(tagSet).sort()
   }, [campaign])
 
   const filteredAndSortedEntries = useMemo(() => {
-    if (!campaign) return []
+    if (!campaign)
+      return []
 
     let entries = [...campaign.journal]
 
@@ -177,9 +183,9 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       entries = entries.filter(entry =>
-        entry.title.toLowerCase().includes(query) ||
-        entry.content.toLowerCase().includes(query) ||
-        entry.tags.some(tag => tag.toLowerCase().includes(query))
+        entry.title.toLowerCase().includes(query)
+        || entry.content.toLowerCase().includes(query)
+        || entry.tags.some(tag => tag.toLowerCase().includes(query)),
       )
     }
 
@@ -199,8 +205,10 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
         case JournalSortBy.DATE:
           return b.date.getTime() - a.date.getTime()
         case JournalSortBy.IMPORTANCE:
-          if (a.isImportant && !b.isImportant) return -1
-          if (!a.isImportant && b.isImportant) return 1
+          if (a.isImportant && !b.isImportant)
+            return -1
+          if (!a.isImportant && b.isImportant)
+            return 1
           return b.date.getTime() - a.date.getTime()
         case JournalSortBy.TITLE:
           return a.title.localeCompare(b.title)
@@ -219,11 +227,30 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
     setIsModalOpen(true)
   }
 
-  const handleDeleteEntry = (entryId: string) => {
-    if (confirm('Are you sure you want to delete this journal entry?')) {
-      deleteJournalEntry(campaignId, entryId)
-    }
+  const handleDeleteRequest = (entry: JournalEntry) => {
+    setEntryToDelete(entry)
   }
+
+  const closeDeleteDialog = () => {
+    setEntryToDelete(null)
+  }
+
+  const handleDeleteDialogChange = (open: boolean) => {
+    if (!open)
+      closeDeleteDialog()
+  }
+
+  const confirmDeleteEntry = () => {
+    if (!entryToDelete)
+      return
+
+    deleteJournalEntry(campaignId, entryToDelete.id)
+    setEntryToDelete(null)
+  }
+
+  const deleteDialogMessage = entryToDelete
+    ? `This will permanently delete "${entryToDelete.title}".`
+    : 'This will permanently delete the journal entry.'
 
   const handleCreateEntry = () => {
     setEditingEntry(undefined)
@@ -233,11 +260,6 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
   const handleModalClose = () => {
     setIsModalOpen(false)
     setEditingEntry(undefined)
-  }
-
-  const handleEntrySaved = (entryId: string) => {
-    // Entry saved successfully - modal will close automatically
-    console.log('Journal entry saved:', entryId)
   }
 
   if (!campaign) {
@@ -258,133 +280,157 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
     <>
       <div className="space-y-6">
         {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-xl font-display">Campaign Journal</h3>
-          <p className="text-muted-foreground">
-            {filteredAndSortedEntries.length} of {campaign.journal.length} entries
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-display">Campaign Journal</h3>
+            <p className="text-muted-foreground">
+              {filteredAndSortedEntries.length}
+              {' '}
+              of
+              {campaign.journal.length}
+              {' '}
+              entries
+            </p>
+          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            className="gap-2"
+            onClick={handleCreateEntry}
+          >
+            <Plus size={16} />
+            Add Entry
+          </Button>
         </div>
-        <Button 
-          variant="primary" 
-          size="sm" 
-          className="gap-2"
-          onClick={handleCreateEntry}
-        >
-          <Plus size={16} />
-          Add Entry
-        </Button>
-      </div>
 
-      {/* Filters */}
-      <Card variant="surface">
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-4">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as JournalSortBy)}
-              className="px-3 py-2 rounded-lg border text-sm"
-              style={{
-                backgroundColor: 'var(--card)',
-                borderColor: 'var(--primary)',
-                color: 'var(--foreground)'
-              }}
-            >
-              <option value={JournalSortBy.DATE}>Sort by Date</option>
-              <option value={JournalSortBy.IMPORTANCE}>Sort by Importance</option>
-              <option value={JournalSortBy.TITLE}>Sort by Title</option>
-              <option value={JournalSortBy.TAGS}>Sort by Tags</option>
-            </select>
-
-            <select
-              value={filterByImportance === null ? '' : filterByImportance.toString()}
-              onChange={(e) => {
-                const value = e.target.value
-                setFilterByImportance(value === '' ? null : value === 'true')
-              }}
-              className="px-3 py-2 rounded-lg border text-sm"
-              style={{
-                backgroundColor: 'var(--card)',
-                borderColor: 'var(--primary)',
-                color: 'var(--foreground)'
-              }}
-            >
-              <option value="">All Entries</option>
-              <option value="true">Important Only</option>
-              <option value="false">Regular Only</option>
-            </select>
-
-            {allTags.length > 0 && (
+        {/* Filters */}
+        <Card variant="surface">
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-4">
               <select
-                value={filterByTag}
-                onChange={(e) => setFilterByTag(e.target.value)}
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as JournalSortBy)}
                 className="px-3 py-2 rounded-lg border text-sm"
                 style={{
                   backgroundColor: 'var(--card)',
                   borderColor: 'var(--primary)',
-                  color: 'var(--foreground)'
+                  color: 'var(--foreground)',
                 }}
               >
-                <option value="">All Tags</option>
-                {allTags.map(tag => (
-                  <option key={tag} value={tag}>#{tag}</option>
-                ))}
+                <option value={JournalSortBy.DATE}>Sort by Date</option>
+                <option value={JournalSortBy.IMPORTANCE}>Sort by Importance</option>
+                <option value={JournalSortBy.TITLE}>Sort by Title</option>
+                <option value={JournalSortBy.TAGS}>Sort by Tags</option>
               </select>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Journal Entries */}
-      {filteredAndSortedEntries.length === 0 ? (
-        <Card variant="surface" className="campaign-empty-state">
-          <CardContent>
-            <div className="text-center space-y-4">
-              <BookOpen size={48} className='mx-auto text-muted-foreground' />
-              <div>
-                <h4 className="font-medium mb-2">
-                  {campaign.journal.length === 0 ? 'No journal entries' : 'No entries match your filters'}
-                </h4>
-                <p className="text-muted-foreground">
-                  {campaign.journal.length === 0 
-                    ? 'Start writing your campaign story and important events'
-                    : 'Try adjusting your search terms or filters'
-                  }
-                </p>
-              </div>
-              {campaign.journal.length === 0 && (
-                <Button 
-                  variant="primary" 
-                  size="md" 
-                  className="gap-2"
-                  onClick={handleCreateEntry}
+              <select
+                value={filterByImportance === null ? '' : filterByImportance.toString()}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setFilterByImportance(value === '' ? null : value === 'true')
+                }}
+                className="px-3 py-2 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: 'var(--card)',
+                  borderColor: 'var(--primary)',
+                  color: 'var(--foreground)',
+                }}
+              >
+                <option value="">All Entries</option>
+                <option value="true">Important Only</option>
+                <option value="false">Regular Only</option>
+              </select>
+
+              {allTags.length > 0 && (
+                <select
+                  value={filterByTag}
+                  onChange={e => setFilterByTag(e.target.value)}
+                  className="px-3 py-2 rounded-lg border text-sm"
+                  style={{
+                    backgroundColor: 'var(--card)',
+                    borderColor: 'var(--primary)',
+                    color: 'var(--foreground)',
+                  }}
                 >
-                  <Plus size={16} />
-                  Write First Entry
-                </Button>
+                  <option value="">All Tags</option>
+                  {allTags.map(tag => (
+                    <option key={tag} value={tag}>
+                      #
+                      {tag}
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
           </CardContent>
         </Card>
-      ) : (
-        <div className="space-y-4">
-          {filteredAndSortedEntries.map((entry, index) => (
-            <motion.div
-              key={entry.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-            >
-              <JournalEntryCard
-                entry={entry}
-                onEdit={handleEditEntry}
-                onDelete={handleDeleteEntry}
-              />
-            </motion.div>
-          ))}
-        </div>
-      )}
+
+        {/* Journal Entries */}
+        {filteredAndSortedEntries.length === 0
+          ? (
+              <Card variant="surface" className="campaign-empty-state">
+                <CardContent>
+                  <div className="text-center space-y-4">
+                    <BookOpen size={48} className="mx-auto text-muted-foreground" />
+                    <div>
+                      <h4 className="font-medium mb-2">
+                        {campaign.journal.length === 0 ? 'No journal entries' : 'No entries match your filters'}
+                      </h4>
+                      <p className="text-muted-foreground">
+                        {campaign.journal.length === 0
+                          ? 'Start writing your campaign story and important events'
+                          : 'Try adjusting your search terms or filters'}
+                      </p>
+                    </div>
+                    {campaign.journal.length === 0 && (
+                      <Button
+                        variant="primary"
+                        size="md"
+                        className="gap-2"
+                        onClick={handleCreateEntry}
+                      >
+                        <Plus size={16} />
+                        Write First Entry
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          : (
+              <div className="space-y-4">
+                {filteredAndSortedEntries.map((entry, index) => (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <JournalEntryCard
+                      entry={entry}
+                      onEdit={handleEditEntry}
+                      onDelete={handleDeleteRequest}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
       </div>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete journal entry</AlertDialogTitle>
+            <AlertDialogDescription>{deleteDialogMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteEntry} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Journal Entry Modal */}
       <JournalEntryModal
@@ -392,7 +438,6 @@ export const CampaignJournal: React.FC<CampaignJournalProps> = ({
         onClose={handleModalClose}
         campaignId={campaignId}
         entry={editingEntry}
-        onSaved={handleEntrySaved}
       />
     </>
   )

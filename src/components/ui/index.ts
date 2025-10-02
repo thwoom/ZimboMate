@@ -1,44 +1,42 @@
+export { Badge, type BadgeProps, badgeVariants } from './Badge'
 // shadcn/ui Base Components (aligned with actual filenames)
-export { Button, buttonVariants, type ButtonProps } from './Button'
-export { Input, type InputProps } from './Input'
-export { Label } from './label'
-export { Badge, badgeVariants, type BadgeProps } from './Badge'
-export { Progress, progressVariants, progressFillVariants, type ProgressProps } from './Progress'
-
+export { Button, type ButtonProps, buttonVariants } from './Button'
 // Layout Components
 export {
   Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
   CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  type CardProps,
+  CardTitle,
   cardVariants,
-  type CardProps
 } from './Card'
+export { ColorPalette } from './ColorSwatch'
+export { HelpSystem } from './HelpSystem'
 
+export { Input, type InputProps } from './Input'
+
+export { Label } from './label'
+
+export { Progress, progressFillVariants, type ProgressProps, progressVariants } from './Progress'
 // Form Components
 export {
   Select,
-  SelectGroup,
-  SelectValue,
-  SelectTrigger,
   SelectContent,
-  SelectLabel,
+  SelectGroup,
   SelectItem,
-  SelectSeparator,
-  SelectScrollUpButton,
+  SelectLabel,
   SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
 } from './select'
+// Text inputs
+export { Textarea, type TextareaProps, textareaVariants } from './Textarea'
 
+export { ThemeComponentShowcase } from './ThemeComponentShowcase'
 // Theme Components
 export { ThemeProvider } from './ThemeProvider'
 export { ThemeStatusBadge } from './ThemeStatusBadge'
-
-// Text inputs
-export { Textarea, textareaVariants, type TextareaProps } from './Textarea'
-export { ThemeComponentShowcase } from './ThemeComponentShowcase'
-export { HelpSystem } from './HelpSystem'
-export { ColorPalette } from './ColorSwatch'
-export { TypographyShowcase } from './TypographyShowcase'
-export { ComponentShowcase } from './ComponentShowcase'

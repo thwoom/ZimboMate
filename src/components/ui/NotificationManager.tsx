@@ -3,10 +3,11 @@
  * Displays and manages the notification queue with elegant animations
  */
 
+import type { Notification } from '../../stores/notificationStore'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Settings, Volume2, VolumeX, X } from 'lucide-react'
 import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Volume2, VolumeX, Settings } from 'lucide-react'
-import { useNotificationStore, type Notification } from '../../stores/notificationStore'
+import { useNotificationStore } from '../../stores/notificationStore'
 import { Button } from './Button'
 
 interface NotificationManagerProps {
@@ -34,10 +35,10 @@ const NotificationItem: React.FC<{
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 300, scale: 0.9 }}
       transition={{
-        type: "spring",
+        type: 'spring',
         stiffness: 300,
         damping: 30,
-        delay: index * 0.1
+        delay: index * 0.1,
       }}
       className={`
         relative p-4 rounded-lg shadow-lg border max-w-sm mb-3
@@ -115,7 +116,7 @@ const NotificationItem: React.FC<{
 
 export const NotificationManager: React.FC<NotificationManagerProps> = ({
   position = 'top-right',
-  className = ''
+  className = '',
 }) => {
   const {
     activeNotifications,
@@ -124,7 +125,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
     preferences,
     muteNotifications,
     unmuteNotifications,
-    setPreference
+    setPreference,
   } = useNotificationStore()
 
   const isMuted = preferences.mutedDuration > Date.now()
@@ -138,7 +139,8 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
     }
   }
 
-  if (activeNotifications.length === 0) return null
+  if (activeNotifications.length === 0)
+    return null
 
   return (
     <div className={`fixed ${getPositionClasses()} z-50 ${className}`}>
@@ -219,7 +221,7 @@ export const NotificationSettings: React.FC<{
           <input
             type="checkbox"
             checked={preferences.enableDiceRolls}
-            onChange={(e) => toggleSetting('enableDiceRolls', e.target.checked)}
+            onChange={e => toggleSetting('enableDiceRolls', e.target.checked)}
             className="rounded"
           />
         </label>
@@ -229,7 +231,7 @@ export const NotificationSettings: React.FC<{
           <input
             type="checkbox"
             checked={preferences.enableXPAwards}
-            onChange={(e) => toggleSetting('enableXPAwards', e.target.checked)}
+            onChange={e => toggleSetting('enableXPAwards', e.target.checked)}
             className="rounded"
           />
         </label>
@@ -239,7 +241,7 @@ export const NotificationSettings: React.FC<{
           <input
             type="checkbox"
             checked={preferences.enableHoldGrants}
-            onChange={(e) => toggleSetting('enableHoldGrants', e.target.checked)}
+            onChange={e => toggleSetting('enableHoldGrants', e.target.checked)}
             className="rounded"
           />
         </label>
@@ -249,7 +251,7 @@ export const NotificationSettings: React.FC<{
           <input
             type="checkbox"
             checked={preferences.enableLevelUps}
-            onChange={(e) => toggleSetting('enableLevelUps', e.target.checked)}
+            onChange={e => toggleSetting('enableLevelUps', e.target.checked)}
             className="rounded"
           />
         </label>
@@ -259,7 +261,7 @@ export const NotificationSettings: React.FC<{
           <input
             type="checkbox"
             checked={preferences.enableAchievements}
-            onChange={(e) => toggleSetting('enableAchievements', e.target.checked)}
+            onChange={e => toggleSetting('enableAchievements', e.target.checked)}
             className="rounded"
           />
         </label>
@@ -267,6 +269,3 @@ export const NotificationSettings: React.FC<{
     </div>
   )
 }
-
-
-

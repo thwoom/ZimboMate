@@ -4,11 +4,11 @@
  * Integrates gameStateStore with session and campaign management
  */
 
+import type { GameTime, GlobalEffect, PartyResource } from '../stores/gameStateStore'
 import { useCallback, useMemo } from 'react'
 import { useGameStateStore } from '../stores/gameStateStore'
-import { useSession } from './useSession'
 import { useCampaign } from './useCampaign'
-import type { GlobalEffect, GameTime, PartyResource } from '../stores/gameStateStore'
+import { useSession } from './useSession'
 
 export interface TimeOfDay {
   hour: number
@@ -38,26 +38,26 @@ export interface UseGameStateReturn {
   timeOfDay: TimeOfDay
   advanceTime: (amount: number, unit: 'minutes' | 'hours' | 'days') => void
   setTime: (hour: number, minute: number, day: number) => void
-  
+
   // Weather and environment
   weather: Weather
   environment: Environment
   updateWeather: (weather: Partial<Weather>) => void
   updateEnvironment: (environment: Partial<Environment>) => void
-  
+
   // Global effects
   globalEffects: GlobalEffect[]
   addGlobalEffect: (effect: Omit<GlobalEffect, 'id'>) => void
   removeGlobalEffect: (effectId: string) => void
   updateGlobalEffect: (effectId: string, updates: Partial<GlobalEffect>) => void
   getActiveGlobalEffects: () => GlobalEffect[]
-  
+
   // Party resources
   partyResources: PartyResource[]
   updatePartyResource: (resourceId: string, amount: number) => void
   addPartyResource: (resource: Omit<PartyResource, 'id'>) => void
   removePartyResource: (resourceId: string) => void
-  
+
   // World events
   triggerWorldEvent: (eventType: string, description: string, effects?: any[]) => void
   getRecentWorldEvents: () => Array<{
@@ -67,19 +67,19 @@ export interface UseGameStateReturn {
     timestamp: Date
     effects: any[]
   }>
-  
+
   // Quick actions
   shortRest: () => void
   longRest: () => void
   advanceDay: () => void
   changeLocation: (location: string, terrain?: Environment['terrain']) => void
-  
+
   // State queries
   isDay: boolean
   isNight: boolean
   canSeeStars: boolean
   needsLight: boolean
-  
+
   // Utility
   isLoading: boolean
   error: string | null
@@ -123,25 +123,32 @@ export function useGameState(): UseGameStateReturn {
     if (hour >= 5 && hour < 7) {
       period = 'dawn'
       description = 'The sun rises, painting the sky in soft colors'
-    } else if (hour >= 7 && hour < 12) {
+    }
+    else if (hour >= 7 && hour < 12) {
       period = 'morning'
       description = 'The morning sun climbs higher in the sky'
-    } else if (hour >= 12 && hour < 13) {
+    }
+    else if (hour >= 12 && hour < 13) {
       period = 'midday'
       description = 'The sun reaches its zenith overhead'
-    } else if (hour >= 13 && hour < 17) {
+    }
+    else if (hour >= 13 && hour < 17) {
       period = 'afternoon'
       description = 'The afternoon sun begins its descent'
-    } else if (hour >= 17 && hour < 19) {
+    }
+    else if (hour >= 17 && hour < 19) {
       period = 'dusk'
       description = 'The sun sets, casting long shadows'
-    } else if (hour >= 19 && hour < 22) {
+    }
+    else if (hour >= 19 && hour < 22) {
       period = 'evening'
       description = 'Twilight settles over the land'
-    } else if (hour >= 22 || hour < 1) {
+    }
+    else if (hour >= 22 || hour < 1) {
       period = 'night'
       description = 'Night has fallen, stars twinkle above'
-    } else {
+    }
+    else {
       period = 'midnight'
       description = 'The deepest part of night, when shadows reign'
     }
@@ -250,9 +257,11 @@ export function useGameState(): UseGameStateReturn {
   }, [storeUpdateGlobalEffect])
 
   const getActiveGlobalEffects = useCallback(() => {
-    return globalEffects.filter(effect => {
-      if (effect.duration === 'permanent') return true
-      if (typeof effect.duration === 'number') return effect.duration > 0
+    return globalEffects.filter((effect) => {
+      if (effect.duration === 'permanent')
+        return true
+      if (typeof effect.duration === 'number')
+        return effect.duration > 0
       return true // Scene/encounter effects are active until removed
     })
   }, [globalEffects])
@@ -289,28 +298,28 @@ export function useGameState(): UseGameStateReturn {
   const shortRest = useCallback(() => {
     // Advance time by 1 hour
     advanceTime(1, 'hours')
-    
+
     // Trigger short rest effects
     triggerWorldEvent('short_rest', 'The party takes a short rest', [
       { type: 'heal', amount: 'partial' },
-      { type: 'refresh', resources: ['short_rest'] }
+      { type: 'refresh', resources: ['short_rest'] },
     ])
   }, [advanceTime, triggerWorldEvent])
 
   const longRest = useCallback(() => {
     // Advance time by 8 hours
     advanceTime(8, 'hours')
-    
+
     // Trigger long rest effects
     triggerWorldEvent('long_rest', 'The party takes a long rest', [
       { type: 'heal', amount: 'full' },
       { type: 'refresh', resources: ['all'] },
-      { type: 'clear', effects: ['temporary'] }
+      { type: 'clear', effects: ['temporary'] },
     ])
 
     // Clear temporary global effects
-    const temporaryEffects = globalEffects.filter(effect => 
-      effect.duration !== 'permanent' && typeof effect.duration !== 'number'
+    const temporaryEffects = globalEffects.filter(effect =>
+      effect.duration !== 'permanent' && typeof effect.duration !== 'number',
     )
     temporaryEffects.forEach(effect => removeGlobalEffect(effect.id))
   }, [advanceTime, triggerWorldEvent, globalEffects, removeGlobalEffect])
@@ -323,7 +332,7 @@ export function useGameState(): UseGameStateReturn {
   const changeLocation = useCallback((location: string, terrain: Environment['terrain'] = 'wilderness') => {
     updateEnvironment({ location, terrain })
     triggerWorldEvent('location_change', `The party arrives at ${location}`, [
-      { type: 'location', name: location, terrain }
+      { type: 'location', name: location, terrain },
     ])
   }, [updateEnvironment, triggerWorldEvent])
 
@@ -333,42 +342,42 @@ export function useGameState(): UseGameStateReturn {
     timeOfDay,
     advanceTime,
     setTime,
-    
+
     // Weather and environment
     weather,
     environment,
     updateWeather,
     updateEnvironment,
-    
+
     // Global effects
     globalEffects,
     addGlobalEffect,
     removeGlobalEffect,
     updateGlobalEffect,
     getActiveGlobalEffects,
-    
+
     // Party resources
     partyResources,
     updatePartyResource,
     addPartyResource,
     removePartyResource,
-    
+
     // World events
     triggerWorldEvent,
     getRecentWorldEvents,
-    
+
     // Quick actions
     shortRest,
     longRest,
     advanceDay,
     changeLocation,
-    
+
     // State queries
     isDay,
     isNight,
     canSeeStars,
     needsLight,
-    
+
     // Utility
     isLoading,
     error,

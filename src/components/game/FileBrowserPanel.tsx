@@ -1,15 +1,15 @@
-import React, { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Filter, ArrowUpDown, MoreHorizontal, Eye, Edit, Trash2, Copy, CircleCheck, TriangleAlert } from 'lucide-react'
-import * as Select from '@radix-ui/react-select'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
+import * as Select from '@radix-ui/react-select'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowUpDown, CircleCheck, Copy, Edit, Eye, Filter, MoreHorizontal, Trash2, TriangleAlert } from 'lucide-react'
+import React, { useMemo, useState } from 'react'
+import { FileOperation, FileType, formatDateTime, formatFileSize, mockFileManagement } from '../../fileManagementMockData'
+import { Badge } from '../ui/Badge'
+import { Button } from '../ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
 import { Input } from '../ui/Input'
-import { Button } from '../ui/Button'
-import { Badge } from '../ui/Badge'
-import { FileType, FileOperation, formatFileSize, formatDateTime, mockFileManagement } from '../../fileManagementMockData'
 
 interface FileBrowserPanelProps {
   onFileOperation: (operation: FileOperation, data: any) => void
@@ -21,7 +21,7 @@ type SortOrder = 'asc' | 'desc'
 
 export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
   onFileOperation,
-  operationInProgress
+  operationInProgress,
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<FileType | 'all'>('all')
@@ -33,7 +33,7 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
   const files = mockFileManagement.recentFiles
 
   const filteredAndSortedFiles = useMemo(() => {
-    const filtered = files.filter(file => {
+    const filtered = files.filter((file) => {
       const matchesSearch = file.name.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesType = filterType === 'all' || file.type === filterType
       return matchesSearch && matchesType
@@ -41,7 +41,7 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
 
     filtered.sort((a, b) => {
       let comparison = 0
-      
+
       switch (sortBy) {
         case 'name':
           comparison = a.name.localeCompare(b.name)
@@ -64,10 +64,10 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
   }, [files, searchQuery, filterType, sortBy, sortOrder])
 
   const toggleFileSelection = (fileId: string) => {
-    setSelectedFiles(prev => 
-      prev.includes(fileId) 
+    setSelectedFiles(prev =>
+      prev.includes(fileId)
         ? prev.filter(id => id !== fileId)
-        : [...prev, fileId]
+        : [...prev, fileId],
     )
   }
 
@@ -101,11 +101,13 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
   }
 
   const getValidationIcon = (isValid: boolean) => {
-    return isValid ? (
-      <CircleCheck size={16} className="text-chart-2" />
-    ) : (
-      <TriangleAlert size={16} className="text-destructive" />
-    )
+    return isValid
+      ? (
+          <CircleCheck size={16} className="text-chart-2" />
+        )
+      : (
+          <TriangleAlert size={16} className="text-destructive" />
+        )
   }
 
   return (
@@ -119,18 +121,18 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
               <Input
                 placeholder="Search files..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="w-full"
               />
             </div>
 
             {/* Filter by Type */}
-            <Select.Root value={filterType} onValueChange={(value) => setFilterType(value as FileType | 'all')}>
-              <Select.Trigger 
+            <Select.Root value={filterType} onValueChange={value => setFilterType(value as FileType | 'all')}>
+              <Select.Trigger
                 className="w-48 p-2 border rounded-lg flex items-center justify-between"
-                style={{ 
+                style={{
                   borderColor: 'var(--border)',
-                  backgroundColor: 'var(--card)'
+                  backgroundColor: 'var(--card)',
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -138,8 +140,9 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
                   <Select.Value />
                 </div>
               </Select.Trigger>
-              <Select.Content 
-                className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card">
+              <Select.Content
+                className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card"
+              >
                 <Select.Item value="all" className="p-2 hover:bg-surface-elevated cursor-pointer">
                   All Files
                 </Select.Item>
@@ -159,16 +162,19 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
             </Select.Root>
 
             {/* Sort */}
-            <Select.Root value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
-              const [newSortBy, newSortOrder] = value.split('-') as [SortBy, SortOrder]
-              setSortBy(newSortBy)
-              setSortOrder(newSortOrder)
-            }}>
-              <Select.Trigger 
+            <Select.Root
+              value={`${sortBy}-${sortOrder}`}
+              onValueChange={(value) => {
+                const [newSortBy, newSortOrder] = value.split('-') as [SortBy, SortOrder]
+                setSortBy(newSortBy)
+                setSortOrder(newSortOrder)
+              }}
+            >
+              <Select.Trigger
                 className="w-48 p-2 border rounded-lg flex items-center justify-between"
-                style={{ 
+                style={{
                   borderColor: 'var(--border)',
-                  backgroundColor: 'var(--card)'
+                  backgroundColor: 'var(--card)',
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -176,8 +182,9 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
                   <Select.Value />
                 </div>
               </Select.Trigger>
-              <Select.Content 
-                className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card">
+              <Select.Content
+                className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card"
+              >
                 <Select.Item value="name-asc" className="p-2 hover:bg-surface-elevated cursor-pointer">
                   Name (A-Z)
                 </Select.Item>
@@ -208,22 +215,26 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
           <CardContent className="py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Badge variant="primary">{selectedFiles.length} selected</Badge>
+                <Badge variant="primary">
+                  {selectedFiles.length}
+                  {' '}
+                  selected
+                </Badge>
                 <Button variant="outline" size="sm" onClick={clearSelection}>
                   Clear Selection
                 </Button>
               </div>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => handleFileOperation(FileOperation.EXPORT, selectedFiles)}
                   disabled={!!operationInProgress}
                 >
                   Export Selected
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={() => handleFileOperation(FileOperation.DELETE, selectedFiles)}
                   disabled={!!operationInProgress}
@@ -240,11 +251,15 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
       <Card variant="default">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Files ({filteredAndSortedFiles.length})</CardTitle>
+            <CardTitle>
+              Files (
+              {filteredAndSortedFiles.length}
+              )
+            </CardTitle>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={selectedFiles.length === filteredAndSortedFiles.length ? clearSelection : selectAllFiles}
               >
                 {selectedFiles.length === filteredAndSortedFiles.length ? 'Deselect All' : 'Select All'}
@@ -259,7 +274,7 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
                 <AnimatePresence>
                   {filteredAndSortedFiles.map((file) => {
                     const isSelected = selectedFiles.includes(file.id)
-                    
+
                     return (
                       <motion.div
                         key={file.id}
@@ -276,7 +291,7 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
                               `}
                               style={{
                                 backgroundColor: isSelected ? 'var(--primary)' : 'var(--card)',
-                                borderColor: isSelected ? 'var(--primary)' : 'var(--border)'
+                                borderColor: isSelected ? 'var(--primary)' : 'var(--border)',
                               }}
                               onClick={() => toggleFileSelection(file.id)}
                             >
@@ -310,7 +325,7 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={(e) => e.stopPropagation()}
+                                    onClick={e => e.stopPropagation()}
                                   >
                                     <MoreHorizontal size={16} />
                                   </Button>
@@ -319,23 +334,24 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
                             </div>
                           </ContextMenu.Trigger>
                           <ContextMenu.Portal>
-                            <ContextMenu.Content 
-                              className="bg-surface border border-border rounded-lg shadow-lg p-1 z-50 bg-card">
-                              <ContextMenu.Item 
+                            <ContextMenu.Content
+                              className="bg-surface border border-border rounded-lg shadow-lg p-1 z-50 bg-card"
+                            >
+                              <ContextMenu.Item
                                 className="flex items-center gap-2 px-3 py-2 hover:bg-surface-elevated cursor-pointer rounded"
                                 onClick={() => setPreviewFile(file)}
                               >
                                 <Eye size={16} />
                                 Preview
                               </ContextMenu.Item>
-                              <ContextMenu.Item 
+                              <ContextMenu.Item
                                 className="flex items-center gap-2 px-3 py-2 hover:bg-surface-elevated cursor-pointer rounded"
                                 onClick={() => handleFileOperation(FileOperation.RENAME, file.id)}
                               >
                                 <Edit size={16} />
                                 Rename
                               </ContextMenu.Item>
-                              <ContextMenu.Item 
+                              <ContextMenu.Item
                                 className="flex items-center gap-2 px-3 py-2 hover:bg-surface-elevated cursor-pointer rounded"
                                 onClick={() => handleFileOperation(FileOperation.DUPLICATE, file.id)}
                               >
@@ -343,7 +359,7 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
                                 Duplicate
                               </ContextMenu.Item>
                               <ContextMenu.Separator className="my-1 h-px bg-border" />
-                              <ContextMenu.Item 
+                              <ContextMenu.Item
                                 className="flex items-center gap-2 px-3 py-2 hover:bg-destructive/15 text-destructive cursor-pointer rounded"
                                 onClick={() => handleFileOperation(FileOperation.DELETE, file.id)}
                               >
@@ -370,30 +386,42 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
       <Dialog.Root open={!!previewFile} onOpenChange={() => setPreviewFile(null)}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-          <Dialog.Content 
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[80vh] p-6 rounded-lg shadow-lg z-50 overflow-auto bg-card">
+          <Dialog.Content
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[80vh] p-6 rounded-lg shadow-lg z-50 overflow-auto bg-card"
+          >
             {previewFile && (
               <>
                 <Dialog.Title className="text-lg font-medium mb-4">
-                  File Preview: {previewFile.name}
+                  File Preview:
+                  {' '}
+                  {previewFile.name}
                 </Dialog.Title>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="font-medium">Type:</span> {previewFile.type}
+                      <span className="font-medium">Type:</span>
+                      {' '}
+                      {previewFile.type}
                     </div>
                     <div>
-                      <span className="font-medium">Size:</span> {formatFileSize(previewFile.size)}
+                      <span className="font-medium">Size:</span>
+                      {' '}
+                      {formatFileSize(previewFile.size)}
                     </div>
                     <div>
-                      <span className="font-medium">Modified:</span> {formatDateTime(previewFile.lastModified)}
+                      <span className="font-medium">Modified:</span>
+                      {' '}
+                      {formatDateTime(previewFile.lastModified)}
                     </div>
                     <div>
-                      <span className="font-medium">Valid:</span> {previewFile.isValid ? 'Yes' : 'No'}
+                      <span className="font-medium">Valid:</span>
+                      {' '}
+                      {previewFile.isValid ? 'Yes' : 'No'}
                     </div>
                   </div>
-                  <div 
-                    className="p-4 rounded-lg font-mono text-sm bg-popover">
+                  <div
+                    className="p-4 rounded-lg font-mono text-sm bg-popover"
+                  >
                     <pre className="whitespace-pre-wrap">
                       {JSON.stringify({
                         name: previewFile.name,
@@ -402,7 +430,7 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
                         path: previewFile.path,
                         lastModified: previewFile.lastModified,
                         // Mock preview content
-                        content: "// File preview content would appear here..."
+                        content: '// File preview content would appear here...',
                       }, null, 2)}
                     </pre>
                   </div>
@@ -420,4 +448,3 @@ export const FileBrowserPanel: React.FC<FileBrowserPanelProps> = ({
     </div>
   )
 }
-

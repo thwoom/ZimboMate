@@ -3,22 +3,19 @@
  * Provides UI for managing multiplayer game sessions
  */
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from '../ui'
-import { multiplayerService, GameSession, SessionSettings } from '../../services/MultiplayerService'
-import { 
-  Users, 
-  Plus, 
-  LogIn, 
-  Settings, 
-  Crown, 
-  Wifi, 
+import type { GameSession, SessionSettings } from '../../services/MultiplayerService'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  Crown,
+  LogIn,
+  Plus,
+  Users,
+  Wifi,
   WifiOff,
-  Copy,
-  Check,
-  X
 } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { multiplayerService } from '../../services/MultiplayerService'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input } from '../ui'
 
 interface SessionManagerProps {
   onSessionJoined: (session: GameSession) => void
@@ -43,7 +40,7 @@ interface JoinSessionForm {
 export const SessionManager: React.FC<SessionManagerProps> = ({
   onSessionJoined,
   onClose,
-  isVisible
+  isVisible,
 }) => {
   const [mode, setMode] = useState<'menu' | 'create' | 'join'>('menu')
   const [isConnected, setIsConnected] = useState(false)
@@ -57,12 +54,12 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
     maxPlayers: 6,
     allowSpectators: true,
     shareRolls: true,
-    requireApproval: false
+    requireApproval: false,
   })
 
   const [joinForm, setJoinForm] = useState<JoinSessionForm>({
     sessionId: '',
-    playerName: ''
+    playerName: '',
   })
 
   const [availableSessions, setAvailableSessions] = useState<GameSession[]>([])
@@ -126,7 +123,8 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
 
     try {
       await multiplayerService.connect()
-    } catch (error: any) {
+    }
+    catch (error: any) {
       setConnectionError(error.message || 'Failed to connect to server')
     }
   }
@@ -141,15 +139,16 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
         maxPlayers: createForm.maxPlayers,
         allowSpectators: createForm.allowSpectators,
         shareRolls: createForm.shareRolls,
-        requireApproval: createForm.requireApproval
+        requireApproval: createForm.requireApproval,
       }
 
       await multiplayerService.createSession(
         createForm.name.trim(),
         createForm.playerName.trim(),
-        settings
+        settings,
       )
-    } catch (error: any) {
+    }
+    catch (error: any) {
       setConnectionError(error.message || 'Failed to create session')
     }
   }
@@ -164,7 +163,8 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
 
     try {
       await multiplayerService.joinSession(id, playerName)
-    } catch (error: any) {
+    }
+    catch (error: any) {
       setConnectionError(error.message || 'Failed to join session')
     }
   }
@@ -177,22 +177,26 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
 
   const ConnectionStatus = () => (
     <div className="flex items-center gap-2 mb-4">
-      {isConnected ? (
-        <>
-          <Wifi size={16} className="text-chart-2" />
-          <span className="text-sm text-chart-2">Connected to server</span>
-        </>
-      ) : isConnecting ? (
-        <>
-          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
-          <span className="text-sm text-muted-foreground">Connecting...</span>
-        </>
-      ) : (
-        <>
-          <WifiOff size={16} className="text-destructive" />
-          <span className="text-sm text-destructive">Disconnected</span>
-        </>
-      )}
+      {isConnected
+        ? (
+            <>
+              <Wifi size={16} className="text-chart-2" />
+              <span className="text-sm text-chart-2">Connected to server</span>
+            </>
+          )
+        : isConnecting
+          ? (
+              <>
+                <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+                <span className="text-sm text-muted-foreground">Connecting...</span>
+              </>
+            )
+          : (
+              <>
+                <WifiOff size={16} className="text-destructive" />
+                <span className="text-sm text-destructive">Disconnected</span>
+              </>
+            )}
     </div>
   )
 
@@ -266,7 +270,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
           <label className="block text-sm font-medium mb-2">Session Name</label>
           <Input
             value={createForm.name}
-            onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
+            onChange={e => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
             placeholder="Epic Adventure Session"
             className="w-full"
           />
@@ -276,7 +280,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
           <label className="block text-sm font-medium mb-2">Your Name</label>
           <Input
             value={createForm.playerName}
-            onChange={(e) => setCreateForm(prev => ({ ...prev, playerName: e.target.value }))}
+            onChange={e => setCreateForm(prev => ({ ...prev, playerName: e.target.value }))}
             placeholder="Game Master"
             className="w-full"
           />
@@ -289,7 +293,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
             min="2"
             max="12"
             value={createForm.maxPlayers}
-            onChange={(e) => setCreateForm(prev => ({ ...prev, maxPlayers: parseInt(e.target.value) || 6 }))}
+            onChange={e => setCreateForm(prev => ({ ...prev, maxPlayers: Number.parseInt(e.target.value) || 6 }))}
             className="w-full"
           />
         </div>
@@ -299,7 +303,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
             <input
               type="checkbox"
               checked={createForm.allowSpectators}
-              onChange={(e) => setCreateForm(prev => ({ ...prev, allowSpectators: e.target.checked }))}
+              onChange={e => setCreateForm(prev => ({ ...prev, allowSpectators: e.target.checked }))}
               className="rounded"
             />
             <span className="text-sm">Allow spectators</span>
@@ -309,7 +313,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
             <input
               type="checkbox"
               checked={createForm.shareRolls}
-              onChange={(e) => setCreateForm(prev => ({ ...prev, shareRolls: e.target.checked }))}
+              onChange={e => setCreateForm(prev => ({ ...prev, shareRolls: e.target.checked }))}
               className="rounded"
             />
             <span className="text-sm">Share dice rolls</span>
@@ -319,7 +323,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
             <input
               type="checkbox"
               checked={createForm.requireApproval}
-              onChange={(e) => setCreateForm(prev => ({ ...prev, requireApproval: e.target.checked }))}
+              onChange={e => setCreateForm(prev => ({ ...prev, requireApproval: e.target.checked }))}
               className="rounded"
             />
             <span className="text-sm">Require approval to join</span>
@@ -363,7 +367,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
           <label className="block text-sm font-medium mb-2">Session ID</label>
           <Input
             value={joinForm.sessionId}
-            onChange={(e) => setJoinForm(prev => ({ ...prev, sessionId: e.target.value }))}
+            onChange={e => setJoinForm(prev => ({ ...prev, sessionId: e.target.value }))}
             placeholder="Enter session ID"
             className="w-full"
           />
@@ -373,7 +377,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
           <label className="block text-sm font-medium mb-2">Your Name</label>
           <Input
             value={joinForm.playerName}
-            onChange={(e) => setJoinForm(prev => ({ ...prev, playerName: e.target.value }))}
+            onChange={e => setJoinForm(prev => ({ ...prev, playerName: e.target.value }))}
             placeholder="Player Name"
             className="w-full"
           />
@@ -398,7 +402,9 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="secondary" className="text-xs">
                           <Users size={10} className="mr-1" />
-                          {session.players.length}/{session.settings.maxPlayers}
+                          {session.players.length}
+                          /
+                          {session.settings.maxPlayers}
                         </Badge>
                         {session.players.some(p => p.isHost) && (
                           <Crown size={12} className="text-chart-4" />
@@ -474,6 +480,3 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
     </AnimatePresence>
   )
 }
-
-
-

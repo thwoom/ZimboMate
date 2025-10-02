@@ -3,28 +3,27 @@
  * Phase 4B: Campaign Management - GM Tools for long-term campaign continuity
  */
 
-import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  Scroll, 
-  CalendarClock, 
-  BookOpenText, 
-  Users, 
-  MapPin,
+import {
+  BookOpenText,
+  CalendarClock,
   LayoutPanelLeft,
+  MapPin,
   Plus,
+  Scroll,
   Search,
-  Filter
+  Users,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../ui'
-import { CampaignOverview } from './Campaign/CampaignOverview'
-import { SessionHistory } from './Campaign/SessionHistory'
-import { CampaignJournal } from './Campaign/CampaignJournal'
-import { NPCManager } from './Campaign/NPCManager'
-import { LocationTracker } from './Campaign/LocationTracker'
-import { CreateCampaignModal } from './Campaign/CreateCampaignModal'
-import { CampaignSelector } from './Campaign/CampaignSelector'
+import React, { useState } from 'react'
 import { useCampaignStore } from '../../stores/campaignStore'
+import { Badge, Button, Card, CardContent } from '../ui'
+import { CampaignJournal } from './Campaign/CampaignJournal'
+import { CampaignOverview } from './Campaign/CampaignOverview'
+import { CampaignSelector } from './Campaign/CampaignSelector'
+import { CreateCampaignModal } from './Campaign/CreateCampaignModal'
+import { LocationTracker } from './Campaign/LocationTracker'
+import { NPCManager } from './Campaign/NPCManager'
+import { SessionHistory } from './Campaign/SessionHistory'
 
 type CampaignTab = 'overview' | 'sessions' | 'journal' | 'npcs' | 'locations'
 
@@ -33,49 +32,49 @@ interface CampaignPanelProps {
   initialTab?: CampaignTab
 }
 
-export const CampaignPanel: React.FC<CampaignPanelProps> = ({ 
+export const CampaignPanel: React.FC<CampaignPanelProps> = ({
   className = '',
-  initialTab = 'overview'
+  initialTab = 'overview',
 }) => {
   const [activeTab, setActiveTab] = useState<CampaignTab>(initialTab)
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
-  
+
   const activeCampaign = useCampaignStore(state => state.getActiveCampaign())
   const campaigns = useCampaignStore(state => state.campaigns)
   const setActiveCampaign = useCampaignStore(state => state.setActiveCampaign)
 
   const tabs = [
-    { 
-      id: 'overview' as const, 
-      label: 'Overview', 
+    {
+      id: 'overview' as const,
+      label: 'Overview',
       icon: LayoutPanelLeft,
-      description: 'Campaign statistics and quick actions'
+      description: 'Campaign statistics and quick actions',
     },
-    { 
-      id: 'sessions' as const, 
-      label: 'Sessions', 
+    {
+      id: 'sessions' as const,
+      label: 'Sessions',
       icon: CalendarClock,
-      description: 'Session history and planning'
+      description: 'Session history and planning',
     },
-    { 
-      id: 'journal' as const, 
-      label: 'Journal', 
+    {
+      id: 'journal' as const,
+      label: 'Journal',
       icon: BookOpenText,
-      description: 'Campaign notes and important events'
+      description: 'Campaign notes and important events',
     },
-    { 
-      id: 'npcs' as const, 
-      label: 'NPCs', 
+    {
+      id: 'npcs' as const,
+      label: 'NPCs',
       icon: Users,
-      description: 'Character relationships and tracking'
+      description: 'Character relationships and tracking',
     },
-    { 
-      id: 'locations' as const, 
-      label: 'Locations', 
+    {
+      id: 'locations' as const,
+      label: 'Locations',
       icon: MapPin,
-      description: 'World building and exploration'
-    }
+      description: 'World building and exploration',
+    },
   ]
 
   const renderContent = () => {
@@ -84,10 +83,13 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
         <Card variant="surface">
           <CardContent className="p-6">
             <div className="text-center space-y-6">
-              <div 
-                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-primary/20">
-                <Scroll className="text-primary" 
-                  size={32} />
+              <div
+                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-primary/20"
+              >
+                <Scroll
+                  className="text-primary"
+                  size={32}
+                />
               </div>
               <div>
                 <h3 className="text-xl font-display mb-2">No Campaign Selected</h3>
@@ -97,13 +99,13 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
               </div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
                 {campaigns.length > 0 && (
-                  <CampaignSelector 
+                  <CampaignSelector
                     onCampaignSelect={setActiveCampaign}
                   />
                 )}
-                <Button 
-                  variant="primary" 
-                  size="md" 
+                <Button
+                  variant="primary"
+                  size="md"
                   className="gap-2"
                   onClick={() => setShowCreateModal(true)}
                 >
@@ -164,7 +166,7 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
                 {tabs.map((tab) => {
                   const Icon = tab.icon
                   const isActive = activeTab === tab.id
-                  
+
                   return (
                     <Button
                       key={tab.id}
@@ -179,9 +181,10 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
                       {isActive && (
                         <motion.div
                           className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                          
+
                           layoutId="campaignTab"
-                          transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
                       )}
                     </Button>
                   )
@@ -195,20 +198,21 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
             <Card variant="surface">
               <CardContent className="p-4">
                 <div className="relative">
-                  <Search 
-                    size={16} 
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                  <Search
+                    size={16}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                  />
                   <input
                     type="text"
                     placeholder={`Search ${activeTab}...`}
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 rounded-lg border transition-colors"
                     style={{
                       backgroundColor: 'var(--card)',
                       borderColor: 'var(--primary)',
                       borderOpacity: 0.2,
-                      color: 'var(--foreground)'
+                      color: 'var(--foreground)',
                     }}
                   />
                 </div>

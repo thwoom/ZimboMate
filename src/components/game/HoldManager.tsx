@@ -3,11 +3,12 @@
  * Displays and manages hold points from various Dungeon World moves
  */
 
+import type { HoldEntry } from '../../stores/holdStore'
+import { AnimatePresence, motion } from 'framer-motion'
+import { BookOpen, ChevronDown, ChevronRight, Eye, Minus, Shield } from 'lucide-react'
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Shield, Eye, BookOpen, Minus, Plus, ChevronDown, ChevronRight } from 'lucide-react'
-import { useHoldStore, HOLD_MOVES, type HoldEntry, type HoldOption } from '../../stores/holdStore'
-import { Button, Card, CardContent, CardHeader, Badge } from '../ui'
+import { HOLD_MOVES, useHoldStore } from '../../stores/holdStore'
+import { Badge, Button, Card, CardContent, CardHeader } from '../ui'
 
 interface HoldManagerProps {
   characterId: string
@@ -24,18 +25,19 @@ const MOVE_ICONS: Record<string, React.ComponentType<any>> = {
 export const HoldManager: React.FC<HoldManagerProps> = ({
   characterId,
   className = '',
-  compact = false
+  compact = false,
 }) => {
   const { getHoldsForCharacter, spendHold } = useHoldStore()
   const holds = getHoldsForCharacter(characterId)
   const [expandedHolds, setExpandedHolds] = useState<Set<string>>(new Set())
 
   const toggleHoldExpansion = (holdId: string) => {
-    setExpandedHolds(prev => {
+    setExpandedHolds((prev) => {
       const next = new Set(prev)
       if (next.has(holdId)) {
         next.delete(holdId)
-      } else {
+      }
+      else {
         next.add(holdId)
       }
       return next
@@ -71,10 +73,12 @@ export const HoldManager: React.FC<HoldManagerProps> = ({
       <div className={`flex items-center gap-2 ${className}`}>
         <Shield size={16} className="text-primary" />
         <span className="text-sm font-medium">
-          {totalHold} Hold
+          {totalHold}
+          {' '}
+          Hold
         </span>
         <div className="flex gap-1">
-          {holds.map(hold => {
+          {holds.map((hold) => {
             const Icon = MOVE_ICONS[hold.moveId] || Shield
             return (
               <Badge key={hold.id} variant="secondary" className="text-xs">
@@ -97,7 +101,9 @@ export const HoldManager: React.FC<HoldManagerProps> = ({
             <h3 className="font-semibold">Hold Management</h3>
           </div>
           <Badge variant="outline">
-            {holds.reduce((sum, hold) => sum + hold.amount, 0)} total
+            {holds.reduce((sum, hold) => sum + hold.amount, 0)}
+            {' '}
+            total
           </Badge>
         </div>
       </CardHeader>
@@ -124,7 +130,12 @@ export const HoldManager: React.FC<HoldManagerProps> = ({
                       <div>
                         <div className="font-medium text-sm">{hold.moveName}</div>
                         <div className="text-xs text-muted-foreground">
-                          {hold.amount} / {hold.maxAmount} hold
+                          {hold.amount}
+                          {' '}
+                          /
+                          {hold.maxAmount}
+                          {' '}
+                          hold
                         </div>
                       </div>
                     </div>
@@ -150,11 +161,13 @@ export const HoldManager: React.FC<HoldManagerProps> = ({
                         className="p-1"
                         disabled={hold.amount === 0}
                       >
-                        {isExpanded ? (
-                          <ChevronDown size={14} />
-                        ) : (
-                          <ChevronRight size={14} />
-                        )}
+                        {isExpanded
+                          ? (
+                              <ChevronDown size={14} />
+                            )
+                          : (
+                              <ChevronRight size={14} />
+                            )}
                       </Button>
                     </div>
                   </div>
@@ -172,7 +185,7 @@ export const HoldManager: React.FC<HoldManagerProps> = ({
                         </div>
 
                         <div className="space-y-2">
-                          {moveInfo.options.map((option) => (
+                          {moveInfo.options.map(option => (
                             <div
                               key={option.id}
                               className="flex items-start justify-between p-2 bg-card rounded border"
@@ -227,6 +240,3 @@ export const HoldDisplay: React.FC<{
 }> = ({ characterId, className = '' }) => {
   return <HoldManager characterId={characterId} className={className} compact />
 }
-
-
-

@@ -49,9 +49,12 @@ export class SpellCastingService {
    * Which stat is used to cast spells for this character
    */
   getSpellcastingStat(character: Character): keyof Attribute | undefined {
-    if (character.class === 'Wizard') return 'INT'
-    if (character.class === 'Cleric') return 'WIS'
-    if (character.class === 'Immolator') return 'INT' // Immolator uses INT
+    if (character.class === 'Wizard')
+      return 'INT'
+    if (character.class === 'Cleric')
+      return 'WIS'
+    if (character.class === 'Immolator')
+      return 'INT' // Immolator uses INT
     return undefined
   }
 
@@ -132,14 +135,14 @@ export class SpellCastingService {
    * Cast a prepared spell following DW rules
    */
   castPreparedSpell(
-    character: Character, 
-    spell: ServiceSpell, 
-    options?: { 
+    character: Character,
+    spell: ServiceSpell,
+    options?: {
       advantage?: boolean
       disadvantage?: boolean
       description?: string
       customModifier?: number
-    }
+    },
   ): SpellCastingResult {
     const statKey = this.getSpellcastingStat(character)
     if (!statKey) {
@@ -183,11 +186,13 @@ export class SpellCastingService {
       // 10+: success, retain spell
       tier = '10+'
       consequences.push('The spell is successfully cast and retained.')
-    } else if (roll.total >= 7) {
+    }
+    else if (roll.total >= 7) {
       // 7–9: caller must choose one of DW-listed consequences
       tier = '7-9'
       consequences.push('Choose one: draw unwelcome attention, forget the spell, or take -1 ongoing to cast a spell until you prepare spells again.')
-    } else {
+    }
+    else {
       // 6-: failure — mark XP immediately
       tier = '6-'
       updated = { ...updated, xp: (updated.xp || 0) + 1 }
@@ -201,9 +206,9 @@ export class SpellCastingService {
    * Apply a 7–9 consequence. Returns an updated character.
    */
   applySevenToNineConsequence(
-    character: Character, 
-    spell: ServiceSpell, 
-    consequence: SevenToNineConsequence
+    character: Character,
+    spell: ServiceSpell,
+    consequence: SevenToNineConsequence,
   ): Character {
     const updated = { ...character, updatedAt: new Date() }
 
@@ -331,7 +336,7 @@ export class SpellCastingService {
   addSpellcastingStrain(character: Character): Character {
     const conditions = new Set(character.conditions || [])
     conditions.add('spellcasting-strain')
-    
+
     return {
       ...character,
       conditions: [...conditions],

@@ -1,12 +1,22 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, Button, Badge } from '../ui'
-import { 
-  Sword, Shield, Heart, Zap, Users, Play, Pause, SkipForward, 
-  Plus, Minus, Dice6, Target, AlertTriangle, Clock
+import type { CombatParticipant } from '../../stores/combatStore'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  AlertTriangle,
+  Dice6,
+  Heart,
+  Minus,
+  Pause,
+  Play,
+  Plus,
+  Shield,
+  SkipForward,
+  Sword,
+  Target,
 } from 'lucide-react'
-import { useCombatStore, type CombatParticipant } from '../../stores/combatStore'
+import React, { useState } from 'react'
 import { useCharacterStore } from '../../stores/characterStore'
+import { useCombatStore } from '../../stores/combatStore'
+import { Badge, Button, Card, CardContent } from '../ui'
 
 interface CombatPanelProps {
   onRollDamage?: (weaponName: string, dice: number[]) => void
@@ -15,7 +25,7 @@ interface CombatPanelProps {
 
 export const CombatPanel: React.FC<CombatPanelProps> = ({
   onRollDamage,
-  onRollMove
+  onRollMove,
 }) => {
   const {
     currentEncounter,
@@ -34,7 +44,7 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
     getCurrentParticipant,
     getAliveParticipants,
     isEncounterComplete,
-    getCombatSummary
+    getCombatSummary,
   } = useCombatStore()
 
   const { characters, getActiveCharacter } = useCharacterStore()
@@ -45,7 +55,7 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
     hp: { current: 10, max: 10 },
     armor: 0,
     position: 'close' as const,
-    isPlayer: false
+    isPlayer: false,
   })
 
   const activeCharacter = getActiveCharacter()
@@ -55,7 +65,8 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
   const encounterComplete = isEncounterComplete()
 
   const handleStartCombat = () => {
-    if (!activeCharacter) return
+    if (!activeCharacter)
+      return
 
     const playerParticipant: Omit<CombatParticipant, 'id'> = {
       name: activeCharacter.name,
@@ -66,14 +77,15 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
       conditions: [],
       position: 'close',
       isActive: true,
-      isPlayer: true
+      isPlayer: true,
     }
 
     startCombat('New Encounter', [playerParticipant])
   }
 
   const handleAddParticipant = () => {
-    if (!newParticipant.name.trim()) return
+    if (!newParticipant.name.trim())
+      return
 
     addParticipant(newParticipant)
     setNewParticipant({
@@ -82,7 +94,7 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
       hp: { current: 10, max: 10 },
       armor: 0,
       position: 'close',
-      isPlayer: false
+      isPlayer: false,
     })
     setShowAddParticipant(false)
   }
@@ -102,9 +114,12 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
 
   const getParticipantStatusColor = (participant: CombatParticipant) => {
     const hpPercent = (participant.hp.current / participant.hp.max) * 100
-    if (hpPercent <= 0) return 'var(--red-600)'
-    if (hpPercent <= 25) return 'var(--red-500)'
-    if (hpPercent <= 50) return 'var(--yellow-500)'
+    if (hpPercent <= 0)
+      return 'var(--red-600)'
+    if (hpPercent <= 25)
+      return 'var(--red-500)'
+    if (hpPercent <= 50)
+      return 'var(--yellow-500)'
     return 'var(--green-500)'
   }
 
@@ -150,9 +165,19 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
             <div className="space-y-1">
               <h3 className="text-lg font-display">{currentEncounter.name}</h3>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>Round {combatSummary.round}</span>
-                <span>Turn {combatSummary.turn}</span>
-                <span>{combatSummary.activeParticipants} Active</span>
+                <span>
+                  Round
+                  {combatSummary.round}
+                </span>
+                <span>
+                  Turn
+                  {combatSummary.turn}
+                </span>
+                <span>
+                  {combatSummary.activeParticipants}
+                  {' '}
+                  Active
+                </span>
               </div>
             </div>
 
@@ -160,16 +185,18 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
               <Badge variant={currentEncounter.status === 'active' ? 'default' : 'secondary'}>
                 {currentEncounter.status}
               </Badge>
-              
-              {currentEncounter.status === 'active' ? (
-                <Button variant="ghost" size="sm" onClick={pauseCombat}>
-                  <Pause size={16} />
-                </Button>
-              ) : (
-                <Button variant="ghost" size="sm" onClick={resumeCombat}>
-                  <Play size={16} />
-                </Button>
-              )}
+
+              {currentEncounter.status === 'active'
+                ? (
+                    <Button variant="ghost" size="sm" onClick={pauseCombat}>
+                      <Pause size={16} />
+                    </Button>
+                  )
+                : (
+                    <Button variant="ghost" size="sm" onClick={resumeCombat}>
+                      <Play size={16} />
+                    </Button>
+                  )}
 
               <Button variant="outline" size="sm" onClick={endCombat}>
                 End Combat
@@ -187,14 +214,14 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
               <Button variant="ghost" size="sm" onClick={previousTurn}>
                 <SkipForward size={16} className="rotate-180" />
               </Button>
-              
+
               <div className="text-center">
                 <div className="text-sm text-muted-foreground">Current Turn</div>
                 <div className="font-semibold">
                   {currentParticipant?.name || 'No active participant'}
                 </div>
               </div>
-              
+
               <Button variant="ghost" size="sm" onClick={nextTurn}>
                 <SkipForward size={16} />
               </Button>
@@ -216,7 +243,7 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
       {/* Participants */}
       <div className="space-y-3">
         <h4 className="font-semibold">Participants</h4>
-        
+
         <div className="grid gap-3">
           {currentEncounter.participants.map((participant, index) => (
             <motion.div
@@ -232,7 +259,7 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div 
+                        <div
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: getParticipantStatusColor(participant) }}
                         />
@@ -240,7 +267,7 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
                           <div className="absolute -inset-1 rounded-full border-2 border-primary animate-pulse" />
                         )}
                       </div>
-                      
+
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold">{participant.name}</span>
@@ -249,15 +276,19 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
                           )}
                           {participant.initiative && (
                             <Badge variant="secondary" size="sm">
-                              Init: {participant.initiative}
+                              Init:
+                              {' '}
+                              {participant.initiative}
                             </Badge>
                           )}
                         </div>
-                        
+
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Heart size={12} />
-                            {participant.hp.current}/{participant.hp.max}
+                            {participant.hp.current}
+                            /
+                            {participant.hp.max}
                           </span>
                           <span className="flex items-center gap-1">
                             <Shield size={12} />
@@ -316,7 +347,7 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
                   {/* Conditions */}
                   {participant.conditions.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1">
-                      {participant.conditions.map((condition) => (
+                      {participant.conditions.map(condition => (
                         <Badge
                           key={condition}
                           variant="outline"
@@ -336,9 +367,9 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
                     <div className="w-full bg-muted rounded-full h-2">
                       <motion.div
                         className="h-2 rounded-full transition-all duration-300"
-                        style={{ 
+                        style={{
                           backgroundColor: getParticipantStatusColor(participant),
-                          width: `${Math.max(0, (participant.hp.current / participant.hp.max) * 100)}%`
+                          width: `${Math.max(0, (participant.hp.current / participant.hp.max) * 100)}%`,
                         }}
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.max(0, (participant.hp.current / participant.hp.max) * 100)}%` }}
@@ -366,20 +397,20 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
               className="w-full max-w-md"
             >
               <Card>
                 <CardContent className="p-6 space-y-4">
                   <h3 className="text-lg font-semibold">Add Participant</h3>
-                  
+
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium mb-1">Name</label>
                       <input
                         type="text"
                         value={newParticipant.name}
-                        onChange={(e) => setNewParticipant(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={e => setNewParticipant(prev => ({ ...prev, name: e.target.value }))}
                         className="w-full px-3 py-2 border rounded-md"
                         placeholder="Participant name"
                       />
@@ -392,10 +423,10 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
                           type="number"
                           value={newParticipant.hp.max}
                           onChange={(e) => {
-                            const hp = parseInt(e.target.value) || 10
-                            setNewParticipant(prev => ({ 
-                              ...prev, 
-                              hp: { current: hp, max: hp }
+                            const hp = Number.parseInt(e.target.value) || 10
+                            setNewParticipant(prev => ({
+                              ...prev,
+                              hp: { current: hp, max: hp },
                             }))
                           }}
                           className="w-full px-3 py-2 border rounded-md"
@@ -408,9 +439,9 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
                         <input
                           type="number"
                           value={newParticipant.armor}
-                          onChange={(e) => setNewParticipant(prev => ({ 
-                            ...prev, 
-                            armor: parseInt(e.target.value) || 0 
+                          onChange={e => setNewParticipant(prev => ({
+                            ...prev,
+                            armor: Number.parseInt(e.target.value) || 0,
                           }))}
                           className="w-full px-3 py-2 border rounded-md"
                           min="0"
@@ -422,9 +453,9 @@ export const CombatPanel: React.FC<CombatPanelProps> = ({
                       <label className="block text-sm font-medium mb-1">Type</label>
                       <select
                         value={newParticipant.type}
-                        onChange={(e) => setNewParticipant(prev => ({ 
-                          ...prev, 
-                          type: e.target.value as any 
+                        onChange={e => setNewParticipant(prev => ({
+                          ...prev,
+                          type: e.target.value as any,
                         }))}
                         className="w-full px-3 py-2 border rounded-md"
                       >

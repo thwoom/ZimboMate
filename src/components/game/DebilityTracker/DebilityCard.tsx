@@ -3,20 +3,19 @@
  * Phase 4A: Essential for managing individual debilities
  */
 
-import React from 'react'
-import { motion } from 'framer-motion'
-import { 
-  Zap, 
-  Skull, 
-  AlertTriangle, 
-  HelpCircle,
-  Heart,
-  User,
-  Activity
-} from 'lucide-react'
+import type { Attribute, Debilities } from '../../../models/Character'
 import * as Switch from '@radix-ui/react-switch'
-import { Card, CardContent, Badge } from '../../ui'
-import type { Debilities, Attribute } from '../../../models/Character'
+import { motion } from 'framer-motion'
+import {
+  Activity,
+  AlertTriangle,
+  Heart,
+  HelpCircle,
+  User,
+  Zap,
+} from 'lucide-react'
+import React from 'react'
+import { Badge, Card, CardContent } from '../../ui'
 
 interface DebilityDefinition {
   key: keyof Debilities
@@ -35,7 +34,7 @@ interface DebilityCardProps {
 
 export const DebilityCard: React.FC<DebilityCardProps> = ({
   debility,
-  onToggle
+  onToggle,
 }) => {
   const getDebilityIcon = (debilityKey: keyof Debilities) => {
     switch (debilityKey) {
@@ -76,8 +75,8 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
   }
 
   return (
-    <Card 
-      variant={debility.active ? "magical" : "surface"}
+    <Card
+      variant={debility.active ? 'magical' : 'surface'}
       className={`relative transition-all duration-300 ${
         debility.active ? 'ring-2 ring-red-200' : ''
       }`}
@@ -96,17 +95,17 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
                 </Badge>
               </div>
             </div>
-            
+
             {/* Toggle Switch */}
             <Switch.Root
               checked={debility.active}
               onCheckedChange={onToggle}
               className={`
                 relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                ${debility.active 
-                  ? 'bg-destructive/120' 
-                  : 'bg-muted'
-                }
+                ${debility.active
+      ? 'bg-destructive/120'
+      : 'bg-muted'
+    }
               `}
             >
               <Switch.Thumb
@@ -120,14 +119,15 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
 
           {/* Description */}
           <div className="space-y-2">
-            <p 
-              className="text-sm text-muted-foreground">
+            <p
+              className="text-sm text-muted-foreground"
+            >
               {debility.description}
             </p>
-            
+
             <div className="flex items-center gap-2">
-              <Badge 
-                variant={debility.active ? "default" : "secondary"}
+              <Badge
+                variant={debility.active ? 'default' : 'secondary'}
                 className={`text-xs ${debility.active ? 'bg-destructive/15 text-destructive' : ''}`}
               >
                 {debility.effect}
@@ -147,7 +147,11 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
                 <span className="font-medium">Active Debility</span>
               </div>
               <p className="text-xs text-destructive mt-1">
-                This debility is currently affecting your {debility.attribute} rolls.
+                This debility is currently affecting your
+                {' '}
+                {debility.attribute}
+                {' '}
+                rolls.
               </p>
             </motion.div>
           )}
@@ -156,6 +160,3 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
     </Card>
   )
 }
-
-
-

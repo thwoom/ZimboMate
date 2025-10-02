@@ -4,18 +4,16 @@
  * Handles session timing, break reminders, and session flow controls.
  */
 
-import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
+  Clock,
+  Coffee,
   Pause,
   Play,
   Square,
-  Timer,
-  Coffee,
-  Clock,
-  BarChart3
 } from 'lucide-react'
-import { Button, Badge } from '../../ui'
+import React, { useEffect, useState } from 'react'
+import { Badge, Button } from '../../ui'
 
 interface SessionFlowControlsProps {
   sessionStartTime: Date | null
@@ -26,7 +24,7 @@ interface SessionFlowControlsProps {
 export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
   sessionStartTime,
   onEndSession,
-  className = ''
+  className = '',
 }) => {
   const [sessionDuration, setSessionDuration] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
@@ -34,7 +32,8 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
 
   // Update session duration every minute
   useEffect(() => {
-    if (!sessionStartTime || isPaused) return
+    if (!sessionStartTime || isPaused)
+      return
 
     const interval = setInterval(() => {
       const now = new Date()
@@ -61,9 +60,12 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
   }
 
   const getSessionStatus = () => {
-    if (sessionDuration >= 180) return { status: 'Long session', color: 'text-destructive' }
-    if (sessionDuration >= 120) return { status: 'Extended play', color: 'text-chart-4' }
-    if (sessionDuration >= 60) return { status: 'Good session', color: 'text-chart-2' }
+    if (sessionDuration >= 180)
+      return { status: 'Long session', color: 'text-destructive' }
+    if (sessionDuration >= 120)
+      return { status: 'Extended play', color: 'text-chart-4' }
+    if (sessionDuration >= 60)
+      return { status: 'Good session', color: 'text-chart-2' }
     return { status: 'Getting started', color: 'text-primary' }
   }
 
@@ -71,7 +73,8 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
     if (isPaused) {
       // Resuming - don't add to paused time yet
       setIsPaused(false)
-    } else {
+    }
+    else {
       // Pausing - start tracking pause time
       setIsPaused(true)
       // In a real implementation, we'd track the pause start time
@@ -106,11 +109,13 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
           onClick={handlePauseToggle}
           className="gap-1"
         >
-          {isPaused ? (
-            <Play size={14} />
-          ) : (
-            <Pause size={14} />
-          )}
+          {isPaused
+            ? (
+                <Play size={14} />
+              )
+            : (
+                <Pause size={14} />
+              )}
           {isPaused ? 'Resume' : 'Pause'}
         </Button>
 
@@ -141,7 +146,3 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
 }
 
 export default SessionFlowControls
-
-
-
-

@@ -1,8 +1,8 @@
-import React from 'react'
 import { Palette } from 'lucide-react'
+import React from 'react'
 import { useTheme } from './ThemeProvider'
 
-type ThemeStatusBadgeProps = {
+interface ThemeStatusBadgeProps {
   /**
    * Optional override for the label that is shown inside the badge and used for accessibility.
    * When omitted, the current theme from the ThemeProvider is displayed.

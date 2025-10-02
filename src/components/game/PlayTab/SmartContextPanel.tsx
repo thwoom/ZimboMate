@@ -5,28 +5,23 @@
  * recommendations based on current game state and recent actions.
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Brain,
-  Lightbulb,
-  AlertTriangle,
-  Info,
-  TrendingUp,
-  Clock,
-  Target,
-  BookOpen,
-  Zap,
-  Shield,
-  Heart,
-  Star,
-  ArrowRight,
-  Eye,
-  Users
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
 import type { Character } from '../../../models/Character'
 import type { GameMode, PlayTabTheme } from '../PlayTab'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  AlertTriangle,
+  ArrowRight,
+  BookOpen,
+  Brain,
+  Eye,
+  Heart,
+  Lightbulb,
+  Shield,
+  Target,
+  Users,
+} from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
 
 interface SmartContextPanelProps {
   character: Character
@@ -41,7 +36,7 @@ interface Suggestion {
   type: 'tip' | 'warning' | 'opportunity' | 'chronicle'
   title: string
   description: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
   priority: 'high' | 'medium' | 'low'
   action?: {
     label: string
@@ -53,7 +48,7 @@ interface SiturationAlert {
   id: string
   type: 'danger' | 'opportunity' | 'reminder'
   message: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
   timestamp: Date
 }
 
@@ -66,14 +61,14 @@ const SuggestionCard: React.FC<{
   const priorityColor = {
     high: 'border-destructive/30 bg-destructive/12',
     medium: 'border-chart-4/30 bg-chart-4/12 bg-chart-4/20',
-    low: 'border-primary/30 bg-primary/10'
+    low: 'border-primary/30 bg-primary/10',
   }
 
   const iconColor = {
     tip: 'text-primary',
     warning: 'text-destructive',
     opportunity: 'text-chart-2',
-    chronicle: 'text-accent'
+    chronicle: 'text-accent',
   }
 
   return (
@@ -123,7 +118,7 @@ const SituationBar: React.FC<{
     combat: 'bg-destructive/120',
     exploration: 'bg-chart-2',
     social: 'bg-primary/100',
-    rest: 'bg-accent'
+    rest: 'bg-accent',
   }
 
   return (
@@ -131,7 +126,8 @@ const SituationBar: React.FC<{
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">Current Situation</span>
         <Badge variant="secondary" className="text-xs">
-          {confidence}% confident
+          {confidence}
+          % confident
         </Badge>
       </div>
       <div className={`p-3 rounded-lg ${modeColor[gameMode]} text-white`}>
@@ -158,14 +154,23 @@ const QuickStats: React.FC<{ character: Character }> = ({ character }) => {
       {/* HP Status */}
       <div className="flex items-center justify-between text-xs">
         <div className="flex items-center gap-1">
-          <Heart size={12} className={
-            hpPercentage <= 25 ? 'text-destructive' :
-            hpPercentage <= 50 ? 'text-chart-4' :
-            'text-chart-2'
-          } />
+          <Heart
+            size={12}
+            className={
+              hpPercentage <= 25
+                ? 'text-destructive'
+                : hpPercentage <= 50
+                  ? 'text-chart-4'
+                  : 'text-chart-2'
+            }
+          />
           <span>Health</span>
         </div>
-        <span className="font-mono">{hp}/{maxHP}</span>
+        <span className="font-mono">
+          {hp}
+          /
+          {maxHP}
+        </span>
       </div>
 
       {/* Armor */}
@@ -181,7 +186,13 @@ const QuickStats: React.FC<{ character: Character }> = ({ character }) => {
       {loadPercentage >= 80 && (
         <div className="flex items-center gap-2 text-xs text-chart-4">
           <AlertTriangle size={12} />
-          <span>Heavy load ({load}/{maxLoad})</span>
+          <span>
+            Heavy load (
+            {load}
+            /
+            {maxLoad}
+            )
+          </span>
         </div>
       )}
     </div>
@@ -193,7 +204,7 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
   gameMode,
   theme,
   chronicleEnabled,
-  className = ''
+  className = '',
 }) => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [currentSituation, setCurrentSituation] = useState('')
@@ -215,8 +226,8 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
         priority: 'high',
         action: {
           label: 'Find Healing',
-          onClick: () => console.log('Look for healing options')
-        }
+          onClick: () => console.log('Look for healing options'),
+        },
       })
     }
 
@@ -229,7 +240,7 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
         title: 'Heavy Load',
         description: 'You may want to drop some items or find storage',
         icon: AlertTriangle,
-        priority: 'medium'
+        priority: 'medium',
       })
     }
 
@@ -242,7 +253,7 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
           title: 'In Combat',
           description: 'Consider your positioning and action economy',
           icon: Target,
-          priority: 'medium'
+          priority: 'medium',
         })
         break
 
@@ -253,7 +264,7 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
           title: 'Explore Wisely',
           description: 'Look for secrets and gather information',
           icon: Eye,
-          priority: 'low'
+          priority: 'low',
         })
         break
 
@@ -264,7 +275,7 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
           title: 'Social Interaction',
           description: 'This could be a chance to build bonds or gather intel',
           icon: Users,
-          priority: 'medium'
+          priority: 'medium',
         })
         break
     }
@@ -280,8 +291,8 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
         priority: 'low',
         action: {
           label: 'Add to Chronicle',
-          onClick: () => console.log('Open Chronicle')
-        }
+          onClick: () => console.log('Open Chronicle'),
+        },
       })
     }
 
@@ -299,7 +310,7 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
       combat: 'Engaged in dangerous combat',
       exploration: 'Exploring unknown territory',
       social: 'In conversation with NPCs',
-      rest: 'Taking time to rest and recover'
+      rest: 'Taking time to rest and recover',
     }
 
     setCurrentSituation(situations[gameMode])
@@ -314,11 +325,14 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
     setSuggestions(prev => prev.filter(s => s.id !== id))
   }
 
-  const cardVariant =
-    theme === 'combat' ? 'elevated' :
-    theme === 'dungeon' ? 'parchment' :
-    theme === 'tavern' ? 'magical' :
-    'glass'
+  const cardVariant
+    = theme === 'combat'
+      ? 'elevated'
+      : theme === 'dungeon'
+        ? 'parchment'
+        : theme === 'tavern'
+          ? 'magical'
+          : 'glass'
 
   return (
     <Card
@@ -354,25 +368,27 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
 
           <div className="space-y-2 max-h-64 overflow-y-auto">
             <AnimatePresence>
-              {suggestions.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center text-xs text-muted-foreground py-4"
-                >
-                  <Lightbulb size={16} className="mx-auto mb-2 opacity-50" />
-                  <p>No suggestions at the moment</p>
-                  <p>Keep playing to get smart tips!</p>
-                </motion.div>
-              ) : (
-                suggestions.map(suggestion => (
-                  <SuggestionCard
-                    key={suggestion.id}
-                    suggestion={suggestion}
-                    onDismiss={dismissSuggestion}
-                  />
-                ))
-              )}
+              {suggestions.length === 0
+                ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center text-xs text-muted-foreground py-4"
+                    >
+                      <Lightbulb size={16} className="mx-auto mb-2 opacity-50" />
+                      <p>No suggestions at the moment</p>
+                      <p>Keep playing to get smart tips!</p>
+                    </motion.div>
+                  )
+                : (
+                    suggestions.map(suggestion => (
+                      <SuggestionCard
+                        key={suggestion.id}
+                        suggestion={suggestion}
+                        onDismiss={dismissSuggestion}
+                      />
+                    ))
+                  )}
             </AnimatePresence>
           </div>
         </div>
@@ -395,7 +411,3 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
 }
 
 export default SmartContextPanel
-
-
-
-

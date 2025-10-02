@@ -35,9 +35,9 @@ export interface AppSettings {
       showSpellsForNonCasters: boolean
     }
     perPanel: {
-      moves: { overrideEnabled: boolean; showAll: boolean }
-      equipment: { overrideEnabled: boolean; showAll: boolean }
-      stats: { overrideEnabled: boolean; showSpells: boolean }
+      moves: { overrideEnabled: boolean, showAll: boolean }
+      equipment: { overrideEnabled: boolean, showAll: boolean }
+      stats: { overrideEnabled: boolean, showSpells: boolean }
     }
   }
   sidebarPrefs?: {

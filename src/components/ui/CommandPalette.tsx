@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import * as Dialog from '@radix-ui/react-dialog'
-import { Search, Command, Zap, User, Dice6, Scroll, Package, NotebookPen, MapPin, Settings, Sword, Shield, Eye, Brain, BicepsFlexed, Users } from 'lucide-react'
-import { keyboardShortcutsService, type KeyboardShortcut } from '../../services/KeyboardShortcutsService'
+import { motion } from 'framer-motion'
+import { BicepsFlexed, Brain, Command, Dice6, Eye, MapPin, NotebookPen, Package, Scroll, Search, Settings, Shield, Sword, User, Users, Zap } from 'lucide-react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useDiceStore } from '../../stores/diceStore'
 
 interface CommandPaletteProps {
@@ -17,7 +16,7 @@ interface CommandAction {
   title: string
   description: string
   category: 'navigation' | 'dice' | 'character' | 'session' | 'global'
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
   shortcut?: string
   action: () => void
 }
@@ -26,7 +25,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   isOpen,
   onClose,
   onNavigate,
-  onAction
+  onAction,
 }) => {
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -45,7 +44,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'navigation',
       icon: User,
       shortcut: 'Ctrl+1',
-      action: () => onNavigate?.('character')
+      action: () => onNavigate?.('character'),
     },
     {
       id: 'nav-dice',
@@ -54,7 +53,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'navigation',
       icon: Dice6,
       shortcut: 'Ctrl+2',
-      action: () => onNavigate?.('dice')
+      action: () => onNavigate?.('dice'),
     },
     {
       id: 'nav-moves',
@@ -63,7 +62,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'navigation',
       icon: Scroll,
       shortcut: 'Ctrl+3',
-      action: () => onNavigate?.('moves')
+      action: () => onNavigate?.('moves'),
     },
     {
       id: 'nav-equipment',
@@ -72,7 +71,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'navigation',
       icon: Package,
       shortcut: 'Ctrl+4',
-      action: () => onNavigate?.('equipment')
+      action: () => onNavigate?.('equipment'),
     },
     {
       id: 'nav-session-tools',
@@ -81,7 +80,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'navigation',
       icon: NotebookPen,
       shortcut: 'Ctrl+5',
-      action: () => onNavigate?.('session-tools')
+      action: () => onNavigate?.('session-tools'),
     },
     {
       id: 'nav-campaign',
@@ -90,7 +89,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       category: 'navigation',
       icon: MapPin,
       shortcut: 'Ctrl+6',
-      action: () => onNavigate?.('campaign')
+      action: () => onNavigate?.('campaign'),
     },
     {
       id: 'nav-settings',
@@ -98,7 +97,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       description: 'Customize themes, preferences, and shortcuts',
       category: 'navigation',
       icon: Settings,
-      action: () => onNavigate?.('settings')
+      action: () => onNavigate?.('settings'),
     },
 
     // Quick Dice Actions
@@ -112,7 +111,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollCustom(0, { label: 'Quick Roll', description: 'Command Palette Quick Roll' }, 'eldara-moonwhisper')
         onClose()
-      }
+      },
     },
 
     // Stat Roll Commands
@@ -126,7 +125,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollStat('STR', 'eldara-moonwhisper', 'Command Palette STR Roll')
         onClose()
-      }
+      },
     },
     {
       id: 'roll-dexterity',
@@ -138,7 +137,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollStat('DEX', 'eldara-moonwhisper', 'Command Palette DEX Roll')
         onClose()
-      }
+      },
     },
     {
       id: 'roll-constitution',
@@ -150,7 +149,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollStat('CON', 'eldara-moonwhisper', 'Command Palette CON Roll')
         onClose()
-      }
+      },
     },
     {
       id: 'roll-intelligence',
@@ -162,7 +161,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollStat('INT', 'eldara-moonwhisper', 'Command Palette INT Roll')
         onClose()
-      }
+      },
     },
     {
       id: 'roll-wisdom',
@@ -174,7 +173,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollStat('WIS', 'eldara-moonwhisper', 'Command Palette WIS Roll')
         onClose()
-      }
+      },
     },
     {
       id: 'roll-charisma',
@@ -186,7 +185,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollStat('CHA', 'eldara-moonwhisper', 'Command Palette CHA Roll')
         onClose()
-      }
+      },
     },
 
     // Move Roll Commands
@@ -200,7 +199,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollMove('hack-and-slash', 'STR', 'eldara-moonwhisper')
         onClose()
-      }
+      },
     },
     {
       id: 'roll-defend',
@@ -212,7 +211,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         rollMove('defend', 'CON', 'eldara-moonwhisper')
         onClose()
-      }
+      },
     },
 
     // Utility Commands
@@ -225,7 +224,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         clearAllHistory()
         onClose()
-      }
+      },
     },
 
     // Legacy compatibility
@@ -239,7 +238,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         onAction?.('roll-constitution')
         onNavigate?.('dice')
-      }
+      },
     },
 
     // Character Actions
@@ -249,7 +248,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       description: 'Restore HP to maximum',
       category: 'character',
       icon: User,
-      action: () => onAction?.('heal-character')
+      action: () => onAction?.('heal-character'),
     },
     {
       id: 'rest-character',
@@ -257,7 +256,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       description: 'Character takes a rest to recover',
       category: 'character',
       icon: User,
-      action: () => onAction?.('rest-character')
+      action: () => onAction?.('rest-character'),
     },
     {
       id: 'level-up',
@@ -265,7 +264,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       description: 'Advance character to next level',
       category: 'character',
       icon: Zap,
-      action: () => onAction?.('level-up')
+      action: () => onAction?.('level-up'),
     },
 
     // Session Tools
@@ -279,7 +278,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         onAction?.('new-note')
         onNavigate?.('session-tools')
-      }
+      },
     },
     {
       id: 'start-timer',
@@ -291,19 +290,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       action: () => {
         onAction?.('start-timer')
         onNavigate?.('session-tools')
-      }
-    }
+      },
+    },
   ], [onNavigate, onAction])
 
   // Filter commands based on query
   const filteredCommands = useMemo(() => {
-    if (!query.trim()) return commands
+    if (!query.trim())
+      return commands
 
     const searchQuery = query.toLowerCase()
-    return commands.filter(command => 
-      command.title.toLowerCase().includes(searchQuery) ||
-      command.description.toLowerCase().includes(searchQuery) ||
-      command.category.toLowerCase().includes(searchQuery)
+    return commands.filter(command =>
+      command.title.toLowerCase().includes(searchQuery)
+      || command.description.toLowerCase().includes(searchQuery)
+      || command.category.toLowerCase().includes(searchQuery),
     )
   }, [commands, query])
 
@@ -314,20 +314,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   // Handle keyboard navigation
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen)
+      return
 
     const handleKeyDown = (event: KeyboardEvent) => {
       switch (event.key) {
         case 'ArrowDown':
           event.preventDefault()
-          setSelectedIndex(prev => 
-            prev < filteredCommands.length - 1 ? prev + 1 : 0
+          setSelectedIndex(prev =>
+            prev < filteredCommands.length - 1 ? prev + 1 : 0,
           )
           break
         case 'ArrowUp':
           event.preventDefault()
-          setSelectedIndex(prev => 
-            prev > 0 ? prev - 1 : filteredCommands.length - 1
+          setSelectedIndex(prev =>
+            prev > 0 ? prev - 1 : filteredCommands.length - 1,
           )
           break
         case 'Enter':
@@ -401,12 +402,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             style={{
               borderColor: 'var(--primary)',
               borderOpacity: 0.3,
-              backgroundColor: 'var(--card)'
+              backgroundColor: 'var(--card)',
             }}
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             {/* Header */}
             <div className="flex items-center gap-3 p-4 border-b border-primary/20">
@@ -416,11 +417,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 type="text"
                 placeholder="Search commands..."
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={e => setQuery(e.target.value)}
                 className="flex-1 bg-transparent text-lg outline-none placeholder-opacity-60"
-                style={{ 
-                  color: 'var(--foreground)',
-                  '::placeholder': { color: 'var(--muted-foreground)' }
+                style={{
+                  'color': 'var(--foreground)',
+                  '::placeholder': { color: 'var(--muted-foreground)' },
                 }}
               />
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -437,87 +438,97 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
             {/* Results */}
             <div className="max-h-96 overflow-y-auto">
-              {filteredCommands.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  <Search size={32} className="mx-auto mb-3 opacity-50" />
-                  <p>No commands found for "{query}"</p>
-                </div>
-              ) : (
-                <div className="p-2">
-                  {filteredCommands.map((command, index) => {
-                    const Icon = command.icon
-                    const CategoryIcon = getCategoryIcon(command.category)
-                    const isSelected = index === selectedIndex
+              {filteredCommands.length === 0
+                ? (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <Search size={32} className="mx-auto mb-3 opacity-50" />
+                      <p>
+                        No commands found for "
+                        {query}
+                        "
+                      </p>
+                    </div>
+                  )
+                : (
+                    <div className="p-2">
+                      {filteredCommands.map((command, index) => {
+                        const Icon = command.icon
+                        const CategoryIcon = getCategoryIcon(command.category)
+                        const isSelected = index === selectedIndex
 
-                    return (
-                      <motion.div
-                        key={command.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${
-                          isSelected
-                            ? 'border-primary/40 bg-primary/10 shadow-sm supports-[backdrop-filter]:backdrop-blur-sm'
-                            : 'hover:bg-card/80'
-                        }`}
-                        onClick={() => {
-                          command.action()
-                          onClose()
-                        }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center"
-                          style={{ 
-                            backgroundColor: getCategoryColor(command.category),
-                            backgroundOpacity: 0.2
-                          }}
-                        >
-                          <Icon 
-                            size={18} 
-                            style={{ color: getCategoryColor(command.category) }}
-                          />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 
-                              className="font-medium truncate text-foreground">
-                              {command.title}
-                            </h3>
-                            <CategoryIcon className="text-muted-foreground" 
-                              size={12} />
-                          </div>
-                          <p 
-                            className="text-sm truncate text-muted-foreground">
-                            {command.description}
-                          </p>
-                        </div>
-
-                        {command.shortcut && (
-                          <div 
-                            className="text-xs px-2 py-1 rounded border"
-                            style={{ 
-                              color: 'var(--muted-foreground)',
-                              borderColor: 'var(--primary)',
-                              borderOpacity: 0.3
+                        return (
+                          <motion.div
+                            key={command.id}
+                            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${
+                              isSelected
+                                ? 'border-primary/40 bg-primary/10 shadow-sm supports-[backdrop-filter]:backdrop-blur-sm'
+                                : 'hover:bg-card/80'
+                            }`}
+                            onClick={() => {
+                              command.action()
+                              onClose()
                             }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                           >
-                            {command.shortcut}
-                          </div>
-                        )}
-                      </motion.div>
-                    )
-                  })}
-                </div>
-              )}
+                            <div
+                              className="w-10 h-10 rounded-lg flex items-center justify-center"
+                              style={{
+                                backgroundColor: getCategoryColor(command.category),
+                                backgroundOpacity: 0.2,
+                              }}
+                            >
+                              <Icon
+                                size={18}
+                                style={{ color: getCategoryColor(command.category) }}
+                              />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h3
+                                  className="font-medium truncate text-foreground"
+                                >
+                                  {command.title}
+                                </h3>
+                                <CategoryIcon
+                                  className="text-muted-foreground"
+                                  size={12}
+                                />
+                              </div>
+                              <p
+                                className="text-sm truncate text-muted-foreground"
+                              >
+                                {command.description}
+                              </p>
+                            </div>
+
+                            {command.shortcut && (
+                              <div
+                                className="text-xs px-2 py-1 rounded border"
+                                style={{
+                                  color: 'var(--muted-foreground)',
+                                  borderColor: 'var(--primary)',
+                                  borderOpacity: 0.3,
+                                }}
+                              >
+                                {command.shortcut}
+                              </div>
+                            )}
+                          </motion.div>
+                        )
+                      })}
+                    </div>
+                  )}
             </div>
 
             {/* Footer */}
-            <div 
+            <div
               className="flex items-center justify-between p-3 border-t text-xs"
-              style={{ 
+              style={{
                 borderColor: 'var(--primary)',
                 borderOpacity: 0.2,
-                color: 'var(--muted-foreground)'
+                color: 'var(--muted-foreground)',
               }}
             >
               <div className="flex items-center gap-4">

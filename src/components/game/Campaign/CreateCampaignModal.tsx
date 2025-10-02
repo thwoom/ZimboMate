@@ -2,11 +2,11 @@
  * Create Campaign Modal - Modal dialog for creating new campaigns
  */
 
-import React, { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, Scroll, Plus } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea } from '../../ui'
+import { Plus, Scroll, X } from 'lucide-react'
+import React, { useState } from 'react'
 import { useCampaignStore } from '../../../stores/campaignStore'
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Textarea } from '../../ui'
 
 interface CreateCampaignModalProps {
   isOpen: boolean
@@ -22,11 +22,11 @@ interface CampaignFormData {
 export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   isOpen,
   onClose,
-  onCampaignCreated
+  onCampaignCreated,
 }) => {
   const [formData, setFormData] = useState<CampaignFormData>({
     name: '',
-    description: ''
+    description: '',
   })
   const [errors, setErrors] = useState<Partial<CampaignFormData>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -40,9 +40,11 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     // Validate name
     if (!formData.name.trim()) {
       newErrors.name = 'Campaign name is required'
-    } else if (formData.name.trim().length < 2) {
+    }
+    else if (formData.name.trim().length < 2) {
       newErrors.name = 'Campaign name must be at least 2 characters'
-    } else if (campaigns.some(c => c.name.toLowerCase() === formData.name.trim().toLowerCase())) {
+    }
+    else if (campaigns.some(c => c.name.toLowerCase() === formData.name.trim().toLowerCase())) {
       newErrors.name = 'A campaign with this name already exists'
     }
 
@@ -57,7 +59,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
@@ -67,29 +69,31 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     try {
       const campaign = createCampaign(
         formData.name.trim(),
-        formData.description.trim() || undefined
+        formData.description.trim() || undefined,
       )
 
       // Reset form
       setFormData({ name: '', description: '' })
       setErrors({})
-      
+
       // Notify parent component
       onCampaignCreated?.(campaign.id)
-      
+
       // Close modal
       onClose()
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Failed to create campaign:', error)
       setErrors({ name: 'Failed to create campaign. Please try again.' })
-    } finally {
+    }
+    finally {
       setIsSubmitting(false)
     }
   }
 
   const handleInputChange = (field: keyof CampaignFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
@@ -107,7 +111,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleClose}>
       <Dialog.Portal>
-        <Dialog.Overlay 
+        <Dialog.Overlay
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         />
@@ -116,16 +120,19 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20">
-                    <Scroll className="text-primary" 
-                      size={20} />
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20"
+                  >
+                    <Scroll
+                      className="text-primary"
+                      size={20}
+                    />
                   </div>
                   <CardTitle>Create New Campaign</CardTitle>
                 </div>
                 <Dialog.Close asChild>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     disabled={isSubmitting}
                   >
@@ -134,7 +141,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                 </Dialog.Close>
               </div>
             </CardHeader>
-            
+
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -142,7 +149,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                     label="Campaign Name"
                     placeholder="Enter campaign name..."
                     value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onChange={e => handleInputChange('name', e.target.value)}
                     error={errors.name}
                     disabled={isSubmitting}
                     required
@@ -155,7 +162,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                     label="Description (Optional)"
                     placeholder="Describe your campaign world, themes, or goals..."
                     value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    onChange={e => handleInputChange('description', e.target.value)}
                     error={errors.description}
                     disabled={isSubmitting}
                     rows={4}
@@ -178,17 +185,19 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                     disabled={isSubmitting || !formData.name.trim()}
                     className="gap-2"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      <>
-                        <Plus size={16} />
-                        Create Campaign
-                      </>
-                    )}
+                    {isSubmitting
+                      ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Creating...
+                          </>
+                        )
+                      : (
+                          <>
+                            <Plus size={16} />
+                            Create Campaign
+                          </>
+                        )}
                   </Button>
                 </div>
               </form>

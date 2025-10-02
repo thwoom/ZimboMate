@@ -4,9 +4,9 @@
  * Integrates with CampaignService
  */
 
+import type { Campaign, CampaignSession, JournalEntry, Location, NPC } from '../models/Campaign'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Campaign, CampaignSession, JournalEntry, NPC, Location } from '../models/Campaign'
 import { campaignService } from '../services/CampaignService'
 
 interface CampaignState {
@@ -99,15 +99,16 @@ export const useCampaignStore = create<CampaignState>()(
       createCampaign: (name, description) => {
         try {
           const campaign = campaignService.createCampaign(name, description)
-          
-          set((state) => ({
+
+          set(state => ({
             campaigns: [...state.campaigns, campaign],
             activeCampaignId: campaign.id,
             error: null,
           }))
 
           return campaign
-        } catch (error) {
+        }
+        catch (error) {
           const errorMessage = `Failed to create campaign: ${error instanceof Error ? error.message : 'Unknown error'}`
           set({ error: errorMessage })
           throw new Error(errorMessage)
@@ -117,18 +118,20 @@ export const useCampaignStore = create<CampaignState>()(
       updateCampaign: (id, updates) => {
         try {
           const updatedCampaign = campaignService.updateCampaign(id, updates)
-          
+
           if (updatedCampaign) {
-            set((state) => ({
-              campaigns: state.campaigns.map((campaign) =>
-                campaign.id === id ? updatedCampaign : campaign
+            set(state => ({
+              campaigns: state.campaigns.map(campaign =>
+                campaign.id === id ? updatedCampaign : campaign,
               ),
               error: null,
             }))
-          } else {
+          }
+          else {
             set({ error: 'Campaign not found' })
           }
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to update campaign: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -136,47 +139,51 @@ export const useCampaignStore = create<CampaignState>()(
       deleteCampaign: (id) => {
         try {
           const success = campaignService.deleteCampaign(id)
-          
+
           if (success) {
-            set((state) => ({
-              campaigns: state.campaigns.filter((campaign) => campaign.id !== id),
+            set(state => ({
+              campaigns: state.campaigns.filter(campaign => campaign.id !== id),
               activeCampaignId: state.activeCampaignId === id ? null : state.activeCampaignId,
               error: null,
             }))
-          } else {
+          }
+          else {
             set({ error: 'Campaign not found' })
           }
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to delete campaign: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
 
       getCampaign: (id) => {
         const { campaigns } = get()
-        return campaigns.find((campaign) => campaign.id === id)
+        return campaigns.find(campaign => campaign.id === id)
       },
 
       setActiveCampaign: (id) => {
         const { campaigns } = get()
-        if (id === null || campaigns.some((campaign) => campaign.id === id)) {
+        if (id === null || campaigns.some(campaign => campaign.id === id)) {
           set({ activeCampaignId: id, error: null })
-        } else {
+        }
+        else {
           set({ error: 'Campaign not found' })
         }
       },
 
       getActiveCampaign: () => {
         const { campaigns, activeCampaignId } = get()
-        if (!activeCampaignId) return undefined
-        return campaigns.find((campaign) => campaign.id === activeCampaignId)
+        if (!activeCampaignId)
+          return undefined
+        return campaigns.find(campaign => campaign.id === activeCampaignId)
       },
 
       // Campaign management
       duplicateCampaign: (id) => {
         try {
           const { campaigns, createCampaign } = get()
-          const originalCampaign = campaigns.find((campaign) => campaign.id === id)
-          
+          const originalCampaign = campaigns.find(campaign => campaign.id === id)
+
           if (!originalCampaign) {
             set({ error: 'Campaign not found' })
             return undefined
@@ -184,7 +191,7 @@ export const useCampaignStore = create<CampaignState>()(
 
           const duplicatedCampaign = createCampaign(
             `${originalCampaign.name} (Copy)`,
-            originalCampaign.description
+            originalCampaign.description,
           )
 
           // Copy campaign data (sessions, journal, etc.)
@@ -210,7 +217,8 @@ export const useCampaignStore = create<CampaignState>()(
 
           get().updateCampaign(duplicatedCampaign.id, fullDuplicate)
           return fullDuplicate
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to duplicate campaign: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return undefined
         }
@@ -219,7 +227,8 @@ export const useCampaignStore = create<CampaignState>()(
       exportCampaign: (id) => {
         try {
           return campaignService.exportCampaign(id)
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to export campaign: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return undefined
         }
@@ -228,15 +237,16 @@ export const useCampaignStore = create<CampaignState>()(
       importCampaign: (campaignData) => {
         try {
           const campaign = campaignService.importCampaign(campaignData)
-          
-          set((state) => ({
+
+          set(state => ({
             campaigns: [...state.campaigns, campaign],
             activeCampaignId: campaign.id,
             error: null,
           }))
 
           return campaign
-        } catch (error) {
+        }
+        catch (error) {
           const errorMessage = `Failed to import campaign: ${error instanceof Error ? error.message : 'Unknown error'}`
           set({ error: errorMessage })
           throw new Error(errorMessage)
@@ -247,14 +257,15 @@ export const useCampaignStore = create<CampaignState>()(
       addSession: (campaignId, title, summary) => {
         try {
           const session = campaignService.addSession(campaignId, title, summary)
-          
+
           if (session) {
             // Refresh campaign data
             get().refreshFromService()
           }
 
           return session
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to add session: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return undefined
         }
@@ -264,7 +275,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.updateSession(campaignId, sessionId, updates)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to update session: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -273,7 +285,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.deleteSession(campaignId, sessionId)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to delete session: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -282,13 +295,14 @@ export const useCampaignStore = create<CampaignState>()(
       addJournalEntry: (campaignId, title, content) => {
         try {
           const entry = campaignService.addJournalEntry(campaignId, title, content)
-          
+
           if (entry) {
             get().refreshFromService()
           }
 
           return entry
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to add journal entry: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return undefined
         }
@@ -298,7 +312,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.updateJournalEntry(campaignId, entryId, updates)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to update journal entry: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -307,7 +322,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.deleteJournalEntry(campaignId, entryId)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to delete journal entry: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -316,13 +332,14 @@ export const useCampaignStore = create<CampaignState>()(
       addNPC: (campaignId, name, description, role) => {
         try {
           const npc = campaignService.addNPC(campaignId, name, description, role)
-          
+
           if (npc) {
             get().refreshFromService()
           }
 
           return npc
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to add NPC: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return undefined
         }
@@ -332,7 +349,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.updateNPC(campaignId, npcId, updates)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to update NPC: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -341,7 +359,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.deleteNPC(campaignId, npcId)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to delete NPC: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -350,13 +369,14 @@ export const useCampaignStore = create<CampaignState>()(
       addLocation: (campaignId, name, description, type) => {
         try {
           const location = campaignService.addLocation(campaignId, name, description, type)
-          
+
           if (location) {
             get().refreshFromService()
           }
 
           return location
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to add location: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return undefined
         }
@@ -366,7 +386,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.updateLocation(campaignId, locationId, updates)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to update location: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -375,7 +396,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.deleteLocation(campaignId, locationId)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to delete location: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -385,7 +407,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.addCharacterToCampaign(campaignId, characterId)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to add character to campaign: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -394,7 +417,8 @@ export const useCampaignStore = create<CampaignState>()(
         try {
           campaignService.removeCharacterFromCampaign(campaignId, characterId)
           get().refreshFromService()
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to remove character from campaign: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
@@ -402,7 +426,8 @@ export const useCampaignStore = create<CampaignState>()(
       getCampaignsForCharacter: (characterId) => {
         try {
           return campaignService.getCampaignsForCharacter(characterId)
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to get campaigns for character: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return []
         }
@@ -412,7 +437,8 @@ export const useCampaignStore = create<CampaignState>()(
       searchCampaign: (campaignId, query) => {
         try {
           return campaignService.searchCampaign(campaignId, query)
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to search campaign: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return null
         }
@@ -422,33 +448,35 @@ export const useCampaignStore = create<CampaignState>()(
       getCampaignStats: (campaignId) => {
         try {
           return campaignService.getCampaignStats(campaignId)
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to get campaign stats: ${error instanceof Error ? error.message : 'Unknown error'}` })
           return null
         }
       },
 
       // Utility
-      setSearchQuery: (query) => set({ searchQuery: query }),
+      setSearchQuery: query => set({ searchQuery: query }),
 
-      setSelectedTags: (tags) => set({ selectedTags: tags }),
+      setSelectedTags: tags => set({ selectedTags: tags }),
 
       clearError: () => set({ error: null }),
 
-      setLoading: (loading) => set({ isLoading: loading }),
+      setLoading: loading => set({ isLoading: loading }),
 
       refreshFromService: () => {
         try {
           const campaigns = campaignService.getAllCampaigns()
           set({ campaigns, error: null })
-        } catch (error) {
+        }
+        catch (error) {
           set({ error: `Failed to refresh campaigns: ${error instanceof Error ? error.message : 'Unknown error'}` })
         }
       },
     }),
     {
       name: 'zimbomate-campaign-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         activeCampaignId: state.activeCampaignId,
         searchQuery: state.searchQuery,
         selectedTags: state.selectedTags,
@@ -459,6 +487,6 @@ export const useCampaignStore = create<CampaignState>()(
           state.refreshFromService()
         }
       },
-    }
-  )
+    },
+  ),
 )

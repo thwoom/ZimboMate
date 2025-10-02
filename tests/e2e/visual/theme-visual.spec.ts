@@ -1,12 +1,13 @@
-import { test, expect, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-const disableAnimations = async (page: Page) => {
+async function disableAnimations(page: Page) {
   await page.addStyleTag({
-    content: '* { animation: none !important; transition: none !important; }'
+    content: '* { animation: none !important; transition: none !important; }',
   })
 }
 
-const clickTopNav = async (page: Page, label: string) => {
+async function clickTopNav(page: Page, label: string) {
   const nav = page.locator('nav').first()
 
   const candidates = [
@@ -16,7 +17,7 @@ const clickTopNav = async (page: Page, label: string) => {
     page.getByRole('button', { name: label, exact: true }),
     page.getByRole('button', { name: new RegExp(label, 'i') }),
     page.locator('button').filter({ hasText: label }),
-    page.getByText(label, { exact: true })
+    page.getByText(label, { exact: true }),
   ]
 
   for (const locator of candidates) {
@@ -32,7 +33,7 @@ const clickTopNav = async (page: Page, label: string) => {
 const screenshotOptions = {
   fullPage: true,
   animations: 'disabled' as const,
-  maxDiffPixelRatio: 0.02
+  maxDiffPixelRatio: 0.02,
 }
 
 const tabs = [
@@ -40,7 +41,7 @@ const tabs = [
   { label: 'Character', file: 'character-tab.png' },
   { label: 'Dice', file: 'dice-tab.png' },
   { label: 'Game Management', file: 'game-management-tab.png' },
-  { label: 'Settings', file: 'settings-tab.png' }
+  { label: 'Settings', file: 'settings-tab.png' },
 ]
 
 test.describe('Visual Regression - Matsu Theme', () => {
@@ -71,4 +72,3 @@ test.describe('Visual Regression - Matsu Theme', () => {
     await expect(page).toHaveScreenshot('button-debug-tab.png', screenshotOptions)
   })
 })
-

@@ -4,40 +4,38 @@
  * Phase 4C: Desktop Power Features - Smart Integration System
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Lightbulb, 
-  Zap, 
-  Shield, 
-  Heart, 
-  Sword, 
-  BookOpen, 
-  AlertTriangle, 
-  TrendingUp,
-  Target,
-  Clock,
-  X,
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  AlertTriangle,
+  BookOpen,
   ChevronRight,
-  Sparkles
+  Clock,
+  Heart,
+  Lightbulb,
+  Shield,
+  Sparkles,
+  Target,
+  TrendingUp,
+  X,
+  Zap,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../ui'
+import React, { useMemo, useState } from 'react'
+import { getEffectiveModifier, shouldLevelUp } from '../../models/Character'
 import { useCharacterStore } from '../../stores/characterStore'
-import { useSessionStore } from '../../stores/sessionStore'
 import { useGameStateStore } from '../../stores/gameStateStore'
-import { type Character, getEffectiveModifier, shouldLevelUp } from '../../models/Character'
-import type { Move } from '../../models/Move'
+import { useSessionStore } from '../../stores/sessionStore'
+import { Badge, Button, Card, CardContent } from '../ui'
 
 // Suggestion types
-export type SuggestionType = 
-  | 'move' 
-  | 'equipment' 
-  | 'health' 
-  | 'resource' 
-  | 'advancement' 
-  | 'tactical' 
-  | 'roleplay'
-  | 'warning'
+export type SuggestionType
+  = | 'move'
+    | 'equipment'
+    | 'health'
+    | 'resource'
+    | 'advancement'
+    | 'tactical'
+    | 'roleplay'
+    | 'warning'
 
 export type SuggestionPriority = 'low' | 'medium' | 'high' | 'critical'
 
@@ -69,12 +67,12 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
   context = 'character',
   maxSuggestions = 5,
   showDismissed = false,
-  compact = false
+  compact = false,
 }) => {
   const { getActiveCharacter, getCharacter, healCharacter, levelUpCharacter } = useCharacterStore()
   const { rollHistory, combat, currentSession } = useSessionStore()
   const { gameTime, environment, globalModifiers } = useGameStateStore()
-  
+
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set())
   const [expandedSuggestion, setExpandedSuggestion] = useState<string | null>(null)
 
@@ -83,7 +81,8 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
 
   // Generate context-aware suggestions
   const suggestions = useMemo(() => {
-    if (!character) return []
+    if (!character)
+      return []
 
     const suggestions: ContextSuggestion[] = []
     const now = new Date()
@@ -99,12 +98,13 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         reason: 'Character is in immediate danger',
         action: {
           label: 'Heal Character',
-          onClick: () => healCharacter(character.id, Math.ceil(character.hp.max * 0.5))
+          onClick: () => healCharacter(character.id, Math.ceil(character.hp.max * 0.5)),
         },
         dismissible: false,
-        timestamp: now
+        timestamp: now,
       })
-    } else if (character.hp.current <= character.hp.max * 0.5) {
+    }
+    else if (character.hp.current <= character.hp.max * 0.5) {
       suggestions.push({
         id: 'low-health',
         type: 'health',
@@ -114,10 +114,10 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         reason: 'Character health is below 50%',
         action: {
           label: 'Heal Character',
-          onClick: () => healCharacter(character.id, Math.ceil(character.hp.max * 0.25))
+          onClick: () => healCharacter(character.id, Math.ceil(character.hp.max * 0.25)),
         },
         dismissible: true,
-        timestamp: now
+        timestamp: now,
       })
     }
 
@@ -132,10 +132,10 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         reason: `Has ${character.xp} XP, needs ${character.level + 7}`,
         action: {
           label: 'Level Up',
-          onClick: () => levelUpCharacter(character.id)
+          onClick: () => levelUpCharacter(character.id),
         },
         dismissible: false,
-        timestamp: now
+        timestamp: now,
       })
     }
 
@@ -149,9 +149,10 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         description: `Carrying ${character.load.current}/${character.load.max} load. Take -1 ongoing until fixed.`,
         reason: 'Load exceeds maximum capacity',
         dismissible: true,
-        timestamp: now
+        timestamp: now,
       })
-    } else if (character.load.current >= character.load.max * 0.8) {
+    }
+    else if (character.load.current >= character.load.max * 0.8) {
       suggestions.push({
         id: 'heavy-load',
         type: 'equipment',
@@ -160,7 +161,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         description: `Nearing max load (${character.load.current}/${character.load.max}). Consider dropping items.`,
         reason: 'Load is at 80% capacity',
         dismissible: true,
-        timestamp: now
+        timestamp: now,
       })
     }
 
@@ -175,7 +176,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         description: `${activeDebilities.map(([name]) => name).join(', ')} affecting dice rolls.`,
         reason: 'Debilities reduce attribute modifiers',
         dismissible: true,
-        timestamp: now
+        timestamp: now,
       })
     }
 
@@ -183,7 +184,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     if (combat.isActive && context === 'dice') {
       const recentRolls = rollHistory.slice(0, 3)
       const recentFailures = recentRolls.filter(roll => roll.result === 'failure').length
-      
+
       if (recentFailures >= 2) {
         suggestions.push({
           id: 'combat-struggling',
@@ -193,7 +194,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           description: 'Recent failures suggest trying a different approach or using Aid/Interfere.',
           reason: `${recentFailures} failures in last 3 rolls`,
           dismissible: true,
-          timestamp: now
+          timestamp: now,
         })
       }
 
@@ -207,7 +208,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           description: 'Low health in combat - consider Defend or retreating to safety.',
           reason: 'Low health during active combat',
           dismissible: true,
-          timestamp: now
+          timestamp: now,
         })
       }
     }
@@ -224,7 +225,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           description: 'Consider casting Shield or other protective spells.',
           reason: 'Wizard with low health should use defensive magic',
           dismissible: true,
-          timestamp: now
+          timestamp: now,
         })
       }
 
@@ -237,7 +238,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           description: 'Use Cure Light Wounds or other healing spells.',
           reason: 'Cleric should consider self-healing',
           dismissible: true,
-          timestamp: now
+          timestamp: now,
         })
       }
     }
@@ -257,7 +258,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           description: 'High STR allows for better armor without encumbrance issues.',
           reason: `STR modifier is +${strMod}, load capacity available`,
           dismissible: true,
-          timestamp: now
+          timestamp: now,
         })
       }
 
@@ -270,7 +271,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           description: 'High DEX makes ranged combat very effective.',
           reason: `DEX modifier is +${dexMod}`,
           dismissible: true,
-          timestamp: now
+          timestamp: now,
         })
       }
     }
@@ -289,7 +290,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           description: 'Long session - characters might want to rest and recover.',
           reason: `Session running for ${Math.floor(hoursPlayed)} hours`,
           dismissible: true,
-          timestamp: now
+          timestamp: now,
         })
       }
     }
@@ -304,7 +305,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         description: 'Poor lighting may impose penalties on sight-based actions.',
         reason: 'Current environment is dark',
         dismissible: true,
-        timestamp: now
+        timestamp: now,
       })
     }
 
@@ -319,7 +320,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         description: 'No recent failures - consider taking risks for XP and story development.',
         reason: 'No failures in last 5 rolls',
         dismissible: true,
-        timestamp: now
+        timestamp: now,
       })
     }
 
@@ -342,7 +343,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     showDismissed,
     maxSuggestions,
     healCharacter,
-    levelUpCharacter
+    levelUpCharacter,
   ])
 
   const handleDismiss = (suggestionId: string) => {
@@ -381,8 +382,10 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Lightbulb className="text-primary" 
-              size={20} />
+            <Lightbulb
+              className="text-primary"
+              size={20}
+            />
             <h3 className="font-display text-lg">Smart Suggestions</h3>
             <Badge variant="secondary" size="sm">
               {suggestions.length}
@@ -402,29 +405,29 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <Card 
+                  <Card
                     variant="outline"
                     className={`cursor-pointer transition-all duration-200 ${
                       isExpanded ? 'ring-2' : 'hover:shadow-md'
                     }`}
                     style={{
-                      ringColor: isExpanded ? getPriorityColor(suggestion.priority) : undefined
+                      ringColor: isExpanded ? getPriorityColor(suggestion.priority) : undefined,
                     }}
                     onClick={() => setExpandedSuggestion(
-                      isExpanded ? null : suggestion.id
+                      isExpanded ? null : suggestion.id,
                     )}
                   >
                     <CardContent>
                       <div className="flex items-start gap-3">
-                        <div 
+                        <div
                           className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                          style={{ 
+                          style={{
                             backgroundColor: getPriorityColor(suggestion.priority),
-                            opacity: 0.2 
+                            opacity: 0.2,
                           }}
                         >
-                          <Icon 
-                            size={16} 
+                          <Icon
+                            size={16}
                             style={{ color: getPriorityColor(suggestion.priority) }}
                           />
                         </div>
@@ -434,7 +437,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
                             <h4 className="font-medium text-sm truncate">
                               {suggestion.title}
                             </h4>
-                            <Badge 
+                            <Badge
                               variant={suggestion.priority === 'critical' ? 'destructive' : 'secondary'}
                               size="xs"
                             >
@@ -442,8 +445,9 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
                             </Badge>
                           </div>
 
-                          <p 
-                            className="text-sm mb-2 text-muted-foreground">
+                          <p
+                            className="text-sm mb-2 text-muted-foreground"
+                          >
                             {suggestion.description}
                           </p>
 
@@ -456,14 +460,16 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
                                 transition={{ duration: 0.2 }}
                                 className="space-y-3"
                               >
-                                <div 
+                                <div
                                   className="text-xs p-2 rounded"
-                                  style={{ 
+                                  style={{
                                     backgroundColor: 'var(--card)',
-                                    color: 'var(--muted-foreground)'
+                                    color: 'var(--muted-foreground)',
                                   }}
                                 >
-                                  <strong>Why:</strong> {suggestion.reason}
+                                  <strong>Why:</strong>
+                                  {' '}
+                                  {suggestion.reason}
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -501,21 +507,23 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
 
                         <div className="flex items-center gap-1 flex-shrink-0">
                           {!compact && (
-                            <span 
-                              className="text-xs text-muted-foreground">
+                            <span
+                              className="text-xs text-muted-foreground"
+                            >
                               <Clock size={10} className="inline mr-1" />
-                              {suggestion.timestamp.toLocaleTimeString([], { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
+                              {suggestion.timestamp.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
                               })}
                             </span>
                           )}
-                          
-                          <ChevronRight 
+
+                          <ChevronRight
                             size={16}
                             className={`transition-transform duration-200 ${
                               isExpanded ? 'rotate-90' : ''
-                            }`} />
+                            }`}
+                          />
                         </div>
                       </div>
                     </CardContent>
@@ -532,7 +540,12 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
               onClick={() => setDismissedSuggestions(new Set())}
               className="w-full"
             >
-              Show {dismissedSuggestions.size} Dismissed Suggestion{dismissedSuggestions.size !== 1 ? 's' : ''}
+              Show
+              {' '}
+              {dismissedSuggestions.size}
+              {' '}
+              Dismissed Suggestion
+              {dismissedSuggestions.size !== 1 ? 's' : ''}
             </Button>
           )}
         </div>

@@ -3,12 +3,10 @@
  * Centralized game logic processing for roll consequences, combat, and character progression
  */
 
-import type { Character } from '../models/Character'
 import type { RollResult } from '../components/ui/RollResultsToast'
+import { useCharacterStore } from '../stores/characterStore'
 import { characterStateService } from './CharacterStateService'
 import { xpIntegrationService } from './XPIntegrationService'
-import { useCharacterStore } from '../stores/characterStore'
-import { useGameStateStore } from '../stores/gameStateStore'
 
 export interface RollConsequence {
   id: string
@@ -51,7 +49,7 @@ class GameLogicService {
       moveName?: string
       targetId?: string
       combatContext?: boolean
-    }
+    },
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -67,7 +65,7 @@ class GameLogicService {
         characterId,
         context.moveId,
         context.moveName,
-        context.targetId
+        context.targetId,
       )
       consequences.push(...moveConsequences)
     }
@@ -93,7 +91,8 @@ class GameLogicService {
    */
   applyConsequences(rollId: string, selectedConsequences?: string[]): void {
     const consequences = this.pendingConsequences.get(rollId)
-    if (!consequences) return
+    if (!consequences)
+      return
 
     for (const consequence of consequences) {
       if (consequence.automatic || selectedConsequences?.includes(consequence.id)) {
@@ -104,7 +103,7 @@ class GameLogicService {
     // Clean up applied consequences
     this.pendingConsequences.set(
       rollId,
-      consequences.filter(c => !c.applied)
+      consequences.filter(c => !c.applied),
     )
   }
 
@@ -114,7 +113,7 @@ class GameLogicService {
   private createXPConsequence(
     characterId: string,
     rollResult: RollResult,
-    context?: any
+    context?: any,
   ): RollConsequence {
     return {
       id: `xp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
@@ -127,8 +126,8 @@ class GameLogicService {
         amount: 1,
         source: 'failure',
         reason: `Failed ${rollResult.title} (rolled ${rollResult.total})`,
-        rollId: rollResult.id
-      }
+        rollId: rollResult.id,
+      },
     }
   }
 
@@ -140,7 +139,7 @@ class GameLogicService {
     characterId: string,
     moveId: string,
     moveName: string,
-    targetId?: string
+    targetId?: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -182,7 +181,7 @@ class GameLogicService {
   private processHackAndSlash(
     rollResult: RollResult,
     characterId: string,
-    targetId?: string
+    targetId?: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -195,9 +194,10 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'deal_damage', targetId }
+        data: { type: 'deal_damage', targetId },
       })
-    } else if (rollResult.outcome === 'partial') {
+    }
+    else if (rollResult.outcome === 'partial') {
       // Deal damage but enemy attacks back
       consequences.push({
         id: `damage-${Date.now()}`,
@@ -206,7 +206,7 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'deal_damage', targetId }
+        data: { type: 'deal_damage', targetId },
       })
       consequences.push({
         id: `counter-${Date.now()}`,
@@ -215,7 +215,7 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'take_damage', source: 'enemy_counter' }
+        data: { type: 'take_damage', source: 'enemy_counter' },
       })
     }
     // On failure, GM makes a move (no automatic consequences)
@@ -229,7 +229,7 @@ class GameLogicService {
   private processVolley(
     rollResult: RollResult,
     characterId: string,
-    targetId?: string
+    targetId?: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -241,9 +241,10 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'deal_ranged_damage', targetId }
+        data: { type: 'deal_ranged_damage', targetId },
       })
-    } else if (rollResult.outcome === 'partial') {
+    }
+    else if (rollResult.outcome === 'partial') {
       consequences.push({
         id: `ranged-damage-${Date.now()}`,
         type: 'resource_change',
@@ -251,7 +252,7 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'deal_ranged_damage', targetId, complication: true }
+        data: { type: 'deal_ranged_damage', targetId, complication: true },
       })
     }
 
@@ -263,13 +264,14 @@ class GameLogicService {
    */
   private processDefyDanger(
     rollResult: RollResult,
-    characterId: string
+    characterId: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
     if (rollResult.outcome === 'success') {
       // No consequences - you avoid the danger
-    } else if (rollResult.outcome === 'partial') {
+    }
+    else if (rollResult.outcome === 'partial') {
       consequences.push({
         id: `defy-partial-${Date.now()}`,
         type: 'condition',
@@ -277,7 +279,7 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'gm_choice' }
+        data: { type: 'gm_choice' },
       })
     }
     // On failure, GM makes a move
@@ -291,7 +293,7 @@ class GameLogicService {
   private processAidInterfere(
     rollResult: RollResult,
     characterId: string,
-    targetId?: string
+    targetId?: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -303,9 +305,10 @@ class GameLogicService {
         characterId: targetId || characterId,
         automatic: true,
         applied: false,
-        data: { type: 'forward_modifier', value: 1, source: 'aid' }
+        data: { type: 'forward_modifier', value: 1, source: 'aid' },
       })
-    } else if (rollResult.outcome === 'partial') {
+    }
+    else if (rollResult.outcome === 'partial') {
       consequences.push({
         id: `aid-partial-${Date.now()}`,
         type: 'modifier',
@@ -313,7 +316,7 @@ class GameLogicService {
         characterId: targetId || characterId,
         automatic: true,
         applied: false,
-        data: { type: 'forward_modifier', value: 1, source: 'aid' }
+        data: { type: 'forward_modifier', value: 1, source: 'aid' },
       })
       consequences.push({
         id: `aid-danger-${Date.now()}`,
@@ -322,7 +325,7 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'exposed_to_danger' }
+        data: { type: 'exposed_to_danger' },
       })
     }
 
@@ -334,7 +337,7 @@ class GameLogicService {
    */
   private processDiscernRealities(
     rollResult: RollResult,
-    characterId: string
+    characterId: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -346,9 +349,10 @@ class GameLogicService {
         characterId,
         automatic: true,
         applied: false,
-        data: { type: 'discern_hold', amount: 3 }
+        data: { type: 'discern_hold', amount: 3 },
       })
-    } else if (rollResult.outcome === 'partial') {
+    }
+    else if (rollResult.outcome === 'partial') {
       consequences.push({
         id: `discern-partial-${Date.now()}`,
         type: 'resource_change',
@@ -356,7 +360,7 @@ class GameLogicService {
         characterId,
         automatic: true,
         applied: false,
-        data: { type: 'discern_hold', amount: 1 }
+        data: { type: 'discern_hold', amount: 1 },
       })
     }
 
@@ -368,7 +372,7 @@ class GameLogicService {
    */
   private processSpoutLore(
     rollResult: RollResult,
-    characterId: string
+    characterId: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -380,9 +384,10 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'useful_information' }
+        data: { type: 'useful_information' },
       })
-    } else if (rollResult.outcome === 'partial') {
+    }
+    else if (rollResult.outcome === 'partial') {
       consequences.push({
         id: `lore-partial-${Date.now()}`,
         type: 'resource_change',
@@ -390,7 +395,7 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'useful_information', complication: true }
+        data: { type: 'useful_information', complication: true },
       })
     }
 
@@ -403,7 +408,7 @@ class GameLogicService {
   private processParley(
     rollResult: RollResult,
     characterId: string,
-    targetId?: string
+    targetId?: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -415,9 +420,10 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'npc_compliance', targetId }
+        data: { type: 'npc_compliance', targetId },
       })
-    } else if (rollResult.outcome === 'partial') {
+    }
+    else if (rollResult.outcome === 'partial') {
       consequences.push({
         id: `parley-partial-${Date.now()}`,
         type: 'resource_change',
@@ -425,7 +431,7 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'npc_demands', targetId }
+        data: { type: 'npc_demands', targetId },
       })
     }
 
@@ -438,7 +444,7 @@ class GameLogicService {
   private processGenericMove(
     rollResult: RollResult,
     characterId: string,
-    moveName: string
+    moveName: string,
   ): RollConsequence[] {
     const consequences: RollConsequence[] = []
 
@@ -451,7 +457,7 @@ class GameLogicService {
         characterId,
         automatic: false,
         applied: false,
-        data: { type: 'forward_modifier', value: 1, source: moveName }
+        data: { type: 'forward_modifier', value: 1, source: moveName },
       })
     }
 
@@ -464,9 +470,10 @@ class GameLogicService {
   private processDamageRoll(
     rollResult: RollResult,
     characterId: string,
-    targetId?: string
+    targetId?: string,
   ): RollConsequence | null {
-    if (rollResult.type !== 'damage') return null
+    if (rollResult.type !== 'damage')
+      return null
 
     return {
       id: `damage-apply-${Date.now()}`,
@@ -478,8 +485,8 @@ class GameLogicService {
       data: {
         type: 'apply_damage',
         amount: rollResult.total,
-        source: rollResult.title
-      }
+        source: rollResult.title,
+      },
     }
   }
 
@@ -520,7 +527,7 @@ class GameLogicService {
       consequence.characterId,
       source,
       amount,
-      reason
+      reason,
     )
   }
 
@@ -533,7 +540,8 @@ class GameLogicService {
 
     if (type === 'apply_damage') {
       characterStore.damageCharacter(consequence.characterId, amount)
-    } else if (type === 'heal') {
+    }
+    else if (type === 'heal') {
       characterStore.healCharacter(consequence.characterId, amount)
     }
   }
@@ -543,7 +551,7 @@ class GameLogicService {
    */
   private applyCondition(consequence: RollConsequence): void {
     const { conditionId, name, description, duration, effects } = consequence.data
-    
+
     characterStateService.addCondition(consequence.characterId, {
       id: conditionId || `condition-${Date.now()}`,
       name: name || 'Unknown Condition',
@@ -551,7 +559,7 @@ class GameLogicService {
       effects: effects || [],
       duration: duration || 'scene',
       source: 'move_consequence',
-      severity: 'moderate'
+      severity: 'moderate',
     })
   }
 
@@ -568,9 +576,10 @@ class GameLogicService {
         value,
         appliesTo: 'next_roll',
         source,
-        used: false
+        used: false,
       })
-    } else if (type === 'ongoing_modifier') {
+    }
+    else if (type === 'ongoing_modifier') {
       characterStateService.addOngoingModifier(consequence.characterId, {
         id: `ongoing-${Date.now()}`,
         name: `${source} modifier`,
@@ -578,7 +587,7 @@ class GameLogicService {
         appliesTo: 'all',
         source,
         duration: 'scene',
-        stacks: false
+        stacks: false,
       })
     }
   }
@@ -597,7 +606,7 @@ class GameLogicService {
         max: amount,
         type: 'hold',
         source: 'Discern Realities',
-        refreshOn: 'scene'
+        refreshOn: 'scene',
       })
     }
   }
@@ -631,7 +640,7 @@ class GameLogicService {
     baseDamage: number,
     armor: number,
     piercing: number = 0,
-    conditions: string[] = []
+    conditions: string[] = [],
   ): CombatResult {
     const effectiveArmor = Math.max(0, armor - piercing)
     const armorReduction = Math.min(baseDamage, effectiveArmor)
@@ -642,7 +651,7 @@ class GameLogicService {
       armorReduction,
       finalDamage,
       conditions: conditions.filter(c => this.shouldApplyCondition(c, finalDamage)),
-      effects: this.calculateCombatEffects(finalDamage, conditions)
+      effects: this.calculateCombatEffects(finalDamage, conditions),
     }
   }
 

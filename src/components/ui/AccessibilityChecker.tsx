@@ -1,10 +1,10 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Eye, EyeOff, Keyboard, MousePointer, Volume2, Palette, CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
-import { Card, CardContent } from './Card'
-import { Button } from './Button'
-import { Badge } from './Badge'
 import { Switch } from '@radix-ui/react-switch'
+import { motion } from 'framer-motion'
+import { AlertTriangle, CheckCircle, Eye, EyeOff, Keyboard, MousePointer, Palette, Volume2, XCircle } from 'lucide-react'
+import React from 'react'
+import { Badge } from './Badge'
+import { Button } from './Button'
+import { Card, CardContent } from './Card'
 
 interface AccessibilityIssue {
   type: 'error' | 'warning' | 'info'
@@ -30,27 +30,27 @@ export const AccessibilityChecker: React.FC = () => {
     highContrast: false,
     largeText: false,
     keyboardNavigation: true,
-    screenReaderMode: false
+    screenReaderMode: false,
   })
 
   const runAccessibilityCheck = async () => {
     setIsChecking(true)
-    
+
     // Simulate accessibility checking
     await new Promise(resolve => setTimeout(resolve, 2000))
-    
+
     const issues: AccessibilityIssue[] = []
     const passedChecks: string[] = []
-    
+
     // Check keyboard navigation
     const focusableElements = document.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     )
-    
+
     if (focusableElements.length > 0) {
       passedChecks.push('Focusable elements present')
     }
-    
+
     // Check for missing alt text
     const images = document.querySelectorAll('img')
     let missingAltCount = 0
@@ -59,122 +59,130 @@ export const AccessibilityChecker: React.FC = () => {
         missingAltCount++
       }
     })
-    
+
     if (missingAltCount > 0) {
       issues.push({
         type: 'error',
         category: 'screen-reader',
         message: `${missingAltCount} images missing alt text`,
-        suggestion: 'Add descriptive alt text to all images'
+        suggestion: 'Add descriptive alt text to all images',
       })
-    } else if (images.length > 0) {
+    }
+    else if (images.length > 0) {
       passedChecks.push('All images have alt text')
     }
-    
+
     // Check heading hierarchy
     const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
     let headingIssues = 0
     let lastLevel = 0
-    
+
     headings.forEach((heading) => {
-      const level = parseInt(heading.tagName.charAt(1))
+      const level = Number.parseInt(heading.tagName.charAt(1))
       if (level > lastLevel + 1) {
         headingIssues++
       }
       lastLevel = level
     })
-    
+
     if (headingIssues > 0) {
       issues.push({
         type: 'warning',
         category: 'semantic',
         message: 'Heading hierarchy issues detected',
-        suggestion: 'Ensure headings follow proper hierarchy (h1 → h2 → h3, etc.)'
+        suggestion: 'Ensure headings follow proper hierarchy (h1 → h2 → h3, etc.)',
       })
-    } else if (headings.length > 0) {
+    }
+    else if (headings.length > 0) {
       passedChecks.push('Proper heading hierarchy')
     }
-    
+
     // Check form labels
     const inputs = document.querySelectorAll('input, select, textarea')
     let unlabeledInputs = 0
-    
+
     inputs.forEach((input) => {
-      const hasLabel = input.getAttribute('aria-label') || 
-                      input.getAttribute('aria-labelledby') ||
-                      document.querySelector(`label[for="${input.id}"]`)
-      
+      const hasLabel = input.getAttribute('aria-label')
+        || input.getAttribute('aria-labelledby')
+        || document.querySelector(`label[for="${input.id}"]`)
+
       if (!hasLabel) {
         unlabeledInputs++
       }
     })
-    
+
     if (unlabeledInputs > 0) {
       issues.push({
         type: 'error',
         category: 'screen-reader',
         message: `${unlabeledInputs} form elements missing labels`,
-        suggestion: 'Add labels or aria-label attributes to all form elements'
+        suggestion: 'Add labels or aria-label attributes to all form elements',
       })
-    } else if (inputs.length > 0) {
+    }
+    else if (inputs.length > 0) {
       passedChecks.push('All form elements have labels')
     }
-    
+
     // Check color contrast (simplified)
     const buttons = document.querySelectorAll('button')
     let contrastIssues = 0
-    
+
     buttons.forEach((button) => {
       const styles = window.getComputedStyle(button)
       const bgColor = styles.backgroundColor
       const textColor = styles.color
-      
+
       // Simplified contrast check (in real implementation, use proper contrast calculation)
       if (bgColor === textColor) {
         contrastIssues++
       }
     })
-    
+
     if (contrastIssues > 0) {
       issues.push({
         type: 'warning',
         category: 'color-contrast',
         message: 'Potential color contrast issues',
-        suggestion: 'Ensure text has sufficient contrast ratio (4.5:1 for normal text, 3:1 for large text)'
+        suggestion: 'Ensure text has sufficient contrast ratio (4.5:1 for normal text, 3:1 for large text)',
       })
-    } else {
+    }
+    else {
       passedChecks.push('Good color contrast detected')
     }
-    
+
     // Check for focus indicators
     const focusableCount = focusableElements.length
     if (focusableCount > 0) {
       passedChecks.push(`${focusableCount} focusable elements found`)
     }
-    
+
     // Calculate score
     const totalChecks = issues.length + passedChecks.length
     const score = totalChecks > 0 ? Math.round((passedChecks.length / totalChecks) * 100) : 100
-    
+
     setReport({
       score,
       issues,
       passedChecks,
-      timestamp: new Date()
+      timestamp: new Date(),
     })
-    
+
     setIsChecking(false)
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-chart-2'
-    if (score >= 60) return 'text-chart-4'
+    if (score >= 80)
+      return 'text-chart-2'
+    if (score >= 60)
+      return 'text-chart-4'
     return 'text-destructive'
   }
 
   const getScoreIcon = (score: number) => {
-    if (score >= 80) return <CheckCircle className="w-5 h-5 text-chart-2" />
-    if (score >= 60) return <AlertTriangle className="w-5 h-5 text-chart-4" />
+    if (score >= 80)
+      return <CheckCircle className="w-5 h-5 text-chart-2" />
+    if (score >= 60)
+      return <AlertTriangle className="w-5 h-5 text-chart-4" />
     return <XCircle className="w-5 h-5 text-destructive" />
   }
 
@@ -207,17 +215,19 @@ export const AccessibilityChecker: React.FC = () => {
                 <Eye className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <h3 
-                  className="text-lg font-display text-foreground">
+                <h3
+                  className="text-lg font-display text-foreground"
+                >
                   Accessibility Checker
                 </h3>
-                <p 
-                  className="text-sm text-muted-foreground">
+                <p
+                  className="text-sm text-muted-foreground"
+                >
                   Ensure ZimboMate is accessible to all users
                 </p>
               </div>
             </div>
-            
+
             <Button
               variant="primary"
               onClick={runAccessibilityCheck}
@@ -229,78 +239,84 @@ export const AccessibilityChecker: React.FC = () => {
           </div>
 
           {/* Accessibility Settings */}
-          <div 
-            className="rounded-lg p-4 bg-popover">
-            <h4 
-              className="font-medium mb-3 text-foreground">
+          <div
+            className="rounded-lg p-4 bg-popover"
+          >
+            <h4
+              className="font-medium mb-3 text-foreground"
+            >
               Accessibility Settings
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <EyeOff 
-                    className="w-4 h-4 text-muted-foreground" />
-                  <span 
-                    className="text-sm text-foreground">
+                  <EyeOff
+                    className="w-4 h-4 text-muted-foreground"
+                  />
+                  <span
+                    className="text-sm text-foreground"
+                  >
                     Reduce Motion
                   </span>
                 </div>
                 <Switch
                   checked={settings.reduceMotion}
-                  onCheckedChange={(checked) => 
-                    setSettings(prev => ({ ...prev, reduceMotion: checked }))
-                  }
+                  onCheckedChange={checked =>
+                    setSettings(prev => ({ ...prev, reduceMotion: checked }))}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Palette 
-                    className="w-4 h-4 text-muted-foreground" />
-                  <span 
-                    className="text-sm text-foreground">
+                  <Palette
+                    className="w-4 h-4 text-muted-foreground"
+                  />
+                  <span
+                    className="text-sm text-foreground"
+                  >
                     High Contrast
                   </span>
                 </div>
                 <Switch
                   checked={settings.highContrast}
-                  onCheckedChange={(checked) => 
-                    setSettings(prev => ({ ...prev, highContrast: checked }))
-                  }
+                  onCheckedChange={checked =>
+                    setSettings(prev => ({ ...prev, highContrast: checked }))}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Eye 
-                    className="w-4 h-4 text-muted-foreground" />
-                  <span 
-                    className="text-sm text-foreground">
+                  <Eye
+                    className="w-4 h-4 text-muted-foreground"
+                  />
+                  <span
+                    className="text-sm text-foreground"
+                  >
                     Large Text
                   </span>
                 </div>
                 <Switch
                   checked={settings.largeText}
-                  onCheckedChange={(checked) => 
-                    setSettings(prev => ({ ...prev, largeText: checked }))
-                  }
+                  onCheckedChange={checked =>
+                    setSettings(prev => ({ ...prev, largeText: checked }))}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Keyboard 
-                    className="w-4 h-4 text-muted-foreground" />
-                  <span 
-                    className="text-sm text-foreground">
+                  <Keyboard
+                    className="w-4 h-4 text-muted-foreground"
+                  />
+                  <span
+                    className="text-sm text-foreground"
+                  >
                     Keyboard Navigation
                   </span>
                 </div>
                 <Switch
                   checked={settings.keyboardNavigation}
-                  onCheckedChange={(checked) => 
-                    setSettings(prev => ({ ...prev, keyboardNavigation: checked }))
-                  }
+                  onCheckedChange={checked =>
+                    setSettings(prev => ({ ...prev, keyboardNavigation: checked }))}
                 />
               </div>
             </div>
@@ -314,11 +330,11 @@ export const AccessibilityChecker: React.FC = () => {
               className="space-y-4"
             >
               {/* Score */}
-              <div 
+              <div
                 className="border rounded-lg p-4"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--card)',
-                  borderColor: 'var(--border)'
+                  borderColor: 'var(--border)',
                 }}
               >
                 <div className="flex items-center justify-between mb-4">
@@ -326,46 +342,57 @@ export const AccessibilityChecker: React.FC = () => {
                     {getScoreIcon(report.score)}
                     <div>
                       <div className={`text-2xl font-bold ${getScoreColor(report.score)}`}>
-                        {report.score}%
+                        {report.score}
+                        %
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Accessibility Score
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
-                    <div 
-                      className="text-sm text-muted-foreground">
-                      {report.passedChecks.length} passed
+                    <div
+                      className="text-sm text-muted-foreground"
+                    >
+                      {report.passedChecks.length}
+                      {' '}
+                      passed
                     </div>
-                    <div 
-                      className="text-sm text-muted-foreground">
-                      {report.issues.length} issues
+                    <div
+                      className="text-sm text-muted-foreground"
+                    >
+                      {report.issues.length}
+                      {' '}
+                      issues
                     </div>
                   </div>
                 </div>
-                
-                <div 
-                  className="text-xs text-muted-foreground">
-                  Last checked: {report.timestamp.toLocaleString()}
+
+                <div
+                  className="text-xs text-muted-foreground"
+                >
+                  Last checked:
+                  {' '}
+                  {report.timestamp.toLocaleString()}
                 </div>
               </div>
 
               {/* Issues */}
               {report.issues.length > 0 && (
                 <div className="space-y-2">
-                  <h4 
-                    className="font-medium text-foreground">
+                  <h4
+                    className="font-medium text-foreground"
+                  >
                     Issues Found
                   </h4>
                   {report.issues.map((issue, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="border rounded-lg p-3"
-                      style={{ 
+                      style={{
                         backgroundColor: 'var(--card)',
-                        borderColor: 'var(--border)'
+                        borderColor: 'var(--border)',
                       }}
                     >
                       <div className="flex items-start gap-3">
@@ -374,12 +401,14 @@ export const AccessibilityChecker: React.FC = () => {
                           {getCategoryIcon(issue.category)}
                         </div>
                         <div className="flex-1">
-                          <div 
-                            className="font-medium text-sm text-foreground">
+                          <div
+                            className="font-medium text-sm text-foreground"
+                          >
                             {issue.message}
                           </div>
-                          <div 
-                            className="text-xs mt-1 text-muted-foreground">
+                          <div
+                            className="text-xs mt-1 text-muted-foreground"
+                          >
                             {issue.suggestion}
                           </div>
                           {issue.element && (
@@ -401,7 +430,9 @@ export const AccessibilityChecker: React.FC = () => {
                   size="sm"
                   onClick={() => setShowDetails(!showDetails)}
                 >
-                  {showDetails ? 'Hide' : 'Show'} Passed Checks
+                  {showDetails ? 'Hide' : 'Show'}
+                  {' '}
+                  Passed Checks
                 </Button>
               </div>
 
@@ -411,8 +442,9 @@ export const AccessibilityChecker: React.FC = () => {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <h4 
-                    className="font-medium mb-2 text-foreground">
+                  <h4
+                    className="font-medium mb-2 text-foreground"
+                  >
                     Passed Checks
                   </h4>
                   <div className="space-y-1">
@@ -429,19 +461,21 @@ export const AccessibilityChecker: React.FC = () => {
           )}
 
           {/* Guidelines */}
-          <div 
+          <div
             className="border rounded-lg p-4"
-            style={{ 
+            style={{
               backgroundColor: 'var(--popover)',
-              borderColor: 'var(--border)'
+              borderColor: 'var(--border)',
             }}
           >
-            <h4 
-              className="font-medium mb-2 text-foreground">
+            <h4
+              className="font-medium mb-2 text-foreground"
+            >
               Accessibility Guidelines
             </h4>
-            <ul 
-              className="space-y-1 text-sm text-muted-foreground">
+            <ul
+              className="space-y-1 text-sm text-muted-foreground"
+            >
               <li>• Ensure all interactive elements are keyboard accessible</li>
               <li>• Provide alternative text for images and icons</li>
               <li>• Use proper heading hierarchy (h1 → h2 → h3)</li>
@@ -458,6 +492,3 @@ export const AccessibilityChecker: React.FC = () => {
 }
 
 export default AccessibilityChecker
-
-
-

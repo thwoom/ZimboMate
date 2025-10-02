@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
 import type { RollResult } from '../components/ui/RollResultsToast'
-import { gameLogicService, type RollConsequence } from '../services/GameLogicService'
+import type { RollConsequence } from '../services/GameLogicService'
+import { useCallback, useState } from 'react'
+import { gameLogicService } from '../services/GameLogicService'
 import { useCharacterStore } from '../stores/characterStore'
 
 export interface EnhancedRollResult extends RollResult {
@@ -22,7 +23,7 @@ export interface UseEnhancedRollResultsReturn {
   getPendingConsequences: (rollId: string) => RollConsequence[]
 }
 
-export const useEnhancedRollResults = (): UseEnhancedRollResultsReturn => {
+export function useEnhancedRollResults(): UseEnhancedRollResultsReturn {
   const [currentResult, setCurrentResult] = useState<EnhancedRollResult | null>(null)
   const [rollHistory, setRollHistory] = useState<EnhancedRollResult[]>([])
   const { getActiveCharacter } = useCharacterStore()
@@ -35,7 +36,7 @@ export const useEnhancedRollResults = (): UseEnhancedRollResultsReturn => {
       moveName: string
       targetId?: string
       combatContext?: boolean
-    }
+    },
   ) => {
     const activeCharacter = getActiveCharacter()
     const effectiveCharacterId = characterId || activeCharacter?.id
@@ -43,7 +44,7 @@ export const useEnhancedRollResults = (): UseEnhancedRollResultsReturn => {
     const fullResult: RollResult = {
       ...result,
       id: `roll-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date()
+      timestamp: new Date(),
     }
 
     // Process consequences if we have a character
@@ -52,14 +53,14 @@ export const useEnhancedRollResults = (): UseEnhancedRollResultsReturn => {
       consequences = gameLogicService.processRollResult(
         fullResult,
         effectiveCharacterId,
-        moveContext
+        moveContext,
       )
 
       // Auto-apply automatic consequences
       const automaticConsequences = consequences
         .filter(c => c.automatic)
         .map(c => c.id)
-      
+
       if (automaticConsequences.length > 0) {
         setTimeout(() => {
           gameLogicService.applyConsequences(fullResult.id, automaticConsequences)
@@ -71,7 +72,7 @@ export const useEnhancedRollResults = (): UseEnhancedRollResultsReturn => {
       ...fullResult,
       consequences,
       characterId: effectiveCharacterId,
-      moveContext
+      moveContext,
     }
 
     setCurrentResult(enhancedResult)
@@ -84,30 +85,30 @@ export const useEnhancedRollResults = (): UseEnhancedRollResultsReturn => {
 
   const applyConsequences = useCallback((rollId: string, selectedConsequences?: string[]) => {
     gameLogicService.applyConsequences(rollId, selectedConsequences)
-    
+
     // Update the roll in history to mark consequences as applied
-    setRollHistory(prev => prev.map(roll => {
+    setRollHistory(prev => prev.map((roll) => {
       if (roll.id === rollId) {
         return {
           ...roll,
           consequences: roll.consequences.map(c => ({
             ...c,
-            applied: selectedConsequences?.includes(c.id) ? true : c.applied
-          }))
+            applied: selectedConsequences?.includes(c.id) ? true : c.applied,
+          })),
         }
       }
       return roll
     }))
 
     // Update current result if it matches
-    setCurrentResult(prev => {
+    setCurrentResult((prev) => {
       if (prev?.id === rollId) {
         return {
           ...prev,
           consequences: prev.consequences.map(c => ({
             ...c,
-            applied: selectedConsequences?.includes(c.id) ? true : c.applied
-          }))
+            applied: selectedConsequences?.includes(c.id) ? true : c.applied,
+          })),
         }
       }
       return prev
@@ -124,15 +125,12 @@ export const useEnhancedRollResults = (): UseEnhancedRollResultsReturn => {
     clearResult,
     rollHistory,
     applyConsequences,
-    getPendingConsequences
+    getPendingConsequences,
   }
 }
 
 // Helper functions for common roll types with enhanced consequences
-export const createEnhancedBasicRoll = (
-  dice: number[], 
-  modifier: number = 0
-): Omit<RollResult, 'id' | 'timestamp'> => {
+export function createEnhancedBasicRoll(dice: number[], modifier: number = 0): Omit<RollResult, 'id' | 'timestamp'> {
   const total = dice.reduce((sum, die) => sum + die, 0) + modifier
   let outcome: 'success' | 'partial' | 'failure' | undefined
   let description: string | undefined
@@ -141,10 +139,12 @@ export const createEnhancedBasicRoll = (
     if (total >= 10) {
       outcome = 'success'
       description = 'You succeed and choose from the list'
-    } else if (total >= 7) {
+    }
+    else if (total >= 7) {
       outcome = 'partial'
       description = 'You succeed, but with complications'
-    } else {
+    }
+    else {
       outcome = 'failure'
       description = 'The GM makes a move. Mark XP.'
     }
@@ -157,15 +157,11 @@ export const createEnhancedBasicRoll = (
     modifier,
     total,
     outcome,
-    description
+    description,
   }
 }
 
-export const createEnhancedAttributeRoll = (
-  attribute: string, 
-  dice: number[], 
-  modifier: number
-): Omit<RollResult, 'id' | 'timestamp'> => {
+export function createEnhancedAttributeRoll(attribute: string, dice: number[], modifier: number): Omit<RollResult, 'id' | 'timestamp'> {
   const total = dice.reduce((sum, die) => sum + die, 0) + modifier
   let outcome: 'success' | 'partial' | 'failure' | undefined
   let description: string | undefined
@@ -173,10 +169,12 @@ export const createEnhancedAttributeRoll = (
   if (total >= 10) {
     outcome = 'success'
     description = `Your ${attribute} check succeeds!`
-  } else if (total >= 7) {
+  }
+  else if (total >= 7) {
     outcome = 'partial'
     description = `Your ${attribute} check partially succeeds`
-  } else {
+  }
+  else {
     outcome = 'failure'
     description = `Your ${attribute} check fails. Mark XP.`
   }
@@ -188,32 +186,24 @@ export const createEnhancedAttributeRoll = (
     modifier,
     total,
     outcome,
-    description
+    description,
   }
 }
 
-export const createEnhancedDamageRoll = (
-  weaponName: string,
-  dice: number[]
-): Omit<RollResult, 'id' | 'timestamp'> => {
+export function createEnhancedDamageRoll(weaponName: string, dice: number[]): Omit<RollResult, 'id' | 'timestamp'> {
   const total = dice.reduce((sum, die) => sum + die, 0)
-  
+
   return {
     type: 'damage',
     title: `${weaponName} Damage`,
     dice,
     modifier: 0,
     total,
-    description: `${total} damage dealt`
+    description: `${total} damage dealt`,
   }
 }
 
-export const createEnhancedMoveRoll = (
-  moveName: string,
-  dice: number[],
-  modifier: number,
-  moveId?: string
-): Omit<RollResult, 'id' | 'timestamp'> => {
+export function createEnhancedMoveRoll(moveName: string, dice: number[], modifier: number, moveId?: string): Omit<RollResult, 'id' | 'timestamp'> {
   const total = dice.reduce((sum, die) => sum + die, 0) + modifier
   let outcome: 'success' | 'partial' | 'failure' | undefined
   let description: string | undefined
@@ -221,10 +211,12 @@ export const createEnhancedMoveRoll = (
   if (total >= 10) {
     outcome = 'success'
     description = `${moveName} succeeds! Choose from the full list of options.`
-  } else if (total >= 7) {
+  }
+  else if (total >= 7) {
     outcome = 'partial'
     description = `${moveName} partially succeeds. The GM will tell you what happens.`
-  } else {
+  }
+  else {
     outcome = 'failure'
     description = `${moveName} fails. The GM makes a move. Mark XP.`
   }
@@ -236,6 +228,6 @@ export const createEnhancedMoveRoll = (
     modifier,
     total,
     outcome,
-    description
+    description,
   }
 }

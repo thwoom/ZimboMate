@@ -5,25 +5,25 @@
  * in active gameplay, including Chronicle Management as a primary feature.
  */
 
-import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
-  CalendarClock,
+  BookOpen,
   BookOpenText,
-  Users,
-  MapPin,
+  CalendarClock,
   LayoutPanelLeft,
+  MapPin,
   Search,
-  Skull,
   Settings as SettingsIcon,
+  Skull,
   Sparkles,
-  BookOpen
+  Users,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../ui'
+import React, { useState } from 'react'
+import { Badge, Button, Card, CardContent } from '../ui'
+import { BondTracker } from './BondTracker'
 import { CampaignPanel } from './CampaignPanel'
 import { ChroniclePanel } from './Chronicle/ChroniclePanel'
 import { MonsterManager } from './MonsterManager'
-import { BondTracker } from './BondTracker'
 
 type GameManagementTab = 'chronicle' | 'campaign' | 'monsters' | 'multiplayer' | 'tools'
 
@@ -34,7 +34,7 @@ interface GameManagementTabProps {
 
 export const GameManagementTab: React.FC<GameManagementTabProps> = ({
   className = '',
-  initialTab = 'chronicle'
+  initialTab = 'chronicle',
 }) => {
   const [activeTab, setActiveTab] = useState<GameManagementTab>(initialTab)
   const [searchQuery, setSearchQuery] = useState('')
@@ -46,36 +46,36 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
       icon: BookOpen,
       description: 'Story building, timeline, and narrative management',
       color: 'text-primary',
-      featured: true
+      featured: true,
     },
     {
       id: 'campaign' as const,
       label: 'Campaign',
       icon: MapPin,
       description: 'Campaign overview, sessions, and long-term planning',
-      color: 'text-chart-2'
+      color: 'text-chart-2',
     },
     {
       id: 'monsters' as const,
       label: 'Monsters',
       icon: Skull,
       description: 'Monster management and encounter building',
-      color: 'text-destructive'
+      color: 'text-destructive',
     },
     {
       id: 'multiplayer' as const,
       label: 'Multiplayer',
       icon: Users,
       description: 'Session setup and player management',
-      color: 'text-accent'
+      color: 'text-accent',
     },
     {
       id: 'tools' as const,
       label: 'GM Tools',
       icon: SettingsIcon,
       description: 'Additional utilities and session helpers',
-      color: 'text-chart-4'
-    }
+      color: 'text-chart-4',
+    },
   ]
 
   const renderContent = () => {
@@ -97,14 +97,18 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
             <CardContent>
               <div className="text-center space-y-6">
                 <div
-                  className="w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-primary/20">
-                  <Users className="text-primary"
-                    size={32} />
+                  className="w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-primary/20"
+                >
+                  <Users
+                    className="text-primary"
+                    size={32}
+                  />
                 </div>
                 <div>
                   <h2 className="text-2xl font-display mb-2">Multiplayer Sessions</h2>
                   <p
-                    className="max-w-md mx-auto text-muted-foreground">
+                    className="max-w-md mx-auto text-muted-foreground"
+                  >
                     Connect with friends for shared adventures and real-time dice rolling.
                     Advanced multiplayer management features.
                   </p>
@@ -249,9 +253,10 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
                   {isActive && (
                     <motion.div
                       className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                      
+
                       layoutId="gameManagementTab"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    />
                   )}
                 </Button>
               )
@@ -267,18 +272,19 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
             <div className="relative">
               <Search
                 size={16}
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+              />
               <input
                 type="text"
                 placeholder={`Search ${activeTab}...`}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border transition-colors"
                 style={{
                   backgroundColor: 'var(--card)',
                   borderColor: 'var(--primary)',
                   borderOpacity: 0.2,
-                  color: 'var(--foreground)'
+                  color: 'var(--foreground)',
                 }}
               />
             </div>
@@ -301,6 +307,3 @@ export const GameManagementTab: React.FC<GameManagementTabProps> = ({
 }
 
 export default GameManagementTab
-
-
-

@@ -1,19 +1,19 @@
-import React from 'react'
+import type { Character } from '../../models/Character'
+import type { InventoryStats as IInventoryStats } from '../../models/Inventory'
 import { motion } from 'framer-motion'
-import { Card, CardHeader, CardTitle, CardContent, Progress, Badge } from '../ui'
-import { InventoryStats as IInventoryStats } from '../../models/Inventory'
-import { Character } from '../../models/Character'
-import { formatWeight, formatValue } from '../../equipmentSystemMockData'
-import { 
-  Weight, 
-  Coins, 
-  Package, 
-  TrendingUp, 
-  Sword, 
-  Shield, 
-  Wine, 
-  Gem 
+import {
+  Coins,
+  Gem,
+  Package,
+  Shield,
+  Sword,
+  TrendingUp,
+  Weight,
+  Wine,
 } from 'lucide-react'
+import React from 'react'
+import { formatValue, formatWeight } from '../../equipmentSystemMockData'
+import { Badge, Card, CardContent, CardHeader, CardTitle, Progress } from '../ui'
 
 interface InventoryStatsProps {
   stats: IInventoryStats
@@ -26,7 +26,7 @@ const categoryIcons = {
   stored: Package,
   consumables: Wine,
   treasure: Gem,
-  other: Package
+  other: Package,
 }
 
 const categoryColors = {
@@ -35,7 +35,7 @@ const categoryColors = {
   stored: 'text-(--parchment-600)',
   consumables: 'text-(--nature-600)',
   treasure: 'text-(--gold-500)',
-  other: 'text-(--parchment-500)'
+  other: 'text-(--parchment-500)',
 }
 
 const containerVariants = {
@@ -43,33 +43,35 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 }
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 100,
-      damping: 15
-    }
-  }
+      damping: 15,
+    },
+  },
 }
 
 export const InventoryStats: React.FC<InventoryStatsProps> = ({
   stats,
-  character
+  character,
 }) => {
   const weightPercentage = (stats.totalWeight / character.load.max) * 100
 
   const getEncumbranceColor = (percentage: number) => {
-    if (percentage > 100) return 'text-(--danger-600)'
-    if (percentage > 80) return 'text-(--gold-600)'
+    if (percentage > 100)
+      return 'text-(--danger-600)'
+    if (percentage > 80)
+      return 'text-(--gold-600)'
     return 'text-(--nature-600)'
   }
 
@@ -154,13 +156,17 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
                 <div className="mb-2">
                   <div className="w-12 h-12 mx-auto rounded-full bg-(--parchment-200) flex items-center justify-center">
                     <span className={`text-sm font-bold font-mono ${getEncumbranceColor(weightPercentage)}`}>
-                      {Math.round(weightPercentage)}%
+                      {Math.round(weightPercentage)}
+                      %
                     </span>
                   </div>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-(--parchment-900) font-mono">
-                    {stats.totalWeight} / {character.load.max}
+                    {stats.totalWeight}
+                    {' '}
+                    /
+                    {character.load.max}
                   </p>
                   <p className="text-xs text-(--parchment-600) font-ui">
                     Load Capacity
@@ -190,7 +196,7 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
                 .map(([category, weight]) => {
                   const CategoryIcon = categoryIcons[category as keyof typeof categoryIcons]
                   const percentage = stats.totalWeight > 0 ? (weight / stats.totalWeight) * 100 : 0
-                  
+
                   return (
                     <motion.div
                       key={category}
@@ -199,21 +205,25 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 }}
                     >
-                      <CategoryIcon 
-                        size={16} 
-                        className={categoryColors[category as keyof typeof categoryColors]} 
+                      <CategoryIcon
+                        size={16}
+                        className={categoryColors[category as keyof typeof categoryColors]}
                       />
-                      
+
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-sm font-medium text-(--parchment-900) capitalize font-ui">
                             {category}
                           </span>
                           <span className="text-sm text-(--parchment-700) font-mono">
-                            {formatWeight(weight)} ({percentage.toFixed(1)}%)
+                            {formatWeight(weight)}
+                            {' '}
+                            (
+                            {percentage.toFixed(1)}
+                            %)
                           </span>
                         </div>
-                        
+
                         <div className="w-full bg-(--parchment-200) rounded-full h-2">
                           <motion.div
                             className="h-2 rounded-full bg-gradient-to-r from-(--parchment-500) to-(--parchment-600)"
@@ -265,21 +275,31 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
                   <div className="w-3 h-3 bg-(--nature-500) rounded-full mx-auto mb-1" />
                   <span className="text-(--parchment-600) font-ui">Normal</span>
                   <p className="font-mono text-(--parchment-800)">
-                    0 - {character.load.max} lbs
+                    0 -
+                    {' '}
+                    {character.load.max}
+                    {' '}
+                    lbs
                   </p>
                 </div>
                 <div>
                   <div className="w-3 h-3 bg-(--gold-500) rounded-full mx-auto mb-1" />
                   <span className="text-(--parchment-600) font-ui">Encumbered</span>
                   <p className="font-mono text-(--parchment-800)">
-                    {character.load.max + 1} - {character.load.max + 2} lbs
+                    {character.load.max + 1}
+                    {' '}
+                    -
+                    {character.load.max + 2}
+                    {' '}
+                    lbs
                   </p>
                 </div>
                 <div>
                   <div className="w-3 h-3 bg-(--danger-500) rounded-full mx-auto mb-1" />
                   <span className="text-(--parchment-600) font-ui">Overloaded</span>
                   <p className="font-mono text-(--parchment-800)">
-                    {character.load.max + 3}+ lbs
+                    {character.load.max + 3}
+                    + lbs
                   </p>
                 </div>
               </div>
@@ -293,12 +313,16 @@ export const InventoryStats: React.FC<InventoryStatsProps> = ({
                 >
                   {stats.encumbranceStatus === 'encumbered' && (
                     <p>
-                      <strong>Encumbered:</strong> You take -1 ongoing to all rolls until you lighten your load.
+                      <strong>Encumbered:</strong>
+                      {' '}
+                      You take -1 ongoing to all rolls until you lighten your load.
                     </p>
                   )}
                   {stats.encumbranceStatus === 'overloaded' && (
                     <p>
-                      <strong>Overloaded:</strong> You can barely move. Drop items or find another way to reduce your load.
+                      <strong>Overloaded:</strong>
+                      {' '}
+                      You can barely move. Drop items or find another way to reduce your load.
                     </p>
                   )}
                 </motion.div>

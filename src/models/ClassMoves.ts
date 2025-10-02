@@ -83,7 +83,7 @@ export const FIGHTER_MOVES: Partial<Move>[] = [
     description: 'Choose an additional enhancement for your signature weapon.',
     trigger: 'When creating character',
     triggerType: 'special',
-  }
+  },
 ]
 
 // Wizard moves
@@ -151,7 +151,7 @@ export const WIZARD_MOVES: Partial<Move>[] = [
     description: 'When you cast a spell, on a 10+ you have the option of choosing from the 7-9 list. If you do, you may choose one of these effects as well: • The spell\'s effects are maximized • The spell\'s targets are doubled',
     trigger: 'When you cast a spell',
     triggerType: 'reactive',
-  }
+  },
 ]
 
 // Cleric moves
@@ -224,7 +224,7 @@ export const CLERIC_MOVES: Partial<Move>[] = [
     trigger: 'When unarmored',
     triggerType: 'passive',
     ongoing: true,
-  }
+  },
 ]
 
 // Thief moves
@@ -290,7 +290,7 @@ export const THIEF_MOVES: Partial<Move>[] = [
     description: 'You\'ve mastered the care and use of a poison. Choose a poison from the list when you first take this move.',
     trigger: 'Starting move',
     triggerType: 'special',
-  }
+  },
 ]
 
 // Ranger moves
@@ -343,7 +343,7 @@ export const RANGER_MOVES: Partial<Move>[] = [
     description: 'When you work with your animal companion on something it\'s trained in and you attack the same target, add their ferocity to your damage.',
     trigger: 'When commanding your animal companion',
     triggerType: 'action',
-  }
+  },
 ]
 
 // Paladin moves
@@ -396,7 +396,7 @@ export const PALADIN_MOVES: Partial<Move>[] = [
     onSuccess: 'They choose one: • They do what you say • They back away cautiously, then flee • They attack you',
     onPartial: 'They do what you say, but choose one: • They demand concrete assurance of your promise, right now • They do it for now, but there will be payback later',
     onFailure: 'Mark XP and the GM makes a move.',
-  }
+  },
 ]
 
 // Bard moves
@@ -440,7 +440,7 @@ export const BARD_MOVES: Partial<Move>[] = [
     description: 'When you weave a performance into a basic spell, choose an ally and an effect: • Heal 1d8 damage • +1d4 forward to damage • Their mind is shaken clear of one enchantment • The next time someone successfully assists the target with aid, they get +2 instead of +1',
     trigger: 'When you perform magic',
     triggerType: 'action',
-  }
+  },
 ]
 
 // Druid moves
@@ -500,7 +500,7 @@ export const DRUID_MOVES: Partial<Move>[] = [
     description: 'When you spend time in contemplation of an animal you\'ve encountered, you may add its essence to those you know.',
     trigger: 'When you study an animal',
     triggerType: 'action',
-  }
+  },
 ]
 
 // Barbarian moves
@@ -550,7 +550,7 @@ export const BARBARIAN_MOVES: Partial<Move>[] = [
     trigger: 'When wearing armor',
     triggerType: 'passive',
     ongoing: true,
-  }
+  },
 ]
 
 // Immolator moves
@@ -589,7 +589,7 @@ export const IMMOLATOR_MOVES: Partial<Move>[] = [
     trigger: 'When fighting alone against danger',
     triggerType: 'passive',
     ongoing: true,
-  }
+  },
 ]
 
 // Combine all class moves
@@ -603,7 +603,7 @@ export const ALL_CLASS_MOVES: Partial<Move>[] = [
   ...BARD_MOVES,
   ...DRUID_MOVES,
   ...BARBARIAN_MOVES,
-  ...IMMOLATOR_MOVES
+  ...IMMOLATOR_MOVES,
 ]
 
 // Helper functions for move management
@@ -629,6 +629,6 @@ export function getStartingMovesForClass(characterClass: string): Partial<Move>[
 
 export function getAdvancedMovesForClass(characterClass: string, level: number): Partial<Move>[] {
   return getMovesForClass(characterClass).filter(move =>
-    move.level && move.level > 1 && move.level <= level
+    move.level && move.level > 1 && move.level <= level,
   )
 }

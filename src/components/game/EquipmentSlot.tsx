@@ -1,9 +1,10 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import type { LucideIcon } from 'lucide-react'
+import type { Item } from '../../models/Equipment'
 import * as Tooltip from '@radix-ui/react-tooltip'
-import { Item } from '../../models/Equipment'
+import { motion } from 'framer-motion'
+import { ArrowDownRight } from 'lucide-react'
+import React from 'react'
 import { Button } from '../ui'
-import { ArrowDownRight, LucideIcon } from 'lucide-react'
 
 interface EquipmentSlotProps {
   slot: {
@@ -19,7 +20,7 @@ interface EquipmentSlotProps {
 export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
   slot,
   equippedItem,
-  onItemUnequip
+  onItemUnequip,
 }) => {
   const SlotIcon = slot.icon
 
@@ -84,15 +85,17 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
                   {equippedItem.name}
                 </span>
               </div>
-              
+
               {equippedItem.description && (
                 <p className="text-sm text-(--parchment-700) font-body">
                   {equippedItem.description}
                 </p>
               )}
-              
+
               <div className="text-xs text-(--parchment-600)">
-                Equipped in {slot.name}
+                Equipped in
+                {' '}
+                {slot.name}
               </div>
             </div>
             <Tooltip.Arrow className="fill-card" />
@@ -130,7 +133,9 @@ export const EquipmentSlot: React.FC<EquipmentSlotProps> = ({
           sideOffset={5}
         >
           <p className="text-sm text-(--parchment-700)">
-            {slot.name} slot - drag an item here to equip
+            {slot.name}
+            {' '}
+            slot - drag an item here to equip
           </p>
           <Tooltip.Arrow className="fill-card" />
         </Tooltip.Content>

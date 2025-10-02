@@ -4,8 +4,6 @@
  * Modernized from V1 with improved TypeScript patterns and V2 model integration
  */
 
-import type { Attribute, Character } from '../models/Character'
-
 export interface CharacterState {
   characterId: string
   conditions: Condition[]
@@ -148,7 +146,7 @@ export class CharacterStateService {
     // Handle stacking
     if (!modifier.stacks) {
       const existingIndex = state.ongoingModifiers.findIndex(m =>
-        m.name === modifier.name && m.appliesTo === modifier.appliesTo && m.target === modifier.target
+        m.name === modifier.name && m.appliesTo === modifier.appliesTo && m.target === modifier.target,
       )
       if (existingIndex >= 0) {
         state.ongoingModifiers.splice(existingIndex, 1)
@@ -213,7 +211,8 @@ export class CharacterStateService {
 
     if (existingIndex >= 0) {
       state.resources[existingIndex] = resource
-    } else {
+    }
+    else {
       state.resources.push(resource)
     }
 
@@ -226,15 +225,15 @@ export class CharacterStateService {
   getTotalModifier(
     characterId: string,
     context: 'stat' | 'move' | 'damage',
-    target?: string
+    target?: string,
   ): number {
     const state = this.getCharacterState(characterId)
     let total = 0
 
     // Add ongoing modifiers
     for (const modifier of state.ongoingModifiers) {
-      if (modifier.appliesTo === 'all' ||
-          (modifier.appliesTo === context && (!modifier.target || modifier.target === target))) {
+      if (modifier.appliesTo === 'all'
+        || (modifier.appliesTo === context && (!modifier.target || modifier.target === target))) {
         total += modifier.value
       }
     }
@@ -242,8 +241,8 @@ export class CharacterStateService {
     // Add condition effects
     for (const condition of state.conditions) {
       for (const effect of condition.effects) {
-        if (effect.type === `${context}_modifier` &&
-            (!effect.target || effect.target === target)) {
+        if (effect.type === `${context}_modifier`
+          && (!effect.target || effect.target === target)) {
           total += typeof effect.value === 'number' ? effect.value : 0
         }
       }
@@ -269,13 +268,13 @@ export class CharacterStateService {
   getAvailableForwardModifiers(
     characterId: string,
     context: 'next_roll' | 'next_move' | 'next_stat_roll',
-    target?: string
+    target?: string,
   ): ForwardModifier[] {
     const state = this.getCharacterState(characterId)
     return state.forwardModifiers.filter(m =>
-      !m.used &&
-      m.appliesTo === context &&
-      (!m.target || m.target === target)
+      !m.used
+      && m.appliesTo === context
+      && (!m.target || m.target === target),
     )
   }
 
@@ -405,8 +404,10 @@ export class CharacterStateService {
   }
 
   private isConditionActive(condition: Condition): boolean {
-    if (condition.duration === 'permanent') return true
-    if (typeof condition.duration === 'number') return condition.duration > 0
+    if (condition.duration === 'permanent')
+      return true
+    if (typeof condition.duration === 'number')
+      return condition.duration > 0
     return true // Scene / encounter conditions are active until explicitly removed
   }
 }

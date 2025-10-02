@@ -5,11 +5,11 @@
  * to automatically trigger contextual story prompts after rolls.
  */
 
-import React, { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, Button } from '../ui'
-import { Dice6, Plus, Minus, BookOpen, Feather } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { BookOpen, Dice6, Feather, Minus, Plus } from 'lucide-react'
+import React, { useCallback, useState } from 'react'
 import { useChronicle } from '../chronicle/ChronicleProvider'
+import { Button, Card, CardContent } from '../ui'
 
 interface DiceResult {
   dice1: number
@@ -34,52 +34,54 @@ interface ChronicleEnabledDiceRollerProps {
 const diceVariants = {
   idle: {
     rotate: 0,
-    scale: 1
+    scale: 1,
   },
   rolling: {
     rotate: [0, 180, 360, 540, 720],
     scale: [1, 1.2, 1, 1.2, 1],
     transition: {
       duration: 1.5,
-      ease: "easeInOut"
-    }
+      ease: 'easeInOut',
+    },
   },
   result: {
     rotate: 0,
     scale: 1.1,
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 300,
-      damping: 20
-    }
-  }
+      damping: 20,
+    },
+  },
 }
 
 const resultVariants = {
   hidden: {
     opacity: 0,
     scale: 0.5,
-    y: 20
+    y: 20,
   },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 200,
-      damping: 15
-    }
-  }
+      damping: 15,
+    },
+  },
 }
 
-const getOutcome = (total: number): 'success' | 'partial' | 'failure' => {
-  if (total >= 10) return 'success'
-  if (total >= 7) return 'partial'
+function getOutcome(total: number): 'success' | 'partial' | 'failure' {
+  if (total >= 10)
+    return 'success'
+  if (total >= 7)
+    return 'partial'
   return 'failure'
 }
 
-const getOutcomeColor = (outcome: string) => {
+function getOutcomeColor(outcome: string) {
   switch (outcome) {
     case 'success': return 'text-chart-2'
     case 'partial': return 'text-chart-4'
@@ -88,7 +90,7 @@ const getOutcomeColor = (outcome: string) => {
   }
 }
 
-const getOutcomeText = (outcome: string) => {
+function getOutcomeText(outcome: string) {
   switch (outcome) {
     case 'success': return 'Success! (10+)'
     case 'partial': return 'Partial Success (7-9)'
@@ -125,7 +127,7 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
   onRoll,
   disabled = false,
   showChronicleIntegration = true,
-  className = ''
+  className = '',
 }) => {
   const [isRolling, setIsRolling] = useState(false)
   const [result, setResult] = useState<DiceResult | null>(null)
@@ -133,7 +135,8 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
   const { emitDiceRoll, isOverlayEnabled } = useChronicle()
 
   const rollDice = useCallback(async () => {
-    if (isRolling || disabled) return
+    if (isRolling || disabled)
+      return
 
     setIsRolling(true)
     setResult(null)
@@ -152,7 +155,7 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
       total,
       modifier,
       finalResult,
-      outcome
+      outcome,
     }
 
     setResult(diceResult)
@@ -167,7 +170,7 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
         result: outcome,
         total: finalResult,
         modifier,
-        dice: [dice1, dice2]
+        dice: [dice1, dice2],
       })
     }
 
@@ -183,19 +186,24 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
     emitDiceRoll,
     characterName,
     stat,
-    move
+    move,
   ])
 
   const getRollTitle = () => {
-    if (move) return `${move} Roll`
-    if (stat) return `${stat} Roll`
+    if (move)
+      return `${move} Roll`
+    if (stat)
+      return `${stat} Roll`
     return '2d6 Roll'
   }
 
   const getRollDescription = () => {
-    if (move && stat) return `Rolling ${move} using ${stat}`
-    if (stat) return `Testing ${stat} attribute`
-    if (move) return `Performing ${move} move`
+    if (move && stat)
+      return `Rolling ${move} using ${stat}`
+    if (stat)
+      return `Testing ${stat} attribute`
+    if (move)
+      return `Performing ${move} move`
     return 'Rolling 2d6'
   }
 
@@ -236,17 +244,21 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
         <div className="flex items-center justify-center gap-6">
           <motion.div
             variants={diceVariants}
-            animate={isRolling ? "rolling" : result ? "result" : "idle"}
+            animate={isRolling ? 'rolling' : result ? 'result' : 'idle'}
             className="relative"
           >
             <div className="w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg">
-              {isRolling ? (
-                <Dice6 size={32} className="text-primary" />
-              ) : result ? (
-                <span className="text-2xl font-bold font-display">{result.dice1}</span>
-              ) : (
-                <Dice6 size={32} className="text-muted-foreground" />
-              )}
+              {isRolling
+                ? (
+                    <Dice6 size={32} className="text-primary" />
+                  )
+                : result
+                  ? (
+                      <span className="text-2xl font-bold font-display">{result.dice1}</span>
+                    )
+                  : (
+                      <Dice6 size={32} className="text-muted-foreground" />
+                    )}
             </div>
           </motion.div>
 
@@ -260,17 +272,21 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
 
           <motion.div
             variants={diceVariants}
-            animate={isRolling ? "rolling" : result ? "result" : "idle"}
+            animate={isRolling ? 'rolling' : result ? 'result' : 'idle'}
             className="relative"
           >
             <div className="w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg">
-              {isRolling ? (
-                <Dice6 size={32} className="text-primary" />
-              ) : result ? (
-                <span className="text-2xl font-bold font-display">{result.dice2}</span>
-              ) : (
-                <Dice6 size={32} className="text-muted-foreground" />
-              )}
+              {isRolling
+                ? (
+                    <Dice6 size={32} className="text-primary" />
+                  )
+                : result
+                  ? (
+                      <span className="text-2xl font-bold font-display">{result.dice2}</span>
+                    )
+                  : (
+                      <Dice6 size={32} className="text-muted-foreground" />
+                    )}
             </div>
           </motion.div>
         </div>
@@ -288,7 +304,14 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
             >
               <div className="text-center">
                 <div className="text-sm text-muted-foreground  font-mono">
-                  {result.dice1} + {result.dice2} {modifier !== 0 ? `+ ${modifier}` : ''} =
+                  {result.dice1}
+                  {' '}
+                  +
+                  {result.dice2}
+                  {' '}
+                  {modifier !== 0 ? `+ ${modifier}` : ''}
+                  {' '}
+                  =
                 </div>
                 <div className={`text-4xl font-bold font-display ${getOutcomeColor(result.outcome)}`}>
                   {result.finalResult}
@@ -343,7 +366,9 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground ">
               <BookOpen size={12} />
               <span>
-                Chronicle prompts: {isOverlayEnabled ? 'Enabled' : 'Disabled'}
+                Chronicle prompts:
+                {' '}
+                {isOverlayEnabled ? 'Enabled' : 'Disabled'}
               </span>
             </div>
           </div>
@@ -355,7 +380,3 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
 
 // Re-export original DiceRoller for backward compatibility
 export { DiceRoller } from './DiceRoller'
-
-
-
-

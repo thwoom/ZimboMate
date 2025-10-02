@@ -4,10 +4,10 @@
  * Integrates base stats with conditions, equipment, and temporary modifiers
  */
 
+import type { Attribute, Character } from '../models/Character'
 import { useCallback, useMemo } from 'react'
-import { useCharacter } from './useCharacter'
 import { characterStateService } from '../services/CharacterStateService'
-import type { Character, Attribute } from '../models/Character'
+import { useCharacter } from './useCharacter'
 
 export interface StatWithModifiers {
   base: number
@@ -23,7 +23,7 @@ export interface StatWithModifiers {
 export interface UseCharacterStatsReturn {
   // Character reference
   character: Character | undefined
-  
+
   // Individual stats with modifiers
   strength: StatWithModifiers
   dexterity: StatWithModifiers
@@ -31,26 +31,26 @@ export interface UseCharacterStatsReturn {
   intelligence: StatWithModifiers
   wisdom: StatWithModifiers
   charisma: StatWithModifiers
-  
+
   // Computed values
   hitPoints: {
     current: number
     max: number
     percentage: number
   }
-  
+
   load: {
     current: number
     max: number
     percentage: number
     status: 'light' | 'normal' | 'heavy' | 'overloaded'
   }
-  
+
   // Stat operations
   updateBaseStat: (stat: keyof Attribute, value: number) => void
   getStatModifier: (stat: keyof Attribute) => number
   getStatTotal: (stat: keyof Attribute) => number
-  
+
   // Modifier management
   getTotalModifierForStat: (stat: keyof Attribute) => number
   getModifierBreakdown: (stat: keyof Attribute) => Array<{
@@ -58,7 +58,7 @@ export interface UseCharacterStatsReturn {
     value: number
     type: string
   }>
-  
+
   // Utility
   isLoading: boolean
   error: string | null
@@ -79,7 +79,7 @@ export function useCharacterStats(characterId?: string): UseCharacterStatsReturn
   // Helper function to calculate stat with modifiers
   const calculateStatWithModifiers = useCallback((
     statName: keyof Attribute,
-    baseValue: number
+    baseValue: number,
   ): StatWithModifiers => {
     if (!character) {
       return {
@@ -95,21 +95,21 @@ export function useCharacterStats(characterId?: string): UseCharacterStatsReturn
       value: number
       type: 'base' | 'condition' | 'equipment' | 'ongoing' | 'temporary'
     }> = [
-      { source: 'Base', value: baseValue, type: 'base' }
+      { source: 'Base', value: baseValue, type: 'base' },
     ]
 
     // Get modifiers from character state service
     const totalModifier = characterStateService.getTotalModifier(
       character.id,
       'stat',
-      statName
+      statName,
     )
 
     if (totalModifier !== 0) {
       breakdown.push({
         source: 'Modifiers',
         value: totalModifier,
-        type: 'ongoing'
+        type: 'ongoing',
       })
     }
 
@@ -171,9 +171,12 @@ export function useCharacterStats(characterId?: string): UseCharacterStatsReturn
     const percentage = max > 0 ? (current / max) * 100 : 0
 
     let status: 'light' | 'normal' | 'heavy' | 'overloaded'
-    if (percentage <= 33) status = 'light'
-    else if (percentage <= 66) status = 'normal'
-    else if (percentage <= 100) status = 'heavy'
+    if (percentage <= 33)
+      status = 'light'
+    else if (percentage <= 66)
+      status = 'normal'
+    else if (percentage <= 100)
+      status = 'heavy'
     else status = 'overloaded'
 
     return { current, max, percentage, status }
@@ -181,13 +184,14 @@ export function useCharacterStats(characterId?: string): UseCharacterStatsReturn
 
   // Stat operations
   const updateBaseStat = useCallback((stat: keyof Attribute, value: number) => {
-    if (!character) return
+    if (!character)
+      return
 
     updateCharacter({
       attributes: {
         ...character.attributes,
         [stat]: value,
-      }
+      },
     })
   }, [character, updateCharacter])
 
@@ -210,7 +214,8 @@ export function useCharacterStats(characterId?: string): UseCharacterStatsReturn
 
   // Modifier management
   const getTotalModifierForStat = useCallback((stat: keyof Attribute): number => {
-    if (!character) return 0
+    if (!character)
+      return 0
     return characterStateService.getTotalModifier(character.id, 'stat', stat)
   }, [character])
 
@@ -229,7 +234,7 @@ export function useCharacterStats(characterId?: string): UseCharacterStatsReturn
   return {
     // Character reference
     character,
-    
+
     // Individual stats with modifiers
     strength,
     dexterity,
@@ -237,20 +242,20 @@ export function useCharacterStats(characterId?: string): UseCharacterStatsReturn
     intelligence,
     wisdom,
     charisma,
-    
+
     // Computed values
     hitPoints,
     load,
-    
+
     // Stat operations
     updateBaseStat,
     getStatModifier,
     getStatTotal,
-    
+
     // Modifier management
     getTotalModifierForStat,
     getModifierBreakdown,
-    
+
     // Utility
     isLoading,
     error,

@@ -3,16 +3,17 @@
  * Manages combat state, initiative, damage tracking, and battle flow
  */
 
+import type { CombatResult } from '../services/GameLogicService'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { gameLogicService, type CombatResult } from '../services/GameLogicService'
+import { gameLogicService } from '../services/GameLogicService'
 
 export interface CombatParticipant {
   id: string
   name: string
   type: 'character' | 'npc' | 'monster'
   characterId?: string // For player characters
-  hp: { current: number; max: number }
+  hp: { current: number, max: number }
   armor: number
   initiative?: number
   conditions: string[]
@@ -54,40 +55,40 @@ interface CombatState {
   // Current encounter
   currentEncounter: CombatEncounter | null
   encounterHistory: CombatEncounter[]
-  
+
   // Combat management
   startCombat: (name: string, participants: Omit<CombatParticipant, 'id'>[]) => void
   endCombat: () => void
   pauseCombat: () => void
   resumeCombat: () => void
-  
+
   // Participant management
   addParticipant: (participant: Omit<CombatParticipant, 'id'>) => void
   removeParticipant: (participantId: string) => void
   updateParticipant: (participantId: string, updates: Partial<CombatParticipant>) => void
-  
+
   // Turn management
   nextTurn: () => void
   previousTurn: () => void
   setCurrentTurn: (participantIndex: number) => void
-  
+
   // Damage and healing
   applyDamage: (participantId: string, damage: number, armor?: number, piercing?: number) => CombatResult
   healParticipant: (participantId: string, amount: number) => void
-  
+
   // Conditions
   addCondition: (participantId: string, condition: string) => void
   removeCondition: (participantId: string, condition: string) => void
-  
+
   // Actions
   addAction: (action: Omit<CombatAction, 'id' | 'timestamp'>) => void
   getActionsForParticipant: (participantId: string) => CombatAction[]
-  
+
   // Initiative
   rollInitiative: (participantId: string) => void
   setInitiative: (participantId: string, initiative: number) => void
   sortByInitiative: () => void
-  
+
   // Utility
   getCurrentParticipant: () => CombatParticipant | null
   getAliveParticipants: () => CombatParticipant[]
@@ -117,7 +118,7 @@ export const useCombatStore = create<CombatState>()(
             ...p,
             id: `participant-${Date.now()}-${index}`,
             conditions: [],
-            isActive: true
+            isActive: true,
           })),
           currentTurn: 0,
           round: 1,
@@ -127,8 +128,8 @@ export const useCombatStore = create<CombatState>()(
           environment: {
             terrain: 'normal',
             hazards: [],
-            lighting: 'bright'
-          }
+            lighting: 'bright',
+          },
         }
 
         set({ currentEncounter: encounter })
@@ -136,81 +137,85 @@ export const useCombatStore = create<CombatState>()(
 
       endCombat: () => {
         const { currentEncounter } = get()
-        if (!currentEncounter) return
+        if (!currentEncounter)
+          return
 
         const completedEncounter = {
           ...currentEncounter,
           status: 'completed' as const,
-          endTime: new Date()
+          endTime: new Date(),
         }
 
-        set((state) => ({
+        set(state => ({
           currentEncounter: null,
-          encounterHistory: [completedEncounter, ...state.encounterHistory.slice(0, 19)] // Keep last 20
+          encounterHistory: [completedEncounter, ...state.encounterHistory.slice(0, 19)], // Keep last 20
         }))
       },
 
       pauseCombat: () => {
-        set((state) => ({
+        set(state => ({
           currentEncounter: state.currentEncounter
             ? { ...state.currentEncounter, status: 'paused' }
-            : null
+            : null,
         }))
       },
 
       resumeCombat: () => {
-        set((state) => ({
+        set(state => ({
           currentEncounter: state.currentEncounter
             ? { ...state.currentEncounter, status: 'active' }
-            : null
+            : null,
         }))
       },
 
       // Participant management
       addParticipant: (participant) => {
         set((state) => {
-          if (!state.currentEncounter) return state
+          if (!state.currentEncounter)
+            return state
 
           const newParticipant: CombatParticipant = {
             ...participant,
             id: `participant-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
             conditions: [],
-            isActive: true
+            isActive: true,
           }
 
           return {
             currentEncounter: {
               ...state.currentEncounter,
-              participants: [...state.currentEncounter.participants, newParticipant]
-            }
+              participants: [...state.currentEncounter.participants, newParticipant],
+            },
           }
         })
       },
 
       removeParticipant: (participantId) => {
         set((state) => {
-          if (!state.currentEncounter) return state
+          if (!state.currentEncounter)
+            return state
 
           return {
             currentEncounter: {
               ...state.currentEncounter,
-              participants: state.currentEncounter.participants.filter(p => p.id !== participantId)
-            }
+              participants: state.currentEncounter.participants.filter(p => p.id !== participantId),
+            },
           }
         })
       },
 
       updateParticipant: (participantId, updates) => {
         set((state) => {
-          if (!state.currentEncounter) return state
+          if (!state.currentEncounter)
+            return state
 
           return {
             currentEncounter: {
               ...state.currentEncounter,
               participants: state.currentEncounter.participants.map(p =>
-                p.id === participantId ? { ...p, ...updates } : p
-              )
-            }
+                p.id === participantId ? { ...p, ...updates } : p,
+              ),
+            },
           }
         })
       },
@@ -218,12 +223,13 @@ export const useCombatStore = create<CombatState>()(
       // Turn management
       nextTurn: () => {
         set((state) => {
-          if (!state.currentEncounter) return state
+          if (!state.currentEncounter)
+            return state
 
-          const aliveParticipants = state.currentEncounter.participants.filter(p => 
-            p.isActive && p.hp.current > 0
+          const aliveParticipants = state.currentEncounter.participants.filter(p =>
+            p.isActive && p.hp.current > 0,
           )
-          
+
           let nextTurn = state.currentEncounter.currentTurn + 1
           let nextRound = state.currentEncounter.round
 
@@ -236,20 +242,21 @@ export const useCombatStore = create<CombatState>()(
             currentEncounter: {
               ...state.currentEncounter,
               currentTurn: nextTurn,
-              round: nextRound
-            }
+              round: nextRound,
+            },
           }
         })
       },
 
       previousTurn: () => {
         set((state) => {
-          if (!state.currentEncounter) return state
+          if (!state.currentEncounter)
+            return state
 
-          const aliveParticipants = state.currentEncounter.participants.filter(p => 
-            p.isActive && p.hp.current > 0
+          const aliveParticipants = state.currentEncounter.participants.filter(p =>
+            p.isActive && p.hp.current > 0,
           )
-          
+
           let prevTurn = state.currentEncounter.currentTurn - 1
           let prevRound = state.currentEncounter.round
 
@@ -262,21 +269,22 @@ export const useCombatStore = create<CombatState>()(
             currentEncounter: {
               ...state.currentEncounter,
               currentTurn: prevTurn,
-              round: prevRound
-            }
+              round: prevRound,
+            },
           }
         })
       },
 
       setCurrentTurn: (participantIndex) => {
         set((state) => {
-          if (!state.currentEncounter) return state
+          if (!state.currentEncounter)
+            return state
 
           return {
             currentEncounter: {
               ...state.currentEncounter,
-              currentTurn: participantIndex
-            }
+              currentTurn: participantIndex,
+            },
           }
         })
       },
@@ -298,14 +306,14 @@ export const useCombatStore = create<CombatState>()(
           damage,
           effectiveArmor,
           piercing,
-          participant.conditions
+          participant.conditions,
         )
 
         // Apply damage
         const newHP = Math.max(0, participant.hp.current - combatResult.finalDamage)
         updateParticipant(participantId, {
           hp: { ...participant.hp, current: newHP },
-          conditions: [...participant.conditions, ...combatResult.conditions]
+          conditions: [...participant.conditions, ...combatResult.conditions],
         })
 
         // Add combat action
@@ -313,7 +321,7 @@ export const useCombatStore = create<CombatState>()(
           participantId,
           type: 'other',
           description: `Takes ${combatResult.finalDamage} damage (${damage} - ${combatResult.armorReduction} armor)`,
-          damage: combatResult.finalDamage
+          damage: combatResult.finalDamage,
         })
 
         return combatResult
@@ -321,83 +329,91 @@ export const useCombatStore = create<CombatState>()(
 
       healParticipant: (participantId, amount) => {
         const { currentEncounter, updateParticipant } = get()
-        if (!currentEncounter) return
+        if (!currentEncounter)
+          return
 
         const participant = currentEncounter.participants.find(p => p.id === participantId)
-        if (!participant) return
+        if (!participant)
+          return
 
         const newHP = Math.min(participant.hp.max, participant.hp.current + amount)
         updateParticipant(participantId, {
-          hp: { ...participant.hp, current: newHP }
+          hp: { ...participant.hp, current: newHP },
         })
 
         get().addAction({
           participantId,
           type: 'other',
-          description: `Heals ${amount} HP (${participant.hp.current} → ${newHP})`
+          description: `Heals ${amount} HP (${participant.hp.current} → ${newHP})`,
         })
       },
 
       // Conditions
       addCondition: (participantId, condition) => {
         const { currentEncounter, updateParticipant } = get()
-        if (!currentEncounter) return
+        if (!currentEncounter)
+          return
 
         const participant = currentEncounter.participants.find(p => p.id === participantId)
-        if (!participant || participant.conditions.includes(condition)) return
+        if (!participant || participant.conditions.includes(condition))
+          return
 
         updateParticipant(participantId, {
-          conditions: [...participant.conditions, condition]
+          conditions: [...participant.conditions, condition],
         })
 
         get().addAction({
           participantId,
           type: 'other',
-          description: `Gains condition: ${condition}`
+          description: `Gains condition: ${condition}`,
         })
       },
 
       removeCondition: (participantId, condition) => {
         const { currentEncounter, updateParticipant } = get()
-        if (!currentEncounter) return
+        if (!currentEncounter)
+          return
 
         const participant = currentEncounter.participants.find(p => p.id === participantId)
-        if (!participant) return
+        if (!participant)
+          return
 
         updateParticipant(participantId, {
-          conditions: participant.conditions.filter(c => c !== condition)
+          conditions: participant.conditions.filter(c => c !== condition),
         })
 
         get().addAction({
           participantId,
           type: 'other',
-          description: `Removes condition: ${condition}`
+          description: `Removes condition: ${condition}`,
         })
       },
 
       // Actions
       addAction: (actionData) => {
         set((state) => {
-          if (!state.currentEncounter) return state
+          if (!state.currentEncounter)
+            return state
 
           const action: CombatAction = {
             ...actionData,
             id: `action-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-            timestamp: new Date()
+            timestamp: new Date(),
           }
 
           return {
             currentEncounter: {
               ...state.currentEncounter,
-              actions: [...state.currentEncounter.actions, action]
-            }
+              actions: [...state.currentEncounter.actions, action],
+            },
           }
         })
       },
 
       getActionsForParticipant: (participantId) => {
         const { currentEncounter } = get()
-        if (!currentEncounter) return []
+        if (!currentEncounter)
+          return []
 
         return currentEncounter.actions.filter(a => a.participantId === participantId)
       },
@@ -414,7 +430,8 @@ export const useCombatStore = create<CombatState>()(
 
       sortByInitiative: () => {
         set((state) => {
-          if (!state.currentEncounter) return state
+          if (!state.currentEncounter)
+            return state
 
           const sortedParticipants = [...state.currentEncounter.participants].sort((a, b) => {
             const aInit = a.initiative || 0
@@ -426,8 +443,8 @@ export const useCombatStore = create<CombatState>()(
             currentEncounter: {
               ...state.currentEncounter,
               participants: sortedParticipants,
-              currentTurn: 0 // Reset to first participant
-            }
+              currentTurn: 0, // Reset to first participant
+            },
           }
         })
       },
@@ -435,31 +452,34 @@ export const useCombatStore = create<CombatState>()(
       // Utility
       getCurrentParticipant: () => {
         const { currentEncounter } = get()
-        if (!currentEncounter) return null
+        if (!currentEncounter)
+          return null
 
-        const aliveParticipants = currentEncounter.participants.filter(p => 
-          p.isActive && p.hp.current > 0
+        const aliveParticipants = currentEncounter.participants.filter(p =>
+          p.isActive && p.hp.current > 0,
         )
-        
+
         return aliveParticipants[currentEncounter.currentTurn] || null
       },
 
       getAliveParticipants: () => {
         const { currentEncounter } = get()
-        if (!currentEncounter) return []
+        if (!currentEncounter)
+          return []
 
         return currentEncounter.participants.filter(p => p.isActive && p.hp.current > 0)
       },
 
       isEncounterComplete: () => {
         const { currentEncounter } = get()
-        if (!currentEncounter) return false
+        if (!currentEncounter)
+          return false
 
-        const alivePlayers = currentEncounter.participants.filter(p => 
-          p.isPlayer && p.isActive && p.hp.current > 0
+        const alivePlayers = currentEncounter.participants.filter(p =>
+          p.isPlayer && p.isActive && p.hp.current > 0,
         )
-        const aliveEnemies = currentEncounter.participants.filter(p => 
-          !p.isPlayer && p.isActive && p.hp.current > 0
+        const aliveEnemies = currentEncounter.participants.filter(p =>
+          !p.isPlayer && p.isActive && p.hp.current > 0,
         )
 
         return alivePlayers.length === 0 || aliveEnemies.length === 0
@@ -475,11 +495,11 @@ export const useCombatStore = create<CombatState>()(
         const totalDamageDealt = currentEncounter.actions
           .filter(a => a.damage && a.damage > 0)
           .reduce((sum, a) => sum + (a.damage || 0), 0)
-        
-        const currentRoundActions = currentEncounter.actions.filter(a => {
+
+        const currentRoundActions = currentEncounter.actions.filter((a) => {
           const actionTime = a.timestamp.getTime()
-          const roundStart = currentEncounter.startTime.getTime() + 
-            ((currentEncounter.round - 1) * 60000) // Assume 1 minute per round
+          const roundStart = currentEncounter.startTime.getTime()
+            + ((currentEncounter.round - 1) * 60000) // Assume 1 minute per round
           return actionTime >= roundStart
         }).length
 
@@ -488,16 +508,16 @@ export const useCombatStore = create<CombatState>()(
           turn: currentEncounter.currentTurn + 1,
           activeParticipants,
           totalDamageDealt,
-          actionsThisRound: currentRoundActions
+          actionsThisRound: currentRoundActions,
         }
-      }
+      },
     }),
     {
       name: 'zimbomate-combat-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         currentEncounter: state.currentEncounter,
-        encounterHistory: state.encounterHistory.slice(0, 5) // Only persist last 5 encounters
+        encounterHistory: state.encounterHistory.slice(0, 5), // Only persist last 5 encounters
       }),
-    }
-  )
+    },
+  ),
 )

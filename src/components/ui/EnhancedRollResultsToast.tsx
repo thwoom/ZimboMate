@@ -1,11 +1,10 @@
+import type { EnhancedRollResult } from '../../hooks/useEnhancedRollResults'
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertTriangle, Dice6, Heart, Minus, Shield, Star, TrendingDown, TrendingUp, Zap } from 'lucide-react'
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Dice6, TrendingUp, TrendingDown, Minus, Zap, Heart, Shield, Star, AlertTriangle } from 'lucide-react'
-import { Card, CardContent } from './Card'
 import { Badge } from './Badge'
 import { Button } from './Button'
-import type { EnhancedRollResult } from '../../hooks/useEnhancedRollResults'
-import type { RollConsequence } from '../../services/GameLogicService'
+import { Card, CardContent } from './Card'
 
 interface EnhancedRollResultsToastProps {
   result: EnhancedRollResult | null
@@ -18,7 +17,7 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
   result,
   onClose,
   onApplyConsequences,
-  duration = 6000
+  duration = 6000,
 }) => {
   const [showConsequences, setShowConsequences] = useState(false)
   const [selectedConsequences, setSelectedConsequences] = useState<string[]>([])
@@ -37,7 +36,7 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
         .filter(c => c.automatic && !c.applied)
         .map(c => c.id)
       setSelectedConsequences(autoConsequences)
-      
+
       // Show consequences panel if there are manual consequences
       const hasManualConsequences = result.consequences.some(c => !c.automatic && !c.applied)
       if (hasManualConsequences) {
@@ -96,10 +95,10 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
   }
 
   const handleConsequenceToggle = (consequenceId: string) => {
-    setSelectedConsequences(prev => 
+    setSelectedConsequences(prev =>
       prev.includes(consequenceId)
         ? prev.filter(id => id !== consequenceId)
-        : [...prev, consequenceId]
+        : [...prev, consequenceId],
     )
   }
 
@@ -107,7 +106,7 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
     if (result) {
       onApplyConsequences(result.id, selectedConsequences)
       setShowConsequences(false)
-      
+
       // Close toast after applying consequences
       setTimeout(onClose, 1500)
     }
@@ -124,9 +123,9 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -100, scale: 0.8 }}
           transition={{
-            type: "spring",
+            type: 'spring',
             stiffness: 300,
-            damping: 30
+            damping: 30,
           }}
           className="fixed top-4 right-4 z-50 max-w-md"
         >
@@ -140,7 +139,7 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
                 {/* Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="w-8 h-8 rounded-full flex items-center justify-center"
                       style={{ backgroundColor: getOutcomeColor(result.outcome), opacity: 0.2 }}
                     >
@@ -173,30 +172,31 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ delay: index * 0.1 }}
                         className="w-8 h-8 rounded border-2 flex items-center justify-center font-bold text-sm"
-                        style={{ 
+                        style={{
                           borderColor: 'var(--primary)',
                           backgroundColor: 'var(--popover)',
-                          color: 'var(--foreground)'
+                          color: 'var(--foreground)',
                         }}
                       >
                         {die}
                       </motion.div>
                     ))}
                   </div>
-                  
+
                   {result.modifier !== 0 && (
                     <>
                       <span className="text-muted-foreground">
-                        {result.modifier > 0 ? '+' : ''}{result.modifier}
+                        {result.modifier > 0 ? '+' : ''}
+                        {result.modifier}
                       </span>
                       <span className="text-muted-foreground">=</span>
                     </>
                   )}
-                  
+
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ delay: 0.3, type: "spring", stiffness: 400 }}
+                    transition={{ delay: 0.3, type: 'spring', stiffness: 400 }}
                     className="text-2xl font-bold"
                     style={{ color: getOutcomeColor(result.outcome) }}
                   >
@@ -211,7 +211,7 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <Badge 
+                    <Badge
                       variant={result.outcome === 'success' ? 'default' : result.outcome === 'partial' ? 'secondary' : 'outline'}
                       className="gap-1"
                     >
@@ -227,7 +227,8 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="text-xs text-muted-foreground">
+                    className="text-xs text-muted-foreground"
+                  >
                     {result.description}
                   </motion.p>
                 )}
@@ -243,7 +244,7 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
                     <h5 className="text-xs font-semibold text-foreground">
                       Automatic Effects:
                     </h5>
-                    {pendingConsequences.filter(c => c.automatic).map((consequence) => (
+                    {pendingConsequences.filter(c => c.automatic).map(consequence => (
                       <div key={consequence.id} className="flex items-center gap-2 text-xs">
                         <div style={{ color: getConsequenceColor(consequence.type) }}>
                           {getConsequenceIcon(consequence.type)}
@@ -286,7 +287,7 @@ export const EnhancedRollResultsToast: React.FC<EnhancedRollResultsToastProps> =
                           exit={{ opacity: 0, height: 0 }}
                           className="space-y-2"
                         >
-                          {manualConsequences.map((consequence) => (
+                          {manualConsequences.map(consequence => (
                             <div key={consequence.id} className="flex items-start gap-2">
                               <input
                                 type="checkbox"

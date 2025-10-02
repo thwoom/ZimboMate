@@ -4,43 +4,38 @@
  * Phase 4C: Desktop Power Features - Smart Integration System
  */
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  SkipForward, 
-  Users, 
-  Dice6, 
-  Sword, 
-  Shield, 
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  TrendingUp,
+import { AnimatePresence, motion } from 'framer-motion'
+import {
   BookOpen,
-  Settings,
+  CheckCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Clock,
+  Play,
+  Settings,
+  Shield,
+  SkipForward,
+  Square,
+  Sword,
+  TrendingUp,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge, Progress } from '../ui'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useCharacterStore } from '../../stores/characterStore'
-import { useSessionStore } from '../../stores/sessionStore'
 import { useGameStateStore } from '../../stores/gameStateStore'
+import { useSessionStore } from '../../stores/sessionStore'
+import { Badge, Button, Card, CardContent, Progress } from '../ui'
 import { XPAwardModal } from './XPAwardModal'
-import type { Character } from '../../models/Character'
 
 // Session phases
-export type SessionPhase = 
-  | 'setup'      // Pre-session setup
-  | 'opening'    // Opening scene
-  | 'exploration' // General exploration/roleplay
-  | 'encounter'  // Combat or major challenge
-  | 'resolution' // Post-encounter resolution
-  | 'transition' // Moving between scenes
-  | 'closing'    // Session wrap-up
-  | 'ended'      // Session ended
+export type SessionPhase
+  = | 'setup' // Pre-session setup
+    | 'opening' // Opening scene
+    | 'exploration' // General exploration/roleplay
+    | 'encounter' // Combat or major challenge
+    | 'resolution' // Post-encounter resolution
+    | 'transition' // Moving between scenes
+    | 'closing' // Session wrap-up
+    | 'ended' // Session ended
 
 // Flow state for tracking session progress
 interface SessionFlow {
@@ -78,27 +73,11 @@ interface SessionFlowManagerProps {
 export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
   compact = false,
   autoAdvance = true,
-  showSuggestions = true
+  showSuggestions = true,
 }) => {
-  const { characters, getActiveCharacter } = useCharacterStore()
-  const { 
-    currentSession, 
-    isSessionActive, 
-    startSession, 
-    endSession, 
-    combat,
-    rollHistory,
-    startCombat,
-    endCombat,
-    nextRound,
-    nextTurn
-  } = useSessionStore()
-  const { 
-    gameTime, 
-    advanceTime, 
-    environment,
-    getGameStateSnapshot
-  } = useGameStateStore()
+  const { characters } = useCharacterStore()
+  const { isSessionActive, startSession, combat, rollHistory, startCombat, endCombat } = useSessionStore()
+  const { advanceTime } = useGameStateStore()
 
   const [sessionFlow, setSessionFlow] = useState<SessionFlow>({
     phase: 'setup',
@@ -107,7 +86,7 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
     turnCount: 0,
     lastAction: 'Session initialized',
     suggestedNextActions: ['Start session', 'Set opening scene'],
-    milestones: []
+    milestones: [],
   })
 
   const [sessionEvents, setSessionEvents] = useState<SessionEvent[]>([])
@@ -125,28 +104,29 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
       description: `Awarded ${totalXPAwarded} XP to ${charactersAffected} character${charactersAffected !== 1 ? 's' : ''}`,
       metadata: {
         totalXP: totalXPAwarded,
-        charactersCount: charactersAffected
-      }
+        charactersCount: charactersAffected,
+      },
     }
     setSessionEvents(prev => [...prev, event])
 
     // Update session flow
     setSessionFlow(prev => ({
       ...prev,
-      suggestedNextActions: prev.suggestedNextActions.filter(action => action !== 'Award XP')
+      suggestedNextActions: prev.suggestedNextActions.filter(action => action !== 'Award XP'),
     }))
   }
 
   // Auto-track session events
   useEffect(() => {
-    if (!isSessionActive || !autoTrackingEnabled) return
+    if (!isSessionActive || !autoTrackingEnabled)
+      return
 
     // Track roll events
     if (rollHistory.length > 0) {
       const latestRoll = rollHistory[0]
-      const existingEvent = sessionEvents.find(e => 
-        e.type === 'roll' && 
-        e.timestamp.getTime() === latestRoll.timestamp.getTime()
+      const existingEvent = sessionEvents.find(e =>
+        e.type === 'roll'
+        && e.timestamp.getTime() === latestRoll.timestamp.getTime(),
       )
 
       if (!existingEvent) {
@@ -156,24 +136,24 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
           timestamp: latestRoll.timestamp,
           characterId: latestRoll.characterId,
           description: `${latestRoll.moveName || 'Dice roll'}: ${latestRoll.total} (${latestRoll.result})`,
-          data: latestRoll
+          data: latestRoll,
         }
 
         setSessionEvents(prev => [rollEvent, ...prev.slice(0, 49)]) // Keep last 50 events
 
         // Auto-advance session flow based on rolls
         if (autoAdvance) {
-          handleAutoAdvance('roll', latestRoll)
+          handleAutoAdvance('roll')
         }
       }
     }
   }, [rollHistory, isSessionActive, autoTrackingEnabled, autoAdvance, sessionEvents])
 
   // Auto-advance session flow
-  const handleAutoAdvance = useCallback((eventType: string, eventData: any) => {
-    setSessionFlow(prev => {
+  const handleAutoAdvance = useCallback((eventType: string) => {
+    setSessionFlow((prev) => {
       const newFlow = { ...prev }
-      
+
       switch (eventType) {
         case 'roll':
           // If we're in setup and someone rolls, move to opening
@@ -185,21 +165,21 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
               id: `milestone-${Date.now()}`,
               phase: 'opening',
               timestamp: new Date(),
-              description: 'Session began with first dice roll'
+              description: 'Session began with first dice roll',
             })
           }
-          
+
           // Track turn progression
           newFlow.turnCount += 1
-          
+
           // If multiple combat rolls, suggest encounter phase
           if (prev.phase === 'exploration') {
-            const recentCombatRolls = rollHistory.slice(0, 3).filter(roll => 
-              roll.moveName?.includes('Hack and Slash') || 
-              roll.moveName?.includes('Volley') ||
-              roll.moveName?.includes('Defend')
+            const recentCombatRolls = rollHistory.slice(0, 3).filter(roll =>
+              roll.moveName?.includes('Hack and Slash')
+              || roll.moveName?.includes('Volley')
+              || roll.moveName?.includes('Defend'),
             ).length
-            
+
             if (recentCombatRolls >= 2) {
               newFlow.phase = 'encounter'
               newFlow.encounterCount += 1
@@ -247,9 +227,9 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
           id: `milestone-${Date.now()}`,
           phase: newPhase,
           timestamp: new Date(),
-          description: `Advanced to ${newPhase} phase`
-        }
-      ]
+          description: `Advanced to ${newPhase} phase`,
+        },
+      ],
     }))
 
     // Trigger appropriate store actions
@@ -342,7 +322,7 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
         startCombat(characterIds)
         advancePhase('encounter')
       },
-      disabled: combat.isActive
+      disabled: combat.isActive,
     },
     {
       label: 'End Combat',
@@ -351,7 +331,7 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
         endCombat()
         advancePhase('resolution')
       },
-      disabled: !combat.isActive
+      disabled: !combat.isActive,
     },
     {
       label: 'Next Scene',
@@ -360,7 +340,7 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
         advanceTime('scene')
         advancePhase('transition')
       },
-      disabled: false
+      disabled: false,
     },
     {
       label: 'Award XP',
@@ -368,8 +348,8 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
       onClick: () => {
         setShowXPModal(true)
       },
-      disabled: false
-    }
+      disabled: false,
+    },
   ]
 
   if (!isSessionActive) {
@@ -377,8 +357,9 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
       <Card variant="outline">
         <CardContent>
           <div className="text-center space-y-4">
-            <div 
-              className="w-12 h-12 mx-auto rounded-full flex items-center justify-center bg-primary/20">
+            <div
+              className="w-12 h-12 mx-auto rounded-full flex items-center justify-center bg-primary/20"
+            >
               <Play className="text-primary" size={24} />
             </div>
             <div>
@@ -408,188 +389,204 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
   return (
     <>
       <Card variant="magical">
-      <CardContent>
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ 
-                  backgroundColor: getPhaseColor(sessionFlow.phase),
-                  opacity: 0.2 
-                }}
-              >
-                <PhaseIcon 
-                  size={20} 
-                  style={{ color: getPhaseColor(sessionFlow.phase) }}
-                />
-              </div>
-              <div>
-                <h3 className="font-display text-lg">Session Flow</h3>
-                <p 
-                  className="text-sm text-muted-foreground">
-                  {sessionFlow.phase.charAt(0).toUpperCase() + sessionFlow.phase.slice(1)} Phase
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">
-                Scene {sessionFlow.sceneCount}
-              </Badge>
-              {combat.isActive && (
-                <Badge variant="destructive">
-                  Combat Round {combat.round}
-                </Badge>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsExpanded(!isExpanded)}
-              >
-                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </Button>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                Session Progress
-              </span>
-              <span className="text-muted-foreground">
-                {Math.round(getSessionProgress())}%
-              </span>
-            </div>
-            <Progress 
-              value={getSessionProgress()} 
-              className="h-2"
-            />
-          </div>
-
-          <AnimatePresence>
-            {isExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-4"
-              >
-                {/* Current Status */}
-                <div 
-                  className="p-3 rounded-lg bg-card">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="text-muted-foreground" size={16} />
-                    <span className="text-sm font-medium">Last Action</span>
-                  </div>
-                  <p 
-                    className="text-sm text-muted-foreground">
-                    {sessionFlow.lastAction}
+        <CardContent>
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{
+                    backgroundColor: getPhaseColor(sessionFlow.phase),
+                    opacity: 0.2,
+                  }}
+                >
+                  <PhaseIcon
+                    size={20}
+                    style={{ color: getPhaseColor(sessionFlow.phase) }}
+                  />
+                </div>
+                <div>
+                  <h3 className="font-display text-lg">Session Flow</h3>
+                  <p
+                    className="text-sm text-muted-foreground"
+                  >
+                    {sessionFlow.phase.charAt(0).toUpperCase() + sessionFlow.phase.slice(1)}
+                    {' '}
+                    Phase
                   </p>
                 </div>
+              </div>
 
-                {/* Suggested Actions */}
-                {showSuggestions && sessionFlow.suggestedNextActions.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">
+                  Scene
+                  {' '}
+                  {sessionFlow.sceneCount}
+                </Badge>
+                {combat.isActive && (
+                  <Badge variant="destructive">
+                    Combat Round
+                    {' '}
+                    {combat.round}
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </Button>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Session Progress
+                </span>
+                <span className="text-muted-foreground">
+                  {Math.round(getSessionProgress())}
+                  %
+                </span>
+              </div>
+              <Progress
+                value={getSessionProgress()}
+                className="h-2"
+              />
+            </div>
+
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-4"
+                >
+                  {/* Current Status */}
+                  <div
+                    className="p-3 rounded-lg bg-card"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="text-muted-foreground" size={16} />
+                      <span className="text-sm font-medium">Last Action</span>
+                    </div>
+                    <p
+                      className="text-sm text-muted-foreground"
+                    >
+                      {sessionFlow.lastAction}
+                    </p>
+                  </div>
+
+                  {/* Suggested Actions */}
+                  {showSuggestions && sessionFlow.suggestedNextActions.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Suggested Next Actions</h4>
+                      <div className="space-y-1">
+                        {sessionFlow.suggestedNextActions.map((action, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 text-sm p-2 rounded bg-card"
+                          >
+                            <CheckCircle
+                              className="text-chart-2"
+                              size={14}
+                            />
+                            {action}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quick Actions */}
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Suggested Next Actions</h4>
-                    <div className="space-y-1">
-                      {sessionFlow.suggestedNextActions.map((action, index) => (
-                        <div 
-                          key={index}
-                          className="flex items-center gap-2 text-sm p-2 rounded bg-card">
-                          <CheckCircle className="text-chart-2" 
-                            size={14} />
-                          {action}
-                        </div>
+                    <h4 className="text-sm font-medium mb-2">Quick Actions</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {quickActions.map((action, index) => {
+                        const ActionIcon = action.icon
+                        return (
+                          <Button
+                            key={index}
+                            variant="outline"
+                            size="sm"
+                            onClick={action.onClick}
+                            disabled={action.disabled}
+                            className="justify-start gap-2"
+                          >
+                            <ActionIcon size={14} />
+                            {action.label}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Phase Navigation */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Phase Control</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {(['setup', 'opening', 'exploration', 'encounter', 'resolution', 'transition', 'closing'] as SessionPhase[]).map(phase => (
+                        <Button
+                          key={phase}
+                          variant={sessionFlow.phase === phase ? 'primary' : 'ghost'}
+                          size="xs"
+                          onClick={() => advancePhase(phase)}
+                        >
+                          {phase.charAt(0).toUpperCase() + phase.slice(1)}
+                        </Button>
                       ))}
                     </div>
                   </div>
-                )}
 
-                {/* Quick Actions */}
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Quick Actions</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {quickActions.map((action, index) => {
-                      const ActionIcon = action.icon
-                      return (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          size="sm"
-                          onClick={action.onClick}
-                          disabled={action.disabled}
-                          className="justify-start gap-2"
-                        >
-                          <ActionIcon size={14} />
-                          {action.label}
-                        </Button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Phase Navigation */}
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Phase Control</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {(['setup', 'opening', 'exploration', 'encounter', 'resolution', 'transition', 'closing'] as SessionPhase[]).map((phase) => (
-                      <Button
-                        key={phase}
-                        variant={sessionFlow.phase === phase ? 'primary' : 'ghost'}
-                        size="xs"
-                        onClick={() => advancePhase(phase)}
+                  {/* Session Stats */}
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-lg font-bold">{sessionFlow.sceneCount}</div>
+                      <div
+                        className="text-xs text-muted-foreground"
                       >
-                        {phase.charAt(0).toUpperCase() + phase.slice(1)}
-                      </Button>
-                    ))}
+                        Scenes
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold">{sessionFlow.encounterCount}</div>
+                      <div
+                        className="text-xs text-muted-foreground"
+                      >
+                        Encounters
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold">{rollHistory.length}</div>
+                      <div
+                        className="text-xs text-muted-foreground"
+                      >
+                        Rolls
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Session Stats */}
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-lg font-bold">{sessionFlow.sceneCount}</div>
-                    <div 
-                      className="text-xs text-muted-foreground">
-                      Scenes
-                    </div>
+                  {/* Auto-tracking Toggle */}
+                  <div className="flex items-center justify-between p-2 rounded bg-card">
+                    <span className="text-sm">Auto-tracking</span>
+                    <Button
+                      variant={autoTrackingEnabled ? 'primary' : 'outline'}
+                      size="xs"
+                      onClick={() => setAutoTrackingEnabled(!autoTrackingEnabled)}
+                    >
+                      {autoTrackingEnabled ? 'On' : 'Off'}
+                    </Button>
                   </div>
-                  <div>
-                    <div className="text-lg font-bold">{sessionFlow.encounterCount}</div>
-                    <div 
-                      className="text-xs text-muted-foreground">
-                      Encounters
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold">{rollHistory.length}</div>
-                    <div 
-                      className="text-xs text-muted-foreground">
-                      Rolls
-                    </div>
-                  </div>
-                </div>
-
-                {/* Auto-tracking Toggle */}
-                <div className="flex items-center justify-between p-2 rounded bg-card">
-                  <span className="text-sm">Auto-tracking</span>
-                  <Button
-                    variant={autoTrackingEnabled ? 'primary' : 'outline'}
-                    size="xs"
-                    onClick={() => setAutoTrackingEnabled(!autoTrackingEnabled)}
-                  >
-                    {autoTrackingEnabled ? 'On' : 'Off'}
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </CardContent>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </CardContent>
       </Card>
 
       {/* XP Award Modal */}

@@ -5,11 +5,13 @@
  * Manages the overlay system, action listening, and context intelligence.
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { ChronicleOverlay } from './ChronicleOverlay'
-import { chronicleActionListener, type ActionContext, type ChronicleActionType } from '../../services/ChronicleActionListenerService'
-import { contextIntelligence } from '../../services/ChronicleContextIntelligence'
+/* eslint-disable react-refresh/only-export-components */
+
+import type { ActionContext, ChronicleActionType } from '../../services/ChronicleActionListenerService'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { chronicleActionListener } from '../../services/ChronicleActionListenerService'
 import { useChronicleStore } from '../../stores/chronicleStore'
+import { ChronicleOverlay } from './ChronicleOverlay'
 
 interface ChronicleContextValue {
   // Core functionality
@@ -64,7 +66,7 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
   children,
   defaultEnabled = true,
   overlayPosition: defaultPosition = 'top-right',
-  maxPrompts: defaultMaxPrompts = 2
+  maxPrompts: defaultMaxPrompts = 2,
 }) => {
   const [isOverlayEnabled, setIsOverlayEnabled] = useState(defaultEnabled)
   const [overlayPosition, setOverlayPosition] = useState(defaultPosition)
@@ -83,7 +85,7 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
     const enrichedContext: ActionContext = {
       ...context,
       timestamp: context.timestamp || new Date(),
-      sessionId: context.sessionId || chronicleStore.currentSessionId || undefined
+      sessionId: context.sessionId || chronicleStore.currentSessionId || undefined,
     }
 
     chronicleActionListener.emitAction(enrichedContext)
@@ -116,8 +118,8 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         result: params.result,
         total: params.total,
         modifier: params.modifier,
-        dice: params.dice
-      }
+        dice: params.dice,
+      },
     })
   }, [emitAction])
 
@@ -141,8 +143,8 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         action: params.action,
         itemName: params.itemName,
         itemType: params.itemType,
-        quantity: params.quantity
-      }
+        quantity: params.quantity,
+      },
     })
   }, [emitAction])
 
@@ -162,8 +164,8 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         action: params.action,
         target: params.target,
         weapon: params.weapon,
-        damage: params.damage
-      }
+        damage: params.damage,
+      },
     })
   }, [emitAction])
 
@@ -184,23 +186,23 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
     overlayPosition,
     setOverlayPosition,
     maxPrompts,
-    setMaxPrompts
+    setMaxPrompts,
   }
 
   return (
-    <ChronicleContext.Provider value={contextValue}>
+    <ChronicleContext value={contextValue}>
       {children}
       <ChronicleOverlay
         isEnabled={isOverlayEnabled}
         position={overlayPosition}
         maxPrompts={maxPrompts}
       />
-    </ChronicleContext.Provider>
+    </ChronicleContext>
   )
 }
 
 // Hook for using the Chronicle system
-export const useChronicle = () => {
+export function useChronicle() {
   const context = useContext(ChronicleContext)
   if (!context) {
     throw new Error('useChronicle must be used within a ChronicleProvider')
@@ -209,54 +211,55 @@ export const useChronicle = () => {
 }
 
 // Higher-order component for easy integration
-export const withChronicle = <T extends object>(
-  Component: React.ComponentType<T>
-) => {
-  return React.forwardRef<any, T>((props, ref) => (
+export function withChronicle<T extends object>(Component: React.ComponentType<T>) {
+  return ({ ref, ...props }: T & { ref?: React.RefObject<unknown | null> }) => (
     <ChronicleProvider>
       <Component {...props} ref={ref} />
     </ChronicleProvider>
-  ))
+  )
 }
 
 // Specialized hooks for common use cases
 
 // Hook for dice rolling components
-export const useChronicleForDice = () => {
+export function useChronicleForDice() {
   const { emitDiceRoll } = useChronicle()
   return { chronicleDiceRoll: emitDiceRoll }
 }
 
 // Hook for equipment components
-export const useChronicleForEquipment = () => {
+export function useChronicleForEquipment() {
   const { emitEquipmentAction } = useChronicle()
   return { chronicleEquipmentAction: emitEquipmentAction }
 }
 
 // Hook for combat components
-export const useChronicleForCombat = () => {
+export function useChronicleForCombat() {
   const { emitCombatAction } = useChronicle()
   return { chronicleCombatAction: emitCombatAction }
 }
 
 // Hook for manual chronicle prompts
-export const useChroniclePrompt = () => {
+export function useChroniclePrompt() {
   const { emitAction } = useChronicle()
 
   const promptForChronicle = useCallback((
     message: string,
     actionType: ChronicleActionType = 'session_milestone',
-    characterName?: string
+    characterName?: string,
   ) => {
     emitAction({
       actionType,
       timestamp: new Date(),
       characterName,
       gameState: {
-        currentScene: message
-      }
+        currentScene: message,
+      },
     })
   }, [emitAction])
 
   return { promptForChronicle }
 }
+
+/* eslint-enable react-refresh/only-export-components */
+

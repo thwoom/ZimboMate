@@ -1,6 +1,6 @@
-import { expect } from 'vitest'
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { expect } from 'vitest'
 
 /**
  * End-to-end testing utilities for ZimboMate V2
@@ -12,13 +12,13 @@ export interface E2ETestContext {
   navigateToTab: (tabName: string) => Promise<void>
   waitForAnimation: () => Promise<void>
   expectTabActive: (tabName: string) => void
-  measurePerformance: <T>(operation: () => Promise<T>) => Promise<{ result: T; duration: number }>
+  measurePerformance: <T>(operation: () => Promise<T>) => Promise<{ result: T, duration: number }>
 }
 
 /**
  * Setup E2E test context with common utilities
  */
-export const setupE2EContext = (): E2ETestContext => {
+export function setupE2EContext(): E2ETestContext {
   const user = userEvent.setup()
 
   const navigateToTab = async (tabName: string) => {
@@ -51,19 +51,19 @@ export const setupE2EContext = (): E2ETestContext => {
     navigateToTab,
     waitForAnimation,
     expectTabActive,
-    measurePerformance
+    measurePerformance,
   }
 }
 
 /**
  * Complete gaming session workflow
  */
-export const completeGamingSession = async (context: E2ETestContext) => {
+export async function completeGamingSession(context: E2ETestContext) {
   const { user, navigateToTab } = context
 
   // 1. Session Setup
   await navigateToTab('session tools')
-  
+
   const notesInput = screen.getByPlaceholderText(/add a note/i)
   await user.type(notesInput, 'Starting new adventure')
   await user.keyboard('{Enter}')
@@ -102,14 +102,14 @@ export const completeGamingSession = async (context: E2ETestContext) => {
   return {
     notesCreated: 2,
     rollsMade: 1,
-    tabsSwitched: 6
+    tabsSwitched: 6,
   }
 }
 
 /**
  * Character advancement workflow
  */
-export const characterAdvancement = async (context: E2ETestContext) => {
+export async function characterAdvancement(context: E2ETestContext) {
   const { user, navigateToTab } = context
 
   await navigateToTab('character')
@@ -134,14 +134,14 @@ export const characterAdvancement = async (context: E2ETestContext) => {
 
   return {
     xpGained: 3,
-    leveledUp: screen.queryByText(/level up/i) !== null
+    leveledUp: screen.queryByText(/level up/i) !== null,
   }
 }
 
 /**
  * Campaign management workflow
  */
-export const campaignManagement = async (context: E2ETestContext) => {
+export async function campaignManagement(context: E2ETestContext) {
   const { user, navigateToTab } = context
 
   await navigateToTab('campaign')
@@ -168,14 +168,14 @@ export const campaignManagement = async (context: E2ETestContext) => {
 
   return {
     campaignCreated: true,
-    npcsAdded: 1
+    npcsAdded: 1,
   }
 }
 
 /**
  * Keyboard navigation workflow
  */
-export const keyboardNavigation = async (context: E2ETestContext) => {
+export async function keyboardNavigation(context: E2ETestContext) {
   const { user, expectTabActive } = context
 
   // Test tab navigation shortcuts
@@ -190,7 +190,7 @@ export const keyboardNavigation = async (context: E2ETestContext) => {
 
   // Test command palette
   await user.keyboard('{Control>}k{/Control}')
-  
+
   const commandInput = screen.getByPlaceholderText(/search commands/i)
   expect(commandInput).toHaveFocus()
 
@@ -204,14 +204,14 @@ export const keyboardNavigation = async (context: E2ETestContext) => {
 
   return {
     shortcutsUsed: 4,
-    commandPaletteUsed: true
+    commandPaletteUsed: true,
   }
 }
 
 /**
  * Performance stress test
  */
-export const performanceStressTest = async (context: E2ETestContext) => {
+export async function performanceStressTest(context: E2ETestContext) {
   const { user, navigateToTab, measurePerformance } = context
 
   const results = []
@@ -253,14 +253,14 @@ export const performanceStressTest = async (context: E2ETestContext) => {
   return {
     results,
     totalDuration: results.reduce((sum, r) => sum + r.duration, 0),
-    averageDuration: results.reduce((sum, r) => sum + r.duration, 0) / results.length
+    averageDuration: results.reduce((sum, r) => sum + r.duration, 0) / results.length,
   }
 }
 
 /**
  * Accessibility workflow test
  */
-export const accessibilityWorkflow = async (context: E2ETestContext) => {
+export async function accessibilityWorkflow(context: E2ETestContext) {
   const { user } = context
 
   // Test keyboard navigation
@@ -271,14 +271,14 @@ export const accessibilityWorkflow = async (context: E2ETestContext) => {
   while (tabCount < maxTabs) {
     await user.tab()
     tabCount++
-    
+
     const activeElement = document.activeElement
     if (activeElement && activeElement !== document.body) {
       focusableElements.push({
         tagName: activeElement.tagName,
         role: activeElement.getAttribute('role'),
         ariaLabel: activeElement.getAttribute('aria-label'),
-        text: activeElement.textContent?.slice(0, 50)
+        text: activeElement.textContent?.slice(0, 50),
       })
     }
   }
@@ -287,13 +287,13 @@ export const accessibilityWorkflow = async (context: E2ETestContext) => {
   const landmarks = [
     screen.getByRole('main'),
     screen.getByRole('navigation'),
-    screen.getAllByRole('heading')
+    screen.getAllByRole('heading'),
   ]
 
   // Test ARIA labels
   const buttons = screen.getAllByRole('button')
-  const accessibleButtons = buttons.filter(button => 
-    button.getAttribute('aria-label') || button.textContent
+  const accessibleButtons = buttons.filter(button =>
+    button.getAttribute('aria-label') || button.textContent,
   )
 
   return {
@@ -301,14 +301,14 @@ export const accessibilityWorkflow = async (context: E2ETestContext) => {
     landmarks: landmarks.length,
     accessibleButtons: accessibleButtons.length,
     totalButtons: buttons.length,
-    accessibilityScore: (accessibleButtons.length / buttons.length) * 100
+    accessibilityScore: (accessibleButtons.length / buttons.length) * 100,
   }
 }
 
 /**
  * Data persistence workflow
  */
-export const dataPersistenceWorkflow = async (context: E2ETestContext) => {
+export async function dataPersistenceWorkflow(context: E2ETestContext) {
   const { user, navigateToTab } = context
 
   // Make changes to character
@@ -347,19 +347,19 @@ export const dataPersistenceWorkflow = async (context: E2ETestContext) => {
   return {
     characterDataPersisted: true,
     sessionDataPersisted: true,
-    campaignDataPersisted: true
+    campaignDataPersisted: true,
   }
 }
 
 /**
  * Error recovery workflow
  */
-export const errorRecoveryWorkflow = async (context: E2ETestContext) => {
+export async function errorRecoveryWorkflow(context: E2ETestContext) {
   const { user, navigateToTab } = context
 
   // Simulate network error
-  const originalFetch = global.fetch
-  global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
 
   try {
     // Try to perform action that requires network
@@ -373,7 +373,7 @@ export const errorRecoveryWorkflow = async (context: E2ETestContext) => {
     })
 
     // Restore network and retry
-    global.fetch = originalFetch
+    globalThis.fetch = originalFetch
     const retryButton = screen.getByRole('button', { name: /retry/i })
     await user.click(retryButton)
 
@@ -384,19 +384,20 @@ export const errorRecoveryWorkflow = async (context: E2ETestContext) => {
 
     return {
       errorHandled: true,
-      recoverySuccessful: true
+      recoverySuccessful: true,
     }
-  } finally {
-    global.fetch = originalFetch
+  }
+  finally {
+    globalThis.fetch = originalFetch
   }
 }
 
 /**
  * Complete E2E test suite runner
  */
-export const runCompleteE2ETest = async () => {
+export async function runCompleteE2ETest() {
   const context = setupE2EContext()
-  
+
   const results = {
     gamingSession: await completeGamingSession(context),
     characterAdvancement: await characterAdvancement(context),
@@ -405,7 +406,7 @@ export const runCompleteE2ETest = async () => {
     performanceStress: await performanceStressTest(context),
     accessibility: await accessibilityWorkflow(context),
     dataPersistence: await dataPersistenceWorkflow(context),
-    errorRecovery: await errorRecoveryWorkflow(context)
+    errorRecovery: await errorRecoveryWorkflow(context),
   }
 
   return {
@@ -414,9 +415,9 @@ export const runCompleteE2ETest = async () => {
     testDuration: performance.now(),
     summary: {
       totalWorkflows: Object.keys(results).length,
-      successfulWorkflows: Object.values(results).filter(r => 
-        typeof r === 'object' && r !== null
-      ).length
-    }
+      successfulWorkflows: Object.values(results).filter(r =>
+        typeof r === 'object' && r !== null,
+      ).length,
+    },
   }
 }

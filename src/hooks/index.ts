@@ -4,79 +4,79 @@
  * Complete V1→V2 parity achieved through comprehensive hook layer
  */
 
-// Character Management Hooks
-export { useCharacter, useCharacters } from './useCharacter'
 export { useActiveCharacter, useCharacterSwitcher } from './useActiveCharacter'
-export { useCharacterStats, useStatModifiers } from './useCharacterStats'
-export { useCharacterHealth, useSimpleHealth } from './useCharacterHealth'
-
-// Game Mechanics Hooks
-export { useDiceRoll, useSimpleDiceRoll } from './useDiceRoll'
-export { useMove } from './useMove'
-export { useEquipment } from './useEquipment'
-export { useSpells } from './useSpells'
-
-// Session and Campaign Hooks
-export { useSession, useSimpleSession } from './useSession'
-export { useCampaign, useSimpleCampaign } from './useCampaign'
-export { useGameState, useSimpleGameState } from './useGameState'
-
 // UI Enhancement Hooks
 export { useAnimations } from './useAnimations'
-export { useKeyboardShortcuts } from './useKeyboardShortcuts'
-
-// Type exports for external use
-export type {
-  // Character hooks types
-  UseCharacterReturn,
-  UseActiveCharacterReturn,
-  StatWithModifiers,
-  UseCharacterStatsReturn,
-  HealthStatus,
-  DamageResult,
-  HealingResult,
-  UseCharacterHealthReturn,
-} from './useCharacter'
-
-export type {
-  // Game mechanics types
-  RollRequest,
-  RollResult,
-  UseDiceRollReturn,
-  MoveExecutionContext,
-  MoveExecutionResult,
-  UseMoveReturn,
-  EquipmentWithState,
-  LoadCalculation,
-  DragDropContext,
-  UseEquipmentReturn,
-  PreparedSpell,
-  SpellSlot,
-  CastingResult,
-  UseSpellsReturn,
-} from './useDiceRoll'
-
-export type {
-  // Session and campaign types
-  SessionStats,
-  CombatTurn,
-  UseSessionReturn,
-  CampaignCharacter,
-  CampaignStats,
-  UseCampaignReturn,
-  TimeOfDay,
-  Weather,
-  Environment,
-  UseGameStateReturn,
-} from './useSession'
-
 export type {
   // UI enhancement types
   AnimationPreferences,
   ParticleConfig,
-  StaggerConfig,
-  UseAnimationsReturn,
   ShortcutAction,
   ShortcutCategory,
+  StaggerConfig,
+  UseAnimationsReturn,
   UseKeyboardShortcutsReturn,
 } from './useAnimations'
+export { useCampaign, useSimpleCampaign } from './useCampaign'
+
+// Character Management Hooks
+export { useCharacter, useCharacters } from './useCharacter'
+// Type exports for external use
+export type {
+  DamageResult,
+  HealingResult,
+  HealthStatus,
+  StatWithModifiers,
+  UseActiveCharacterReturn,
+  UseCharacterHealthReturn,
+  // Character hooks types
+  UseCharacterReturn,
+  UseCharacterStatsReturn,
+} from './useCharacter'
+export { useCharacterHealth, useSimpleHealth } from './useCharacterHealth'
+export { useCharacterStats, useStatModifiers } from './useCharacterStats'
+
+// Game Mechanics Hooks
+export { useDiceRoll, useSimpleDiceRoll } from './useDiceRoll'
+export type {
+  CastingResult,
+  DragDropContext,
+  EquipmentWithState,
+  LoadCalculation,
+  MoveExecutionContext,
+  MoveExecutionResult,
+  PreparedSpell,
+  // Game mechanics types
+  RollRequest,
+  RollResult,
+  SpellSlot,
+  UseDiceRollReturn,
+  UseEquipmentReturn,
+  UseMoveReturn,
+  UseSpellsReturn,
+} from './useDiceRoll'
+export { useEquipment } from './useEquipment'
+
+export { useGameState, useSimpleGameState } from './useGameState'
+export { useKeyboardShortcuts } from './useKeyboardShortcuts'
+
+export { useMove } from './useMove'
+
+// Session and Campaign Hooks
+export { useSession, useSimpleSession } from './useSession'
+
+export type {
+  CampaignCharacter,
+  CampaignStats,
+  CombatTurn,
+  Environment,
+  // Session and campaign types
+  SessionStats,
+  TimeOfDay,
+  UseCampaignReturn,
+  UseGameStateReturn,
+  UseSessionReturn,
+  Weather,
+} from './useSession'
+
+export { useSpells } from './useSpells'

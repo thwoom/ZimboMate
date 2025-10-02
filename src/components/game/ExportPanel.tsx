@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Download, FileText, Settings, Users, NotebookPen, Package } from 'lucide-react'
-import * as Select from '@radix-ui/react-select'
 import * as Checkbox from '@radix-ui/react-checkbox'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
-import { Button } from '../ui/Button'
+import * as Select from '@radix-ui/react-select'
+import { motion } from 'framer-motion'
+import { Download, FileText, NotebookPen, Package, Settings, Users } from 'lucide-react'
+import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Badge } from '../ui/Badge'
 import { ExportFormat } from '../../fileManagementMockData'
+import { Badge } from '../ui/Badge'
+import { Button } from '../ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
 
 interface ExportOptions {
   format: ExportFormat
@@ -28,14 +28,14 @@ interface ExportPanelProps {
 
 export const ExportPanel: React.FC<ExportPanelProps> = ({
   onExport,
-  operationInProgress
+  operationInProgress,
 }) => {
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     format: ExportFormat.JSON,
     includeCharacters: true,
     includeCampaigns: true,
     includeNotes: false,
-    includeSettings: false
+    includeSettings: false,
   })
 
   const [selectedPreset, setSelectedPreset] = useState<string>('custom')
@@ -50,8 +50,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         includeCharacters: true,
         includeCampaigns: true,
         includeNotes: true,
-        includeSettings: true
-      }
+        includeSettings: true,
+      },
     },
     {
       id: 'characters',
@@ -62,8 +62,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         includeCharacters: true,
         includeCampaigns: false,
         includeNotes: false,
-        includeSettings: false
-      }
+        includeSettings: false,
+      },
     },
     {
       id: 'campaigns',
@@ -74,16 +74,16 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         includeCharacters: false,
         includeCampaigns: true,
         includeNotes: true,
-        includeSettings: false
-      }
-    }
+        includeSettings: false,
+      },
+    },
   ]
 
   const formatOptions = [
     { value: ExportFormat.JSON, label: 'JSON', description: 'JavaScript Object Notation' },
     { value: ExportFormat.CSV, label: 'CSV', description: 'Comma Separated Values' },
     { value: ExportFormat.XML, label: 'XML', description: 'Extensible Markup Language' },
-    { value: ExportFormat.PDF, label: 'PDF', description: 'Portable Document Format' }
+    { value: ExportFormat.PDF, label: 'PDF', description: 'Portable Document Format' },
   ]
 
   const handlePresetSelect = (presetId: string) => {
@@ -92,7 +92,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     if (preset) {
       setExportOptions(prev => ({
         ...prev,
-        ...preset.options
+        ...preset.options,
       }))
     }
   }
@@ -104,7 +104,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       notes: exportOptions.includeNotes ? ['notes1', 'notes2'] : [],
       settings: exportOptions.includeSettings ? { theme: 'fantasy' } : null,
       exportedAt: new Date().toISOString(),
-      format: exportOptions.format
+      format: exportOptions.format,
     }
 
     onExport(exportData, exportOptions.format)
@@ -112,11 +112,15 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const getEstimatedSize = (): string => {
     let size = 0
-    if (exportOptions.includeCharacters) size += 50 // KB
-    if (exportOptions.includeCampaigns) size += 200
-    if (exportOptions.includeNotes) size += 30
-    if (exportOptions.includeSettings) size += 5
-    
+    if (exportOptions.includeCharacters)
+      size += 50 // KB
+    if (exportOptions.includeCampaigns)
+      size += 200
+    if (exportOptions.includeNotes)
+      size += 30
+    if (exportOptions.includeSettings)
+      size += 5
+
     return size > 1000 ? `${(size / 1000).toFixed(1)} MB` : `${size} KB`
   }
 
@@ -132,7 +136,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
             {exportPresets.map((preset) => {
               const Icon = preset.icon
               const isSelected = selectedPreset === preset.id
-              
+
               return (
                 <motion.div
                   key={preset.id}
@@ -143,7 +147,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                     onClick={() => handlePresetSelect(preset.id)}
                     className={cn(
                       'w-full p-4 rounded-lg border-2 transition-all duration-200 text-left border-border bg-card hover:border-primary/50 hover:bg-popover/60',
-                      isSelected && 'border-primary bg-primary/10'
+                      isSelected && 'border-primary bg-primary/10',
                     )}
                   >
                     <div className="flex items-center gap-3 mb-2">
@@ -153,8 +157,9 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       />
                       <h3 className="font-medium">{preset.name}</h3>
                     </div>
-                    <p 
-                      className="text-sm text-muted-foreground">
+                    <p
+                      className="text-sm text-muted-foreground"
+                    >
                       {preset.description}
                     </p>
                   </button>
@@ -178,11 +183,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                 { key: 'includeCharacters', label: 'Characters', icon: Users, count: 3 },
                 { key: 'includeCampaigns', label: 'Campaigns', icon: NotebookPen, count: 2 },
                 { key: 'includeNotes', label: 'Session Notes', icon: FileText, count: 15 },
-                { key: 'includeSettings', label: 'App Settings', icon: Settings, count: 1 }
+                { key: 'includeSettings', label: 'App Settings', icon: Settings, count: 1 },
               ].map((item) => {
                 const Icon = item.icon
                 const isChecked = exportOptions[item.key as keyof ExportOptions] as boolean
-                
+
                 return (
                   <div key={item.key} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -191,14 +196,14 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                         onCheckedChange={(checked) => {
                           setExportOptions(prev => ({
                             ...prev,
-                            [item.key]: checked
+                            [item.key]: checked,
                           }))
                           setSelectedPreset('custom')
                         }}
                         className="w-5 h-5 border-2 rounded flex items-center justify-center"
                         style={{
                           borderColor: 'var(--primary)',
-                          backgroundColor: isChecked ? 'var(--primary)' : 'transparent'
+                          backgroundColor: isChecked ? 'var(--primary)' : 'transparent',
                         }}
                       >
                         <Checkbox.Indicator>
@@ -214,7 +219,11 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                       <Icon className="text-muted-foreground" size={18} />
                       <span className="font-medium">{item.label}</span>
                     </div>
-                    <Badge variant="secondary">{item.count} items</Badge>
+                    <Badge variant="secondary">
+                      {item.count}
+                      {' '}
+                      items
+                    </Badge>
                   </div>
                 )
               })}
@@ -231,31 +240,33 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">File Format</label>
-                <Select.Root 
-                  value={exportOptions.format} 
-                  onValueChange={(value) => setExportOptions(prev => ({ ...prev, format: value as ExportFormat }))}
+                <Select.Root
+                  value={exportOptions.format}
+                  onValueChange={value => setExportOptions(prev => ({ ...prev, format: value as ExportFormat }))}
                 >
-                  <Select.Trigger 
+                  <Select.Trigger
                     className="w-full p-3 border rounded-lg flex items-center justify-between"
-                    style={{ 
+                    style={{
                       borderColor: 'var(--border)',
-                      backgroundColor: 'var(--card)'
+                      backgroundColor: 'var(--card)',
                     }}
                   >
                     <Select.Value />
                   </Select.Trigger>
-                  <Select.Content 
-                    className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card">
-                    {formatOptions.map((format) => (
-                      <Select.Item 
-                        key={format.value} 
+                  <Select.Content
+                    className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card"
+                  >
+                    {formatOptions.map(format => (
+                      <Select.Item
+                        key={format.value}
                         value={format.value}
                         className="p-3 hover:bg-surface-elevated cursor-pointer"
                       >
                         <div>
                           <div className="font-medium">{format.label}</div>
-                          <div 
-                            className="text-sm text-muted-foreground">
+                          <div
+                            className="text-sm text-muted-foreground"
+                          >
                             {format.description}
                           </div>
                         </div>
@@ -268,15 +279,23 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
               <div className="p-4 rounded-lg bg-popover">
                 <h4 className="font-medium mb-2">Export Summary</h4>
                 <div className="space-y-1 text-sm text-muted-foreground">
-                  <div>Estimated size: <span className="font-medium">{getEstimatedSize()}</span></div>
-                  <div>Format: <span className="font-medium">{exportOptions.format.toUpperCase()}</span></div>
                   <div>
-                    Items: <span className="font-medium">
+                    Estimated size:
+                    <span className="font-medium">{getEstimatedSize()}</span>
+                  </div>
+                  <div>
+                    Format:
+                    <span className="font-medium">{exportOptions.format.toUpperCase()}</span>
+                  </div>
+                  <div>
+                    Items:
+                    {' '}
+                    <span className="font-medium">
                       {[
                         exportOptions.includeCharacters && 'Characters',
                         exportOptions.includeCampaigns && 'Campaigns',
                         exportOptions.includeNotes && 'Notes',
-                        exportOptions.includeSettings && 'Settings'
+                        exportOptions.includeSettings && 'Settings',
                       ].filter(Boolean).join(', ') || 'None selected'}
                     </span>
                   </div>
@@ -293,9 +312,14 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium mb-1">Ready to Export</h3>
-              <p 
-                className="text-sm text-muted-foreground">
-                Your data will be packaged and downloaded as a {exportOptions.format.toUpperCase()} file
+              <p
+                className="text-sm text-muted-foreground"
+              >
+                Your data will be packaged and downloaded as a
+                {' '}
+                {exportOptions.format.toUpperCase()}
+                {' '}
+                file
               </p>
             </div>
             <Button
@@ -314,4 +338,3 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     </div>
   )
 }
-

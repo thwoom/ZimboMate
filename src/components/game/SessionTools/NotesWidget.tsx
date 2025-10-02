@@ -3,21 +3,20 @@
  * Phase 4A: Essential for actual Dungeon World gameplay sessions
  */
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  NotebookPen, 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  Tag,
-  Star,
+import { AnimatePresence, motion } from 'framer-motion'
+import {
   Clock,
-  Search,
-  Filter
+  Edit3,
+  Filter,
+  NotebookPen,
+  Plus,
+  Star,
+  Tag,
+  Trash2,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../../ui'
+import React, { useState } from 'react'
 import { useSessionStore } from '../../../stores'
+import { Badge, Button, Card, CardContent } from '../../ui'
 
 export interface Note {
   id: string
@@ -33,9 +32,9 @@ interface NotesWidgetProps {
   className?: string
 }
 
-export const NotesWidget: React.FC<NotesWidgetProps> = ({ 
+export const NotesWidget: React.FC<NotesWidgetProps> = ({
   searchQuery = '',
-  className = '' 
+  className = '',
 }) => {
   const { sessionNotes, addNote, updateNote, deleteNote } = useSessionStore()
   const [isCreating, setIsCreating] = useState(false)
@@ -43,19 +42,19 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
   const [newNote, setNewNote] = useState({
     content: '',
     tags: [] as string[],
-    importance: 'normal' as const
+    importance: 'normal' as const,
   })
   const [tagInput, setTagInput] = useState('')
   const [filterImportance, setFilterImportance] = useState<string>('all')
 
   // Filter notes based on search query and importance
-  const filteredNotes = sessionNotes.filter(note => {
-    const matchesSearch = !searchQuery || 
-      note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    
+  const filteredNotes = sessionNotes.filter((note) => {
+    const matchesSearch = !searchQuery
+      || note.content.toLowerCase().includes(searchQuery.toLowerCase())
+      || note.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+
     const matchesImportance = filterImportance === 'all' || note.importance === filterImportance
-    
+
     return matchesSearch && matchesImportance
   })
 
@@ -63,12 +62,14 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
   const sortedNotes = [...filteredNotes].sort((a, b) => {
     const importanceOrder = { critical: 3, important: 2, normal: 1 }
     const importanceDiff = importanceOrder[b.importance] - importanceOrder[a.importance]
-    if (importanceDiff !== 0) return importanceDiff
+    if (importanceDiff !== 0)
+      return importanceDiff
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   })
 
   const createNote = () => {
-    if (!newNote.content.trim()) return
+    if (!newNote.content.trim())
+      return
 
     const note: Note = {
       id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
@@ -76,7 +77,7 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
       timestamp: new Date(),
       tags: newNote.tags,
       importance: newNote.importance,
-      lastModified: new Date()
+      lastModified: new Date(),
     }
 
     addNote(note)
@@ -90,19 +91,20 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
     setNewNote({
       content: note.content,
       tags: note.tags,
-      importance: note.importance
+      importance: note.importance,
     })
     setTagInput(note.tags.join(', '))
   }
 
   const saveEdit = () => {
-    if (!editingId || !newNote.content.trim()) return
+    if (!editingId || !newNote.content.trim())
+      return
 
     updateNote(editingId, {
       content: newNote.content.trim(),
       tags: newNote.tags,
       importance: newNote.importance,
-      lastModified: new Date()
+      lastModified: new Date(),
     })
 
     setEditingId(null)
@@ -150,10 +152,13 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
     const diffMs = now.getTime() - date.getTime()
     const diffMins = Math.floor(diffMs / 60000)
     const diffHours = Math.floor(diffMs / 3600000)
-    
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
+
+    if (diffMins < 1)
+      return 'Just now'
+    if (diffMins < 60)
+      return `${diffMins}m ago`
+    if (diffHours < 24)
+      return `${diffHours}h ago`
     return date.toLocaleDateString()
   }
 
@@ -166,18 +171,18 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
           <span className="font-medium">Session Notes</span>
           <Badge variant="secondary">{sessionNotes.length}</Badge>
         </div>
-        
+
         {/* Importance Filter */}
         <div className="flex items-center gap-2">
           <Filter size={14} />
           <select
             value={filterImportance}
-            onChange={(e) => setFilterImportance(e.target.value)}
+            onChange={e => setFilterImportance(e.target.value)}
             className="text-sm px-2 py-1 rounded border"
             style={{
               backgroundColor: 'var(--card)',
               borderColor: 'var(--border)',
-              color: 'var(--foreground)'
+              color: 'var(--foreground)',
             }}
           >
             <option value="all">All Notes</option>
@@ -218,7 +223,7 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
                     </label>
                     <textarea
                       value={newNote.content}
-                      onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
+                      onChange={e => setNewNote(prev => ({ ...prev, content: e.target.value }))}
                       placeholder="What happened in the session? Important NPCs, discoveries, plot developments..."
                       rows={4}
                       className="w-full px-3 py-2 rounded-lg border transition-colors resize-none"
@@ -226,7 +231,7 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                       autoFocus
                     />
@@ -240,21 +245,22 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
                     <input
                       type="text"
                       value={tagInput}
-                      onChange={(e) => handleTagInput(e.target.value)}
+                      onChange={e => handleTagInput(e.target.value)}
                       placeholder="combat, npc, location, plot, treasure"
                       className="w-full px-3 py-2 rounded-lg border transition-colors"
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                     />
                     {newNote.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {newNote.tags.map((tag, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
-                            #{tag}
+                            #
+                            {tag}
                           </Badge>
                         ))}
                       </div>
@@ -268,16 +274,16 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
                     </label>
                     <select
                       value={newNote.importance}
-                      onChange={(e) => setNewNote(prev => ({ 
-                        ...prev, 
-                        importance: e.target.value as Note['importance'] 
+                      onChange={e => setNewNote(prev => ({
+                        ...prev,
+                        importance: e.target.value as Note['importance'],
                       }))}
                       className="w-full px-3 py-2 rounded-lg border transition-colors"
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
                         borderOpacity: 0.2,
-                        color: 'var(--foreground)'
+                        color: 'var(--foreground)',
                       }}
                     >
                       <option value="normal">Normal</option>
@@ -329,8 +335,8 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
                         {getImportanceIcon(note.importance)}
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className={`text-xs ${getImportanceColor(note.importance)}`}
                         >
                           {note.importance}
@@ -340,7 +346,7 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
                           {formatTimestamp(note.timestamp)}
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
@@ -390,17 +396,17 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
         <Card variant="surface">
           <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
-              <NotebookPen 
-                size={48} 
-                className="mx-auto mb-4 opacity-50 text-muted-foreground" />
+              <NotebookPen
+                size={48}
+                className="mx-auto mb-4 opacity-50 text-muted-foreground"
+              />
               <h3 className="text-lg font-medium mb-2">
                 {searchQuery || filterImportance !== 'all' ? 'No Matching Notes' : 'No Notes Yet'}
               </h3>
               <p className="text-muted-foreground">
-                {searchQuery || filterImportance !== 'all' 
+                {searchQuery || filterImportance !== 'all'
                   ? 'Try adjusting your search or filter criteria.'
-                  : 'Start documenting your Dungeon World adventure! Add notes about NPCs, discoveries, and important events.'
-                }
+                  : 'Start documenting your Dungeon World adventure! Add notes about NPCs, discoveries, and important events.'}
               </p>
             </div>
           </CardContent>
@@ -441,7 +447,3 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({
     </div>
   )
 }
-
-
-
-

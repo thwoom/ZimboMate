@@ -1,47 +1,19 @@
 /**
- * Dice Store for ZimboMate V2
- * Manages unified dice rolling system with character-scoped history
- * Integrates with Dungeon World mechanics and auto-XP/hold systems
+ * Dice Store
+ * Simplified dice orchestration with minimal side effects and typed history
  */
 
+import type { Attributes } from '../models/Character'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Character, Attributes } from '../models/Character'
 import { getAttributeModifier } from '../models/Character'
-import { useXPStore } from './xpStore'
+import { logger } from '../utils/logger'
+import { useCharacterStore } from './characterStore'
 import { useHoldStore } from './holdStore'
+import { useXPStore } from './xpStore'
 
-// Versioned roll result schema for future migrations
-export interface RollResult {
-  version: 1
-  id: string
-  timestamp: number
-  characterId: string
-
-  // Roll mechanics
-  dice1: number
-  dice2: number
-  diceTotal: number
-  modifier: number
-  finalResult: number
-  outcome: 'success' | 'partial' | 'failure'
-
-  // Context information
-  type: 'stat' | 'move' | 'custom'
-  context: {
-    label: string           // "STR Roll", "Hack and Slash", etc.
-    stat?: keyof Attributes // Which stat was rolled
-    moveId?: string         // Which move was used
-    description?: string    // Additional context
-  }
-
-  // Game mechanic effects
-  effects: {
-    xpAwarded?: boolean     // Did this roll award XP?
-    holdGranted?: number    // How much hold was granted?
-    additional?: string[]   // Other effects applied
-  }
-}
+export type RollType = 'stat' | 'move' | 'custom'
+export type RollOutcome = 'success' | 'partial' | 'failure'
 
 export interface RollContext {
   label: string
@@ -50,481 +22,432 @@ export interface RollContext {
   description?: string
 }
 
-interface DiceState {
-  // Current state
-  currentRoll: RollResult | null
-  isRolling: boolean
-
-  // History (character-scoped)
-  rollHistoryByCharacter: Record<string, RollResult[]>
-  maxHistoryPerCharacter: number
-
-  // UI state
-  showHistory: boolean
-  showCommandPalette: boolean
-  activeNotifications: RollResult[]
-  maxNotifications: number
-
-  // Core rolling functions
-  rollStat: (stat: keyof Attributes, characterId: string, customLabel?: string) => Promise<RollResult>
-  rollMove: (moveId: string, stat: keyof Attributes, characterId: string) => Promise<RollResult>
-  rollCustom: (modifier: number, context: RollContext, characterId: string) => Promise<RollResult>
-
-  // History management
-  getHistoryForCharacter: (characterId: string) => RollResult[]
-  getAllRolls: () => RollResult[]
-  clearHistoryForCharacter: (characterId: string) => void
-  clearAllHistory: () => void
-  exportHistory: (characterId: string) => string
-  rerollWithSameContext: (rollId: string) => Promise<RollResult | null>
-
-  // UI actions
-  toggleHistory: () => void
-  toggleCommandPalette: () => void
-  dismissNotification: (rollId: string) => void
-  copyRollToClipboard: (roll: RollResult) => void
-
-  // Internal helpers
-  _addRollToHistory: (roll: RollResult) => void
-  _createRollResult: (
-    dice1: number,
-    dice2: number,
-    modifier: number,
-    context: RollContext,
-    characterId: string,
-    type: RollResult['type']
-  ) => RollResult
-  _getCharacterStats: (characterId: string) => Attributes | null
+export interface RollResult {
+  version: 1
+  id: string
+  timestamp: number
+  characterId: string
+  type: RollType
+  dice1: number
+  dice2: number
+  diceTotal: number
+  modifier: number
+  finalResult: number
+  outcome: RollOutcome
+  context: RollContext
+  effects?: {
+    xpAwarded?: boolean
+    holdGranted?: number
+    additional?: string[]
+  }
 }
 
-// Dungeon World outcome calculation
-const getOutcome = (total: number): RollResult['outcome'] => {
-  if (total >= 10) return 'success'
-  if (total >= 7) return 'partial'
+interface DiceSettings {
+  historyLimit: number
+  autoAwardXp: boolean
+  autoGrantHold: boolean
+}
+
+interface DiceState {
+  currentRoll: RollResult | null
+  isRolling: boolean
+  historyByCharacter: Record<string, RollResult[]>
+  settings: DiceSettings
+
+  rollStat: (stat: keyof Attributes, characterId: string, label?: string) => Promise<RollResult>
+  rollMove: (params: { moveId: string, stat: keyof Attributes, characterId: string, label?: string }) => Promise<RollResult>
+  rollCustom: (params: { modifier: number, context: RollContext, characterId: string }) => Promise<RollResult>
+
+  recordRoll: (roll: RollResult) => void
+  getHistoryForCharacter: (characterId: string) => RollResult[]
+  getRecentRolls: (limit?: number) => RollResult[]
+  clearHistoryForCharacter: (characterId: string) => void
+  clearAllHistory: () => void
+  reroll: (rollId: string) => Promise<RollResult | null>
+
+  setHistoryLimit: (limit: number) => void
+  setAutoAwardXp: (enabled: boolean) => void
+  setAutoGrantHold: (enabled: boolean) => void
+}
+
+function determineOutcome(total: number): RollOutcome {
+  if (total >= 10)
+    return 'success'
+  if (total >= 7)
+    return 'partial'
   return 'failure'
 }
 
-// Generate unique roll ID
-const generateRollId = (): string => {
-  return `roll-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+function generateRollId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `roll-${crypto.randomUUID()}`
+  }
+
+  return `roll-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
-// Simulate dice roll with slight delay for animation
-const rollDice = (): Promise<{ dice1: number, dice2: number }> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        dice1: Math.floor(Math.random() * 6) + 1,
-        dice2: Math.floor(Math.random() * 6) + 1
-      })
-    }, 1500) // 1.5s animation delay
-  })
+function rollDicePair() {
+  return {
+    dice1: Math.floor(Math.random() * 6) + 1,
+    dice2: Math.floor(Math.random() * 6) + 1,
+  }
+}
+
+function getCharacterAttributes(characterId: string): Attributes | null {
+  try {
+    const character = useCharacterStore.getState().getCharacter(characterId)
+    return character?.attributes ?? null
+  }
+  catch (error) {
+    logger.error('diceStore: failed to read character attributes', error)
+    return null
+  }
+}
+
+function createRollResult(type: RollType, characterId: string, modifier: number, context: RollContext, dice: { dice1: number, dice2: number }): RollResult {
+  const diceTotal = dice.dice1 + dice.dice2
+  const finalResult = diceTotal + modifier
+
+  return {
+    version: 1,
+    id: generateRollId(),
+    timestamp: Date.now(),
+    characterId,
+    type,
+    dice1: dice.dice1,
+    dice2: dice.dice2,
+    diceTotal,
+    modifier,
+    finalResult,
+    outcome: determineOutcome(finalResult),
+    context,
+    effects: {},
+  }
+}
+
+function clampHistory(rolls: RollResult[], limit: number): RollResult[] {
+  const safeLimit = Math.max(1, limit)
+  return rolls.slice(0, safeLimit)
+}
+
+function determineHoldGain(moveId: string, outcome: RollOutcome): number {
+  const isStrongHit = outcome === 'success'
+  const isWeakHit = outcome === 'partial'
+
+  switch (moveId) {
+    case 'defend':
+    case 'discern-realities':
+    case 'spout-lore':
+      if (isStrongHit)
+        return 3
+      if (isWeakHit)
+        return 1
+      return 0
+    default:
+      return 0
+  }
 }
 
 export const useDiceStore = create<DiceState>()(
   persist(
     (set, get) => ({
-      // Initial state
       currentRoll: null,
       isRolling: false,
-      rollHistoryByCharacter: {},
-      maxHistoryPerCharacter: 100,
-      showHistory: true,
-      showCommandPalette: false,
-      activeNotifications: [],
-      maxNotifications: 3,
+      historyByCharacter: {},
+      settings: {
+        historyLimit: 50,
+        autoAwardXp: false,
+        autoGrantHold: false,
+      },
 
-      // Core rolling functions
-      rollStat: async (stat: keyof Attributes, characterId: string, customLabel?: string) => {
-        console.log('🎲 rollStat called:', { stat, characterId, customLabel })
-        const state = get()
-        if (state.isRolling) {
-          console.log('⚠️ Already rolling, returning current roll')
-          return state.currentRoll!
+      async rollStat(stat, characterId, label) {
+        if (get().isRolling) {
+          throw new Error('Dice roll already in progress')
         }
 
-        console.log('🎯 Starting roll process')
         set({ isRolling: true, currentRoll: null })
 
         try {
-          console.log('📊 Getting character stats for:', characterId)
-          const stats = state._getCharacterStats(characterId)
-          console.log('📊 Character stats result:', stats)
-          if (!stats) throw new Error('Character not found')
+          const attributes = getCharacterAttributes(characterId)
+          if (!attributes) {
+            throw new Error('Character not found')
+          }
 
-          const modifier = getAttributeModifier(stats[stat])
-          console.log('🔢 Modifier calculated:', modifier)
-
-          console.log('🎲 Rolling dice...')
-          const { dice1, dice2 } = await rollDice()
-          console.log('🎲 Dice result:', { dice1, dice2 })
-
+          const modifier = getAttributeModifier(attributes[stat])
+          const dice = rollDicePair()
           const context: RollContext = {
-            label: customLabel || `${stat} Roll`,
+            label: label ?? `${stat} Roll`,
             stat,
-            description: `Rolling ${stat} with modifier ${modifier >= 0 ? '+' : ''}${modifier}`
+            description: `${stat} roll with ${modifier >= 0 ? '+' : ''}${modifier}`,
           }
 
-          console.log('📝 Creating roll result with context:', context)
-          const roll = state._createRollResult(dice1, dice2, modifier, context, characterId, 'stat')
-          console.log('✅ Roll result created:', roll)
+          const roll = createRollResult('stat', characterId, modifier, context, dice)
+          const { settings } = get()
 
-          // Award XP for failed stat rolls
-          if (roll.outcome === 'failure') {
-            console.log('💔 Failed roll, awarding XP')
-            roll.effects.xpAwarded = true
+          if (settings.autoAwardXp && roll.outcome === 'failure') {
+            roll.effects = { ...roll.effects, xpAwarded: true }
             const xpStore = useXPStore.getState()
-            xpStore.awardFailedRoll(characterId, roll.id)
+            if (xpStore.awardFailedRoll) {
+              xpStore.awardFailedRoll(characterId, roll.id)
+            }
           }
 
-          console.log('💾 Setting roll state...')
-          set({
-            currentRoll: roll,
-            isRolling: false,
-            activeNotifications: [roll, ...state.activeNotifications].slice(0, state.maxNotifications)
-          })
-
-          console.log('📚 Adding roll to history...')
-          state._addRollToHistory(roll)
-          console.log('✅ Roll process completed successfully')
-
-          // Auto-dismiss notification after 4 seconds
-          setTimeout(() => {
-            set(state => ({
-              activeNotifications: state.activeNotifications.filter(n => n.id !== roll.id)
-            }))
-          }, 4000)
-
+          get().recordRoll(roll)
           return roll
-        } catch (error) {
-          console.error('❌ rollStat error:', error)
-          set({ isRolling: false })
+        }
+        catch (error) {
+          logger.error('diceStore: rollStat failed', error)
           throw error
+        }
+        finally {
+          set({ isRolling: false })
         }
       },
 
-      rollMove: async (moveId: string, stat: keyof Attributes, characterId: string) => {
-        const state = get()
-        if (state.isRolling) return state.currentRoll!
+      async rollMove({ moveId, stat, characterId, label }) {
+        if (get().isRolling) {
+          throw new Error('Dice roll already in progress')
+        }
 
         set({ isRolling: true, currentRoll: null })
 
         try {
-          const stats = state._getCharacterStats(characterId)
-          if (!stats) throw new Error('Character not found')
+          const attributes = getCharacterAttributes(characterId)
+          if (!attributes) {
+            throw new Error('Character not found')
+          }
 
-          const modifier = getAttributeModifier(stats[stat])
-          const { dice1, dice2 } = await rollDice()
-
+          const modifier = getAttributeModifier(attributes[stat])
+          const dice = rollDicePair()
           const context: RollContext = {
-            label: moveId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            label: label ?? moveId.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase()),
             stat,
             moveId,
-            description: `${moveId} using ${stat} (${modifier >= 0 ? '+' : ''}${modifier})`
+            description: `${moveId} on ${stat} (${modifier >= 0 ? '+' : ''}${modifier})`,
           }
 
-          const roll = state._createRollResult(dice1, dice2, modifier, context, characterId, 'move')
+          const roll = createRollResult('move', characterId, modifier, context, dice)
+          const { settings } = get()
 
-          // Apply move-specific effects
-          if (roll.outcome === 'failure') {
-            roll.effects.xpAwarded = true
-            // Award XP for failed rolls
+          if (settings.autoAwardXp && roll.outcome === 'failure') {
+            roll.effects = { ...roll.effects, xpAwarded: true }
             const xpStore = useXPStore.getState()
-            xpStore.awardFailedRoll(characterId, roll.id, moveId)
-          }
-
-          // Handle hold-granting moves
-          const holdAmount = (() => {
-            switch (moveId) {
-              case 'defend':
-                return roll.outcome === 'success' ? 3 : roll.outcome === 'partial' ? 1 : 0
-              case 'discern-realities':
-                return roll.outcome === 'success' ? 3 : roll.outcome === 'partial' ? 1 : 0
-              case 'spout-lore':
-                return roll.outcome === 'success' ? 3 : roll.outcome === 'partial' ? 1 : 0
-              default:
-                return 0
+            if (xpStore.awardFailedRoll) {
+              xpStore.awardFailedRoll(characterId, roll.id, moveId)
             }
-          })()
-
-          if (holdAmount > 0) {
-            roll.effects.holdGranted = holdAmount
-            const holdStore = useHoldStore.getState()
-            holdStore.grantHold(characterId, moveId, holdAmount, roll.id)
           }
 
-          set({
-            currentRoll: roll,
-            isRolling: false,
-            activeNotifications: [roll, ...state.activeNotifications].slice(0, state.maxNotifications)
-          })
+          if (settings.autoGrantHold) {
+            const holdGranted = determineHoldGain(moveId, roll.outcome)
+            if (holdGranted > 0) {
+              roll.effects = { ...roll.effects, holdGranted }
+              const holdStore = useHoldStore.getState()
+              if (holdStore.grantHold) {
+                holdStore.grantHold(characterId, moveId, holdGranted, roll.id)
+              }
+            }
+          }
 
-          state._addRollToHistory(roll)
-
-          // Auto-dismiss notification after 4 seconds
-          setTimeout(() => {
-            set(state => ({
-              activeNotifications: state.activeNotifications.filter(n => n.id !== roll.id)
-            }))
-          }, 4000)
-
+          get().recordRoll(roll)
           return roll
-        } catch (error) {
-          set({ isRolling: false })
+        }
+        catch (error) {
+          logger.error('diceStore: rollMove failed', error)
           throw error
+        }
+        finally {
+          set({ isRolling: false })
         }
       },
 
-      rollCustom: async (modifier: number, context: RollContext, characterId: string) => {
-        const state = get()
-        if (state.isRolling) return state.currentRoll!
+      async rollCustom({ modifier, context, characterId }) {
+        if (!context.label.trim()) {
+          throw new Error('Custom rolls require a label')
+        }
+
+        if (get().isRolling) {
+          throw new Error('Dice roll already in progress')
+        }
 
         set({ isRolling: true, currentRoll: null })
 
         try {
-          const { dice1, dice2 } = await rollDice()
-          const roll = state._createRollResult(dice1, dice2, modifier, context, characterId, 'custom')
+          const dice = rollDicePair()
+          const roll = createRollResult('custom', characterId, modifier, context, dice)
+          const { settings } = get()
 
-          // Award XP for failed custom rolls (if they're meaningful rolls, not just tests)
-          if (roll.outcome === 'failure' && context.stat) {
-            roll.effects.xpAwarded = true
+          if (settings.autoAwardXp && roll.outcome === 'failure' && context.stat) {
+            roll.effects = { ...roll.effects, xpAwarded: true }
             const xpStore = useXPStore.getState()
-            xpStore.awardFailedRoll(characterId, roll.id, context.moveId)
+            if (xpStore.awardFailedRoll) {
+              xpStore.awardFailedRoll(characterId, roll.id, context.moveId)
+            }
           }
 
-          set({
-            currentRoll: roll,
-            isRolling: false,
-            activeNotifications: [roll, ...state.activeNotifications].slice(0, state.maxNotifications)
-          })
-
-          state._addRollToHistory(roll)
-
-          // Auto-dismiss notification after 4 seconds
-          setTimeout(() => {
-            set(state => ({
-              activeNotifications: state.activeNotifications.filter(n => n.id !== roll.id)
-            }))
-          }, 4000)
-
+          get().recordRoll(roll)
           return roll
-        } catch (error) {
-          set({ isRolling: false })
+        }
+        catch (error) {
+          logger.error('diceStore: rollCustom failed', error)
           throw error
         }
+        finally {
+          set({ isRolling: false })
+        }
       },
 
-      // History management
-      getHistoryForCharacter: (characterId: string) => {
-        const state = get()
-        // Safety check: ensure rollHistoryByCharacter is an object
-        if (!state.rollHistoryByCharacter || typeof state.rollHistoryByCharacter !== 'object') {
-          console.warn('rollHistoryByCharacter is not an object, reinitializing...')
-          // Reinitialize as empty object if corrupted
-          state.rollHistoryByCharacter = {}
-          return []
-        }
-        return state.rollHistoryByCharacter[characterId] || []
-      },
+      recordRoll(roll) {
+        set((state) => {
+          const existing = state.historyByCharacter[roll.characterId] ?? []
+          const updated = clampHistory([roll, ...existing], state.settings.historyLimit)
 
-      getAllRolls: () => {
-        const state = get()
-        const allRolls: RollResult[] = []
-
-        // Safety check: ensure rollHistoryByCharacter is an object
-        if (!state.rollHistoryByCharacter || typeof state.rollHistoryByCharacter !== 'object') {
-          console.warn('rollHistoryByCharacter is not an object in getAllRolls, returning empty array')
-          return []
-        }
-
-        for (const rolls of Object.values(state.rollHistoryByCharacter)) {
-          allRolls.push(...rolls)
-        }
-        // Sort by timestamp, newest first
-        return allRolls.sort((a, b) => b.timestamp - a.timestamp)
-      },
-
-      clearHistoryForCharacter: (characterId: string) => {
-        set(state => {
-          const newHistory = { ...state.rollHistoryByCharacter }
-          delete newHistory[characterId]
-          return { rollHistoryByCharacter: newHistory }
+          return {
+            currentRoll: roll,
+            historyByCharacter: {
+              ...state.historyByCharacter,
+              [roll.characterId]: updated,
+            },
+          }
         })
       },
 
-      clearAllHistory: () => {
-        set({ rollHistoryByCharacter: {} })
+      getHistoryForCharacter(characterId) {
+        return get().historyByCharacter[characterId] ?? []
       },
 
-      exportHistory: (characterId: string) => {
-        const history = get().getHistoryForCharacter(characterId)
-        return history.map(roll =>
-          `${new Date(roll.timestamp).toLocaleString()} - ${roll.context.label}: ${roll.dice1}+${roll.dice2}+${roll.modifier}=${roll.finalResult} (${roll.outcome})`
-        ).join('\n')
+      getRecentRolls(limit = 10) {
+        const rolls = Object.values(get().historyByCharacter).flat()
+        const sorted = [...rolls].sort((a, b) => b.timestamp - a.timestamp)
+        return sorted.slice(0, Math.max(1, limit))
       },
 
-      rerollWithSameContext: async (rollId: string) => {
+      clearHistoryForCharacter(characterId) {
+        set((state) => {
+          if (!(characterId in state.historyByCharacter)) {
+            return state
+          }
+
+          const { [characterId]: _removed, ...rest } = state.historyByCharacter
+          return { historyByCharacter: rest }
+        })
+      },
+
+      clearAllHistory() {
+        set({ historyByCharacter: {} })
+      },
+
+      async reroll(rollId) {
         const state = get()
 
-        // Find the original roll across all character histories
-        let originalRoll: RollResult | null = null
-        for (const [characterId, history] of Object.entries(state.rollHistoryByCharacter)) {
-          originalRoll = history.find(r => r.id === rollId) || null
-          if (originalRoll) break
-        }
+        for (const rolls of Object.values(state.historyByCharacter)) {
+          const original = rolls.find(roll => roll.id === rollId)
+          if (!original) {
+            continue
+          }
 
-        if (!originalRoll) return null
+          if (original.type === 'stat' && original.context.stat) {
+            return state.rollStat(original.context.stat, original.characterId, original.context.label)
+          }
 
-        // Re-roll with same parameters
-        if (originalRoll.type === 'stat' && originalRoll.context.stat) {
-          return await state.rollStat(originalRoll.context.stat, originalRoll.characterId, originalRoll.context.label)
-        } else if (originalRoll.type === 'move' && originalRoll.context.moveId && originalRoll.context.stat) {
-          return await state.rollMove(originalRoll.context.moveId, originalRoll.context.stat, originalRoll.characterId)
-        } else if (originalRoll.type === 'custom') {
-          return await state.rollCustom(originalRoll.modifier, originalRoll.context, originalRoll.characterId)
+          if (original.type === 'move' && original.context.moveId && original.context.stat) {
+            return state.rollMove({
+              moveId: original.context.moveId,
+              stat: original.context.stat,
+              characterId: original.characterId,
+              label: original.context.label,
+            })
+          }
+
+          if (original.type === 'custom') {
+            return state.rollCustom({
+              modifier: original.modifier,
+              context: original.context,
+              characterId: original.characterId,
+            })
+          }
         }
 
         return null
       },
 
-      // UI actions
-      toggleHistory: () => {
-        set(state => ({ showHistory: !state.showHistory }))
-      },
+      setHistoryLimit(limit) {
+        set((state) => {
+          const safeLimit = Math.max(1, limit)
+          const trimmedHistory = Object.fromEntries(
+            Object.entries(state.historyByCharacter).map(([characterId, rolls]) => [
+              characterId,
+              clampHistory(rolls, safeLimit),
+            ]),
+          )
 
-      toggleCommandPalette: () => {
-        set(state => ({ showCommandPalette: !state.showCommandPalette }))
-      },
-
-      dismissNotification: (rollId: string) => {
-        set(state => ({
-          activeNotifications: state.activeNotifications.filter(n => n.id !== rollId)
-        }))
-      },
-
-      copyRollToClipboard: (roll: RollResult) => {
-        const text = `${roll.context.label}: ${roll.dice1}+${roll.dice2}+${roll.modifier}=${roll.finalResult} (${roll.outcome})`
-        navigator.clipboard.writeText(text).catch(console.error)
-      },
-
-      // Internal helpers
-      _addRollToHistory: (roll: RollResult) => {
-        console.log('📚 _addRollToHistory called with roll:', roll)
-        set(state => {
-          console.log('📚 Current state.rollHistoryByCharacter:', state.rollHistoryByCharacter)
-
-          // Safety check: ensure rollHistoryByCharacter is an object
-          if (!state.rollHistoryByCharacter || typeof state.rollHistoryByCharacter !== 'object') {
-            console.warn('rollHistoryByCharacter is not an object in _addRollToHistory, reinitializing...')
-            state.rollHistoryByCharacter = {}
+          return {
+            historyByCharacter: trimmedHistory,
+            settings: {
+              ...state.settings,
+              historyLimit: safeLimit,
+            },
           }
-
-          const newHistory = { ...state.rollHistoryByCharacter }
-          const characterHistory = newHistory[roll.characterId] || []
-          console.log('📚 Current character history:', characterHistory)
-
-          // Add new roll to front, limit to max history
-          const updatedHistory = [roll, ...characterHistory].slice(0, state.maxHistoryPerCharacter)
-          console.log('📚 Updated history:', updatedHistory)
-          newHistory[roll.characterId] = updatedHistory
-          console.log('📚 New history object:', newHistory)
-
-          return { rollHistoryByCharacter: newHistory }
         })
       },
 
-      _createRollResult: (
-        dice1: number,
-        dice2: number,
-        modifier: number,
-        context: RollContext,
-        characterId: string,
-        type: RollResult['type']
-      ): RollResult => {
-        const diceTotal = dice1 + dice2
-        const finalResult = diceTotal + modifier
-        const outcome = getOutcome(finalResult)
-
-        return {
-          version: 1,
-          id: generateRollId(),
-          timestamp: Date.now(),
-          characterId,
-          dice1,
-          dice2,
-          diceTotal,
-          modifier,
-          finalResult,
-          outcome,
-          type,
-          context,
-          effects: {}
-        }
+      setAutoAwardXp(enabled) {
+        set(state => ({
+          settings: {
+            ...state.settings,
+            autoAwardXp: enabled,
+          },
+        }))
       },
 
-      _getCharacterStats: (characterId: string): Attributes | null => {
-        // Import character store dynamically to avoid circular dependencies
-        try {
-          // Use dynamic import for ES modules
-          import('../stores/characterStore').then(({ useCharacterStore }) => {
-            const character = useCharacterStore.getState().getCharacter(characterId)
-            if (character?.attributes) {
-              // Convert from new format {value, modifier} to old format (just values)
-              const attributes: Attributes = {}
-              Object.entries(character.attributes).forEach(([key, attr]) => {
-                attributes[key as keyof Attributes] = attr.value
-              })
-              return attributes
-            }
-            return null
-          }).catch(error => {
-            console.error('Failed to import character store:', error)
-            return null
-          })
-
-          // For now, return hardcoded stats to test dice rolling
-          console.log('🧪 Using hardcoded stats for testing')
-          return {
-            STR: 8,
-            DEX: 12,
-            CON: 14,
-            INT: 18,
-            WIS: 16,
-            CHA: 10
-          }
-        } catch (error) {
-          console.error('Failed to get character stats:', error)
-          return null
-        }
-      }
+      setAutoGrantHold(enabled) {
+        set(state => ({
+          settings: {
+            ...state.settings,
+            autoGrantHold: enabled,
+          },
+        }))
+      },
     }),
     {
       name: 'zimbomate-dice-store',
-      // Only persist essential data, not UI state
-      partialize: (state) => ({
-        rollHistoryByCharacter: state.rollHistoryByCharacter,
-        maxHistoryPerCharacter: state.maxHistoryPerCharacter,
-        showHistory: state.showHistory
+      partialize: state => ({
+        historyByCharacter: state.historyByCharacter,
+        settings: state.settings,
       }),
-    }
-  )
+    },
+  ),
 )
 
-// Migration helper for future data format changes
-export const migrateRollHistory = (data: any[]): RollResult[] => {
-  return data.map(item => {
-    if (!item.version) {
-      // Migrate v0 to v1
-      return {
-        ...item,
-        version: 1,
-        characterId: item.characterId || 'default',
-        effects: item.effects || {}
-      }
+export function migrateRollHistory(data: unknown[]): RollResult[] {
+  if (!Array.isArray(data))
+    return []
+
+  return data.map((item) => {
+    const record = item as Partial<RollResult>
+
+    const dice1 = typeof record.dice1 === 'number' ? record.dice1 : 0
+    const dice2 = typeof record.dice2 === 'number' ? record.dice2 : 0
+    const modifier = typeof record.modifier === 'number' ? record.modifier : 0
+    const diceTotal = dice1 + dice2
+    const finalResult = diceTotal + modifier
+    const outcome = determineOutcome(finalResult)
+
+    return {
+      version: 1,
+      id: record.id ?? generateRollId(),
+      timestamp: record.timestamp ?? Date.now(),
+      characterId: record.characterId ?? 'default',
+      type: record.type ?? 'stat',
+      dice1,
+      dice2,
+      diceTotal,
+      modifier,
+      finalResult,
+      outcome,
+      context: record.context ?? { label: 'Unknown Roll' },
+      effects: record.effects ?? {},
     }
-    return item
   })
 }
 
-// Export types for other components to use
-export type { RollResult, RollContext }
+export type { RollContext, RollResult }

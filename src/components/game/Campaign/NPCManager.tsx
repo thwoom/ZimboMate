@@ -2,27 +2,28 @@
  * NPC Manager - Detailed NPC management with relationships and tracking
  */
 
-import React, { useState, useMemo } from 'react'
+import type { NPC } from '../../../models/Campaign'
 import { motion } from 'framer-motion'
-import { 
-  Users,
-  Plus,
+import {
+  Calendar,
   Edit,
-  Trash2,
+  Eye,
   Heart,
+  HelpCircle,
+  Lock,
+  MapPin,
+  Plus,
   Shield,
   Skull,
-  HelpCircle,
-  MapPin,
-  Calendar,
-  Eye,
-  Lock
+  Trash2,
+  Users,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
+import React, { useMemo, useState } from 'react'
+import { formatDateRelative, formatNPCDisposition, NPCDisposition, NPCImportance } from '../../../campaignManagementMockData'
 import { useCampaignStore } from '../../../stores/campaignStore'
-import { formatDateRelative, formatNPCDisposition, NPCImportance, NPCDisposition } from '../../../campaignManagementMockData'
+import { Badge, Button, Card, CardContent } from '../../ui'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../../ui/alert-dialog'
 import { NPCModal } from './NPCModal'
-import type { NPC } from '../../../models/Campaign'
 
 interface NPCManagerProps {
   campaignId: string
@@ -32,10 +33,10 @@ interface NPCManagerProps {
 interface NPCCardProps {
   npc: NPC
   onEdit: (npc: NPC) => void
-  onDelete: (npcId: string) => void
+  onDelete: (npc: NPC) => void
 }
 
-const getDispositionIcon = (disposition: NPCDisposition) => {
+function getDispositionIcon(disposition: NPCDisposition) {
   switch (disposition) {
     case NPCDisposition.FRIENDLY:
       return <Heart className="text-chart-2" size={14} />
@@ -50,7 +51,7 @@ const getDispositionIcon = (disposition: NPCDisposition) => {
   }
 }
 
-const getImportanceBadgeClass = (importance: NPCImportance) => {
+function getImportanceBadgeClass(importance: NPCImportance) {
   switch (importance) {
     case NPCImportance.HIGH:
       return 'importance-badge-high'
@@ -64,11 +65,9 @@ const getImportanceBadgeClass = (importance: NPCImportance) => {
 }
 
 const NPCCard: React.FC<NPCCardProps> = ({ npc, onEdit, onDelete }) => {
-  const [expanded, setExpanded] = useState(false)
-
   return (
-    <Card 
-      variant={npc.importance === NPCImportance.HIGH ? "magical" : "surface"} 
+    <Card
+      variant={npc.importance === NPCImportance.HIGH ? 'magical' : 'surface'}
       className="campaign-card campaign-card-hover"
     >
       <CardContent>
@@ -80,8 +79,8 @@ const NPCCard: React.FC<NPCCardProps> = ({ npc, onEdit, onDelete }) => {
                 <h3 className="font-display text-lg font-semibold">
                   {npc.name}
                 </h3>
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className={`text-xs ${getImportanceBadgeClass(npc.importance)}`}
                 >
                   {npc.importance}
@@ -105,22 +104,24 @@ const NPCCard: React.FC<NPCCardProps> = ({ npc, onEdit, onDelete }) => {
                 )}
                 <div className="flex items-center gap-1">
                   <Calendar size={14} />
-                  Met {formatDateRelative(npc.firstMet)}
+                  Met
+                  {' '}
+                  {formatDateRelative(npc.firstMet)}
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => onEdit(npc)}
               >
                 <Edit size={16} />
               </Button>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
-                onClick={() => onDelete(npc.id)}
+                onClick={() => onDelete(npc)}
               >
                 <Trash2 size={16} />
               </Button>
@@ -138,18 +139,20 @@ const NPCCard: React.FC<NPCCardProps> = ({ npc, onEdit, onDelete }) => {
           {npc.lastSeen && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Eye size={14} />
-              Last seen {formatDateRelative(npc.lastSeen)}
+              Last seen
+              {' '}
+              {formatDateRelative(npc.lastSeen)}
             </div>
           )}
 
           {/* Notes */}
           {npc.notes && (
             <div>
-              <p 
+              <p
                 className="text-sm p-3 rounded-lg"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--card)',
-                  color: 'var(--muted-foreground)' 
+                  color: 'var(--muted-foreground)',
                 }}
               >
                 {npc.notes}
@@ -166,16 +169,16 @@ const NPCCard: React.FC<NPCCardProps> = ({ npc, onEdit, onDelete }) => {
               </div>
               <div className="space-y-2">
                 {npc.secrets.map((secret, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="text-sm p-2 rounded-lg flex items-start gap-2"
-                    style={{ 
+                    style={{
                       backgroundColor: 'var(--card)',
                       border: '1px solid var(--destructive)',
-                      borderOpacity: 0.3
+                      borderOpacity: 0.3,
                     }}
                   >
-                    <Lock size={12} className='text-destructive mt-[2px]' />
+                    <Lock size={12} className="text-destructive mt-[2px]" />
                     <span className="text-muted-foreground">
                       {secret}
                     </span>
@@ -192,21 +195,22 @@ const NPCCard: React.FC<NPCCardProps> = ({ npc, onEdit, onDelete }) => {
 
 export const NPCManager: React.FC<NPCManagerProps> = ({
   campaignId,
-  searchQuery = ''
+  searchQuery = '',
 }) => {
   const [filterByImportance, setFilterByImportance] = useState<NPCImportance | ''>('')
   const [filterByDisposition, setFilterByDisposition] = useState<NPCDisposition | ''>('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingNPC, setEditingNPC] = useState<NPC | undefined>()
   const [sortBy, setSortBy] = useState<'name' | 'importance' | 'firstMet' | 'lastSeen'>('name')
-  
+  const [npcToDelete, setNpcToDelete] = useState<NPC | null>(null)
+
   const campaign = useCampaignStore(state => state.getCampaign(campaignId))
-  const addNPC = useCampaignStore(state => state.addNPC)
-  const updateNPC = useCampaignStore(state => state.updateNPC)
   const deleteNPC = useCampaignStore(state => state.deleteNPC)
+  const isDeleteDialogOpen = npcToDelete !== null
 
   const filteredAndSortedNPCs = useMemo(() => {
-    if (!campaign) return []
+    if (!campaign)
+      return []
 
     let npcs = [...campaign.npcs]
 
@@ -214,12 +218,12 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       npcs = npcs.filter(npc =>
-        npc.name.toLowerCase().includes(query) ||
-        npc.description.toLowerCase().includes(query) ||
-        npc.role.toLowerCase().includes(query) ||
-        npc.notes.toLowerCase().includes(query) ||
-        (npc.location && npc.location.toLowerCase().includes(query)) ||
-        (npc.secrets && npc.secrets.some(s => s.toLowerCase().includes(query)))
+        npc.name.toLowerCase().includes(query)
+        || npc.description.toLowerCase().includes(query)
+        || npc.role.toLowerCase().includes(query)
+        || npc.notes.toLowerCase().includes(query)
+        || (npc.location && npc.location.toLowerCase().includes(query))
+        || (npc.secrets && npc.secrets.some(s => s.toLowerCase().includes(query))),
       )
     }
 
@@ -238,15 +242,19 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
       switch (sortBy) {
         case 'name':
           return a.name.localeCompare(b.name)
-        case 'importance':
+        case 'importance': {
           const importanceOrder = { high: 3, medium: 2, low: 1 }
           return importanceOrder[b.importance] - importanceOrder[a.importance]
+        }
         case 'firstMet':
           return b.firstMet.getTime() - a.firstMet.getTime()
         case 'lastSeen':
-          if (!a.lastSeen && !b.lastSeen) return 0
-          if (!a.lastSeen) return 1
-          if (!b.lastSeen) return -1
+          if (!a.lastSeen && !b.lastSeen)
+            return 0
+          if (!a.lastSeen)
+            return 1
+          if (!b.lastSeen)
+            return -1
           return b.lastSeen.getTime() - a.lastSeen.getTime()
         default:
           return 0
@@ -261,11 +269,30 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
     setIsModalOpen(true)
   }
 
-  const handleDeleteNPC = (npcId: string) => {
-    if (confirm('Are you sure you want to delete this NPC?')) {
-      deleteNPC(campaignId, npcId)
-    }
+  const handleDeleteRequest = (npc: NPC) => {
+    setNpcToDelete(npc)
   }
+
+  const closeDeleteDialog = () => {
+    setNpcToDelete(null)
+  }
+
+  const handleDeleteDialogChange = (open: boolean) => {
+    if (!open)
+      closeDeleteDialog()
+  }
+
+  const confirmDeleteNPC = () => {
+    if (!npcToDelete)
+      return
+
+    deleteNPC(campaignId, npcToDelete.id)
+    setNpcToDelete(null)
+  }
+
+  const deleteDialogMessage = npcToDelete
+    ? `This will permanently delete "${npcToDelete.name}".`
+    : 'This will permanently delete the NPC.'
 
   const handleCreateNPC = () => {
     setEditingNPC(undefined)
@@ -275,10 +302,6 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
   const handleModalClose = () => {
     setIsModalOpen(false)
     setEditingNPC(undefined)
-  }
-
-  const handleNPCSaved = (npcId: string) => {
-    console.log('NPC saved:', npcId)
   }
 
   if (!campaign) {
@@ -298,139 +321,159 @@ export const NPCManager: React.FC<NPCManagerProps> = ({
   return (
     <>
       <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-xl font-display">NPC Management</h3>
-          <p className="text-muted-foreground">
-            {filteredAndSortedNPCs.length} of {campaign.npcs.length} NPCs
-          </p>
-        </div>
-        <Button 
-          variant="primary" 
-          size="sm" 
-          className="gap-2"
-          onClick={handleCreateNPC}
-        >
-          <Plus size={16} />
-          Add NPC
-        </Button>
-      </div>
-
-      {/* Filters */}
-      <Card variant="surface">
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-4">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-2 rounded-lg border text-sm"
-              style={{
-                backgroundColor: 'var(--card)',
-                borderColor: 'var(--primary)',
-                color: 'var(--foreground)'
-              }}
-            >
-              <option value="name">Sort by Name</option>
-              <option value="importance">Sort by Importance</option>
-              <option value="firstMet">Sort by First Met</option>
-              <option value="lastSeen">Sort by Last Seen</option>
-            </select>
-
-            <select
-              value={filterByImportance}
-              onChange={(e) => setFilterByImportance(e.target.value as any)}
-              className="px-3 py-2 rounded-lg border text-sm"
-              style={{
-                backgroundColor: 'var(--card)',
-                borderColor: 'var(--primary)',
-                color: 'var(--foreground)'
-              }}
-            >
-              <option value="">All Importance</option>
-              <option value={NPCImportance.HIGH}>High</option>
-              <option value={NPCImportance.MEDIUM}>Medium</option>
-              <option value={NPCImportance.LOW}>Low</option>
-            </select>
-
-            <select
-              value={filterByDisposition}
-              onChange={(e) => setFilterByDisposition(e.target.value as any)}
-              className="px-3 py-2 rounded-lg border text-sm"
-              style={{
-                backgroundColor: 'var(--card)',
-                borderColor: 'var(--primary)',
-                color: 'var(--foreground)'
-              }}
-            >
-              <option value="">All Dispositions</option>
-              <option value={NPCDisposition.FRIENDLY}>Friendly</option>
-              <option value={NPCDisposition.NEUTRAL}>Neutral</option>
-              <option value={NPCDisposition.HOSTILE}>Hostile</option>
-              <option value={NPCDisposition.UNKNOWN}>Unknown</option>
-            </select>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-display">NPC Management</h3>
+            <p className="text-muted-foreground">
+              {filteredAndSortedNPCs.length}
+              {' '}
+              of
+              {campaign.npcs.length}
+              {' '}
+              NPCs
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <Button
+            variant="primary"
+            size="sm"
+            className="gap-2"
+            onClick={handleCreateNPC}
+          >
+            <Plus size={16} />
+            Add NPC
+          </Button>
+        </div>
 
-      {/* NPCs List */}
-      {filteredAndSortedNPCs.length === 0 ? (
-        <Card variant="surface" className="campaign-empty-state">
+        {/* Filters */}
+        <Card variant="surface">
           <CardContent>
-            <div className="text-center space-y-4">
-              <Users size={48} className='mx-auto text-muted-foreground' />
-              <div>
-                <h4 className="font-medium mb-2">
-                  {campaign.npcs.length === 0 ? 'No NPCs added' : 'No NPCs match your filters'}
-                </h4>
-                <p className="text-muted-foreground">
-                  {campaign.npcs.length === 0 
-                    ? 'Add memorable characters you meet during your adventures'
-                    : 'Try adjusting your search terms or filters'
-                  }
-                </p>
-              </div>
-              {campaign.npcs.length === 0 && (
-                <Button 
-                  variant="primary" 
-                  size="md" 
-                  className="gap-2"
-                  onClick={handleCreateNPC}
-                >
-                  <Plus size={16} />
-                  Add First NPC
-                </Button>
-              )}
+            <div className="flex flex-wrap items-center gap-4">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as any)}
+                className="px-3 py-2 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: 'var(--card)',
+                  borderColor: 'var(--primary)',
+                  color: 'var(--foreground)',
+                }}
+              >
+                <option value="name">Sort by Name</option>
+                <option value="importance">Sort by Importance</option>
+                <option value="firstMet">Sort by First Met</option>
+                <option value="lastSeen">Sort by Last Seen</option>
+              </select>
+
+              <select
+                value={filterByImportance}
+                onChange={e => setFilterByImportance(e.target.value as any)}
+                className="px-3 py-2 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: 'var(--card)',
+                  borderColor: 'var(--primary)',
+                  color: 'var(--foreground)',
+                }}
+              >
+                <option value="">All Importance</option>
+                <option value={NPCImportance.HIGH}>High</option>
+                <option value={NPCImportance.MEDIUM}>Medium</option>
+                <option value={NPCImportance.LOW}>Low</option>
+              </select>
+
+              <select
+                value={filterByDisposition}
+                onChange={e => setFilterByDisposition(e.target.value as any)}
+                className="px-3 py-2 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: 'var(--card)',
+                  borderColor: 'var(--primary)',
+                  color: 'var(--foreground)',
+                }}
+              >
+                <option value="">All Dispositions</option>
+                <option value={NPCDisposition.FRIENDLY}>Friendly</option>
+                <option value={NPCDisposition.NEUTRAL}>Neutral</option>
+                <option value={NPCDisposition.HOSTILE}>Hostile</option>
+                <option value={NPCDisposition.UNKNOWN}>Unknown</option>
+              </select>
             </div>
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredAndSortedNPCs.map((npc, index) => (
-            <motion.div
-              key={npc.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-            >
-              <NPCCard
-                npc={npc}
-                onEdit={handleEditNPC}
-                onDelete={handleDeleteNPC}
-              />
-            </motion.div>
-          ))}
-        </div>
-      )}
+
+        {/* NPCs List */}
+        {filteredAndSortedNPCs.length === 0
+          ? (
+              <Card variant="surface" className="campaign-empty-state">
+                <CardContent>
+                  <div className="text-center space-y-4">
+                    <Users size={48} className="mx-auto text-muted-foreground" />
+                    <div>
+                      <h4 className="font-medium mb-2">
+                        {campaign.npcs.length === 0 ? 'No NPCs added' : 'No NPCs match your filters'}
+                      </h4>
+                      <p className="text-muted-foreground">
+                        {campaign.npcs.length === 0
+                          ? 'Add memorable characters you meet during your adventures'
+                          : 'Try adjusting your search terms or filters'}
+                      </p>
+                    </div>
+                    {campaign.npcs.length === 0 && (
+                      <Button
+                        variant="primary"
+                        size="md"
+                        className="gap-2"
+                        onClick={handleCreateNPC}
+                      >
+                        <Plus size={16} />
+                        Add First NPC
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredAndSortedNPCs.map((npc, index) => (
+                  <motion.div
+                    key={npc.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <NPCCard
+                      npc={npc}
+                      onEdit={handleEditNPC}
+                      onDelete={handleDeleteRequest}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
       </div>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete NPC</AlertDialogTitle>
+            <AlertDialogDescription>{deleteDialogMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteNPC} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* NPC Modal */}
       <NPCModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
         campaignId={campaignId}
-        npc={editingNPC}
-        onSaved={handleNPCSaved}
+        npc={editingNPC}
       />
     </>
   )

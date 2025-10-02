@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test'
-import { injectAxe, checkA11y } from '@axe-core/playwright'
+import { checkA11y, injectAxe } from '@axe-core/playwright'
+import { expect, test } from '@playwright/test'
 
 test.describe('Accessibility Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -10,7 +10,7 @@ test.describe('Accessibility Tests', () => {
   test('homepage has no accessibility violations', async ({ page }) => {
     await checkA11y(page, undefined, {
       detailedReport: true,
-      detailedReportOptions: { html: true }
+      detailedReportOptions: { html: true },
     })
   })
 
@@ -23,9 +23,9 @@ test.describe('Accessibility Tests', () => {
       axeOptions: {
         rules: {
           // Gaming apps may have intentional color contrast for theming
-          'color-contrast': { enabled: false }
-        }
-      }
+          'color-contrast': { enabled: false },
+        },
+      },
     })
   })
 
@@ -57,8 +57,8 @@ test.describe('Accessibility Tests', () => {
         axeOptions: {
           rules: {
             'nested-interactive': { enabled: false }, // Gaming UIs may have complex interactions
-          }
-        }
+          },
+        },
       })
 
       // Navigate to next step if not the last one
@@ -81,9 +81,9 @@ test.describe('Accessibility Tests', () => {
     await checkA11y(page, '[data-testid="command-palette"]', {
       axeOptions: {
         rules: {
-          'aria-input-field-name': { enabled: true }
-        }
-      }
+          'aria-input-field-name': { enabled: true },
+        },
+      },
     })
 
     // Test keyboard navigation in results
@@ -105,9 +105,9 @@ test.describe('Accessibility Tests', () => {
       await checkA11y(page, 'main', {
         axeOptions: {
           rules: {
-            'color-contrast': { enabled: false } // Themes may have intentional contrast
-          }
-        }
+            'color-contrast': { enabled: false }, // Themes may have intentional contrast
+          },
+        },
       })
     }
   })
@@ -117,7 +117,7 @@ test.describe('Accessibility Tests', () => {
     const viewports = [
       { width: 375, height: 667 }, // iPhone SE
       { width: 414, height: 896 }, // iPhone 11
-      { width: 768, height: 1024 } // iPad
+      { width: 768, height: 1024 }, // iPad
     ]
 
     for (const viewport of viewports) {
@@ -128,9 +128,9 @@ test.describe('Accessibility Tests', () => {
       await checkA11y(page, undefined, {
         axeOptions: {
           rules: {
-            'target-size': { enabled: true }
-          }
-        }
+            'target-size': { enabled: true },
+          },
+        },
       })
     }
   })

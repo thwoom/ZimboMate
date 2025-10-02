@@ -5,39 +5,28 @@
  * scannable categories, and dedicated Chronicle settings section.
  */
 
-import React, { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Settings as SettingsIcon,
-  Gamepad2,
-  Palette,
-  FolderOpen,
-  Wrench,
-  HelpCircle,
   BookOpen,
   ChevronDown,
-  Search,
-  Toggle,
+  FolderOpen,
+  Gamepad2,
+  HelpCircle,
   Keyboard,
-  Dice6,
-  Save,
-  Download,
-  Upload,
-  Monitor,
+  Palette,
+  Search,
   Sparkles,
-  Clock,
-  MapPin,
-  FileText,
-  Users
+  Wrench,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Input } from '../ui'
-import { KeyboardShortcutsPanel } from './KeyboardShortcutsPanel'
-import { PerformanceMonitor } from './PerformanceMonitor'
+import React, { useMemo, useState } from 'react'
+import { useChronicle } from '../chronicle/ChronicleProvider'
+import { FileManagementPanel } from '../game/FileManagementPanel'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
 import { AccessibilityChecker } from './AccessibilityChecker'
 import { HelpSystem } from './HelpSystem'
-import { FileManagementPanel } from '../game/FileManagementPanel'
+import { KeyboardShortcutsPanel } from './KeyboardShortcutsPanel'
+import { PerformanceMonitor } from './PerformanceMonitor'
 import { ThemeComponentShowcase } from './ThemeComponentShowcase'
-import { useChronicle } from '../chronicle/ChronicleProvider'
 
 interface SettingsPanelProps {
   className?: string
@@ -46,11 +35,61 @@ interface SettingsPanelProps {
 interface SettingsCategory {
   id: string
   title: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: React.ComponentType<{ size?: number, className?: string }>
   description: string
   color: string
   expanded?: boolean
   featured?: boolean
+}
+
+type ChronicleOverlayPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
+
+const SETTINGS_CATEGORIES: SettingsCategory[] = [
+  {
+    id: 'gameplay',
+    title: 'Gameplay Settings',
+    icon: Gamepad2,
+    description: 'Chronicle settings, keyboard shortcuts, and gameplay preferences',
+    color: 'var(--primary)',
+    featured: true,
+  },
+  {
+    id: 'interface',
+    title: 'Interface & Theme',
+    icon: Palette,
+    description: 'Theme selection, component showcase, and visual preferences',
+    color: 'var(--secondary)',
+  },
+  {
+    id: 'data',
+    title: 'Data Management',
+    icon: FolderOpen,
+    description: 'Import, export, backup, and file management',
+    color: 'var(--nature-500)',
+  },
+  {
+    id: 'system',
+    title: 'System & Performance',
+    icon: Wrench,
+    description: 'Performance monitoring, debug tools, and system settings',
+    color: 'var(--orange-500)',
+  },
+  {
+    id: 'help',
+    title: 'Help & Support',
+    icon: HelpCircle,
+    description: 'Help system, guides, and keyboard shortcuts reference',
+    color: 'var(--purple-500)',
+  },
+]
+
+const OVERLAY_POSITIONS: ChronicleOverlayPosition[] = ['top-right', 'top-left', 'bottom-right', 'bottom-left']
+
+function formatOverlayPosition(position: ChronicleOverlayPosition) {
+  return position
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }
 
 const ExpandableSettingsCard: React.FC<{
@@ -88,7 +127,8 @@ const ExpandableSettingsCard: React.FC<{
                   )}
                 </CardTitle>
                 <p
-                  className="text-sm mt-1 text-muted-foreground">
+                  className="text-sm mt-1 text-muted-foreground"
+                >
                   {category.description}
                 </p>
               </div>
@@ -131,7 +171,7 @@ const GameplaySettingsContent: React.FC = () => {
     overlayPosition,
     setOverlayPosition,
     maxPrompts,
-    setMaxPrompts
+    setMaxPrompts,
   } = useChronicle()
 
   const [autoSave, setAutoSave] = useState(true)
@@ -176,18 +216,19 @@ const GameplaySettingsContent: React.FC = () => {
                 </div>
                 <select
                   value={overlayPosition}
-                  onChange={(e) => setOverlayPosition(e.target.value as any)}
+                  onChange={event => setOverlayPosition(event.target.value as ChronicleOverlayPosition)}
                   className="px-3 py-1 rounded border text-sm"
                   style={{
                     backgroundColor: 'var(--card)',
                     borderColor: 'var(--border)',
-                    color: 'var(--foreground)'
+                    color: 'var(--foreground)',
                   }}
                 >
-                  <option value="top-right">Top Right</option>
-                  <option value="top-left">Top Left</option>
-                  <option value="bottom-right">Bottom Right</option>
-                  <option value="bottom-left">Bottom Left</option>
+                  {OVERLAY_POSITIONS.map(position => (
+                    <option key={position} value={position}>
+                      {formatOverlayPosition(position)}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -291,57 +332,19 @@ const GameplaySettingsContent: React.FC = () => {
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
-  className = ''
+  className = '',
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['gameplay'])
   const [themeShowcaseOpen, setThemeShowcaseOpen] = useState(false)
 
-  const categories: SettingsCategory[] = [
-    {
-      id: 'gameplay',
-      title: 'Gameplay Settings',
-      icon: Gamepad2,
-      description: 'Chronicle settings, keyboard shortcuts, and gameplay preferences',
-      color: 'var(--primary)',
-      featured: true
-    },
-    {
-      id: 'interface',
-      title: 'Interface & Theme',
-      icon: Palette,
-      description: 'Theme selection, component showcase, and visual preferences',
-      color: 'var(--secondary)'
-    },
-    {
-      id: 'data',
-      title: 'Data Management',
-      icon: FolderOpen,
-      description: 'Import, export, backup, and file management',
-      color: 'var(--nature-500)'
-    },
-    {
-      id: 'system',
-      title: 'System & Performance',
-      icon: Wrench,
-      description: 'Performance monitoring, debug tools, and system settings',
-      color: 'var(--orange-500)'
-    },
-    {
-      id: 'help',
-      title: 'Help & Support',
-      icon: HelpCircle,
-      description: 'Help system, guides, and keyboard shortcuts reference',
-      color: 'var(--purple-500)'
-    }
-  ]
-
   const filteredCategories = useMemo(() => {
-    if (!searchQuery.trim()) return categories
+    if (!searchQuery.trim())
+      return SETTINGS_CATEGORIES
 
-    return categories.filter(category =>
-      category.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchQuery.toLowerCase())
+    return SETTINGS_CATEGORIES.filter(category =>
+      category.title.toLowerCase().includes(searchQuery.toLowerCase())
+      || category.description.toLowerCase().includes(searchQuery.toLowerCase()),
     )
   }, [searchQuery])
 
@@ -349,7 +352,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setExpandedCategories(prev =>
       prev.includes(categoryId)
         ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     )
   }
 
@@ -401,7 +404,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               className="p-4 rounded-lg border"
               style={{
                 backgroundColor: 'var(--popover)',
-                borderColor: 'var(--border)'
+                borderColor: 'var(--border)',
               }}
             >
               <h4 className="text-sm font-semibold mb-2">Need more assistance?</h4>
@@ -409,7 +412,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 Explore the in-app help center, review the latest release notes, or reach out to your GM for tailored guidance.
               </p>
               <ul className="text-xs space-y-2 text-muted-foreground">
-                <li>• Use the Command Palette (<kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd>) to jump to tools quickly.</li>
+                <li>
+                  • Use the Command Palette (
+                  <kbd>Ctrl</kbd>
+                  /
+                  <kbd>⌘</kbd>
+                  {' '}
+                  +
+                  <kbd>K</kbd>
+                  ) to jump to tools quickly.
+                </li>
                 <li>• Visit the Knowledge Base from the Help menu for setup walkthroughs and FAQs.</li>
                 <li>• Join the community Discord to share rulings, house rules, and collaborative campaigns.</li>
               </ul>
@@ -444,18 +456,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             <div className="relative">
               <Search
                 size={16}
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+              />
               <input
                 type="text"
                 placeholder="Search settings..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border transition-colors"
                 style={{
                   backgroundColor: 'var(--card)',
                   borderColor: 'var(--primary)',
                   borderOpacity: 0.2,
-                  color: 'var(--foreground)'
+                  color: 'var(--foreground)',
                 }}
               />
             </div>
@@ -464,7 +477,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
         {/* Settings Categories */}
         <div className="space-y-4">
-          {filteredCategories.map((category) => (
+          {filteredCategories.map(category => (
             <ExpandableSettingsCard
               key={category.id}
               category={category}
@@ -501,5 +514,3 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 }
 
 export default SettingsPanel
-
-

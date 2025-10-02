@@ -3,20 +3,20 @@
  * Phase 4A: Essential for understanding debility impact
  */
 
-import React from 'react'
+import type { Attribute, Character, Debilities } from '../../../models/Character'
 import { motion } from 'framer-motion'
-import { 
-  TrendingDown,
-  Dice6,
+import {
   Activity,
-  Zap,
+  Dice6,
   Heart,
   HelpCircle,
-  User
+  TrendingDown,
+  User,
+  Zap,
 } from 'lucide-react'
-import { Card, CardContent, Badge } from '../../ui'
-import type { Character, Attribute, Debilities } from '../../../models/Character'
+import React from 'react'
 import { getAttributeModifier, getEffectiveModifier } from '../../../models/Character'
+import { Badge, Card, CardContent } from '../../ui'
 
 interface DebilityEffectsProps {
   character: Character
@@ -25,11 +25,13 @@ interface DebilityEffectsProps {
 
 export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
   character,
-  debilities
+  debilities,
 }) => {
   const getScore = (v: any): number => {
-    if (typeof v === 'number') return v
-    if (v && typeof v.value === 'number') return v.value
+    if (typeof v === 'number')
+      return v
+    if (v && typeof v.value === 'number')
+      return v.value
     return 10
   }
 
@@ -57,19 +59,19 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
     }
   }
 
-  const attributeEffects = (Object.keys(character.attributes) as Attribute[]).map(attr => {
+  const attributeEffects = (Object.keys(character.attributes) as Attribute[]).map((attr) => {
     const score = getScore((character.attributes as any)[attr])
     const baseModifier = getAttributeModifier(score)
     const effectiveModifier = getEffectiveModifier(attr, normalizedAttributes as any, debilities)
     const penalty = baseModifier - effectiveModifier
-    
+
     return {
       attribute: attr,
       score,
       baseModifier,
       effectiveModifier,
       penalty,
-      hasDebility: penalty > 0
+      hasDebility: penalty > 0,
     }
   }).filter(effect => effect.hasDebility)
 
@@ -96,7 +98,10 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
               </div>
               <Badge variant="default" className="gap-1 bg-destructive/15 text-destructive">
                 <Dice6 size={12} />
-                -{totalPenalty} to rolls
+                -
+                {totalPenalty}
+                {' '}
+                to rolls
               </Badge>
             </div>
 
@@ -115,23 +120,34 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
                       {getAttributeIcon(effect.attribute)}
                       <span className="font-medium">{effect.attribute}</span>
                       <Badge variant="secondary" className="text-xs">
-                        Score: {effect.score}
+                        Score:
+                        {' '}
+                        {effect.score}
                       </Badge>
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-destructive">
-                        <span className="line-through">+{effect.baseModifier}</span>
+                        <span className="line-through">
+                          +
+                          {effect.baseModifier}
+                        </span>
                         {' → '}
                         <span className="font-bold">
-                          {effect.effectiveModifier >= 0 ? '+' : ''}{effect.effectiveModifier}
+                          {effect.effectiveModifier >= 0 ? '+' : ''}
+                          {effect.effectiveModifier}
                         </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-sm text-destructive">
                     <TrendingDown size={14} />
-                    <span>-{effect.penalty} penalty from debility</span>
+                    <span>
+                      -
+                      {effect.penalty}
+                      {' '}
+                      penalty from debility
+                    </span>
                   </div>
                 </motion.div>
               ))}
@@ -146,7 +162,7 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
                     Dice Roll Impact
                   </h4>
                   <p className="text-sm text-chart-4">
-                    When making moves that use affected attributes, you'll roll 2d6 with reduced modifiers. 
+                    When making moves that use affected attributes, you'll roll 2d6 with reduced modifiers.
                     This makes success (10+) harder to achieve and increases the chance of failure (6-).
                   </p>
                   {totalPenalty >= 3 && (
@@ -161,7 +177,9 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
             {/* Healing Reminder */}
             <div className="text-center p-3 bg-primary/10 rounded-lg">
               <p className="text-sm text-primary">
-                <strong>Remember:</strong> Debilities can be healed through rest, medical attention, 
+                <strong>Remember:</strong>
+                {' '}
+                Debilities can be healed through rest, medical attention,
                 magical healing, or specific moves. Work with your GM to find ways to recover!
               </p>
             </div>
@@ -171,9 +189,3 @@ export const DebilityEffects: React.FC<DebilityEffectsProps> = ({
     </motion.div>
   )
 }
-
-
-
-
-
-

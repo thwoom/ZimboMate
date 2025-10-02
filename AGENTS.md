@@ -31,3 +31,9 @@ TypeScript stays strict; favor typed hooks, explicit return values, and pure sel
 ## Testing & Pull Requests
 Run 
 pm run screenshot:analyze on every theme-affecting change; CI enforces the same suite. Hold Vitest coverage near 70% overall (higher for src/stores and src/services). Follow conventional commit prefixes (eat:, ix:, chore:, efactor:). Each PR should list verification commands, link issues, and attach refreshed screenshots whenever visuals shift. Flag any remaining TODOs (e.g., legacy inline styles) so the next agent can finish the pass.
+## AI Integration (ChatGPT Responses)
+Set `OPENAI_API_KEY` in your environment before launching `npm run dev` or `npm run dev:tauri`; without it the storyteller tab falls back to pattern-only prose. Optional overrides:
+- `OPENAI_BASE_URL` for custom gateways (defaults to https://api.openai.com/v1)
+- `OPENAI_RESPONSES_MODEL` when you want something other than `gpt-4.1-mini`
+
+The runtime streams progress events from Tauri via the `llm_progress` channel. Reinitialize with `/init` if you change credentials during a session.

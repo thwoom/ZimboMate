@@ -1,29 +1,29 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import path from 'node:path'
+import process from 'node:process'
 import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react({
       // Enable React Fast Refresh
-      fastRefresh: true
+      fastRefresh: true,
     }),
-    tailwindcss()
+    tailwindcss(),
   ],
   server: {
-    port: 3001,
+    port: 3000,
     strictPort: true,
-    open: false, // Let Tauri handle opening
-    host: '127.0.0.1'
+    open: false, // Let user handle opening
+    host: '127.0.0.1',
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // Resolve legacy imports like "src/lib/utils" without breaking
-      'src': path.resolve(__dirname, './src')
-    }
+      'src': path.resolve(__dirname, './src'),
+    },
   },
   build: {
     // Production optimizations
@@ -32,8 +32,8 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
-      }
+        drop_debugger: true,
+      },
     },
     rollupOptions: {
       output: {
@@ -43,14 +43,14 @@ export default defineConfig({
           ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs'],
           three: ['three', '@react-three/fiber', '@react-three/drei'],
           animation: ['framer-motion', 'lottie-react'],
-          utils: ['zustand', '@tanstack/react-query', 'clsx']
-        }
-      }
+          utils: ['zustand', '@tanstack/react-query', 'clsx'],
+        },
+      },
     },
     // Increase chunk size warning limit for 3D assets
     chunkSizeWarningLimit: 1000,
     // Source maps for debugging in production
-    sourcemap: process.env.NODE_ENV === 'development'
+    sourcemap: process.env.NODE_ENV === 'development',
   },
   optimizeDeps: {
     // Pre-bundle these dependencies
@@ -62,14 +62,14 @@ export default defineConfig({
       '@react-three/fiber',
       '@react-three/drei',
       'zustand',
-      '@tanstack/react-query'
+      '@tanstack/react-query',
     ],
     // Exclude these from pre-bundling
-    exclude: ['@testing-library/react']
+    exclude: ['@testing-library/react'],
   },
   // Performance optimizations
   esbuild: {
     // Remove console.log in production
-    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
-  }
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+  },
 })

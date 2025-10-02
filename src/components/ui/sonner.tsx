@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
-import { Toaster as Sonner, type ToasterProps } from 'sonner'
+import type { ToasterProps } from 'sonner'
+import { Toaster as Sonner } from 'sonner'
 
 type MatsuToasterProps = Omit<ToasterProps, 'theme'> & {
   readonly theme?: 'light' | 'matsu'
@@ -11,7 +12,7 @@ const matsuToastStyles: CSSProperties = {
   '--normal-border': 'var(--border)',
 }
 
-const Toaster = ({ theme = 'matsu', style, ...props }: MatsuToasterProps) => {
+function Toaster({ theme = 'matsu', style, ...props }: MatsuToasterProps) {
   const mergedStyles: CSSProperties = {
     ...matsuToastStyles,
     ...style,

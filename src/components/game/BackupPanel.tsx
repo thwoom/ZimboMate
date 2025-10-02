@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { ShieldCheck, Download, RotateCcw, Calendar, Clock, Archive } from 'lucide-react'
+import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import * as Select from '@radix-ui/react-select'
 import * as Switch from '@radix-ui/react-switch'
-import * as AlertDialog from '@radix-ui/react-alert-dialog'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
-import { Button } from '../ui/Button'
+import { motion } from 'framer-motion'
+import { Archive, Calendar, Clock, Download, RotateCcw, ShieldCheck } from 'lucide-react'
+import React, { useState } from 'react'
+import { BackupFrequency, formatDateTime, formatFileSize, mockFileManagement } from '../../fileManagementMockData'
 import { Badge } from '../ui/Badge'
-import { BackupFrequency, formatFileSize, formatDateTime, mockFileManagement } from '../../fileManagementMockData'
+import { Button } from '../ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card'
 
 interface BackupPanelProps {
   onBackup: (options: any) => void
@@ -18,7 +18,7 @@ interface BackupPanelProps {
 export const BackupPanel: React.FC<BackupPanelProps> = ({
   onBackup,
   onRestore,
-  operationInProgress
+  operationInProgress,
 }) => {
   const [autoBackup, setAutoBackup] = useState(true)
   const [backupFrequency, setBackupFrequency] = useState<BackupFrequency>(BackupFrequency.DAILY)
@@ -29,14 +29,14 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
     { value: BackupFrequency.DAILY, label: 'Daily', description: 'Backup every day at 3:00 AM' },
     { value: BackupFrequency.WEEKLY, label: 'Weekly', description: 'Backup every Sunday at 3:00 AM' },
     { value: BackupFrequency.MONTHLY, label: 'Monthly', description: 'Backup on the 1st of each month' },
-    { value: BackupFrequency.NEVER, label: 'Never', description: 'Disable automatic backups' }
+    { value: BackupFrequency.NEVER, label: 'Never', description: 'Disable automatic backups' },
   ]
 
   const handleCreateBackup = () => {
     onBackup({
       type: 'manual',
       includeAll: true,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
   }
 
@@ -53,11 +53,13 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
   }
 
   const getBackupTypeBadge = (isAutomatic: boolean) => {
-    return isAutomatic ? (
-      <Badge variant="secondary">Auto</Badge>
-    ) : (
-      <Badge variant="outline">Manual</Badge>
-    )
+    return isAutomatic
+      ? (
+          <Badge variant="secondary">Auto</Badge>
+        )
+      : (
+          <Badge variant="outline">Manual</Badge>
+        )
   }
 
   return (
@@ -76,8 +78,9 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium mb-1">Automatic Backups</h4>
-                <p 
-                  className="text-sm text-muted-foreground">
+                <p
+                  className="text-sm text-muted-foreground"
+                >
                   Automatically create backups of your data
                 </p>
               </div>
@@ -86,13 +89,13 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
                 onCheckedChange={setAutoBackup}
                 className="w-11 h-6 rounded-full relative"
                 style={{
-                  backgroundColor: autoBackup ? 'var(--primary)' : 'var(--border)'
+                  backgroundColor: autoBackup ? 'var(--primary)' : 'var(--border)',
                 }}
               >
-                <Switch.Thumb 
+                <Switch.Thumb
                   className="block w-5 h-5 bg-card rounded-full transition-transform duration-100 translate-x-0.5"
                   style={{
-                    transform: autoBackup ? 'translateX(18px)' : 'translateX(2px)'
+                    transform: autoBackup ? 'translateX(18px)' : 'translateX(2px)',
                   }}
                 />
               </Switch.Root>
@@ -107,31 +110,33 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
               >
                 <div>
                   <label className="text-sm font-medium mb-2 block">Backup Frequency</label>
-                  <Select.Root 
-                    value={backupFrequency} 
-                    onValueChange={(value) => setBackupFrequency(value as BackupFrequency)}
+                  <Select.Root
+                    value={backupFrequency}
+                    onValueChange={value => setBackupFrequency(value as BackupFrequency)}
                   >
-                    <Select.Trigger 
+                    <Select.Trigger
                       className="w-full p-3 border rounded-lg flex items-center justify-between"
-                      style={{ 
+                      style={{
                         borderColor: 'var(--border)',
-                        backgroundColor: 'var(--card)'
+                        backgroundColor: 'var(--card)',
                       }}
                     >
                       <Select.Value />
                     </Select.Trigger>
-                    <Select.Content 
-                      className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card">
-                      {frequencyOptions.map((option) => (
-                        <Select.Item 
-                          key={option.value} 
+                    <Select.Content
+                      className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card"
+                    >
+                      {frequencyOptions.map(option => (
+                        <Select.Item
+                          key={option.value}
                           value={option.value}
                           className="p-3 hover:bg-surface-elevated cursor-pointer"
                         >
                           <div>
                             <div className="font-medium">{option.label}</div>
-                            <div 
-                              className="text-sm text-muted-foreground">
+                            <div
+                              className="text-sm text-muted-foreground"
+                            >
                               {option.description}
                             </div>
                           </div>
@@ -148,8 +153,9 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium mb-1">Manual Backup</h4>
-                  <p 
-                    className="text-sm text-muted-foreground">
+                  <p
+                    className="text-sm text-muted-foreground"
+                  >
                     Create a backup right now
                   </p>
                 </div>
@@ -177,13 +183,15 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
               Backup History
             </CardTitle>
             <Badge variant="secondary">
-              {mockFileManagement.backupHistory.length} backups
+              {mockFileManagement.backupHistory.length}
+              {' '}
+              backups
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {mockFileManagement.backupHistory.map((backup) => (
+            {mockFileManagement.backupHistory.map(backup => (
               <motion.div
                 key={backup.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -201,7 +209,10 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>{formatFileSize(backup.size)}</span>
                         <span>{formatDateTime(backup.created)}</span>
-                        <span>Contains: {backup.contains.join(', ')}</span>
+                        <span>
+                          Contains:
+                          {backup.contains.join(', ')}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -277,8 +288,9 @@ export const BackupPanel: React.FC<BackupPanelProps> = ({
       <AlertDialog.Root open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
         <AlertDialog.Portal>
           <AlertDialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-          <AlertDialog.Content 
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 rounded-lg shadow-lg z-50 bg-card">
+          <AlertDialog.Content
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 rounded-lg shadow-lg z-50 bg-card"
+          >
             <AlertDialog.Title className="text-lg font-medium mb-2">
               Confirm Restore
             </AlertDialog.Title>

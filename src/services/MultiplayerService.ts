@@ -1,4 +1,9 @@
 /**
+export default multiplayerService
+export const multiplayerService = new MultiplayerService()
+import { logger } from '../utils/logger'
+export default multiplayerService
+/**
  * MultiplayerService - WebSocket connection management and real-time synchronization
  * Handles session management, player coordination, and state synchronization
  */
@@ -35,7 +40,7 @@ export interface MultiplayerEvent {
   type: string
   playerId: string
   sessionId: string
-  data: any
+  data: unknown
   timestamp: Date
 }
 
@@ -51,8 +56,66 @@ export interface DiceRollEvent {
   timestamp: Date
 }
 
+interface SessionCreatedMessage {
+  type: 'session_created'
+  session: GameSession
+  player: Player
+}
+
+interface SessionJoinedMessage {
+  type: 'session_joined'
+  session: GameSession
+  player: Player
+}
+
+interface ErrorMessage {
+  type: 'error'
+  message: string
+  code?: string
+}
+
+interface PlayerJoinedMessage {
+  type: 'player_joined'
+  player: Player
+}
+
+interface PlayerLeftMessage {
+  type: 'player_left'
+  playerId: string
+  player: Player
+}
+
+type DiceRollBroadcastMessage = DiceRollEvent & { type: 'dice_roll' }
+
+interface StateSyncMessage {
+  type: 'state_sync'
+  stateType: string
+  data: unknown
+  sessionId?: string
+  timestamp?: string
+}
+
+interface SessionUpdatedMessage {
+  type: 'session_updated'
+  updates: Partial<GameSession>
+}
+
+type IncomingMessage
+  = | SessionCreatedMessage
+    | SessionJoinedMessage
+    | ErrorMessage
+    | PlayerJoinedMessage
+    | PlayerLeftMessage
+    | DiceRollBroadcastMessage
+    | StateSyncMessage
+    | SessionUpdatedMessage
+    | (Record<string, unknown> & { type: string })
+
+type MultiplayerEventHandler = (event: CustomEvent<unknown>) => void
+
 class MultiplayerService {
   private eventTarget: EventTarget
+  private listenerMap = new WeakMap<MultiplayerEventHandler, EventListener>()
   private ws: WebSocket | null = null
   private currentSession: GameSession | null = null
   private currentPlayer: Player | null = null
@@ -67,36 +130,44 @@ class MultiplayerService {
   }
 
   // EventEmitter-like interface using EventTarget
-  on(type: string, callback: (event: any) => void) {
-    this.eventTarget.addEventListener(type, callback as EventListener)
-  }
-
-  off(type: string, callback: (event: any) => void) {
-    this.eventTarget.removeEventListener(type, callback as EventListener)
-  }
-
-  once(type: string, callback: (event: any) => void) {
-    const onceCallback = (event: any) => {
-      callback(event)
-      this.off(type, onceCallback)
+  on(type: string, callback: MultiplayerEventHandler) {
+    const listener: EventListener = (event) => {
+      callback(event as CustomEvent<unknown>)
     }
-    this.on(type, onceCallback)
+    this.eventTarget.addEventListener(type, listener)
+    this.listenerMap.set(callback, listener)
   }
 
-  emit(type: string, detail?: any) {
+  off(type: string, callback: MultiplayerEventHandler) {
+    const listener = this.listenerMap.get(callback)
+    if (listener) {
+      this.eventTarget.removeEventListener(type, listener)
+      this.listenerMap.delete(callback)
+    }
+  }
+
+  once(type: string, callback: MultiplayerEventHandler) {
+    const wrapped: MultiplayerEventHandler = (event) => {
+      callback(event)
+      this.off(type, wrapped)
+    }
+    this.on(type, wrapped)
+  }
+
+  emit(type: string, detail?: unknown) {
     this.eventTarget.dispatchEvent(new CustomEvent(type, { detail }))
   }
 
   private setupEventHandlers() {
-    this.on('connection_lost', this.handleConnectionLost.bind(this))
-    this.on('reconnected', this.handleReconnected.bind(this))
+    this.on('connection_lost', () => this.handleConnectionLost())
+    this.on('reconnected', () => this.handleReconnected())
   }
 
   // Connection Management
   async connect(serverUrl: string = 'ws://localhost:8080'): Promise<boolean> {
     try {
       this.ws = new WebSocket(serverUrl)
-      
+
       return new Promise((resolve, reject) => {
         if (!this.ws) {
           reject(new Error('Failed to create WebSocket'))
@@ -104,7 +175,7 @@ class MultiplayerService {
         }
 
         this.ws.onopen = () => {
-          console.log('Connected to multiplayer server')
+          logger.info('Connected to multiplayer server')
           this.reconnectAttempts = 0
           this.startHeartbeat()
           this.emit('connected')
@@ -116,17 +187,17 @@ class MultiplayerService {
         }
 
         this.ws.onclose = (event) => {
-          console.log('Disconnected from multiplayer server', event.code, event.reason)
+          logger.info('Disconnected from multiplayer server', event.code, event.reason)
           this.stopHeartbeat()
           this.emit('disconnected', { code: event.code, reason: event.reason })
-          
+
           if (event.code !== 1000) { // Not a normal closure
             this.handleConnectionLost()
           }
         }
 
         this.ws.onerror = (error) => {
-          console.error('WebSocket error:', error)
+          logger.error('WebSocket error:', error)
           this.emit('error', error)
           reject(error)
         }
@@ -138,8 +209,9 @@ class MultiplayerService {
           }
         }, 10000)
       })
-    } catch (error) {
-      console.error('Failed to connect:', error)
+    }
+    catch (error) {
+      logger.error('Failed to connect:', error)
       throw error
     }
   }
@@ -157,13 +229,14 @@ class MultiplayerService {
   private handleConnectionLost() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
-      
+      logger.info(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
+
       setTimeout(() => {
-        this.connect().catch(console.error)
+        this.connect().catch(logger.error)
       }, this.reconnectDelay * this.reconnectAttempts)
-    } else {
-      console.error('Max reconnection attempts reached')
+    }
+    else {
+      logger.error('Max reconnection attempts reached')
       this.emit('connection_failed')
     }
   }
@@ -198,13 +271,13 @@ class MultiplayerService {
       shareRolls: true,
       syncCharacters: false,
       requireApproval: false,
-      ...settings
+      ...settings,
     }
 
     const sessionData = {
       name: sessionName,
       playerName,
-      settings: defaultSettings
+      settings: defaultSettings,
     }
 
     return new Promise((resolve, reject) => {
@@ -212,15 +285,16 @@ class MultiplayerService {
         reject(new Error('Session creation timeout'))
       }, 10000)
 
-      const handler = (event: CustomEvent) => {
-        const data = event.detail
+      const handler: MultiplayerEventHandler = (event) => {
+        const data = event.detail as IncomingMessage
         if (data.type === 'session_created') {
           clearTimeout(timeout)
           this.currentSession = data.session
           this.currentPlayer = data.player
           this.emit('session_created', data.session)
           resolve(data.session)
-        } else if (data.type === 'error') {
+        }
+        else if (data.type === 'error') {
           clearTimeout(timeout)
           reject(new Error(data.message))
         }
@@ -237,15 +311,16 @@ class MultiplayerService {
         reject(new Error('Join session timeout'))
       }, 10000)
 
-      const handler = (event: CustomEvent) => {
-        const data = event.detail
+      const handler: MultiplayerEventHandler = (event) => {
+        const data = event.detail as IncomingMessage
         if (data.type === 'session_joined') {
           clearTimeout(timeout)
           this.currentSession = data.session
           this.currentPlayer = data.player
           this.emit('session_joined', data.session)
           resolve(data.session)
-        } else if (data.type === 'error') {
+        }
+        else if (data.type === 'error') {
           clearTimeout(timeout)
           reject(new Error(data.message))
         }
@@ -275,7 +350,7 @@ class MultiplayerService {
       ...rollData,
       playerId: this.currentPlayer.id,
       playerName: this.currentPlayer.name,
-      timestamp: new Date()
+      timestamp: new Date(),
     }
 
     this.send('dice_roll', diceRollEvent)
@@ -283,7 +358,7 @@ class MultiplayerService {
   }
 
   // Real-time Synchronization
-  syncGameState(stateType: string, data: any): void {
+  syncGameState<T>(stateType: string, data: T): void {
     if (!this.currentSession) {
       throw new Error('Not in a session')
     }
@@ -292,14 +367,14 @@ class MultiplayerService {
       sessionId: this.currentSession.id,
       stateType,
       data,
-      timestamp: new Date()
+      timestamp: new Date(),
     })
   }
 
   // Message Handling
   private handleMessage(rawData: string) {
     try {
-      const data = JSON.parse(rawData)
+      const data = JSON.parse(rawData) as IncomingMessage
       this.emit('message', data)
 
       switch (data.type) {
@@ -321,47 +396,49 @@ class MultiplayerService {
         default:
           this.emit(data.type, data)
       }
-    } catch (error) {
-      console.error('Failed to parse message:', error)
+    }
+    catch (error) {
+      logger.error('Failed to parse message:', error)
     }
   }
 
-  private handlePlayerJoined(data: any) {
+  private handlePlayerJoined(data: PlayerJoinedMessage) {
     if (this.currentSession) {
       this.currentSession.players.push(data.player)
       this.emit('player_joined', data.player)
     }
   }
 
-  private handlePlayerLeft(data: any) {
+  private handlePlayerLeft(data: PlayerLeftMessage) {
     if (this.currentSession) {
       this.currentSession.players = this.currentSession.players.filter(
-        p => p.id !== data.playerId
+        p => p.id !== data.playerId,
       )
       this.emit('player_left', data.player)
     }
   }
 
-  private handleDiceRoll(data: DiceRollEvent) {
+  private handleDiceRoll(data: DiceRollBroadcastMessage) {
     this.emit('dice_roll_received', data)
   }
 
-  private handleStateSync(data: any) {
+  private handleStateSync(data: StateSyncMessage) {
     this.emit('state_sync_received', data)
   }
 
-  private handleSessionUpdated(data: any) {
+  private handleSessionUpdated(data: SessionUpdatedMessage) {
     if (this.currentSession) {
       this.currentSession = { ...this.currentSession, ...data.updates }
       this.emit('session_updated', this.currentSession)
     }
   }
 
-  private send(type: string, data: any) {
+  private send(type: string, data: Record<string, unknown>) {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type, ...data }))
-    } else {
-      console.warn('Cannot send message: WebSocket not connected')
+    }
+    else {
+      logger.warn('Cannot send message: WebSocket not connected')
     }
   }
 
@@ -398,7 +475,7 @@ class MultiplayerService {
 
     this.send('kick_player', {
       sessionId: this.currentSession?.id,
-      playerId
+      playerId,
     })
   }
 
@@ -409,7 +486,7 @@ class MultiplayerService {
 
     this.send('update_session', {
       sessionId: this.currentSession?.id,
-      settings
+      settings,
     })
   }
 }

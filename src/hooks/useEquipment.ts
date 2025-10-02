@@ -4,12 +4,12 @@
  * Integrates EquipmentManagementService with character inventory
  */
 
-import { useCallback, useMemo, useState } from 'react'
-import { useCharacter } from './useCharacter'
-import { useInventoryStore } from '../stores/inventoryStore'
-import { equipmentManagementService } from '../services/EquipmentManagementService'
-import { characterStateService } from '../services/CharacterStateService'
 import type { Equipment } from '../models/Equipment'
+import { useCallback, useMemo, useState } from 'react'
+import { characterStateService } from '../services/CharacterStateService'
+import { equipmentManagementService } from '../services/EquipmentManagementService'
+import { useInventoryStore } from '../stores/inventoryStore'
+import { useCharacter } from './useCharacter'
 
 export interface EquipmentWithState extends Equipment {
   equipped: boolean
@@ -49,18 +49,18 @@ export interface UseEquipmentReturn {
   equippedItems: EquipmentWithState[]
   carriedItems: EquipmentWithState[]
   storedItems: EquipmentWithState[]
-  
+
   // Equipment by category
   weapons: EquipmentWithState[]
   armor: EquipmentWithState[]
   gear: EquipmentWithState[]
   consumables: EquipmentWithState[]
-  
+
   // Load management
   loadCalculation: LoadCalculation
   canCarryMore: boolean
   weightToNextThreshold: number
-  
+
   // Equipment operations
   equipItem: (itemId: string) => void
   unequipItem: (itemId: string) => void
@@ -68,7 +68,7 @@ export interface UseEquipmentReturn {
   removeItem: (itemId: string) => void
   updateItemCondition: (itemId: string, condition: EquipmentWithState['condition']) => void
   updateItemCharges: (itemId: string, charges: number) => void
-  
+
   // Equipment sets
   saveEquipmentSet: (name: string) => void
   loadEquipmentSet: (setId: string) => void
@@ -78,15 +78,15 @@ export interface UseEquipmentReturn {
     itemCount: number
     totalWeight: number
   }>
-  
+
   // Drag and drop
   dragDropContext: DragDropContext
-  
+
   // Quick actions
   equipWeapon: (weaponId: string) => void
   equipArmor: (armorId: string) => void
   quickEquipSet: (setName: 'combat' | 'exploration' | 'social') => void
-  
+
   // Character context
   character: any
   isLoading: boolean
@@ -99,10 +99,10 @@ export interface UseEquipmentReturn {
  */
 export function useEquipment(characterId?: string): UseEquipmentReturn {
   const { character, updateLoad, isLoading, error } = useCharacter(characterId)
-  const { 
-    items, 
-    addItem: storeAddItem, 
-    removeItem: storeRemoveItem, 
+  const {
+    items,
+    addItem: storeAddItem,
+    removeItem: storeRemoveItem,
     updateItem: storeUpdateItem,
     getItemsByCharacter,
   } = useInventoryStore()
@@ -112,14 +112,15 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
 
   // Get character's equipment with state
   const allItems = useMemo((): EquipmentWithState[] => {
-    if (!character) return []
+    if (!character)
+      return []
 
     const characterItems = getItemsByCharacter(character.id)
     const characterState = characterStateService.getCharacterState(character.id)
 
-    return characterItems.map(item => {
+    return characterItems.map((item) => {
       const equipmentState = characterState.equipment.find(eq => eq.itemId === item.id)
-      
+
       return {
         ...item,
         equipped: equipmentState?.equipped || false,
@@ -132,25 +133,25 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
   }, [character, getItemsByCharacter, items])
 
   // Categorize equipment
-  const equippedItems = useMemo(() => 
+  const equippedItems = useMemo(() =>
     allItems.filter(item => item.equipped), [allItems])
 
-  const carriedItems = useMemo(() => 
+  const carriedItems = useMemo(() =>
     allItems.filter(item => !item.equipped), [allItems])
 
-  const storedItems = useMemo(() => 
+  const storedItems = useMemo(() =>
     allItems.filter(item => item.tags?.includes('stored')), [allItems])
 
-  const weapons = useMemo(() => 
+  const weapons = useMemo(() =>
     allItems.filter(item => item.category === 'weapon'), [allItems])
 
-  const armor = useMemo(() => 
+  const armor = useMemo(() =>
     allItems.filter(item => item.category === 'armor'), [allItems])
 
-  const gear = useMemo(() => 
+  const gear = useMemo(() =>
     allItems.filter(item => item.category === 'gear'), [allItems])
 
-  const consumables = useMemo(() => 
+  const consumables = useMemo(() =>
     allItems.filter(item => item.category === 'consumable'), [allItems])
 
   // Load calculation
@@ -166,7 +167,7 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     }
 
     const calculation = equipmentManagementService.calculateLoad(character, allItems)
-    
+
     return {
       current: calculation.currentLoad,
       max: calculation.maxLoad,
@@ -180,29 +181,34 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     }
   }, [character, allItems])
 
-  const canCarryMore = useMemo(() => 
+  const canCarryMore = useMemo(() =>
     loadCalculation.current < loadCalculation.max, [loadCalculation])
 
   const weightToNextThreshold = useMemo(() => {
     const { current, max } = loadCalculation
     const lightThreshold = max * 0.33
     const normalThreshold = max * 0.66
-    
-    if (current <= lightThreshold) return lightThreshold - current
-    if (current <= normalThreshold) return normalThreshold - current
+
+    if (current <= lightThreshold)
+      return lightThreshold - current
+    if (current <= normalThreshold)
+      return normalThreshold - current
     return max - current
   }, [loadCalculation])
 
   // Equipment operations
   const equipItem = useCallback((itemId: string) => {
-    if (!character) return
+    if (!character)
+      return
 
     const item = allItems.find(i => i.id === itemId)
-    if (!item) return
+    if (!item)
+      return
 
     // Check if item can be equipped
     const canEquip = equipmentManagementService.canEquipItem(character, item, equippedItems)
-    if (!canEquip.canEquip) return
+    if (!canEquip.canEquip)
+      return
 
     // Update equipment state
     characterStateService.updateCharacterState(character.id, {
@@ -213,8 +219,8 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
           equipped: true,
           condition: 'good',
           modifiers: item.modifiers || [],
-        }
-      ]
+        },
+      ],
     })
 
     // Recalculate load
@@ -223,15 +229,16 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
   }, [character, allItems, equippedItems, updateLoad])
 
   const unequipItem = useCallback((itemId: string) => {
-    if (!character) return
+    if (!character)
+      return
 
     const characterState = characterStateService.getCharacterState(character.id)
     const updatedEquipment = characterState.equipment.map(eq =>
-      eq.itemId === itemId ? { ...eq, equipped: false } : eq
+      eq.itemId === itemId ? { ...eq, equipped: false } : eq,
     )
 
     characterStateService.updateCharacterState(character.id, {
-      equipment: updatedEquipment
+      equipment: updatedEquipment,
     })
 
     // Recalculate load
@@ -240,7 +247,8 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
   }, [character, allItems, updateLoad])
 
   const addItem = useCallback((item: Equipment) => {
-    if (!character) return
+    if (!character)
+      return
 
     const newItem = {
       ...item,
@@ -253,47 +261,50 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
 
   const removeItem = useCallback((itemId: string) => {
     storeRemoveItem(itemId)
-    
+
     // Also remove from character state
     if (character) {
       const characterState = characterStateService.getCharacterState(character.id)
       const updatedEquipment = characterState.equipment.filter(eq => eq.itemId !== itemId)
-      
+
       characterStateService.updateCharacterState(character.id, {
-        equipment: updatedEquipment
+        equipment: updatedEquipment,
       })
     }
   }, [character, storeRemoveItem])
 
   const updateItemCondition = useCallback((itemId: string, condition: EquipmentWithState['condition']) => {
-    if (!character) return
+    if (!character)
+      return
 
     const characterState = characterStateService.getCharacterState(character.id)
     const updatedEquipment = characterState.equipment.map(eq =>
-      eq.itemId === itemId ? { ...eq, condition } : eq
+      eq.itemId === itemId ? { ...eq, condition } : eq,
     )
 
     characterStateService.updateCharacterState(character.id, {
-      equipment: updatedEquipment
+      equipment: updatedEquipment,
     })
   }, [character])
 
   const updateItemCharges = useCallback((itemId: string, charges: number) => {
-    if (!character) return
+    if (!character)
+      return
 
     const characterState = characterStateService.getCharacterState(character.id)
     const updatedEquipment = characterState.equipment.map(eq =>
-      eq.itemId === itemId ? { ...eq, charges } : eq
+      eq.itemId === itemId ? { ...eq, charges } : eq,
     )
 
     characterStateService.updateCharacterState(character.id, {
-      equipment: updatedEquipment
+      equipment: updatedEquipment,
     })
   }, [character])
 
   // Equipment sets
   const saveEquipmentSet = useCallback((name: string) => {
-    if (!character) return
+    if (!character)
+      return
 
     const equipmentSet = {
       id: `set-${Date.now()}`,
@@ -310,16 +321,19 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
   }, [character, equippedItems])
 
   const loadEquipmentSet = useCallback((setId: string) => {
-    if (!character) return
+    if (!character)
+      return
 
     const equipmentSet = equipmentManagementService.getEquipmentSet(setId)
-    if (!equipmentSet) return
+    if (!equipmentSet)
+      return
 
     equipmentManagementService.applyEquipmentSet(character, equipmentSet)
   }, [character])
 
   const availableEquipmentSets = useMemo(() => {
-    if (!character) return []
+    if (!character)
+      return []
 
     return equipmentManagementService.getEquipmentSetsForCharacter(character.id)
       .map(set => ({
@@ -338,17 +352,20 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     draggedItem,
     draggedFromSlot,
     canDrop: (targetSlot: string) => {
-      if (!draggedItem || !character) return false
-      
+      if (!draggedItem || !character)
+        return false
+
       // Implement drop validation logic
       return equipmentManagementService.canEquipItem(character, draggedItem, equippedItems).canEquip
     },
     drop: (targetSlot: string) => {
-      if (!draggedItem) return
+      if (!draggedItem)
+        return
 
       if (targetSlot === 'equipped') {
         equipItem(draggedItem.id)
-      } else if (targetSlot === 'inventory') {
+      }
+      else if (targetSlot === 'inventory') {
         unequipItem(draggedItem.id)
       }
 
@@ -368,7 +385,7 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     if (currentWeapon) {
       unequipItem(currentWeapon.id)
     }
-    
+
     equipItem(weaponId)
   }, [equippedItems, equipItem, unequipItem])
 
@@ -378,7 +395,7 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     if (currentArmor) {
       unequipItem(currentArmor.id)
     }
-    
+
     equipItem(armorId)
   }, [equippedItems, equipItem, unequipItem])
 
@@ -394,18 +411,18 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     equippedItems,
     carriedItems,
     storedItems,
-    
+
     // Equipment by category
     weapons,
     armor,
     gear,
     consumables,
-    
+
     // Load management
     loadCalculation,
     canCarryMore,
     weightToNextThreshold,
-    
+
     // Equipment operations
     equipItem,
     unequipItem,
@@ -413,20 +430,20 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     removeItem,
     updateItemCondition,
     updateItemCharges,
-    
+
     // Equipment sets
     saveEquipmentSet,
     loadEquipmentSet,
     availableEquipmentSets,
-    
+
     // Drag and drop
     dragDropContext,
-    
+
     // Quick actions
     equipWeapon,
     equipArmor,
     quickEquipSet,
-    
+
     // Character context
     character,
     isLoading,

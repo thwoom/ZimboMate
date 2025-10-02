@@ -2,23 +2,22 @@
  * Campaign Overview - Statistics dashboard and quick actions
  */
 
-import React from 'react'
 import { motion } from 'framer-motion'
-import { 
-  Calendar,
+import {
   BookOpen,
-  Users,
-  MapPin,
-  Trophy,
+  Calendar,
   Clock,
-  Plus,
-  Edit,
   Download,
-  Upload
+  Edit,
+  MapPin,
+  Plus,
+  Trophy,
+  Users,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
+import React from 'react'
+import { formatCampaignDuration, formatDateRelative, formatSessionDuration, formatXPTotal, toDate } from '../../../campaignManagementMockData'
 import { useCampaignStore } from '../../../stores/campaignStore'
-import { formatCampaignDuration, formatSessionDuration, formatXPTotal, formatDateRelative, toDate } from '../../../campaignManagementMockData'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
 
 interface CampaignOverviewProps {
   campaignId: string
@@ -48,43 +47,43 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
       value: stats.totalSessions.toString(),
       icon: Calendar,
       color: 'var(--primary)',
-      description: 'Sessions played'
+      description: 'Sessions played',
     },
     {
       title: 'Journal Entries',
       value: stats.totalJournalEntries.toString(),
       icon: BookOpen,
       color: 'var(--accent)',
-      description: 'Important events recorded'
+      description: 'Important events recorded',
     },
     {
       title: 'NPCs Met',
       value: stats.totalNPCs.toString(),
       icon: Users,
       color: 'var(--secondary)',
-      description: 'Characters encountered'
+      description: 'Characters encountered',
     },
     {
       title: 'Locations',
       value: stats.totalLocations.toString(),
       icon: MapPin,
       color: 'var(--chart-5)',
-      description: 'Places discovered'
+      description: 'Places discovered',
     },
     {
       title: 'Total XP',
       value: formatXPTotal(stats.totalXP),
       icon: Trophy,
       color: 'var(--gold-500)',
-      description: 'Experience earned'
+      description: 'Experience earned',
     },
     {
       title: 'Avg Session',
       value: formatSessionDuration(stats.averageSessionLength),
       icon: Clock,
       color: 'var(--primary)',
-      description: 'Average session length'
-    }
+      description: 'Average session length',
+    },
   ]
 
   const recentActivity = [
@@ -92,14 +91,14 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
       type: 'session' as const,
       title: session.title,
       date: session.date,
-      description: `${formatXPTotal(session.xpGained)} earned`
+      description: `${formatXPTotal(session.xpGained)} earned`,
     })),
     ...campaign.journal.slice(-2).map(entry => ({
       type: 'journal' as const,
       title: entry.title,
       date: entry.date,
-      description: entry.isImportant ? 'Important event' : 'Journal entry'
-    }))
+      description: entry.isImportant ? 'Important event' : 'Journal entry',
+    })),
   ].sort((a, b) => toDate(b.date).getTime() - toDate(a.date).getTime()).slice(0, 5)
 
   return (
@@ -110,15 +109,24 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
           <div className="flex items-start justify-between">
             <div>
               <CardTitle>{campaign.name}</CardTitle>
-              <p  className="mt-2 text-muted-foreground">
+              <p className="mt-2 text-muted-foreground">
                 {campaign.description}
               </p>
               <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
-                <span>Created {formatDateRelative(campaign.created)}</span>
+                <span>
+                  Created
+                  {formatDateRelative(campaign.created)}
+                </span>
                 <span>•</span>
-                <span>Active for {formatCampaignDuration(campaign.created)}</span>
+                <span>
+                  Active for
+                  {formatCampaignDuration(campaign.created)}
+                </span>
                 <span>•</span>
-                <span>Last updated {formatDateRelative(campaign.lastModified)}</span>
+                <span>
+                  Last updated
+                  {formatDateRelative(campaign.lastModified)}
+                </span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -149,12 +157,12 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
               <Card variant="surface" className="campaign-stat-card">
                 <CardContent>
                   <div className="space-y-3">
-                    <div 
+                    <div
                       className="w-12 h-12 mx-auto rounded-full flex items-center justify-center"
                       style={{ backgroundColor: stat.color, opacity: 0.2 }}
                     >
-                      <Icon 
-                        size={24} 
+                      <Icon
+                        size={24}
                         style={{ color: stat.color }}
                       />
                     </div>
@@ -165,8 +173,9 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
                       <div className="text-sm font-medium">
                         {stat.title}
                       </div>
-                      <div 
-                        className="text-xs mt-1 text-muted-foreground">
+                      <div
+                        className="text-xs mt-1 text-muted-foreground"
+                      >
                         {stat.description}
                       </div>
                     </div>
@@ -211,40 +220,45 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          {recentActivity.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No recent activity</p>
-              <p className="text-sm mt-1">Start adding sessions and journal entries!</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {recentActivity.map((activity, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg bg-card">
-                  <div className="flex items-center gap-3">
-                    <Badge 
-                      variant={activity.type === 'session' ? 'default' : 'secondary'}
-                      className="text-xs"
+          {recentActivity.length === 0
+            ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No recent activity</p>
+                  <p className="text-sm mt-1">Start adding sessions and journal entries!</p>
+                </div>
+              )
+            : (
+                <div className="space-y-3">
+                  {recentActivity.map((activity, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg bg-card"
                     >
-                      {activity.type}
-                    </Badge>
-                    <div>
-                      <div className="font-medium">{activity.title}</div>
-                      <div 
-                        className="text-sm text-muted-foreground">
-                        {activity.description}
+                      <div className="flex items-center gap-3">
+                        <Badge
+                          variant={activity.type === 'session' ? 'default' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {activity.type}
+                        </Badge>
+                        <div>
+                          <div className="font-medium">{activity.title}</div>
+                          <div
+                            className="text-sm text-muted-foreground"
+                          >
+                            {activity.description}
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className="text-sm text-muted-foreground"
+                      >
+                        {formatDateRelative(activity.date)}
                       </div>
                     </div>
-                  </div>
-                  <div 
-                    className="text-sm text-muted-foreground">
-                    {formatDateRelative(activity.date)}
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
         </CardContent>
       </Card>
 

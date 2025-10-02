@@ -1,5 +1,5 @@
-mod llm_service;
 mod commands;
+mod llm_service;
 
 use commands::AppState;
 use llm_service::LlmService;
@@ -12,19 +12,16 @@ pub fn run() {
     let llm_service = Arc::new(Mutex::new(LlmService::new()));
 
     // Create app state
-    let app_state = AppState {
-        llm_service,
-    };
+    let app_state = AppState { llm_service };
 
     tauri::Builder::default()
         .manage(app_state)
         .invoke_handler(tauri::generate_handler![
-            commands::check_ollama_status,
+            commands::check_llm_status,
             commands::list_models,
             commands::initialize_llm,
             commands::enhance_note,
             commands::is_llm_ready,
-            commands::ensure_model,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

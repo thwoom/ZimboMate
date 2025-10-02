@@ -1,4 +1,4 @@
-import { ColorVariant } from './types/enums'
+import type { ColorVariant } from './types/enums'
 
 interface ColorInfo {
   shade: string
@@ -21,8 +21,8 @@ export const colorPalettes: Record<string, ColorPaletteInfo> = {
       { shade: '200', value: '#f3ede0', name: 'Light' },
       { shade: '500', value: '#d4c8a8', name: 'Base' },
       { shade: '700', value: '#a89d7e', name: 'Dark' },
-      { shade: '900', value: '#6b5940', name: 'Darkest' }
-    ]
+      { shade: '900', value: '#6b5940', name: 'Darkest' },
+    ],
   },
   gold: {
     variant: 'gold',
@@ -32,8 +32,8 @@ export const colorPalettes: Record<string, ColorPaletteInfo> = {
       { shade: '300', value: '#fde047', name: 'Light' },
       { shade: '500', value: '#d4af37', name: 'Base' },
       { shade: '700', value: '#a67c00', name: 'Dark' },
-      { shade: '900', value: '#713f12', name: 'Darkest' }
-    ]
+      { shade: '900', value: '#713f12', name: 'Darkest' },
+    ],
   },
   magic: {
     variant: 'magic',
@@ -43,8 +43,8 @@ export const colorPalettes: Record<string, ColorPaletteInfo> = {
       { shade: '300', value: '#d8b4fe', name: 'Light' },
       { shade: '500', value: '#a855f7', name: 'Base' },
       { shade: '700', value: '#7c3aed', name: 'Dark' },
-      { shade: '900', value: '#581c87', name: 'Darkest' }
-    ]
+      { shade: '900', value: '#581c87', name: 'Darkest' },
+    ],
   },
   nature: {
     variant: 'nature',
@@ -54,9 +54,9 @@ export const colorPalettes: Record<string, ColorPaletteInfo> = {
       { shade: '300', value: '#86efac', name: 'Light' },
       { shade: '500', value: '#22c55e', name: 'Base' },
       { shade: '700', value: '#15803d', name: 'Dark' },
-      { shade: '900', value: '#14532d', name: 'Darkest' }
-    ]
-  }
+      { shade: '900', value: '#14532d', name: 'Darkest' },
+    ],
+  },
 }
 
 // New magical theme information with distinct color separation and creative typography
@@ -72,8 +72,8 @@ export const magicalThemes = {
     typography: {
       display: 'Uncial Antiqua - Ancient manuscript lettering',
       body: 'Spectral - Elegant scholarly reading',
-      personality: 'Medieval manuscripts meet modern readability'
-    }
+      personality: 'Medieval manuscripts meet modern readability',
+    },
   },
   'dragonforge-ember': {
     name: 'Dragonforge Ember',
@@ -86,8 +86,8 @@ export const magicalThemes = {
     typography: {
       display: 'Metamorphous - Bold fantasy lettering',
       body: 'Crimson Text - Strong readable serif',
-      personality: 'Epic fantasy meets battle-hardened strength'
-    }
+      personality: 'Epic fantasy meets battle-hardened strength',
+    },
   },
   'enchanted-grove': {
     name: 'Enchanted Grove',
@@ -100,8 +100,8 @@ export const magicalThemes = {
     typography: {
       display: 'Kalam - Organic handwritten feel',
       body: 'Nunito - Natural rounded sans-serif',
-      personality: 'Nature\'s handwriting meets organic harmony'
-    }
+      personality: 'Nature\'s handwriting meets organic harmony',
+    },
   },
   'arcane-storm': {
     name: 'Arcane Storm',
@@ -114,8 +114,8 @@ export const magicalThemes = {
     typography: {
       display: 'Orbitron - Futuristic electric lettering',
       body: 'Exo 2 - Modern tech aesthetic',
-      personality: 'Cyberpunk magic meets electric energy'
-    }
+      personality: 'Cyberpunk magic meets electric energy',
+    },
   },
   'ancient-sandstone': {
     name: 'Ancient Sandstone',
@@ -128,7 +128,7 @@ export const magicalThemes = {
     typography: {
       display: 'Cinzel - Classical carved stone lettering',
       body: 'Lora - Timeless readable serif',
-      personality: 'Roman inscriptions meet archaeological discovery'
-    }
-  }
+      personality: 'Roman inscriptions meet archaeological discovery',
+    },
+  },
 }

@@ -1,7 +1,8 @@
-import React from 'react'
-import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
 import { motion } from 'framer-motion'
-import { AlertTriangle, RefreshCw, Bug, Copy, ExternalLink } from 'lucide-react'
+import { AlertTriangle, Bug, Copy, ExternalLink, RefreshCw } from 'lucide-react'
+import React from 'react'
+import { logger } from '../../utils/logger'
+import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
 import { Button } from './Button'
 import { Card, CardContent } from './Card'
 
@@ -36,28 +37,27 @@ class ErrorLogger {
       userAgent: navigator.userAgent,
       url: window.location.href,
       consoleWarnings: [...this.consoleWarnings],
-      consoleErrors: [...this.consoleErrors]
+      consoleErrors: [...this.consoleErrors],
     }
 
     this.errors.push(errorData)
-    
+
     // Keep only last 50 errors
     if (this.errors.length > 50) {
       this.errors.shift()
     }
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.group('🚨 Error Boundary Caught Error')
-      console.error('Error:', error)
-      console.error('Component Stack:', errorInfo.componentStack)
-      console.error('Error Info:', errorData)
-      console.groupEnd()
+    if (import.meta.env.DEV) {
+      logger.info('[ErrorBoundary] Caught error')
+      logger.error('Error:', error)
+      logger.error('Component Stack:', errorInfo.componentStack)
+      logger.error('Error Info:', errorData)
     }
 
     // In production, you would send this to your error tracking service
     // Example: Sentry, LogRocket, etc.
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // sendToErrorService(errorData)
     }
   }
@@ -73,26 +73,28 @@ class ErrorLogger {
   }
 
   static captureConsoleWarnings() {
-    const originalWarn = console.warn
-    const originalError = console.error
+    const originalWarn = logger.warn
+    const originalError = logger.error
 
-    console.warn = (...args: any[]) => {
+    logger.warn = (...args: unknown[]) => {
       const message = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ')
       this.consoleWarnings.push(`[${new Date().toISOString()}] ${message}`)
-      if (this.consoleWarnings.length > 20) this.consoleWarnings.shift()
-      originalWarn.apply(console, args)
+      if (this.consoleWarnings.length > 20)
+        this.consoleWarnings.shift()
+      originalWarn(...args)
     }
 
-    console.error = (...args: any[]) => {
+    logger.error = (...args: unknown[]) => {
       const message = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ')
       this.consoleErrors.push(`[${new Date().toISOString()}] ${message}`)
-      if (this.consoleErrors.length > 20) this.consoleErrors.shift()
-      originalError.apply(console, args)
+      if (this.consoleErrors.length > 20)
+        this.consoleErrors.shift()
+      originalError(...args)
     }
 
     return () => {
-      console.warn = originalWarn
-      console.error = originalError
+      logger.warn = originalWarn
+      logger.error = originalError
     }
   }
 }
@@ -107,7 +109,7 @@ interface ErrorFallbackProps {
 const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   error,
   resetErrorBoundary,
-  errorId
+  errorId,
 }) => {
   const [showDetails, setShowDetails] = React.useState(false)
   const [copied, setCopied] = React.useState(false)
@@ -126,15 +128,16 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
       stack: error.stack,
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
     }
 
     try {
       await navigator.clipboard.writeText(JSON.stringify(errorDetails, null, 2))
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error('Failed to copy error details:', err)
+    }
+    catch (err) {
+      logger.error('Failed to copy error details:', err)
     }
   }
 
@@ -177,11 +180,13 @@ URL: ${window.location.href}
                   Oops! Something went wrong
                 </h1>
                 <p className="text-muted-foreground mb-4">
-                  The magical energies seem to have gotten tangled. Don't worry, 
+                  The magical energies seem to have gotten tangled. Don't worry,
                   your data is safe and we can get you back to adventuring!
                 </p>
                 <div className="text-sm text-muted-foreground font-mono bg-muted/50 p-2 rounded">
-                  Error ID: {errorId}
+                  Error ID:
+                  {' '}
+                  {errorId}
                 </div>
               </div>
 
@@ -195,14 +200,16 @@ URL: ${window.location.href}
                   <RefreshCw size={16} />
                   Try Again
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => setShowDetails(!showDetails)}
                   className="gap-2"
                 >
                   <Bug size={16} />
-                  {showDetails ? 'Hide' : 'Show'} Details
+                  {showDetails ? 'Hide' : 'Show'}
+                  {' '}
+                  Details
                 </Button>
 
                 <Button
@@ -220,7 +227,9 @@ URL: ${window.location.href}
                   className="gap-2"
                 >
                   <Bug size={16} />
-                  {showConsole ? 'Hide' : 'Show'} Console
+                  {showConsole ? 'Hide' : 'Show'}
+                  {' '}
+                  Console
                 </Button>
 
                 <Button
@@ -248,7 +257,7 @@ URL: ${window.location.href}
                         {error.message}
                       </pre>
                     </div>
-                    
+
                     <div>
                       <h3 className="font-medium text-foreground mb-2">Stack Trace:</h3>
                       <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-40">
@@ -331,17 +340,17 @@ interface ErrorBoundaryProps {
 export const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
   children,
   fallback: FallbackComponent = ErrorFallback,
-  onError
+  onError,
 }) => {
   const handleError = React.useCallback((error: Error, errorInfo: React.ErrorInfo) => {
     const errorId = `ERR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    
+
     // Log error
     ErrorLogger.logError(error, errorInfo)
-    
+
     // Call custom error handler if provided
     onError?.(error, errorInfo)
-    
+
     // Store error ID for fallback component
     ;(error as any).errorId = errorId
   }, [onError])
@@ -369,16 +378,16 @@ export const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
 }
 
 // Hook for accessing error boundary functionality
-export const useErrorHandler = () => {
+export function useErrorHandler() {
   const [errors, setErrors] = React.useState<ErrorInfo[]>([])
 
   React.useEffect(() => {
     const updateErrors = () => setErrors(ErrorLogger.getErrors())
-    
+
     // Update errors periodically
     const interval = setInterval(updateErrors, 5000)
     updateErrors()
-    
+
     return () => clearInterval(interval)
   }, [])
 
@@ -390,42 +399,56 @@ export const useErrorHandler = () => {
     },
     reportError: (error: Error, context?: string) => {
       const errorInfo: React.ErrorInfo = {
-        componentStack: context || 'Manual error report'
+        componentStack: context || 'Manual error report',
       }
       ErrorLogger.logError(error, errorInfo)
       setErrors(ErrorLogger.getErrors())
-    }
+    },
   }
 }
 
 // Async error boundary for handling promise rejections
-export const setupGlobalErrorHandling = () => {
-  // Start capturing console warnings and errors
-  ErrorLogger.captureConsoleWarnings()
+export function setupGlobalErrorHandling() {
+  const restoreConsole = ErrorLogger.captureConsoleWarnings()
 
-  // Handle unhandled promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
-    const error = new Error(`Unhandled Promise Rejection: ${event.reason}`)
+  const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    const reason = event.reason instanceof Error
+      ? event.reason
+      : new Error(`Unhandled Promise Rejection: ${String(event.reason)}`)
+
     const errorInfo: React.ErrorInfo = {
-      componentStack: 'Global Promise Rejection Handler'
+      componentStack: 'Global Promise Rejection Handler',
     }
-    ErrorLogger.logError(error, errorInfo)
-    
+    ErrorLogger.logError(reason, errorInfo)
+
     // Prevent the default browser behavior
     event.preventDefault()
-  })
+  }
 
-  // Handle global errors
-  window.addEventListener('error', (event) => {
-    const error = new Error(`Global Error: ${event.message}`)
+  window.addEventListener('unhandledrejection', handleUnhandledRejection)
+
+  const handleError = (event: ErrorEvent) => {
+    const error = event.error instanceof Error
+      ? event.error
+      : new Error(`Global Error: ${event.message}`)
+
     const errorInfo: React.ErrorInfo = {
-      componentStack: `File: ${event.filename}, Line: ${event.lineno}, Column: ${event.colno}`
+      componentStack: `File: ${event.filename}, Line: ${event.lineno}, Column: ${event.colno}`,
     }
     ErrorLogger.logError(error, errorInfo)
-  })
+  }
+
+  window.addEventListener('error', handleError)
+
+  return () => {
+    restoreConsole?.()
+    window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+    window.removeEventListener('error', handleError)
+  }
 }
 
 export default ErrorBoundary
+
 
 
 

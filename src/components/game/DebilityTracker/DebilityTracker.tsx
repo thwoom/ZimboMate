@@ -3,43 +3,44 @@
  * Phase 4A: Essential for Dungeon World debility mechanics
  */
 
-import React from 'react'
+import type { Attribute, Debilities } from '../../../models/Character'
 import { motion } from 'framer-motion'
-import { 
-  AlertTriangle,
+import {
   Activity,
-  Users
+  AlertTriangle,
+  Users,
 } from 'lucide-react'
-import { Card, CardContent, Badge } from '../../ui'
+import React from 'react'
+import { useCharacterStore } from '../../../stores'
+import { Badge, Card, CardContent } from '../../ui'
 import { DebilityCard } from './DebilityCard'
 import { DebilityEffects } from './DebilityEffects'
-import { useCharacterStore } from '../../../stores'
-import type { Debilities, Attribute } from '../../../models/Character'
 
 interface DebilityTrackerProps {
   characterId?: string
   className?: string
 }
 
-export const DebilityTracker: React.FC<DebilityTrackerProps> = ({ 
+export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
   characterId,
-  className = '' 
+  className = '',
 }) => {
-  const { getActiveCharacter, updateCharacter } = useCharacterStore()
+  const updateCharacter = useCharacterStore(state => state.updateCharacter)
+  const character = useCharacterStore(state => (
+    characterId ? state.getCharacter(characterId) : state.getActiveCharacter()
+  ))
 
   // Get character (use active if not specified)
-  const character = characterId 
-    ? useCharacterStore(state => state.getCharacter(characterId))
-    : getActiveCharacter()
 
   if (!character) {
     return (
       <Card variant="surface" className={className}>
         <CardContent>
           <div className="text-center py-8">
-            <Users 
-              size={48} 
-              className="mx-auto mb-4 opacity-50 text-muted-foreground" />
+            <Users
+              size={48}
+              className="mx-auto mb-4 opacity-50 text-muted-foreground"
+            />
             <h3 className="text-lg font-medium mb-2">No Character Selected</h3>
             <p className="text-muted-foreground">
               Select a character to manage their debilities.
@@ -57,7 +58,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
   const updateDebility = (debilityKey: keyof Debilities, active: boolean) => {
     const updatedDebilities = {
       ...character.debilities,
-      [debilityKey]: active
+      [debilityKey]: active,
     }
     updateCharacter(character.id, { debilities: updatedDebilities })
   }
@@ -69,7 +70,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       sick: false,
       stunned: false,
       confused: false,
-      scarred: false
+      scarred: false,
     }
     updateCharacter(character.id, { debilities: clearedDebilities })
   }
@@ -82,7 +83,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       description: 'Your muscles are weakened, reducing your physical strength',
       effect: '-1 to STR rolls',
       color: 'text-destructive bg-destructive/15',
-      active: debilities.weak
+      active: debilities.weak,
     },
     {
       key: 'shaky' as keyof Debilities,
@@ -91,7 +92,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       description: 'Your hands tremble, affecting your dexterity and precision',
       effect: '-1 to DEX rolls',
       color: 'text-chart-4 bg-chart-4/15',
-      active: debilities.shaky
+      active: debilities.shaky,
     },
     {
       key: 'sick' as keyof Debilities,
@@ -100,7 +101,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       description: 'You are ill or poisoned, weakening your constitution',
       effect: '-1 to CON rolls',
       color: 'text-chart-2 bg-chart-2/15',
-      active: debilities.sick
+      active: debilities.sick,
     },
     {
       key: 'stunned' as keyof Debilities,
@@ -109,7 +110,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       description: 'Your mind is dazed, making it hard to think clearly',
       effect: '-1 to INT rolls',
       color: 'text-primary bg-primary/10',
-      active: debilities.stunned
+      active: debilities.stunned,
     },
     {
       key: 'confused' as keyof Debilities,
@@ -118,7 +119,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       description: 'Your perception is clouded, affecting your wisdom',
       effect: '-1 to WIS rolls',
       color: 'text-accent bg-accent/15',
-      active: debilities.confused
+      active: debilities.confused,
     },
     {
       key: 'scarred' as keyof Debilities,
@@ -127,8 +128,8 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       description: 'Physical or emotional scars affect your charisma',
       effect: '-1 to CHA rolls',
       color: 'text-accent bg-pink-100',
-      active: debilities.scarred
-    }
+      active: debilities.scarred,
+    },
   ]
 
   return (
@@ -142,42 +143,47 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge 
-            variant={debilityCount > 0 ? "default" : "secondary"} 
+          <Badge
+            variant={debilityCount > 0 ? 'default' : 'secondary'}
             className={`gap-1 ${debilityCount > 0 ? 'bg-destructive/15 text-destructive' : ''}`}
           >
             <AlertTriangle size={12} />
-            {debilityCount} Active
+            {debilityCount}
+            {' '}
+            Active
           </Badge>
           {debilityCount > 0 && (
             <Badge variant="secondary" className="gap-1">
               <Activity size={12} />
-              -{debilityCount} to rolls
+              -
+              {debilityCount}
+              {' '}
+              to rolls
             </Badge>
           )}
         </div>
       </div>
 
       {/* Overview Card */}
-      <Card variant={debilityCount > 0 ? "magical" : "surface"}>
+      <Card variant={debilityCount > 0 ? 'magical' : 'surface'}>
         <CardContent>
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-3">
-              <AlertTriangle 
-                size={24} 
-                className={debilityCount > 0 ? "text-destructive" : "text-muted-foreground"}
+              <AlertTriangle
+                size={24}
+                className={debilityCount > 0 ? 'text-destructive' : 'text-muted-foreground'}
               />
               <h3 className="text-xl font-medium">
                 {debilityCount > 0 ? `${debilityCount} Active Debilities` : 'No Active Debilities'}
               </h3>
             </div>
-            
-            <p 
-              className="max-w-md mx-auto text-muted-foreground">
-              {debilityCount > 0 
+
+            <p
+              className="max-w-md mx-auto text-muted-foreground"
+            >
+              {debilityCount > 0
                 ? 'These debilities are currently affecting your dice rolls and attribute modifiers.'
-                : 'Your character is in good health with no debilities affecting their abilities.'
-              }
+                : 'Your character is in good health with no debilities affecting their abilities.'}
             </p>
 
             {debilityCount > 0 && (
@@ -188,7 +194,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
                   style={{
                     backgroundColor: 'var(--card)',
                     borderColor: 'var(--border)',
-                    color: 'var(--muted-foreground)'
+                    color: 'var(--muted-foreground)',
                   }}
                 >
                   Clear All Debilities
@@ -210,7 +216,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
           >
             <DebilityCard
               debility={debility}
-              onToggle={(active) => updateDebility(debility.key, active)}
+              onToggle={active => updateDebility(debility.key, active)}
             />
           </motion.div>
         ))}
@@ -218,7 +224,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
 
       {/* Effects Summary */}
       {debilityCount > 0 && (
-        <DebilityEffects 
+        <DebilityEffects
           character={character}
           debilities={debilities}
         />
@@ -258,7 +264,3 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
     </div>
   )
 }
-
-
-
-

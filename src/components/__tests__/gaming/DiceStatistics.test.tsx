@@ -1,19 +1,18 @@
-import { describe, it, expect } from 'vitest'
 import * as fc from 'fast-check'
+import { describe, expect, it } from 'vitest'
 
 // Gaming-specific statistical tests for dice rolling
-describe('Dice Statistics & Game Mechanics', () => {
-
+describe('dice Statistics & Game Mechanics', () => {
   // Mock dice rolling functions (replace with actual imports)
   const roll2d6 = () => Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1
   const rollDie = (sides: number) => Math.floor(Math.random() * sides) + 1
 
-  describe('Dice Probability Distribution', () => {
+  describe('dice Probability Distribution', () => {
     it('2d6 produces statistically valid distribution over many rolls', () => {
-      const rolls = Array(10000).fill(0).map(() => roll2d6())
+      const rolls = Array.from({ length: 10000 }).fill(0).map(() => roll2d6())
 
       // Count occurrences of each result (2-12)
-      const distribution = Array(13).fill(0)
+      const distribution = Array.from({ length: 13 }).fill(0)
       rolls.forEach(roll => distribution[roll]++)
 
       // Check expected probabilities (within reasonable variance)
@@ -22,7 +21,7 @@ describe('Dice Statistics & Game Mechanics', () => {
       expect(distribution[7]).toBeLessThan(1900)
 
       // 2 and 12 should be least common (~2.78%)
-      expect(distribution[2]).toBeGreaterThan(200)   // ~2-4%
+      expect(distribution[2]).toBeGreaterThan(200) // ~2-4%
       expect(distribution[2]).toBeLessThan(400)
       expect(distribution[12]).toBeGreaterThan(200)
       expect(distribution[12]).toBeLessThan(400)
@@ -33,8 +32,8 @@ describe('Dice Statistics & Game Mechanics', () => {
     })
 
     it('single die produces uniform distribution', () => {
-      const rolls = Array(6000).fill(0).map(() => rollDie(6))
-      const distribution = Array(7).fill(0)
+      const rolls = Array.from({ length: 6000 }).fill(0).map(() => rollDie(6))
+      const distribution = Array.from({ length: 7 }).fill(0)
       rolls.forEach(roll => distribution[roll]++)
 
       // Each face should appear roughly 1000 times (±200 for variance)
@@ -46,20 +45,20 @@ describe('Dice Statistics & Game Mechanics', () => {
 
     it('advantage/disadvantage mechanics work correctly', () => {
       // Simulate rolling with advantage (take higher of two rolls)
-      const advantageRolls = Array(1000).fill(0).map(() => {
+      const advantageRolls = Array.from({ length: 1000 }).fill(0).map(() => {
         const roll1 = roll2d6()
         const roll2 = roll2d6()
         return Math.max(roll1, roll2)
       })
 
       // Simulate rolling with disadvantage (take lower of two rolls)
-      const disadvantageRolls = Array(1000).fill(0).map(() => {
+      const disadvantageRolls = Array.from({ length: 1000 }).fill(0).map(() => {
         const roll1 = roll2d6()
         const roll2 = roll2d6()
         return Math.min(roll1, roll2)
       })
 
-      const normalRolls = Array(1000).fill(0).map(() => roll2d6())
+      const normalRolls = Array.from({ length: 1000 }).fill(0).map(() => roll2d6())
 
       const avgAdvantage = advantageRolls.reduce((a, b) => a + b, 0) / 1000
       const avgNormal = normalRolls.reduce((a, b) => a + b, 0) / 1000
@@ -73,7 +72,7 @@ describe('Dice Statistics & Game Mechanics', () => {
     })
   })
 
-  describe('Character Mechanics Property-Based Testing', () => {
+  describe('character Mechanics Property-Based Testing', () => {
     it('character HP never goes below 0 or above max', () => {
       // Simple deterministic test instead of property-based test
       const testCases = [
@@ -121,7 +120,7 @@ describe('Dice Statistics & Game Mechanics', () => {
 
         const totalWeight = items.reduce(
           (total, item) => total + (item.weight * item.quantity),
-          0
+          0,
         )
 
         const isOverloaded = totalWeight > baseLoad
@@ -132,14 +131,14 @@ describe('Dice Statistics & Game Mechanics', () => {
     })
   })
 
-  describe('Game Balance Testing', () => {
+  describe('game Balance Testing', () => {
     it('spell slots regeneration follows rules', () => {
       // Property-based test for spell slot mechanics
       fc.assert(fc.property(
         fc.record({
           level: fc.integer(1, 10),
           restType: fc.constantFrom('short', 'long'),
-          slotsUsed: fc.integer(0, 9)
+          slotsUsed: fc.integer(0, 9),
         }),
         (props) => {
           // Mock spell slot calculation (replace with actual)
@@ -148,14 +147,15 @@ describe('Dice Statistics & Game Mechanics', () => {
 
           if (props.restType === 'long') {
             currentSlots = availableSlots // Full restoration
-          } else if (props.restType === 'short') {
+          }
+          else if (props.restType === 'short') {
             currentSlots = Math.min(availableSlots, currentSlots + 1) // Partial restoration
           }
 
           expect(currentSlots).toBeGreaterThanOrEqual(0)
           expect(currentSlots).toBeLessThanOrEqual(availableSlots)
           return true
-        }
+        },
       ))
     })
 
@@ -169,12 +169,12 @@ describe('Dice Statistics & Game Mechanics', () => {
       }
 
       // Should be reasonable progression
-      expect(xpRequirements[0]).toBe(8)  // Level 1: 8 XP
+      expect(xpRequirements[0]).toBe(8) // Level 1: 8 XP
       expect(xpRequirements[9]).toBe(17) // Level 10: 17 XP
     })
   })
 
-  describe('Random Event Generation', () => {
+  describe('random Event Generation', () => {
     it('generates diverse random encounters', () => {
       const encounters: string[] = []
 
@@ -196,7 +196,7 @@ describe('Dice Statistics & Game Mechanics', () => {
         return counts
       }, {} as Record<string, number>)
 
-      Object.values(typeCounts).forEach(count => {
+      Object.values(typeCounts).forEach((count) => {
         expect(count).toBeLessThan(80) // No type should be >80% of results
       })
     })

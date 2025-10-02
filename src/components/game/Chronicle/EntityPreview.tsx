@@ -2,27 +2,27 @@
  * Entity Preview - Modal for viewing detailed entity information
  */
 
-import React from 'react'
+import type { ChronicleEntry, Entity, EntityType } from '../../../types/chronicle'
 import { motion } from 'framer-motion'
 import {
-  X,
-  Users,
+  ArrowRight,
+  BookOpen,
+  Building,
+  Calendar,
+  Clock,
+  Eye,
+  Hash,
+  HelpCircle,
   MapPin,
   Package,
-  Calendar,
-  HelpCircle,
-  Building,
-  Clock,
-  Hash,
   Star,
-  Eye,
-  ArrowRight,
-  BookOpen
+  Users,
+  X,
 } from 'lucide-react'
-import { Entity, ChronicleEntry, EntityType } from '../../../types/chronicle'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../../ui'
-import { WikiView } from './WikiView'
+import React from 'react'
 import { useChronicleStore } from '../../../stores'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
+import { WikiView } from './WikiView'
 
 interface EntityPreviewProps {
   entity: Entity
@@ -31,7 +31,7 @@ interface EntityPreviewProps {
 }
 
 // Icon mapping for entity types
-const getEntityIcon = (type: EntityType) => {
+function getEntityIcon(type: EntityType) {
   switch (type) {
     case 'character':
       return Users
@@ -49,7 +49,7 @@ const getEntityIcon = (type: EntityType) => {
 }
 
 // Color mapping for entity types
-const getEntityColor = (type: EntityType) => {
+function getEntityColor(type: EntityType) {
   switch (type) {
     case 'character':
       return 'bg-primary/10 text-primary'
@@ -71,13 +71,13 @@ const getEntityColor = (type: EntityType) => {
 export const EntityPreview: React.FC<EntityPreviewProps> = ({
   entity,
   entries,
-  onClose
+  onClose,
 }) => {
   const [showWiki, setShowWiki] = React.useState(false)
   const { getWikiPage } = useChronicleStore()
   // Get relevant entries for this entity
   const entityEntries = entries.filter(entry =>
-    entry.parsedEntities.some(mention => mention.entityId === entity.id)
+    entry.parsedEntities.some(mention => mention.entityId === entity.id),
   ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
   const IconComponent = getEntityIcon(entity.type)
@@ -87,9 +87,12 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
     const diffMs = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-    if (diffDays === 0) return 'Today'
-    if (diffDays === 1) return 'Yesterday'
-    if (diffDays < 7) return `${diffDays} days ago`
+    if (diffDays === 0)
+      return 'Today'
+    if (diffDays === 1)
+      return 'Yesterday'
+    if (diffDays < 7)
+      return `${diffDays} days ago`
     return date.toLocaleDateString()
   }
 
@@ -107,16 +110,19 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         className="w-full max-w-2xl max-h-[90vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <Card variant="magical">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center bg-primary/20">
-                  <IconComponent className="text-primary"
-                    size={24} />
+                  className="w-12 h-12 rounded-lg flex items-center justify-center bg-primary/20"
+                >
+                  <IconComponent
+                    className="text-primary"
+                    size={24}
+                  />
                 </div>
                 <div>
                   <CardTitle className="text-xl">{entity.name}</CardTitle>
@@ -204,7 +210,8 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
                   <div className="flex flex-wrap gap-2">
                     {entity.tags.map((tag, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
-                        #{tag}
+                        #
+                        {tag}
                       </Badge>
                     ))}
                   </div>
@@ -232,13 +239,13 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
                   Recent Appearances
                 </h4>
                 <div className="space-y-3">
-                  {entityEntries.slice(0, 5).map((entry) => (
+                  {entityEntries.slice(0, 5).map(entry => (
                     <div
                       key={entry.id}
                       className="p-3 rounded-lg border"
                       style={{
                         backgroundColor: 'var(--card)',
-                        borderColor: 'var(--border)'
+                        borderColor: 'var(--border)',
                       }}
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
@@ -254,16 +261,18 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
                       <div className="text-sm leading-relaxed">
                         {/* Highlight entity mentions in the text */}
                         {entry.rawText.split(new RegExp(`(@${entity.name})`, 'gi')).map((part, index) =>
-                          part.toLowerCase().includes(`@${entity.name.toLowerCase()}`) ? (
-                            <mark
-                              key={index}
-                              className="bg-yellow-200 text-chart-4 px-1 rounded"
-                            >
-                              {part}
-                            </mark>
-                          ) : (
-                            part
-                          )
+                          part.toLowerCase().includes(`@${entity.name.toLowerCase()}`)
+                            ? (
+                                <mark
+                                  key={index}
+                                  className="bg-yellow-200 text-chart-4 px-1 rounded"
+                                >
+                                  {part}
+                                </mark>
+                              )
+                            : (
+                                part
+                              ),
                         )}
                       </div>
 
@@ -271,7 +280,8 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
                         <div className="flex flex-wrap gap-1 mt-2">
                           {entry.tags.map((tag, tagIndex) => (
                             <Badge key={tagIndex} variant="secondary" className="text-xs">
-                              #{tag}
+                              #
+                              {tag}
                             </Badge>
                           ))}
                         </div>
@@ -281,8 +291,13 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
 
                   {entityEntries.length > 5 && (
                     <div
-                      className="text-center py-2 text-sm text-muted-foreground">
-                      And {entityEntries.length - 5} more appearances...
+                      className="text-center py-2 text-sm text-muted-foreground"
+                    >
+                      And
+                      {' '}
+                      {entityEntries.length - 5}
+                      {' '}
+                      more appearances...
                     </div>
                   )}
                 </div>
@@ -314,7 +329,3 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
     </motion.div>
   )
 }
-
-
-
-

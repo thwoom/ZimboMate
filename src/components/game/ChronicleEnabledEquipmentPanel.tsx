@@ -6,11 +6,11 @@
  * equipped, or interacted with.
  */
 
-import React, { useCallback } from 'react'
-import { EquipmentPanel } from './EquipmentPanel'
-import { useChronicle } from '../chronicle/ChronicleProvider'
 import type { Character } from '../../models/Character'
 import type { Inventory } from '../../models/Inventory'
+import React, { useCallback } from 'react'
+import { useChronicle } from '../chronicle/ChronicleProvider'
+import { EquipmentPanel } from './EquipmentPanel'
 
 interface ChronicleEnabledEquipmentPanelProps {
   character: Character
@@ -31,22 +31,24 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
   onItemDrop,
   onInventoryUpdate,
   enableChronicleIntegration = true,
-  className
+  className,
 }) => {
   const { emitEquipmentAction, isOverlayEnabled } = useChronicle()
 
   // Get item details from inventory
   const getItemDetails = (itemId: string) => {
     const item = character.inventory?.find(item => item.id === itemId)
-    return item ? {
-      name: item.name,
-      type: item.category || 'item',
-      description: item.description || ''
-    } : {
-      name: 'Unknown Item',
-      type: 'item',
-      description: ''
-    }
+    return item
+      ? {
+          name: item.name,
+          type: item.category || 'item',
+          description: item.description || '',
+        }
+      : {
+          name: 'Unknown Item',
+          type: 'item',
+          description: '',
+        }
   }
 
   // Enhanced callbacks with Chronicle integration
@@ -59,7 +61,7 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
         characterName: character.name,
         action: 'equip',
         itemName: item.name,
-        itemType: item.type
+        itemType: item.type,
       })
     }
 
@@ -70,7 +72,7 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
     enableChronicleIntegration,
     isOverlayEnabled,
     emitEquipmentAction,
-    onItemEquip
+    onItemEquip,
   ])
 
   const handleItemUnequip = useCallback((itemId: string) => {
@@ -82,7 +84,7 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
         characterName: character.name,
         action: 'unequip',
         itemName: item.name,
-        itemType: item.type
+        itemType: item.type,
       })
     }
 
@@ -93,7 +95,7 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
     enableChronicleIntegration,
     isOverlayEnabled,
     emitEquipmentAction,
-    onItemUnequip
+    onItemUnequip,
   ])
 
   const handleItemUse = useCallback((itemId: string) => {
@@ -105,7 +107,7 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
         characterName: character.name,
         action: 'use',
         itemName: item.name,
-        itemType: item.type
+        itemType: item.type,
       })
     }
 
@@ -116,7 +118,7 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
     enableChronicleIntegration,
     isOverlayEnabled,
     emitEquipmentAction,
-    onItemUse
+    onItemUse,
   ])
 
   const handleItemDrop = useCallback((itemId: string) => {
@@ -128,7 +130,7 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
         characterName: character.name,
         action: 'drop',
         itemName: item.name,
-        itemType: item.type
+        itemType: item.type,
       })
     }
 
@@ -139,7 +141,7 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
     enableChronicleIntegration,
     isOverlayEnabled,
     emitEquipmentAction,
-    onItemDrop
+    onItemDrop,
   ])
 
   return (
@@ -159,7 +161,15 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
           <div className="flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-primary/10 text-primary">
             <div className={`w-2 h-2 rounded-full ${isOverlayEnabled ? 'bg-chart-2' : 'bg-gray-400'}`} />
             <span>
-              Chronicle {isOverlayEnabled ? 'enabled' : 'disabled'} - Item usage will {isOverlayEnabled ? '' : 'not'} trigger story prompts
+              Chronicle
+              {' '}
+              {isOverlayEnabled ? 'enabled' : 'disabled'}
+              {' '}
+              - Item usage will
+              {' '}
+              {isOverlayEnabled ? '' : 'not'}
+              {' '}
+              trigger story prompts
             </span>
           </div>
         </div>
@@ -170,6 +180,3 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
 
 // Also export the original for backward compatibility
 export { EquipmentPanel }
-
-
-

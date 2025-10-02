@@ -4,11 +4,11 @@
  * Integrates campaignStore with character and session management
  */
 
+import type { Campaign, CampaignSession, JournalEntry, Location, NPC } from '../models/Campaign'
 import { useCallback, useMemo } from 'react'
+import { campaignService } from '../services/CampaignService'
 import { useCampaignStore } from '../stores/campaignStore'
 import { useCharacterStore } from '../stores/characterStore'
-import { campaignService } from '../services/CampaignService'
-import type { Campaign, CampaignSession, JournalEntry, NPC, Location } from '../models/Campaign'
 
 export interface CampaignCharacter {
   id: string
@@ -34,29 +34,29 @@ export interface UseCampaignReturn {
   // Current campaign
   currentCampaign: Campaign | null
   isActiveCampaign: boolean
-  
+
   // Campaign management
   createCampaign: (campaignData: Omit<Campaign, 'id' | 'createdAt' | 'updatedAt'>) => Campaign
   updateCampaign: (updates: Partial<Campaign>) => void
   deleteCampaign: (campaignId: string) => void
   setActiveCampaign: (campaignId: string | null) => void
-  
+
   // Campaign list
   allCampaigns: Campaign[]
   recentCampaigns: Campaign[]
-  
+
   // Character management
   campaignCharacters: CampaignCharacter[]
   addCharacterToCampaign: (characterId: string) => void
   removeCharacterFromCampaign: (characterId: string) => void
   getCharacterCampaigns: (characterId: string) => Campaign[]
-  
+
   // Session management
   campaignSessions: CampaignSession[]
   startCampaignSession: (name: string, characterIds: string[]) => void
   endCampaignSession: () => void
   getSessionHistory: () => CampaignSession[]
-  
+
   // World management
   locations: Location[]
   npcs: NPC[]
@@ -64,21 +64,21 @@ export interface UseCampaignReturn {
   updateLocation: (locationId: string, updates: Partial<Location>) => void
   addNPC: (npc: Omit<NPC, 'id'>) => void
   updateNPC: (npcId: string, updates: Partial<NPC>) => void
-  
+
   // Journal management
   journalEntries: JournalEntry[]
   addJournalEntry: (entry: Omit<JournalEntry, 'id' | 'createdAt'>) => void
   updateJournalEntry: (entryId: string, updates: Partial<JournalEntry>) => void
   deleteJournalEntry: (entryId: string) => void
   searchJournal: (query: string) => JournalEntry[]
-  
+
   // Campaign statistics
   campaignStats: CampaignStats
-  
+
   // Import/Export
   exportCampaign: () => string
   importCampaign: (campaignData: string) => Campaign
-  
+
   // Utility
   isLoading: boolean
   error: string | null
@@ -114,7 +114,8 @@ export function useCampaign(): UseCampaignReturn {
 
   // Current campaign
   const currentCampaign = useMemo(() => {
-    if (!activeCampaignId) return null
+    if (!activeCampaignId)
+      return null
     return campaigns.find(c => c.id === activeCampaignId) || null
   }, [campaigns, activeCampaignId])
 
@@ -122,7 +123,7 @@ export function useCampaign(): UseCampaignReturn {
 
   // Campaign lists
   const allCampaigns = useMemo(() => campaigns, [campaigns])
-  
+
   const recentCampaigns = useMemo(() => {
     return campaigns
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
@@ -131,9 +132,10 @@ export function useCampaign(): UseCampaignReturn {
 
   // Character management
   const campaignCharacters = useMemo((): CampaignCharacter[] => {
-    if (!currentCampaign) return []
+    if (!currentCampaign)
+      return []
 
-    return currentCampaign.characterIds.map(characterId => {
+    return currentCampaign.characterIds.map((characterId) => {
       const character = getCharacter(characterId)
       if (!character) {
         return {
@@ -207,7 +209,8 @@ export function useCampaign(): UseCampaignReturn {
   }, [storeCreateCampaign])
 
   const updateCampaign = useCallback((updates: Partial<Campaign>) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeUpdateCampaign(currentCampaign.id, updates)
   }, [currentCampaign, storeUpdateCampaign])
 
@@ -221,12 +224,14 @@ export function useCampaign(): UseCampaignReturn {
 
   // Character management
   const addCharacterToCampaign = useCallback((characterId: string) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeAddCharacterToCampaign(currentCampaign.id, characterId)
   }, [currentCampaign, storeAddCharacterToCampaign])
 
   const removeCharacterFromCampaign = useCallback((characterId: string) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeRemoveCharacterFromCampaign(currentCampaign.id, characterId)
   }, [currentCampaign, storeRemoveCharacterFromCampaign])
 
@@ -236,7 +241,8 @@ export function useCampaign(): UseCampaignReturn {
 
   // Session management
   const startCampaignSession = useCallback((name: string, characterIds: string[]) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
 
     const session: CampaignSession = {
       id: `session-${Date.now()}`,
@@ -252,10 +258,12 @@ export function useCampaign(): UseCampaignReturn {
   }, [currentCampaign, updateCampaign])
 
   const endCampaignSession = useCallback(() => {
-    if (!currentCampaign || currentCampaign.sessions.length === 0) return
+    if (!currentCampaign || currentCampaign.sessions.length === 0)
+      return
 
     const lastSession = currentCampaign.sessions[currentCampaign.sessions.length - 1]
-    if (lastSession.endTime) return // Already ended
+    if (lastSession.endTime)
+      return // Already ended
 
     const updatedSession = {
       ...lastSession,
@@ -271,59 +279,67 @@ export function useCampaign(): UseCampaignReturn {
   }, [currentCampaign, updateCampaign])
 
   const getSessionHistory = useCallback(() => {
-    return campaignSessions.sort((a, b) => 
-      new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+    return campaignSessions.sort((a, b) =>
+      new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
     )
   }, [campaignSessions])
 
   // World management
   const addLocation = useCallback((location: Omit<Location, 'id'>) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeAddLocation(currentCampaign.id, location)
   }, [currentCampaign, storeAddLocation])
 
   const updateLocation = useCallback((locationId: string, updates: Partial<Location>) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeUpdateLocation(currentCampaign.id, locationId, updates)
   }, [currentCampaign, storeUpdateLocation])
 
   const addNPC = useCallback((npc: Omit<NPC, 'id'>) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeAddNPC(currentCampaign.id, npc)
   }, [currentCampaign, storeAddNPC])
 
   const updateNPC = useCallback((npcId: string, updates: Partial<NPC>) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeUpdateNPC(currentCampaign.id, npcId, updates)
   }, [currentCampaign, storeUpdateNPC])
 
   // Journal management
   const addJournalEntry = useCallback((entry: Omit<JournalEntry, 'id' | 'createdAt'>) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeAddJournalEntry(currentCampaign.id, entry)
   }, [currentCampaign, storeAddJournalEntry])
 
   const updateJournalEntry = useCallback((entryId: string, updates: Partial<JournalEntry>) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeUpdateJournalEntry(currentCampaign.id, entryId, updates)
   }, [currentCampaign, storeUpdateJournalEntry])
 
   const deleteJournalEntry = useCallback((entryId: string) => {
-    if (!currentCampaign) return
+    if (!currentCampaign)
+      return
     storeDeleteJournalEntry(currentCampaign.id, entryId)
   }, [currentCampaign, storeDeleteJournalEntry])
 
   const searchJournal = useCallback((query: string) => {
     return journalEntries.filter(entry =>
-      entry.title.toLowerCase().includes(query.toLowerCase()) ||
-      entry.content.toLowerCase().includes(query.toLowerCase()) ||
-      entry.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+      entry.title.toLowerCase().includes(query.toLowerCase())
+      || entry.content.toLowerCase().includes(query.toLowerCase())
+      || entry.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())),
     )
   }, [journalEntries])
 
   // Import/Export
   const exportCampaign = useCallback(() => {
-    if (!currentCampaign) return ''
+    if (!currentCampaign)
+      return ''
     return campaignService.exportCampaign(currentCampaign)
   }, [currentCampaign])
 
@@ -336,29 +352,29 @@ export function useCampaign(): UseCampaignReturn {
     // Current campaign
     currentCampaign,
     isActiveCampaign,
-    
+
     // Campaign management
     createCampaign,
     updateCampaign,
     deleteCampaign,
     setActiveCampaign,
-    
+
     // Campaign list
     allCampaigns,
     recentCampaigns,
-    
+
     // Character management
     campaignCharacters,
     addCharacterToCampaign,
     removeCharacterFromCampaign,
     getCharacterCampaigns,
-    
+
     // Session management
     campaignSessions,
     startCampaignSession,
     endCampaignSession,
     getSessionHistory,
-    
+
     // World management
     locations,
     npcs,
@@ -366,21 +382,21 @@ export function useCampaign(): UseCampaignReturn {
     updateLocation,
     addNPC,
     updateNPC,
-    
+
     // Journal management
     journalEntries,
     addJournalEntry,
     updateJournalEntry,
     deleteJournalEntry,
     searchJournal,
-    
+
     // Campaign statistics
     campaignStats,
-    
+
     // Import/Export
     exportCampaign,
     importCampaign,
-    
+
     // Utility
     isLoading,
     error,

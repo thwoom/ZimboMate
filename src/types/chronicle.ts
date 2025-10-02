@@ -3,45 +3,45 @@
  * Hybrid Narrative Chronicle + Campaign Wiki implementation
  */
 
-export type EntityType =
-  | 'character'
-  | 'location'
-  | 'organization'
-  | 'item'
-  | 'event'
-  | 'mystery'
-  | 'relationship'
+export type EntityType
+  = | 'character'
+    | 'location'
+    | 'organization'
+    | 'item'
+    | 'event'
+    | 'mystery'
+    | 'relationship'
 
-export type RelationshipType =
-  | 'ally'
-  | 'enemy'
-  | 'family'
-  | 'romantic'
-  | 'business'
-  | 'mentor'
-  | 'unknown'
+export type RelationshipType
+  = | 'ally'
+    | 'enemy'
+    | 'family'
+    | 'romantic'
+    | 'business'
+    | 'mentor'
+    | 'unknown'
 
-export type NarrativeContext =
-  | 'setup'
-  | 'action'
-  | 'consequence'
-  | 'reflection'
-  | 'description'
+export type NarrativeContext
+  = | 'setup'
+    | 'action'
+    | 'consequence'
+    | 'reflection'
+    | 'description'
 
-export type EmotionalTone =
-  | 'tense'
-  | 'triumphant'
-  | 'mysterious'
-  | 'somber'
-  | 'funny'
-  | 'neutral'
+export type EmotionalTone
+  = | 'tense'
+    | 'triumphant'
+    | 'mysterious'
+    | 'somber'
+    | 'funny'
+    | 'neutral'
 
-export type EntityStatus =
-  | 'active'
-  | 'resolved'
-  | 'dormant'
-  | 'unknown'
-  | 'deceased'
+export type EntityStatus
+  = | 'active'
+    | 'resolved'
+    | 'dormant'
+    | 'unknown'
+    | 'deceased'
 
 // Core chronicle entry - the fundamental unit of story
 export interface ChronicleEntry {

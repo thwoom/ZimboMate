@@ -7,10 +7,8 @@ module.exports = {
       args: 'dev-direct.js',
       windowsHide: true,
       env: {
-        NODE_ENV: 'development'
-      }
-    }
-  ]
-};
-
-
+        NODE_ENV: 'development',
+      },
+    },
+  ],
+}

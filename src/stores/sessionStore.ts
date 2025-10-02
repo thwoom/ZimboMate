@@ -4,14 +4,14 @@
  * Integrates with DiceRollingService and CharacterStateService
  */
 
+import type { Note } from '../components/game/SessionTools/NotesWidget'
+import type { SessionTimer, TimeBookmark } from '../components/game/SessionTools/TimersWidget'
+import type { Tracker } from '../components/game/SessionTools/TrackersWidget'
+import type { Condition, ForwardModifier, OngoingModifier } from '../services/CharacterStateService'
+import type { DiceRoll } from '../services/DiceRollingService'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { DiceRoll } from '../services/DiceRollingService'
 import { characterStateService } from '../services/CharacterStateService'
-import type { Condition, OngoingModifier, ForwardModifier } from '../services/CharacterStateService'
-import type { Note } from '../components/game/SessionTools/NotesWidget'
-import type { Tracker } from '../components/game/SessionTools/TrackersWidget'
-import type { SessionTimer, TimeBookmark } from '../components/game/SessionTools/TimersWidget'
 
 // Session state interface
 interface GameSession {
@@ -47,20 +47,20 @@ interface SessionState {
   currentSession: GameSession | null
   isSessionActive: boolean
   sessionStartTime: Date | null
-  
+
   // Roll history
   rollHistory: DiceRoll[]
   maxRollHistory: number
-  
+
   // Session Tools data
   sessionNotes: Note[]
   sessionTrackers: Tracker[]
   sessionTimers: SessionTimer[]
   timeBookmarks: TimeBookmark[]
-  
+
   // Combat state
   combat: CombatState
-  
+
   // Temporary effects (session-only)
   sessionConditions: Array<{
     characterId: string
@@ -70,37 +70,37 @@ interface SessionState {
     characterId: string
     modifier: OngoingModifier | ForwardModifier
   }>
-  
+
   // Session management
   startSession: (name: string, characterIds: string[], campaignId?: string) => void
   endSession: () => void
   updateSessionNotes: (notes: string) => void
   awardXP: (amount: number) => void
-  
+
   // Roll management
   addRoll: (roll: DiceRoll) => void
   clearRollHistory: () => void
   getRecentRolls: (count?: number) => DiceRoll[]
-  
+
   // Notes management
   addNote: (note: Note) => void
   updateNote: (noteId: string, updates: Partial<Note>) => void
   deleteNote: (noteId: string) => void
-  
+
   // Trackers management
   addTracker: (tracker: Tracker) => void
   updateTracker: (trackerId: string, updates: Partial<Tracker>) => void
   deleteTracker: (trackerId: string) => void
-  
+
   // Timers management
   addTimer: (timer: SessionTimer) => void
   updateTimer: (timerId: string, updates: Partial<SessionTimer>) => void
   deleteTimer: (timerId: string) => void
-  
+
   // Bookmarks management
   addBookmark: (bookmark: TimeBookmark) => void
   deleteBookmark: (bookmarkId: string) => void
-  
+
   // Combat management
   startCombat: (characterIds: string[]) => void
   endCombat: () => void
@@ -108,16 +108,16 @@ interface SessionState {
   nextRound: () => void
   setInitiative: (characterId: string, initiative: number) => void
   markCharacterActed: (characterId: string) => void
-  
+
   // Condition management
   addSessionCondition: (characterId: string, condition: Condition) => void
   removeSessionCondition: (characterId: string, conditionId: string) => void
   addSessionModifier: (characterId: string, modifier: OngoingModifier | ForwardModifier) => void
   removeSessionModifier: (characterId: string, modifierId: string) => void
-  
+
   // Time management
   advanceTime: (timeType: 'turn' | 'scene' | 'encounter') => void
-  
+
   // Utility
   getSessionStats: () => {
     duration: number
@@ -187,7 +187,8 @@ export const useSessionStore = create<SessionState>()(
 
       endSession: () => {
         const { currentSession } = get()
-        if (!currentSession) return
+        if (!currentSession)
+          return
 
         const endedSession = {
           ...currentSession,
@@ -217,22 +218,24 @@ export const useSessionStore = create<SessionState>()(
 
       updateSessionNotes: (notes) => {
         const { currentSession } = get()
-        if (!currentSession) return
+        if (!currentSession)
+          return
 
         set({
-          currentSession: { ...currentSession, notes }
+          currentSession: { ...currentSession, notes },
         })
       },
 
       awardXP: (amount) => {
         const { currentSession } = get()
-        if (!currentSession) return
+        if (!currentSession)
+          return
 
         set({
           currentSession: {
             ...currentSession,
-            xpAwarded: currentSession.xpAwarded + amount
-          }
+            xpAwarded: currentSession.xpAwarded + amount,
+          },
         })
       },
 
@@ -241,7 +244,7 @@ export const useSessionStore = create<SessionState>()(
         set((state) => {
           const newHistory = [roll, ...state.rollHistory]
           return {
-            rollHistory: newHistory.slice(0, state.maxRollHistory)
+            rollHistory: newHistory.slice(0, state.maxRollHistory),
           }
         })
       },
@@ -257,83 +260,83 @@ export const useSessionStore = create<SessionState>()(
 
       // Notes management
       addNote: (note) => {
-        set((state) => ({
-          sessionNotes: [...state.sessionNotes, note]
+        set(state => ({
+          sessionNotes: [...state.sessionNotes, note],
         }))
       },
 
       updateNote: (noteId, updates) => {
-        set((state) => ({
+        set(state => ({
           sessionNotes: state.sessionNotes.map(note =>
-            note.id === noteId ? { ...note, ...updates } : note
-          )
+            note.id === noteId ? { ...note, ...updates } : note,
+          ),
         }))
       },
 
       deleteNote: (noteId) => {
-        set((state) => ({
-          sessionNotes: state.sessionNotes.filter(note => note.id !== noteId)
+        set(state => ({
+          sessionNotes: state.sessionNotes.filter(note => note.id !== noteId),
         }))
       },
 
       // Trackers management
       addTracker: (tracker) => {
-        set((state) => ({
-          sessionTrackers: [...state.sessionTrackers, tracker]
+        set(state => ({
+          sessionTrackers: [...state.sessionTrackers, tracker],
         }))
       },
 
       updateTracker: (trackerId, updates) => {
-        set((state) => ({
+        set(state => ({
           sessionTrackers: state.sessionTrackers.map(tracker =>
-            tracker.id === trackerId ? { ...tracker, ...updates } : tracker
-          )
+            tracker.id === trackerId ? { ...tracker, ...updates } : tracker,
+          ),
         }))
       },
 
       deleteTracker: (trackerId) => {
-        set((state) => ({
-          sessionTrackers: state.sessionTrackers.filter(tracker => tracker.id !== trackerId)
+        set(state => ({
+          sessionTrackers: state.sessionTrackers.filter(tracker => tracker.id !== trackerId),
         }))
       },
 
       // Timers management
       addTimer: (timer) => {
-        set((state) => ({
-          sessionTimers: [...state.sessionTimers, timer]
+        set(state => ({
+          sessionTimers: [...state.sessionTimers, timer],
         }))
       },
 
       updateTimer: (timerId, updates) => {
-        set((state) => ({
+        set(state => ({
           sessionTimers: state.sessionTimers.map(timer =>
-            timer.id === timerId ? { ...timer, ...updates } : timer
-          )
+            timer.id === timerId ? { ...timer, ...updates } : timer,
+          ),
         }))
       },
 
       deleteTimer: (timerId) => {
-        set((state) => ({
-          sessionTimers: state.sessionTimers.filter(timer => timer.id !== timerId)
+        set(state => ({
+          sessionTimers: state.sessionTimers.filter(timer => timer.id !== timerId),
         }))
       },
 
       // Bookmarks management
       addBookmark: (bookmark) => {
-        set((state) => ({
-          timeBookmarks: [...state.timeBookmarks, bookmark]
+        set(state => ({
+          timeBookmarks: [...state.timeBookmarks, bookmark],
         }))
       },
 
       deleteBookmark: (bookmarkId) => {
-        set((state) => ({
-          timeBookmarks: state.timeBookmarks.filter(bookmark => bookmark.id !== bookmarkId)
+        set(state => ({
+          timeBookmarks: state.timeBookmarks.filter(bookmark => bookmark.id !== bookmarkId),
         }))
       },
 
       // Combat management
       startCombat: (characterIds) => {
-        set((state) => ({
+        set(state => ({
           combat: {
             ...state.combat,
             isActive: true,
@@ -345,12 +348,12 @@ export const useSessionStore = create<SessionState>()(
               initiative: 0,
               hasActed: false,
             })),
-          }
+          },
         }))
       },
 
       endCombat: () => {
-        set((state) => ({
+        set(state => ({
           combat: {
             ...state.combat,
             isActive: false,
@@ -358,21 +361,22 @@ export const useSessionStore = create<SessionState>()(
             turn: 0,
             initiative: [],
             conditions: [],
-          }
+          },
         }))
       },
 
       nextTurn: () => {
         set((state) => {
           const { combat } = state
-          if (!combat.isActive) return state
+          if (!combat.isActive)
+            return state
 
           const nextTurn = (combat.turn + 1) % combat.initiative.length
           return {
             combat: {
               ...combat,
               turn: nextTurn,
-            }
+            },
           }
         })
       },
@@ -380,7 +384,8 @@ export const useSessionStore = create<SessionState>()(
       nextRound: () => {
         set((state) => {
           const { combat } = state
-          if (!combat.isActive) return state
+          if (!combat.isActive)
+            return state
 
           // Reset all characters' acted status
           const resetInitiative = combat.initiative.map(init => ({
@@ -394,7 +399,7 @@ export const useSessionStore = create<SessionState>()(
               round: combat.round + 1,
               turn: 0,
               initiative: resetInitiative,
-            }
+            },
           }
         })
 
@@ -403,28 +408,28 @@ export const useSessionStore = create<SessionState>()(
       },
 
       setInitiative: (characterId, initiative) => {
-        set((state) => ({
+        set(state => ({
           combat: {
             ...state.combat,
             initiative: state.combat.initiative.map(init =>
               init.characterId === characterId
                 ? { ...init, initiative }
-                : init
+                : init,
             ).sort((a, b) => b.initiative - a.initiative), // Sort by initiative descending
-          }
+          },
         }))
       },
 
       markCharacterActed: (characterId) => {
-        set((state) => ({
+        set(state => ({
           combat: {
             ...state.combat,
             initiative: state.combat.initiative.map(init =>
               init.characterId === characterId
                 ? { ...init, hasActed: true }
-                : init
+                : init,
             ),
-          }
+          },
         }))
       },
 
@@ -432,22 +437,22 @@ export const useSessionStore = create<SessionState>()(
       addSessionCondition: (characterId, condition) => {
         // Add to character state service
         characterStateService.addCondition(characterId, condition)
-        
+
         // Track in session
-        set((state) => ({
-          sessionConditions: [...state.sessionConditions, { characterId, condition }]
+        set(state => ({
+          sessionConditions: [...state.sessionConditions, { characterId, condition }],
         }))
       },
 
       removeSessionCondition: (characterId, conditionId) => {
         // Remove from character state service
         characterStateService.removeCondition(characterId, conditionId)
-        
+
         // Remove from session tracking
-        set((state) => ({
+        set(state => ({
           sessionConditions: state.sessionConditions.filter(
-            sc => !(sc.characterId === characterId && sc.condition.id === conditionId)
-          )
+            sc => !(sc.characterId === characterId && sc.condition.id === conditionId),
+          ),
         }))
       },
 
@@ -455,29 +460,31 @@ export const useSessionStore = create<SessionState>()(
         // Add to character state service
         if ('appliesTo' in modifier && modifier.appliesTo.startsWith('next_')) {
           characterStateService.addForwardModifier(characterId, modifier as ForwardModifier)
-        } else {
+        }
+        else {
           characterStateService.addOngoingModifier(characterId, modifier as OngoingModifier)
         }
-        
+
         // Track in session
-        set((state) => ({
-          sessionModifiers: [...state.sessionModifiers, { characterId, modifier }]
+        set(state => ({
+          sessionModifiers: [...state.sessionModifiers, { characterId, modifier }],
         }))
       },
 
       removeSessionModifier: (characterId, modifierId) => {
         // Remove from session tracking
-        set((state) => ({
+        set(state => ({
           sessionModifiers: state.sessionModifiers.filter(
-            sm => !(sm.characterId === characterId && sm.modifier.id === modifierId)
-          )
+            sm => !(sm.characterId === characterId && sm.modifier.id === modifierId),
+          ),
         }))
       },
 
       // Time management
       advanceTime: (timeType) => {
         const { currentSession } = get()
-        if (!currentSession) return
+        if (!currentSession)
+          return
 
         // Advance time for all characters in the session
         for (const characterId of currentSession.characterIds) {
@@ -488,7 +495,7 @@ export const useSessionStore = create<SessionState>()(
       // Utility
       getSessionStats: () => {
         const { currentSession, rollHistory } = get()
-        
+
         if (!currentSession) {
           return {
             duration: 0,
@@ -499,7 +506,7 @@ export const useSessionStore = create<SessionState>()(
           }
         }
 
-        const duration = currentSession.endTime 
+        const duration = currentSession.endTime
           ? currentSession.endTime.getTime() - currentSession.startTime.getTime()
           : Date.now() - currentSession.startTime.getTime()
 
@@ -518,7 +525,7 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: 'zimbomate-session-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         currentSession: state.currentSession,
         isSessionActive: state.isSessionActive,
         sessionStartTime: state.sessionStartTime,
@@ -528,6 +535,6 @@ export const useSessionStore = create<SessionState>()(
         sessionTimers: state.sessionTimers,
         timeBookmarks: state.timeBookmarks,
       }),
-    }
-  )
+    },
+  ),
 )

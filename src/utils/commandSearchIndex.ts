@@ -3,7 +3,7 @@
  * High-performance search for command palette with fuzzy matching and ranking
  */
 
-import { type Command } from '../components/ui/CommandPalette'
+import type { Command } from '../components/ui/CommandPalette'
 
 interface SearchIndex {
   id: string
@@ -18,12 +18,12 @@ interface SearchIndex {
 class CommandSearchEngine {
   private indexes: Map<string, SearchIndex> = new Map()
   private categoryWeights: Record<string, number> = {
-    'dice': 10,
-    'character': 9,
-    'moves': 8,
-    'equipment': 7,
-    'navigation': 6,
-    'system': 5
+    dice: 10,
+    character: 9,
+    moves: 8,
+    equipment: 7,
+    navigation: 6,
+    system: 5,
   }
 
   /**
@@ -32,12 +32,12 @@ class CommandSearchEngine {
   buildIndex(commands: Command[]): void {
     this.indexes.clear()
 
-    commands.forEach(command => {
-      const tokens = this.tokenize(`${command.title  } ${  command.description || ''}`)
+    commands.forEach((command) => {
+      const tokens = this.tokenize(`${command.title} ${command.description || ''}`)
       const keywords = [
         ...this.extractKeywords(command.title),
         ...this.extractKeywords(command.description || ''),
-        ...(command.shortcut ? [command.shortcut] : [])
+        ...(command.shortcut ? [command.shortcut] : []),
       ]
 
       const index: SearchIndex = {
@@ -47,7 +47,7 @@ class CommandSearchEngine {
         normalizedDescription: this.normalize(command.description || ''),
         category: command.category,
         keywords,
-        weight: this.calculateWeight(command)
+        weight: this.calculateWeight(command),
       }
 
       this.indexes.set(command.id, index)
@@ -60,11 +60,12 @@ class CommandSearchEngine {
    * Fast fuzzy search with ranking
    */
   search(query: string, maxResults: number = 10): string[] {
-    if (!query.trim()) return []
+    if (!query.trim())
+      return []
 
     const normalizedQuery = this.normalize(query)
     const queryTokens = this.tokenize(query)
-    const results: Array<{ id: string; score: number }> = []
+    const results: Array<{ id: string, score: number }> = []
 
     this.indexes.forEach((index, id) => {
       const score = this.calculateScore(normalizedQuery, queryTokens, index)
@@ -105,8 +106,8 @@ class CommandSearchEngine {
 
     // Fuzzy token matching
     let tokenMatches = 0
-    queryTokens.forEach(queryToken => {
-      index.tokens.forEach(indexToken => {
+    queryTokens.forEach((queryToken) => {
+      index.tokens.forEach((indexToken) => {
         if (indexToken.includes(queryToken)) {
           tokenMatches++
           score += 50
@@ -120,7 +121,7 @@ class CommandSearchEngine {
     })
 
     // Keyword matches
-    index.keywords.forEach(keyword => {
+    index.keywords.forEach((keyword) => {
       if (keyword.includes(query)) {
         score += 75
       }
@@ -145,12 +146,16 @@ class CommandSearchEngine {
     let weight = 10 // Base weight
 
     // Higher weight for common actions
-    if (command.title.toLowerCase().includes('roll')) weight += 20
-    if (command.title.toLowerCase().includes('character')) weight += 15
-    if (command.title.toLowerCase().includes('equipment')) weight += 10
+    if (command.title.toLowerCase().includes('roll'))
+      weight += 20
+    if (command.title.toLowerCase().includes('character'))
+      weight += 15
+    if (command.title.toLowerCase().includes('equipment'))
+      weight += 10
 
     // Shortcut commands get priority
-    if (command.shortcut) weight += 25
+    if (command.shortcut)
+      weight += 25
 
     return weight
   }
@@ -182,11 +187,11 @@ class CommandSearchEngine {
 
     // Common synonyms
     const synonymMap: Record<string, string[]> = {
-      'roll': ['dice', 'check', 'test'],
-      'character': ['char', 'pc', 'hero'],
-      'equipment': ['gear', 'items', 'inventory'],
-      'moves': ['actions', 'abilities'],
-      'stats': ['attributes', 'abilities']
+      roll: ['dice', 'check', 'test'],
+      character: ['char', 'pc', 'hero'],
+      equipment: ['gear', 'items', 'inventory'],
+      moves: ['actions', 'abilities'],
+      stats: ['attributes', 'abilities'],
     }
 
     Object.entries(synonymMap).forEach(([key, synonyms]) => {
@@ -199,7 +204,8 @@ class CommandSearchEngine {
   }
 
   private fuzzyMatch(query: string, target: string): boolean {
-    if (query.length > target.length) return false
+    if (query.length > target.length)
+      return false
 
     let queryIndex = 0
 
@@ -216,21 +222,22 @@ class CommandSearchEngine {
    * Get search suggestions based on partial input
    */
   getSuggestions(partialQuery: string, maxSuggestions: number = 5): string[] {
-    if (partialQuery.length < 2) return []
+    if (partialQuery.length < 2)
+      return []
 
     const suggestions = new Set<string>()
     const normalized = this.normalize(partialQuery)
 
-    this.indexes.forEach(index => {
+    this.indexes.forEach((index) => {
       // Suggest tokens that start with the query
-      index.tokens.forEach(token => {
+      index.tokens.forEach((token) => {
         if (token.startsWith(normalized) && token.length > normalized.length) {
           suggestions.add(token)
         }
       })
 
       // Suggest from keywords
-      index.keywords.forEach(keyword => {
+      index.keywords.forEach((keyword) => {
         if (keyword.startsWith(normalized) && keyword.length > normalized.length) {
           suggestions.add(keyword)
         }
@@ -261,7 +268,7 @@ class CommandSearchEngine {
     const categories: Record<string, number> = {}
     let totalTokens = 0
 
-    this.indexes.forEach(index => {
+    this.indexes.forEach((index) => {
       categories[index.category] = (categories[index.category] || 0) + 1
       totalTokens += index.tokens.length
     })
@@ -270,7 +277,7 @@ class CommandSearchEngine {
       totalCommands: this.indexes.size,
       totalTokens,
       averageTokensPerCommand: totalTokens / this.indexes.size,
-      categories
+      categories,
     }
   }
 }
@@ -279,18 +286,18 @@ class CommandSearchEngine {
 export const commandSearchEngine = new CommandSearchEngine()
 
 // Utility functions
-export const buildSearchIndex = (commands: Command[]) => {
+export function buildSearchIndex(commands: Command[]) {
   commandSearchEngine.buildIndex(commands)
 }
 
-export const searchCommands = (query: string, maxResults?: number) => {
+export function searchCommands(query: string, maxResults?: number) {
   return commandSearchEngine.search(query, maxResults)
 }
 
-export const getSearchSuggestions = (partialQuery: string, maxSuggestions?: number) => {
+export function getSearchSuggestions(partialQuery: string, maxSuggestions?: number) {
   return commandSearchEngine.getSuggestions(partialQuery, maxSuggestions)
 }
 
-export const getSearchStats = () => {
+export function getSearchStats() {
   return commandSearchEngine.getStats()
 }

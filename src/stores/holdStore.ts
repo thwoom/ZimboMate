@@ -1,10 +1,11 @@
+import { create } from 'zustand'
 /**
  * Hold Store for Dungeon World
  * Manages hold points for various moves (Defend, Discern Realities, etc.)
  */
 
-import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { logger } from '../utils/logger'
 
 export interface HoldEntry {
   id: string
@@ -38,8 +39,8 @@ export const HOLD_MOVES: Record<string, {
       { id: 'redirect-attack', label: 'Redirect Attack', description: 'Redirect an attack from the thing you defend to yourself', cost: 1 },
       { id: 'halve-damage', label: 'Halve Damage', description: 'Halve the attack\'s effect or damage', cost: 1 },
       { id: 'open-attacker', label: 'Open Up Attacker', description: 'Open up the attacker to an ally giving them +1 forward', cost: 1 },
-      { id: 'deal-damage', label: 'Deal Damage', description: 'Deal damage to the attacker equal to your level', cost: 1 }
-    ]
+      { id: 'deal-damage', label: 'Deal Damage', description: 'Deal damage to the attacker equal to your level', cost: 1 },
+    ],
   },
   'discern-realities': {
     name: 'Discern Realities',
@@ -50,17 +51,17 @@ export const HOLD_MOVES: Record<string, {
       { id: 'should-be-cautious', label: 'What should I be on the lookout for?', description: 'Identify potential threats', cost: 1 },
       { id: 'most-valuable', label: 'What here is most valuable to me?', description: 'Identify valuable things', cost: 1 },
       { id: 'who-in-control', label: 'Who\'s really in control here?', description: 'Understand power dynamics', cost: 1 },
-      { id: 'not-what-seems', label: 'What here is not what it appears to be?', description: 'Reveal hidden truths', cost: 1 }
-    ]
+      { id: 'not-what-seems', label: 'What here is not what it appears to be?', description: 'Reveal hidden truths', cost: 1 },
+    ],
   },
   'spout-lore': {
     name: 'Spout Lore',
     description: 'Consult your accumulated knowledge',
     options: [
       { id: 'ask-question', label: 'Ask a Question', description: 'Ask the GM a question about the subject', cost: 1 },
-      { id: 'useful-fact', label: 'Useful Fact', description: 'The GM will tell you something useful about the subject', cost: 1 }
-    ]
-  }
+      { id: 'useful-fact', label: 'Useful Fact', description: 'The GM will tell you something useful about the subject', cost: 1 },
+    ],
+  },
 }
 
 interface HoldState {
@@ -86,7 +87,7 @@ export const useHoldStore = create<HoldState>()(
       grantHold: (characterId, moveId, amount, rollId) => {
         const moveInfo = HOLD_MOVES[moveId]
         if (!moveInfo) {
-          console.warn(`[Hold] Unknown move: ${moveId}`)
+          logger.warn(`[Hold] Unknown move: ${moveId}`)
           return
         }
 
@@ -99,20 +100,20 @@ export const useHoldStore = create<HoldState>()(
           maxAmount: amount,
           timestamp: Date.now(),
           description: moveInfo.description,
-          rollId
+          rollId,
         }
 
-        set((state) => ({
+        set(state => ({
           characterHolds: {
             ...state.characterHolds,
             [characterId]: [
               ...(state.characterHolds[characterId] || []),
-              holdEntry
-            ]
-          }
+              holdEntry,
+            ],
+          },
         }))
 
-        console.log(`[Hold] Granted ${amount} hold for ${moveInfo.name} to ${characterId}`)
+        logger.info(`[Hold] Granted ${amount} hold for ${moveInfo.name} to ${characterId}`)
       },
 
       // Spend hold points
@@ -122,12 +123,12 @@ export const useHoldStore = create<HoldState>()(
         const holdEntry = characterHolds.find(h => h.id === holdId)
 
         if (!holdEntry) {
-          console.warn(`[Hold] Hold not found: ${holdId}`)
+          logger.warn(`[Hold] Hold not found: ${holdId}`)
           return false
         }
 
         if (holdEntry.amount < amount) {
-          console.warn(`[Hold] Not enough hold: ${holdEntry.amount} < ${amount}`)
+          logger.warn(`[Hold] Not enough hold: ${holdEntry.amount} < ${amount}`)
           return false
         }
 
@@ -136,7 +137,7 @@ export const useHoldStore = create<HoldState>()(
           const moveInfo = HOLD_MOVES[holdEntry.moveId]
           const option = moveInfo?.options.find(o => o.id === optionId)
           if (option) {
-            console.log(`[Hold] ${holdEntry.moveName}: ${option.label}`)
+            logger.info(`[Hold] ${holdEntry.moveName}: ${option.label}`)
           }
         }
 
@@ -144,14 +145,14 @@ export const useHoldStore = create<HoldState>()(
           const updatedHolds = state.characterHolds[characterId].map(hold =>
             hold.id === holdId
               ? { ...hold, amount: hold.amount - amount }
-              : hold
+              : hold,
           ).filter(hold => hold.amount > 0) // Remove holds with 0 points
 
           return {
             characterHolds: {
               ...state.characterHolds,
-              [characterId]: updatedHolds
-            }
+              [characterId]: updatedHolds,
+            },
           }
         })
 
@@ -181,17 +182,17 @@ export const useHoldStore = create<HoldState>()(
 
       // Clear all holds for a character
       clearAllHolds: (characterId) => {
-        set((state) => ({
+        set(state => ({
           characterHolds: {
             ...state.characterHolds,
-            [characterId]: []
-          }
+            [characterId]: [],
+          },
         }))
-      }
+      },
     }),
     {
       name: 'zimbomate-hold-store',
-      version: 1
-    }
-  )
+      version: 1,
+    },
+  ),
 )

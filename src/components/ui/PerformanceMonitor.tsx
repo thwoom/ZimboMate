@@ -1,11 +1,10 @@
-import React from 'react'
 import { motion } from 'framer-motion'
-import { Activity, Cpu, HardDrive, Zap, AlertTriangle, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react'
-import { Card, CardContent } from './Card'
-import { Button } from './Button'
+import { Activity, AlertTriangle, CheckCircle, Cpu, HardDrive, TrendingDown, TrendingUp, Zap } from 'lucide-react'
+import React from 'react'
 import { Badge } from './Badge'
+import { Button } from './Button'
+import { Card, CardContent } from './Card'
 import { Progress } from './Progress'
-import { usePerformanceMonitor } from '@/utils/performance'
 
 interface PerformanceMonitorProps {
   className?: string
@@ -17,7 +16,8 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
 
   // Update report every 2 seconds when monitoring
   React.useEffect(() => {
-    if (!isMonitoring) return
+    if (!isMonitoring)
+      return
 
     const interval = setInterval(() => {
       setReport(getReport())
@@ -26,24 +26,29 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
     return () => clearInterval(interval)
   }, [isMonitoring, getReport])
 
-  const getStatusColor = (value: number, thresholds: { good: number; warning: number }) => {
-    if (value >= thresholds.good) return 'text-chart-2'
-    if (value >= thresholds.warning) return 'text-chart-4'
+  const getStatusColor = (value: number, thresholds: { good: number, warning: number }) => {
+    if (value >= thresholds.good)
+      return 'text-chart-2'
+    if (value >= thresholds.warning)
+      return 'text-chart-4'
     return 'text-destructive'
   }
 
-  const getStatusIcon = (value: number, thresholds: { good: number; warning: number }) => {
-    if (value >= thresholds.good) return <CheckCircle className="w-4 h-4 text-chart-2" />
-    if (value >= thresholds.warning) return <AlertTriangle className="w-4 h-4 text-chart-4" />
+  const getStatusIcon = (value: number, thresholds: { good: number, warning: number }) => {
+    if (value >= thresholds.good)
+      return <CheckCircle className="w-4 h-4 text-chart-2" />
+    if (value >= thresholds.warning)
+      return <AlertTriangle className="w-4 h-4 text-chart-4" />
     return <AlertTriangle className="w-4 h-4 text-destructive" />
   }
 
   const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 B'
+    if (bytes === 0)
+      return '0 B'
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2)) } ${ sizes[i]}`
+    return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
   }
 
   return (
@@ -64,7 +69,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Badge variant={isMonitoring ? 'default' : 'secondary'}>
                   {isMonitoring ? 'Monitoring' : 'Stopped'}
@@ -74,7 +79,9 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                   size="sm"
                   onClick={isMonitoring ? stop : start}
                 >
-                  {isMonitoring ? 'Stop' : 'Start'} Monitoring
+                  {isMonitoring ? 'Stop' : 'Start'}
+                  {' '}
+                  Monitoring
                 </Button>
               </div>
             </div>
@@ -100,11 +107,17 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                       {report.fps.current.toFixed(1)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Avg: {report.fps.average.toFixed(1)} | Min: {report.fps.min.toFixed(1)}
+                      Avg:
+                      {' '}
+                      {report.fps.average.toFixed(1)}
+                      {' '}
+                      | Min:
+                      {' '}
+                      {report.fps.min.toFixed(1)}
                     </div>
-                    <Progress 
-                      value={Math.min(report.fps.current, 60)} 
-                      max={60} 
+                    <Progress
+                      value={Math.min(report.fps.current, 60)}
+                      max={60}
                       className="h-2"
                     />
                   </div>
@@ -121,14 +134,21 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                   </div>
                   <div className="space-y-1">
                     <div className={`text-2xl font-bold ${getStatusColor(200 - report.memory.current, { good: 100, warning: 50 })}`}>
-                      {report.memory.current.toFixed(1)}MB
+                      {report.memory.current.toFixed(1)}
+                      MB
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Avg: {report.memory.average.toFixed(1)}MB | Max: {report.memory.max.toFixed(1)}MB
+                      Avg:
+                      {' '}
+                      {report.memory.average.toFixed(1)}
+                      MB | Max:
+                      {' '}
+                      {report.memory.max.toFixed(1)}
+                      MB
                     </div>
-                    <Progress 
-                      value={report.memory.current} 
-                      max={200} 
+                    <Progress
+                      value={report.memory.current}
+                      max={200}
                       className="h-2"
                     />
                   </div>
@@ -142,8 +162,8 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                       <span className="text-sm font-medium">Components</span>
                     </div>
                     {report.components.length > 0 && getStatusIcon(
-                      50 - Math.max(...report.components.map(c => c.averageRenderTime)), 
-                      { good: 40, warning: 30 }
+                      50 - Math.max(...report.components.map(c => c.averageRenderTime)),
+                      { good: 40, warning: 30 },
                     )}
                   </div>
                   <div className="space-y-1">
@@ -155,7 +175,10 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                     </div>
                     {report.components.length > 0 && (
                       <div className="text-xs text-muted-foreground">
-                        Slowest: {Math.max(...report.components.map(c => c.averageRenderTime)).toFixed(2)}ms
+                        Slowest:
+                        {' '}
+                        {Math.max(...report.components.map(c => c.averageRenderTime)).toFixed(2)}
+                        ms
                       </div>
                     )}
                   </div>
@@ -177,7 +200,9 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                 <ul className="space-y-1">
                   {report.warnings.map((warning, index) => (
                     <li key={index} className="text-sm text-chart-4">
-                      • {warning}
+                      •
+                      {' '}
+                      {warning}
                     </li>
                   ))}
                 </ul>
@@ -191,7 +216,9 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                 size="sm"
                 onClick={() => setShowDetails(!showDetails)}
               >
-                {showDetails ? 'Hide' : 'Show'} Detailed Metrics
+                {showDetails ? 'Hide' : 'Show'}
+                {' '}
+                Detailed Metrics
               </Button>
             </div>
 
@@ -216,18 +243,23 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-mono">{component.name}</span>
                               <Badge variant="secondary" className="text-xs">
-                                {component.renderCount} renders
+                                {component.renderCount}
+                                {' '}
+                                renders
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-muted-foreground">
-                                {component.averageRenderTime.toFixed(2)}ms avg
+                                {component.averageRenderTime.toFixed(2)}
+                                ms avg
                               </span>
-                              {component.averageRenderTime > 10 ? (
-                                <TrendingUp className="w-3 h-3 text-destructive" />
-                              ) : (
-                                <TrendingDown className="w-3 h-3 text-chart-2" />
-                              )}
+                              {component.averageRenderTime > 10
+                                ? (
+                                    <TrendingUp className="w-3 h-3 text-destructive" />
+                                  )
+                                : (
+                                    <TrendingDown className="w-3 h-3 text-chart-2" />
+                                  )}
                             </div>
                           </div>
                         ))}
@@ -257,7 +289,3 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
 }
 
 export default PerformanceMonitor
-
-
-
-

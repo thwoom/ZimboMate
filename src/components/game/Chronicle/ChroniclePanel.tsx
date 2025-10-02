@@ -3,28 +3,28 @@
  * Replaces rigid Session Tools with flowing narrative chronicle
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import type { Entity } from '../../../types/chronicle'
+import type { ChronicleParser } from '../../../utils/chronicleParser'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  BookOpen,
-  Search,
-  Users,
-  MapPin,
-  Scroll,
-  Sparkles,
-  Plus,
-  Eye,
   ArrowRight,
+  AtSign,
+  BookOpen,
+  Eye,
   Hash,
-  AtSign
+  Plus,
+  Scroll,
+  Search,
+  Sparkles,
+  Users,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../../ui'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useChronicleStore } from '../../../stores/chronicleStore'
-import { ChronicleParser, createChronicleParser } from '../../../utils/chronicleParser'
-import { Entity, EntityMention } from '../../../types/chronicle'
-import { EntitySuggestionPanel } from './EntitySuggestionPanel'
-import { EntityPreview } from './EntityPreview'
+import { createChronicleParser } from '../../../utils/chronicleParser'
+import { Badge, Button, Card, CardContent } from '../../ui'
 import { ChronicleTimeline } from './ChronicleTimeline'
+import { EntityPreview } from './EntityPreview'
+import { EntitySuggestionPanel } from './EntitySuggestionPanel'
 
 interface ChroniclePanelProps {
   className?: string
@@ -40,7 +40,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
     addEntity,
     startSession,
     settings,
-    searchAll
+    searchAll,
   } = useChronicleStore()
 
   // Local state
@@ -90,11 +90,12 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
     // Debounced entity suggestion for @ mentions (500ms delay for performance)
     if (settings.parseOnType) {
       const textarea = textareaRef.current
-      if (!textarea) return
+      if (!textarea)
+        return
 
       const cursorPos = textarea.selectionStart
       const textBeforeCursor = value.substring(0, cursorPos)
-      const atMatch = textBeforeCursor.match(/@([a-zA-Z0-9\s]*)$/)
+      const atMatch = textBeforeCursor.match(/@([a-z0-9\s]*)$/i)
 
       if (atMatch) {
         const query = atMatch[1]
@@ -108,13 +109,14 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
 
           setCurrentAtMention({
             query,
-            position: cursorPos
+            position: cursorPos,
           })
           setEntitySuggestions(suggestions)
           setShowEntitySuggestions(suggestions.length > 0)
           setIsProcessingMention(false)
         }, 500)
-      } else {
+      }
+      else {
         setShowEntitySuggestions(false)
         setCurrentAtMention(null)
         setIsProcessingMention(false)
@@ -128,7 +130,8 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
 
   // Handle entity suggestion selection
   const handleEntitySelect = useCallback((entity: Entity) => {
-    if (!currentAtMention || !textareaRef.current) return
+    if (!currentAtMention || !textareaRef.current)
+      return
 
     const textarea = textareaRef.current
     const cursorPos = currentAtMention.position
@@ -154,7 +157,8 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
 
   // Save chronicle entry
   const saveEntry = useCallback(async () => {
-    if (!chronicleText.trim() || !currentSessionId) return
+    if (!chronicleText.trim() || !currentSessionId)
+      return
 
     const parseResult = parser.current.parseText(chronicleText)
 
@@ -176,7 +180,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
           aliases: [],
           status: 'active',
           tags: [],
-          importance: 1
+          importance: 1,
         })
       }
     }
@@ -189,7 +193,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
       narrativeContext: parseResult.narrativeContext,
       emotionalTone: parseResult.emotionalTone,
       tags: parseResult.extractedTags,
-      isSceneBreak: parseResult.isSceneBreak
+      isSceneBreak: parseResult.isSceneBreak,
     })
 
     // Clear text and show success
@@ -205,7 +209,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
     { label: 'Discovery', text: 'The party discovers that @' },
     { label: 'NPC Meeting', text: 'We encounter @ who tells us that' },
     { label: 'Location', text: 'Arriving at @, we notice that' },
-    { label: 'Mystery', text: 'Something strange happens with @ - we need to investigate' }
+    { label: 'Mystery', text: 'Something strange happens with @ - we need to investigate' },
   ]
 
   // Handle template selection
@@ -259,7 +263,9 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                 className="gap-2"
               >
                 <Users size={16} />
-                Entities ({entities.length})
+                Entities (
+                {entities.length}
+                )
               </Button>
             </div>
 
@@ -270,12 +276,12 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                   type="text"
                   placeholder="Search chronicle..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="px-2 py-1 text-sm rounded border"
                   style={{
                     backgroundColor: 'var(--card)',
                     borderColor: 'var(--border)',
-                    color: 'var(--foreground)'
+                    color: 'var(--foreground)',
                   }}
                 />
               </div>
@@ -334,14 +340,14 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                       <textarea
                         ref={textareaRef}
                         value={chronicleText}
-                        onChange={(e) => handleTextChange(e.target.value)}
+                        onChange={e => handleTextChange(e.target.value)}
                         placeholder="What's happening in your adventure? Use @mentions to reference characters and places..."
                         className={`w-full min-h-[300px] p-4 bg-transparent border-none resize-none focus:outline-none text-base leading-relaxed transition-all duration-200 ${
                           isProcessingMention ? 'ring-2 ring-primary/30 ring-opacity-50' : ''
                         }`}
                         style={{
                           color: 'var(--foreground)',
-                          fontFamily: 'system-ui, -apple-system, sans-serif'
+                          fontFamily: 'system-ui, -apple-system, sans-serif',
                         }}
                         autoFocus
                       />
@@ -357,7 +363,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                             style={{
                               backgroundColor: 'rgba(59, 130, 246, 0.1)',
                               borderColor: 'rgb(59, 130, 246)',
-                              color: 'rgb(59, 130, 246)'
+                              color: 'rgb(59, 130, 246)',
                             }}
                           >
                             <motion.div
@@ -382,7 +388,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                             style={{
                               backgroundColor: 'rgba(34, 197, 94, 0.1)',
                               borderColor: 'rgb(34, 197, 94)',
-                              color: 'rgb(34, 197, 94)'
+                              color: 'rgb(34, 197, 94)',
                             }}
                           >
                             <motion.div
@@ -392,7 +398,11 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                             >
                               <AtSign size={14} />
                             </motion.div>
-                            <span className="text-xs font-medium">{lastRecognizedEntity} recognized</span>
+                            <span className="text-xs font-medium">
+                              {lastRecognizedEntity}
+                              {' '}
+                              recognized
+                            </span>
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -409,33 +419,35 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                           className="absolute z-50 mt-2"
                           style={{ left: '20px', top: '120px' }}
                         >
-                          {isProcessingMention ? (
-                            <div
-                              className="p-3 rounded-lg border shadow-lg backdrop-blur-sm"
-                              style={{
-                                backgroundColor: 'var(--card)',
-                                borderColor: 'var(--border)'
-                              }}
-                            >
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <motion.div
-                                  animate={{ rotate: 360 }}
-                                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                          {isProcessingMention
+                            ? (
+                                <div
+                                  className="p-3 rounded-lg border shadow-lg backdrop-blur-sm"
+                                  style={{
+                                    backgroundColor: 'var(--card)',
+                                    borderColor: 'var(--border)',
+                                  }}
                                 >
-                                  <Sparkles size={16} className="text-primary" />
-                                </motion.div>
-                                <span>Searching for entities...</span>
-                              </div>
-                            </div>
-                          ) : (
-                            showEntitySuggestions && entitySuggestions.length > 0 && (
-                              <EntitySuggestionPanel
-                                suggestions={entitySuggestions}
-                                onSelect={handleEntitySelect}
-                                onClose={() => setShowEntitySuggestions(false)}
-                              />
-                            )
-                          )}
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <motion.div
+                                      animate={{ rotate: 360 }}
+                                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                    >
+                                      <Sparkles size={16} className="text-primary" />
+                                    </motion.div>
+                                    <span>Searching for entities...</span>
+                                  </div>
+                                </div>
+                              )
+                            : (
+                                showEntitySuggestions && entitySuggestions.length > 0 && (
+                                  <EntitySuggestionPanel
+                                    suggestions={entitySuggestions}
+                                    onSelect={handleEntitySelect}
+                                    onClose={() => setShowEntitySuggestions(false)}
+                                  />
+                                )
+                              )}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -443,10 +455,16 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                     {/* Word Count & Save */}
                     <div className="flex items-center justify-between p-4 border-t border-border">
                       <div className="text-sm text-muted-foreground">
-                        {chronicleText.length} characters
+                        {chronicleText.length}
+                        {' '}
+                        characters
                         {chronicleText.trim() && (
                           <span className="ml-2">
-                            • {chronicleText.split(/\s+/).filter(w => w).length} words
+                            •
+                            {' '}
+                            {chronicleText.split(/\s+/).filter(w => w).length}
+                            {' '}
+                            words
                           </span>
                         )}
                       </div>
@@ -507,12 +525,12 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {entities
                 .filter(entity =>
-                  !searchQuery ||
-                  entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  entity.description.toLowerCase().includes(searchQuery.toLowerCase())
+                  !searchQuery
+                  || entity.name.toLowerCase().includes(searchQuery.toLowerCase())
+                  || entity.description.toLowerCase().includes(searchQuery.toLowerCase()),
                 )
                 .sort((a, b) => b.importance - a.importance)
-                .map((entity) => (
+                .map(entity => (
                   <Card
                     key={entity.id}
                     variant="surface"
@@ -532,7 +550,9 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
                         </p>
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground">
-                            {entity.appearances.length} mentions
+                            {entity.appearances.length}
+                            {' '}
+                            mentions
                           </span>
                           <div className="flex items-center gap-1">
                             <Eye size={12} />
@@ -596,4 +616,3 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({ className = '' }
     </div>
   )
 }
-

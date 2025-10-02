@@ -1,6 +1,7 @@
-import { test, expect } from '@playwright/test'
-import { readFileSync, existsSync } from 'fs'
-import { join } from 'path'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import process from 'node:process'
+import { expect, test } from '@playwright/test'
 
 test.describe('Bundle Size & Performance Tests', () => {
   const distPath = join(process.cwd(), 'dist')
@@ -28,7 +29,7 @@ test.describe('Bundle Size & Performance Tests', () => {
       vendor: `${(bundleStats.vendorBundle.size / 1024 / 1024).toFixed(2)}MB`,
       three: `${(bundleStats.threeBundle.size / 1024 / 1024).toFixed(2)}MB`,
       css: `${(bundleStats.cssSize / 1024).toFixed(2)}KB`,
-      total: `${(bundleStats.totalSize / 1024 / 1024).toFixed(2)}MB`
+      total: `${(bundleStats.totalSize / 1024 / 1024).toFixed(2)}MB`,
     })
   })
 
@@ -45,7 +46,7 @@ test.describe('Bundle Size & Performance Tests', () => {
             fcp: 0,
             lcp: 0,
             fid: 0,
-            cls: 0
+            cls: 0,
           }
 
           entries.forEach((entry) => {
@@ -85,7 +86,7 @@ test.describe('Bundle Size & Performance Tests', () => {
       FCP: `${metrics.fcp.toFixed(0)}ms`,
       LCP: `${metrics.lcp.toFixed(0)}ms`,
       FID: `${metrics.fid.toFixed(0)}ms`,
-      CLS: metrics.cls.toFixed(3)
+      CLS: metrics.cls.toFixed(3),
     })
   })
 
@@ -125,7 +126,7 @@ test.describe('Bundle Size & Performance Tests', () => {
     console.log('Memory Analysis:', {
       initial: `${(initialMemory / 1024 / 1024).toFixed(2)}MB`,
       final: `${(finalMemory / 1024 / 1024).toFixed(2)}MB`,
-      growth: `${(memoryGrowth / 1024 / 1024).toFixed(2)}MB`
+      growth: `${(memoryGrowth / 1024 / 1024).toFixed(2)}MB`,
     })
   })
 
@@ -152,7 +153,8 @@ test.describe('Bundle Size & Performance Tests', () => {
 
           if (fps.length < 5) {
             requestAnimationFrame(measureFPS)
-          } else {
+          }
+          else {
             resolve(fps)
           }
         }
@@ -168,13 +170,13 @@ test.describe('Bundle Size & Performance Tests', () => {
 
     console.log('3D Performance:', {
       averageFPS: avgFPS.toFixed(1),
-      samples: fpsData
+      samples: fpsData,
     })
   })
 })
 
 function getBundleStats(distPath: string) {
-  const files = require('fs').readdirSync(`${distPath  }/assets`, { withFileTypes: true })
+  const files = require('node:fs').readdirSync(`${distPath}/assets`, { withFileTypes: true })
 
   let mainBundle = { size: 0, name: '' }
   let vendorBundle = { size: 0, name: '' }
@@ -185,17 +187,20 @@ function getBundleStats(distPath: string) {
   files.forEach((file: any) => {
     if (file.isFile()) {
       const filePath = join(distPath, 'assets', file.name)
-      const stats = require('fs').statSync(filePath)
+      const stats = require('node:fs').statSync(filePath)
       const size = stats.size
       totalSize += size
 
       if (file.name.includes('index-') && file.name.endsWith('.js')) {
         mainBundle = { size, name: file.name }
-      } else if (file.name.includes('vendor-') && file.name.endsWith('.js')) {
+      }
+      else if (file.name.includes('vendor-') && file.name.endsWith('.js')) {
         vendorBundle = { size, name: file.name }
-      } else if (file.name.includes('three-') && file.name.endsWith('.js')) {
+      }
+      else if (file.name.includes('three-') && file.name.endsWith('.js')) {
         threeBundle = { size, name: file.name }
-      } else if (file.name.endsWith('.css')) {
+      }
+      else if (file.name.endsWith('.css')) {
         cssSize += size
       }
     }

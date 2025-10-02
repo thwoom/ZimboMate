@@ -4,11 +4,11 @@
  * Integrates sessionStore with character and campaign management
  */
 
-import { useCallback, useMemo } from 'react'
-import { useSessionStore } from '../stores/sessionStore'
-import { useCharacterStore } from '../stores/characterStore'
-import type { GameSession, CombatState } from '../stores/sessionStore'
 import type { DiceRoll } from '../services/DiceRollingService'
+import type { CombatState, GameSession } from '../stores/sessionStore'
+import { useCallback, useMemo } from 'react'
+import { useCharacterStore } from '../stores/characterStore'
+import { useSessionStore } from '../stores/sessionStore'
 
 export interface SessionStats {
   duration: number
@@ -33,13 +33,13 @@ export interface UseSessionReturn {
   currentSession: GameSession | null
   isSessionActive: boolean
   sessionStats: SessionStats
-  
+
   // Session management
   startSession: (name: string, characterIds: string[], campaignId?: string) => void
   endSession: () => void
   updateSessionNotes: (notes: string) => void
   awardXP: (amount: number) => void
-  
+
   // Roll history
   rollHistory: DiceRoll[]
   recentRolls: DiceRoll[]
@@ -53,20 +53,20 @@ export interface UseSessionReturn {
     failures: number
     averageRoll: number
   }
-  
+
   // Combat management
   combat: CombatState
   combatTurns: CombatTurn[]
   currentTurn: CombatTurn | null
   isInCombat: boolean
-  
+
   startCombat: (characterIds: string[]) => void
   endCombat: () => void
   nextTurn: () => void
   nextRound: () => void
   setInitiative: (characterId: string, initiative: number) => void
   markCharacterActed: (characterId: string) => void
-  
+
   // Condition and modifier management
   addSessionCondition: (characterId: string, condition: any) => void
   removeSessionCondition: (characterId: string, conditionId: string) => void
@@ -77,10 +77,10 @@ export interface UseSessionReturn {
     characterName: string
     condition: any
   }>
-  
+
   // Time management
   advanceTime: (timeType: 'turn' | 'scene' | 'encounter') => void
-  
+
   // Quick actions
   quickStartCombat: () => void
   quickEndSession: () => void
@@ -125,7 +125,7 @@ export function useSession(): UseSessionReturn {
   const sessionStats = useMemo((): SessionStats => {
     const stats = getSessionStats()
     const partialRolls = rollHistory.filter(roll => roll.result === 'partial').length
-    
+
     return {
       duration: stats.duration,
       totalRolls: stats.totalRolls,
@@ -150,8 +150,8 @@ export function useSession(): UseSessionReturn {
     const successes = rollHistory.filter(roll => roll.result === 'success').length
     const partials = rollHistory.filter(roll => roll.result === 'partial').length
     const failures = rollHistory.filter(roll => roll.result === 'failure').length
-    const averageRoll = rollHistory.length > 0 
-      ? rollHistory.reduce((sum, roll) => sum + roll.total, 0) / rollHistory.length 
+    const averageRoll = rollHistory.length > 0
+      ? rollHistory.reduce((sum, roll) => sum + roll.total, 0) / rollHistory.length
       : 0
 
     return { total, successes, partials, failures, averageRoll }
@@ -237,7 +237,7 @@ export function useSession(): UseSessionReturn {
   }, [storeRemoveSessionModifier])
 
   const getActiveConditions = useCallback(() => {
-    return sessionConditions.map(sc => {
+    return sessionConditions.map((sc) => {
       const character = getCharacter(sc.characterId)
       return {
         characterId: sc.characterId,
@@ -254,8 +254,9 @@ export function useSession(): UseSessionReturn {
 
   // Quick actions
   const quickStartCombat = useCallback(() => {
-    if (!currentSession) return
-    
+    if (!currentSession)
+      return
+
     const availableCharacters = currentSession.characterIds.filter(id => getCharacter(id))
     if (availableCharacters.length > 0) {
       startCombat(availableCharacters)
@@ -271,10 +272,10 @@ export function useSession(): UseSessionReturn {
 
   const quickAwardXP = useCallback((amount: number) => {
     awardXP(amount)
-    
+
     // Also award XP to all characters in the session
     if (currentSession) {
-      currentSession.characterIds.forEach(characterId => {
+      currentSession.characterIds.forEach((characterId) => {
         const character = getCharacter(characterId)
         if (character) {
           // This would integrate with the character store's addXP method
@@ -289,13 +290,13 @@ export function useSession(): UseSessionReturn {
     currentSession,
     isSessionActive,
     sessionStats,
-    
+
     // Session management
     startSession,
     endSession,
     updateSessionNotes,
     awardXP,
-    
+
     // Roll history
     rollHistory,
     recentRolls,
@@ -303,30 +304,30 @@ export function useSession(): UseSessionReturn {
     clearRollHistory: storeClearRollHistory,
     getRollsByCharacter,
     getRollStats,
-    
+
     // Combat management
     combat,
     combatTurns,
     currentTurn,
     isInCombat,
-    
+
     startCombat,
     endCombat,
     nextTurn,
     nextRound,
     setInitiative,
     markCharacterActed,
-    
+
     // Condition and modifier management
     addSessionCondition,
     removeSessionCondition,
     addSessionModifier,
     removeSessionModifier,
     getActiveConditions,
-    
+
     // Time management
     advanceTime,
-    
+
     // Quick actions
     quickStartCombat,
     quickEndSession,

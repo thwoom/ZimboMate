@@ -2,14 +2,13 @@
  * XP Award Modal - Modal dialog for awarding experience points to characters
  */
 
-import React, { useState, useEffect } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
-import { X, Trophy, Users, Plus, Star } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '../ui'
-import { Input } from '../ui/Input'
-import { Textarea } from '../ui/Textarea'
-import { useCharacterStore } from '../../stores/characterStore'
 import type { Character } from '../../models/Character'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Star, Trophy, Users, X } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { useCharacterStore } from '../../stores/characterStore'
+import { Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
+import { Input } from '../ui/Input'
 
 interface XPAwardModalProps {
   isOpen: boolean
@@ -28,13 +27,13 @@ const XP_PRESETS = [
   { label: 'Minor Achievement', amount: 1, description: 'Small progress or minor success' },
   { label: 'Significant Progress', amount: 2, description: 'Good roleplay or problem solving' },
   { label: 'Major Milestone', amount: 3, description: 'Completing major objectives' },
-  { label: 'Session Completion', amount: 1, description: 'End of session bonus' }
+  { label: 'Session Completion', amount: 1, description: 'End of session bonus' },
 ]
 
 export const XPAwardModal: React.FC<XPAwardModalProps> = ({
   isOpen,
   onClose,
-  onAwarded
+  onAwarded,
 }) => {
   const characters = useCharacterStore(state => state.characters)
   const addXP = useCharacterStore(state => state.addXP)
@@ -53,8 +52,8 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
           character,
           xpAmount: 1,
           selected: true,
-          reason: ''
-        }))
+          reason: '',
+        })),
       )
       setGlobalXP(1)
       setGlobalReason('')
@@ -67,8 +66,8 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
     setCharacterAwards(prev =>
       prev.map(award => ({
         ...award,
-        xpAmount: amount
-      }))
+        xpAmount: amount,
+      })),
     )
   }
 
@@ -77,8 +76,8 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
       prev.map(award =>
         award.character.id === characterId
           ? { ...award, xpAmount: Math.max(0, Math.min(10, amount)) }
-          : award
-      )
+          : award,
+      ),
     )
   }
 
@@ -87,8 +86,8 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
       prev.map(award =>
         award.character.id === characterId
           ? { ...award, selected: !award.selected }
-          : award
-      )
+          : award,
+      ),
     )
   }
 
@@ -97,8 +96,8 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
       prev.map(award =>
         award.character.id === characterId
           ? { ...award, reason }
-          : award
-      )
+          : award,
+      ),
     )
   }
 
@@ -106,13 +105,14 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
     if (awardMode === 'global') {
       handleGlobalXPChange(amount)
       setGlobalReason(description)
-    } else {
+    }
+    else {
       setCharacterAwards(prev =>
         prev.map(award => ({
           ...award,
           xpAmount: amount,
-          reason: description
-        }))
+          reason: description,
+        })),
       )
     }
   }
@@ -141,15 +141,17 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
           award.character.id,
           award.xpAmount,
           'Session Award',
-          reason
+          reason,
         )
       }
 
       onAwarded?.(totalXPAwarded, selectedAwards.length)
       onClose()
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error awarding XP:', error)
-    } finally {
+    }
+    finally {
       setIsSubmitting(false)
     }
   }
@@ -217,7 +219,13 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                       >
                         <div className="text-left">
                           <div className="font-medium">{preset.label}</div>
-                          <div className="text-xs text-muted-foreground">{preset.amount} XP - {preset.description}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {preset.amount}
+                            {' '}
+                            XP -
+                            {' '}
+                            {preset.description}
+                          </div>
                         </div>
                       </Button>
                     ))}
@@ -233,7 +241,7 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                         <Input
                           type="number"
                           value={globalXP}
-                          onChange={(e) => handleGlobalXPChange(parseInt(e.target.value) || 0)}
+                          onChange={e => handleGlobalXPChange(Number.parseInt(e.target.value) || 0)}
                           min="0"
                           max="10"
                         />
@@ -241,7 +249,13 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Total XP</label>
                         <div className="px-3 py-2 bg-muted rounded-lg text-sm font-medium">
-                          {totalXPToAward} XP to {selectedCharacters.length} character{selectedCharacters.length !== 1 ? 's' : ''}
+                          {totalXPToAward}
+                          {' '}
+                          XP to
+                          {selectedCharacters.length}
+                          {' '}
+                          character
+                          {selectedCharacters.length !== 1 ? 's' : ''}
                         </div>
                       </div>
                     </div>
@@ -249,7 +263,7 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                       <label className="text-sm font-medium">Reason</label>
                       <Input
                         value={globalReason}
-                        onChange={(e) => setGlobalReason(e.target.value)}
+                        onChange={e => setGlobalReason(e.target.value)}
                         placeholder="Why are you awarding this XP?"
                       />
                     </div>
@@ -260,84 +274,113 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                 <div className="space-y-3">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Users size={16} />
-                    Characters ({selectedCharacters.length}/{characterAwards.length} selected)
+                    Characters (
+                    {selectedCharacters.length}
+                    /
+                    {characterAwards.length}
+                    {' '}
+                    selected)
                   </label>
 
-                  {characterAwards.length === 0 ? (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <Users size={32} className="mx-auto mb-2 opacity-50" />
-                      <p>No characters found</p>
-                      <p className="text-xs">Create characters first to award XP</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {characterAwards.map((award) => (
-                        <Card key={award.character.id} variant="surface">
-                          <CardContent className="p-4 pt-4">
-                            <div className="flex items-center gap-4">
-                              <input
-                                type="checkbox"
-                                checked={award.selected}
-                                onChange={() => handleToggleCharacter(award.character.id)}
-                                className="h-4 w-4"
-                              />
-                              <div className="flex-1">
-                                <div className="font-medium">{award.character.name}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  Level {award.character.level} • Current XP: {award.character.xp}
-                                </div>
-                              </div>
-
-                              {awardMode === 'individual' && (
-                                <div className="flex gap-2 items-center">
-                                  <Input
-                                    type="number"
-                                    value={award.xpAmount}
-                                    onChange={(e) => handleIndividualXPChange(award.character.id, parseInt(e.target.value) || 0)}
-                                    min="0"
-                                    max="10"
-                                    className="w-20"
+                  {characterAwards.length === 0
+                    ? (
+                        <div className="text-center py-6 text-muted-foreground">
+                          <Users size={32} className="mx-auto mb-2 opacity-50" />
+                          <p>No characters found</p>
+                          <p className="text-xs">Create characters first to award XP</p>
+                        </div>
+                      )
+                    : (
+                        <div className="space-y-3">
+                          {characterAwards.map(award => (
+                            <Card key={award.character.id} variant="surface">
+                              <CardContent className="p-4 pt-4">
+                                <div className="flex items-center gap-4">
+                                  <input
+                                    type="checkbox"
+                                    checked={award.selected}
+                                    onChange={() => handleToggleCharacter(award.character.id)}
+                                    className="h-4 w-4"
                                   />
-                                  <span className="text-sm">XP</span>
-                                </div>
-                              )}
+                                  <div className="flex-1">
+                                    <div className="font-medium">{award.character.name}</div>
+                                    <div className="text-sm text-muted-foreground">
+                                      Level
+                                      {' '}
+                                      {award.character.level}
+                                      {' '}
+                                      • Current XP:
+                                      {' '}
+                                      {award.character.xp}
+                                    </div>
+                                  </div>
 
-                              {awardMode === 'global' && (
-                                <div className="text-sm font-medium">
-                                  +{award.xpAmount} XP
-                                </div>
-                              )}
-                            </div>
+                                  {awardMode === 'individual' && (
+                                    <div className="flex gap-2 items-center">
+                                      <Input
+                                        type="number"
+                                        value={award.xpAmount}
+                                        onChange={e => handleIndividualXPChange(award.character.id, Number.parseInt(e.target.value) || 0)}
+                                        min="0"
+                                        max="10"
+                                        className="w-20"
+                                      />
+                                      <span className="text-sm">XP</span>
+                                    </div>
+                                  )}
 
-                            {awardMode === 'individual' && award.selected && (
-                              <div className="mt-3">
-                                <Input
-                                  value={award.reason}
-                                  onChange={(e) => handleReasonChange(award.character.id, e.target.value)}
-                                  placeholder="Reason for this character's XP..."
-                                  className="text-sm"
-                                />
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
+                                  {awardMode === 'global' && (
+                                    <div className="text-sm font-medium">
+                                      +
+                                      {award.xpAmount}
+                                      {' '}
+                                      XP
+                                    </div>
+                                  )}
+                                </div>
+
+                                {awardMode === 'individual' && award.selected && (
+                                  <div className="mt-3">
+                                    <Input
+                                      value={award.reason}
+                                      onChange={e => handleReasonChange(award.character.id, e.target.value)}
+                                      placeholder="Reason for this character's XP..."
+                                      className="text-sm"
+                                    />
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-4">
                   <div className="text-sm text-muted-foreground">
-                    {selectedCharacters.length > 0 ? (
-                      <>
-                        Awarding <span className="font-medium">{totalXPToAward} total XP</span> to{' '}
-                        <span className="font-medium">{selectedCharacters.length}</span> character
-                        {selectedCharacters.length !== 1 ? 's' : ''}
-                      </>
-                    ) : (
-                      'Select characters to award XP'
-                    )}
+                    {selectedCharacters.length > 0
+                      ? (
+                          <>
+                            Awarding
+                            {' '}
+                            <span className="font-medium">
+                              {totalXPToAward}
+                              {' '}
+                              total XP
+                            </span>
+                            {' '}
+                            to
+                            {' '}
+                            <span className="font-medium">{selectedCharacters.length}</span>
+                            {' '}
+                            character
+                            {selectedCharacters.length !== 1 ? 's' : ''}
+                          </>
+                        )
+                      : (
+                          'Select characters to award XP'
+                        )}
                   </div>
                   <div className="flex gap-3">
                     <Button

@@ -1,42 +1,40 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, fireEvent, waitFor } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import React from 'react'
-import { renderWithProviders } from '../../utils/testing'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-describe('Audio & Memory Testing for Gaming', () => {
-
-  describe('Audio System Tests', () => {
+describe('audio & Memory Testing for Gaming', () => {
+  describe('audio System Tests', () => {
     let audioPlaySpy: any
     let audioStopSpy: any
 
     beforeEach(() => {
       // Mock Web Audio API
-      global.AudioContext = vi.fn(() => ({
+      globalThis.AudioContext = vi.fn(() => ({
         createOscillator: vi.fn(() => ({
           connect: vi.fn(),
           start: vi.fn(),
           stop: vi.fn(),
-          frequency: { value: 440 }
+          frequency: { value: 440 },
         })),
         createGain: vi.fn(() => ({
           connect: vi.fn(),
-          gain: { value: 1 }
+          gain: { value: 1 },
         })),
         createBuffer: vi.fn(),
         createTexture: vi.fn(),
-        destination: {}
+        destination: {},
       })) as any
 
       // Mock Howler.js
       audioPlaySpy = vi.fn()
       audioStopSpy = vi.fn()
 
-      global.Howl = vi.fn(() => ({
+      globalThis.Howl = vi.fn(() => ({
         play: audioPlaySpy,
         stop: audioStopSpy,
         volume: vi.fn(),
         duration: vi.fn(() => 1000),
-        playing: vi.fn(() => false)
+        playing: vi.fn(() => false),
       })) as any
     })
 
@@ -48,8 +46,8 @@ describe('Audio & Memory Testing for Gaming', () => {
       const mockDiceRoller = () => {
         const handleRoll = () => {
           // Simulate dice roll with sound
-          const sound = new (global.Howl as any)({
-            src: ['dice-roll.mp3']
+          const sound = new (globalThis.Howl as any)({
+            src: ['dice-roll.mp3'],
           })
           sound.play()
         }
@@ -73,9 +71,9 @@ describe('Audio & Memory Testing for Gaming', () => {
       const mockAudioManager = () => {
         const handleMultipleSounds = () => {
           // Simulate background music + sound effects
-          const bgMusic = new (global.Howl as any)({ src: ['bg-music.mp3'] })
-          const diceSound = new (global.Howl as any)({ src: ['dice.mp3'] })
-          const successSound = new (global.Howl as any)({ src: ['success.mp3'] })
+          const bgMusic = new (globalThis.Howl as any)({ src: ['bg-music.mp3'] })
+          const diceSound = new (globalThis.Howl as any)({ src: ['dice.mp3'] })
+          const successSound = new (globalThis.Howl as any)({ src: ['success.mp3'] })
 
           bgMusic.play()
           diceSound.play()
@@ -107,7 +105,7 @@ describe('Audio & Memory Testing for Gaming', () => {
 
         const handlePlay = () => {
           if (audioEnabled) {
-            const sound = new (global.Howl as any)({ src: ['test.mp3'] })
+            const sound = new (globalThis.Howl as any)({ src: ['test.mp3'] })
             sound.play()
           }
         }
@@ -115,7 +113,9 @@ describe('Audio & Memory Testing for Gaming', () => {
         return (
           <div>
             <button onClick={handleToggleAudio} data-testid="audio-toggle">
-              {audioEnabled ? 'Disable' : 'Enable'} Audio
+              {audioEnabled ? 'Disable' : 'Enable'}
+              {' '}
+              Audio
             </button>
             <button onClick={handlePlay} data-testid="play-sound">
               Play Sound
@@ -139,11 +139,11 @@ describe('Audio & Memory Testing for Gaming', () => {
     it('handles audio loading errors gracefully', async () => {
       const mockErrorHandler = () => {
         const handlePlayWithError = () => {
-          const sound = new (global.Howl as any)({
+          const sound = new (globalThis.Howl as any)({
             src: ['nonexistent.mp3'],
             onloaderror: (id: any, error: any) => {
               console.log('Audio load error handled:', error)
-            }
+            },
           })
           sound.play()
         }
@@ -156,7 +156,7 @@ describe('Audio & Memory Testing for Gaming', () => {
       }
 
       // Mock console.log to verify error handling
-      const consoleSpy = vi.spyOn(console, 'log')
+      vi.spyOn(console, 'log')
 
       const { getByTestId } = render(mockErrorHandler())
       fireEvent.click(getByTestId('error-audio'))
@@ -166,7 +166,7 @@ describe('Audio & Memory Testing for Gaming', () => {
     })
   })
 
-  describe('Memory Management Tests', () => {
+  describe('memory Management Tests', () => {
     it('cleans up event listeners on component unmount', async () => {
       const addEventListenerSpy = vi.spyOn(document, 'addEventListener')
       const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
@@ -244,13 +244,13 @@ describe('Audio & Memory Testing for Gaming', () => {
 
         React.useEffect(() => {
           // Simulate loading large character/campaign data
-          const largeDataset = Array(10000).fill(0).map((_, i) => ({
+          const largeDataset = Array.from({ length: 10000 }).fill(0).map((_, i) => ({
             id: i,
             name: `Character ${i}`,
             stats: {
               hp: Math.floor(Math.random() * 20) + 1,
-              level: Math.floor(Math.random() * 10) + 1
-            }
+              level: Math.floor(Math.random() * 10) + 1,
+            },
           }))
 
           setData(largeDataset)
@@ -261,7 +261,14 @@ describe('Audio & Memory Testing for Gaming', () => {
           }
         }, [])
 
-        return <div>Loaded {data.length} items</div>
+        return (
+          <div>
+            Loaded
+            {data.length}
+            {' '}
+            items
+          </div>
+        )
       }
 
       const { unmount, getByText } = render(<MockLargeDataComponent />)
@@ -287,8 +294,8 @@ describe('Audio & Memory Testing for Gaming', () => {
           deleteTexture: vi.fn(),
           deleteProgram: vi.fn(),
           deleteShader: vi.fn(),
-          getExtension: vi.fn(() => ({ loseContext: vi.fn() }))
-        }))
+          getExtension: vi.fn(() => ({ loseContext: vi.fn() })),
+        })),
       }
 
       const MockWebGLComponent = () => {
@@ -302,12 +309,15 @@ describe('Audio & Memory Testing for Gaming', () => {
 
           return () => {
             // Cleanup WebGL resources
-            if (buffer) gl.deleteBuffer(buffer)
-            if (texture) gl.deleteTexture(texture)
+            if (buffer)
+              gl.deleteBuffer(buffer)
+            if (texture)
+              gl.deleteTexture(texture)
 
             // Lose context to free memory
             const loseContext = gl.getExtension('WEBGL_lose_context')
-            if (loseContext) loseContext.loseContext()
+            if (loseContext)
+              loseContext.loseContext()
           }
         }, [])
 
@@ -325,7 +335,7 @@ describe('Audio & Memory Testing for Gaming', () => {
     })
   })
 
-  describe('Long Gaming Session Simulation', () => {
+  describe('long Gaming Session Simulation', () => {
     it('maintains performance over extended play', async () => {
       // Simulate a 2-hour gaming session with frequent state updates
       const sessionActions = []
@@ -334,14 +344,14 @@ describe('Audio & Memory Testing for Gaming', () => {
         sessionActions.push({
           type: 'dice_roll',
           result: Math.floor(Math.random() * 20) + 1,
-          timestamp: Date.now() + i * 100
+          timestamp: Date.now() + i * 100,
         })
 
         if (i % 10 === 0) {
           sessionActions.push({
             type: 'hp_change',
             delta: Math.floor(Math.random() * 10) - 5,
-            timestamp: Date.now() + i * 100
+            timestamp: Date.now() + i * 100,
           })
         }
 
@@ -349,7 +359,7 @@ describe('Audio & Memory Testing for Gaming', () => {
           sessionActions.push({
             type: 'level_up',
             newLevel: Math.floor(i / 50) + 1,
-            timestamp: Date.now() + i * 100
+            timestamp: Date.now() + i * 100,
           })
         }
       }
@@ -360,7 +370,7 @@ describe('Audio & Memory Testing for Gaming', () => {
       // In a real implementation, old actions should be cleaned up
       const cutoffTime = Date.now() - 1800000 // 30 minutes ago
       const recentActions = sessionActions.filter(
-        action => action.timestamp > cutoffTime
+        action => action.timestamp > cutoffTime,
       )
 
       expect(recentActions.length).toBeLessThanOrEqual(sessionActions.length)

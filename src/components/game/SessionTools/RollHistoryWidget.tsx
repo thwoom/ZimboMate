@@ -3,21 +3,21 @@
  * Phase 4A: Essential for tracking dice rolls and outcomes
  */
 
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Dice6, 
-  TrendingUp, 
-  Target, 
-  Clock,
-  Filter,
-  BarChart3,
-  Zap,
+import { AnimatePresence, motion } from 'framer-motion'
+import {
   AlertTriangle,
-  CheckCircle
+  BarChart3,
+  CheckCircle,
+  Clock,
+  Dice6,
+  Filter,
+  Target,
+  TrendingUp,
+  Zap,
 } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '../../ui'
+import React, { useState } from 'react'
 import { useSessionStore } from '../../../stores'
+import { Badge, Button, Card, CardContent } from '../../ui'
 
 export interface DiceRoll {
   id: string
@@ -36,29 +36,29 @@ interface RollHistoryWidgetProps {
   className?: string
 }
 
-export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({ 
+export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
   searchQuery = '',
-  className = '' 
+  className = '',
 }) => {
   const { rollHistory, clearRollHistory } = useSessionStore()
   const [filterResult, setFilterResult] = useState<string>('all')
   const [showStats, setShowStats] = useState(false)
 
   // Filter rolls based on search query and result
-  const filteredRolls = rollHistory.filter(roll => {
-    const matchesSearch = !searchQuery || 
-      roll.move?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      roll.character?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      roll.context?.toLowerCase().includes(searchQuery.toLowerCase())
-    
+  const filteredRolls = rollHistory.filter((roll) => {
+    const matchesSearch = !searchQuery
+      || roll.move?.toLowerCase().includes(searchQuery.toLowerCase())
+      || roll.character?.toLowerCase().includes(searchQuery.toLowerCase())
+      || roll.context?.toLowerCase().includes(searchQuery.toLowerCase())
+
     const matchesResult = filterResult === 'all' || roll.result === filterResult
-    
+
     return matchesSearch && matchesResult
   })
 
   // Sort rolls by timestamp (newest first)
-  const sortedRolls = [...filteredRolls].sort((a, b) => 
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  const sortedRolls = [...filteredRolls].sort((a, b) =>
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   )
 
   // Calculate statistics
@@ -67,12 +67,12 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
     successes: rollHistory.filter(r => r.result === 'success').length,
     partials: rollHistory.filter(r => r.result === 'partial').length,
     failures: rollHistory.filter(r => r.result === 'failure').length,
-    averageRoll: rollHistory.length > 0 
-      ? rollHistory.reduce((sum, r) => sum + r.total, 0) / rollHistory.length 
+    averageRoll: rollHistory.length > 0
+      ? rollHistory.reduce((sum, r) => sum + r.total, 0) / rollHistory.length
       : 0,
-    successRate: rollHistory.length > 0 
-      ? (rollHistory.filter(r => r.result === 'success').length / rollHistory.length) * 100 
-      : 0
+    successRate: rollHistory.length > 0
+      ? (rollHistory.filter(r => r.result === 'success').length / rollHistory.length) * 100
+      : 0,
   }
 
   const getResultColor = (result: DiceRoll['result']) => {
@@ -113,10 +113,13 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
     const diffMs = now.getTime() - date.getTime()
     const diffMins = Math.floor(diffMs / 60000)
     const diffHours = Math.floor(diffMs / 3600000)
-    
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffHours < 24) return `${diffHours}h ago`
+
+    if (diffMins < 1)
+      return 'Just now'
+    if (diffMins < 60)
+      return `${diffMins}m ago`
+    if (diffHours < 24)
+      return `${diffHours}h ago`
     return date.toLocaleDateString()
   }
 
@@ -135,7 +138,7 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
           <span className="font-medium">Roll History</span>
           <Badge variant="secondary">{rollHistory.length}</Badge>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -146,18 +149,18 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
             <BarChart3 size={14} />
             Stats
           </Button>
-          
+
           {/* Result Filter */}
           <div className="flex items-center gap-2">
             <Filter size={14} />
             <select
               value={filterResult}
-              onChange={(e) => setFilterResult(e.target.value)}
+              onChange={e => setFilterResult(e.target.value)}
               className="text-sm px-2 py-1 rounded border"
               style={{
                 backgroundColor: 'var(--card)',
                 borderColor: 'var(--border)',
-                color: 'var(--foreground)'
+                color: 'var(--foreground)',
               }}
             >
               <option value="all">All Results</option>
@@ -206,7 +209,10 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
                     </div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{stats.successRate.toFixed(0)}%</div>
+                    <div className="text-2xl font-bold">
+                      {stats.successRate.toFixed(0)}
+                      %
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       Success Rate
                     </div>
@@ -218,7 +224,7 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
                     </div>
                   </div>
                 </div>
-                
+
                 {stats.total > 0 && (
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex justify-center">
@@ -257,8 +263,8 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
                         {getResultIcon(roll.result)}
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className={`text-xs ${getResultColor(roll.result)}`}
                         >
                           {getResultLabel(roll.result, roll.total)}
@@ -268,7 +274,7 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
                           {formatTimestamp(roll.timestamp)}
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
                         <div className="text-lg font-bold">{roll.total}</div>
                         <div className="text-xs text-muted-foreground">
@@ -317,17 +323,17 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
         <Card variant="surface">
           <CardContent className="p-6 pt-6">
             <div className="text-center py-8">
-              <Dice6 
-                size={48} 
-                className="mx-auto mb-4 opacity-50 text-muted-foreground" />
+              <Dice6
+                size={48}
+                className="mx-auto mb-4 opacity-50 text-muted-foreground"
+              />
               <h3 className="text-lg font-medium mb-2">
                 {searchQuery || filterResult !== 'all' ? 'No Matching Rolls' : 'No Rolls Yet'}
               </h3>
               <p className="text-muted-foreground">
-                {searchQuery || filterResult !== 'all' 
+                {searchQuery || filterResult !== 'all'
                   ? 'Try adjusting your search or filter criteria.'
-                  : 'Start rolling dice to see your roll history! All 2d6 rolls will be tracked here with their outcomes.'
-                }
+                  : 'Start rolling dice to see your roll history! All 2d6 rolls will be tracked here with their outcomes.'}
               </p>
             </div>
           </CardContent>
@@ -340,12 +346,15 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between text-sm">
               <div className="text-muted-foreground">
-                Last roll: {rollHistory.length > 0 ? formatTimestamp(rollHistory[0].timestamp) : 'Never'}
+                Last roll:
+                {' '}
+                {rollHistory.length > 0 ? formatTimestamp(rollHistory[0].timestamp) : 'Never'}
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp size={14} />
                 <span>
-                  {stats.successRate.toFixed(0)}% success rate
+                  {stats.successRate.toFixed(0)}
+                  % success rate
                 </span>
               </div>
             </div>
@@ -355,7 +364,3 @@ export const RollHistoryWidget: React.FC<RollHistoryWidgetProps> = ({
     </div>
   )
 }
-
-
-
-
