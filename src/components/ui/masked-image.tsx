@@ -1,14 +1,14 @@
 import Image from 'next/image'
 import React from 'react'
-import { cn } from 'src/lib/utils'
+import { cn } from '@/lib/utils'
 
-export type MaskedImageVariant
-  = | 'shape1'
-    | 'shape2'
-    | 'shape3'
-    | 'shape4'
-    | 'shape5'
-    | 'shape6'
+export type MaskedImageVariant =
+  | 'shape1'
+  | 'shape2'
+  | 'shape3'
+  | 'shape4'
+  | 'shape5'
+  | 'shape6'
 
 interface MaskedImageProps {
   src: string

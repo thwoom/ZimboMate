@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { logger } from '@/utils/logger'
 
 interface FontLoaderProps {
   onFontsLoaded?: (loaded: boolean) => void
@@ -12,17 +13,26 @@ export function FontLoader({ onFontsLoaded }: FontLoaderProps) {
         await document.fonts.ready
 
         // Verify key fonts are available
-        const criticalFonts = ['Kalam', 'Uncial Antiqua', 'Metamorphous', 'Orbitron', 'Cinzel']
-        const loadedFonts = criticalFonts.filter(fontName =>
+        const criticalFonts = [
+          'Kalam',
+          'Uncial Antiqua',
+          'Metamorphous',
+          'Orbitron',
+          'Cinzel',
+        ]
+        const loadedFonts = criticalFonts.filter((fontName) =>
           document.fonts.check(`16px "${fontName}"`),
         )
 
-        console.log(`Loaded ${loadedFonts.length}/${criticalFonts.length} critical fonts:`, loadedFonts)
+        logger.info('font_loader_ready', {
+          loaded: loadedFonts.length,
+          total: criticalFonts.length,
+          fonts: loadedFonts,
+        })
 
         onFontsLoaded?.(loadedFonts.length >= 3) // Consider loaded if most fonts are available
-      }
-      catch (error) {
-        console.warn('Font loading verification failed:', error)
+      } catch (error) {
+        logger.warn('font_loader_failed', { message: (error as Error)?.message ?? String(error) })
         onFontsLoaded?.(true) // Assume loaded to continue
       }
     }

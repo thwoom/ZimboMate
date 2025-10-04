@@ -26,19 +26,22 @@ export function SpellBookPage({
       rotateY: animationDirection === 'right' ? -180 : 180,
       opacity: 0,
       scale: 0.8,
-      transformOrigin: animationDirection === 'right' ? 'left center' : 'right center',
+      transformOrigin:
+        animationDirection === 'right' ? 'left center' : 'right center',
     },
     visible: {
       rotateY: 0,
       opacity: 1,
       scale: 1,
-      transformOrigin: animationDirection === 'right' ? 'left center' : 'right center',
+      transformOrigin:
+        animationDirection === 'right' ? 'left center' : 'right center',
     },
     exit: {
       rotateY: animationDirection === 'right' ? 180 : -180,
       opacity: 0,
       scale: 0.8,
-      transformOrigin: animationDirection === 'right' ? 'left center' : 'right center',
+      transformOrigin:
+        animationDirection === 'right' ? 'left center' : 'right center',
     },
   }
 
@@ -51,7 +54,7 @@ export function SpellBookPage({
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode='wait'>
       {isVisible && (
         <motion.div
           className={`
@@ -62,9 +65,9 @@ export function SpellBookPage({
             ${className}
           `}
           variants={pageVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
+          initial='hidden'
+          animate='visible'
+          exit='exit'
           transition={pageTransition}
           style={{
             transformStyle: 'preserve-3d',
@@ -72,13 +75,11 @@ export function SpellBookPage({
           }}
         >
           {/* Page content */}
-          <div className="w-full h-full relative z-10">
-            {children}
-          </div>
+          <div className='w-full h-full relative z-10'>{children}</div>
 
           {/* Page shadow effect */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-black/10 pointer-events-none"
+            className='absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-black/10 pointer-events-none'
             initial={{ opacity: 0 }}
             animate={{ opacity: isAnimating ? 1 : 0 }}
             transition={{ duration: 0.3 }}
@@ -86,7 +87,7 @@ export function SpellBookPage({
 
           {/* Page curl effect */}
           <motion.div
-            className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-br from-parchment-200 to-parchment-300 transform rotate-45 translate-x-4 -translate-y-4 pointer-events-none"
+            className='absolute top-0 right-0 w-8 h-8 bg-gradient-to-br from-parchment-200 to-parchment-300 transform rotate-45 translate-x-4 -translate-y-4 pointer-events-none'
             initial={{ opacity: 0, scale: 0 }}
             animate={{
               opacity: isAnimating ? 0.6 : 0,

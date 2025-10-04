@@ -6,7 +6,8 @@ export const troubleshootingContent = [
   },
   {
     type: 'paragraph',
-    content: 'Having trouble with ZimboMate V2? This guide covers the most common issues and their solutions. Most problems can be resolved quickly with these steps.',
+    content:
+      'Having trouble with ZimboMate V2? This guide covers the most common issues and their solutions. Most problems can be resolved quickly with these steps.',
   },
   {
     type: 'subheading',
@@ -15,7 +16,7 @@ export const troubleshootingContent = [
   },
   {
     type: 'subheading',
-    title: 'App Won\'t Load or Crashes',
+    title: "App Won't Load or Crashes",
     content: 'When ZimboMate fails to start',
   },
   {
@@ -25,18 +26,19 @@ export const troubleshootingContent = [
       '**Hard Refresh**: Ctrl+Shift+R to reload without cache',
       '**Check Browser Console**: F12 → Console tab for error messages',
       '**Try Incognito Mode**: Test if extensions are causing conflicts',
-      '**Update Browser**: Ensure you\'re using a modern browser version',
+      "**Update Browser**: Ensure you're using a modern browser version",
     ],
   },
   {
     type: 'callout',
     variant: 'warning',
-    content: '⚠️ If clearing cache doesn\'t work, try disabling browser extensions one by one to identify conflicts.',
+    content:
+      "⚠️ If clearing cache doesn't work, try disabling browser extensions one by one to identify conflicts.",
   },
   {
     type: 'subheading',
     title: 'Dice Not Rolling or 3D Issues',
-    content: 'When the dice system isn\'t working',
+    content: "When the dice system isn't working",
   },
   {
     type: 'list',
@@ -51,7 +53,7 @@ export const troubleshootingContent = [
   {
     type: 'subheading',
     title: 'Data Not Saving',
-    content: 'When your characters or progress isn\'t preserved',
+    content: "When your characters or progress isn't preserved",
   },
   {
     type: 'list',
@@ -66,7 +68,7 @@ export const troubleshootingContent = [
   {
     type: 'subheading',
     title: '⌨️ Keyboard Shortcuts Not Working',
-    content: 'When shortcuts don\'t respond',
+    content: "When shortcuts don't respond",
   },
   {
     type: 'subheading',
@@ -77,10 +79,26 @@ export const troubleshootingContent = [
     type: 'table',
     headers: ['Issue', 'Cause', 'Solution'],
     rows: [
-      ['Ctrl+K doesn\'t open palette', 'Browser extension conflict', 'Disable extensions or use different browser'],
-      ['Number keys don\'t work', 'Not in Dice tab', 'Switch to Dice tab (Ctrl+2) first'],
-      ['Spacebar doesn\'t roll', 'Focus on input field', 'Click outside input fields first'],
-      ['Tab shortcuts don\'t work', 'Page not fully loaded', 'Wait for complete page load'],
+      [
+        "Ctrl+K doesn't open palette",
+        'Browser extension conflict',
+        'Disable extensions or use different browser',
+      ],
+      [
+        "Number keys don't work",
+        'Not in Dice tab',
+        'Switch to Dice tab (Ctrl+2) first',
+      ],
+      [
+        "Spacebar doesn't roll",
+        'Focus on input field',
+        'Click outside input fields first',
+      ],
+      [
+        "Tab shortcuts don't work",
+        'Page not fully loaded',
+        'Wait for complete page load',
+      ],
     ],
   },
   {
@@ -94,7 +112,7 @@ export const troubleshootingContent = [
       '**Input Field Focus**: Click outside text inputs before using shortcuts',
       '**Modal Dialogs**: Close any open dialogs that might capture keyboard events',
       '**Browser Focus**: Ensure the ZimboMate tab is active and focused',
-      '**Modifier Keys**: Make sure Ctrl/Cmd keys aren\'t stuck',
+      "**Modifier Keys**: Make sure Ctrl/Cmd keys aren't stuck",
     ],
   },
   {
@@ -129,7 +147,11 @@ export const troubleshootingContent = [
       ['Slow scrolling', 'Too many DOM elements', 'Refresh page periodically'],
       ['Browser freezing', 'Memory leak', 'Restart browser'],
       ['Animations stuttering', 'CPU overload', 'Close other applications'],
-      ['Page becomes unresponsive', 'JavaScript error', 'Check console for errors'],
+      [
+        'Page becomes unresponsive',
+        'JavaScript error',
+        'Check console for errors',
+      ],
     ],
   },
   {
@@ -175,7 +197,8 @@ export const troubleshootingContent = [
   {
     type: 'callout',
     variant: 'info',
-    content: '💡 Always export your characters regularly! Go to File Management → Export to save your data.',
+    content:
+      '💡 Always export your characters regularly! Go to File Management → Export to save your data.',
   },
   {
     type: 'subheading',
@@ -271,7 +294,8 @@ export const troubleshootingContent = [
   {
     type: 'callout',
     variant: 'warning',
-    content: '⚠️ Only modify browser storage if you understand the consequences. Always export your data first!',
+    content:
+      '⚠️ Only modify browser storage if you understand the consequences. Always export your data first!',
   },
   {
     type: 'subheading',
@@ -291,6 +315,7 @@ export const troubleshootingContent = [
   {
     type: 'callout',
     variant: 'success',
-    content: '🎉 Most issues can be resolved with these steps! Remember: when in doubt, try a hard refresh (Ctrl+Shift+R) first.',
+    content:
+      '🎉 Most issues can be resolved with these steps! Remember: when in doubt, try a hard refresh (Ctrl+Shift+R) first.',
   },
 ]

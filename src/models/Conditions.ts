@@ -3,21 +3,21 @@
  */
 
 // Condition duration types
-export type ConditionDuration
-  = | 'instant' // Applied and removed immediately
-    | 'scene' // Until end of current scene
-    | 'session' // Until end of game session
-    | 'permanent' // Until removed by specific means
-    | 'custom' // Custom duration logic
+export type ConditionDuration =
+  | 'instant' // Applied and removed immediately
+  | 'scene' // Until end of current scene
+  | 'session' // Until end of game session
+  | 'permanent' // Until removed by specific means
+  | 'custom' // Custom duration logic
 
 // Condition categories
-export type ConditionCategory
-  = | 'physical' // Physical ailments
-    | 'mental' // Mental conditions
-    | 'magical' // Magical effects
-    | 'divine' // Divine influences
-    | 'environmental' // Environmental hazards
-    | 'social' // Social conditions
+export type ConditionCategory =
+  | 'physical' // Physical ailments
+  | 'mental' // Mental conditions
+  | 'magical' // Magical effects
+  | 'divine' // Divine influences
+  | 'environmental' // Environmental hazards
+  | 'social' // Social conditions
 
 // Main condition interface
 export interface Condition {
@@ -35,7 +35,7 @@ export interface Condition {
 
   // Mechanical modifiers
   modifiers?: {
-    attributes?: Partial <Record<string, number>>
+    attributes?: Partial<Record<string, number>>
     armor?: number
     damage?: string
     ongoing?: number
@@ -68,7 +68,7 @@ export interface ActiveCondition {
 }
 
 // Common conditions in Dungeon World
-export const COMMON_CONDITIONS: Partial <Condition>[] = [
+export const COMMON_CONDITIONS: Partial<Condition>[] = [
   // Physical Conditions
   {
     name: 'Bleeding',
@@ -111,7 +111,8 @@ export const COMMON_CONDITIONS: Partial <Condition>[] = [
     name: 'Frightened',
     category: 'mental',
     description: 'Fear grips your heart.',
-    mechanicalEffect: 'Take-1 ongoing when acting against the source of your fear.',
+    mechanicalEffect:
+      'Take-1 ongoing when acting against the source of your fear.',
     duration: 'scene',
     modifiers: {
       ongoing: -1,
@@ -154,14 +155,19 @@ export const COMMON_CONDITIONS: Partial <Condition>[] = [
     description: 'You are under a terrible curse.',
     mechanicalEffect: 'Roll twice and take the worse result on all rolls.',
     duration: 'permanent',
-    removalConditions: ['Remove curse spell', 'Complete quest', 'Divine intervention'],
+    removalConditions: [
+      'Remove curse spell',
+      'Complete quest',
+      'Divine intervention',
+    ],
     stackable: false,
   },
   {
     name: 'Invisible',
     category: 'magical',
     description: 'You cannot be seen by normal means.',
-    mechanicalEffect: 'Enemies cannot target you directly unless they can detect you.',
+    mechanicalEffect:
+      'Enemies cannot target you directly unless they can detect you.',
     duration: 'scene',
     triggers: {
       onLose: 'Become visible in a dramatic fashion',
@@ -180,7 +186,11 @@ export const COMMON_CONDITIONS: Partial <Condition>[] = [
       perTurn: 'Roll 1d4 damage',
       onGain: 'Panic or act calmly (player choice)',
     },
-    removalConditions: ['Stop, drop, and roll', 'Douse with water', 'Smother flames'],
+    removalConditions: [
+      'Stop, drop, and roll',
+      'Douse with water',
+      'Smother flames',
+    ],
     stackable: false,
   },
   {
@@ -192,7 +202,11 @@ export const COMMON_CONDITIONS: Partial <Condition>[] = [
     modifiers: {
       armor: 1,
     },
-    removalConditions: ['Take fire damage', 'Break free (STR roll)', 'Thaw naturally'],
+    removalConditions: [
+      'Take fire damage',
+      'Break free (STR roll)',
+      'Thaw naturally',
+    ],
     stackable: false,
   },
 
@@ -234,14 +248,14 @@ export function applyCondition(
   activeConditions: ActiveCondition[],
 ): ActiveCondition[] {
   const existing = activeConditions.find(
-    ac => ac.characterId === characterId && ac.conditionId === condition.id,
+    (ac) => ac.characterId === characterId && ac.conditionId === condition.id,
   )
 
   if (existing) {
     if (condition.stackable) {
       // Add a stack
       const maxStacks = condition.maxStacks || Infinity
-      return activeConditions.map(ac =>
+      return activeConditions.map((ac) =>
         ac === existing
           ? { ...ac, stacks: Math.min(ac.stacks + 1, maxStacks) }
           : ac,
@@ -272,7 +286,7 @@ export function removeCondition(
   activeConditions: ActiveCondition[],
 ): ActiveCondition[] {
   return activeConditions.filter(
-    ac => !(ac.characterId === characterId && ac.conditionId === conditionId),
+    (ac) => !(ac.characterId === characterId && ac.conditionId === conditionId),
   )
 }
 
@@ -285,11 +299,11 @@ export function getCharacterConditions(
   conditionDefinitions: Condition[],
 ): Condition[] {
   const charConditions = activeConditions.filter(
-    ac => ac.characterId === characterId && ac.active,
+    (ac) => ac.characterId === characterId && ac.active,
   )
 
   return charConditions
-    .map(ac => conditionDefinitions.find(c => c.id === ac.conditionId))
+    .map((ac) => conditionDefinitions.find((c) => c.id === ac.conditionId))
     .filter((c): c is Condition => c !== undefined)
 }
 
@@ -300,7 +314,7 @@ export function endSceneConditions(
   activeConditions: ActiveCondition[],
 ): ActiveCondition[] {
   return activeConditions.map((ac) => {
-    const condition = COMMON_CONDITIONS.find(c => c.id === ac.conditionId)
+    const condition = COMMON_CONDITIONS.find((c) => c.id === ac.conditionId)
     if (condition?.duration === 'scene') {
       return { ...ac, active: false }
     }
@@ -315,7 +329,7 @@ export function endSessionConditions(
   activeConditions: ActiveCondition[],
 ): ActiveCondition[] {
   return activeConditions.map((ac) => {
-    const condition = COMMON_CONDITIONS.find(c => c.id === ac.conditionId)
+    const condition = COMMON_CONDITIONS.find((c) => c.id === ac.conditionId)
     if (condition?.duration === 'scene' || condition?.duration === 'session') {
       return { ...ac, active: false }
     }
@@ -339,9 +353,10 @@ export function getConditionModifiers(
   let armor = 0
 
   for (const condition of conditions) {
-    const active = activeConditions.find(ac => ac.conditionId === condition.id)
-    if (!active || !active.active)
-      continue
+    const active = activeConditions.find(
+      (ac) => ac.conditionId === condition.id,
+    )
+    if (!active || !active.active) continue
 
     const stacks = active.stacks || 1
 

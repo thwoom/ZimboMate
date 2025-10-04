@@ -1,47 +1,49 @@
+import type { DeltaOperation, UndoHandle } from '../services/llm/types'
+
 /**
  * Chronicle System Types - Core data structures for narrative note-taking
  * Hybrid Narrative Chronicle + Campaign Wiki implementation
  */
 
-export type EntityType
-  = | 'character'
-    | 'location'
-    | 'organization'
-    | 'item'
-    | 'event'
-    | 'mystery'
-    | 'relationship'
+export type EntityType =
+  | 'character'
+  | 'location'
+  | 'organization'
+  | 'item'
+  | 'event'
+  | 'mystery'
+  | 'relationship'
 
-export type RelationshipType
-  = | 'ally'
-    | 'enemy'
-    | 'family'
-    | 'romantic'
-    | 'business'
-    | 'mentor'
-    | 'unknown'
+export type RelationshipType =
+  | 'ally'
+  | 'enemy'
+  | 'family'
+  | 'romantic'
+  | 'business'
+  | 'mentor'
+  | 'unknown'
 
-export type NarrativeContext
-  = | 'setup'
-    | 'action'
-    | 'consequence'
-    | 'reflection'
-    | 'description'
+export type NarrativeContext =
+  | 'setup'
+  | 'action'
+  | 'consequence'
+  | 'reflection'
+  | 'description'
 
-export type EmotionalTone
-  = | 'tense'
-    | 'triumphant'
-    | 'mysterious'
-    | 'somber'
-    | 'funny'
-    | 'neutral'
+export type EmotionalTone =
+  | 'tense'
+  | 'triumphant'
+  | 'mysterious'
+  | 'somber'
+  | 'funny'
+  | 'neutral'
 
-export type EntityStatus
-  = | 'active'
-    | 'resolved'
-    | 'dormant'
-    | 'unknown'
-    | 'deceased'
+export type EntityStatus =
+  | 'active'
+  | 'resolved'
+  | 'dormant'
+  | 'unknown'
+  | 'deceased'
 
 // Core chronicle entry - the fundamental unit of story
 export interface ChronicleEntry {
@@ -196,6 +198,71 @@ export interface InferredRelationship {
 }
 
 // Settings for chronicle behavior
+export interface ChronicleDeltaLog {
+  bundleId: string
+  entryId: string
+  appliedOps: DeltaOperation[]
+  skippedOps: DeltaOperation[]
+  createdAt: string
+  undoHandle?: UndoHandle
+}
+
+export type ResourceLogType = 'xp' | 'bond' | 'hold' | 'debility'
+
+export interface BaseResourceLogEntry {
+  id: string
+  bundleId: string
+  entryId: string
+  createdAt: string
+  characterId: string
+}
+
+export interface XpLogEntry extends BaseResourceLogEntry {
+  type: 'xp'
+  amount: number
+  previous: number
+  next: number
+  reason?: string
+  note?: string
+}
+
+export interface BondLogEntry extends BaseResourceLogEntry {
+  type: 'bond'
+  bondId: string
+  targetId?: string
+  text: string
+  action: 'add' | 'resolve'
+  resolved: boolean
+}
+
+export interface HoldLogEntry extends BaseResourceLogEntry {
+  type: 'hold'
+  holdId: string
+  moveId: string
+  moveName: string
+  change: number
+  remaining: number
+}
+
+export interface DebilityLogEntry extends BaseResourceLogEntry {
+  type: 'debility'
+  debility: string
+  action: 'add' | 'remove'
+}
+
+export type ResourceLogEntry =
+  | XpLogEntry
+  | BondLogEntry
+  | HoldLogEntry
+  | DebilityLogEntry
+
+export interface ResourceHistoryState {
+  xp: Record<string, XpLogEntry[]>
+  bonds: Record<string, BondLogEntry[]>
+  hold: Record<string, HoldLogEntry[]>
+  debilities: Record<string, DebilityLogEntry[]>
+}
+
 export interface ChronicleSettings {
   autoEntityCreation: boolean
   minimumConfidenceForAutoCreation: number
@@ -204,4 +271,9 @@ export interface ChronicleSettings {
   parseOnType: boolean // Real-time vs on-save parsing
   defaultEntityTypes: EntityType[]
   customTags: string[]
+  autoApplyPolicy: Record<string, 'auto' | 'confirm' | 'off'>
+  tone: 'gritty' | 'heroic' | 'terse'
+  verbosity: 'short' | 'standard' | 'long'
+  costCapCents?: number
+  autoEquipWeapons: boolean
 }

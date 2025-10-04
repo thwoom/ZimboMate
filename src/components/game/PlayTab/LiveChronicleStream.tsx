@@ -22,7 +22,8 @@ import {
   X,
   Zap,
 } from 'lucide-react'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { logger } from '@/utils/logger'
 import { useChronicle } from '../../chronicle/ChronicleProvider'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
 
@@ -178,7 +179,7 @@ const QuickAddForm: React.FC<{
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       setIsListening(!isListening)
       // TODO: Implement speech recognition
-      console.log('Voice input:', isListening ? 'stopped' : 'started')
+      logger.info('chronicle_voice_input_toggle', { listening: !isListening })
     }
   }
 
@@ -285,60 +286,60 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
   character,
   gameMode,
   theme,
-  sessionStartTime,
+  sessionStartTime: _sessionStartTime,
   className = '',
 }) => {
   const [entries, setEntries] = useState<ChronicleEntry[]>([])
-  const [suggestions, setSuggestions] = useState<QuickSuggestion[]>([])
+  const suggestions = useMemo(() => {
+    const baseSuggestions: QuickSuggestion[] = []
+
+    switch (gameMode) {
+      case 'combat':
+        baseSuggestions.push(
+          { id: '1', text: `${character.name} strikes with fierce determination`, type: 'action', confidence: 0.8 },
+          { id: '2', text: `"This ends now!" ${character.name} shouts`, type: 'dialogue', confidence: 0.7 },
+          { id: '3', text: 'The enemy reveals a weakness in their defense', type: 'discovery', confidence: 0.6 },
+        )
+        break
+
+      case 'exploration':
+        baseSuggestions.push(
+          { id: '1', text: `${character.name} carefully examines the area`, type: 'action', confidence: 0.8 },
+          { id: '2', text: 'Something glints in the shadows', type: 'discovery', confidence: 0.7 },
+          { id: '3', text: `${character.name} feels a sense of unease`, type: 'reaction', confidence: 0.6 },
+        )
+        break
+
+      case 'social':
+        baseSuggestions.push(
+          { id: '1', text: `${character.name} chooses their words carefully`, type: 'action', confidence: 0.8 },
+          { id: '2', text: '"Perhaps we can help each other," they offer', type: 'dialogue', confidence: 0.7 },
+          { id: '3', text: 'The NPC seems to be hiding something', type: 'discovery', confidence: 0.6 },
+        )
+        break
+
+      case 'rest':
+        baseSuggestions.push(
+          { id: '1', text: `${character.name} reflects on recent events`, type: 'reaction', confidence: 0.8 },
+          { id: '2', text: 'The peaceful moment allows for deeper thoughts', type: 'discovery', confidence: 0.7 },
+          { id: '3', text: `${character.name} tends to their equipment`, type: 'action', confidence: 0.6 },
+        )
+        break
+    }
+
+    return baseSuggestions
+  }, [gameMode, character.name])
   const [isExpanded, setIsExpanded] = useState(false)
   const [autoScroll, setAutoScroll] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const { promptForChronicle, isOverlayEnabled } = useChronicle()
+  const { promptForChronicle: _promptForChronicle, isOverlayEnabled } = useChronicle()
 
-  // Generate contextual suggestions based on game mode and recent activity
-  useEffect(() => {
-    const generateSuggestions = () => {
-      const baseSuggestions: QuickSuggestion[] = []
+  const extractTags = useCallback((content: string): string[] => {
+    const hashtagRegex = /#(\\w+)/g
+    const matches = content.match(hashtagRegex)
+    return matches ? matches.map(match => match.substring(1)) : []
+  }, [])
 
-      switch (gameMode) {
-        case 'combat':
-          baseSuggestions.push(
-            { id: '1', text: `${character.name} strikes with fierce determination`, type: 'action', confidence: 0.8 },
-            { id: '2', text: `"This ends now!" ${character.name} shouts`, type: 'dialogue', confidence: 0.7 },
-            { id: '3', text: 'The enemy reveals a weakness in their defense', type: 'discovery', confidence: 0.6 },
-          )
-          break
-
-        case 'exploration':
-          baseSuggestions.push(
-            { id: '1', text: `${character.name} carefully examines the area`, type: 'action', confidence: 0.8 },
-            { id: '2', text: 'Something glints in the shadows', type: 'discovery', confidence: 0.7 },
-            { id: '3', text: `${character.name} feels a sense of unease`, type: 'reaction', confidence: 0.6 },
-          )
-          break
-
-        case 'social':
-          baseSuggestions.push(
-            { id: '1', text: `${character.name} chooses their words carefully`, type: 'action', confidence: 0.8 },
-            { id: '2', text: '"Perhaps we can help each other," they offer', type: 'dialogue', confidence: 0.7 },
-            { id: '3', text: 'The NPC seems to be hiding something', type: 'discovery', confidence: 0.6 },
-          )
-          break
-
-        case 'rest':
-          baseSuggestions.push(
-            { id: '1', text: `${character.name} reflects on recent events`, type: 'reaction', confidence: 0.8 },
-            { id: '2', text: 'The peaceful moment allows for deeper thoughts', type: 'discovery', confidence: 0.7 },
-            { id: '3', text: `${character.name} tends to their equipment`, type: 'action', confidence: 0.6 },
-          )
-          break
-      }
-
-      setSuggestions(baseSuggestions)
-    }
-
-    generateSuggestions()
-  }, [gameMode, character.name])
 
   // Auto-scroll to bottom when new entries are added
   useEffect(() => {
@@ -359,10 +360,10 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
     }
 
     setEntries(prev => [...prev, newEntry])
-  }, [character.name])
+  }, [character.name, extractTags])
 
   const editEntry = useCallback((id: string) => {
-    console.log('Edit entry:', id)
+    logger.info('chronicle_edit_entry', { entryId: id })
     // TODO: Implement entry editing
   }, [])
 
@@ -370,11 +371,6 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
     setEntries(prev => prev.filter(entry => entry.id !== id))
   }, [])
 
-  const extractTags = (content: string): string[] => {
-    const hashtagRegex = /#(\w+)/g
-    const matches = content.match(hashtagRegex)
-    return matches ? matches.map(match => match.substring(1)) : []
-  }
 
   const cardVariant
     = theme === 'combat'
@@ -496,3 +492,4 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
 }
 
 export default LiveChronicleStream
+

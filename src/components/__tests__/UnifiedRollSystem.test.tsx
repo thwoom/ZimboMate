@@ -1,5 +1,11 @@
 import type { RollResult } from '../../stores/diceStore'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import React from 'react'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -15,7 +21,7 @@ function resetStores() {
   diceStore.clearAllHistory()
   useDiceStore.setState({ currentRoll: null, isRolling: false })
 
-  useCharacterStore.setState(state => ({
+  useCharacterStore.setState((state) => ({
     ...state,
     characters: [],
     activeCharacterId: null,
@@ -32,7 +38,7 @@ describe('unifiedRollSystem', () => {
       attributes: { STR: 16, DEX: 12, CON: 10, INT: 11, WIS: 9, CHA: 8 },
     }
 
-    useCharacterStore.setState(state => ({
+    useCharacterStore.setState((state) => ({
       ...state,
       characters: [character],
       activeCharacterId: CHARACTER_ID,
@@ -71,7 +77,9 @@ describe('unifiedRollSystem', () => {
     const strengthButton = screen.getByRole('button', { name: /STR/i })
     fireEvent.click(strengthButton)
 
-    await waitFor(() => expect(rollStatSpy).toHaveBeenCalledWith('STR', CHARACTER_ID, undefined))
+    await waitFor(() =>
+      expect(rollStatSpy).toHaveBeenCalledWith('STR', CHARACTER_ID, undefined),
+    )
     await screen.findByText(/Last roll/i)
     expect(screen.getByText(/STR Roll/i)).toBeInTheDocument()
   })
@@ -99,9 +107,15 @@ describe('unifiedRollSystem', () => {
 
     render(<UnifiedRollSystem characterId={CHARACTER_ID} />)
 
-    fireEvent.change(screen.getByLabelText(/Label/i), { target: { value: 'Aid another' } })
-    fireEvent.change(screen.getByLabelText(/Notes/i), { target: { value: 'Helping a friend' } })
-    fireEvent.change(screen.getByLabelText(/Modifier/i), { target: { value: '1' } })
+    fireEvent.change(screen.getByLabelText(/Label/i), {
+      target: { value: 'Aid another' },
+    })
+    fireEvent.change(screen.getByLabelText(/Notes/i), {
+      target: { value: 'Helping a friend' },
+    })
+    fireEvent.change(screen.getByLabelText(/Modifier/i), {
+      target: { value: '1' },
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /Roll custom/i }))
 

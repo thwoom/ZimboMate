@@ -27,7 +27,7 @@
 
   /* Force higher contrast on all interactive elements */
   button,
-  [role="button"],
+  [role='button'],
   input,
   select,
   textarea {
@@ -37,13 +37,13 @@
   }
 
   button:hover,
-  [role="button"]:hover {
+  [role='button']:hover {
     background: var(--bg-hover) !important;
     border-color: var(--primary) !important;
   }
 
   button:focus,
-  [role="button"]:focus,
+  [role='button']:focus,
   input:focus,
   select:focus,
   textarea:focus {
@@ -54,19 +54,19 @@
 
   /* Enhanced dice roll results visibility */
   .dice-result,
-  [data-outcome="success"] {
+  [data-outcome='success'] {
     background: var(--chart-2) !important;
     color: #ffffff !important;
     border: var(--border-width) solid #000000 !important;
   }
 
-  [data-outcome="partial"] {
+  [data-outcome='partial'] {
     background: var(--chart-4) !important;
     color: #ffffff !important;
     border: var(--border-width) solid #000000 !important;
   }
 
-  [data-outcome="failure"] {
+  [data-outcome='failure'] {
     background: var(--destructive) !important;
     color: #ffffff !important;
     border: var(--border-width) solid #000000 !important;
@@ -87,8 +87,8 @@
 
   /* Remove subtle styling that doesn't work in high contrast */
   .glass-surface,
-  [class*="backdrop-blur"],
-  [class*="bg-opacity"] {
+  [class*='backdrop-blur'],
+  [class*='bg-opacity'] {
     backdrop-filter: none !important;
     background-color: var(--bg-primary) !important;
     border: var(--border-width) solid var(--border-color) !important;
@@ -119,7 +119,7 @@
   }
 
   .dice-rolling::after {
-    content: " (Rolling...)";
+    content: ' (Rolling...)';
     font-size: 0.8em;
     color: var(--primary);
   }
@@ -167,7 +167,7 @@
 
 /* Force Focus Indicators for Keyboard Users */
 .keyboard-user button:focus,
-.keyboard-user [role="button"]:focus,
+.keyboard-user [role='button']:focus,
 .keyboard-user input:focus,
 .keyboard-user select:focus,
 .keyboard-user textarea:focus {
@@ -193,7 +193,7 @@
 @media (pointer: coarse) {
   /* Larger touch targets for mobile/touch devices */
   button,
-  [role="button"],
+  [role='button'],
   .rollable-element {
     min-height: 44px;
     min-width: 44px;
@@ -228,7 +228,7 @@
   .quick-roll-zones,
   .command-palette,
   button:not(.print-visible),
-  [role="button"]:not(.print-visible) {
+  [role='button']:not(.print-visible) {
     display: none !important;
   }
 
@@ -249,21 +249,21 @@
 }
 
 /* Error state accessibility */
-[data-error="true"],
+[data-error='true'],
 .error-state {
   border: 2px solid #cc0000 !important;
   background: rgba(204, 0, 0, 0.1) !important;
   color: #cc0000 !important;
 }
 
-[data-error="true"]:focus,
+[data-error='true']:focus,
 .error-state:focus {
   outline: 3px solid #cc0000 !important;
   outline-offset: 2px !important;
 }
 
 /* Success state accessibility */
-[data-success="true"],
+[data-success='true'],
 .success-state {
   border: 2px solid #00aa00 !important;
   background: rgba(0, 170, 0, 0.1) !important;

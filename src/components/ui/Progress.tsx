@@ -41,9 +41,17 @@ const progressFillVariants = cva(
 
 export interface ProgressProps
   extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>,
-  VariantProps<typeof progressVariants> {}
+    VariantProps<typeof progressVariants> {}
 
-function Progress({ ref, className, value, variant, ...props }: ProgressProps & { ref?: React.RefObject<React.ElementRef<typeof ProgressPrimitive.Root> | null> }) {
+function Progress({
+  ref,
+  className,
+  value,
+  variant,
+  ...props
+}: ProgressProps & {
+  ref?: React.RefObject<React.ElementRef<typeof ProgressPrimitive.Root> | null>
+}) {
   return (
     <ProgressPrimitive.Root
       ref={ref}

@@ -39,19 +39,19 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
   const getDebilityIcon = (debilityKey: keyof Debilities) => {
     switch (debilityKey) {
       case 'weak':
-        return <Activity size={20} className="text-destructive" />
+        return <Activity size={20} className='text-destructive' />
       case 'shaky':
-        return <Zap size={20} className="text-chart-4" />
+        return <Zap size={20} className='text-chart-4' />
       case 'sick':
-        return <AlertTriangle size={20} className="text-chart-2" />
+        return <AlertTriangle size={20} className='text-chart-2' />
       case 'stunned':
-        return <HelpCircle size={20} className="text-primary" />
+        return <HelpCircle size={20} className='text-primary' />
       case 'confused':
-        return <HelpCircle size={20} className="text-accent" />
+        return <HelpCircle size={20} className='text-accent' />
       case 'scarred':
-        return <Heart size={20} className="text-accent" />
+        return <Heart size={20} className='text-accent' />
       default:
-        return <AlertTriangle size={20} className="text-muted-foreground" />
+        return <AlertTriangle size={20} className='text-muted-foreground' />
     }
   }
 
@@ -82,14 +82,17 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
       }`}
     >
       <CardContent>
-        <div className="space-y-4">
+        <div className='space-y-4'>
           {/* Header */}
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
+          <div className='flex items-start justify-between'>
+            <div className='flex items-center gap-3'>
               {getDebilityIcon(debility.key)}
               <div>
-                <h4 className="font-medium">{debility.name}</h4>
-                <Badge variant="secondary" className={`gap-1 text-xs ${debility.color}`}>
+                <h4 className='font-medium'>{debility.name}</h4>
+                <Badge
+                  variant='secondary'
+                  className={`gap-1 text-xs ${debility.color}`}
+                >
                   {getAttributeIcon(debility.attribute)}
                   {debility.attribute}
                 </Badge>
@@ -102,10 +105,7 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
               onCheckedChange={onToggle}
               className={`
                 relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                ${debility.active
-      ? 'bg-destructive/120'
-      : 'bg-muted'
-    }
+                ${debility.active ? 'bg-destructive/120' : 'bg-muted'}
               `}
             >
               <Switch.Thumb
@@ -118,14 +118,12 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
-            <p
-              className="text-sm text-muted-foreground"
-            >
+          <div className='space-y-2'>
+            <p className='text-sm text-muted-foreground'>
               {debility.description}
             </p>
 
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               <Badge
                 variant={debility.active ? 'default' : 'secondary'}
                 className={`text-xs ${debility.active ? 'bg-destructive/15 text-destructive' : ''}`}
@@ -140,17 +138,14 @@ export const DebilityCard: React.FC<DebilityCardProps> = ({
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="p-3 bg-destructive/12 rounded-lg border border-destructive/30"
+              className='p-3 bg-destructive/12 rounded-lg border border-destructive/30'
             >
-              <div className="flex items-center gap-2 text-sm text-destructive">
+              <div className='flex items-center gap-2 text-sm text-destructive'>
                 <AlertTriangle size={14} />
-                <span className="font-medium">Active Debility</span>
+                <span className='font-medium'>Active Debility</span>
               </div>
-              <p className="text-xs text-destructive mt-1">
-                This debility is currently affecting your
-                {' '}
-                {debility.attribute}
-                {' '}
+              <p className='text-xs text-destructive mt-1'>
+                This debility is currently affecting your {debility.attribute}{' '}
                 rolls.
               </p>
             </motion.div>

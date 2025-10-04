@@ -5,7 +5,9 @@ import { useStringListField } from '../useStringListField'
 
 describe('useStringListField', () => {
   it('initialises with normalised values', () => {
-    const { result } = renderHook(() => useStringListField([' Alpha ', 'beta', 'ALPHA']))
+    const { result } = renderHook(() =>
+      useStringListField([' Alpha ', 'beta', 'ALPHA']),
+    )
 
     expect(result.current.items).toEqual(['alpha', 'beta'])
   })
@@ -35,7 +37,9 @@ describe('useStringListField', () => {
   })
 
   it('replaces all values with a deduplicated, normalised list respecting the limit', () => {
-    const { result } = renderHook(() => useStringListField(['initial'], { limit: 2 }))
+    const { result } = renderHook(() =>
+      useStringListField(['initial'], { limit: 2 }),
+    )
 
     act(() => {
       result.current.replaceAll([' Bard ', 'BARD', 'Cleric'])

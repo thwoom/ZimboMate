@@ -2,11 +2,16 @@ import { screen, waitFor } from '@testing-library/react'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App.Complete'
-import { renderWithProviders, setupTestEnvironment } from '../../../utils/testing'
+import {
+  renderWithProviders,
+  setupTestEnvironment,
+} from '../../../utils/testing'
 
 // Mock complex dependencies
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="canvas">{children}</div>,
+  Canvas: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid='canvas'>{children}</div>
+  ),
   useFrame: vi.fn(),
   useThree: vi.fn(() => ({ scene: {}, camera: {}, gl: {} })),
 }))
@@ -62,7 +67,9 @@ describe.skip('end-to-End User Workflows', () => {
 
       // Should switch to dice tab
       await waitFor(() => {
-        expect(screen.getByRole('tab', { selected: true })).toHaveTextContent('Dice')
+        expect(screen.getByRole('tab', { selected: true })).toHaveTextContent(
+          'Dice',
+        )
       })
 
       // 5. Make the roll
@@ -134,19 +141,27 @@ describe.skip('end-to-End User Workflows', () => {
       const { user } = renderWithProviders(<App />)
 
       // 1. Check current XP
-      expect(screen.getByText(/xp[^\n\r7\u2028\u2029]*7.*10/i)).toBeInTheDocument() // 7/10 XP
+      expect(
+        screen.getByText(/xp[^\n\r7\u2028\u2029]*7.*10/i),
+      ).toBeInTheDocument() // 7/10 XP
 
       // 2. Gain XP from different sources
       // Failure XP
-      const failureXPButton = screen.getByRole('button', { name: /failure xp/i })
+      const failureXPButton = screen.getByRole('button', {
+        name: /failure xp/i,
+      })
       await user.click(failureXPButton)
 
       // Alignment XP
-      const alignmentXPButton = screen.getByRole('button', { name: /alignment xp/i })
+      const alignmentXPButton = screen.getByRole('button', {
+        name: /alignment xp/i,
+      })
       await user.click(alignmentXPButton)
 
       // Bond XP
-      const resolveBondButton = screen.getByRole('button', { name: /resolve bond/i })
+      const resolveBondButton = screen.getByRole('button', {
+        name: /resolve bond/i,
+      })
       await user.click(resolveBondButton)
 
       // 3. Should trigger level up (7+1+1+1=10 XP)
@@ -159,17 +174,23 @@ describe.skip('end-to-End User Workflows', () => {
       await user.click(levelUpButton)
 
       // Choose stat increase
-      const statIncreaseButton = screen.getByRole('button', { name: /increase strength/i })
+      const statIncreaseButton = screen.getByRole('button', {
+        name: /increase strength/i,
+      })
       await user.click(statIncreaseButton)
 
       // Choose new move
-      const newMoveButton = screen.getByRole('button', { name: /select move/i })
+      const newMoveButton = screen.getByRole('button', {
+        name: /select move/i,
+      })
       await user.click(newMoveButton)
 
       // 5. Verify level up completed
       await waitFor(() => {
         expect(screen.getByText('Level 6')).toBeInTheDocument()
-        expect(screen.getByText(/xp[^\n\r0\u2028\u2029]*0.*11/i)).toBeInTheDocument() // Reset XP for next level
+        expect(
+          screen.getByText(/xp[^\n\r0\u2028\u2029]*0.*11/i),
+        ).toBeInTheDocument() // Reset XP for next level
       })
     })
   })
@@ -181,7 +202,9 @@ describe.skip('end-to-End User Workflows', () => {
       // 1. Create new campaign
       await user.click(screen.getByRole('tab', { name: /campaign/i }))
 
-      const newCampaignButton = screen.getByRole('button', { name: /new campaign/i })
+      const newCampaignButton = screen.getByRole('button', {
+        name: /new campaign/i,
+      })
       await user.click(newCampaignButton)
 
       // Fill campaign details
@@ -191,7 +214,9 @@ describe.skip('end-to-End User Workflows', () => {
       const campaignDescription = screen.getByLabelText(/description/i)
       await user.type(campaignDescription, 'A classic dungeon crawl adventure')
 
-      const createButton = screen.getByRole('button', { name: /create campaign/i })
+      const createButton = screen.getByRole('button', {
+        name: /create campaign/i,
+      })
       await user.click(createButton)
 
       // 2. Add NPCs
@@ -208,26 +233,37 @@ describe.skip('end-to-End User Workflows', () => {
       await user.click(saveNPCButton)
 
       // 3. Add locations
-      const addLocationButton = screen.getByRole('button', { name: /add location/i })
+      const addLocationButton = screen.getByRole('button', {
+        name: /add location/i,
+      })
       await user.click(addLocationButton)
 
       const locationName = screen.getByLabelText(/location name/i)
       await user.type(locationName, 'The Twilight Grove')
 
       const locationDescription = screen.getByLabelText(/location description/i)
-      await user.type(locationDescription, 'A mystical grove where druids once gathered')
+      await user.type(
+        locationDescription,
+        'A mystical grove where druids once gathered',
+      )
 
-      const saveLocationButton = screen.getByRole('button', { name: /save location/i })
+      const saveLocationButton = screen.getByRole('button', {
+        name: /save location/i,
+      })
       await user.click(saveLocationButton)
 
       // 4. Record session
-      const recordSessionButton = screen.getByRole('button', { name: /record session/i })
+      const recordSessionButton = screen.getByRole('button', {
+        name: /record session/i,
+      })
       await user.click(recordSessionButton)
 
       const sessionNotes = screen.getByLabelText(/session notes/i)
       await user.type(sessionNotes, 'Party entered the citadel and met Meepo')
 
-      const saveSessionButton = screen.getByRole('button', { name: /save session/i })
+      const saveSessionButton = screen.getByRole('button', {
+        name: /save session/i,
+      })
       await user.click(saveSessionButton)
 
       // 5. Verify campaign data
@@ -247,7 +283,9 @@ describe.skip('end-to-End User Workflows', () => {
       // 2. Create backup
       await user.click(screen.getByRole('tab', { name: /backup/i }))
 
-      const createBackupButton = screen.getByRole('button', { name: /create backup/i })
+      const createBackupButton = screen.getByRole('button', {
+        name: /create backup/i,
+      })
       await user.click(createBackupButton)
 
       await waitFor(() => {
@@ -273,7 +311,9 @@ describe.skip('end-to-End User Workflows', () => {
 
       // Simulate file drop
       const dropZone = screen.getByText(/drop files here/i)
-      const file = new File(['{"characters": []}'], 'backup.json', { type: 'application/json' })
+      const file = new File(['{"characters": []}'], 'backup.json', {
+        type: 'application/json',
+      })
 
       // Mock file drop event
       Object.defineProperty(dropZone, 'files', {
@@ -298,7 +338,9 @@ describe.skip('end-to-End User Workflows', () => {
       await user.click(screen.getByRole('tab', { name: /multiplayer/i }))
 
       // 2. Start multiplayer session
-      const startSessionButton = screen.getByRole('button', { name: /start multiplayer session/i })
+      const startSessionButton = screen.getByRole('button', {
+        name: /start multiplayer session/i,
+      })
       await user.click(startSessionButton)
 
       // Fill session details
@@ -309,12 +351,16 @@ describe.skip('end-to-End User Workflows', () => {
       await user.clear(maxPlayers)
       await user.type(maxPlayers, '4')
 
-      const createSessionButton = screen.getByRole('button', { name: /create session/i })
+      const createSessionButton = screen.getByRole('button', {
+        name: /create session/i,
+      })
       await user.click(createSessionButton)
 
       // 3. Verify session created
       await waitFor(() => {
-        expect(screen.getByText(/connected to.*epic adventure night/i)).toBeInTheDocument()
+        expect(
+          screen.getByText(/connected to.*epic adventure night/i),
+        ).toBeInTheDocument()
       })
 
       // 4. Share dice roll
@@ -339,13 +385,19 @@ describe.skip('end-to-End User Workflows', () => {
 
       // 1. Navigate using only keyboard shortcuts
       await user.keyboard('{Control>}2{/Control}') // Dice tab
-      expect(screen.getByRole('tab', { selected: true })).toHaveTextContent('Dice')
+      expect(screen.getByRole('tab', { selected: true })).toHaveTextContent(
+        'Dice',
+      )
 
       await user.keyboard('{Control>}3{/Control}') // Moves tab
-      expect(screen.getByRole('tab', { selected: true })).toHaveTextContent('Moves')
+      expect(screen.getByRole('tab', { selected: true })).toHaveTextContent(
+        'Moves',
+      )
 
       await user.keyboard('{Control>}4{/Control}') // Equipment tab
-      expect(screen.getByRole('tab', { selected: true })).toHaveTextContent('Equipment')
+      expect(screen.getByRole('tab', { selected: true })).toHaveTextContent(
+        'Equipment',
+      )
 
       // 2. Use command palette
       await user.keyboard('{Control>}k{/Control}')

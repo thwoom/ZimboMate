@@ -26,24 +26,28 @@ function sanitiseValues(
 
   for (const raw of values) {
     const value = normalise(raw)
-    if (!value || seen.has(value))
-      continue
+    if (!value || seen.has(value)) continue
 
     seen.add(value)
     result.push(value)
 
-    if (result.length >= limit)
-      break
+    if (result.length >= limit) break
   }
 
   return result
 }
 
-export function useStringListField(initialValues: string[] = [], options: UseStringListFieldOptions = {}): UseStringListFieldReturn {
+export function useStringListField(
+  initialValues: string[] = [],
+  options: UseStringListFieldOptions = {},
+): UseStringListFieldReturn {
   const normalise = options.normalise ?? defaultNormaliser
   const limit = options.limit ?? Number.POSITIVE_INFINITY
 
-  const initialList = useMemo(() => sanitiseValues(initialValues, normalise, limit), [initialValues, limit, normalise])
+  const initialList = useMemo(
+    () => sanitiseValues(initialValues, normalise, limit),
+    [initialValues, limit, normalise],
+  )
   const initialRef = useRef(initialList)
 
   const [itemsState, setItemsState] = useState(initialRef.current)
@@ -54,28 +58,35 @@ export function useStringListField(initialValues: string[] = [], options: UseStr
     setItemsState(next)
   }, [])
 
-  const addItem = useCallback((rawValue: string) => {
-    const value = normalise(rawValue)
-    if (!value)
-      return false
+  const addItem = useCallback(
+    (rawValue: string) => {
+      const value = normalise(rawValue)
+      if (!value) return false
 
-    const current = itemsRef.current
-    if (current.includes(value) || current.length >= limit)
-      return false
+      const current = itemsRef.current
+      if (current.includes(value) || current.length >= limit) return false
 
-    commitItems([...current, value])
-    return true
-  }, [commitItems, limit, normalise])
+      commitItems([...current, value])
+      return true
+    },
+    [commitItems, limit, normalise],
+  )
 
-  const removeItem = useCallback((rawValue: string) => {
-    const value = normalise(rawValue)
-    commitItems(itemsRef.current.filter(item => item !== value))
-  }, [commitItems, normalise])
+  const removeItem = useCallback(
+    (rawValue: string) => {
+      const value = normalise(rawValue)
+      commitItems(itemsRef.current.filter((item) => item !== value))
+    },
+    [commitItems, normalise],
+  )
 
-  const replaceAll = useCallback((values: string[]) => {
-    const next = sanitiseValues(values, normalise, limit)
-    commitItems(next)
-  }, [commitItems, limit, normalise])
+  const replaceAll = useCallback(
+    (values: string[]) => {
+      const next = sanitiseValues(values, normalise, limit)
+      commitItems(next)
+    },
+    [commitItems, limit, normalise],
+  )
 
   const reset = useCallback(() => {
     commitItems(initialRef.current)

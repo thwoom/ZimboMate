@@ -1,6 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { logger } from '@/utils/logger'
 
 describe('audio & Memory Testing for Gaming', () => {
   describe('audio System Tests', () => {
@@ -53,7 +54,7 @@ describe('audio & Memory Testing for Gaming', () => {
         }
 
         return (
-          <button onClick={handleRoll} data-testid="roll-button">
+          <button type='button' onClick={handleRoll} data-testid='roll-button'>
             Roll Dice
           </button>
         )
@@ -71,9 +72,13 @@ describe('audio & Memory Testing for Gaming', () => {
       const mockAudioManager = () => {
         const handleMultipleSounds = () => {
           // Simulate background music + sound effects
-          const bgMusic = new (globalThis.Howl as any)({ src: ['bg-music.mp3'] })
+          const bgMusic = new (globalThis.Howl as any)({
+            src: ['bg-music.mp3'],
+          })
           const diceSound = new (globalThis.Howl as any)({ src: ['dice.mp3'] })
-          const successSound = new (globalThis.Howl as any)({ src: ['success.mp3'] })
+          const successSound = new (globalThis.Howl as any)({
+            src: ['success.mp3'],
+          })
 
           bgMusic.play()
           diceSound.play()
@@ -81,7 +86,7 @@ describe('audio & Memory Testing for Gaming', () => {
         }
 
         return (
-          <button onClick={handleMultipleSounds} data-testid="multi-audio">
+          <button type='button' onClick={handleMultipleSounds} data-testid='multi-audio'>
             Play Multiple
           </button>
         )
@@ -112,12 +117,10 @@ describe('audio & Memory Testing for Gaming', () => {
 
         return (
           <div>
-            <button onClick={handleToggleAudio} data-testid="audio-toggle">
-              {audioEnabled ? 'Disable' : 'Enable'}
-              {' '}
-              Audio
+            <button type='button' onClick={handleToggleAudio} data-testid='audio-toggle'>
+              {audioEnabled ? 'Disable' : 'Enable'} Audio
             </button>
-            <button onClick={handlePlay} data-testid="play-sound">
+            <button type='button' onClick={handlePlay} data-testid='play-sound'>
               Play Sound
             </button>
           </div>
@@ -142,21 +145,21 @@ describe('audio & Memory Testing for Gaming', () => {
           const sound = new (globalThis.Howl as any)({
             src: ['nonexistent.mp3'],
             onloaderror: (id: any, error: any) => {
-              console.log('Audio load error handled:', error)
+              logger.info('Audio load error handled:', error)
             },
           })
           sound.play()
         }
 
         return (
-          <button onClick={handlePlayWithError} data-testid="error-audio">
+          <button type='button' onClick={handlePlayWithError} data-testid='error-audio'>
             Play Broken Audio
           </button>
         )
       }
 
       // Mock console.log to verify error handling
-      vi.spyOn(console, 'log')
+      vi.spyOn(logger, 'info')
 
       const { getByTestId } = render(mockErrorHandler())
       fireEvent.click(getByTestId('error-audio'))
@@ -175,7 +178,7 @@ describe('audio & Memory Testing for Gaming', () => {
         React.useEffect(() => {
           const handleKeydown = (e: KeyboardEvent) => {
             if (e.key === 'r') {
-              console.log('Roll dice shortcut')
+              logger.info('Roll dice shortcut')
             }
           }
 
@@ -191,11 +194,17 @@ describe('audio & Memory Testing for Gaming', () => {
 
       const { unmount } = render(<MockKeyboardComponent />)
 
-      expect(addEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function))
+      expect(addEventListenerSpy).toHaveBeenCalledWith(
+        'keydown',
+        expect.any(Function),
+      )
 
       unmount()
 
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function))
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'keydown',
+        expect.any(Function),
+      )
 
       addEventListenerSpy.mockRestore()
       removeEventListenerSpy.mockRestore()
@@ -240,35 +249,20 @@ describe('audio & Memory Testing for Gaming', () => {
 
     it('manages large datasets efficiently', async () => {
       const MockLargeDataComponent = () => {
-        const [data, setData] = React.useState<any[]>([])
-
-        React.useEffect(() => {
-          // Simulate loading large character/campaign data
-          const largeDataset = Array.from({ length: 10000 }).fill(0).map((_, i) => ({
-            id: i,
-            name: `Character ${i}`,
-            stats: {
-              hp: Math.floor(Math.random() * 20) + 1,
-              level: Math.floor(Math.random() * 10) + 1,
-            },
-          }))
-
-          setData(largeDataset)
-
-          // Cleanup function
-          return () => {
-            setData([])
-          }
-        }, [])
-
-        return (
-          <div>
-            Loaded
-            {data.length}
-            {' '}
-            items
-          </div>
+        const data = React.useMemo(
+          () =>
+            Array.from({ length: 10000 }).map((_, i) => ({
+              id: i,
+              name: `Character ${i}`,
+              stats: {
+                hp: Math.floor(Math.random() * 20) + 1,
+                level: Math.floor(Math.random() * 10) + 1,
+              },
+            })),
+          [],
         )
+
+        return <div>Loaded {data.length} items</div>
       }
 
       const { unmount, getByText } = render(<MockLargeDataComponent />)
@@ -309,15 +303,12 @@ describe('audio & Memory Testing for Gaming', () => {
 
           return () => {
             // Cleanup WebGL resources
-            if (buffer)
-              gl.deleteBuffer(buffer)
-            if (texture)
-              gl.deleteTexture(texture)
+            if (buffer) gl.deleteBuffer(buffer)
+            if (texture) gl.deleteTexture(texture)
 
             // Lose context to free memory
             const loseContext = gl.getExtension('WEBGL_lose_context')
-            if (loseContext)
-              loseContext.loseContext()
+            if (loseContext) loseContext.loseContext()
           }
         }, [])
 
@@ -370,7 +361,7 @@ describe('audio & Memory Testing for Gaming', () => {
       // In a real implementation, old actions should be cleaned up
       const cutoffTime = Date.now() - 1800000 // 30 minutes ago
       const recentActions = sessionActions.filter(
-        action => action.timestamp > cutoffTime,
+        (action) => action.timestamp > cutoffTime,
       )
 
       expect(recentActions.length).toBeLessThanOrEqual(sessionActions.length)

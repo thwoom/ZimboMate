@@ -7,12 +7,15 @@ import process from 'node:process'
 const DEFAULT_MAIN_TIMEOUT = 10 * 60 * 1000
 const DEFAULT_FALLBACK_TIMEOUT = 5 * 60 * 1000
 
-const mainTimeout = Number.parseInt(process.env.TEST_WATCHDOG_TIMEOUT ?? '', 10) || DEFAULT_MAIN_TIMEOUT
-const fallbackTimeout = Number.parseInt(process.env.TEST_WATCHDOG_FALLBACK_TIMEOUT ?? '', 10) || DEFAULT_FALLBACK_TIMEOUT
+const mainTimeout =
+  Number.parseInt(process.env.TEST_WATCHDOG_TIMEOUT ?? '', 10) ||
+  DEFAULT_MAIN_TIMEOUT
+const fallbackTimeout =
+  Number.parseInt(process.env.TEST_WATCHDOG_FALLBACK_TIMEOUT ?? '', 10) ||
+  DEFAULT_FALLBACK_TIMEOUT
 
 const logDir = resolve(process.cwd(), 'logs')
-if (!existsSync(logDir))
-  mkdirSync(logDir)
+if (!existsSync(logDir)) mkdirSync(logDir)
 
 const logFile = resolve(logDir, `test-watchdog-${Date.now()}.log`)
 const logStream = createWriteStream(logFile, { flags: 'a' })
@@ -23,8 +26,10 @@ const fallbackCommands = [
     command: 'npx vitest run --threads false',
   },
   {
-    label: 'npx playwright test --project="Desktop Chrome" --reporter=line --workers=1',
-    command: 'npx playwright test --project="Desktop Chrome" --reporter=line --workers=1',
+    label:
+      'npx playwright test --project="Desktop Chrome" --reporter=line --workers=1',
+    command:
+      'npx playwright test --project="Desktop Chrome" --reporter=line --workers=1',
   },
 ]
 
@@ -46,8 +51,7 @@ function runCommand(label, command, timeout) {
     let finished = false
     let timedOut = false
     const timeoutHandle = setTimeout(() => {
-      if (finished)
-        return
+      if (finished) return
       timedOut = true
       log(`${label} exceeded ${timeout}ms, sending SIGTERM`)
       child.kill('SIGTERM')
@@ -59,12 +63,11 @@ function runCommand(label, command, timeout) {
       }, 5000)
     }, timeout)
 
-    child.stdout.on('data', chunk => pipeOutput(label, chunk))
-    child.stderr.on('data', chunk => pipeOutput(label, chunk))
+    child.stdout.on('data', (chunk) => pipeOutput(label, chunk))
+    child.stderr.on('data', (chunk) => pipeOutput(label, chunk))
 
     child.on('error', (error) => {
-      if (finished)
-        return
+      if (finished) return
       finished = true
       clearTimeout(timeoutHandle)
       log(`${label} failed to start: ${error.message}`)
@@ -72,22 +75,26 @@ function runCommand(label, command, timeout) {
     })
 
     child.on('exit', (code, signal) => {
-      if (finished)
-        return
+      if (finished) return
       finished = true
       clearTimeout(timeoutHandle)
       if (timedOut)
         log(`${label} terminated after timeout (signal=${signal ?? 'none'})`)
-      else
-        log(`${label} exited with code ${code ?? 0}`)
+      else log(`${label} exited with code ${code ?? 0}`)
       resolveRun({ code: code ?? 0, timedOut })
     })
   })
 }
 
 async function runWatchdog() {
-  log(`Starting watchdog: npm run test (timeout ${mainTimeout}ms) -> ${logFile}`)
-  const mainResult = await runCommand('npm run test', 'npm run test', mainTimeout)
+  log(
+    `Starting watchdog: npm run test (timeout ${mainTimeout}ms) -> ${logFile}`,
+  )
+  const mainResult = await runCommand(
+    'npm run test',
+    'npm run test',
+    mainTimeout,
+  )
 
   if (!mainResult.timedOut) {
     log('Main test command completed without timeout')
@@ -100,7 +107,11 @@ async function runWatchdog() {
   for (const fallback of fallbackCommands) {
     log(`Running fallback command: ${fallback.label}`)
 
-    const result = await runCommand(fallback.label, fallback.command, fallbackTimeout)
+    const result = await runCommand(
+      fallback.label,
+      fallback.command,
+      fallbackTimeout,
+    )
     results.push({ label: fallback.label, ...result })
   }
 

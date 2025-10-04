@@ -47,9 +47,9 @@ export function SpellDetails({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <div className="text-center text-muted-foreground">
-          <Sparkles size={48} className="mx-auto mb-4 opacity-50" />
-          <p className="text-body-lg">Select a spell to view details</p>
+        <div className='text-center text-muted-foreground'>
+          <Sparkles size={48} className='mx-auto mb-4 opacity-50' />
+          <p className='text-body-lg'>Select a spell to view details</p>
         </div>
       </motion.div>
     )
@@ -80,57 +80,61 @@ export function SpellDetails({
       key={spell.id}
     >
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-start justify-between mb-3">
-          <h2 className="text-display-md text-foreground font-display">
+      <div className='mb-6'>
+        <div className='flex items-start justify-between mb-3'>
+          <h2 className='text-display-md text-foreground font-display'>
             {spell.name}
           </h2>
-          <div className="flex items-center gap-2">
-            {spell.ritual && (
-              <Sparkles size={20} className="text-accent" />
-            )}
-            {spell.concentration && (
-              <Eye size={20} className="text-primary" />
-            )}
+          <div className='flex items-center gap-2'>
+            {spell.ritual && <Sparkles size={20} className='text-accent' />}
+            {spell.concentration && <Eye size={20} className='text-primary' />}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 mb-4">
-          <Badge variant="outline" className="font-display">
-            {spell.level === 0 ? 'Cantrip' : `${spell.level}${getOrdinalSuffix(spell.level)} Level`}
+        <div className='flex items-center gap-2 mb-4'>
+          <Badge variant='outline' className='font-display'>
+            {spell.level === 0
+              ? 'Cantrip'
+              : `${spell.level}${getOrdinalSuffix(spell.level)} Level`}
           </Badge>
-          <Badge className={`${getSpellSchoolColor(spell.school)} bg-transparent border-current`}>
+          <Badge
+            className={`${getSpellSchoolColor(spell.school)} bg-transparent border-current`}
+          >
             {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)}
           </Badge>
         </div>
       </div>
 
       {/* Casting Information */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Clock size={16} className="text-muted-foreground" />
+      <div className='grid grid-cols-2 gap-4 mb-6'>
+        <div className='space-y-3'>
+          <div className='flex items-center gap-2'>
+            <Clock size={16} className='text-muted-foreground' />
             <div>
-              <div className="text-ui-small text-muted-foreground">Casting Time</div>
-              <div className="text-ui-regular">{spell.castingTime}</div>
+              <div className='text-ui-small text-muted-foreground'>
+                Casting Time
+              </div>
+              <div className='text-ui-regular'>{spell.castingTime}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Target size={16} className="text-muted-foreground" />
+          <div className='flex items-center gap-2'>
+            <Target size={16} className='text-muted-foreground' />
             <div>
-              <div className="text-ui-small text-muted-foreground">Range</div>
-              <div className="text-ui-regular">{spell.range}</div>
+              <div className='text-ui-small text-muted-foreground'>Range</div>
+              <div className='text-ui-regular'>{spell.range}</div>
             </div>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Zap size={16} className="text-muted-foreground" />
+        <div className='space-y-3'>
+          <div className='flex items-center gap-2'>
+            <Zap size={16} className='text-muted-foreground' />
             <div>
-              <div className="text-ui-small text-muted-foreground">Duration</div>
-              <div className="text-ui-regular">
+              <div className='text-ui-small text-muted-foreground'>
+                Duration
+              </div>
+              <div className='text-ui-regular'>
                 {spell.duration}
                 {spell.concentration && ' (C)'}
               </div>
@@ -138,38 +142,46 @@ export function SpellDetails({
           </div>
 
           <div>
-            <div className="text-ui-small text-muted-foreground">Components</div>
-            <div className="text-ui-regular">{spell.components.join(', ').toUpperCase()}</div>
+            <div className='text-ui-small text-muted-foreground'>
+              Components
+            </div>
+            <div className='text-ui-regular'>
+              {spell.components.join(', ').toUpperCase()}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Material Components */}
       {spell.materialComponents && (
-        <div className="mb-6 p-3 bg-parchment-100/50 rounded-lg border border-parchment-300/30">
-          <div className="text-ui-small text-muted-foreground mb-1">Material Components</div>
-          <div className="text-ui-regular italic">{spell.materialComponents}</div>
+        <div className='mb-6 p-3 bg-parchment-100/50 rounded-lg border border-parchment-300/30'>
+          <div className='text-ui-small text-muted-foreground mb-1'>
+            Material Components
+          </div>
+          <div className='text-ui-regular italic'>
+            {spell.materialComponents}
+          </div>
         </div>
       )}
 
       {/* Description */}
-      <div className="mb-6">
-        <h3 className="text-body-lg font-display text-foreground mb-2">Description</h3>
-        <p className="text-body-regular text-muted-foreground leading-relaxed">
+      <div className='mb-6'>
+        <h3 className='text-body-lg font-display text-foreground mb-2'>
+          Description
+        </h3>
+        <p className='text-body-regular text-muted-foreground leading-relaxed'>
           {spell.description}
         </p>
       </div>
 
       {/* Damage/Effects */}
       {spell.damage && (
-        <div className="mb-4 p-3 bg-destructive/12 rounded-lg border border-destructive/30">
-          <div className="text-ui-small text-destructive mb-1">Damage</div>
-          <div className="text-ui-regular font-mono">{spell.damage}</div>
+        <div className='mb-4 p-3 bg-destructive/12 rounded-lg border border-destructive/30'>
+          <div className='text-ui-small text-destructive mb-1'>Damage</div>
+          <div className='text-ui-regular font-mono'>{spell.damage}</div>
           {spell.savingThrow && (
-            <div className="text-ui-small text-destructive mt-1">
-              Saving Throw:
-              {' '}
-              {spell.savingThrow}
+            <div className='text-ui-small text-destructive mt-1'>
+              Saving Throw: {spell.savingThrow}
             </div>
           )}
         </div>
@@ -177,30 +189,32 @@ export function SpellDetails({
 
       {/* At Higher Levels */}
       {spell.atHigherLevels && (
-        <div className="mb-6 p-3 bg-magic-50 rounded-lg border border-magic-200">
-          <div className="text-ui-small text-accent mb-1">At Higher Levels</div>
-          <p className="text-ui-regular text-accent">{spell.atHigherLevels}</p>
+        <div className='mb-6 p-3 bg-magic-50 rounded-lg border border-magic-200'>
+          <div className='text-ui-small text-accent mb-1'>At Higher Levels</div>
+          <p className='text-ui-regular text-accent'>{spell.atHigherLevels}</p>
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-3 pt-4 border-t border-parchment-300/30">
-        {spell.preparationStatus === 'not_prepared' && spell.level > 0 && onPrepare && (
-          <Button
-            variant="outline"
-            onClick={() => onPrepare(spell.id)}
-            className="flex-1"
-          >
-            Prepare Spell
-          </Button>
-        )}
+      <div className='flex gap-3 pt-4 border-t border-parchment-300/30'>
+        {spell.preparationStatus === 'not_prepared' &&
+          spell.level > 0 &&
+          onPrepare && (
+            <Button
+              variant='outline'
+              onClick={() => onPrepare(spell.id)}
+              className='flex-1'
+            >
+              Prepare Spell
+            </Button>
+          )}
 
         {canCast && onCast && (
           <Button
-            variant="default"
+            variant='default'
             onClick={() => onCast(spell.id, spell.level)}
             disabled={spell.preparationStatus === 'used'}
-            className="flex-1 gap-2 magical-glow"
+            className='flex-1 gap-2 magical-glow'
           >
             <Wand size={16} />
             Cast Spell

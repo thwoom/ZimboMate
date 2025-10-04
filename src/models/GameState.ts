@@ -35,9 +35,9 @@ export interface AppSettings {
       showSpellsForNonCasters: boolean
     }
     perPanel: {
-      moves: { overrideEnabled: boolean, showAll: boolean }
-      equipment: { overrideEnabled: boolean, showAll: boolean }
-      stats: { overrideEnabled: boolean, showSpells: boolean }
+      moves: { overrideEnabled: boolean; showAll: boolean }
+      equipment: { overrideEnabled: boolean; showAll: boolean }
+      stats: { overrideEnabled: boolean; showSpells: boolean }
     }
   }
   sidebarPrefs?: {
@@ -51,15 +51,15 @@ export interface AppSettings {
 // Complete game state
 export interface GameState {
   // Core data
-  characters: Record <string, Character> // Multiple characters by ID
+  characters: Record<string, Character> // Multiple characters by ID
   activeCharacterId: string | null // Currently active character
-  inventories: Record <string, Inventory> // Inventory per character
+  inventories: Record<string, Inventory> // Inventory per character
   moves: Move[]
   customMoves: Move[]
   session: Session
 
   // Advanced features
-  spellPreparations: Record <string, SpellPreparation> // Spell prep per character
+  spellPreparations: Record<string, SpellPreparation> // Spell prep per character
   modifiers: ModifierSet
   conditions: ActiveCondition[]
   campaign: Campaign | null
@@ -83,31 +83,43 @@ export interface GameState {
 }
 
 // Action types for state updates
-export type GameStateAction
-  = | { type: 'ADD_CHARACTER', payload: Character }
-    | { type: 'UPDATE_CHARACTER', payload: { id: string, updates: Partial <Character> } }
-    | { type: 'REMOVE_CHARACTER', payload: string }
-    | { type: 'SET_ACTIVE_CHARACTER', payload: string }
-    | { type: 'SET_CHARACTER', payload: Character } // Legacy support
-    | { type: 'SET_INVENTORY', payload: { characterId: string, inventory: Inventory } }
-    | { type: 'UPDATE_INVENTORY', payload: { characterId: string, updates: Partial <Inventory> } }
-    | { type: 'ADD_MOVE', payload: Move }
-    | { type: 'UPDATE_MOVE', payload: { id: string, changes: Partial <Move> } }
-    | { type: 'REMOVE_MOVE', payload: string }
-    | { type: 'SET_SESSION', payload: Session }
-    | { type: 'UPDATE_SESSION', payload: Partial <Session> }
-    | { type: 'SET_UI_STATE', payload: Partial <GameState['ui']> }
-    | { type: 'SET_SETTINGS', payload: Partial <AppSettings> }
-    | { type: 'ADD_MODIFIER', payload: TemporaryModifier }
-    | { type: 'REMOVE_MODIFIER', payload: string }
-    | { type: 'UPDATE_MODIFIER', payload: { id: string, updates: Partial <TemporaryModifier> } }
-    | { type: 'SET_MODIFIERS', payload: ModifierSet }
-    | { type: 'CLEAR_MODIFIERS' }
-    | { type: 'MARK_SAVED' }
-    | { type: 'MARK_DIRTY' }
-    | { type: 'RESET_STATE' }
-    | { type: 'REPLACE_STATE', payload: GameState }
-    | { type: 'LOAD_STATE', payload: GameState }
+export type GameStateAction =
+  | { type: 'ADD_CHARACTER'; payload: Character }
+  | {
+      type: 'UPDATE_CHARACTER'
+      payload: { id: string; updates: Partial<Character> }
+    }
+  | { type: 'REMOVE_CHARACTER'; payload: string }
+  | { type: 'SET_ACTIVE_CHARACTER'; payload: string }
+  | { type: 'SET_CHARACTER'; payload: Character } // Legacy support
+  | {
+      type: 'SET_INVENTORY'
+      payload: { characterId: string; inventory: Inventory }
+    }
+  | {
+      type: 'UPDATE_INVENTORY'
+      payload: { characterId: string; updates: Partial<Inventory> }
+    }
+  | { type: 'ADD_MOVE'; payload: Move }
+  | { type: 'UPDATE_MOVE'; payload: { id: string; changes: Partial<Move> } }
+  | { type: 'REMOVE_MOVE'; payload: string }
+  | { type: 'SET_SESSION'; payload: Session }
+  | { type: 'UPDATE_SESSION'; payload: Partial<Session> }
+  | { type: 'SET_UI_STATE'; payload: Partial<GameState['ui']> }
+  | { type: 'SET_SETTINGS'; payload: Partial<AppSettings> }
+  | { type: 'ADD_MODIFIER'; payload: TemporaryModifier }
+  | { type: 'REMOVE_MODIFIER'; payload: string }
+  | {
+      type: 'UPDATE_MODIFIER'
+      payload: { id: string; updates: Partial<TemporaryModifier> }
+    }
+  | { type: 'SET_MODIFIERS'; payload: ModifierSet }
+  | { type: 'CLEAR_MODIFIERS' }
+  | { type: 'MARK_SAVED' }
+  | { type: 'MARK_DIRTY' }
+  | { type: 'RESET_STATE' }
+  | { type: 'REPLACE_STATE'; payload: GameState }
+  | { type: 'LOAD_STATE'; payload: GameState }
 
 // Utility functions
 
@@ -216,8 +228,7 @@ export function gameStateReducer(
 
     case 'UPDATE_CHARACTER': {
       const { id, updates } = action.payload
-      if (!state.characters[id])
-        return state
+      if (!state.characters[id]) return state
       return {
         ...state,
         characters: {
@@ -239,9 +250,12 @@ export function gameStateReducer(
       delete newInventories[action.payload]
 
       const remainingIds = Object.keys(newCharacters)
-      const newActiveId = state.activeCharacterId === action.payload
-        ? (remainingIds.length > 0 ? remainingIds[0] : null)
-        : state.activeCharacterId
+      const newActiveId =
+        state.activeCharacterId === action.payload
+          ? remainingIds.length > 0
+            ? remainingIds[0]
+            : null
+          : state.activeCharacterId
 
       return {
         ...state,
@@ -292,8 +306,7 @@ export function gameStateReducer(
     case 'UPDATE_INVENTORY': {
       const invCharId = action.payload.characterId
       const invUpdates = action.payload.updates
-      if (!state.inventories[invCharId])
-        return state
+      if (!state.inventories[invCharId]) return state
       return {
         ...state,
         inventories: {
@@ -318,7 +331,7 @@ export function gameStateReducer(
     case 'UPDATE_MOVE':
       return {
         ...state,
-        customMoves: state.customMoves.map(move =>
+        customMoves: state.customMoves.map((move) =>
           move.id === action.payload.id
             ? { ...move, ...action.payload.changes }
             : move,
@@ -329,7 +342,9 @@ export function gameStateReducer(
     case 'REMOVE_MOVE':
       return {
         ...state,
-        customMoves: state.customMoves.filter(move => move.id !== action.payload),
+        customMoves: state.customMoves.filter(
+          (move) => move.id !== action.payload,
+        ),
         isDirty: true,
       }
 
@@ -385,7 +400,9 @@ export function gameStateReducer(
         ...state,
         modifiers: {
           ...state.modifiers,
-          modifiers: state.modifiers.modifiers.filter(m => m.id !== action.payload),
+          modifiers: state.modifiers.modifiers.filter(
+            (m) => m.id !== action.payload,
+          ),
         },
         isDirty: true,
       }
@@ -396,7 +413,7 @@ export function gameStateReducer(
         ...state,
         modifiers: {
           ...state.modifiers,
-          modifiers: state.modifiers.modifiers.map(m =>
+          modifiers: state.modifiers.modifiers.map((m) =>
             m.id === action.payload.id
               ? { ...m, ...action.payload.updates }
               : m,
@@ -467,22 +484,25 @@ function generateId(): string {
  */
 export function validateGameState(state: any): state is GameState {
   return (
-    state
-    && typeof state === 'object'
-    && 'character' in state
-    && 'inventory' in state
-    && 'moves' in state
-    && 'session' in state
-    && 'ui' in state
-    && 'settings' in state
-    && 'version' in state
+    state &&
+    typeof state === 'object' &&
+    'character' in state &&
+    'inventory' in state &&
+    'moves' in state &&
+    'session' in state &&
+    'ui' in state &&
+    'settings' in state &&
+    'version' in state
   )
 }
 
 /**
  * Migrate game state from older versions
  */
-export function migrateGameState(state: unknown, fromVersion: string): GameState {
+export function migrateGameState(
+  state: unknown,
+  _fromVersion: string,
+): GameState {
   // Handle migration logic here as versions change
   // For now, just ensure all required fields exist
   const currentState = createInitialGameState()
@@ -524,8 +544,8 @@ export function importGameState(jsonString: string): GameState | null {
     }
 
     return data
-  }
-  catch {
+  } catch {
     return null
   }
 }
+

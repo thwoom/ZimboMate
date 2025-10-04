@@ -10,6 +10,7 @@ import {
   Wine,
 } from 'lucide-react'
 import React, { useState } from 'react'
+import { logger } from '@/utils/logger'
 import { getContainerItems } from '../../models/Inventory'
 import { useInventoryStore } from '../../stores/inventoryStore'
 import { Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
@@ -233,7 +234,7 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
                           onEquip={onItemEquip}
                           onUnequip={(itemId) => {
                             // Handle unequip logic here
-                            console.log('Unequipping:', itemId)
+                            logger.info('inventory_unequip', { itemId })
                           }}
                           onUse={onItemUse}
                           onDrop={onItemDrop}
@@ -276,3 +277,4 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
     </motion.div>
   )
 }
+

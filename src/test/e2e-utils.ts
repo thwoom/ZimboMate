@@ -12,7 +12,9 @@ export interface E2ETestContext {
   navigateToTab: (tabName: string) => Promise<void>
   waitForAnimation: () => Promise<void>
   expectTabActive: (tabName: string) => void
-  measurePerformance: <T>(operation: () => Promise<T>) => Promise<{ result: T, duration: number }>
+  measurePerformance: <T>(
+    operation: () => Promise<T>,
+  ) => Promise<{ result: T; duration: number }>
 }
 
 /**
@@ -31,7 +33,7 @@ export function setupE2EContext(): E2ETestContext {
 
   const waitForAnimation = async () => {
     // Wait for Framer Motion animations to complete
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500))
   }
 
   const expectTabActive = (tabName: string) => {
@@ -83,7 +85,9 @@ export async function completeGamingSession(context: E2ETestContext) {
 
   // Should auto-navigate to dice tab
   await waitFor(() => {
-    expect(screen.getByRole('tab', { selected: true })).toHaveTextContent('Dice')
+    expect(screen.getByRole('tab', { selected: true })).toHaveTextContent(
+      'Dice',
+    )
   })
 
   // 5. Roll Dice
@@ -118,19 +122,24 @@ export async function characterAdvancement(context: E2ETestContext) {
   const failureXPButton = screen.getByRole('button', { name: /failure xp/i })
   await user.click(failureXPButton)
 
-  const alignmentXPButton = screen.getByRole('button', { name: /alignment xp/i })
+  const alignmentXPButton = screen.getByRole('button', {
+    name: /alignment xp/i,
+  })
   await user.click(alignmentXPButton)
 
   const bondXPButton = screen.getByRole('button', { name: /resolve bond/i })
   await user.click(bondXPButton)
 
   // Check for level up
-  await waitFor(() => {
-    const levelUpIndicator = screen.queryByText(/level up/i)
-    if (levelUpIndicator) {
-      return expect(levelUpIndicator).toBeInTheDocument()
-    }
-  }, { timeout: 2000 })
+  await waitFor(
+    () => {
+      const levelUpIndicator = screen.queryByText(/level up/i)
+      if (levelUpIndicator) {
+        return expect(levelUpIndicator).toBeInTheDocument()
+      }
+    },
+    { timeout: 2000 },
+  )
 
   return {
     xpGained: 3,
@@ -147,7 +156,9 @@ export async function campaignManagement(context: E2ETestContext) {
   await navigateToTab('campaign')
 
   // Create new campaign
-  const newCampaignButton = screen.getByRole('button', { name: /new campaign/i })
+  const newCampaignButton = screen.getByRole('button', {
+    name: /new campaign/i,
+  })
   await user.click(newCampaignButton)
 
   const campaignName = screen.getByLabelText(/campaign name/i)
@@ -225,7 +236,10 @@ export async function performanceStressTest(context: E2ETestContext) {
       await navigateToTab('equipment')
     }
   })
-  results.push({ operation: 'tab-switching', duration: tabSwitchPerf.duration })
+  results.push({
+    operation: 'tab-switching',
+    duration: tabSwitchPerf.duration,
+  })
 
   // Rapid dice rolling
   await navigateToTab('dice')
@@ -253,7 +267,8 @@ export async function performanceStressTest(context: E2ETestContext) {
   return {
     results,
     totalDuration: results.reduce((sum, r) => sum + r.duration, 0),
-    averageDuration: results.reduce((sum, r) => sum + r.duration, 0) / results.length,
+    averageDuration:
+      results.reduce((sum, r) => sum + r.duration, 0) / results.length,
   }
 }
 
@@ -292,8 +307,8 @@ export async function accessibilityWorkflow(context: E2ETestContext) {
 
   // Test ARIA labels
   const buttons = screen.getAllByRole('button')
-  const accessibleButtons = buttons.filter(button =>
-    button.getAttribute('aria-label') || button.textContent,
+  const accessibleButtons = buttons.filter(
+    (button) => button.getAttribute('aria-label') || button.textContent,
   )
 
   return {
@@ -325,7 +340,9 @@ export async function dataPersistenceWorkflow(context: E2ETestContext) {
 
   // Create campaign data
   await navigateToTab('campaign')
-  const newCampaignButton = screen.getByRole('button', { name: /new campaign/i })
+  const newCampaignButton = screen.getByRole('button', {
+    name: /new campaign/i,
+  })
   await user.click(newCampaignButton)
 
   const campaignName = screen.getByLabelText(/campaign name/i)
@@ -386,8 +403,7 @@ export async function errorRecoveryWorkflow(context: E2ETestContext) {
       errorHandled: true,
       recoverySuccessful: true,
     }
-  }
-  finally {
+  } finally {
     globalThis.fetch = originalFetch
   }
 }
@@ -415,8 +431,8 @@ export async function runCompleteE2ETest() {
     testDuration: performance.now(),
     summary: {
       totalWorkflows: Object.keys(results).length,
-      successfulWorkflows: Object.values(results).filter(r =>
-        typeof r === 'object' && r !== null,
+      successfulWorkflows: Object.values(results).filter(
+        (r) => typeof r === 'object' && r !== null,
       ).length,
     },
   }

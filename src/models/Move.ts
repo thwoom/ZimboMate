@@ -5,27 +5,27 @@
 import type { Attribute } from './Character'
 
 // Move categories
-export type MoveCategory
-  = | 'basic' // Basic moves available to all
-    | 'class' // Class-specific moves
-    | 'advanced' // Advanced moves (level 2-5)
-    | 'master' // Master moves (level 6-10)
-    | 'special' // Special moves (Level Up, End of Session, etc.)
-    | 'custom' // Player-created custom moves
+export type MoveCategory =
+  | 'basic' // Basic moves available to all
+  | 'class' // Class-specific moves
+  | 'advanced' // Advanced moves (level 2-5)
+  | 'master' // Master moves (level 6-10)
+  | 'special' // Special moves (Level Up, End of Session, etc.)
+  | 'custom' // Player-created custom moves
 
 // Move trigger types
-export type MoveTrigger
-  = | 'action' // Triggered by player action
-    | 'roll' // Requires a roll
-    | 'passive' // Always active
-    | 'reactive' // Triggered by events
-    | 'special' // Special trigger conditions
+export type MoveTrigger =
+  | 'action' // Triggered by player action
+  | 'roll' // Requires a roll
+  | 'passive' // Always active
+  | 'reactive' // Triggered by events
+  | 'special' // Special trigger conditions
 
 // Roll result tiers
-export type RollResult
-  = | 'success' // 10+
-    | 'partial' // 7-9
-    | 'failure' // 6-
+export type RollResult =
+  | 'success' // 10+
+  | 'partial' // 7-9
+  | 'failure' // 6-
 
 // Move interface
 export interface Move {
@@ -68,7 +68,7 @@ export interface Move {
 }
 
 // Basic moves available to all characters
-export const BASIC_MOVES: Partial <Move>[] = [
+export const BASIC_MOVES: Partial<Move>[] = [
   {
     name: 'Hack and Slash',
     category: 'basic',
@@ -77,7 +77,8 @@ export const BASIC_MOVES: Partial <Move>[] = [
     triggerType: 'roll',
     rollStat: 'STR',
     onSuccess: 'You deal your damage to the enemy and avoid their attack.',
-    onPartial: 'You deal your damage to the enemy and the enemy makes an attack against you.',
+    onPartial:
+      'You deal your damage to the enemy and the enemy makes an attack against you.',
     onFailure: 'Mark XP and the GM makes a move.',
   },
   {
@@ -88,7 +89,8 @@ export const BASIC_MOVES: Partial <Move>[] = [
     triggerType: 'roll',
     rollStat: 'DEX',
     onSuccess: 'You have a clear shot—deal your damage.',
-    onPartial: 'Choose one: • Move to get the shot and put yourself in danger • Take what you can get: -1d6 damage • Take several shots, reducing ammo by one',
+    onPartial:
+      'Choose one: • Move to get the shot and put yourself in danger • Take what you can get: -1d6 damage • Take several shots, reducing ammo by one',
     onFailure: 'Mark XP and the GM makes a move.',
   },
   {
@@ -98,8 +100,9 @@ export const BASIC_MOVES: Partial <Move>[] = [
     trigger: 'When you act despite an imminent threat or suffer a calamity',
     triggerType: 'roll',
     rollStat: 'STR', // Can be unknown stat based on fiction
-    onSuccess: 'You do what you set out to, the threat doesn\'t come to bear.',
-    onPartial: 'You stumble, hesitate, or flinch: the GM will offer you a worse outcome, hard bargain, or ugly choice.',
+    onSuccess: "You do what you set out to, the threat doesn't come to bear.",
+    onPartial:
+      'You stumble, hesitate, or flinch: the GM will offer you a worse outcome, hard bargain, or ugly choice.',
     onFailure: 'Mark XP and the GM makes a move.',
   },
   {
@@ -121,8 +124,10 @@ export const BASIC_MOVES: Partial <Move>[] = [
     trigger: 'When you consult your accumulated knowledge about something',
     triggerType: 'roll',
     rollStat: 'INT',
-    onSuccess: 'The GM will tell you something interesting and useful about the subject.',
-    onPartial: 'The GM will only tell you something interesting—it\'s on you to make it useful.',
+    onSuccess:
+      'The GM will tell you something interesting and useful about the subject.',
+    onPartial:
+      "The GM will only tell you something interesting—it's on you to make it useful.",
     onFailure: 'Mark XP and the GM makes a move.',
   },
   {
@@ -143,8 +148,10 @@ export const BASIC_MOVES: Partial <Move>[] = [
     trigger: 'When you have leverage on an NPC and manipulate them',
     triggerType: 'roll',
     rollStat: 'CHA',
-    onSuccess: 'They do what you ask if you first promise what they ask of you.',
-    onPartial: 'They will do what you ask, but need some concrete assurance of your promise, right now.',
+    onSuccess:
+      'They do what you ask if you first promise what they ask of you.',
+    onPartial:
+      'They will do what you ask, but need some concrete assurance of your promise, right now.',
     onFailure: 'Mark XP and the GM makes a move.',
   },
   {
@@ -155,23 +162,26 @@ export const BASIC_MOVES: Partial <Move>[] = [
     triggerType: 'roll',
     rollStat: 'STR', // Based on bond
     onSuccess: 'They take + 1 or-2 to their roll, your choice.',
-    onPartial: 'They still get + 1 or-2, but you also expose yourself to danger.',
+    onPartial:
+      'They still get + 1 or-2, but you also expose yourself to danger.',
     onFailure: 'Mark XP and the GM makes a move.',
   },
 ]
 
 // Special moves
-export const SPECIAL_MOVES: Partial <Move>[] = [
+export const SPECIAL_MOVES: Partial<Move>[] = [
   {
     name: 'Last Breath',
     category: 'special',
-    description: 'When you\'re dying you catch a glimpse of what lies beyond...',
-    trigger: 'When you\'re dying (0 HP)',
+    description: "When you're dying you catch a glimpse of what lies beyond...",
+    trigger: "When you're dying (0 HP)",
     triggerType: 'roll',
     rollStat: undefined, // CORRECTED: Last Breath uses pure 2d6 (no modifiers)
-    onSuccess: 'You\'ve cheated death—you\'re in a bad spot but you\'re still alive.',
-    onPartial: 'Death will offer you a bargain. Take it and stabilize or refuse and pass beyond.',
-    onFailure: 'Your fate is sealed. You\'re marked as Death\'s own.',
+    onSuccess:
+      "You've cheated death—you're in a bad spot but you're still alive.",
+    onPartial:
+      'Death will offer you a bargain. Take it and stabilize or refuse and pass beyond.',
+    onFailure: "Your fate is sealed. You're marked as Death's own.",
   },
   {
     name: 'Encumbrance',
@@ -184,7 +194,8 @@ export const SPECIAL_MOVES: Partial <Move>[] = [
   {
     name: 'Level Up',
     category: 'special',
-    description: 'When you have downtime and XP equal to your current level + 7...',
+    description:
+      'When you have downtime and XP equal to your current level + 7...',
     trigger: 'When you have downtime and XP equal to your current level + 7',
     triggerType: 'special',
   },
@@ -217,10 +228,8 @@ export function requiresRoll(move: Move): boolean {
  * Get roll result tier based on total
  */
 export function getRollResult(total: number): RollResult {
-  if (total >= 10)
-    return 'success'
-  if (total >= 7)
-    return 'partial'
+  if (total >= 10) return 'success'
+  if (total >= 7) return 'partial'
   return 'failure'
 }
 

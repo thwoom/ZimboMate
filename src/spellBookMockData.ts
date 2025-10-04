@@ -36,7 +36,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Near',
     ongoing: true,
-    description: 'One of your senses is briefly attuned to magic. The GM will tell you what here is magical.',
+    description:
+      'One of your senses is briefly attuned to magic. The GM will tell you what here is magical.',
     preparationStatus: 'available' as const,
   },
   {
@@ -46,7 +47,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Touch',
     ongoing: false,
-    description: 'An item you touch glows with arcane light, about as bright as a torch. It gives off no heat or sound and requires no fuel, but it is otherwise like a mundane torch. You have complete control of the color of the flame. The spell lasts as long as it is in your presence.',
+    description:
+      'An item you touch glows with arcane light, about as bright as a torch. It gives off no heat or sound and requires no fuel, but it is otherwise like a mundane torch. You have complete control of the color of the flame. The spell lasts as long as it is in your presence.',
     preparationStatus: 'prepared' as const,
   },
   {
@@ -56,7 +58,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Near',
     ongoing: false,
-    description: 'Projectiles of pure magic spring from your fingers. Deal 2d4 damage to one target.',
+    description:
+      'Projectiles of pure magic spring from your fingers. Deal 2d4 damage to one target.',
     preparationStatus: 'prepared' as const,
   },
   {
@@ -66,7 +69,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Near',
     ongoing: true,
-    description: 'The person (not beast or monster) you touch while casting this spell counts as your friend until they take damage or you prove otherwise.',
+    description:
+      'The person (not beast or monster) you touch while casting this spell counts as your friend until they take damage or you prove otherwise.',
     preparationStatus: 'available' as const,
   },
   {
@@ -76,7 +80,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Self',
     ongoing: false,
-    description: 'Name the spirit you wish to contact (or leave it to the GM). You pull that creature through the planes, just close enough to speak to you. It is bound to answer any one question you ask to the best of its ability.',
+    description:
+      'Name the spirit you wish to contact (or leave it to the GM). You pull that creature through the planes, just close enough to speak to you. It is bound to answer any one question you ask to the best of its ability.',
     preparationStatus: 'available' as const,
   },
 
@@ -88,7 +93,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Near',
     ongoing: false,
-    description: 'You evoke a mighty ball of flame that envelops your target and everyone nearby, inflicting 2d6 damage which ignores armor.',
+    description:
+      'You evoke a mighty ball of flame that envelops your target and everyone nearby, inflicting 2d6 damage which ignores armor.',
     preparationStatus: 'available' as const,
   },
   {
@@ -98,7 +104,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Near',
     ongoing: false,
-    description: 'Choose a spell or magic effect in your presence: this spell rips it apart. Lesser spells are ended, powerful magic is just reduced or dampened so long as you are near.',
+    description:
+      'Choose a spell or magic effect in your presence: this spell rips it apart. Lesser spells are ended, powerful magic is just reduced or dampened so long as you are near.',
     preparationStatus: 'available' as const,
   },
   {
@@ -108,7 +115,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Touch',
     ongoing: true,
-    description: 'Touch an ally: nobody can see them. They\'re invisible! The spell persists until the target attacks or you dismiss the effect.',
+    description:
+      "Touch an ally: nobody can see them. They're invisible! The spell persists until the target attacks or you dismiss the effect.",
     preparationStatus: 'available' as const,
   },
 
@@ -120,7 +128,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Near',
     ongoing: true,
-    description: 'The target is held in a cage of magical force. Nothing can get in or out of the cage. The cage remains until you cast another spell or dismiss it.',
+    description:
+      'The target is held in a cage of magical force. Nothing can get in or out of the cage. The cage remains until you cast another spell or dismiss it.',
     preparationStatus: 'available' as const,
   },
   {
@@ -130,7 +139,8 @@ export const dwWizardSpells = [
     class: 'wizard',
     range: 'Near',
     ongoing: true,
-    description: 'Your touch reshapes a creature entirely, they stay in the form you craft until you cast a spell. Describe the new shape you craft, including any stat changes, significant adaptations, or major weaknesses.',
+    description:
+      'Your touch reshapes a creature entirely, they stay in the form you craft until you cast a spell. Describe the new shape you craft, including any stat changes, significant adaptations, or major weaknesses.',
     preparationStatus: 'available' as const,
   },
 ]
@@ -145,7 +155,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Near',
     ongoing: true,
-    description: 'Your deity smiles upon a combatant of your choice. They take +1 ongoing to damage until combat ends.',
+    description:
+      'Your deity smiles upon a combatant of your choice. They take +1 ongoing to damage until combat ends.',
     preparationStatus: 'available' as const,
   },
   {
@@ -155,7 +166,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Touch',
     ongoing: false,
-    description: 'At your touch wounds scab and bones cease bleeding. Heal an ally for 1d8 damage.',
+    description:
+      'At your touch wounds scab and bones cease bleeding. Heal an ally for 1d8 damage.',
     preparationStatus: 'prepared' as const,
   },
   {
@@ -165,7 +177,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Touch',
     ongoing: false,
-    description: 'The symbol of your deity appears before you and gestures towards the direction or course of action your deity would have you take then disappears.',
+    description:
+      'The symbol of your deity appears before you and gestures towards the direction or course of action your deity would have you take then disappears.',
     preparationStatus: 'prepared' as const,
   },
   {
@@ -175,7 +188,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Touch',
     ongoing: true,
-    description: 'The weapon you hold while casting does +1d4 damage until you dismiss this spell.',
+    description:
+      'The weapon you hold while casting does +1d4 damage until you dismiss this spell.',
     preparationStatus: 'available' as const,
   },
 
@@ -187,7 +201,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Touch',
     ongoing: false,
-    description: 'You staunch bleeding and set bones through divine magic. Heal an ally for 2d8+2 damage.',
+    description:
+      'You staunch bleeding and set bones through divine magic. Heal an ally for 2d8+2 damage.',
     preparationStatus: 'available' as const,
   },
   {
@@ -197,7 +212,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Near',
     ongoing: true,
-    description: 'Choose an area you can see: it\'s filled with supernatural darkness that blocks out all light.',
+    description:
+      "Choose an area you can see: it's filled with supernatural darkness that blocks out all light.",
     preparationStatus: 'available' as const,
   },
   {
@@ -207,7 +223,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Near',
     ongoing: true,
-    description: 'Choose a person you can see. Until you cast a spell or leave their presence, they cannot act except to speak.',
+    description:
+      'Choose a person you can see. Until you cast a spell or leave their presence, they cannot act except to speak.',
     preparationStatus: 'available' as const,
   },
 
@@ -219,7 +236,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Touch',
     ongoing: false,
-    description: 'Make your healing touch miraculous. Heal an ally for 3d8+3 damage.',
+    description:
+      'Make your healing touch miraculous. Heal an ally for 3d8+3 damage.',
     preparationStatus: 'available' as const,
   },
   {
@@ -229,7 +247,8 @@ export const dwClericSpells = [
     class: 'cleric',
     range: 'Touch',
     ongoing: false,
-    description: 'You return a corpse to a semblance of life. The corpse does your bidding to the best of its abilities, limited by what it can do in its current state.',
+    description:
+      'You return a corpse to a semblance of life. The corpse does your bidding to the best of its abilities, limited by what it can do in its current state.',
     preparationStatus: 'available' as const,
   },
 ]

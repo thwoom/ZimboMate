@@ -68,84 +68,98 @@ export interface UseCharacterStatsReturn {
  * Hook for managing character stats with dynamic modifiers
  * @param characterId - Character ID (optional, uses active character if not provided)
  */
-export function useCharacterStats(characterId?: string): UseCharacterStatsReturn {
-  const {
-    character,
-    updateCharacter,
-    isLoading,
-    error,
-  } = useCharacter(characterId)
+export function useCharacterStats(
+  characterId?: string,
+): UseCharacterStatsReturn {
+  const { character, updateCharacter, isLoading, error } =
+    useCharacter(characterId)
 
   // Helper function to calculate stat with modifiers
-  const calculateStatWithModifiers = useCallback((
-    statName: keyof Attribute,
-    baseValue: number,
-  ): StatWithModifiers => {
-    if (!character) {
+  const calculateStatWithModifiers = useCallback(
+    (statName: keyof Attribute, baseValue: number): StatWithModifiers => {
+      if (!character) {
+        return {
+          base: baseValue,
+          modifier: 0,
+          total: baseValue,
+          breakdown: [{ source: 'Base', value: baseValue, type: 'base' }],
+        }
+      }
+
+      const breakdown: Array<{
+        source: string
+        value: number
+        type: 'base' | 'condition' | 'equipment' | 'ongoing' | 'temporary'
+      }> = [{ source: 'Base', value: baseValue, type: 'base' }]
+
+      // Get modifiers from character state service
+      const totalModifier = characterStateService.getTotalModifier(
+        character.id,
+        'stat',
+        statName,
+      )
+
+      if (totalModifier !== 0) {
+        breakdown.push({
+          source: 'Modifiers',
+          value: totalModifier,
+          type: 'ongoing',
+        })
+      }
+
+      const total = baseValue + totalModifier
+
       return {
         base: baseValue,
-        modifier: 0,
-        total: baseValue,
-        breakdown: [{ source: 'Base', value: baseValue, type: 'base' }],
+        modifier: totalModifier,
+        total,
+        breakdown,
       }
-    }
-
-    const breakdown: Array<{
-      source: string
-      value: number
-      type: 'base' | 'condition' | 'equipment' | 'ongoing' | 'temporary'
-    }> = [
-      { source: 'Base', value: baseValue, type: 'base' },
-    ]
-
-    // Get modifiers from character state service
-    const totalModifier = characterStateService.getTotalModifier(
-      character.id,
-      'stat',
-      statName,
-    )
-
-    if (totalModifier !== 0) {
-      breakdown.push({
-        source: 'Modifiers',
-        value: totalModifier,
-        type: 'ongoing',
-      })
-    }
-
-    const total = baseValue + totalModifier
-
-    return {
-      base: baseValue,
-      modifier: totalModifier,
-      total,
-      breakdown,
-    }
-  }, [character])
+    },
+    [character],
+  )
 
   // Individual stats with modifiers
   const strength = useMemo(() => {
-    return calculateStatWithModifiers('strength', character?.attributes.strength || 0)
+    return calculateStatWithModifiers(
+      'strength',
+      character?.attributes.strength || 0,
+    )
   }, [character?.attributes.strength, calculateStatWithModifiers])
 
   const dexterity = useMemo(() => {
-    return calculateStatWithModifiers('dexterity', character?.attributes.dexterity || 0)
+    return calculateStatWithModifiers(
+      'dexterity',
+      character?.attributes.dexterity || 0,
+    )
   }, [character?.attributes.dexterity, calculateStatWithModifiers])
 
   const constitution = useMemo(() => {
-    return calculateStatWithModifiers('constitution', character?.attributes.constitution || 0)
+    return calculateStatWithModifiers(
+      'constitution',
+      character?.attributes.constitution || 0,
+    )
   }, [character?.attributes.constitution, calculateStatWithModifiers])
 
   const intelligence = useMemo(() => {
-    return calculateStatWithModifiers('intelligence', character?.attributes.intelligence || 0)
+    return calculateStatWithModifiers(
+      'intelligence',
+      character?.attributes.intelligence || 0,
+    )
   }, [character?.attributes.intelligence, calculateStatWithModifiers])
 
   const wisdom = useMemo(() => {
-    return calculateStatWithModifiers('wisdom', character?.attributes.wisdom || 0)
+    return calculateStatWithModifiers(
+      'wisdom',
+      character?.attributes.wisdom || 0,
+    )
   }, [character?.attributes.wisdom, calculateStatWithModifiers])
 
   const charisma = useMemo(() => {
-    return calculateStatWithModifiers('charisma', character?.attributes.charisma || 0)
+    return calculateStatWithModifiers(
+      'charisma',
+      character?.attributes.charisma || 0,
+    )
   }, [character?.attributes.charisma, calculateStatWithModifiers])
 
   // Computed values
@@ -171,65 +185,89 @@ export function useCharacterStats(characterId?: string): UseCharacterStatsReturn
     const percentage = max > 0 ? (current / max) * 100 : 0
 
     let status: 'light' | 'normal' | 'heavy' | 'overloaded'
-    if (percentage <= 33)
-      status = 'light'
-    else if (percentage <= 66)
-      status = 'normal'
-    else if (percentage <= 100)
-      status = 'heavy'
+    if (percentage <= 33) status = 'light'
+    else if (percentage <= 66) status = 'normal'
+    else if (percentage <= 100) status = 'heavy'
     else status = 'overloaded'
 
     return { current, max, percentage, status }
   }, [character?.load])
 
   // Stat operations
-  const updateBaseStat = useCallback((stat: keyof Attribute, value: number) => {
-    if (!character)
-      return
+  const updateBaseStat = useCallback(
+    (stat: keyof Attribute, value: number) => {
+      if (!character) return
 
-    updateCharacter({
-      attributes: {
-        ...character.attributes,
-        [stat]: value,
-      },
-    })
-  }, [character, updateCharacter])
+      updateCharacter({
+        attributes: {
+          ...character.attributes,
+          [stat]: value,
+        },
+      })
+    },
+    [character, updateCharacter],
+  )
 
-  const getStatModifier = useCallback((stat: keyof Attribute): number => {
-    const statValue = character?.attributes[stat] || 0
-    return Math.floor((statValue - 10) / 2)
-  }, [character?.attributes])
+  const getStatModifier = useCallback(
+    (stat: keyof Attribute): number => {
+      const statValue = character?.attributes[stat] || 0
+      return Math.floor((statValue - 10) / 2)
+    },
+    [character?.attributes],
+  )
 
-  const getStatTotal = useCallback((stat: keyof Attribute): number => {
-    switch (stat) {
-      case 'strength': return strength.total
-      case 'dexterity': return dexterity.total
-      case 'constitution': return constitution.total
-      case 'intelligence': return intelligence.total
-      case 'wisdom': return wisdom.total
-      case 'charisma': return charisma.total
-      default: return 0
-    }
-  }, [strength, dexterity, constitution, intelligence, wisdom, charisma])
+  const getStatTotal = useCallback(
+    (stat: keyof Attribute): number => {
+      switch (stat) {
+        case 'strength':
+          return strength.total
+        case 'dexterity':
+          return dexterity.total
+        case 'constitution':
+          return constitution.total
+        case 'intelligence':
+          return intelligence.total
+        case 'wisdom':
+          return wisdom.total
+        case 'charisma':
+          return charisma.total
+        default:
+          return 0
+      }
+    },
+    [strength, dexterity, constitution, intelligence, wisdom, charisma],
+  )
 
   // Modifier management
-  const getTotalModifierForStat = useCallback((stat: keyof Attribute): number => {
-    if (!character)
-      return 0
-    return characterStateService.getTotalModifier(character.id, 'stat', stat)
-  }, [character])
+  const getTotalModifierForStat = useCallback(
+    (stat: keyof Attribute): number => {
+      if (!character) return 0
+      return characterStateService.getTotalModifier(character.id, 'stat', stat)
+    },
+    [character],
+  )
 
-  const getModifierBreakdown = useCallback((stat: keyof Attribute) => {
-    switch (stat) {
-      case 'strength': return strength.breakdown
-      case 'dexterity': return dexterity.breakdown
-      case 'constitution': return constitution.breakdown
-      case 'intelligence': return intelligence.breakdown
-      case 'wisdom': return wisdom.breakdown
-      case 'charisma': return charisma.breakdown
-      default: return []
-    }
-  }, [strength, dexterity, constitution, intelligence, wisdom, charisma])
+  const getModifierBreakdown = useCallback(
+    (stat: keyof Attribute) => {
+      switch (stat) {
+        case 'strength':
+          return strength.breakdown
+        case 'dexterity':
+          return dexterity.breakdown
+        case 'constitution':
+          return constitution.breakdown
+        case 'intelligence':
+          return intelligence.breakdown
+        case 'wisdom':
+          return wisdom.breakdown
+        case 'charisma':
+          return charisma.breakdown
+        default:
+          return []
+      }
+    },
+    [strength, dexterity, constitution, intelligence, wisdom, charisma],
+  )
 
   return {
     // Character reference

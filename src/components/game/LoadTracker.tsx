@@ -47,28 +47,30 @@ export const LoadTracker: React.FC<LoadTrackerProps> = ({
   const statusColor = getStatusColor(encumbranceStatus)
 
   // Determine progress variant based on load
-  let progressVariant: 'default' | 'health' | 'health-injured' | 'health-critical' = 'default'
+  let progressVariant:
+    | 'default'
+    | 'health'
+    | 'health-injured'
+    | 'health-critical' = 'default'
   if (percentage > 100) {
     progressVariant = 'health-critical'
-  }
-  else if (percentage > 80) {
+  } else if (percentage > 80) {
     progressVariant = 'health-injured'
-  }
-  else {
+  } else {
     progressVariant = 'health'
   }
 
   return (
     <motion.div
-      className="load-tracker space-y-3"
+      className='load-tracker space-y-3'
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Weight size={16} className="text-(--parchment-700)" />
-          <span className="text-sm font-medium text-(--parchment-900) font-ui">
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-2'>
+          <Weight size={16} className='text-(--parchment-700)' />
+          <span className='text-sm font-medium text-(--parchment-900) font-ui'>
             Load Capacity
           </span>
         </div>
@@ -79,58 +81,48 @@ export const LoadTracker: React.FC<LoadTrackerProps> = ({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 300 }}
         >
-          <Badge variant={statusColor} className="flex items-center gap-1">
+          <Badge variant={statusColor} className='flex items-center gap-1'>
             <StatusIcon size={12} />
             {formatLoadStatus(currentLoad, maxLoad)}
           </Badge>
         </motion.div>
       </div>
 
-      <div className="space-y-2">
+      <div className='space-y-2'>
         <Progress
-          variant="default"
+          variant='default'
           fillVariant={progressVariant}
           value={currentLoad}
           max={maxLoad}
           showLabel={false}
         />
 
-        <div className="flex justify-between items-center text-xs text-(--parchment-600) font-mono">
+        <div className='flex justify-between items-center text-xs text-(--parchment-600) font-mono'>
           <span>
-            {currentLoad}
-            {' '}
-            /
-            {maxLoad}
-            {' '}
-            lbs
+            {currentLoad} /{maxLoad} lbs
           </span>
-          <span>
-            {percentage.toFixed(0)}
-            %
-          </span>
+          <span>{percentage.toFixed(0)}%</span>
         </div>
       </div>
 
       {/* Encumbrance Effects */}
       {encumbranceStatus !== 'normal' && (
         <motion.div
-          className="text-xs text-(--parchment-700) bg-(--parchment-100) rounded-md p-2 border-l-2 border-(--gold-400)"
+          className='text-xs text-(--parchment-700) bg-(--parchment-100) rounded-md p-2 border-l-2 border-(--gold-400)'
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ delay: 0.3 }}
         >
           {encumbranceStatus === 'encumbered' && (
             <p>
-              <strong>Encumbered:</strong>
-              {' '}
-              You take -1 ongoing to all rolls until you lighten your load.
+              <strong>Encumbered:</strong> You take -1 ongoing to all rolls
+              until you lighten your load.
             </p>
           )}
           {encumbranceStatus === 'overloaded' && (
             <p>
-              <strong>Overloaded:</strong>
-              {' '}
-              You can barely move. Drop items or find another way to reduce your load.
+              <strong>Overloaded:</strong> You can barely move. Drop items or
+              find another way to reduce your load.
             </p>
           )}
         </motion.div>

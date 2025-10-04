@@ -1,9 +1,19 @@
 import type { GameSession } from './services/MultiplayerService'
 import type { ButtonDiagnostic } from './utils/buttonUtils'
-import { BugAntIcon, DocumentTextIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline'
-import { TooltipProvider } from './components/ui/tooltip'
+import {
+  BugAntIcon,
+  DocumentTextIcon,
+  WrenchScrewdriverIcon,
+} from '@heroicons/react/24/outline'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Dice6, NotebookPen, Play, Settings, Sparkles, User } from 'lucide-react'
+import {
+  Dice6,
+  NotebookPen,
+  Play,
+  Settings,
+  Sparkles,
+  User,
+} from 'lucide-react'
 import React, { useState } from 'react'
 import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
 import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
@@ -14,19 +24,30 @@ import { GameManagementTab } from './components/game/GameManagementTab'
 import { PlayTab } from './components/game/PlayTab'
 import { SessionManager } from './components/game/SessionManager'
 import { StatRoller } from './components/game/StatRoller'
-import { Badge, Button, Card, CardContent, ThemeComponentShowcase } from './components/ui'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  ThemeComponentShowcase,
+} from './components/ui'
 import { ButtonDebugger } from './components/ui/ButtonDebugger'
 import { CommandPalette } from './components/ui/CommandPalette'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { SettingsPanel } from './components/ui/SettingsPanel'
 import { ThemeProvider } from './components/ui/ThemeProvider'
 import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
+import { TooltipProvider } from './components/ui/tooltip'
 import { useDiceKeyboardShortcuts } from './hooks/useDiceKeyboardShortcuts'
-import { useCommandPalette, useDiceShortcuts, useGlobalShortcuts, useNavigationShortcuts } from './hooks/useKeyboardShortcuts'
+import {
+  useCommandPalette,
+  useDiceShortcuts,
+  useGlobalShortcuts,
+  useNavigationShortcuts,
+} from './hooks/useKeyboardShortcuts'
 import { useCharacterStore } from './stores/characterStore'
 import {
   autoFixAllButtons,
-
   diagnoseAllButtons,
   enableButtonDebugging,
   generateButtonReport,
@@ -34,7 +55,13 @@ import {
 import { logger } from './utils/logger'
 import './utils/initializeMockData' // Initialize mock data for development
 
-type ActiveTab = 'play' | 'character' | 'dice' | 'game-management' | 'settings' | 'button-debug'
+type ActiveTab =
+  | 'play'
+  | 'character'
+  | 'dice'
+  | 'game-management'
+  | 'settings'
+  | 'button-debug'
 
 const App: React.FC = () => {
   const { characters } = useCharacterStore()
@@ -43,7 +70,9 @@ const App: React.FC = () => {
   const [showSessionManager, setShowSessionManager] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [themeShowcaseOpen, setThemeShowcaseOpen] = useState(false)
-  const [buttonDiagnostics, setButtonDiagnostics] = useState<ButtonDiagnostic[]>([])
+  const [buttonDiagnostics, setButtonDiagnostics] = useState<
+    ButtonDiagnostic[]
+  >([])
   const [debuggingEnabled, setDebuggingEnabled] = useState(false)
   const [autoFixCount, setAutoFixCount] = useState(0)
 
@@ -53,24 +82,65 @@ const App: React.FC = () => {
     { id: 'play' as const, label: 'Play', icon: Play, featured: true },
     { id: 'character' as const, label: 'Character', icon: User },
     { id: 'dice' as const, label: 'Dice', icon: Dice6 },
-    { id: 'game-management' as const, label: 'Game Management', icon: NotebookPen, description: 'Chronicle, Campaign, Monsters & More' },
-    { id: 'settings' as const, label: 'Settings', icon: Settings, enhanced: true },
-    ...(import.meta.env.DEV ? [{ id: 'button-debug' as const, label: 'Button Debug', icon: WrenchScrewdriverIcon }] : []),
+    {
+      id: 'game-management' as const,
+      label: 'Game Management',
+      icon: NotebookPen,
+      description: 'Chronicle, Campaign, Monsters & More',
+    },
+    {
+      id: 'settings' as const,
+      label: 'Settings',
+      icon: Settings,
+      enhanced: true,
+    },
+    ...(import.meta.env.DEV
+      ? [
+          {
+            id: 'button-debug' as const,
+            label: 'Button Debug',
+            icon: WrenchScrewdriverIcon,
+          },
+        ]
+      : []),
   ]
 
   // Command palette integration
   const { registerCommandPalette, setIsOpen } = useCommandPalette()
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     registerCommandPalette(
       () => setCommandPaletteOpen(true),
       () => setCommandPaletteOpen(false),
     )
   }, [registerCommandPalette])
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     setIsOpen(commandPaletteOpen)
   }, [commandPaletteOpen, setIsOpen])
+
+  React.useLayoutEffect(() => {
+    const handlePaletteShortcut = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      )
+        return
+      if (!(event.ctrlKey || event.metaKey)) return
+      if (event.key.toLowerCase() !== 'k') return
+
+      event.preventDefault()
+      if (!commandPaletteOpen) {
+        setCommandPaletteOpen(true)
+      }
+    }
+
+    document.addEventListener('keydown', handlePaletteShortcut)
+    return () => document.removeEventListener('keydown', handlePaletteShortcut)
+  }, [commandPaletteOpen])
 
   // Navigation shortcuts
   useNavigationShortcuts((tabId) => {
@@ -86,9 +156,12 @@ const App: React.FC = () => {
   })
 
   // Dice shortcuts (legacy system)
-  useDiceShortcuts((_stat) => {
-    setActiveTab('dice')
-  }, activeTab === 'dice' || activeTab === 'character')
+  useDiceShortcuts(
+    (_stat) => {
+      setActiveTab('dice')
+    },
+    activeTab === 'dice' || activeTab === 'character',
+  )
 
   // New advanced dice keyboard shortcuts
   useDiceKeyboardShortcuts({
@@ -122,11 +195,11 @@ const App: React.FC = () => {
       case 'play':
         return (
           <motion.div
-            key="play"
+            key='play'
             variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial='hidden'
+            animate='visible'
+            exit='exit'
           >
             <div>
               <PlayTab />
@@ -136,71 +209,73 @@ const App: React.FC = () => {
       case 'character':
         return (
           <motion.div
-            key="character"
+            key='character'
             variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial='hidden'
+            animate='visible'
+            exit='exit'
           >
-            <div className="space-y-8">
-              {characters.length === 0 || showCharacterBuilder
-                ? (
-                    <div className="space-y-4">
-                      {characters.length > 0 && (
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold">Create New Character</h3>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowCharacterBuilder(false)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      )}
-                      <CharacterBuilder onFinished={() => setShowCharacterBuilder(false)} />
+            <div className='space-y-8'>
+              {characters.length === 0 || showCharacterBuilder ? (
+                <div className='space-y-4'>
+                  {characters.length > 0 && (
+                    <div className='flex justify-between items-center'>
+                      <h3 className='text-lg font-semibold'>
+                        Create New Character
+                      </h3>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        onClick={() => setShowCharacterBuilder(false)}
+                      >
+                        Cancel
+                      </Button>
                     </div>
-                  )
-                : (
-                    <>
-                      <div className="flex justify-end">
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => setShowCharacterBuilder(true)}
-                        >
-                          Create Character
-                        </Button>
-                      </div>
-                      <CharacterSheet />
-                    </>
                   )}
+                  <CharacterBuilder
+                    onFinished={() => setShowCharacterBuilder(false)}
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className='flex justify-end'>
+                    <Button
+                      variant='primary'
+                      size='sm'
+                      onClick={() => setShowCharacterBuilder(true)}
+                    >
+                      Create Character
+                    </Button>
+                  </div>
+                  <CharacterSheet />
+                </>
+              )}
             </div>
           </motion.div>
         )
       case 'dice':
         return (
           <motion.div
-            key="dice"
+            key='dice'
             variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="max-w-2xl mx-auto"
+            initial='hidden'
+            animate='visible'
+            exit='exit'
+            className='max-w-2xl mx-auto'
           >
-            <div className="space-y-6">
+            <div className='space-y-6'>
               <UnifiedRollSystem
-                characterId="eldara-moonwhisper"
-                layout="inline"
+                characterId='eldara-moonwhisper'
+                layout='inline'
                 showHistory={true}
                 showQuickRolls={true}
                 showCustomRolls={true}
-                className="max-w-full"
+                className='max-w-full'
               />
 
               {/* Chronicle-Enabled Stat Rolling */}
               <StatRoller
-                characterName="Eldara Moonwhisper"
+                characterName='Eldara Moonwhisper'
                 statModifiers={{
                   STR: 1,
                   DEX: 2,
@@ -214,18 +289,18 @@ const App: React.FC = () => {
                 }}
               />
 
-              <ContextAwareSystem context="dice" compact />
+              <ContextAwareSystem context='dice' compact />
             </div>
           </motion.div>
         )
       case 'game-management':
         return (
           <motion.div
-            key="game-management"
+            key='game-management'
             variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial='hidden'
+            animate='visible'
+            exit='exit'
           >
             <GameManagementTab />
           </motion.div>
@@ -233,11 +308,11 @@ const App: React.FC = () => {
       case 'settings':
         return (
           <motion.div
-            key="settings"
+            key='settings'
             variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial='hidden'
+            animate='visible'
+            exit='exit'
           >
             <SettingsPanel />
           </motion.div>
@@ -245,27 +320,30 @@ const App: React.FC = () => {
       case 'button-debug':
         return (
           <motion.div
-            key="button-debug"
+            key='button-debug'
             variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial='hidden'
+            animate='visible'
+            exit='exit'
           >
-            <div className="max-w-6xl mx-auto space-y-8">
+            <div className='max-w-6xl mx-auto space-y-8'>
               {/* Button Debug Control Panel */}
-              <Card variant="magical" padding="lg">
+              <Card variant='magical' padding='lg'>
                 <CardContent>
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     <div>
-                      <h2 className="text-display-md mb-2">ZimboMate v2 Button Debugger</h2>
-                      <p className="text-muted-foreground">
-                        Diagnose and fix button functionality issues throughout the application
+                      <h2 className='text-display-md mb-2'>
+                        ZimboMate v2 Button Debugger
+                      </h2>
+                      <p className='text-muted-foreground'>
+                        Diagnose and fix button functionality issues throughout
+                        the application
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-4">
+                    <div className='flex flex-wrap gap-4'>
                       <Button
-                        variant="cyber"
+                        variant='cyber'
                         onClick={() => {
                           const results = diagnoseAllButtons()
                           setButtonDiagnostics(results)
@@ -277,7 +355,7 @@ const App: React.FC = () => {
                       </Button>
 
                       <Button
-                        variant="secondary"
+                        variant='secondary'
                         onClick={() => {
                           enableButtonDebugging()
                           setDebuggingEnabled(true)
@@ -286,14 +364,16 @@ const App: React.FC = () => {
                         disabled={debuggingEnabled}
                       >
                         <WrenchScrewdriverIcon size={16} />
-                        {debuggingEnabled ? 'Debugging Active' : 'Enable Debug Mode'}
+                        {debuggingEnabled
+                          ? 'Debugging Active'
+                          : 'Enable Debug Mode'}
                       </Button>
 
                       <Button
-                        variant="magical"
+                        variant='magical'
                         onClick={() => {
                           const fixed = autoFixAllButtons()
-                          setAutoFixCount(prev => prev + fixed)
+                          setAutoFixCount((prev) => prev + fixed)
                           logger.info(`🔧 Auto-fixed ${fixed} button issues`)
                         }}
                       >
@@ -302,13 +382,15 @@ const App: React.FC = () => {
                       </Button>
 
                       <Button
-                        variant="outline"
+                        variant='outline'
                         onClick={() => {
                           const report = generateButtonReport()
                           logger.info(report)
 
                           // Download report
-                          const blob = new Blob([report], { type: 'text/plain' })
+                          const blob = new Blob([report], {
+                            type: 'text/plain',
+                          })
                           const url = URL.createObjectURL(blob)
                           const a = document.createElement('a')
                           a.href = url
@@ -323,39 +405,39 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Status Summary */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-4 rounded-lg bg-popover">
-                        <div className="text-2xl font-bold text-[color:var(--nature-500)]">
-                          {buttonDiagnostics.filter(d => d.working).length}
+                    <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+                      <div className='text-center p-4 rounded-lg bg-popover'>
+                        <div className='text-2xl font-bold text-[color:var(--nature-500)]'>
+                          {buttonDiagnostics.filter((d) => d.working).length}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className='text-sm text-muted-foreground'>
                           Working Buttons
                         </div>
                       </div>
 
-                      <div className="text-center p-4 rounded-lg bg-popover">
-                        <div className="text-2xl font-bold text-[color:var(--red-500)]">
-                          {buttonDiagnostics.filter(d => !d.working).length}
+                      <div className='text-center p-4 rounded-lg bg-popover'>
+                        <div className='text-2xl font-bold text-[color:var(--red-500)]'>
+                          {buttonDiagnostics.filter((d) => !d.working).length}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className='text-sm text-muted-foreground'>
                           Issues Found
                         </div>
                       </div>
 
-                      <div className="text-center p-4 rounded-lg bg-popover">
-                        <div className="text-2xl font-bold text-[color:var(--yellow-500)]">
+                      <div className='text-center p-4 rounded-lg bg-popover'>
+                        <div className='text-2xl font-bold text-[color:var(--yellow-500)]'>
                           {autoFixCount}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className='text-sm text-muted-foreground'>
                           Auto-Fixed
                         </div>
                       </div>
 
-                      <div className="text-center p-4 rounded-lg bg-popover">
-                        <div className="text-2xl font-bold text-primary">
+                      <div className='text-center p-4 rounded-lg bg-popover'>
+                        <div className='text-2xl font-bold text-primary'>
                           {debuggingEnabled ? '🔧' : '💤'}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className='text-sm text-muted-foreground'>
                           Debug Mode
                         </div>
                       </div>
@@ -367,31 +449,46 @@ const App: React.FC = () => {
               {/* Interactive Test Suite */}
               <ButtonDebugger
                 onTestResult={(testName, success, details) => {
-                  logger.info(`✅ Test result: ${testName} - ${success ? 'SUCCESS' : 'FAILED'}`, details)
+                  logger.info(
+                    `✅ Test result: ${testName} - ${success ? 'SUCCESS' : 'FAILED'}`,
+                    details,
+                  )
                 }}
               />
 
               {/* Console Commands Help */}
               <Card>
                 <CardContent>
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Console Commands</h3>
-                    <div className="grid md:grid-cols-2 gap-4 text-sm font-mono">
+                  <div className='space-y-4'>
+                    <h3 className='text-lg font-semibold'>Console Commands</h3>
+                    <div className='grid md:grid-cols-2 gap-4 text-sm font-mono'>
                       <div>
-                        <code className="text-primary">window.ZimboMate.debugButtons()</code>
-                        <p className="text-muted-foreground">Enable visual debugging</p>
+                        <code className='text-primary'>
+                          window.ZimboMate.debugButtons()
+                        </code>
+                        <p className='text-muted-foreground'>
+                          Enable visual debugging
+                        </p>
                       </div>
                       <div>
-                        <code className="text-primary">window.ZimboMate.fixButtons()</code>
-                        <p className="text-muted-foreground">Auto-fix all issues</p>
+                        <code className='text-primary'>
+                          window.ZimboMate.fixButtons()
+                        </code>
+                        <p className='text-muted-foreground'>
+                          Auto-fix all issues
+                        </p>
                       </div>
                       <div>
-                        <code className="text-primary">window.ZimboMate.buttonReport()</code>
-                        <p className="text-muted-foreground">Generate report</p>
+                        <code className='text-primary'>
+                          window.ZimboMate.buttonReport()
+                        </code>
+                        <p className='text-muted-foreground'>Generate report</p>
                       </div>
                       <div>
-                        <code className="text-primary">window.ZimboMate.diagnoseButtons()</code>
-                        <p className="text-muted-foreground">Get diagnostics</p>
+                        <code className='text-primary'>
+                          window.ZimboMate.diagnoseButtons()
+                        </code>
+                        <p className='text-muted-foreground'>Get diagnostics</p>
                       </div>
                     </div>
                   </div>
@@ -403,11 +500,11 @@ const App: React.FC = () => {
       default:
         return (
           <motion.div
-            key="play"
+            key='play'
             variants={tabVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial='hidden'
+            animate='visible'
+            exit='exit'
           >
             <PlayTab />
           </motion.div>
@@ -425,37 +522,29 @@ const App: React.FC = () => {
       <ThemeProvider>
         <ChronicleProvider defaultEnabled={true}>
           <TooltipProvider delayDuration={200} skipDelayDuration={300}>
-            <div className="texture" aria-hidden="true" />
+            <div className='texture' aria-hidden='true' />
 
-            <div
-              className="relative min-h-screen transition-colors duration-300 bg-background text-foreground"
-            >
+            <div className='relative min-h-screen transition-colors duration-300 bg-background text-foreground'>
               {/* Header */}
-              <header
-                className="sticky top-0 z-50 border-b border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm"
-              >
-                <div className="container mx-auto px-6 py-4">
-                  <div className="flex items-center justify-between">
+              <header className='sticky top-0 z-50 border-b border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm'>
+                <div className='container mx-auto px-6 py-4'>
+                  <div className='flex items-center justify-between'>
                     <motion.div
-                      className="flex items-center gap-3"
+                      className='flex items-center gap-3'
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.5 }}
                     >
                       <motion.div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20 text-primary"
+                        className='w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20 text-primary'
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        <Sparkles
-
-                          className="w-6 h-6 text-primary"
-
-                        />
+                        <Sparkles className='w-6 h-6 text-primary' />
                       </motion.div>
                       <div>
-                        <h1 className="font-display text-xl">ZimboMate V2</h1>
-                        <p className="text-sm text-muted-foreground">
+                        <h1 className='font-display text-xl'>ZimboMate V2</h1>
+                        <p className='text-sm text-muted-foreground'>
                           Dungeon World Companion
                         </p>
                       </div>
@@ -473,12 +562,12 @@ const App: React.FC = () => {
 
               {/* Navigation Tabs */}
               <nav
-                role="navigation"
-                aria-label="Primary"
-                className="sticky top-[73px] z-40 border-b border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80"
+                role='navigation'
+                aria-label='Primary'
+                className='sticky top-[73px] z-40 border-b border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80'
               >
-                <div className="container mx-auto px-6">
-                  <div className="flex gap-1 py-2 overflow-x-auto">
+                <div className='container mx-auto px-6'>
+                  <div className='flex gap-1 py-2 overflow-x-auto'>
                     {tabs.map((tab, index) => {
                       const Icon = tab.icon
                       const isActive = activeTab === tab.id
@@ -492,7 +581,7 @@ const App: React.FC = () => {
                         >
                           <Button
                             variant={isActive ? 'primary' : 'ghost'}
-                            size="sm"
+                            size='sm'
                             onClick={() => setActiveTab(tab.id)}
                             className={`relative whitespace-nowrap ${
                               tab.featured ? 'ring-2 ring-primary/30 ' : ''
@@ -502,21 +591,27 @@ const App: React.FC = () => {
                             <Icon size={16} />
                             {tab.label}
                             {tab.featured && !isActive && (
-                              <Badge variant="secondary" className="ml-1 text-xs">
+                              <Badge
+                                variant='secondary'
+                                className='ml-1 text-xs'
+                              >
                                 ★
                               </Badge>
                             )}
                             {tab.enhanced && !isActive && (
-                              <Badge variant="default" className="ml-1 text-xs">
+                              <Badge variant='default' className='ml-1 text-xs'>
                                 ✨
                               </Badge>
                             )}
                             {isActive && (
                               <motion.div
-                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-
-                                layoutId="activeTab"
-                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                className='absolute bottom-0 left-0 right-0 h-0.5 bg-primary'
+                                layoutId='activeTab'
+                                transition={{
+                                  type: 'spring',
+                                  stiffness: 300,
+                                  damping: 30,
+                                }}
                               />
                             )}
                           </Button>
@@ -528,10 +623,10 @@ const App: React.FC = () => {
               </nav>
 
               {/* Main Content */}
-              <div className="flex h-screen">
-                <main role="main" className="flex-1 overflow-y-auto">
-                  <div className="container mx-auto px-6 py-8">
-                    <AnimatePresence mode="wait">
+              <div className='flex h-screen'>
+                <main role='main' className='flex-1 overflow-y-auto'>
+                  <div className='container mx-auto px-6 py-8'>
+                    <AnimatePresence mode='wait'>
                       {renderContent()}
                     </AnimatePresence>
                   </div>
@@ -539,29 +634,22 @@ const App: React.FC = () => {
               </div>
 
               {/* Footer */}
-              <footer
-                className="mt-16 border-t border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85"
-              >
-                <div className="container mx-auto px-6 py-8">
-                  <div className="flex items-center justify-between">
+              <footer className='mt-16 border-t border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85'>
+                <div className='container mx-auto px-6 py-8'>
+                  <div className='flex items-center justify-between'>
                     <motion.div
-                      className="flex items-center gap-3"
+                      className='flex items-center gap-3'
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5, delay: 0.5 }}
                     >
-                      <User
-                        className="w-5 h-5 text-muted-foreground"
-                      />
-                      <span
-                        className="text-sm text-muted-foreground"
-                      >
+                      <User className='w-5 h-5 text-muted-foreground' />
+                      <span className='text-sm text-muted-foreground'>
                         ZimboMate V2 • Built with React 19 & Tailwind v4
                       </span>
                     </motion.div>
                     <motion.div
-                      className="text-sm text-muted-foreground"
-
+                      className='text-sm text-muted-foreground'
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5, delay: 0.7 }}
@@ -599,7 +687,7 @@ const App: React.FC = () => {
                     case 'new-note':
                       // Create new note
                       break
-                // Add more actions as needed
+                    // Add more actions as needed
                   }
                 }}
               />
@@ -619,6 +707,3 @@ const App: React.FC = () => {
 }
 
 export default App
-
-
-

@@ -4,6 +4,7 @@
  */
 
 import type { Command } from '../components/ui/CommandPalette'
+import { logger } from '@/utils/logger'
 
 interface SearchIndex {
   id: string
@@ -33,7 +34,9 @@ class CommandSearchEngine {
     this.indexes.clear()
 
     commands.forEach((command) => {
-      const tokens = this.tokenize(`${command.title} ${command.description || ''}`)
+      const tokens = this.tokenize(
+        `${command.title} ${command.description || ''}`,
+      )
       const keywords = [
         ...this.extractKeywords(command.title),
         ...this.extractKeywords(command.description || ''),
@@ -53,19 +56,18 @@ class CommandSearchEngine {
       this.indexes.set(command.id, index)
     })
 
-    console.log(`[Search] Built index for ${this.indexes.size} commands`)
+    logger.info(`[Search] Built index for ${this.indexes.size} commands`)
   }
 
   /**
    * Fast fuzzy search with ranking
    */
   search(query: string, maxResults: number = 10): string[] {
-    if (!query.trim())
-      return []
+    if (!query.trim()) return []
 
     const normalizedQuery = this.normalize(query)
     const queryTokens = this.tokenize(query)
-    const results: Array<{ id: string, score: number }> = []
+    const results: Array<{ id: string; score: number }> = []
 
     this.indexes.forEach((index, id) => {
       const score = this.calculateScore(normalizedQuery, queryTokens, index)
@@ -78,10 +80,14 @@ class CommandSearchEngine {
     return results
       .sort((a, b) => b.score - a.score)
       .slice(0, maxResults)
-      .map(result => result.id)
+      .map((result) => result.id)
   }
 
-  private calculateScore(query: string, queryTokens: string[], index: SearchIndex): number {
+  private calculateScore(
+    query: string,
+    queryTokens: string[],
+    index: SearchIndex,
+  ): number {
     let score = 0
 
     // Exact title match gets highest score
@@ -129,7 +135,7 @@ class CommandSearchEngine {
 
     // Category weight bonus
     const categoryWeight = this.categoryWeights[index.category] || 1
-    score *= (1 + categoryWeight * 0.1)
+    score *= 1 + categoryWeight * 0.1
 
     // Base weight bonus
     score += index.weight
@@ -146,16 +152,12 @@ class CommandSearchEngine {
     let weight = 10 // Base weight
 
     // Higher weight for common actions
-    if (command.title.toLowerCase().includes('roll'))
-      weight += 20
-    if (command.title.toLowerCase().includes('character'))
-      weight += 15
-    if (command.title.toLowerCase().includes('equipment'))
-      weight += 10
+    if (command.title.toLowerCase().includes('roll')) weight += 20
+    if (command.title.toLowerCase().includes('character')) weight += 15
+    if (command.title.toLowerCase().includes('equipment')) weight += 10
 
     // Shortcut commands get priority
-    if (command.shortcut)
-      weight += 25
+    if (command.shortcut) weight += 25
 
     return weight
   }
@@ -163,7 +165,7 @@ class CommandSearchEngine {
   private tokenize(text: string): string[] {
     return this.normalize(text)
       .split(/[\s\-_./]+/)
-      .filter(token => token.length > 0)
+      .filter((token) => token.length > 0)
   }
 
   private normalize(text: string): string {
@@ -176,13 +178,13 @@ class CommandSearchEngine {
     // Extract acronyms (STR, DEX, etc)
     const acronyms = text.match(/\b[A-Z]{2,}\b/g)
     if (acronyms) {
-      acronyms.forEach(acronym => keywords.add(acronym.toLowerCase()))
+      acronyms.forEach((acronym) => keywords.add(acronym.toLowerCase()))
     }
 
     // Extract numbers
     const numbers = text.match(/\d+/g)
     if (numbers) {
-      numbers.forEach(num => keywords.add(num))
+      numbers.forEach((num) => keywords.add(num))
     }
 
     // Common synonyms
@@ -196,7 +198,7 @@ class CommandSearchEngine {
 
     Object.entries(synonymMap).forEach(([key, synonyms]) => {
       if (text.toLowerCase().includes(key)) {
-        synonyms.forEach(synonym => keywords.add(synonym))
+        synonyms.forEach((synonym) => keywords.add(synonym))
       }
     })
 
@@ -204,8 +206,7 @@ class CommandSearchEngine {
   }
 
   private fuzzyMatch(query: string, target: string): boolean {
-    if (query.length > target.length)
-      return false
+    if (query.length > target.length) return false
 
     let queryIndex = 0
 
@@ -222,8 +223,7 @@ class CommandSearchEngine {
    * Get search suggestions based on partial input
    */
   getSuggestions(partialQuery: string, maxSuggestions: number = 5): string[] {
-    if (partialQuery.length < 2)
-      return []
+    if (partialQuery.length < 2) return []
 
     const suggestions = new Set<string>()
     const normalized = this.normalize(partialQuery)
@@ -238,7 +238,10 @@ class CommandSearchEngine {
 
       // Suggest from keywords
       index.keywords.forEach((keyword) => {
-        if (keyword.startsWith(normalized) && keyword.length > normalized.length) {
+        if (
+          keyword.startsWith(normalized) &&
+          keyword.length > normalized.length
+        ) {
           suggestions.add(keyword)
         }
       })
@@ -294,7 +297,10 @@ export function searchCommands(query: string, maxResults?: number) {
   return commandSearchEngine.search(query, maxResults)
 }
 
-export function getSearchSuggestions(partialQuery: string, maxSuggestions?: number) {
+export function getSearchSuggestions(
+  partialQuery: string,
+  maxSuggestions?: number,
+) {
   return commandSearchEngine.getSuggestions(partialQuery, maxSuggestions)
 }
 

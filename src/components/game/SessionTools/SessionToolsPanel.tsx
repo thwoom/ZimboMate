@@ -4,13 +4,7 @@
  */
 
 import { motion } from 'framer-motion'
-import {
-  History,
-  NotebookPen,
-  Search,
-  Target,
-  Timer,
-} from 'lucide-react'
+import { History, NotebookPen, Search, Target, Timer } from 'lucide-react'
 import React, { useState } from 'react'
 import { Badge, Button, Card, CardContent } from '../../ui'
 import { NotesWidget } from './NotesWidget'
@@ -75,22 +69,22 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className='flex items-center justify-between'>
         <div>
-          <h2 className="text-2xl font-display mb-2">Session Tools</h2>
-          <p className="text-muted-foreground">
+          <h2 className='text-2xl font-display mb-2'>Session Tools</h2>
+          <p className='text-muted-foreground'>
             Essential tools for managing your Dungeon World sessions
           </p>
         </div>
-        <Badge variant="default" className="magical-glow">
+        <Badge variant='default' className='magical-glow'>
           Phase 4A ✨
         </Badge>
       </div>
 
       {/* Tab Navigation */}
-      <Card variant="surface">
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-2">
+      <Card variant='surface'>
+        <CardContent className='p-4'>
+          <div className='flex flex-wrap gap-2'>
             {tabs.map((tab) => {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
@@ -99,19 +93,22 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
                 <Button
                   key={tab.id}
                   variant={isActive ? 'primary' : 'ghost'}
-                  size="sm"
+                  size='sm'
                   onClick={() => setActiveTab(tab.id)}
-                  className="relative flex-1 min-w-0"
+                  className='relative flex-1 min-w-0'
                   title={tab.description}
                 >
                   <Icon size={16} />
-                  <span className="truncate">{tab.label}</span>
+                  <span className='truncate'>{tab.label}</span>
                   {isActive && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-
-                      layoutId="sessionToolTab"
-                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      className='absolute bottom-0 left-0 right-0 h-0.5 bg-primary'
+                      layoutId='sessionToolTab'
+                      transition={{
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     />
                   )}
                 </Button>
@@ -123,19 +120,19 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
 
       {/* Search Bar (for notes and history) */}
       {(activeTab === 'notes' || activeTab === 'history') && (
-        <Card variant="surface">
-          <CardContent className="p-4">
-            <div className="relative">
+        <Card variant='surface'>
+          <CardContent className='p-4'>
+            <div className='relative'>
               <Search
                 size={16}
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground'
               />
               <input
-                type="text"
+                type='text'
                 placeholder={`Search ${activeTab}...`}
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border transition-colors"
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className='w-full pl-10 pr-4 py-2 rounded-lg border transition-colors'
                 style={{
                   backgroundColor: 'var(--card)',
                   borderColor: 'var(--primary)',

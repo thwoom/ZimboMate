@@ -19,7 +19,12 @@ export { Input, type InputProps } from './Input'
 
 export { Label } from './label'
 
-export { Progress, progressFillVariants, type ProgressProps, progressVariants } from './Progress'
+export {
+  Progress,
+  progressFillVariants,
+  type ProgressProps,
+  progressVariants,
+} from './Progress'
 // Form Components
 export {
   Select,

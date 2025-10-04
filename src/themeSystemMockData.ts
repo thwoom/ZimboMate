@@ -63,7 +63,8 @@ export const colorPalettes: Record<string, ColorPaletteInfo> = {
 export const magicalThemes = {
   'moonlit-grimoire': {
     name: 'Moonlit Grimoire',
-    description: 'Ancient manuscript style with scholarly elegance - magic written in starlight',
+    description:
+      'Ancient manuscript style with scholarly elegance - magic written in starlight',
     primaryColor: '#e2e8f0',
     backgroundColor: '#0a0e1a',
     mood: 'Mysterious, scholarly, ethereal',
@@ -77,7 +78,8 @@ export const magicalThemes = {
   },
   'dragonforge-ember': {
     name: 'Dragonforge Ember',
-    description: 'Bold fantasy lettering forged in dragon fire - power carved in molten steel',
+    description:
+      'Bold fantasy lettering forged in dragon fire - power carved in molten steel',
     primaryColor: '#f97316',
     backgroundColor: '#450a0a',
     mood: 'Intense, powerful, fiery',
@@ -91,7 +93,8 @@ export const magicalThemes = {
   },
   'enchanted-grove': {
     name: 'Enchanted Grove',
-    description: 'Organic handwritten script flowing like nature - magic written by the forest itself',
+    description:
+      'Organic handwritten script flowing like nature - magic written by the forest itself',
     primaryColor: '#10b981',
     backgroundColor: '#064e3b',
     mood: 'Natural, mystical, harmonious',
@@ -100,12 +103,13 @@ export const magicalThemes = {
     typography: {
       display: 'Kalam - Organic handwritten feel',
       body: 'Nunito - Natural rounded sans-serif',
-      personality: 'Nature\'s handwriting meets organic harmony',
+      personality: "Nature's handwriting meets organic harmony",
     },
   },
   'arcane-storm': {
     name: 'Arcane Storm',
-    description: 'Futuristic electric typography crackling with magical energy - technology meets sorcery',
+    description:
+      'Futuristic electric typography crackling with magical energy - technology meets sorcery',
     primaryColor: '#e879f9',
     backgroundColor: '#581c87',
     mood: 'Electric, chaotic, powerful',
@@ -119,7 +123,8 @@ export const magicalThemes = {
   },
   'ancient-sandstone': {
     name: 'Ancient Sandstone',
-    description: 'Classical lettering carved in timeless stone - wisdom of ancient civilizations',
+    description:
+      'Classical lettering carved in timeless stone - wisdom of ancient civilizations',
     primaryColor: '#c2410c',
     backgroundColor: '#fef7ed',
     mood: 'Ancient, warm, archaeological',

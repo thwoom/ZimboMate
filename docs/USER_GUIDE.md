@@ -1,5 +1,6 @@
 # 🎲 ZimboMate V2 User Guide
-*Your Complete Dungeon World Digital Companion*
+
+_Your Complete Dungeon World Digital Companion_
 
 ## 🌟 Welcome to ZimboMate V2
 
@@ -30,17 +31,17 @@ ZimboMate V2 is a magical digital companion designed specifically for Dungeon Wo
 
 ZimboMate uses a **tabbed interface** with 9 main sections:
 
-| Tab | Purpose | Key Features |
-|-----|---------|--------------|
-| 🧙 **Character** | Character management | Stats, HP, XP, bonds, alignment, debilities |
-| 🎲 **Dice** | 3D dice rolling | 2d6 system, modifiers, 3D physics, roll history |
-| 📜 **Moves** | Dungeon World moves | Class moves, basic moves, contextual suggestions |
-| 🎒 **Equipment** | Inventory management | Drag-and-drop, load tracking, 3D item previews |
-| 📝 **Session Tools** | Play session aids | Notes, timers, trackers, roll history |
-| 🗺️ **Campaign** | Campaign management | Sessions, NPCs, locations, journal |
-| 📁 **File Management** | Data management | Import, export, backup, file browser |
-| 👥 **Multiplayer** | Shared sessions | Real-time dice sharing, session management |
-| ⚙️ **Settings** | Preferences & tools | Shortcuts, performance, accessibility, demos |
+| Tab                    | Purpose              | Key Features                                     |
+| ---------------------- | -------------------- | ------------------------------------------------ |
+| 🧙 **Character**       | Character management | Stats, HP, XP, bonds, alignment, debilities      |
+| 🎲 **Dice**            | 3D dice rolling      | 2d6 system, modifiers, 3D physics, roll history  |
+| 📜 **Moves**           | Dungeon World moves  | Class moves, basic moves, contextual suggestions |
+| 🎒 **Equipment**       | Inventory management | Drag-and-drop, load tracking, 3D item previews   |
+| 📝 **Session Tools**   | Play session aids    | Notes, timers, trackers, roll history            |
+| 🗺️ **Campaign**        | Campaign management  | Sessions, NPCs, locations, journal               |
+| 📁 **File Management** | Data management      | Import, export, backup, file browser             |
+| 👥 **Multiplayer**     | Shared sessions      | Real-time dice sharing, session management       |
+| ⚙️ **Settings**        | Preferences & tools  | Shortcuts, performance, accessibility, demos     |
 
 ---
 
@@ -51,6 +52,7 @@ ZimboMate uses a **tabbed interface** with 9 main sections:
 The **Character tab** is your character's home base, featuring:
 
 #### **Core Stats**
+
 - **Attributes**: Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma
 - **Health Points**: Current/Max HP with visual health bar
 - **Mana Points**: For spellcasting classes
@@ -58,6 +60,7 @@ The **Character tab** is your character's home base, featuring:
 - **Load**: Equipment weight management
 
 #### **Character Information**
+
 - **Name & Class**: Character identity and playbook
 - **Level**: Current character level with advancement tracking
 - **Portrait**: Visual character representation
@@ -67,17 +70,20 @@ The **Character tab** is your character's home base, featuring:
 **Bonds** represent relationships between characters and are a core XP source in Dungeon World.
 
 #### **Creating Bonds**
+
 1. Click **"Add New Bond"** in the Bonds section
 2. Enter the bond description (e.g., "I trust Gareth to have my back in a fight")
 3. Optionally specify the other character's name
 4. Save the bond
 
 #### **Resolving Bonds**
+
 1. Click **"Resolve"** on an active bond
 2. **Automatic XP**: Gain +1 XP immediately
 3. **New Bond**: Create a new bond to replace the resolved one
 
 #### **Bond Management**
+
 - **Edit**: Modify bond descriptions
 - **Delete**: Remove bonds entirely
 - **Statistics**: Track total, active, and resolved bonds
@@ -87,6 +93,7 @@ The **Character tab** is your character's home base, featuring:
 **Alignment XP** rewards roleplay that matches your character's alignment.
 
 #### **Alignment Types**
+
 - **Good** ❤️: Compassion, mercy, selflessness
 - **Lawful** 🛡️: Order, honor, authority
 - **Neutral** ⚖️: Balance, pragmatism
@@ -94,7 +101,8 @@ The **Character tab** is your character's home base, featuring:
 - **Evil** 💀: Selfish goals, harm to others
 
 #### **Recording Alignment Actions**
-1. Click **"Add Alignment Action"** 
+
+1. Click **"Add Alignment Action"**
 2. Describe the roleplay action
 3. Choose XP value (1-3 based on significance):
    - **1 XP**: Standard alignment behavior
@@ -107,14 +115,16 @@ The **Character tab** is your character's home base, featuring:
 **Debilities** are conditions that affect your character's abilities and dice rolls.
 
 #### **The Six Debilities**
+
 - **Weak** 💪: -1 to Strength rolls
-- **Shaky** 🤲: -1 to Dexterity rolls  
+- **Shaky** 🤲: -1 to Dexterity rolls
 - **Sick** 🤒: -1 to Constitution rolls
 - **Stunned** 🧠: -1 to Intelligence rolls
 - **Confused** 😵: -1 to Wisdom rolls
 - **Scarred** 😱: -1 to Charisma rolls
 
 #### **Managing Debilities**
+
 1. **Toggle On/Off**: Click the switch to activate/deactivate debilities
 2. **Automatic Modifiers**: Debilities automatically affect dice rolls
 3. **Visual Indicators**: Active debilities are clearly marked
@@ -129,6 +139,7 @@ The **Character tab** is your character's home base, featuring:
 ZimboMate features a **physics-based 3D dice system** that brings rolls to life:
 
 #### **Rolling Dice**
+
 1. **Navigate to Dice tab**
 2. **Set Modifier**: Use +/- buttons or number keys (1-6 for stat modifiers)
 3. **Roll**: Click "Roll 2d6" or press **Spacebar**
@@ -136,11 +147,13 @@ ZimboMate features a **physics-based 3D dice system** that brings rolls to life:
 5. **Results**: See outcome with Dungeon World success levels
 
 #### **Dungeon World Results**
+
 - **10+**: Full Success ✅
-- **7-9**: Partial Success ⚠️  
+- **7-9**: Partial Success ⚠️
 - **6-**: Failure (Gain XP) ❌
 
 #### **Advanced Features**
+
 - **3D Physics**: Realistic dice tumbling and collision
 - **Particle Effects**: Magical sparkles and trails
 - **Spatial Audio**: 3D positioned sound effects
@@ -149,12 +162,12 @@ ZimboMate features a **physics-based 3D dice system** that brings rolls to life:
 
 ### Keyboard Shortcuts for Dice
 
-| Key | Action |
-|-----|--------|
-| **Space** | Roll 2d6 |
-| **1-6** | Set modifier to stat value (when in dice context) |
-| **+/-** | Adjust modifier |
-| **Enter** | Confirm roll |
+| Key       | Action                                            |
+| --------- | ------------------------------------------------- |
+| **Space** | Roll 2d6                                          |
+| **1-6**   | Set modifier to stat value (when in dice context) |
+| **+/-**   | Adjust modifier                                   |
+| **Enter** | Confirm roll                                      |
 
 ---
 
@@ -165,17 +178,20 @@ ZimboMate features a **physics-based 3D dice system** that brings rolls to life:
 The **Moves tab** provides access to all Dungeon World moves with intelligent suggestions.
 
 #### **Move Categories**
+
 - **Basic Moves**: Available to all characters
 - **Class Moves**: Specific to your character class
 - **Special Moves**: Situational and advanced moves
 
 #### **Using Moves**
+
 1. **Browse Moves**: Scroll through available moves
 2. **Read Description**: Click to see full move details
 3. **Roll**: Click "Use Move" to automatically switch to dice rolling
 4. **Apply Results**: Follow the move's success/failure outcomes
 
 #### **Smart Suggestions**
+
 - **Context Aware**: Suggests relevant moves based on character state
 - **Health-Based**: Recommends healing moves when health is low
 - **Class-Specific**: Highlights moves unique to your class
@@ -197,6 +213,7 @@ The **Moves tab** provides access to all Dungeon World moves with intelligent su
 The **Equipment tab** provides comprehensive inventory management:
 
 #### **Equipment Categories**
+
 - **Weapons**: Swords, bows, staves, etc.
 - **Armor**: Protection and defensive gear
 - **Consumables**: Potions, rations, temporary items
@@ -204,6 +221,7 @@ The **Equipment tab** provides comprehensive inventory management:
 - **Tools**: Utility items and adventuring gear
 
 #### **Equipment Actions**
+
 - **Equip/Unequip**: Toggle equipment status
 - **Use**: Consume or activate items
 - **Drop**: Remove items from inventory
@@ -214,12 +232,14 @@ The **Equipment tab** provides comprehensive inventory management:
 **Load** represents how much equipment your character can carry:
 
 #### **Load Tracking**
+
 - **Current Load**: Total weight of carried items
 - **Maximum Load**: Based on character strength
 - **Load Status**: Visual indicator of encumbrance level
 - **Warnings**: Alerts when approaching maximum load
 
 #### **Load Effects**
+
 - **Normal**: No penalties
 - **Encumbered**: Movement and stealth penalties
 - **Overloaded**: Significant penalties to most actions
@@ -240,6 +260,7 @@ The **Equipment tab** provides comprehensive inventory management:
 The **Session Tools tab** provides comprehensive tools for active play:
 
 #### **Notes Widget**
+
 - **Rich Text**: Format notes with headers, lists, and emphasis
 - **Search**: Find notes quickly with full-text search
 - **Tags**: Organize notes with custom tags
@@ -247,6 +268,7 @@ The **Session Tools tab** provides comprehensive tools for active play:
 - **Timestamps**: Automatic time tracking for all notes
 
 #### **Creating Notes**
+
 1. Click **"Add Note"** in the Notes widget
 2. Enter note title and content
 3. Add tags (optional)
@@ -258,12 +280,14 @@ The **Session Tools tab** provides comprehensive tools for active play:
 **Trackers** let you monitor any session values:
 
 #### **Tracker Types**
+
 - **Counters**: Simple numeric values (torch duration, spell slots)
 - **Progress Bars**: Visual progress tracking (quest completion)
 - **Timers**: Countdown or stopwatch functionality
 - **Custom**: Any value you need to track
 
 #### **Creating Trackers**
+
 1. Click **"Add Tracker"** in the Trackers widget
 2. Name your tracker
 3. Set initial, minimum, and maximum values
@@ -275,6 +299,7 @@ The **Session Tools tab** provides comprehensive tools for active play:
 **Timers** help manage session pacing:
 
 #### **Timer Features**
+
 - **Session Timer**: Track total session time
 - **Break Timer**: Countdown for breaks
 - **Custom Timers**: Any timing needs
@@ -286,6 +311,7 @@ The **Session Tools tab** provides comprehensive tools for active play:
 **Complete log** of all dice rolls and game events:
 
 #### **History Features**
+
 - **Detailed Rolls**: See dice values, modifiers, and results
 - **Statistics**: Success rates and roll analysis
 - **Filtering**: Find specific rolls or time periods
@@ -301,6 +327,7 @@ The **Session Tools tab** provides comprehensive tools for active play:
 The **Campaign tab** provides tools for long-term game management:
 
 #### **Campaign Creation**
+
 1. Click **"Create New Campaign"**
 2. Enter campaign name and description
 3. Set campaign theme and tone
@@ -312,12 +339,14 @@ The **Campaign tab** provides tools for long-term game management:
 **Track your campaign's progress** over time:
 
 #### **Session Records**
+
 - **Session Notes**: Key events and outcomes
 - **XP Awarded**: Experience points gained
 - **Character Changes**: Level-ups and major developments
 - **Story Beats**: Important narrative moments
 
 #### **Adding Sessions**
+
 1. Click **"Add Session"** in Session History
 2. Enter session date and title
 3. Add session summary
@@ -329,12 +358,14 @@ The **Campaign tab** provides tools for long-term game management:
 **Track important characters** in your campaign:
 
 #### **NPC Features**
+
 - **Character Profiles**: Names, descriptions, and relationships
 - **Role Tracking**: Ally, enemy, neutral status
 - **Relationship Maps**: How NPCs connect to characters
 - **Notes**: Important information and history
 
 #### **Creating NPCs**
+
 1. Click **"Add NPC"** in NPC Manager
 2. Enter name and description
 3. Set relationship to party
@@ -346,6 +377,7 @@ The **Campaign tab** provides tools for long-term game management:
 **Build your campaign world**:
 
 #### **Location Features**
+
 - **World Building**: Track visited locations
 - **Discoveries**: Record important findings
 - **Maps**: Visual location references
@@ -369,6 +401,7 @@ The **Campaign tab** provides tools for long-term game management:
 The **File Management tab** provides professional-grade data handling:
 
 #### **Import System**
+
 - **Drag-and-Drop**: Easy file uploading
 - **Format Support**: JSON, CSV, XML file types
 - **Validation**: Automatic file checking and error reporting
@@ -376,6 +409,7 @@ The **File Management tab** provides professional-grade data handling:
 - **Progress Tracking**: Real-time import progress
 
 #### **Export System**
+
 - **Multiple Formats**: JSON, CSV, XML, PDF export options
 - **Data Filtering**: Choose what to export
 - **Export Presets**: Quick export configurations
@@ -386,12 +420,14 @@ The **File Management tab** provides professional-grade data handling:
 **Protect your campaign data**:
 
 #### **Automated Backups**
+
 - **Scheduling**: Daily, weekly, or monthly backups
 - **History**: Keep multiple backup versions
 - **Compression**: Efficient storage of backup files
 - **Verification**: Ensure backup integrity
 
 #### **Backup Restore**
+
 1. Navigate to Backup panel
 2. Select backup to restore
 3. Choose restoration options
@@ -403,6 +439,7 @@ The **File Management tab** provides professional-grade data handling:
 **Advanced file management**:
 
 #### **Browser Features**
+
 - **Search**: Find files quickly
 - **Filtering**: Filter by type, date, size
 - **Sorting**: Multiple sort options
@@ -410,6 +447,7 @@ The **File Management tab** provides professional-grade data handling:
 - **Context Menus**: Right-click operations
 
 #### **File Operations**
+
 - **Rename**: Change file names
 - **Duplicate**: Copy files
 - **Delete**: Remove files (with confirmation)
@@ -424,12 +462,14 @@ The **File Management tab** provides professional-grade data handling:
 The **Multiplayer tab** enables collaborative play:
 
 #### **Session Management**
+
 - **Create Sessions**: Host multiplayer games
 - **Join Sessions**: Connect to existing games
 - **Real-time Sync**: Shared dice rolls and updates
 - **Player Management**: Track connected players
 
 #### **Real-time Features**
+
 - **Shared Dice Rolls**: Everyone sees the same rolls
 - **Live Updates**: Character changes sync instantly
 - **Session Chat**: Built-in communication
@@ -438,6 +478,7 @@ The **Multiplayer tab** enables collaborative play:
 ### WebSocket Integration
 
 **Technical Features**:
+
 - **Low Latency**: Near-instant synchronization
 - **Reliable Connection**: Automatic reconnection
 - **Scalable**: Supports multiple concurrent sessions
@@ -452,22 +493,25 @@ The **Multiplayer tab** enables collaborative play:
 ZimboMate provides extensive **keyboard shortcuts** for power users:
 
 #### **Global Shortcuts**
-| Shortcut | Action |
-|----------|--------|
-| **Ctrl+K** | Open Command Palette |
-| **Ctrl+1-6** | Navigate to tabs |
-| **Ctrl+S** | Save/Sync data |
-| **Ctrl+R** | Refresh application |
+
+| Shortcut     | Action               |
+| ------------ | -------------------- |
+| **Ctrl+K**   | Open Command Palette |
+| **Ctrl+1-6** | Navigate to tabs     |
+| **Ctrl+S**   | Save/Sync data       |
+| **Ctrl+R**   | Refresh application  |
 
 #### **Context Shortcuts**
-| Context | Shortcut | Action |
-|---------|----------|--------|
-| **Dice** | Space | Roll 2d6 |
-| **Dice** | 1-6 | Set stat modifier |
-| **Character** | Tab | Cycle through sections |
-| **Any** | Esc | Close modals/dialogs |
+
+| Context       | Shortcut | Action                 |
+| ------------- | -------- | ---------------------- |
+| **Dice**      | Space    | Roll 2d6               |
+| **Dice**      | 1-6      | Set stat modifier      |
+| **Character** | Tab      | Cycle through sections |
+| **Any**       | Esc      | Close modals/dialogs   |
 
 #### **Command Palette**
+
 - **Fuzzy Search**: Find any function quickly
 - **Action Shortcuts**: Execute common actions
 - **Navigation**: Jump to any tab or feature
@@ -478,6 +522,7 @@ ZimboMate provides extensive **keyboard shortcuts** for power users:
 **Real-time performance tracking**:
 
 #### **Metrics Displayed**
+
 - **FPS**: Frames per second for smooth animations
 - **Memory Usage**: RAM consumption monitoring
 - **Component Performance**: React render times
@@ -488,12 +533,14 @@ ZimboMate provides extensive **keyboard shortcuts** for power users:
 **WCAG AA compliant** accessibility:
 
 #### **Accessibility Checker**
+
 - **Automated Audits**: Scan for accessibility issues
 - **Color Contrast**: Ensure readable text
 - **Keyboard Navigation**: Full keyboard support
 - **Screen Reader**: Proper ARIA labels and roles
 
 #### **User Preferences**
+
 - **Reduced Motion**: Disable animations for sensitive users
 - **High Contrast**: Enhanced visual contrast
 - **Large Text**: Increased font sizes
@@ -504,12 +551,14 @@ ZimboMate provides extensive **keyboard shortcuts** for power users:
 **Multiple visual themes**:
 
 #### **Available Themes**
+
 - **Fantasy**: Magical parchment and gold theme
 - **Dark**: Modern dark theme for low-light environments
 - **Light**: Clean light theme for bright environments
 - **High Contrast**: Maximum contrast for accessibility
 
 #### **Theme Features**
+
 - **Smooth Transitions**: Animated theme switching
 - **Consistent Colors**: Semantic color system
 - **Custom Properties**: CSS variables for customization
@@ -524,6 +573,7 @@ ZimboMate provides extensive **keyboard shortcuts** for power users:
 ZimboMate provides **intelligent suggestions** based on your current situation:
 
 #### **Smart Suggestions**
+
 - **Health Monitoring**: Healing suggestions when health is low
 - **XP Tracking**: Level-up notifications and advancement tips
 - **Load Management**: Equipment optimization suggestions
@@ -535,12 +585,14 @@ ZimboMate provides **intelligent suggestions** based on your current situation:
 **Automated session tracking**:
 
 #### **Phase Detection**
+
 - **Setup Phase**: Character preparation and session start
 - **Exploration Phase**: Investigation and discovery
 - **Combat Phase**: Action and conflict resolution
 - **Resolution Phase**: Aftermath and experience
 
 #### **Auto-Tracking**
+
 - **Event Logging**: Automatic recording of important events
 - **Progress Monitoring**: Track session objectives
 - **Milestone Recording**: Mark significant achievements
@@ -551,12 +603,14 @@ ZimboMate provides **intelligent suggestions** based on your current situation:
 **Advanced visual effects**:
 
 #### **3D Dice System**
+
 - **Physics Engine**: Realistic dice physics and collision
 - **Particle Effects**: Magical trails and sparkles
 - **Spatial Audio**: 3D positioned sound effects
 - **Material System**: Different dice materials and textures
 
 #### **Equipment Visualization**
+
 - **3D Models**: Interactive 3D item previews
 - **Magical Effects**: Animated enchantment effects
 - **Comparison Views**: Side-by-side item comparisons
@@ -569,18 +623,21 @@ ZimboMate provides **intelligent suggestions** based on your current situation:
 ### Common Issues
 
 #### **Performance Issues**
+
 - **Check Performance Monitor**: Use Settings > Performance Monitor
 - **Disable Animations**: Reduce motion in accessibility settings
 - **Clear Cache**: Refresh browser cache
 - **Update Browser**: Use latest browser version
 
 #### **Data Issues**
+
 - **Backup Regularly**: Use File Management > Backup
 - **Export Data**: Create data exports before major changes
 - **Check File Format**: Ensure imports use supported formats
 - **Validate Data**: Use import validation features
 
 #### **Connection Issues**
+
 - **Check Network**: Ensure stable internet connection
 - **Refresh Session**: Restart multiplayer sessions
 - **Clear Storage**: Reset local storage if needed
@@ -589,12 +646,14 @@ ZimboMate provides **intelligent suggestions** based on your current situation:
 ### Browser Compatibility
 
 **Supported Browsers**:
+
 - **Chrome**: Version 90+ (Recommended)
 - **Firefox**: Version 88+
 - **Safari**: Version 14+
 - **Edge**: Version 90+
 
 **Required Features**:
+
 - **WebGL**: For 3D graphics
 - **WebSockets**: For multiplayer features
 - **Local Storage**: For data persistence
@@ -607,12 +666,14 @@ ZimboMate provides **intelligent suggestions** based on your current situation:
 ### For Players
 
 #### **Character Management**
+
 - **Update Regularly**: Keep character sheet current
 - **Track Everything**: Use bonds, alignment XP, and debilities
 - **Take Notes**: Use session tools for important information
 - **Backup Data**: Regular exports prevent data loss
 
 #### **Efficient Play**
+
 - **Learn Shortcuts**: Master keyboard shortcuts for speed
 - **Use Command Palette**: Ctrl+K for quick access to any feature
 - **Organize Equipment**: Keep inventory well-organized
@@ -621,12 +682,14 @@ ZimboMate provides **intelligent suggestions** based on your current situation:
 ### For Game Masters
 
 #### **Campaign Management**
+
 - **Track NPCs**: Use NPC manager for consistent characters
 - **Record Sessions**: Maintain session history for continuity
 - **World Building**: Use location tracker for campaign world
 - **Player Coordination**: Use multiplayer features for shared sessions
 
 #### **Session Flow**
+
 - **Use Session Tools**: Take advantage of notes and timers
 - **Monitor Performance**: Check that all players have smooth experience
 - **Backup Campaigns**: Regular campaign data backups
@@ -635,12 +698,14 @@ ZimboMate provides **intelligent suggestions** based on your current situation:
 ### Power User Tips
 
 #### **Keyboard Mastery**
+
 - **Command Palette**: Ctrl+K is your best friend
 - **Tab Navigation**: Ctrl+1-6 for instant tab switching
 - **Quick Rolling**: Space bar for instant dice rolls
 - **Stat Shortcuts**: Number keys for quick stat modifiers
 
 #### **Data Management**
+
 - **Regular Exports**: Weekly data exports for safety
 - **Organized Files**: Use file browser for organization
 - **Backup Automation**: Set up automated backup schedules
@@ -655,18 +720,21 @@ ZimboMate provides **intelligent suggestions** based on your current situation:
 ZimboMate V2 is actively developed with exciting features planned:
 
 #### **Enhanced Multiplayer**
+
 - **Voice Chat Integration**: Built-in voice communication
 - **Video Sharing**: Share visual content in sessions
 - **Advanced GM Tools**: Enhanced game master features
 - **Cross-Platform Sync**: Synchronize across devices
 
 #### **AI Integration**
+
 - **Smart Content Generation**: AI-powered NPCs and locations
 - **Intelligent Suggestions**: Enhanced context awareness
 - **Automated Note-Taking**: AI-assisted session recording
 - **Predictive Analytics**: Gameplay pattern analysis
 
 #### **Mobile Optimization**
+
 - **Progressive Web App**: Full mobile functionality
 - **Touch Gestures**: Mobile-optimized interactions
 - **Offline Mode**: Play without internet connection
@@ -675,6 +743,7 @@ ZimboMate V2 is actively developed with exciting features planned:
 ### Community Features
 
 #### **Sharing & Collaboration**
+
 - **Character Sharing**: Share characters with other players
 - **Campaign Templates**: Pre-built campaign starters
 - **Move Libraries**: Community-created custom moves
@@ -687,12 +756,14 @@ ZimboMate V2 is actively developed with exciting features planned:
 ### Getting Help
 
 #### **Documentation**
+
 - **User Guide**: This comprehensive guide
 - **Developer Docs**: Technical documentation
 - **Video Tutorials**: Step-by-step video guides
 - **FAQ**: Frequently asked questions
 
 #### **Community Support**
+
 - **Discord Server**: Real-time community chat
 - **Forums**: Discussion and troubleshooting
 - **GitHub Issues**: Bug reports and feature requests
@@ -703,6 +774,7 @@ ZimboMate V2 is actively developed with exciting features planned:
 ZimboMate V2 welcomes community contributions:
 
 #### **Ways to Help**
+
 - **Bug Reports**: Report issues you encounter
 - **Feature Requests**: Suggest new functionality
 - **Documentation**: Improve guides and tutorials
@@ -719,19 +791,21 @@ Whether you're a new player learning the ropes or a veteran GM running epic camp
 
 **Ready to begin your adventure?** 🚀
 
-*"The best tools disappear into the magic they enable."* ✨
+_"The best tools disappear into the magic they enable."_ ✨
 
 ---
 
 ## 📚 Quick Reference
 
 ### Essential Shortcuts
+
 - **Ctrl+K**: Command Palette
 - **Space**: Roll Dice
 - **Ctrl+1-6**: Navigate Tabs
 - **1-6**: Set Stat Modifiers (in dice context)
 
 ### Key Features
+
 - ✅ Complete Character Management
 - ✅ 3D Physics-Based Dice Rolling
 - ✅ Comprehensive Session Tools
@@ -743,10 +817,11 @@ Whether you're a new player learning the ropes or a veteran GM running epic camp
 - ✅ Performance Optimized
 
 ### Support Resources
+
 - 📖 **User Guide**: Complete feature documentation
 - 🎥 **Video Tutorials**: Step-by-step guides
 - 💬 **Community**: Discord and forums
 - 🐛 **Bug Reports**: GitHub issues
 - 📧 **Contact**: Direct support channels
 
-*Happy adventuring with ZimboMate V2!* 🎲✨
+_Happy adventuring with ZimboMate V2!_ 🎲✨

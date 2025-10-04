@@ -60,10 +60,8 @@ export function formatValue(value: number): string {
 
 export function formatLoadStatus(current: number, max: number): string {
   const percentage = (current / max) * 100
-  if (percentage <= 100)
-    return 'Normal'
-  if (percentage <= 120)
-    return 'Encumbered (-1 ongoing)'
+  if (percentage <= 100) return 'Normal'
+  if (percentage <= 120) return 'Encumbered (-1 ongoing)'
   return 'Overloaded (can barely move)'
 }
 
@@ -73,17 +71,23 @@ export function formatItemQuantity(quantity: number): string {
 
 export function formatEncumbranceStatus(status: string): string {
   switch (status) {
-    case 'normal': return 'Normal'
-    case 'encumbered': return 'Encumbered'
-    case 'overloaded': return 'Overloaded'
-    default: return 'Unknown'
+    case 'normal':
+      return 'Normal'
+    case 'encumbered':
+      return 'Encumbered'
+    case 'overloaded':
+      return 'Overloaded'
+    default:
+      return 'Unknown'
   }
 }
 
-export function formatItemTags(tags: Array<{ name: string, value?: string | number }>): string {
-  return tags.map(tag =>
-    tag.value ? `${tag.name} ${tag.value}` : tag.name,
-  ).join(', ')
+export function formatItemTags(
+  tags: Array<{ name: string; value?: string | number }>,
+): string {
+  return tags
+    .map((tag) => (tag.value ? `${tag.name} ${tag.value}` : tag.name))
+    .join(', ')
 }
 
 // Create sample items with proper IDs and full data
@@ -93,8 +97,13 @@ function createSampleItems(): Item[] {
       id: 'longsword-1',
       name: 'Longsword',
       category: 'weapon',
-      tags: [{ name: 'close' }, { name: 'messy' }, { name: 'weight', value: 2 }],
-      description: 'A well-balanced blade with a cross-guard and grip wrapped in leather.',
+      tags: [
+        { name: 'close' },
+        { name: 'messy' },
+        { name: 'weight', value: 2 },
+      ],
+      description:
+        'A well-balanced blade with a cross-guard and grip wrapped in leather.',
       weight: 2,
       value: 15,
       quantity: 1,
@@ -128,7 +137,11 @@ function createSampleItems(): Item[] {
       id: 'rations-1',
       name: 'Travel Rations',
       category: 'consumable',
-      tags: [{ name: 'ration' }, { name: 'uses', value: 5 }, { name: 'weight', value: 1 }],
+      tags: [
+        { name: 'ration' },
+        { name: 'uses', value: 5 },
+        { name: 'weight', value: 1 },
+      ],
       description: 'Dried meat, hardtack, and preserved fruits.',
       weight: 1,
       value: 10,
@@ -138,10 +151,11 @@ function createSampleItems(): Item[] {
     },
     {
       id: 'thieves-tools-1',
-      name: 'Thieves\' Tools',
+      name: "Thieves' Tools",
       category: 'gear',
       tags: [{ name: 'weight', value: 1 }],
-      description: 'Lockpicks, small files, and other tools for bypassing security.',
+      description:
+        'Lockpicks, small files, and other tools for bypassing security.',
       weight: 1,
       value: 25,
       quantity: 1,
@@ -183,19 +197,23 @@ function createMockInventory(): Inventory {
 
     // Organize into appropriate containers
     if (item.equipped) {
-      const equippedContainer = inventory.containers.find(c => c.category === 'equipped')
+      const equippedContainer = inventory.containers.find(
+        (c) => c.category === 'equipped',
+      )
       if (equippedContainer) {
         equippedContainer.items.push(item.id)
       }
-    }
-    else if (item.category === 'consumable') {
-      const consumablesContainer = inventory.containers.find(c => c.category === 'consumables')
+    } else if (item.category === 'consumable') {
+      const consumablesContainer = inventory.containers.find(
+        (c) => c.category === 'consumables',
+      )
       if (consumablesContainer) {
         consumablesContainer.items.push(item.id)
       }
-    }
-    else {
-      const carriedContainer = inventory.containers.find(c => c.category === 'carried')
+    } else {
+      const carriedContainer = inventory.containers.find(
+        (c) => c.category === 'carried',
+      )
       if (carriedContainer) {
         carriedContainer.items.push(item.id)
       }
@@ -237,5 +255,6 @@ export const mockRootProps = {
   onItemUnequip: (itemId: string) => logger.debug('Unequipping item:', itemId),
   onItemUse: (itemId: string) => logger.debug('Using item:', itemId),
   onItemDrop: (itemId: string) => logger.debug('Dropping item:', itemId),
-  onInventoryUpdate: (inventory: Inventory) => logger.debug('Inventory updated:', inventory),
+  onInventoryUpdate: (inventory: Inventory) =>
+    logger.debug('Inventory updated:', inventory),
 }

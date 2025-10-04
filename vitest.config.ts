@@ -15,7 +15,12 @@ export default defineConfig({
     clearMocks: true,
     restoreMocks: true,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['tests/**', 'node_modules/**', 'dist/**', 'app-screenshot-tester/**'],
+    exclude: [
+      'tests/**',
+      'node_modules/**',
+      'dist/**',
+      'app-screenshot-tester/**',
+    ],
     reporters: ['verbose'],
     coverage: {
       provider: 'v8',
@@ -35,7 +40,7 @@ export default defineConfig({
         'src/App.*.tsx',
       ],
       thresholds: {
-        'global': {
+        global: {
           branches: 60,
           functions: 65,
           lines: 70,

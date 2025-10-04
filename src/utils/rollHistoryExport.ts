@@ -8,7 +8,13 @@ import type { RollResult } from '../stores/diceStore'
 import { format } from 'date-fns'
 import { compatibility } from './browserCompatibility'
 
-export type ExportFormat = 'plain' | 'markdown' | 'csv' | 'json' | 'discord' | 'rptools'
+export type ExportFormat =
+  | 'plain'
+  | 'markdown'
+  | 'csv'
+  | 'json'
+  | 'discord'
+  | 'rptools'
 
 export interface ExportOptions {
   format: ExportFormat
@@ -44,29 +50,33 @@ const outcomeMarker: Record<RollResult['outcome'], string> = {
 }
 
 function toDiceNotation(roll: RollResult): string {
-  if (roll.modifier === 0)
-    return '2d6'
+  if (roll.modifier === 0) return '2d6'
   const sign = roll.modifier > 0 ? '+' : ''
   return `2d6${sign}${roll.modifier}`
 }
 
-export function filterRolls(rolls: RollResult[], options: ExportOptions): RollResult[] {
+export function filterRolls(
+  rolls: RollResult[],
+  options: ExportOptions,
+): RollResult[] {
   let filtered = [...rolls]
 
   if (options.dateRange) {
     const startTime = options.dateRange.start.getTime()
     const endTime = options.dateRange.end.getTime()
-    filtered = filtered.filter(roll => roll.timestamp >= startTime && roll.timestamp <= endTime)
+    filtered = filtered.filter(
+      (roll) => roll.timestamp >= startTime && roll.timestamp <= endTime,
+    )
   }
 
   if (options.rollTypes?.length) {
     const typeSet = new Set(options.rollTypes)
-    filtered = filtered.filter(roll => typeSet.has(roll.type))
+    filtered = filtered.filter((roll) => typeSet.has(roll.type))
   }
 
   if (options.outcomes?.length) {
     const outcomeSet = new Set(options.outcomes)
-    filtered = filtered.filter(roll => outcomeSet.has(roll.outcome))
+    filtered = filtered.filter((roll) => outcomeSet.has(roll.outcome))
   }
 
   if (typeof options.maxRolls === 'number') {
@@ -78,20 +88,28 @@ export function filterRolls(rolls: RollResult[], options: ExportOptions): RollRe
 
 function formatEffects(roll: RollResult): string | null {
   const effects: string[] = []
-  if (roll.effects?.xpAwarded)
-    effects.push('+1 XP')
+  if (roll.effects?.xpAwarded) effects.push('+1 XP')
   if (roll.effects?.holdGranted)
     effects.push(`+${roll.effects.holdGranted} Hold`)
-  if (!effects.length)
-    return null
+  if (!effects.length) return null
   return effects.join(', ')
 }
 
 function buildPlainSummary(roll: RollResult, options: ExportOptions): string {
-  const modifierText = roll.modifier !== 0 ? ` ${roll.modifier > 0 ? '+' : ''}${Math.abs(roll.modifier)}` : ''
-  const notation = options.includeModifiers && roll.modifier !== 0 ? ` (${toDiceNotation(roll)})` : ''
-  const timestamp = options.includeTimestamps ? ` [${format(roll.timestamp, 'yyyy-MM-dd HH:mm')}]` : ''
-  const characterInfo = options.includeCharacterInfo ? ` - ${roll.characterId}` : ''
+  const modifierText =
+    roll.modifier !== 0
+      ? ` ${roll.modifier > 0 ? '+' : ''}${Math.abs(roll.modifier)}`
+      : ''
+  const notation =
+    options.includeModifiers && roll.modifier !== 0
+      ? ` (${toDiceNotation(roll)})`
+      : ''
+  const timestamp = options.includeTimestamps
+    ? ` [${format(roll.timestamp, 'yyyy-MM-dd HH:mm')}]`
+    : ''
+  const characterInfo = options.includeCharacterInfo
+    ? ` - ${roll.characterId}`
+    : ''
   const effects = options.includeEffects ? formatEffects(roll) : null
 
   let summary = `${roll.context.label}: ${roll.dice1} + ${roll.dice2}${modifierText} = ${roll.finalResult} (${outcomeToken[roll.outcome]})${notation}${timestamp}${characterInfo}`
@@ -102,9 +120,11 @@ function buildPlainSummary(roll: RollResult, options: ExportOptions): string {
   return summary
 }
 
-export function exportAsPlainText(rolls: RollResult[], options: ExportOptions): string {
-  if (rolls.length === 0)
-    return 'No rolls match the selected filters.'
+export function exportAsPlainText(
+  rolls: RollResult[],
+  options: ExportOptions,
+): string {
+  if (rolls.length === 0) return 'No rolls match the selected filters.'
 
   const lines: string[] = []
   lines.push('=== Dice Roll History ===')
@@ -118,9 +138,11 @@ export function exportAsPlainText(rolls: RollResult[], options: ExportOptions): 
   return lines.join('\n')
 }
 
-export function exportAsMarkdown(rolls: RollResult[], options: ExportOptions): string {
-  if (rolls.length === 0)
-    return '*No rolls to display.*'
+export function exportAsMarkdown(
+  rolls: RollResult[],
+  options: ExportOptions,
+): string {
+  if (rolls.length === 0) return '*No rolls to display.*'
 
   const includeTimestamps = options.includeTimestamps
   const grouped = includeTimestamps
@@ -145,19 +167,27 @@ export function exportAsMarkdown(rolls: RollResult[], options: ExportOptions): s
       }
 
       groupedRolls.forEach((roll) => {
-        const base = '- **' + roll.context.label + '** -> `' + toDiceNotation(roll) + '` = **' + roll.finalResult + '** ' + outcomeMarker[roll.outcome]
+        const base =
+          '- **' +
+          roll.context.label +
+          '** -> `' +
+          toDiceNotation(roll) +
+          '` = **' +
+          roll.finalResult +
+          '** ' +
+          outcomeMarker[roll.outcome]
         const extras: string[] = []
-        if (options.includeCharacterInfo)
-          extras.push(roll.characterId)
+        if (options.includeCharacterInfo) extras.push(roll.characterId)
         if (options.includeEffects) {
           const effects = formatEffects(roll)
-          if (effects)
-            extras.push(effects)
+          if (effects) extras.push(effects)
         }
         if (options.includeTimestamps)
           extras.push(format(roll.timestamp, 'HH:mm'))
 
-        lines.push(extras.length ? base + ' _(' + extras.join(' | ') + ')_' : base)
+        lines.push(
+          extras.length ? base + ' _(' + extras.join(' | ') + ')_' : base,
+        )
       })
 
       lines.push('')
@@ -166,7 +196,10 @@ export function exportAsMarkdown(rolls: RollResult[], options: ExportOptions): s
   return lines.join('\n').trimEnd()
 }
 
-export function exportAsCSV(rolls: RollResult[], options: ExportOptions): string {
+export function exportAsCSV(
+  rolls: RollResult[],
+  options: ExportOptions,
+): string {
   const header = [
     'timestamp',
     'characterId',
@@ -197,7 +230,7 @@ export function exportAsCSV(rolls: RollResult[], options: ExportOptions): string
   })
 
   return [header, ...rows]
-    .map(row => row.map(value => '"' + value + '"').join(','))
+    .map((row) => row.map((value) => '"' + value + '"').join(','))
     .join('\n')
 }
 
@@ -205,25 +238,35 @@ export function exportAsJSON(rolls: RollResult[]): string {
   return JSON.stringify(rolls, null, 2)
 }
 
-export function exportAsDiscord(rolls: RollResult[], options: ExportOptions): string {
-  if (rolls.length === 0)
-    return 'No rolls yet.'
+export function exportAsDiscord(
+  rolls: RollResult[],
+  options: ExportOptions,
+): string {
+  if (rolls.length === 0) return 'No rolls yet.'
 
   const lines: string[] = []
   lines.push('**Dice Highlights**')
 
   rolls.slice(0, 10).forEach((roll) => {
-    const summary = '- **' + roll.context.label + '** -> `' + roll.finalResult + '` (' + roll.type + ') ' + outcomeMarker[roll.outcome]
+    const summary =
+      '- **' +
+      roll.context.label +
+      '** -> `' +
+      roll.finalResult +
+      '` (' +
+      roll.type +
+      ') ' +
+      outcomeMarker[roll.outcome]
     const extras: string[] = []
     if (options.includeModifiers && roll.modifier !== 0)
       extras.push(toDiceNotation(roll))
     const effects = options.includeEffects ? formatEffects(roll) : null
-    if (effects)
-      extras.push(effects)
-    if (options.includeCharacterInfo)
-      extras.push(roll.characterId)
+    if (effects) extras.push(effects)
+    if (options.includeCharacterInfo) extras.push(roll.characterId)
 
-    lines.push(extras.length ? summary + ' _(' + extras.join(' | ') + ')_' : summary)
+    lines.push(
+      extras.length ? summary + ' _(' + extras.join(' | ') + ')_' : summary,
+    )
   })
 
   if (rolls.length > 10) {
@@ -234,8 +277,7 @@ export function exportAsDiscord(rolls: RollResult[], options: ExportOptions): st
 }
 
 export function exportAsRPTools(rolls: RollResult[]): string {
-  if (rolls.length === 0)
-    return '; No rolls to export'
+  if (rolls.length === 0) return '; No rolls to export'
 
   const lines: string[] = []
   lines.push('; RPTools / MapTool dice export generated by ZimboMate')
@@ -243,7 +285,15 @@ export function exportAsRPTools(rolls: RollResult[]): string {
 
   rolls.forEach((roll, index) => {
     lines.push('; Roll ' + (index + 1) + ': ' + roll.context.label)
-    lines.push('/roll ' + toDiceNotation(roll) + ' ; Result: ' + roll.finalResult + ' (' + roll.outcome + ')')
+    lines.push(
+      '/roll ' +
+        toDiceNotation(roll) +
+        ' ; Result: ' +
+        roll.finalResult +
+        ' (' +
+        roll.outcome +
+        ')',
+    )
     const effects = formatEffects(roll)
     if (effects) {
       lines.push('; Effects: ' + effects)
@@ -254,7 +304,10 @@ export function exportAsRPTools(rolls: RollResult[]): string {
   return lines.join('\n').trimEnd()
 }
 
-export function exportRollHistory(rolls: RollResult[], options: ExportOptions): ExportResult {
+export function exportRollHistory(
+  rolls: RollResult[],
+  options: ExportOptions,
+): ExportResult {
   const filteredRolls = filterRolls(rolls, options)
   const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm')
 
@@ -298,14 +351,22 @@ export function exportRollHistory(rolls: RollResult[], options: ExportOptions): 
   return { content, filename, mimeType }
 }
 
-export async function copyExportToClipboard(rolls: RollResult[], options: ExportOptions): Promise<boolean> {
+export async function copyExportToClipboard(
+  rolls: RollResult[],
+  options: ExportOptions,
+): Promise<boolean> {
   const exportResult = exportRollHistory(rolls, options)
   return compatibility.copyToClipboard(exportResult.content)
 }
 
-export function downloadExport(rolls: RollResult[], options: ExportOptions): void {
+export function downloadExport(
+  rolls: RollResult[],
+  options: ExportOptions,
+): void {
   const exportResult = exportRollHistory(rolls, options)
-  const blob = new Blob([exportResult.content], { type: exportResult.mimeType })
+  const blob = new Blob([exportResult.content], {
+    type: exportResult.mimeType,
+  })
   const url = URL.createObjectURL(blob)
 
   const link = document.createElement('a')
@@ -318,11 +379,14 @@ export function downloadExport(rolls: RollResult[], options: ExportOptions): voi
   URL.revokeObjectURL(url)
 }
 
-export function getExportPreview(rolls: RollResult[], options: ExportOptions, maxLines: number = 10): string {
+export function getExportPreview(
+  rolls: RollResult[],
+  options: ExportOptions,
+  maxLines: number = 10,
+): string {
   const previewRolls = rolls.slice(0, Math.min(5, rolls.length))
   const exportResult = exportRollHistory(previewRolls, options)
   const lines = exportResult.content.split('\n')
-  if (lines.length <= maxLines)
-    return exportResult.content
+  if (lines.length <= maxLines) return exportResult.content
   return lines.slice(0, maxLines).join('\n') + '\n...'
 }

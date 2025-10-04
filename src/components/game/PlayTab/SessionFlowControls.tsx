@@ -5,14 +5,8 @@
  */
 
 import { motion } from 'framer-motion'
-import {
-  Clock,
-  Coffee,
-  Pause,
-  Play,
-  Square,
-} from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { Clock, Coffee, Pause, Play, Square } from 'lucide-react'
+import React, { useEffect, useReducer, useState } from 'react'
 import { Badge, Button } from '../../ui'
 
 interface SessionFlowControlsProps {
@@ -26,28 +20,36 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
   onEndSession,
   className = '',
 }) => {
-  const [sessionDuration, setSessionDuration] = useState(0)
+  const [sessionDuration, updateSessionDuration] = useReducer(
+    (_: number, next: number) => next,
+    0,
+  )
   const [isPaused, setIsPaused] = useState(false)
-  const [pausedTime, setPausedTime] = useState(0)
 
   // Update session duration every minute
   useEffect(() => {
-    if (!sessionStartTime || isPaused)
+    if (!sessionStartTime) {
+      updateSessionDuration(0)
       return
+    }
 
-    const interval = setInterval(() => {
+    const computeDuration = () => {
       const now = new Date()
-      const duration = Math.floor((now.getTime() - sessionStartTime.getTime()) / 60000) - pausedTime
-      setSessionDuration(Math.max(0, duration))
-    }, 60000) // Update every minute
+      const duration = Math.floor(
+        (now.getTime() - sessionStartTime.getTime()) / 60000,
+      )
+      updateSessionDuration(Math.max(0, duration))
+    }
 
-    // Initial calculation
-    const now = new Date()
-    const duration = Math.floor((now.getTime() - sessionStartTime.getTime()) / 60000) - pausedTime
-    setSessionDuration(Math.max(0, duration))
+    computeDuration()
 
-    return () => clearInterval(interval)
-  }, [sessionStartTime, isPaused, pausedTime])
+    if (isPaused) {
+      return undefined
+    }
+
+    const interval = window.setInterval(computeDuration, 60000)
+    return () => window.clearInterval(interval)
+  }, [isPaused, sessionStartTime])
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
@@ -73,57 +75,48 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
     if (isPaused) {
       // Resuming - don't add to paused time yet
       setIsPaused(false)
-    }
-    else {
+    } else {
       // Pausing - start tracking pause time
       setIsPaused(true)
       // In a real implementation, we'd track the pause start time
     }
   }
 
-  const suggestBreak = sessionDuration > 0 && sessionDuration % 90 === 0 && !isPaused
+  const suggestBreak =
+    sessionDuration > 0 && sessionDuration % 90 === 0 && !isPaused
 
   const sessionInfo = getSessionStatus()
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {/* Session Duration */}
-      <div className="flex items-center gap-2">
-        <Clock size={16} className="text-muted-foreground" />
-        <span className="font-mono text-sm">
+      <div className='flex items-center gap-2'>
+        <Clock size={16} className='text-muted-foreground' />
+        <span className='font-mono text-sm'>
           {formatDuration(sessionDuration)}
         </span>
-        <Badge
-          variant="secondary"
-          className={`text-xs ${sessionInfo.color}`}
-        >
+        <Badge variant='secondary' className={`text-xs ${sessionInfo.color}`}>
           {sessionInfo.status}
         </Badge>
       </div>
 
       {/* Session Controls */}
-      <div className="flex items-center gap-1">
+      <div className='flex items-center gap-1'>
         <Button
-          variant="ghost"
-          size="sm"
+          variant='ghost'
+          size='sm'
           onClick={handlePauseToggle}
-          className="gap-1"
+          className='gap-1'
         >
-          {isPaused
-            ? (
-                <Play size={14} />
-              )
-            : (
-                <Pause size={14} />
-              )}
+          {isPaused ? <Play size={14} /> : <Pause size={14} />}
           {isPaused ? 'Resume' : 'Pause'}
         </Button>
 
         <Button
-          variant="outline"
-          size="sm"
+          variant='outline'
+          size='sm'
           onClick={onEndSession}
-          className="gap-1 text-destructive hover:text-destructive"
+          className='gap-1 text-destructive hover:text-destructive'
         >
           <Square size={14} />
           End Session
@@ -135,7 +128,7 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-1 text-xs text-chart-4"
+          className='flex items-center gap-1 text-xs text-chart-4'
         >
           <Coffee size={12} />
           <span>Consider a break</span>
@@ -146,3 +139,4 @@ export const SessionFlowControls: React.FC<SessionFlowControlsProps> = ({
 }
 
 export default SessionFlowControls
+

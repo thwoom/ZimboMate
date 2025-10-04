@@ -75,78 +75,84 @@ export function useCharacter(characterId?: string): UseCharacterReturn {
   // Determine which character to use
   const targetCharacterId = characterId || activeCharacterId
   const character = useMemo(() => {
-    if (!targetCharacterId)
-      return undefined
+    if (!targetCharacterId) return undefined
     return getCharacter(targetCharacterId)
   }, [targetCharacterId, getCharacter, characters])
 
   // Character operations
-  const updateCharacter = useCallback((updates: Partial<Character>) => {
-    if (!targetCharacterId)
-      return
-    storeUpdateCharacter(targetCharacterId, updates)
-  }, [targetCharacterId, storeUpdateCharacter])
+  const updateCharacter = useCallback(
+    (updates: Partial<Character>) => {
+      if (!targetCharacterId) return
+      storeUpdateCharacter(targetCharacterId, updates)
+    },
+    [targetCharacterId, storeUpdateCharacter],
+  )
 
   const deleteCharacter = useCallback(() => {
-    if (!targetCharacterId)
-      return
+    if (!targetCharacterId) return
     storeDeleteCharacter(targetCharacterId)
   }, [targetCharacterId, storeDeleteCharacter])
 
   const duplicateCharacter = useCallback(() => {
-    if (!targetCharacterId)
-      return undefined
+    if (!targetCharacterId) return undefined
     return storeDuplicateCharacter(targetCharacterId)
   }, [targetCharacterId, storeDuplicateCharacter])
 
   const exportCharacter = useCallback(() => {
-    if (!targetCharacterId)
-      return undefined
+    if (!targetCharacterId) return undefined
     return storeExportCharacter(targetCharacterId)
   }, [targetCharacterId, storeExportCharacter])
 
   // Health management
-  const updateHP = useCallback((newHP: number) => {
-    if (!targetCharacterId)
-      return
-    storeUpdateHP(targetCharacterId, newHP)
-  }, [targetCharacterId, storeUpdateHP])
+  const updateHP = useCallback(
+    (newHP: number) => {
+      if (!targetCharacterId) return
+      storeUpdateHP(targetCharacterId, newHP)
+    },
+    [targetCharacterId, storeUpdateHP],
+  )
 
-  const healCharacter = useCallback((amount: number) => {
-    if (!targetCharacterId)
-      return
-    storeHealCharacter(targetCharacterId, amount)
-  }, [targetCharacterId, storeHealCharacter])
+  const healCharacter = useCallback(
+    (amount: number) => {
+      if (!targetCharacterId) return
+      storeHealCharacter(targetCharacterId, amount)
+    },
+    [targetCharacterId, storeHealCharacter],
+  )
 
-  const damageCharacter = useCallback((amount: number) => {
-    if (!targetCharacterId)
-      return
-    storeDamageCharacter(targetCharacterId, amount)
-  }, [targetCharacterId, storeDamageCharacter])
+  const damageCharacter = useCallback(
+    (amount: number) => {
+      if (!targetCharacterId) return
+      storeDamageCharacter(targetCharacterId, amount)
+    },
+    [targetCharacterId, storeDamageCharacter],
+  )
 
   // Load management
-  const updateLoad = useCallback((newLoad: number) => {
-    if (!targetCharacterId)
-      return
-    storeUpdateLoad(targetCharacterId, newLoad)
-  }, [targetCharacterId, storeUpdateLoad])
+  const updateLoad = useCallback(
+    (newLoad: number) => {
+      if (!targetCharacterId) return
+      storeUpdateLoad(targetCharacterId, newLoad)
+    },
+    [targetCharacterId, storeUpdateLoad],
+  )
 
   // XP and advancement
-  const addXP = useCallback((amount: number, source: string, description: string) => {
-    if (!targetCharacterId)
-      return
-    storeAddXP(targetCharacterId, amount, source, description)
-  }, [targetCharacterId, storeAddXP])
+  const addXP = useCallback(
+    (amount: number, source: string, description: string) => {
+      if (!targetCharacterId) return
+      storeAddXP(targetCharacterId, amount, source, description)
+    },
+    [targetCharacterId, storeAddXP],
+  )
 
   const levelUp = useCallback(() => {
-    if (!targetCharacterId)
-      return
+    if (!targetCharacterId) return
     storeLevelUpCharacter(targetCharacterId)
   }, [targetCharacterId, storeLevelUpCharacter])
 
   const canLevelUp = useMemo(() => {
-    if (!character)
-      return false
+    if (!character) return false
     return advancementService.shouldLevelUp(character)
   }, [character])
 
@@ -210,13 +216,19 @@ export function useCharacters() {
     clearError,
   } = useCharacterStore()
 
-  const createNewCharacter = useCallback((characterData: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>) => {
-    return createCharacter(characterData)
-  }, [createCharacter])
+  const createNewCharacter = useCallback(
+    (characterData: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>) => {
+      return createCharacter(characterData)
+    },
+    [createCharacter],
+  )
 
-  const importFromData = useCallback((characterData: string) => {
-    return importCharacter(characterData)
-  }, [importCharacter])
+  const importFromData = useCallback(
+    (characterData: string) => {
+      return importCharacter(characterData)
+    },
+    [importCharacter],
+  )
 
   return {
     characters,

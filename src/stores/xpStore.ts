@@ -5,12 +5,18 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { logger } from '@/utils/logger'
 
 export interface XPEvent {
   id: string
   characterId: string
   timestamp: number
-  type: 'failed-roll' | 'end-of-session' | 'bond-resolution' | 'alignment' | 'manual'
+  type:
+    | 'failed-roll'
+    | 'end-of-session'
+    | 'bond-resolution'
+    | 'alignment'
+    | 'manual'
   amount: number
   reason: string
   rollId?: string // Reference to the roll that triggered this XP
@@ -29,12 +35,27 @@ interface XPState {
   xpPerLevel: number // XP needed to level up (default 7 + current level)
 
   // Actions
-  addXP: (characterId: string, amount: number, reason: string, type?: XPEvent['type'], rollId?: string, moveId?: string) => void
-  awardFailedRoll: (characterId: string, rollId: string, moveId?: string) => void
+  addXP: (
+    characterId: string,
+    amount: number,
+    reason: string,
+    type?: XPEvent['type'],
+    rollId?: string,
+    moveId?: string,
+  ) => void
+  awardFailedRoll: (
+    characterId: string,
+    rollId: string,
+    moveId?: string,
+  ) => void
   calculateLevelFromXP: (xp: number) => number
   getXPForNextLevel: (characterId: string) => number
   canLevelUp: (characterId: string) => boolean
-  getXPProgress: (characterId: string) => { current: number, needed: number, percent: number }
+  getXPProgress: (characterId: string) => {
+    current: number
+    needed: number
+    percent: number
+  }
   getXPEventsForCharacter: (characterId: string) => XPEvent[]
   clearXPHistory: (characterId: string) => void
   setAutoAwardFailedRolls: (enabled: boolean) => void
@@ -120,21 +141,14 @@ export const useXPStore = create<XPState>()(
             moveId,
           }
 
-          console.log(`[XP] Added ${amount} XP to ${characterId}: ${reason} (Total: ${newXP})`)
+          logger.info(`[XP] Added ${amount} XP to ${characterId}: ${reason} (Total: ${newXP})`)
 
           // Check for level up
           if (newLevel > oldLevel) {
-            console.log(`🎉 [LEVEL UP] ${characterId} reached level ${newLevel}! (Was ${oldLevel})`)
+            logger.info(`🎉 [LEVEL UP] ${characterId} reached level ${newLevel}! (Was ${oldLevel})`)
             // Trigger level up notification
             setTimeout(() => {
-              alert(`🎉 LEVEL UP! You've reached level ${newLevel}!
-
-You can now choose advancement options:
-• Increase a stat by 1
-• Learn a new move
-• Gain other class abilities
-
-Visit your character sheet to make your selections.`)
+              logger.warn(`🎉 LEVEL UP! You've reached level ${newLevel}! Visit the character sheet to choose an advancement.`)
             }, 500)
           }
 
@@ -155,8 +169,7 @@ Visit your character sheet to make your selections.`)
       // Auto-award XP for failed rolls (6-)
       awardFailedRoll: (characterId, rollId, moveId) => {
         const state = get()
-        if (!state.autoAwardFailedRolls)
-          return
+        if (!state.autoAwardFailedRolls) return
 
         const reason = moveId
           ? `Failed ${moveId.replace('-', ' ')} roll`
@@ -169,14 +182,16 @@ Visit your character sheet to make your selections.`)
       getXPEventsForCharacter: (characterId) => {
         const state = get()
         return state.xpEvents
-          .filter(event => event.characterId === characterId)
+          .filter((event) => event.characterId === characterId)
           .sort((a, b) => b.timestamp - a.timestamp) // Most recent first
       },
 
       // Clear XP history for a character
       clearXPHistory: (characterId) => {
-        set(state => ({
-          xpEvents: state.xpEvents.filter(event => event.characterId !== characterId),
+        set((state) => ({
+          xpEvents: state.xpEvents.filter(
+            (event) => event.characterId !== characterId,
+          ),
           characterXP: {
             ...state.characterXP,
             [characterId]: 0,

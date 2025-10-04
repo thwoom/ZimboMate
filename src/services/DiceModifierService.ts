@@ -9,7 +9,13 @@ export interface ModifierSource {
   id: string
   name: string
   description: string
-  type: 'debility' | 'equipment' | 'condition' | 'spell' | 'move' | 'situational'
+  type:
+    | 'debility'
+    | 'equipment'
+    | 'condition'
+    | 'spell'
+    | 'move'
+    | 'situational'
   category: string
   icon: string
   color: string
@@ -64,7 +70,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function isEquipmentModifierPayload(value: unknown): value is EquipmentModifierPayload {
+function isEquipmentModifierPayload(
+  value: unknown,
+): value is EquipmentModifierPayload {
   if (!isPlainObject(value)) {
     return false
   }
@@ -257,8 +265,8 @@ class DiceModifierService {
 
     // Check if non-stackable modifier already exists
     if (!modifier.stackable) {
-      const existingIndex = characterModifiers.findIndex(m =>
-        m.source.id === sourceId && !m.stackable,
+      const existingIndex = characterModifiers.findIndex(
+        (m) => m.source.id === sourceId && !m.stackable,
       )
       if (existingIndex !== -1) {
         characterModifiers[existingIndex] = modifier
@@ -275,12 +283,10 @@ class DiceModifierService {
    */
   removeModifier(characterId: string, modifierId: string): boolean {
     const modifiers = this.activeModifiers.get(characterId)
-    if (!modifiers)
-      return false
+    if (!modifiers) return false
 
-    const index = modifiers.findIndex(m => m.id === modifierId)
-    if (index === -1)
-      return false
+    const index = modifiers.findIndex((m) => m.id === modifierId)
+    if (index === -1) return false
 
     modifiers.splice(index, 1)
     return true
@@ -291,13 +297,12 @@ class DiceModifierService {
    */
   removeModifiersByType(characterId: string, type: string): number {
     const modifiers = this.activeModifiers.get(characterId)
-    if (!modifiers)
-      return 0
+    if (!modifiers) return 0
 
     const initialLength = modifiers.length
     this.activeModifiers.set(
       characterId,
-      modifiers.filter(m => m.source.type !== type),
+      modifiers.filter((m) => m.source.type !== type),
     )
 
     return initialLength - (this.activeModifiers.get(characterId)?.length || 0)
@@ -315,13 +320,16 @@ class DiceModifierService {
    */
   getModifierStack(characterId: string, stat: string): ModifierStack {
     const modifiers = this.getActiveModifiers(characterId)
-    const applicableModifiers = modifiers.filter(m =>
-      m.affectedStats.includes(stat) || m.affectedStats.includes('all'),
+    const applicableModifiers = modifiers.filter(
+      (m) => m.affectedStats.includes(stat) || m.affectedStats.includes('all'),
     )
 
-    const totalModifier = applicableModifiers.reduce((sum, m) => sum + m.value, 0)
+    const totalModifier = applicableModifiers.reduce(
+      (sum, m) => sum + m.value,
+      0,
+    )
 
-    const breakdown = applicableModifiers.map(m => ({
+    const breakdown = applicableModifiers.map((m) => ({
       source: m.source.name,
       value: m.value,
       description: m.source.description,
@@ -355,16 +363,17 @@ class DiceModifierService {
       let applies = false
 
       // Check stat-specific modifiers
-      if (context.stat && (
-        modifier.affectedStats.includes(context.stat)
-        || modifier.affectedStats.includes('all')
-      )) {
+      if (
+        context.stat &&
+        (modifier.affectedStats.includes(context.stat) ||
+          modifier.affectedStats.includes('all'))
+      ) {
         applies = true
       }
 
       // Check conditional modifiers
       if (modifier.conditions && context.situation) {
-        const hasMatchingCondition = modifier.conditions.some(condition =>
+        const hasMatchingCondition = modifier.conditions.some((condition) =>
           context.situation!.includes(condition),
         )
         if (hasMatchingCondition) {
@@ -374,7 +383,8 @@ class DiceModifierService {
 
       // Equipment modifiers
       if (modifier.source.type === 'equipment' && context.equipment) {
-        const hasMatchingEquipment = context.equipment.includes(modifier.metadata?.equipmentId,
+        const hasMatchingEquipment = context.equipment.includes(
+          modifier.metadata?.equipmentId,
         )
         if (hasMatchingEquipment) {
           applies = true
@@ -386,9 +396,12 @@ class DiceModifierService {
       }
     }
 
-    const totalModifier = applicableModifiers.reduce((sum, m) => sum + m.value, 0)
+    const totalModifier = applicableModifiers.reduce(
+      (sum, m) => sum + m.value,
+      0,
+    )
 
-    const breakdown = applicableModifiers.map(m => ({
+    const breakdown = applicableModifiers.map((m) => ({
       source: m.source.name,
       value: m.value,
       description: m.source.description,
@@ -431,7 +444,10 @@ class DiceModifierService {
   /**
    * Apply equipment modifiers
    */
-  applyEquipmentModifiers(characterId: string, equipment: EquipmentWithModifiers[]) {
+  applyEquipmentModifiers(
+    characterId: string,
+    equipment: EquipmentWithModifiers[],
+  ) {
     // Remove existing equipment modifiers
     this.removeModifiersByType(characterId, 'equipment')
 
@@ -440,26 +456,27 @@ class DiceModifierService {
         return
       }
 
-      item.modifiers
-        .filter(isEquipmentModifierPayload)
-        .forEach((mod) => {
-          const affectedStats = mod.affectedStats && mod.affectedStats.length > 0 ? mod.affectedStats : ['all']
+      item.modifiers.filter(isEquipmentModifierPayload).forEach((mod) => {
+        const affectedStats =
+          mod.affectedStats && mod.affectedStats.length > 0
+            ? mod.affectedStats
+            : ['all']
 
-          this.addModifier(
-            characterId,
-            `equipment-${mod.type}`,
-            mod.value,
-            affectedStats,
-            {
-              duration: mod.duration ?? 'permanent',
-              stackable: mod.stackable !== false,
-              metadata: {
-                equipmentId: item.id,
-                equipmentName: item.name,
-              },
+        this.addModifier(
+          characterId,
+          `equipment-${mod.type}`,
+          mod.value,
+          affectedStats,
+          {
+            duration: mod.duration ?? 'permanent',
+            stackable: mod.stackable !== false,
+            metadata: {
+              equipmentId: item.id,
+              equipmentName: item.name,
             },
-          )
-        })
+          },
+        )
+      })
     })
   }
 
@@ -471,14 +488,16 @@ class DiceModifierService {
     const updatedModifiers: ActiveModifier[] = []
 
     modifiers.forEach((modifier) => {
-      if (modifier.duration === 'rounds' && modifier.remainingRounds !== undefined) {
+      if (
+        modifier.duration === 'rounds' &&
+        modifier.remainingRounds !== undefined
+      ) {
         if (modifier.remainingRounds > 1) {
           modifier.remainingRounds--
           updatedModifiers.push(modifier)
         }
         // Modifier expires if remainingRounds reaches 0
-      }
-      else {
+      } else {
         updatedModifiers.push(modifier)
       }
     })
@@ -493,14 +512,17 @@ class DiceModifierService {
     const modifiers = this.getActiveModifiers(characterId)
     this.activeModifiers.set(
       characterId,
-      modifiers.filter(m => m.duration !== 'encounter'),
+      modifiers.filter((m) => m.duration !== 'encounter'),
     )
   }
 
   /**
    * Get modifier preview for UI
    */
-  getModifierPreview(characterId: string, stat: string): {
+  getModifierPreview(
+    characterId: string,
+    stat: string,
+  ): {
     hasModifiers: boolean
     totalModifier: number
     preview: string
@@ -518,9 +540,8 @@ class DiceModifierService {
     }
 
     const sign = stack.totalModifier > 0 ? '+' : ''
-    const color = stack.totalModifier > 0
-      ? 'var(--chart-2)'
-      : 'var(--destructive)'
+    const color =
+      stack.totalModifier > 0 ? 'var(--chart-2)' : 'var(--destructive)'
 
     return {
       hasModifiers: true,
@@ -546,14 +567,20 @@ class DiceModifierService {
    */
   importModifierData(data: unknown): boolean {
     try {
-      if (!isPlainObject(data) || typeof data.characterId !== 'string' || !Array.isArray(data.modifiers)) {
+      if (
+        !isPlainObject(data) ||
+        typeof data.characterId !== 'string' ||
+        !Array.isArray(data.modifiers)
+      ) {
         return false
       }
 
-      this.activeModifiers.set(data.characterId, data.modifiers as ActiveModifier[])
+      this.activeModifiers.set(
+        data.characterId,
+        data.modifiers as ActiveModifier[],
+      )
       return true
-    }
-    catch (error) {
+    } catch (error) {
       logger.error('Failed to import modifier data:', error)
       return false
     }

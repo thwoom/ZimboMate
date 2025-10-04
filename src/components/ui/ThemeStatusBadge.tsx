@@ -17,13 +17,13 @@ export function ThemeStatusBadge({ label }: ThemeStatusBadgeProps) {
 
   return (
     <div
-      className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm bg-card text-card-foreground"
-      role="status"
-      aria-live="polite"
+      className='inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm bg-card text-card-foreground'
+      role='status'
+      aria-live='polite'
       aria-label={message}
     >
-      <Palette size={16} aria-hidden="true" />
-      <span className="font-medium">{message}</span>
+      <Palette size={16} aria-hidden='true' />
+      <span className='font-medium'>{message}</span>
     </div>
   )
 }

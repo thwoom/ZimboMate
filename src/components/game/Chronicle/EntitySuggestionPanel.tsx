@@ -4,7 +4,14 @@
 
 import type { Entity, EntityType } from '../../../types/chronicle'
 import { motion } from 'framer-motion'
-import { Building, Calendar, HelpCircle, MapPin, Package, Users } from 'lucide-react'
+import {
+  Building,
+  Calendar,
+  HelpCircle,
+  MapPin,
+  Package,
+  Users,
+} from 'lucide-react'
 import React, { useEffect, useRef } from 'react'
 import { Badge } from '../../ui'
 
@@ -94,7 +101,7 @@ export const EntitySuggestionPanel: React.FC<EntitySuggestionPanelProps> = ({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.95 }}
       transition={{ duration: 0.15 }}
-      className="absolute z-50 mt-1 w-80 rounded-lg border shadow-lg"
+      className='absolute z-50 mt-1 w-80 rounded-lg border shadow-lg'
       style={{
         backgroundColor: 'var(--card)',
         borderColor: 'var(--border)',
@@ -102,29 +109,30 @@ export const EntitySuggestionPanel: React.FC<EntitySuggestionPanelProps> = ({
         left: 0,
       }}
     >
-      <div className="p-2">
-        <div className="text-xs font-medium mb-2 px-2 text-muted-foreground">
+      <div className='p-2'>
+        <div className='text-xs font-medium mb-2 px-2 text-muted-foreground'>
           Entity Suggestions
         </div>
-        <div className="max-h-64 overflow-y-auto">
-          {suggestions.map((entity, index) => {
+        <div className='max-h-64 overflow-y-auto'>
+          {suggestions.map((entity) => {
             const IconComponent = getEntityIcon(entity.type)
 
             return (
               <button
+                type='button'
                 key={entity.id}
                 onClick={() => onSelect(entity)}
-                className="w-full text-left p-2 rounded-md hover:bg-black/5 transition-colors flex items-center gap-3"
+                className='w-full text-left p-2 rounded-md hover:bg-black/5 transition-colors flex items-center gap-3'
               >
-                <div className="flex-shrink-0">
-                  <IconComponent size={16} className="text-muted-foreground" />
+                <div className='flex-shrink-0'>
+                  <IconComponent size={16} className='text-muted-foreground' />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium truncate">{entity.name}</span>
+                <div className='flex-1 min-w-0'>
+                  <div className='flex items-center justify-between gap-2'>
+                    <span className='font-medium truncate'>{entity.name}</span>
                     <Badge
-                      variant="secondary"
+                      variant='secondary'
                       className={`text-xs ${getEntityColor(entity.type)}`}
                     >
                       {entity.type}
@@ -132,23 +140,17 @@ export const EntitySuggestionPanel: React.FC<EntitySuggestionPanelProps> = ({
                   </div>
 
                   {entity.description && (
-                    <div
-                      className="text-xs mt-1 line-clamp-1 text-muted-foreground"
-                    >
+                    <div className='text-xs mt-1 line-clamp-1 text-muted-foreground'>
                       {entity.description}
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 mt-1">
-                    <span
-                      className="text-xs text-muted-foreground"
-                    >
-                      {entity.appearances.length}
-                      {' '}
-                      mentions
+                  <div className='flex items-center gap-2 mt-1'>
+                    <span className='text-xs text-muted-foreground'>
+                      {entity.appearances.length} mentions
                     </span>
                     {entity.importance > 75 && (
-                      <span className="text-xs text-chart-4">★</span>
+                      <span className='text-xs text-chart-4'>★</span>
                     )}
                   </div>
                 </div>
@@ -157,9 +159,10 @@ export const EntitySuggestionPanel: React.FC<EntitySuggestionPanelProps> = ({
           })}
         </div>
 
-        <div className="border-t mt-2 pt-2 border-border">
-          <div className="text-xs text-muted-foreground">
-            💡 New entity? Just type the name and it will be created automatically
+        <div className='border-t mt-2 pt-2 border-border'>
+          <div className='text-xs text-muted-foreground'>
+            💡 New entity? Just type the name and it will be created
+            automatically
           </div>
         </div>
       </div>

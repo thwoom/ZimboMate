@@ -72,7 +72,8 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
   onInventoryUpdate,
 }) => {
   const { inventory, setInventory } = useInventoryStore()
-  const [activeTab, setActiveTab] = useState<(typeof TAB_CONFIG)[number]['id']>('equipped')
+  const [activeTab, setActiveTab] =
+    useState<(typeof TAB_CONFIG)[number]['id']>('equipped')
 
   useEffect(() => {
     if (!character.inventory || inventory) {
@@ -84,7 +85,12 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
       containers: [
         { id: 'equipped', name: 'Equipped', category: 'equipped', items: [] },
         { id: 'carried', name: 'Carried', category: 'carried', items: [] },
-        { id: 'consumables', name: 'Consumables', category: 'consumables', items: [] },
+        {
+          id: 'consumables',
+          name: 'Consumables',
+          category: 'consumables',
+          items: [],
+        },
       ],
       quickSlots: [],
       lastUpdated: new Date(),
@@ -94,16 +100,22 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
       nextInventory.items[item.id] = item
 
       if (item.equipped) {
-        nextInventory.containers.find(container => container.category === 'equipped')?.items.push(item.id)
+        nextInventory.containers
+          .find((container) => container.category === 'equipped')
+          ?.items.push(item.id)
         return
       }
 
       if (item.category === 'consumable') {
-        nextInventory.containers.find(container => container.category === 'consumables')?.items.push(item.id)
+        nextInventory.containers
+          .find((container) => container.category === 'consumables')
+          ?.items.push(item.id)
         return
       }
 
-      nextInventory.containers.find(container => container.category === 'carried')?.items.push(item.id)
+      nextInventory.containers
+        .find((container) => container.category === 'carried')
+        ?.items.push(item.id)
     })
 
     setInventory(nextInventory)
@@ -111,17 +123,18 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
   }, [character.inventory, inventory, onInventoryUpdate, setInventory])
 
   const inventoryStats = useMemo(
-    () => (inventory ? calculateInventoryStats(inventory, character.load.max) : null),
+    () =>
+      inventory ? calculateInventoryStats(inventory, character.load.max) : null,
     [character.load.max, inventory],
   )
 
   if (!inventory) {
     return (
-      <Card variant="parchment">
-        <CardContent className="p-6 pt-6">
-          <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading inventory...</p>
+      <Card variant='parchment'>
+        <CardContent className='p-6 pt-6'>
+          <div className='text-center py-8'>
+            <div className='animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4' />
+            <p className='text-muted-foreground'>Loading inventory...</p>
           </div>
         </CardContent>
       </Card>
@@ -130,21 +143,21 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
 
   return (
     <motion.div
-      className="space-y-6"
+      className='space-y-6'
       variants={containerVariants}
-      initial="hidden"
-      animate="visible"
+      initial='hidden'
+      animate='visible'
     >
       <motion.div variants={cardVariants}>
-        <Card variant="magical">
+        <Card variant='magical'>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className='flex items-center justify-between'>
               <div>
-                <CardTitle className="text-2xl flex items-center gap-2 text-(--parchment-900) font-bold">
-                  <Backpack size={24} className="text-(--parchment-800)" />
+                <CardTitle className='text-2xl flex items-center gap-2 text-(--parchment-900) font-bold'>
+                  <Backpack size={24} className='text-(--parchment-800)' />
                   Equipment & Inventory
                 </CardTitle>
-                <CardDescription className="text-lg text-(--parchment-700) font-semibold">
+                <CardDescription className='text-lg text-(--parchment-700) font-semibold'>
                   Manage your character's equipment and possessions
                 </CardDescription>
               </div>
@@ -162,10 +175,10 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
       </motion.div>
 
       <motion.div variants={cardVariants}>
-        <Card variant="parchment">
-          <CardContent className="p-6">
+        <Card variant='parchment'>
+          <CardContent className='p-6'>
             <Tabs.Root value={activeTab} onValueChange={setActiveTab}>
-              <Tabs.List className="flex gap-1 p-1 bg-(--parchment-200) rounded-lg mb-6">
+              <Tabs.List className='flex gap-1 p-1 bg-(--parchment-200) rounded-lg mb-6'>
                 {TAB_CONFIG.map((tab) => {
                   const Icon = tab.icon
                   const isActive = activeTab === tab.id
@@ -189,8 +202,8 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
                 })}
               </Tabs.List>
 
-              <Tabs.Content value="equipped" asChild>
-                <div className="space-y-6">
+              <Tabs.Content value='equipped' asChild>
+                <div className='space-y-6'>
                   <InventoryControls
                     character={character}
                     inventory={inventory}
@@ -209,7 +222,7 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
                 </div>
               </Tabs.Content>
 
-              <Tabs.Content value="inventory" asChild>
+              <Tabs.Content value='inventory' asChild>
                 <InventoryContainer
                   character={character}
                   inventory={inventory}
@@ -220,7 +233,7 @@ export const EquipmentPanel: React.FC<EquipmentPanelProps> = ({
                 />
               </Tabs.Content>
 
-              <Tabs.Content value="stats" asChild>
+              <Tabs.Content value='stats' asChild>
                 <InventoryStats
                   character={character}
                   inventory={inventory}

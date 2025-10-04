@@ -74,52 +74,67 @@ const resultVariants = {
 }
 
 function getOutcome(total: number): 'success' | 'partial' | 'failure' {
-  if (total >= 10)
-    return 'success'
-  if (total >= 7)
-    return 'partial'
+  if (total >= 10) return 'success'
+  if (total >= 7) return 'partial'
   return 'failure'
 }
 
 function getOutcomeColor(outcome: string) {
   switch (outcome) {
-    case 'success': return 'text-chart-2'
-    case 'partial': return 'text-chart-4'
-    case 'failure': return 'text-destructive'
-    default: return 'text-foreground'
+    case 'success':
+      return 'text-chart-2'
+    case 'partial':
+      return 'text-chart-4'
+    case 'failure':
+      return 'text-destructive'
+    default:
+      return 'text-foreground'
   }
 }
 
 function getOutcomeText(outcome: string) {
   switch (outcome) {
-    case 'success': return 'Success! (10+)'
-    case 'partial': return 'Partial Success (7-9)'
-    case 'failure': return 'Failure (6-) - Mark XP'
-    default: return ''
+    case 'success':
+      return 'Success! (10+)'
+    case 'partial':
+      return 'Partial Success (7-9)'
+    case 'failure':
+      return 'Failure (6-) - Mark XP'
+    default:
+      return ''
   }
 }
 
 const StatIcon: React.FC<{ stat: string }> = ({ stat }) => {
   const getStatEmoji = (stat: string) => {
     switch (stat) {
-      case 'STR': return '💪'
-      case 'DEX': return '🏃'
-      case 'CON': return '❤️'
-      case 'INT': return '🧠'
-      case 'WIS': return '👁️'
-      case 'CHA': return '💫'
-      default: return '🎲'
+      case 'STR':
+        return '💪'
+      case 'DEX':
+        return '🏃'
+      case 'CON':
+        return '❤️'
+      case 'INT':
+        return '🧠'
+      case 'WIS':
+        return '👁️'
+      case 'CHA':
+        return '💫'
+      default:
+        return '🎲'
     }
   }
 
   return (
-    <span className="text-lg" role="img" aria-label={stat}>
+    <span className='text-lg' role='img' aria-label={stat}>
       {getStatEmoji(stat)}
     </span>
   )
 }
 
-export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProps> = ({
+export const ChronicleEnabledDiceRoller: React.FC<
+  ChronicleEnabledDiceRollerProps
+> = ({
   modifier = 0,
   stat,
   move,
@@ -135,13 +150,12 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
   const { emitDiceRoll, isOverlayEnabled } = useChronicle()
 
   const rollDice = useCallback(async () => {
-    if (isRolling || disabled)
-      return
+    if (isRolling || disabled) return
 
     setIsRolling(true)
     setResult(null)
     // Simulate dice rolling delay
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    await new Promise((resolve) => setTimeout(resolve, 1500))
 
     const dice1 = Math.floor(Math.random() * 6) + 1
     const dice2 = Math.floor(Math.random() * 6) + 1
@@ -190,36 +204,28 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
   ])
 
   const getRollTitle = () => {
-    if (move)
-      return `${move} Roll`
-    if (stat)
-      return `${stat} Roll`
+    if (move) return `${move} Roll`
+    if (stat) return `${stat} Roll`
     return '2d6 Roll'
   }
 
   const getRollDescription = () => {
-    if (move && stat)
-      return `Rolling ${move} using ${stat}`
-    if (stat)
-      return `Testing ${stat} attribute`
-    if (move)
-      return `Performing ${move} move`
+    if (move && stat) return `Rolling ${move} using ${stat}`
+    if (stat) return `Testing ${stat} attribute`
+    if (move) return `Performing ${move} move`
     return 'Rolling 2d6'
   }
 
   return (
-    <Card
-      variant="magical"
-      className={`relative overflow-hidden ${className}`}
-    >
-      <CardContent className="text-center space-y-6">
+    <Card variant='magical' className={`relative overflow-hidden ${className}`}>
+      <CardContent className='text-center space-y-6'>
         {/* Header with context information */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-center gap-3">
+        <div className='space-y-2'>
+          <div className='flex items-center justify-center gap-3'>
             {stat && <StatIcon stat={stat} />}
-            <h3 className="text-xl font-display">{getRollTitle()}</h3>
+            <h3 className='text-xl font-display'>{getRollTitle()}</h3>
             {modifier !== 0 && (
-              <div className="flex items-center gap-1 text-sm font-mono bg-muted  px-2 py-1 rounded">
+              <div className='flex items-center gap-1 text-sm font-mono bg-muted  px-2 py-1 rounded'>
                 {modifier > 0 ? <Plus size={12} /> : <Minus size={12} />}
                 {Math.abs(modifier)}
               </div>
@@ -227,13 +233,13 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
           </div>
 
           {(move || stat) && (
-            <p className="text-sm text-muted-foreground ">
+            <p className='text-sm text-muted-foreground '>
               {getRollDescription()}
             </p>
           )}
 
           {characterName && (
-            <div className="flex items-center justify-center gap-2 text-sm text-primary">
+            <div className='flex items-center justify-center gap-2 text-sm text-primary'>
               <Feather size={12} />
               <span>{characterName}</span>
             </div>
@@ -241,31 +247,29 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
         </div>
 
         {/* Dice Display */}
-        <div className="flex items-center justify-center gap-6">
+        <div className='flex items-center justify-center gap-6'>
           <motion.div
             variants={diceVariants}
             animate={isRolling ? 'rolling' : result ? 'result' : 'idle'}
-            className="relative"
+            className='relative'
           >
-            <div className="w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg">
-              {isRolling
-                ? (
-                    <Dice6 size={32} className="text-primary" />
-                  )
-                : result
-                  ? (
-                      <span className="text-2xl font-bold font-display">{result.dice1}</span>
-                    )
-                  : (
-                      <Dice6 size={32} className="text-muted-foreground" />
-                    )}
+            <div className='w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg'>
+              {isRolling ? (
+                <Dice6 size={32} className='text-primary' />
+              ) : result ? (
+                <span className='text-2xl font-bold font-display'>
+                  {result.dice1}
+                </span>
+              ) : (
+                <Dice6 size={32} className='text-muted-foreground' />
+              )}
             </div>
           </motion.div>
 
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="text-2xl font-display text-muted-foreground"
+            className='text-2xl font-display text-muted-foreground'
           >
             +
           </motion.div>
@@ -273,20 +277,18 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
           <motion.div
             variants={diceVariants}
             animate={isRolling ? 'rolling' : result ? 'result' : 'idle'}
-            className="relative"
+            className='relative'
           >
-            <div className="w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg">
-              {isRolling
-                ? (
-                    <Dice6 size={32} className="text-primary" />
-                  )
-                : result
-                  ? (
-                      <span className="text-2xl font-bold font-display">{result.dice2}</span>
-                    )
-                  : (
-                      <Dice6 size={32} className="text-muted-foreground" />
-                    )}
+            <div className='w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg'>
+              {isRolling ? (
+                <Dice6 size={32} className='text-primary' />
+              ) : result ? (
+                <span className='text-2xl font-bold font-display'>
+                  {result.dice2}
+                </span>
+              ) : (
+                <Dice6 size={32} className='text-muted-foreground' />
+              )}
             </div>
           </motion.div>
         </div>
@@ -297,26 +299,24 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
             <motion.div
               key={`result-${result.finalResult}-${result.dice1}-${result.dice2}`}
               variants={resultVariants}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              className="space-y-3 dice-result roll-result"
+              initial='hidden'
+              animate='visible'
+              exit='hidden'
+              className='space-y-3 dice-result roll-result'
             >
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground  font-mono">
-                  {result.dice1}
-                  {' '}
-                  +
-                  {result.dice2}
-                  {' '}
-                  {modifier !== 0 ? `+ ${modifier}` : ''}
-                  {' '}
-                  =
+              <div className='text-center'>
+                <div className='text-sm text-muted-foreground  font-mono'>
+                  {result.dice1} +{result.dice2}{' '}
+                  {modifier !== 0 ? `+ ${modifier}` : ''} =
                 </div>
-                <div className={`text-4xl font-bold font-display ${getOutcomeColor(result.outcome)}`}>
+                <div
+                  className={`text-4xl font-bold font-display ${getOutcomeColor(result.outcome)}`}
+                >
                   {result.finalResult}
                 </div>
-                <div className={`text-lg font-medium ${getOutcomeColor(result.outcome)}`}>
+                <div
+                  className={`text-lg font-medium ${getOutcomeColor(result.outcome)}`}
+                >
                   {getOutcomeText(result.outcome)}
                 </div>
               </div>
@@ -327,7 +327,7 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="flex items-center justify-center gap-2 text-xs text-primary bg-primary/10 px-3 py-1 rounded-full"
+                  className='flex items-center justify-center gap-2 text-xs text-primary bg-primary/10 px-3 py-1 rounded-full'
                 >
                   <BookOpen size={12} />
                   <span>Chronicle prompt available</span>
@@ -338,19 +338,16 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
         </AnimatePresence>
 
         {/* Roll Button */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             onClick={rollDice}
             disabled={isRolling || disabled}
-            className="w-full relative overflow-hidden"
+            className='w-full relative overflow-hidden'
           >
             <motion.div
-              className="flex items-center gap-2"
+              className='flex items-center gap-2'
               animate={isRolling ? { x: [0, 5, -5, 0] } : { x: 0 }}
               transition={{ duration: 0.3, repeat: isRolling ? Infinity : 0 }}
             >
@@ -362,13 +359,11 @@ export const ChronicleEnabledDiceRoller: React.FC<ChronicleEnabledDiceRollerProp
 
         {/* Chronicle Integration Toggle */}
         {showChronicleIntegration && (
-          <div className="pt-2 border-t border-border">
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground ">
+          <div className='pt-2 border-t border-border'>
+            <div className='flex items-center justify-center gap-2 text-xs text-muted-foreground '>
               <BookOpen size={12} />
               <span>
-                Chronicle prompts:
-                {' '}
-                {isOverlayEnabled ? 'Enabled' : 'Disabled'}
+                Chronicle prompts: {isOverlayEnabled ? 'Enabled' : 'Disabled'}
               </span>
             </div>
           </div>

@@ -3,11 +3,18 @@ import userEvent from '@testing-library/user-event'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App.Complete'
-import { renderWithProviders, setupTestEnvironment } from '../../../utils/testing'
+import {
+  renderWithProviders,
+  setupTestEnvironment,
+} from '../../../utils/testing'
 
 vi.mock('../../../services/chatgptNoteEnhancer', () => {
   class MockEnhancer {
-    onProgress?: (progress: { progress: number, text: string, stage: string }) => void
+    onProgress?: (progress: {
+      progress: number
+      text: string
+      stage: string
+    }) => void
 
     async initialize() {
       this.onProgress?.({ progress: 100, text: 'Mock ready', stage: 'ready' })
@@ -69,7 +76,7 @@ describe('app Integration Tests', () => {
     await screen.findByText(/unified dice roller/i)
 
     await user.click(screen.getByRole('button', { name: /game management/i }))
-    await screen.findByText(/chronicle management/i)
+    await screen.findByText(/campaign chronicle/i)
 
     await user.click(screen.getByRole('button', { name: /settings/i }))
     await screen.findByText(/interface & theme/i)

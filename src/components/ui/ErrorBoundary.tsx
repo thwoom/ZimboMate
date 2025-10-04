@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
 import { AlertTriangle, Bug, Copy, ExternalLink, RefreshCw } from 'lucide-react'
 import React from 'react'
-import { logger } from '../../utils/logger'
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
+import { logger } from '../../utils/logger'
 import { Button } from './Button'
 import { Card, CardContent } from './Card'
 
@@ -14,13 +14,6 @@ interface ErrorInfo {
   url: string
   consoleWarnings: string[]
   consoleErrors: string[]
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean
-  error: Error | null
-  errorInfo: React.ErrorInfo | null
-  errorId: string
 }
 
 // Enhanced error logging
@@ -77,18 +70,20 @@ class ErrorLogger {
     const originalError = logger.error
 
     logger.warn = (...args: unknown[]) => {
-      const message = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ')
+      const message = args
+        .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+        .join(' ')
       this.consoleWarnings.push(`[${new Date().toISOString()}] ${message}`)
-      if (this.consoleWarnings.length > 20)
-        this.consoleWarnings.shift()
+      if (this.consoleWarnings.length > 20) this.consoleWarnings.shift()
       originalWarn(...args)
     }
 
     logger.error = (...args: unknown[]) => {
-      const message = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ')
+      const message = args
+        .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+        .join(' ')
       this.consoleErrors.push(`[${new Date().toISOString()}] ${message}`)
-      if (this.consoleErrors.length > 20)
-        this.consoleErrors.shift()
+      if (this.consoleErrors.length > 20) this.consoleErrors.shift()
       originalError(...args)
     }
 
@@ -135,8 +130,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
       await navigator.clipboard.writeText(JSON.stringify(errorDetails, null, 2))
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    }
-    catch (err) {
+    } catch (err) {
       logger.error('Failed to copy error details:', err)
     }
   }
@@ -154,88 +148,82 @@ URL: ${window.location.href}
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
+    <div className='min-h-screen flex items-center justify-center p-6'>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="max-w-2xl w-full"
+        className='max-w-2xl w-full'
       >
-        <Card variant="magical">
-          <CardContent className="p-6">
-            <div className="text-center space-y-6">
+        <Card variant='magical'>
+          <CardContent className='p-6'>
+            <div className='text-center space-y-6'>
               {/* Error Icon */}
               <motion.div
                 initial={{ rotate: 0 }}
                 animate={{ rotate: [0, -5, 5, 0] }}
                 transition={{ duration: 0.5, repeat: 2 }}
-                className="w-16 h-16 mx-auto rounded-full bg-destructive/15 flex items-center justify-center"
+                className='w-16 h-16 mx-auto rounded-full bg-destructive/15 flex items-center justify-center'
               >
-                <AlertTriangle className="w-8 h-8 text-destructive" />
+                <AlertTriangle className='w-8 h-8 text-destructive' />
               </motion.div>
 
               {/* Error Message */}
               <div>
-                <h1 className="text-2xl font-display text-destructive mb-2">
+                <h1 className='text-2xl font-display text-destructive mb-2'>
                   Oops! Something went wrong
                 </h1>
-                <p className="text-muted-foreground mb-4">
+                <p className='text-muted-foreground mb-4'>
                   The magical energies seem to have gotten tangled. Don't worry,
                   your data is safe and we can get you back to adventuring!
                 </p>
-                <div className="text-sm text-muted-foreground font-mono bg-muted/50 p-2 rounded">
-                  Error ID:
-                  {' '}
-                  {errorId}
+                <div className='text-sm text-muted-foreground font-mono bg-muted/50 p-2 rounded'>
+                  Error ID: {errorId}
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3 justify-center">
+              <div className='flex flex-wrap gap-3 justify-center'>
                 <Button
-                  variant="primary"
+                  variant='primary'
                   onClick={resetErrorBoundary}
-                  className="gap-2"
+                  className='gap-2'
                 >
                   <RefreshCw size={16} />
                   Try Again
                 </Button>
 
                 <Button
-                  variant="outline"
+                  variant='outline'
                   onClick={() => setShowDetails(!showDetails)}
-                  className="gap-2"
+                  className='gap-2'
                 >
                   <Bug size={16} />
-                  {showDetails ? 'Hide' : 'Show'}
-                  {' '}
-                  Details
+                  {showDetails ? 'Hide' : 'Show'} Details
                 </Button>
 
                 <Button
-                  variant="outline"
+                  variant='outline'
                   onClick={copyErrorDetails}
-                  className="gap-2"
+                  className='gap-2'
                 >
                   <Copy size={16} />
                   {copied ? 'Copied!' : 'Copy Error'}
                 </Button>
 
                 <Button
-                  variant="outline"
+                  variant='outline'
                   onClick={() => setShowConsole(!showConsole)}
-                  className="gap-2"
+                  className='gap-2'
                 >
                   <Bug size={16} />
-                  {showConsole ? 'Hide' : 'Show'}
-                  {' '}
-                  Console
+                  {showConsole ? 'Hide' : 'Show'} Console
                 </Button>
 
                 <Button
-                  variant="outline"
+                  variant='outline'
                   onClick={reportIssue}
-                  className="gap-2"
+                  className='gap-2'
                 >
                   <ExternalLink size={16} />
                   Report Issue
@@ -248,19 +236,23 @@ URL: ${window.location.href}
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 text-left"
+                  className='mt-6 text-left'
                 >
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-4">
+                  <div className='bg-muted/50 rounded-lg p-4 space-y-4'>
                     <div>
-                      <h3 className="font-medium text-foreground mb-2">Error Message:</h3>
-                      <pre className="text-sm text-destructive whitespace-pre-wrap">
+                      <h3 className='font-medium text-foreground mb-2'>
+                        Error Message:
+                      </h3>
+                      <pre className='text-sm text-destructive whitespace-pre-wrap'>
                         {error.message}
                       </pre>
                     </div>
 
                     <div>
-                      <h3 className="font-medium text-foreground mb-2">Stack Trace:</h3>
-                      <pre className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-40">
+                      <h3 className='font-medium text-foreground mb-2'>
+                        Stack Trace:
+                      </h3>
+                      <pre className='text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-40'>
                         {error.stack}
                       </pre>
                     </div>
@@ -274,15 +266,20 @@ URL: ${window.location.href}
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 text-left"
+                  className='mt-6 text-left'
                 >
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-4">
+                  <div className='bg-muted/50 rounded-lg p-4 space-y-4'>
                     {latestErrorInfo.consoleErrors.length > 0 && (
                       <div>
-                        <h3 className="font-medium text-destructive mb-2">Console Errors:</h3>
-                        <div className="bg-destructive/12 rounded p-3 max-h-40 overflow-auto">
+                        <h3 className='font-medium text-destructive mb-2'>
+                          Console Errors:
+                        </h3>
+                        <div className='bg-destructive/12 rounded p-3 max-h-40 overflow-auto'>
                           {latestErrorInfo.consoleErrors.map((error, idx) => (
-                            <pre key={idx} className="text-xs text-destructive whitespace-pre-wrap mb-1">
+                            <pre
+                              key={idx}
+                              className='text-xs text-destructive whitespace-pre-wrap mb-1'
+                            >
                               {error}
                             </pre>
                           ))}
@@ -292,30 +289,41 @@ URL: ${window.location.href}
 
                     {latestErrorInfo.consoleWarnings.length > 0 && (
                       <div>
-                        <h3 className="font-medium text-chart-4 mb-2">Console Warnings:</h3>
-                        <div className="bg-chart-4/12 rounded p-3 max-h-40 overflow-auto">
-                          {latestErrorInfo.consoleWarnings.map((warning, idx) => (
-                            <pre key={idx} className="text-xs text-chart-4 whitespace-pre-wrap mb-1">
-                              {warning}
-                            </pre>
-                          ))}
+                        <h3 className='font-medium text-chart-4 mb-2'>
+                          Console Warnings:
+                        </h3>
+                        <div className='bg-chart-4/12 rounded p-3 max-h-40 overflow-auto'>
+                          {latestErrorInfo.consoleWarnings.map(
+                            (warning, idx) => (
+                              <pre
+                                key={idx}
+                                className='text-xs text-chart-4 whitespace-pre-wrap mb-1'
+                              >
+                                {warning}
+                              </pre>
+                            ),
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {(!latestErrorInfo.consoleErrors.length && !latestErrorInfo.consoleWarnings.length) && (
-                      <div className="text-sm text-muted-foreground">
-                        No console warnings or errors captured before this error.
-                      </div>
-                    )}
+                    {!latestErrorInfo.consoleErrors.length &&
+                      !latestErrorInfo.consoleWarnings.length && (
+                        <div className='text-sm text-muted-foreground'>
+                          No console warnings or errors captured before this
+                          error.
+                        </div>
+                      )}
                   </div>
                 </motion.div>
               )}
 
               {/* Recovery Suggestions */}
-              <div className="text-left bg-primary/10 rounded-lg p-4">
-                <h3 className="font-medium text-primary mb-2">Recovery Suggestions:</h3>
-                <ul className="text-sm text-primary space-y-1">
+              <div className='text-left bg-primary/10 rounded-lg p-4'>
+                <h3 className='font-medium text-primary mb-2'>
+                  Recovery Suggestions:
+                </h3>
+                <ul className='text-sm text-primary space-y-1'>
                   <li>• Try refreshing the page</li>
                   <li>• Check if you have the latest version</li>
                   <li>• Clear your browser cache and cookies</li>
@@ -342,18 +350,21 @@ export const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
   fallback: FallbackComponent = ErrorFallback,
   onError,
 }) => {
-  const handleError = React.useCallback((error: Error, errorInfo: React.ErrorInfo) => {
-    const errorId = `ERR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  const handleError = React.useCallback(
+    (error: Error, errorInfo: React.ErrorInfo) => {
+      const errorId = `ERR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
-    // Log error
-    ErrorLogger.logError(error, errorInfo)
+      // Log error
+      ErrorLogger.logError(error, errorInfo)
 
-    // Call custom error handler if provided
-    onError?.(error, errorInfo)
+      // Call custom error handler if provided
+      onError?.(error, errorInfo)
 
-    // Store error ID for fallback component
-    ;(error as any).errorId = errorId
-  }, [onError])
+      // Store error ID for fallback component
+      ;(error as any).errorId = errorId
+    },
+    [onError],
+  )
 
   return (
     <ReactErrorBoundary
@@ -412,9 +423,10 @@ export function setupGlobalErrorHandling() {
   const restoreConsole = ErrorLogger.captureConsoleWarnings()
 
   const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-    const reason = event.reason instanceof Error
-      ? event.reason
-      : new Error(`Unhandled Promise Rejection: ${String(event.reason)}`)
+    const reason =
+      event.reason instanceof Error
+        ? event.reason
+        : new Error(`Unhandled Promise Rejection: ${String(event.reason)}`)
 
     const errorInfo: React.ErrorInfo = {
       componentStack: 'Global Promise Rejection Handler',
@@ -428,9 +440,10 @@ export function setupGlobalErrorHandling() {
   window.addEventListener('unhandledrejection', handleUnhandledRejection)
 
   const handleError = (event: ErrorEvent) => {
-    const error = event.error instanceof Error
-      ? event.error
-      : new Error(`Global Error: ${event.message}`)
+    const error =
+      event.error instanceof Error
+        ? event.error
+        : new Error(`Global Error: ${event.message}`)
 
     const errorInfo: React.ErrorInfo = {
       componentStack: `File: ${event.filename}, Line: ${event.lineno}, Column: ${event.colno}`,
@@ -448,8 +461,3 @@ export function setupGlobalErrorHandling() {
 }
 
 export default ErrorBoundary
-
-
-
-
-

@@ -5,7 +5,7 @@
 
 import * as Dialog from '@radix-ui/react-dialog'
 import { AnimatePresence, motion } from 'framer-motion'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useKeyboardShortcuts } from '../../../hooks/useKeyboardShortcuts'
 import { useSpells } from '../../../hooks/useSpells'
 import { MagicalEffects } from './MagicalEffects'
@@ -28,16 +28,64 @@ interface SpellBookProps {
   onSpellUnprepared?: (spell: any) => void
 }
 
+const PAGES = ['spells', 'details', 'slots', 'prepared'] as const
+
+type PageIndex = 0 | 1 | 2 | 3
+
+interface SpellBookState {
+  currentPage: PageIndex
+  selectedSpellId: string | null
+  searchQuery: string
+  selectedSchool: string | null
+  selectedLevel: number | null
+  isAnimating: boolean
+}
+
+type SpellBookAction =
+  | { type: 'setPage'; page: PageIndex }
+  | { type: 'setAnimating'; isAnimating: boolean }
+  | { type: 'selectSpell'; spellId: string | null }
+  | { type: 'setSearch'; query: string }
+  | { type: 'setSchool'; school: string | null }
+  | { type: 'setLevel'; level: number | null }
+  | { type: 'resetFilters' }
+
+const spellBookReducer = (state: SpellBookState, action: SpellBookAction): SpellBookState => {
+  switch (action.type) {
+    case 'setPage':
+      return { ...state, currentPage: action.page }
+    case 'setAnimating':
+      return { ...state, isAnimating: action.isAnimating }
+    case 'selectSpell':
+      return { ...state, selectedSpellId: action.spellId }
+    case 'setSearch':
+      return { ...state, searchQuery: action.query }
+    case 'setSchool':
+      return { ...state, selectedSchool: action.school }
+    case 'setLevel':
+      return { ...state, selectedLevel: action.level }
+    case 'resetFilters':
+      return {
+        ...state,
+        searchQuery: '',
+        selectedSchool: null,
+        selectedLevel: null,
+      }
+    default:
+      return state
+  }
+}
+
 export function SpellBook({
   characterId,
   isOpen,
   onClose,
-  theme = 'fantasy',
+  theme: _theme = 'fantasy',
   enableAnimations = true,
-  enableAudio = true,
+  enableAudio: _enableAudio = true,
   onSpellCast,
   onSpellPrepared,
-  onSpellUnprepared,
+  onSpellUnprepared: _onSpellUnprepared,
 }: SpellBookProps) {
   // Spell management
   const {
@@ -46,44 +94,63 @@ export function SpellBook({
     spellSlots,
     castSpell,
     prepareSpell,
-    unprepareSpell,
+    unprepareSpell: _unprepareSpell,
     longRest,
-    shortRest,
+    shortRest: _shortRest,
     isCasting,
-    character,
+    character: _character,
   } = useSpells(characterId)
 
-  // UI state
-  const [currentPage, setCurrentPage] = useState(0)
-  const [selectedSpell, setSelectedSpell] = useState<any>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedSchool, setSelectedSchool] = useState<string | null>(null)
-  const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
-  const [isAnimating, setIsAnimating] = useState(false)
-
-  const pages = ['spells', 'details', 'slots', 'prepared']
-  const totalPages = pages.length
+  const [state, dispatch] = useReducer(spellBookReducer, {
+    currentPage: 0,
+    selectedSpellId: null,
+    searchQuery: '',
+    selectedSchool: null,
+    selectedLevel: null,
+    isAnimating: false,
+  })
+  const {
+    currentPage,
+    selectedSpellId,
+    searchQuery,
+    selectedSchool,
+    selectedLevel,
+    isAnimating,
+  } = state
+  const animationTimeoutRef = useRef<number | null>(null)
+  const totalPages = PAGES.length
 
   // Page navigation with animation
-  const handlePageChange = useCallback((newPage: number) => {
-    if (newPage === currentPage || isAnimating)
-      return
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage === currentPage || isAnimating) {
+        return
+      }
 
-    setIsAnimating(true)
+      dispatch({ type: 'setAnimating', isAnimating: true })
 
-    setTimeout(() => {
-      setCurrentPage(newPage)
-      setIsAnimating(false)
-    }, 400)
-  }, [currentPage, isAnimating])
+      if (animationTimeoutRef.current) {
+        window.clearTimeout(animationTimeoutRef.current)
+      }
+
+      animationTimeoutRef.current = window.setTimeout(() => {
+        dispatch({ type: 'setPage', page: newPage as PageIndex })
+        dispatch({ type: 'setAnimating', isAnimating: false })
+      }, 400)
+    },
+    [currentPage, isAnimating],
+  )
 
   // Spell actions
-  const handleSpellSelect = useCallback((spell: any) => {
-    setSelectedSpell(spell)
-    if (currentPage !== 1) {
-      handlePageChange(1) // Go to details page
-    }
-  }, [currentPage, handlePageChange])
+  const handleSpellSelect = useCallback(
+    (spell: any) => {
+      dispatch({ type: 'selectSpell', spellId: spell?.id ?? null })
+      if (currentPage !== 1) {
+        handlePageChange(1) // Go to details page
+      }
+    },
+    [currentPage, handlePageChange],
+  )
 
   const handleSpellPrepare = useCallback(async (spellId: string) => {
     const spell = allSpells.find(s => s.id === spellId)
@@ -105,7 +172,7 @@ export function SpellBook({
       return
 
     try {
-      const result = await castSpell(spellId, { upcast: level > spell.level })
+      await castSpell(spellId, { upcast: level > spell.level })
       onSpellCast?.(spell, level)
     }
     catch (error) {
@@ -115,10 +182,43 @@ export function SpellBook({
 
   // Search and filter functions
   const handleClearFilters = useCallback(() => {
-    setSearchQuery('')
-    setSelectedSchool(null)
-    setSelectedLevel(null)
+    dispatch({ type: 'resetFilters' })
   }, [])
+
+  const selectedSpell = useMemo(() => {
+    if (!selectedSpellId) {
+      return null
+    }
+
+    return allSpells.find((spell) => spell.id === selectedSpellId) ?? null
+  }, [allSpells, selectedSpellId])
+
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        window.clearTimeout(animationTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (allSpells.length === 0) {
+      dispatch({ type: 'selectSpell', spellId: null })
+      return
+    }
+
+    if (!selectedSpellId) {
+      dispatch({ type: 'selectSpell', spellId: allSpells[0].id })
+      return
+    }
+
+    if (!allSpells.some((spell) => spell.id === selectedSpellId)) {
+      dispatch({
+        type: 'selectSpell',
+        spellId: allSpells[0]?.id ?? null,
+      })
+    }
+  }, [allSpells, selectedSpellId])
 
   const handleSlotRefresh = useCallback(() => {
     longRest()
@@ -135,12 +235,6 @@ export function SpellBook({
     4: () => handlePageChange(3),
   })
 
-  // Auto-select first spell when opening spells page
-  useEffect(() => {
-    if (currentPage === 0 && allSpells.length > 0 && !selectedSpell) {
-      setSelectedSpell(allSpells[0])
-    }
-  }, [currentPage, allSpells, selectedSpell])
 
   const currentSpellSchool = selectedSpell?.school || 'evocation'
 
@@ -184,11 +278,11 @@ export function SpellBook({
                     <div className="h-full flex flex-col">
                       <SpellSearch
                         searchQuery={searchQuery}
-                        onSearchChange={setSearchQuery}
+                        onSearchChange={(value) => dispatch({ type: 'setSearch', query: value })}
                         selectedSchool={selectedSchool}
-                        onSchoolChange={setSelectedSchool}
+                        onSchoolChange={(value) => dispatch({ type: 'setSchool', school: value })}
                         selectedLevel={selectedLevel}
-                        onLevelChange={setSelectedLevel}
+                        onLevelChange={(value) => dispatch({ type: 'setLevel', level: value })}
                         onClearFilters={handleClearFilters}
                         className="mb-4"
                       />
@@ -290,3 +384,4 @@ export function SpellBook({
     </Dialog.Root>
   )
 }
+

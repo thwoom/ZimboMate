@@ -1,8 +1,7 @@
 import type { RollResult } from '../stores/diceStore'
 
 function toModifierSegment(modifier: number): string {
-  if (modifier === 0)
-    return ''
+  if (modifier === 0) return ''
   const sign = modifier > 0 ? '+' : ''
   return ` ${sign}${modifier}`
 }

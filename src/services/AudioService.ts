@@ -36,14 +36,14 @@ export interface SpatialSound {
 }
 
 // Audio events for dice system
-export type DiceAudioEvent
-  = | 'roll_start'
-    | 'dice_collision'
-    | 'dice_settle'
-    | 'outcome_success'
-    | 'outcome_partial'
-    | 'outcome_failure'
-    | 'magical_effect'
+export type DiceAudioEvent =
+  | 'roll_start'
+  | 'dice_collision'
+  | 'dice_settle'
+  | 'outcome_success'
+  | 'outcome_partial'
+  | 'outcome_failure'
+  | 'magical_effect'
 
 export interface DiceAudioData {
   event: DiceAudioEvent
@@ -68,7 +68,7 @@ export class AudioService {
 
   // Theme-based sound libraries
   private soundLibraries = {
-    'fantasy': {
+    fantasy: {
       dice_roll: '/audio/fantasy/dice-roll-wooden.mp3',
       dice_collision_felt: '/audio/fantasy/dice-felt-soft.mp3',
       dice_collision_wood: '/audio/fantasy/dice-wood-tap.mp3',
@@ -95,7 +95,7 @@ export class AudioService {
       ambient_space: '/audio/sci-fi/ambient-space.mp3',
       ambient_lab: '/audio/sci-fi/ambient-lab.mp3',
     },
-    'dark': {
+    dark: {
       dice_roll: '/audio/dark/dice-roll-ominous.mp3',
       dice_collision_stone: '/audio/dark/dice-stone-echo.mp3',
       dice_settle_obsidian: '/audio/dark/dice-settle-dark.mp3',
@@ -105,7 +105,7 @@ export class AudioService {
       magical_effect: '/audio/dark/dark-magic.mp3',
       ambient_crypt: '/audio/dark/ambient-crypt.mp3',
     },
-    'light': {
+    light: {
       dice_roll: '/audio/light/dice-roll-bright.mp3',
       dice_collision_felt: '/audio/light/dice-felt-gentle.mp3',
       dice_settle_ivory: '/audio/light/dice-settle-light.mp3',
@@ -138,7 +138,8 @@ export class AudioService {
    */
   private async initializeAudioContext(): Promise<void> {
     try {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      this.audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)()
 
       // Create master gain node
       this.masterGain = this.audioContext.createGain()
@@ -150,11 +151,11 @@ export class AudioService {
       categories.forEach((category) => {
         const gainNode = this.audioContext!.createGain()
         gainNode.connect(this.masterGain!)
-        gainNode.gain.value = this.config[`${category}Volume` as keyof AudioConfig] as number || 1
+        gainNode.gain.value =
+          (this.config[`${category}Volume` as keyof AudioConfig] as number) || 1
         this.categoryGains.set(category, gainNode)
       })
-    }
-    catch (error) {
+    } catch (error) {
       logger.warn('AudioService: Failed to initialize audio context', error)
       this.config.enabled = false
     }
@@ -164,8 +165,7 @@ export class AudioService {
    * Preload theme-appropriate sounds
    */
   private preloadSounds(): void {
-    if (!this.config.enabled)
-      return
+    if (!this.config.enabled) return
 
     const themeLibrary = this.soundLibraries[this.config.theme]
 
@@ -186,12 +186,10 @@ export class AudioService {
    * Get sound category for volume control
    */
   private getSoundCategory(soundKey: string): string {
-    if (soundKey.includes('ambient'))
-      return 'ambient'
+    if (soundKey.includes('ambient')) return 'ambient'
     if (soundKey.includes('outcome') || soundKey.includes('magical'))
       return 'ui'
-    if (soundKey.includes('dice'))
-      return 'sfx'
+    if (soundKey.includes('dice')) return 'sfx'
     return 'sfx'
   }
 
@@ -205,20 +203,30 @@ export class AudioService {
   /**
    * Update listener position and orientation
    */
-  updateListener(position: THREE.Vector3, forward: THREE.Vector3, up: THREE.Vector3): void {
-    if (!this.listener || !this.config.spatialAudio)
-      return
+  updateListener(
+    position: THREE.Vector3,
+    forward: THREE.Vector3,
+    up: THREE.Vector3,
+  ): void {
+    if (!this.listener || !this.config.spatialAudio) return
 
     this.listener.position.copy(position)
-    // In a real implementation, we'd update the listener's orientation
+
+    const positionClone = position.clone()
+    const forwardDir = forward.clone().normalize()
+    const upDir = up.clone().normalize()
+    const target = positionClone.clone().add(forwardDir)
+    const orientation = new THREE.Matrix4().lookAt(positionClone, target, upDir)
+
+    this.listener.quaternion.setFromRotationMatrix(orientation)
+    this.listener.updateMatrixWorld()
   }
 
   /**
    * Play dice-related audio with 3D positioning
    */
   playDiceAudio(data: DiceAudioData): void {
-    if (!this.config.enabled)
-      return
+    if (!this.config.enabled) return
 
     const soundKey = this.getDiceSoundKey(data)
     const sound = this.sounds.get(soundKey)
@@ -232,8 +240,7 @@ export class AudioService {
 
     if (data.position && this.config.spatialAudio) {
       this.playSpatialSound(soundKey, data.position, volume)
-    }
-    else {
+    } else {
       this.playSound(soundKey, volume)
     }
   }
@@ -246,13 +253,14 @@ export class AudioService {
       case 'roll_start':
         return 'dice_roll'
 
-      case 'dice_collision':
+      case 'dice_collision': {
         const material = data.material || 'felt'
         return `dice_collision_${material}`
-
-      case 'dice_settle':
+      }
+      case 'dice_settle': {
         const settleMaterial = data.material || 'ivory'
         return `dice_settle_${settleMaterial}`
+      }
 
       case 'outcome_success':
       case 'outcome_partial':
@@ -260,7 +268,9 @@ export class AudioService {
         return data.event
 
       case 'magical_effect':
-        return this.config.theme === 'sci-fi' ? 'magical_effect' : 'magical_sparkle'
+        return this.config.theme === 'sci-fi'
+          ? 'magical_effect'
+          : 'magical_sparkle'
 
       default:
         return 'dice_roll'
@@ -276,8 +286,7 @@ export class AudioService {
     // Adjust volume based on intensity/force
     if (data.intensity !== undefined) {
       baseVolume = Math.min(data.intensity / 10, 1)
-    }
-    else if (data.force !== undefined) {
+    } else if (data.force !== undefined) {
       baseVolume = Math.min(data.force / 20, 1)
     }
 
@@ -292,10 +301,13 @@ export class AudioService {
   /**
    * Play sound with 3D spatial positioning
    */
-  private playSpatialSound(soundKey: string, position: THREE.Vector3, volume: number): void {
+  private playSpatialSound(
+    soundKey: string,
+    position: THREE.Vector3,
+    volume: number,
+  ): void {
     const sound = this.sounds.get(soundKey)
-    if (!sound || !this.audioContext || !this.listener)
-      return
+    if (!sound || !this.audioContext || !this.listener) return
 
     // In a real implementation with Howler.js:
     // const howl = new Howl({
@@ -309,26 +321,26 @@ export class AudioService {
     // })
 
     // For now, simulate with regular audio
-    this.playSound(soundKey, volume * this.calculateDistanceAttenuation(position))
+    this.playSound(
+      soundKey,
+      volume * this.calculateDistanceAttenuation(position),
+    )
   }
 
   /**
    * Calculate distance-based volume attenuation
    */
   private calculateDistanceAttenuation(position: THREE.Vector3): number {
-    if (!this.listener)
-      return 1
+    if (!this.listener) return 1
 
     const distance = this.listener.position.distanceTo(position)
     const maxDistance = 20
     const rolloffFactor = 2
 
-    if (distance < 1)
-      return 1
-    if (distance > maxDistance)
-      return 0
+    if (distance < 1) return 1
+    if (distance > maxDistance) return 0
 
-    return (1 - (distance / maxDistance)) ** rolloffFactor
+    return (1 - distance / maxDistance) ** rolloffFactor
   }
 
   /**
@@ -336,21 +348,20 @@ export class AudioService {
    */
   private playSound(soundKey: string, volume: number): void {
     const sound = this.sounds.get(soundKey)
-    if (!sound)
-      return
+    if (!sound) return
 
     try {
       // Simple audio implementation for demonstration
       const audio = new Audio(sound.url)
       const category = sound.category
-      const categoryVolume = this.config[`${category}Volume` as keyof AudioConfig] as number || 1
+      const categoryVolume =
+        (this.config[`${category}Volume` as keyof AudioConfig] as number) || 1
 
       audio.volume = volume * categoryVolume * this.config.masterVolume
       audio.play().catch(() => {
         // Silently handle autoplay restrictions
       })
-    }
-    catch (error) {
+    } catch (error) {
       logger.warn(`AudioService: Failed to play sound ${soundKey}`, error)
     }
   }
@@ -359,8 +370,7 @@ export class AudioService {
    * Play ambient background audio
    */
   playAmbient(ambientKey?: string): void {
-    if (!this.config.enabled)
-      return
+    if (!this.config.enabled) return
 
     const key = ambientKey || this.getDefaultAmbient()
     const sound = this.sounds.get(key)
@@ -376,11 +386,16 @@ export class AudioService {
    */
   private getDefaultAmbient(): string {
     switch (this.config.theme) {
-      case 'fantasy': return 'ambient_tavern'
-      case 'sci-fi': return 'ambient_space'
-      case 'dark': return 'ambient_crypt'
-      case 'light': return 'ambient_peaceful'
-      default: return 'ambient_tavern'
+      case 'fantasy':
+        return 'ambient_tavern'
+      case 'sci-fi':
+        return 'ambient_space'
+      case 'dark':
+        return 'ambient_crypt'
+      case 'light':
+        return 'ambient_peaceful'
+      default:
+        return 'ambient_tavern'
     }
   }
 
@@ -406,7 +421,7 @@ export class AudioService {
 
     this.categoryGains.forEach((gainNode, category) => {
       const volumeKey = `${category}Volume` as keyof AudioConfig
-      gainNode.gain.value = this.config[volumeKey] as number || 1
+      gainNode.gain.value = (this.config[volumeKey] as number) || 1
     })
 
     // Reload sounds if theme changed
@@ -494,7 +509,11 @@ export function playDiceRoll(force: number, position?: THREE.Vector3) {
   })
 }
 
-export function playDiceCollision(intensity: number, position: THREE.Vector3, material = 'felt') {
+export function playDiceCollision(
+  intensity: number,
+  position: THREE.Vector3,
+  material = 'felt',
+) {
   audioService.playDiceAudio({
     event: 'dice_collision',
     intensity,

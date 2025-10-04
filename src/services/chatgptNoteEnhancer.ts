@@ -2,11 +2,17 @@ import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { logger } from '../utils/logger'
 
-export type CampaignVibe = 'fantasy' | 'scifi' | 'cyberpunk' | 'horror' | 'western' | 'modern'
+export type CampaignVibe =
+  | 'fantasy'
+  | 'scifi'
+  | 'cyberpunk'
+  | 'horror'
+  | 'western'
+  | 'modern'
 
 interface CharacterActionPayloads {
-  apply_debility: { debility: string, reason: string }
-  modify_hp: { change: number, reason: string }
+  apply_debility: { debility: string; reason: string }
+  modify_hp: { change: number; reason: string }
   add_gear: {
     name: string
     description: string
@@ -14,19 +20,26 @@ interface CharacterActionPayloads {
     weight?: number
     uses?: number
   }
-  spend_resource: { resource: string, amount: number, reason: string }
+  spend_resource: { resource: string; amount: number; reason: string }
   gain_xp: {
     amount: number
     trigger: 'failure' | 'alignment' | 'end_session' | 'discovery'
     description: string
   }
-  update_bonds: { character: string, new_bond: string, action: 'create' | 'resolve' | 'update' }
+  update_bonds: {
+    character: string
+    new_bond: string
+    action: 'create' | 'resolve' | 'update'
+  }
 }
 
 export type CharacterActionType = keyof CharacterActionPayloads
 
 export type CharacterAction = {
-  [Type in CharacterActionType]: { type: Type, params: CharacterActionPayloads[Type] }
+  [Type in CharacterActionType]: {
+    type: Type
+    params: CharacterActionPayloads[Type]
+  }
 }[CharacterActionType]
 
 export interface EnhancementResult {
@@ -58,16 +71,17 @@ export class ChatGPTNoteEnhancer {
   }
 
   private async setupProgressListener() {
-    if (this.progressUnlisten)
-      return
+    if (this.progressUnlisten) return
 
     try {
-      this.progressUnlisten = await listen<AIProgress>('llm_progress', (event) => {
-        logger.info('[ChatGPT] Progress update', event.payload)
-        this.onProgress?.(event.payload)
-      })
-    }
-    catch (error) {
+      this.progressUnlisten = await listen<AIProgress>(
+        'llm_progress',
+        (event) => {
+          logger.info('[ChatGPT] Progress update', event.payload)
+          this.onProgress?.(event.payload)
+        },
+      )
+    } catch (error) {
       logger.error('Failed to set up LLM progress listener', error)
     }
   }
@@ -92,12 +106,13 @@ export class ChatGPTNoteEnhancer {
 
     try {
       await this.checkServiceStatus(targetModel)
-    }
-    catch (error) {
+    } catch (error) {
       this.ready = false
       const message = error instanceof Error ? error.message : String(error)
       logger.error('ChatGPT status check failed', { error, targetModel })
-      throw new Error(`ChatGPT Responses API check failed for ${targetModel}: ${message}`)
+      throw new Error(
+        `ChatGPT Responses API check failed for ${targetModel}: ${message}`,
+      )
     }
 
     try {
@@ -105,24 +120,31 @@ export class ChatGPTNoteEnhancer {
       this.ready = true
       this.model = targetModel
       logger.info(`[ChatGPT] Note enhancer ready with ${targetModel}`)
-    }
-    catch (error) {
+    } catch (error) {
       this.ready = false
       logger.error('Failed to initialize ChatGPT note enhancer', error)
       throw error
     }
   }
 
-  async enhance(note: string, vibe: CampaignVibe = 'fantasy'): Promise<EnhancementResult> {
+  async enhance(
+    note: string,
+    vibe: CampaignVibe = 'fantasy',
+  ): Promise<EnhancementResult> {
     if (!this.ready) {
-      throw new Error('ChatGPT is not ready - call initialize() before requesting enhancements.')
+      throw new Error(
+        'ChatGPT is not ready - call initialize() before requesting enhancements.',
+      )
     }
 
     logger.info(`[ChatGPT] Enhancing note (${vibe} vibe)`, note)
     const start = performance.now()
 
     try {
-      const result = await invoke<EnhancementResult>('enhance_note', { note, vibe })
+      const result = await invoke<EnhancementResult>('enhance_note', {
+        note,
+        vibe,
+      })
       const durationMs = (performance.now() - start).toFixed(1)
 
       logger.info('[ChatGPT] Enhancement complete', {
@@ -133,14 +155,20 @@ export class ChatGPTNoteEnhancer {
       })
 
       if (result.enhancedText.trim() === note.trim()) {
-        logger.warn('[ChatGPT] Response matched the original text; consider using the pattern fallback')
+        logger.warn(
+          '[ChatGPT] Response matched the original text; consider using the pattern fallback',
+        )
       }
 
       return result
-    }
-    catch (error) {
+    } catch (error) {
       const durationMs = (performance.now() - start).toFixed(1)
-      logger.error('[ChatGPT] Enhancement failed', { error, note, vibe, durationMs })
+      logger.error('[ChatGPT] Enhancement failed', {
+        error,
+        note,
+        vibe,
+        durationMs,
+      })
       throw error
     }
   }
@@ -148,8 +176,7 @@ export class ChatGPTNoteEnhancer {
   async isInitialized(): Promise<boolean> {
     try {
       return await invoke<boolean>('is_llm_ready')
-    }
-    catch (error) {
+    } catch (error) {
       logger.error('Failed to query ChatGPT readiness', error)
       return false
     }
@@ -163,8 +190,7 @@ export class ChatGPTNoteEnhancer {
     if (this.progressUnlisten) {
       try {
         await this.progressUnlisten()
-      }
-      catch (error) {
+      } catch (error) {
         logger.warn('Failed to remove LLM progress listener', error)
       }
       this.progressUnlisten = undefined

@@ -22,10 +22,14 @@ const NotificationItem: React.FC<{
 }> = ({ notification, onDismiss, index }) => {
   const getPriorityColor = (priority: Notification['priority']) => {
     switch (priority) {
-      case 'urgent': return 'border-destructive/40 bg-destructive/12'
-      case 'high': return 'border-orange-500 bg-chart-4/12'
-      case 'medium': return 'border-primary/40 bg-primary/10'
-      case 'low': return 'border-border bg-card'
+      case 'urgent':
+        return 'border-destructive/40 bg-destructive/12'
+      case 'high':
+        return 'border-orange-500 bg-chart-4/12'
+      case 'medium':
+        return 'border-primary/40 bg-primary/10'
+      case 'low':
+        return 'border-border bg-card'
     }
   }
 
@@ -49,37 +53,35 @@ const NotificationItem: React.FC<{
     >
       {/* Priority indicator */}
       {notification.priority === 'urgent' && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive/120 rounded-full animate-pulse" />
+        <div className='absolute -top-1 -right-1 w-3 h-3 bg-destructive/120 rounded-full animate-pulse' />
       )}
 
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
+      <div className='flex items-start justify-between'>
+        <div className='flex-1'>
+          <div className='flex items-center gap-2 mb-1'>
             {notification.icon && (
-              <span className="text-lg">{notification.icon}</span>
+              <span className='text-lg'>{notification.icon}</span>
             )}
-            <h4 className="font-semibold text-sm text-foreground ">
+            <h4 className='font-semibold text-sm text-foreground '>
               {notification.title}
             </h4>
           </div>
 
-          <p className="text-sm text-foreground mb-3">
-            {notification.message}
-          </p>
+          <p className='text-sm text-foreground mb-3'>{notification.message}</p>
 
           {/* Actions */}
           {notification.actions && notification.actions.length > 0 && (
-            <div className="flex gap-2">
+            <div className='flex gap-2'>
               {notification.actions.map((action, actionIndex) => (
                 <Button
                   key={actionIndex}
                   variant={action.style === 'primary' ? 'default' : 'outline'}
-                  size="sm"
+                  size='sm'
                   onClick={() => {
                     action.action()
                     onDismiss(notification.id)
                   }}
-                  className="text-xs px-2 py-1"
+                  className='text-xs px-2 py-1'
                 >
                   {action.label}
                 </Button>
@@ -91,10 +93,10 @@ const NotificationItem: React.FC<{
         {/* Dismiss button */}
         {notification.dismissible && (
           <Button
-            variant="ghost"
-            size="sm"
+            variant='ghost'
+            size='sm'
             onClick={() => onDismiss(notification.id)}
-            className="p-1 ml-2"
+            className='p-1 ml-2'
           >
             <X size={14} />
           </Button>
@@ -104,10 +106,13 @@ const NotificationItem: React.FC<{
       {/* Progress bar for timed notifications */}
       {notification.duration > 0 && (
         <motion.div
-          className="absolute bottom-0 left-0 h-1 bg-primary/100 rounded-bl-lg"
+          className='absolute bottom-0 left-0 h-1 bg-primary/100 rounded-bl-lg'
           initial={{ width: '100%' }}
           animate={{ width: '0%' }}
-          transition={{ duration: notification.duration / 1000, ease: 'linear' }}
+          transition={{
+            duration: notification.duration / 1000,
+            ease: 'linear',
+          }}
         />
       )}
     </motion.div>
@@ -125,32 +130,36 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
     preferences,
     muteNotifications,
     unmuteNotifications,
-    setPreference,
   } = useNotificationStore()
 
   const isMuted = preferences.mutedDuration > Date.now()
 
   const getPositionClasses = () => {
     switch (position) {
-      case 'top-left': return 'top-4 left-4'
-      case 'bottom-right': return 'bottom-4 right-4'
-      case 'bottom-left': return 'bottom-4 left-4'
-      default: return 'top-4 right-4'
+      case 'top-left':
+        return 'top-4 left-4'
+      case 'bottom-right':
+        return 'bottom-4 right-4'
+      case 'bottom-left':
+        return 'bottom-4 left-4'
+      default:
+        return 'top-4 right-4'
     }
   }
 
-  if (activeNotifications.length === 0)
-    return null
+  if (activeNotifications.length === 0) return null
 
   return (
     <div className={`fixed ${getPositionClasses()} z-50 ${className}`}>
       {/* Controls */}
-      <div className="flex justify-end mb-2 gap-1">
+      <div className='flex justify-end mb-2 gap-1'>
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => isMuted ? unmuteNotifications() : muteNotifications(5 * 60 * 1000)}
-          className="p-1 bg-card/80 backdrop-blur-sm"
+          variant='ghost'
+          size='sm'
+          onClick={() =>
+            isMuted ? unmuteNotifications() : muteNotifications(5 * 60 * 1000)
+          }
+          className='p-1 bg-card/80 backdrop-blur-sm'
           title={isMuted ? 'Unmute notifications' : 'Mute for 5 minutes'}
         >
           {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
@@ -158,20 +167,20 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
 
         {activeNotifications.length > 1 && (
           <Button
-            variant="ghost"
-            size="sm"
+            variant='ghost'
+            size='sm'
             onClick={dismissAllNotifications}
-            className="p-1 bg-card/80 backdrop-blur-sm"
-            title="Dismiss all notifications"
+            className='p-1 bg-card/80 backdrop-blur-sm'
+            title='Dismiss all notifications'
           >
             <X size={14} />
-            <span className="ml-1 text-xs">{activeNotifications.length}</span>
+            <span className='ml-1 text-xs'>{activeNotifications.length}</span>
           </Button>
         )}
       </div>
 
       {/* Notifications */}
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode='popLayout'>
         {activeNotifications.map((notification, index) => (
           <NotificationItem
             key={notification.id}
@@ -187,9 +196,9 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center mt-2"
+          className='text-center mt-2'
         >
-          <div className="text-xs text-muted-foreground bg-card/80 backdrop-blur-sm rounded px-2 py-1">
+          <div className='text-xs text-muted-foreground bg-card/80 backdrop-blur-sm rounded px-2 py-1'>
             Notifications muted
           </div>
         </motion.div>
@@ -210,59 +219,63 @@ export const NotificationSettings: React.FC<{
 
   return (
     <div className={`p-4 bg-card rounded-lg shadow-sm border ${className}`}>
-      <div className="flex items-center gap-2 mb-4">
-        <Settings size={16} className="text-muted-foreground" />
-        <h3 className="font-semibold">Notification Settings</h3>
+      <div className='flex items-center gap-2 mb-4'>
+        <Settings size={16} className='text-muted-foreground' />
+        <h3 className='font-semibold'>Notification Settings</h3>
       </div>
 
-      <div className="space-y-3">
-        <label className="flex items-center justify-between">
-          <span className="text-sm">Dice Roll Results</span>
+      <div className='space-y-3'>
+        <label className='flex items-center justify-between'>
+          <span className='text-sm'>Dice Roll Results</span>
           <input
-            type="checkbox"
+            type='checkbox'
             checked={preferences.enableDiceRolls}
-            onChange={e => toggleSetting('enableDiceRolls', e.target.checked)}
-            className="rounded"
+            onChange={(e) => toggleSetting('enableDiceRolls', e.target.checked)}
+            className='rounded'
           />
         </label>
 
-        <label className="flex items-center justify-between">
-          <span className="text-sm">XP Awards</span>
+        <label className='flex items-center justify-between'>
+          <span className='text-sm'>XP Awards</span>
           <input
-            type="checkbox"
+            type='checkbox'
             checked={preferences.enableXPAwards}
-            onChange={e => toggleSetting('enableXPAwards', e.target.checked)}
-            className="rounded"
+            onChange={(e) => toggleSetting('enableXPAwards', e.target.checked)}
+            className='rounded'
           />
         </label>
 
-        <label className="flex items-center justify-between">
-          <span className="text-sm">Hold Grants</span>
+        <label className='flex items-center justify-between'>
+          <span className='text-sm'>Hold Grants</span>
           <input
-            type="checkbox"
+            type='checkbox'
             checked={preferences.enableHoldGrants}
-            onChange={e => toggleSetting('enableHoldGrants', e.target.checked)}
-            className="rounded"
+            onChange={(e) =>
+              toggleSetting('enableHoldGrants', e.target.checked)
+            }
+            className='rounded'
           />
         </label>
 
-        <label className="flex items-center justify-between">
-          <span className="text-sm">Level Ups</span>
+        <label className='flex items-center justify-between'>
+          <span className='text-sm'>Level Ups</span>
           <input
-            type="checkbox"
+            type='checkbox'
             checked={preferences.enableLevelUps}
-            onChange={e => toggleSetting('enableLevelUps', e.target.checked)}
-            className="rounded"
+            onChange={(e) => toggleSetting('enableLevelUps', e.target.checked)}
+            className='rounded'
           />
         </label>
 
-        <label className="flex items-center justify-between">
-          <span className="text-sm">Achievements</span>
+        <label className='flex items-center justify-between'>
+          <span className='text-sm'>Achievements</span>
           <input
-            type="checkbox"
+            type='checkbox'
             checked={preferences.enableAchievements}
-            onChange={e => toggleSetting('enableAchievements', e.target.checked)}
-            className="rounded"
+            onChange={(e) =>
+              toggleSetting('enableAchievements', e.target.checked)
+            }
+            className='rounded'
           />
         </label>
       </div>

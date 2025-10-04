@@ -63,8 +63,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
         })
       }
       setParticles(newParticles)
-    }
-    else {
+    } else {
       setParticles([])
     }
   }, [stage])
@@ -72,65 +71,85 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
   const getStageIcon = () => {
     switch (stage) {
       case 'downloading':
-        return <Download className="w-5 h-5 text-primary animate-bounce" />
+        return <Download className='w-5 h-5 text-primary animate-bounce' />
       case 'loading':
-        return <Brain className="w-5 h-5 text-accent animate-pulse" />
+        return <Brain className='w-5 h-5 text-accent animate-pulse' />
       case 'ready':
-        return <CheckCircle className="w-5 h-5 text-chart-2" />
+        return <CheckCircle className='w-5 h-5 text-chart-2' />
       case 'error':
-        return <AlertTriangle className="w-5 h-5 text-destructive" />
+        return <AlertTriangle className='w-5 h-5 text-destructive' />
       default:
-        return <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+        return (
+          <Loader2 className='w-5 h-5 text-muted-foreground animate-spin' />
+        )
     }
   }
 
   const getStageColor = () => {
     switch (stage) {
-      case 'downloading': return 'from-primary to-cyan-600'
-      case 'loading': return 'from-accent to-pink-600'
-      case 'ready': return 'from-green-500 to-emerald-600'
-      case 'error': return 'from-red-500 to-orange-600'
-      default: return 'from-gray-500 to-gray-600'
+      case 'downloading':
+        return 'from-primary to-cyan-600'
+      case 'loading':
+        return 'from-accent to-pink-600'
+      case 'ready':
+        return 'from-green-500 to-emerald-600'
+      case 'error':
+        return 'from-red-500 to-orange-600'
+      default:
+        return 'from-gray-500 to-gray-600'
     }
   }
 
   const getBadgeVariant = () => {
     switch (stage) {
-      case 'downloading': return 'default'
-      case 'loading': return 'secondary'
-      case 'ready': return 'default'
-      case 'error': return 'destructive'
-      default: return 'outline'
+      case 'downloading':
+        return 'default'
+      case 'loading':
+        return 'secondary'
+      case 'ready':
+        return 'default'
+      case 'error':
+        return 'destructive'
+      default:
+        return 'outline'
     }
   }
 
   const getStageText = () => {
     switch (stage) {
-      case 'downloading': return '📥 Downloading'
-      case 'loading': return '🧠 Loading AI'
-      case 'ready': return '✅ Ready'
-      case 'error': return '❌ Error'
-      default: return '⏳ Processing'
+      case 'downloading':
+        return '📥 Downloading'
+      case 'loading':
+        return '🧠 Loading AI'
+      case 'ready':
+        return '✅ Ready'
+      case 'error':
+        return '❌ Error'
+      default:
+        return '⏳ Processing'
     }
   }
 
   return (
     <Card
-      variant="magical"
+      variant='magical'
       className={`relative overflow-hidden backdrop-blur-md bg-gradient-to-br from-white/80 to-white/60 border border-white/20 shadow-2xl ${className}`}
     >
-      <CardContent className="p-6">
+      <CardContent className='p-6'>
         {/* Floating Particles Background */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className='absolute inset-0 pointer-events-none'>
           <AnimatePresence>
-            {particles.map(particle => (
+            {particles.map((particle) => (
               <motion.div
                 key={particle.id}
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{
                   opacity: [0, 1, 0],
                   scale: [0, 1, 0],
-                  x: [particle.x, particle.x + Math.sin(Date.now() * 0.001) * 20],
+                  x: [
+                    particle.x,
+                    particle.x + Math.sin(Date.now() * 0.001) * 20,
+                  ],
                   y: [particle.y, particle.y - 50],
                 }}
                 exit={{ opacity: 0, scale: 0 }}
@@ -140,7 +159,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   delay: particle.delay,
                   ease: 'easeInOut',
                 }}
-                className="absolute rounded-full"
+                className='absolute rounded-full'
                 style={{
                   width: particle.size,
                   height: particle.size,
@@ -155,13 +174,13 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="relative">
+        <div className='flex items-center justify-between mb-4 relative z-10'>
+          <div className='flex items-center gap-3'>
+            <div className='relative'>
               {getStageIcon()}
               {(stage === 'loading' || stage === 'downloading') && (
                 <motion.div
-                  className="absolute inset-0 rounded-full"
+                  className='absolute inset-0 rounded-full'
                   animate={{
                     scale: [1, 1.5, 1],
                     opacity: [0.5, 0, 0.5],
@@ -179,37 +198,38 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
             </div>
 
             <div>
-              <h3 className="text-lg font-display font-semibold">
+              <h3 className='text-lg font-display font-semibold'>
                 AI Model
                 {stage === 'downloading' ? 'Download' : 'Loading'}
               </h3>
-              <p className="text-sm text-muted-foreground ">
-                {stage === 'downloading' && modelSize ? `Natural Functions 7B (${modelSize})` : 'Preparing your intelligent companion'}
+              <p className='text-sm text-muted-foreground '>
+                {stage === 'downloading' && modelSize
+                  ? `Natural Functions 7B (${modelSize})`
+                  : 'Preparing your intelligent companion'}
               </p>
             </div>
           </div>
 
-          <Badge variant={getBadgeVariant()} className="text-xs font-medium">
+          <Badge variant={getBadgeVariant()} className='text-xs font-medium'>
             {getStageText()}
           </Badge>
         </div>
 
         {/* Progress Bar */}
-        <div className="space-y-3 relative z-10">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground truncate max-w-[280px]">
+        <div className='space-y-3 relative z-10'>
+          <div className='flex items-center justify-between text-sm'>
+            <span className='font-medium text-foreground truncate max-w-[280px]'>
               {text}
             </span>
             {progress > 0 && stage !== 'error' && (
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent from-primary to-accent">
-                  {Math.round(progress)}
-                  %
+              <div className='flex items-center gap-2'>
+                <span className='text-lg font-bold bg-gradient-to-r bg-clip-text text-transparent from-primary to-accent'>
+                  {Math.round(progress)}%
                 </span>
                 {timeRemaining && (
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    <span className="text-xs">{timeRemaining}</span>
+                  <div className='flex items-center gap-1 text-muted-foreground'>
+                    <Clock className='w-3 h-3' />
+                    <span className='text-xs'>{timeRemaining}</span>
                   </div>
                 )}
               </div>
@@ -217,11 +237,11 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
           </div>
 
           {/* Main Progress Bar */}
-          <div className="relative w-full bg-muted rounded-full h-4 overflow-hidden shadow-inner">
+          <div className='relative w-full bg-muted rounded-full h-4 overflow-hidden shadow-inner'>
             {stage === 'error' ? (
               // Error state with pulsing red background
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-red-400 to-orange-500 rounded-full opacity-60"
+                className='absolute inset-0 bg-gradient-to-r from-red-400 to-orange-500 rounded-full opacity-60'
                 animate={{ opacity: [0.6, 0.3, 0.6] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
@@ -236,13 +256,17 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                 >
                   {/* Shimmer effect */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full"
+                    className='absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full'
                     animate={{ x: ['-100%', '100%'] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
                   />
 
                   {/* Highlight effect */}
-                  <div className="absolute inset-0 bg-card/20 rounded-full" />
+                  <div className='absolute inset-0 bg-card/20 rounded-full' />
                 </motion.div>
 
                 {/* Glow effect */}
@@ -256,11 +280,17 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
             ) : (
               // Indeterminate progress
               <>
-                <div className={`absolute inset-0 bg-gradient-to-r ${getStageColor()} rounded-full opacity-60`} />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-r ${getStageColor()} rounded-full opacity-60`}
+                />
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent rounded-full"
+                  className='absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent rounded-full'
                   animate={{ x: ['-100%', '100%'] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
                 />
               </>
             )}
@@ -273,19 +303,19 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="space-y-2"
+                className='space-y-2'
               >
                 {(downloadSpeed || modelSize) && (
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className='flex items-center justify-between text-xs text-muted-foreground'>
                     {downloadSpeed && (
-                      <div className="flex items-center gap-1">
-                        <Zap className="w-3 h-3" />
+                      <div className='flex items-center gap-1'>
+                        <Zap className='w-3 h-3' />
                         <span>{downloadSpeed}</span>
                       </div>
                     )}
                     {modelSize && (
-                      <div className="flex items-center gap-1">
-                        <HardDrive className="w-3 h-3" />
+                      <div className='flex items-center gap-1'>
+                        <HardDrive className='w-3 h-3' />
                         <span>{modelSize}</span>
                       </div>
                     )}
@@ -297,18 +327,18 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center justify-between pt-2 border-t border-border "
+                    className='flex items-center justify-between pt-2 border-t border-border '
                   >
-                    <p className="text-xs text-destructive ">
+                    <p className='text-xs text-destructive '>
                       Failed to load AI model. Please check your connection.
                     </p>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant='outline'
+                      size='sm'
                       onClick={onRetry}
-                      className="ml-2 gap-1"
+                      className='ml-2 gap-1'
                     >
-                      <RefreshCw className="w-3 h-3" />
+                      <RefreshCw className='w-3 h-3' />
                       Retry
                     </Button>
                   </motion.div>
@@ -319,10 +349,12 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center justify-center gap-2 pt-2 text-chart-2 "
+                    className='flex items-center justify-center gap-2 pt-2 text-chart-2 '
                   >
-                    <Sparkles className="w-4 h-4" />
-                    <span className="text-sm font-medium">AI companion is ready to enhance your story!</span>
+                    <Sparkles className='w-4 h-4' />
+                    <span className='text-sm font-medium'>
+                      AI companion is ready to enhance your story!
+                    </span>
                   </motion.div>
                 )}
               </motion.div>
@@ -331,12 +363,12 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
         </div>
 
         {/* Background Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-500/5 to-pink-500/5 pointer-events-none rounded-lg" />
+        <div className='absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-500/5 to-pink-500/5 pointer-events-none rounded-lg' />
 
         {/* Magical Border Glow */}
         {(stage === 'loading' || stage === 'downloading') && (
           <motion.div
-            className="absolute inset-0 rounded-lg border-2 border-transparent"
+            className='absolute inset-0 rounded-lg border-2 border-transparent'
             animate={{
               background: [
                 'linear-gradient(45deg, transparent, transparent)',
@@ -346,7 +378,8 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
             }}
             transition={{ duration: 3, repeat: Infinity }}
             style={{
-              maskImage: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              maskImage:
+                'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
               maskComposite: 'xor',
             }}
           />

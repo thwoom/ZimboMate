@@ -15,26 +15,39 @@ import {
   Users,
 } from 'lucide-react'
 import React from 'react'
-import { formatCampaignDuration, formatDateRelative, formatSessionDuration, formatXPTotal, toDate } from '../../../campaignManagementMockData'
+import {
+  formatCampaignDuration,
+  formatDateRelative,
+  formatSessionDuration,
+  formatXPTotal,
+  toDate,
+} from '../../../campaignManagementMockData'
 import { useCampaignStore } from '../../../stores/campaignStore'
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '../../ui'
 
 interface CampaignOverviewProps {
   campaignId: string
 }
 
-export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }) => {
-  const campaign = useCampaignStore(state => state.getCampaign(campaignId))
-  const stats = useCampaignStore(state => state.getCampaignStats(campaignId))
+export const CampaignOverview: React.FC<CampaignOverviewProps> = ({
+  campaignId,
+}) => {
+  const campaign = useCampaignStore((state) => state.getCampaign(campaignId))
+  const stats = useCampaignStore((state) => state.getCampaignStats(campaignId))
 
   if (!campaign || !stats) {
     return (
-      <Card variant="surface">
+      <Card variant='surface'>
         <CardContent>
-          <div className="text-center">
-            <p className="text-muted-foreground">
-              Campaign not found
-            </p>
+          <div className='text-center'>
+            <p className='text-muted-foreground'>Campaign not found</p>
           </div>
         </CardContent>
       </Card>
@@ -87,32 +100,34 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
   ]
 
   const recentActivity = [
-    ...campaign.sessions.slice(-3).map(session => ({
+    ...campaign.sessions.slice(-3).map((session) => ({
       type: 'session' as const,
       title: session.title,
       date: session.date,
       description: `${formatXPTotal(session.xpGained)} earned`,
     })),
-    ...campaign.journal.slice(-2).map(entry => ({
+    ...campaign.journal.slice(-2).map((entry) => ({
       type: 'journal' as const,
       title: entry.title,
       date: entry.date,
       description: entry.isImportant ? 'Important event' : 'Journal entry',
     })),
-  ].sort((a, b) => toDate(b.date).getTime() - toDate(a.date).getTime()).slice(0, 5)
+  ]
+    .sort((a, b) => toDate(b.date).getTime() - toDate(a.date).getTime())
+    .slice(0, 5)
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Campaign Info */}
-      <Card variant="magical">
+      <Card variant='magical'>
         <CardHeader>
-          <div className="flex items-start justify-between">
+          <div className='flex items-start justify-between'>
             <div>
               <CardTitle>{campaign.name}</CardTitle>
-              <p className="mt-2 text-muted-foreground">
+              <p className='mt-2 text-muted-foreground'>
                 {campaign.description}
               </p>
-              <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
+              <div className='flex gap-4 mt-4 text-sm text-muted-foreground'>
                 <span>
                   Created
                   {formatDateRelative(campaign.created)}
@@ -129,12 +144,12 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
                 </span>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+            <div className='flex gap-2'>
+              <Button variant='outline' size='sm'>
                 <Edit size={16} />
                 Edit
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant='outline' size='sm'>
                 <Download size={16} />
                 Export
               </Button>
@@ -144,7 +159,7 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
       </Card>
 
       {/* Statistics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
         {statCards.map((stat, index) => {
           const Icon = stat.icon
           return (
@@ -154,28 +169,21 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <Card variant="surface" className="campaign-stat-card">
+              <Card variant='surface' className='campaign-stat-card'>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className='space-y-3'>
                     <div
-                      className="w-12 h-12 mx-auto rounded-full flex items-center justify-center"
+                      className='w-12 h-12 mx-auto rounded-full flex items-center justify-center'
                       style={{ backgroundColor: stat.color, opacity: 0.2 }}
                     >
-                      <Icon
-                        size={24}
-                        style={{ color: stat.color }}
-                      />
+                      <Icon size={24} style={{ color: stat.color }} />
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-display font-bold">
+                    <div className='text-center'>
+                      <div className='text-2xl font-display font-bold'>
                         {stat.value}
                       </div>
-                      <div className="text-sm font-medium">
-                        {stat.title}
-                      </div>
-                      <div
-                        className="text-xs mt-1 text-muted-foreground"
-                      >
+                      <div className='text-sm font-medium'>{stat.title}</div>
+                      <div className='text-xs mt-1 text-muted-foreground'>
                         {stat.description}
                       </div>
                     </div>
@@ -188,25 +196,25 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
       </div>
 
       {/* Quick Actions */}
-      <Card variant="surface">
+      <Card variant='surface'>
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Button variant="outline" size="sm" className="gap-2">
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+            <Button variant='outline' size='sm' className='gap-2'>
               <Plus size={16} />
               Add Session
             </Button>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant='outline' size='sm' className='gap-2'>
               <Plus size={16} />
               Journal Entry
             </Button>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant='outline' size='sm' className='gap-2'>
               <Plus size={16} />
               Add NPC
             </Button>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant='outline' size='sm' className='gap-2'>
               <Plus size={16} />
               Add Location
             </Button>
@@ -215,63 +223,59 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({ campaignId }
       </Card>
 
       {/* Recent Activity */}
-      <Card variant="surface">
+      <Card variant='surface'>
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          {recentActivity.length === 0
-            ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No recent activity</p>
-                  <p className="text-sm mt-1">Start adding sessions and journal entries!</p>
-                </div>
-              )
-            : (
-                <div className="space-y-3">
-                  {recentActivity.map((activity, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 rounded-lg bg-card"
+          {recentActivity.length === 0 ? (
+            <div className='text-center py-8 text-muted-foreground'>
+              <p>No recent activity</p>
+              <p className='text-sm mt-1'>
+                Start adding sessions and journal entries!
+              </p>
+            </div>
+          ) : (
+            <div className='space-y-3'>
+              {recentActivity.map((activity) => (
+                <div
+                  key={`${activity.type}-${activity.date}-${activity.title}`}
+                  className='flex items-center justify-between p-3 rounded-lg bg-card'
+                >
+                  <div className='flex items-center gap-3'>
+                    <Badge
+                      variant={
+                        activity.type === 'session' ? 'default' : 'secondary'
+                      }
+                      className='text-xs'
                     >
-                      <div className="flex items-center gap-3">
-                        <Badge
-                          variant={activity.type === 'session' ? 'default' : 'secondary'}
-                          className="text-xs"
-                        >
-                          {activity.type}
-                        </Badge>
-                        <div>
-                          <div className="font-medium">{activity.title}</div>
-                          <div
-                            className="text-sm text-muted-foreground"
-                          >
-                            {activity.description}
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        className="text-sm text-muted-foreground"
-                      >
-                        {formatDateRelative(activity.date)}
+                      {activity.type}
+                    </Badge>
+                    <div>
+                      <div className='font-medium'>{activity.title}</div>
+                      <div className='text-sm text-muted-foreground'>
+                        {activity.description}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  <div className='text-sm text-muted-foreground'>
+                    {formatDateRelative(activity.date)}
+                  </div>
                 </div>
-              )}
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Player Notes */}
       {campaign.playerNotes && (
-        <Card variant="parchment">
+        <Card variant='parchment'>
           <CardHeader>
             <CardTitle>Campaign Notes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-foreground">
-              {campaign.playerNotes}
-            </p>
+            <p className='text-foreground'>{campaign.playerNotes}</p>
           </CardContent>
         </Card>
       )}

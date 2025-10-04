@@ -18,7 +18,7 @@ export interface CompendiumClass {
     class?: CharacterClass[] // Required base class(es)
     race?: Race[] // Required race(s)
     moves?: string[] // Required moves
-    attributes?: Partial <Record <Attribute, number>> // Required attribute minimums
+    attributes?: Partial<Record<Attribute, number>> // Required attribute minimums
     narrative?: string // Narrative requirements (e.g., "Must have been to the Underworld")
   }
 
@@ -26,7 +26,7 @@ export interface CompendiumClass {
   benefits: {
     moves: string[] // Move IDs this class provides
     startingEquipment?: unknown[] // Starting equipment
-    attributeBonuses?: Partial <Record <Attribute, number>> // Attribute bonuses
+    attributeBonuses?: Partial<Record<Attribute, number>> // Attribute bonuses
     specialAbilities?: string[] // Special abilities
   }
 
@@ -63,14 +63,14 @@ export interface RaceMove {
   // Requirements
   requirements?: {
     level?: number
-    attributes?: Partial <Record <Attribute, number>>
+    attributes?: Partial<Record<Attribute, number>>
     narrative?: string
   }
 
   // What this race move provides
   benefits: {
     moveId?: string // Associated move ID
-    attributeBonuses?: Partial <Record <Attribute, number>>
+    attributeBonuses?: Partial<Record<Attribute, number>>
     specialAbilities?: string[]
     equipment?: unknown[]
   }
@@ -93,7 +93,7 @@ export interface MulticlassConfig {
     levelRequirement: number // When multiclassing becomes available
     moveSelection: 'pick' | 'all' | 'choice' // How moves are selected
     maxMovesFromSecondary: number // Maximum moves from secondary class
-    attributeRequirements?: Partial <Record <Attribute, number>>
+    attributeRequirements?: Partial<Record<Attribute, number>>
   }
 
   // Available moves from secondary class
@@ -102,7 +102,7 @@ export interface MulticlassConfig {
   // Restrictions
   restrictions?: {
     incompatibleMoves?: string[]
-    levelRestrictions?: Record <number, string[]> // Moves available at specific levels
+    levelRestrictions?: Record<number, string[]> // Moves available at specific levels
   }
 }
 
@@ -117,7 +117,7 @@ export interface AdvancedCharacterTemplate {
   base: {
     class: CharacterClass
     race: Race
-    attributes: Partial <Record <Attribute, number>>
+    attributes: Partial<Record<Attribute, number>>
     startingMoves: string[]
     startingEquipment: unknown[]
   }
@@ -145,7 +145,11 @@ export interface AdvancedCharacterTemplate {
 }
 
 // Utility types
-export type AdvancedOptionType = 'compendium-class' | 'race-move' | 'multiclass' | 'custom-move'
+export type AdvancedOptionType =
+  | 'compendium-class'
+  | 'race-move'
+  | 'multiclass'
+  | 'custom-move'
 
 export interface AdvancedOption {
   type: AdvancedOptionType

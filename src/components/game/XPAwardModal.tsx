@@ -5,7 +5,7 @@
 import type { Character } from '../../models/Character'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Star, Trophy, Users, X } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import { useCharacterStore } from '../../stores/characterStore'
 import { Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
 import { Input } from '../ui/Input'
@@ -23,6 +23,101 @@ interface CharacterXPAward {
   reason: string
 }
 
+type AwardMode = 'global' | 'individual'
+
+interface AwardState {
+  characterAwards: CharacterXPAward[]
+  globalXP: number
+  globalReason: string
+  awardMode: AwardMode
+  isSubmitting: boolean
+}
+
+type AwardAction =
+  | { type: 'reset'; characters: Character[] }
+  | { type: 'setGlobalXP'; amount: number }
+  | { type: 'setGlobalReason'; reason: string }
+  | { type: 'setAwardMode'; mode: AwardMode }
+  | { type: 'setCharacterXP'; characterId: string; amount: number }
+  | { type: 'toggleCharacter'; characterId: string }
+  | { type: 'setCharacterReason'; characterId: string; reason: string }
+  | { type: 'applyIndividualPreset'; amount: number; reason: string }
+  | { type: 'setSubmitting'; isSubmitting: boolean }
+
+const awardReducer = (state: AwardState, action: AwardAction): AwardState => {
+  switch (action.type) {
+    case 'reset':
+      return {
+        characterAwards: action.characters.map((character) => ({
+          character,
+          xpAmount: 1,
+          selected: true,
+          reason: '',
+        })),
+        globalXP: 1,
+        globalReason: '',
+        awardMode: 'global',
+        isSubmitting: false,
+      }
+    case 'setGlobalXP':
+      return {
+        ...state,
+        globalXP: action.amount,
+        characterAwards: state.characterAwards.map((award) => ({
+          ...award,
+          xpAmount: action.amount,
+        })),
+      }
+    case 'setGlobalReason':
+      return { ...state, globalReason: action.reason }
+    case 'setAwardMode':
+      return { ...state, awardMode: action.mode }
+    case 'setCharacterXP':
+      return {
+        ...state,
+        characterAwards: state.characterAwards.map((award) =>
+          award.character.id === action.characterId
+            ? {
+                ...award,
+                xpAmount: Math.max(0, Math.min(10, action.amount)),
+              }
+            : award,
+        ),
+      }
+    case 'toggleCharacter':
+      return {
+        ...state,
+        characterAwards: state.characterAwards.map((award) =>
+          award.character.id === action.characterId
+            ? { ...award, selected: !award.selected }
+            : award,
+        ),
+      }
+    case 'setCharacterReason':
+      return {
+        ...state,
+        characterAwards: state.characterAwards.map((award) =>
+          award.character.id === action.characterId
+            ? { ...award, reason: action.reason }
+            : award,
+        ),
+      }
+    case 'applyIndividualPreset':
+      return {
+        ...state,
+        characterAwards: state.characterAwards.map((award) => ({
+          ...award,
+          xpAmount: action.amount,
+          reason: action.reason,
+        })),
+      }
+    case 'setSubmitting':
+      return { ...state, isSubmitting: action.isSubmitting }
+    default:
+      return state
+  }
+}
+
 const XP_PRESETS = [
   { label: 'Minor Achievement', amount: 1, description: 'Small progress or minor success' },
   { label: 'Significant Progress', amount: 2, description: 'Good roleplay or problem solving' },
@@ -38,124 +133,87 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
   const characters = useCharacterStore(state => state.characters)
   const addXP = useCharacterStore(state => state.addXP)
 
-  const [characterAwards, setCharacterAwards] = useState<CharacterXPAward[]>([])
-  const [globalXP, setGlobalXP] = useState<number>(1)
-  const [globalReason, setGlobalReason] = useState<string>('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [awardMode, setAwardMode] = useState<'global' | 'individual'>('global')
+  const [state, dispatch] = useReducer(awardReducer, {
+    characterAwards: [],
+    globalXP: 1,
+    globalReason: '',
+    awardMode: 'global',
+    isSubmitting: false,
+  })
 
-  // Initialize character awards when modal opens
   useEffect(() => {
-    if (isOpen) {
-      setCharacterAwards(
-        characters.map(character => ({
-          character,
-          xpAmount: 1,
-          selected: true,
-          reason: '',
-        })),
-      )
-      setGlobalXP(1)
-      setGlobalReason('')
-      setAwardMode('global')
+    if (!isOpen) {
+      return
     }
-  }, [isOpen, characters])
+
+    dispatch({ type: 'reset', characters })
+    setIsSubmitting(false)
+  }, [characters, isOpen])
+
+  const { characterAwards, globalXP, globalReason, awardMode, isSubmitting } = state
 
   const handleGlobalXPChange = (amount: number) => {
-    setGlobalXP(amount)
-    setCharacterAwards(prev =>
-      prev.map(award => ({
-        ...award,
-        xpAmount: amount,
-      })),
-    )
+    dispatch({ type: 'setGlobalXP', amount })
   }
 
   const handleIndividualXPChange = (characterId: string, amount: number) => {
-    setCharacterAwards(prev =>
-      prev.map(award =>
-        award.character.id === characterId
-          ? { ...award, xpAmount: Math.max(0, Math.min(10, amount)) }
-          : award,
-      ),
-    )
+    dispatch({ type: 'setCharacterXP', characterId, amount })
   }
 
   const handleToggleCharacter = (characterId: string) => {
-    setCharacterAwards(prev =>
-      prev.map(award =>
-        award.character.id === characterId
-          ? { ...award, selected: !award.selected }
-          : award,
-      ),
-    )
+    dispatch({ type: 'toggleCharacter', characterId })
   }
 
   const handleReasonChange = (characterId: string, reason: string) => {
-    setCharacterAwards(prev =>
-      prev.map(award =>
-        award.character.id === characterId
-          ? { ...award, reason }
-          : award,
-      ),
-    )
+    dispatch({ type: 'setCharacterReason', characterId, reason })
   }
 
   const handlePresetXP = (amount: number, description: string) => {
     if (awardMode === 'global') {
-      handleGlobalXPChange(amount)
-      setGlobalReason(description)
-    }
-    else {
-      setCharacterAwards(prev =>
-        prev.map(award => ({
-          ...award,
-          xpAmount: amount,
-          reason: description,
-        })),
-      )
+      dispatch({ type: 'setGlobalXP', amount })
+      dispatch({ type: 'setGlobalReason', reason: description })
+    } else {
+      dispatch({ type: 'applyIndividualPreset', amount, reason: description })
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const selectedAwards = characterAwards.filter(award => award.selected && award.xpAmount > 0)
+    const selectedAwards = characterAwards.filter(
+      (award) => award.selected && award.xpAmount > 0,
+    )
 
     if (selectedAwards.length === 0) {
       return
     }
 
-    setIsSubmitting(true)
+    dispatch({ type: 'setSubmitting', isSubmitting: true })
 
     try {
-      const totalXPAwarded = selectedAwards.reduce((sum, award) => sum + award.xpAmount, 0)
+      const totalXPAwarded = selectedAwards.reduce(
+        (sum, award) => sum + award.xpAmount,
+        0,
+      )
 
       // Award XP to each selected character
       for (const award of selectedAwards) {
-        const reason = awardMode === 'global'
-          ? globalReason || 'Session XP Award'
-          : award.reason || 'Individual XP Award'
+        const reason =
+          awardMode === 'global'
+            ? globalReason || 'Session XP Award'
+            : award.reason || 'Individual XP Award'
 
-        addXP(
-          award.character.id,
-          award.xpAmount,
-          'Session Award',
-          reason,
-        )
+        addXP(award.character.id, award.xpAmount, 'Session Award', reason)
       }
 
       onAwarded?.(totalXPAwarded, selectedAwards.length)
       onClose()
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Error awarding XP:', error)
-    }
-    finally {
-      setIsSubmitting(false)
+    } finally {
+      dispatch({ type: 'setSubmitting', isSubmitting: false })
     }
   }
-
   const selectedCharacters = characterAwards.filter(award => award.selected)
   const totalXPToAward = selectedCharacters.reduce((sum, award) => sum + award.xpAmount, 0)
 
@@ -187,7 +245,7 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                       type="button"
                       variant={awardMode === 'global' ? 'primary' : 'ghost'}
                       size="sm"
-                      onClick={() => setAwardMode('global')}
+                      onClick={() => dispatch({ type: 'setAwardMode', mode: 'global' })}
                     >
                       <Users size={16} />
                       Global Award
@@ -196,7 +254,7 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                       type="button"
                       variant={awardMode === 'individual' ? 'primary' : 'ghost'}
                       size="sm"
-                      onClick={() => setAwardMode('individual')}
+                      onClick={() => dispatch({ type: 'setAwardMode', mode: 'individual' })}
                     >
                       <Star size={16} />
                       Individual Awards
@@ -241,7 +299,7 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                         <Input
                           type="number"
                           value={globalXP}
-                          onChange={e => handleGlobalXPChange(Number.parseInt(e.target.value) || 0)}
+                          onChange={(e) => handleGlobalXPChange(Number.parseInt(e.target.value) || 0)}
                           min="0"
                           max="10"
                         />
@@ -263,7 +321,7 @@ export const XPAwardModal: React.FC<XPAwardModalProps> = ({
                       <label className="text-sm font-medium">Reason</label>
                       <Input
                         value={globalReason}
-                        onChange={e => setGlobalReason(e.target.value)}
+                        onChange={(e) => dispatch({ type: 'setGlobalReason', reason: e.target.value })}
                         placeholder="Why are you awarding this XP?"
                       />
                     </div>

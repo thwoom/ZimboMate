@@ -39,7 +39,9 @@ test.describe('Accessibility Tests', () => {
 
     // Test dice roll with keyboard
     await page.press(':focus', 'Enter')
-    await page.waitForSelector('[data-testid="dice-result"]', { timeout: 3000 })
+    await page.waitForSelector('[data-testid="dice-result"]', {
+      timeout: 3000,
+    })
 
     await checkA11y(page, '[data-testid="dice-panel"]')
   })

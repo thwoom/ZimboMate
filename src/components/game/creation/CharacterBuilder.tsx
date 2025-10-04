@@ -1,21 +1,45 @@
-import type { Alignment, Attributes, Character, CharacterClass, Race } from '../../../models/Character'
+import type {
+  Alignment,
+  Attributes,
+  Character,
+  CharacterClass,
+  Race,
+} from '../../../models/Character'
 import type { Armor, Item, Weapon } from '../../../models/Equipment'
 import React, { useEffect, useMemo, useState } from 'react'
-import { calculateMaxHP, calculateMaxLoad, getAttributeModifier, getClassBaseHP, getClassBaseLoad, getClassDamageDie, getStandardArray } from '../../../models/Character'
+import {
+  calculateMaxHP,
+  calculateMaxLoad,
+  getAttributeModifier,
+  getClassBaseHP,
+  getClassBaseLoad,
+  getClassDamageDie,
+  getStandardArray,
+} from '../../../models/Character'
 import { dwClericSpells, dwWizardSpells } from '../../../spellBookMockData'
 import { useCharacterStore } from '../../../stores/characterStore'
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Progress } from '../../ui'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Input,
+  Progress,
+} from '../../ui'
 
-type StepId
-  = | 'class'
-    | 'identity'
-    | 'alignment'
-    | 'attributes'
-    | 'derived'
-    | 'bonds'
-    | 'gear'
-    | 'spellcasting'
-    | 'review'
+type StepId =
+  | 'class'
+  | 'identity'
+  | 'alignment'
+  | 'attributes'
+  | 'derived'
+  | 'bonds'
+  | 'gear'
+  | 'spellcasting'
+  | 'review'
 
 const ALL_CLASSES: CharacterClass[] = [
   'Fighter',
@@ -46,10 +70,18 @@ const CLASS_RACIAL_OPTIONS: Record<CharacterClass, Race[]> = {
 // DW Racial moves by class and race from the official SRD
 const RACIAL_MOVES: Record<CharacterClass, Record<Race, string[]>> = {
   Fighter: {
-    Human: ['Adaptability: Once per battle, you may reroll a single damage die (your choice).'],
-    Elf: ['Elven Grace: Choose one weapon—you can always treat weapons of that type as having the precise tag.'],
-    Dwarf: ['Dwarven Toughness: You have +2 HP at first level (+1 HP at each additional level).'],
-    Halfling: ['Halfling Luck: When you defy danger on a 12+, you transcend the danger. You not only do what you set out to do, but the GM will offer you a better outcome, true beauty, or a moment of grace.'],
+    Human: [
+      'Adaptability: Once per battle, you may reroll a single damage die (your choice).',
+    ],
+    Elf: [
+      'Elven Grace: Choose one weapon—you can always treat weapons of that type as having the precise tag.',
+    ],
+    Dwarf: [
+      'Dwarven Toughness: You have +2 HP at first level (+1 HP at each additional level).',
+    ],
+    Halfling: [
+      'Halfling Luck: When you defy danger on a 12+, you transcend the danger. You not only do what you set out to do, but the GM will offer you a better outcome, true beauty, or a moment of grace.',
+    ],
     Other: [],
   },
   Paladin: {
@@ -57,35 +89,57 @@ const RACIAL_MOVES: Record<CharacterClass, Record<Race, string[]>> = {
     Other: [],
   },
   Ranger: {
-    Human: ['Favored Enemy: Choose a species of creature. When spout lore about creatures of that type, take +1. +2 damage against creatures of that type.'],
-    Elf: ['Elven Eyes: When you undertake a perilous journey through wilderness, whatever job you take, you succeed as if you rolled a 10+.'],
+    Human: [
+      'Favored Enemy: Choose a species of creature. When spout lore about creatures of that type, take +1. +2 damage against creatures of that type.',
+    ],
+    Elf: [
+      'Elven Eyes: When you undertake a perilous journey through wilderness, whatever job you take, you succeed as if you rolled a 10+.',
+    ],
     Other: [],
   },
   Thief: {
     Human: ['Skilled: Choose any two skills. You have them.'],
-    Halfling: ['Halfling Stealth: When you attack with a ranged weapon and miss, you can choose to deal your damage anyway, but then you\'re definitely in melee with whomever you attacked.'],
-    Elf: ['Elven Grace: Choose one weapon—you can always treat weapons of that type as having the precise tag.'],
+    Halfling: [
+      "Halfling Stealth: When you attack with a ranged weapon and miss, you can choose to deal your damage anyway, but then you're definitely in melee with whomever you attacked.",
+    ],
+    Elf: [
+      'Elven Grace: Choose one weapon—you can always treat weapons of that type as having the precise tag.',
+    ],
     Other: [],
   },
   Bard: {
     Human: ['Healing Song: When you heal with magical song, you heal +2 HP.'],
-    Elf: ['Elven Voice: When you perform, if the audience contains only elves, take +1.'],
+    Elf: [
+      'Elven Voice: When you perform, if the audience contains only elves, take +1.',
+    ],
     Other: [],
   },
   Cleric: {
-    Human: ['Serenity: When you cast a spell you ignore the first point of damage from spell backlash.'],
-    Dwarf: ['Dwarven Clarity: When you commune, on a 10+ you get 1 extra hold.'],
-    Elf: ['Elven Grace: Choose one weapon—you can always treat weapons of that type as having the precise tag.'],
+    Human: [
+      'Serenity: When you cast a spell you ignore the first point of damage from spell backlash.',
+    ],
+    Dwarf: [
+      'Dwarven Clarity: When you commune, on a 10+ you get 1 extra hold.',
+    ],
+    Elf: [
+      'Elven Grace: Choose one weapon—you can always treat weapons of that type as having the precise tag.',
+    ],
     Other: [],
   },
   Druid: {
-    Human: ['Studied Essence: When you spend time in contemplation of an animal you may add its instinct to your sheet.'],
-    Elf: ['Elven Instincts: Whenever you take animal form, hold 1. At any time while in animal form, spend your hold to make an additional move not available to that animal.'],
+    Human: [
+      'Studied Essence: When you spend time in contemplation of an animal you may add its instinct to your sheet.',
+    ],
+    Elf: [
+      'Elven Instincts: Whenever you take animal form, hold 1. At any time while in animal form, spend your hold to make an additional move not available to that animal.',
+    ],
     Other: [],
   },
   Wizard: {
     Human: ['Empowered Magic: Magic Missile deals d4+2 damage.'],
-    Elf: ['Elven Magic: Choose another 1st-level wizard spell for your spellbook.'],
+    Elf: [
+      'Elven Magic: Choose another 1st-level wizard spell for your spellbook.',
+    ],
     Other: [],
   },
   Barbarian: {
@@ -119,9 +173,19 @@ const STARTING_MOVES: Record<CharacterClass, string[]> = {
   Thief: ['Trap Expert', 'Flexible Morals', 'Backstab'],
   Bard: ['Bardic Lore', 'Charming and Open', 'A Port in the Storm'],
   Cleric: ['Deity', 'Divine Guidance', 'Turn Undead', 'Cast a Spell'],
-  Druid: ['Born of the Soil', 'By Nature Sustained', 'Spirit Tongue', 'Shapeshifter', 'Studied Essence'],
+  Druid: [
+    'Born of the Soil',
+    'By Nature Sustained',
+    'Spirit Tongue',
+    'Shapeshifter',
+    'Studied Essence',
+  ],
   Wizard: ['Spellbook', 'Cast a Spell', 'Ritual'],
-  Barbarian: ['Herculean Appetites', 'The Upper Hand', 'What Are You Waiting For?'],
+  Barbarian: [
+    'Herculean Appetites',
+    'The Upper Hand',
+    'What Are You Waiting For?',
+  ],
   Immolator: ['Burning Brand', 'Give Me Fuel, Give Me Fire', 'Zuko Style'],
 }
 
@@ -195,8 +259,7 @@ function createBondDraft(text: string): BondDraft {
 }
 
 function ensureBondDrafts(value: unknown): BondDraft[] {
-  if (!Array.isArray(value))
-    return []
+  if (!Array.isArray(value)) return []
   return value.map((item) => {
     if (typeof item === 'string') {
       return createBondDraft(item)
@@ -204,7 +267,8 @@ function ensureBondDrafts(value: unknown): BondDraft[] {
     if (item && typeof item === 'object') {
       const candidate = item as Partial<BondDraft>
       return {
-        id: typeof candidate.id === 'string' ? candidate.id : generateId('bond'),
+        id:
+          typeof candidate.id === 'string' ? candidate.id : generateId('bond'),
         text: typeof candidate.text === 'string' ? candidate.text : '',
       }
     }
@@ -213,7 +277,9 @@ function ensureBondDrafts(value: unknown): BondDraft[] {
 }
 
 function ensureSpellbook(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((spell): spell is string => typeof spell === 'string') : []
+  return Array.isArray(value)
+    ? value.filter((spell): spell is string => typeof spell === 'string')
+    : []
 }
 
 function ensureGearSeeds(value: unknown): GearSeed[] {
@@ -221,149 +287,671 @@ function ensureGearSeeds(value: unknown): GearSeed[] {
 }
 
 // Authentic Dungeon World starting equipment by class
-const CLASS_STARTING_GEAR: Record<CharacterClass, {
-  base: GearSeed[]
-  choice?: { prompt: string, options: GearSeed[][] }
-}> = {
+const CLASS_STARTING_GEAR: Record<
+  CharacterClass,
+  {
+    base: GearSeed[]
+    choice?: { prompt: string; options: GearSeed[][] }
+  }
+> = {
   Fighter: {
     base: [
-      { name: 'Chainmail', category: 'armor', weight: 3, equipped: true, tags: [{ name: 'worn' }, { name: 'mail' }], armorValue: 2, value: 40 },
-      { name: 'Sword', category: 'weapon', weight: 2, equipped: true, tags: [{ name: 'close' }, { name: 'messy' }], damage: '1d8', value: 15 },
-      { name: 'Shield', category: 'armor', weight: 2, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 15 },
-      { name: 'Javelin', category: 'weapon', weight: 1, equipped: false, tags: [{ name: 'thrown' }, { name: 'near' }], damage: '1d6', value: 5 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
+      {
+        name: 'Chainmail',
+        category: 'armor',
+        weight: 3,
+        equipped: true,
+        tags: [{ name: 'worn' }, { name: 'mail' }],
+        armorValue: 2,
+        value: 40,
+      },
+      {
+        name: 'Sword',
+        category: 'weapon',
+        weight: 2,
+        equipped: true,
+        tags: [{ name: 'close' }, { name: 'messy' }],
+        damage: '1d8',
+        value: 15,
+      },
+      {
+        name: 'Shield',
+        category: 'armor',
+        weight: 2,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 15,
+      },
+      {
+        name: 'Javelin',
+        category: 'weapon',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'thrown' }, { name: 'near' }],
+        damage: '1d6',
+        value: 5,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
     ],
   },
   Paladin: {
     base: [
-      { name: 'Plate', category: 'armor', weight: 4, equipped: true, tags: [{ name: 'worn' }, { name: 'plate' }], armorValue: 3, value: 350 },
-      { name: 'Symbol of the Divine', category: 'gear', weight: 0, equipped: true, tags: [{ name: 'holy' }], value: 25 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
+      {
+        name: 'Plate',
+        category: 'armor',
+        weight: 4,
+        equipped: true,
+        tags: [{ name: 'worn' }, { name: 'plate' }],
+        armorValue: 3,
+        value: 350,
+      },
+      {
+        name: 'Symbol of the Divine',
+        category: 'gear',
+        weight: 0,
+        equipped: true,
+        tags: [{ name: 'holy' }],
+        value: 25,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
     ],
     choice: {
       prompt: 'Choose your weapon:',
       options: [
-        [{ name: 'Halberd', category: 'weapon', weight: 2, equipped: true, tags: [{ name: 'reach' }, { name: 'two-handed' }], damage: '1d10', value: 9 }],
-        [{ name: 'Sword', category: 'weapon', weight: 2, equipped: true, tags: [{ name: 'close' }, { name: 'messy' }], damage: '1d8', value: 15 }],
+        [
+          {
+            name: 'Halberd',
+            category: 'weapon',
+            weight: 2,
+            equipped: true,
+            tags: [{ name: 'reach' }, { name: 'two-handed' }],
+            damage: '1d10',
+            value: 9,
+          },
+        ],
+        [
+          {
+            name: 'Sword',
+            category: 'weapon',
+            weight: 2,
+            equipped: true,
+            tags: [{ name: 'close' }, { name: 'messy' }],
+            damage: '1d8',
+            value: 15,
+          },
+        ],
       ],
     },
   },
   Ranger: {
     base: [
-      { name: 'Leather Armor', category: 'armor', weight: 1, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 10 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
+      {
+        name: 'Leather Armor',
+        category: 'armor',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 10,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
     ],
     choice: {
       prompt: 'Choose your weapon set:',
       options: [
-        [{ name: 'Hunter\'s Bow', category: 'weapon', weight: 2, equipped: true, tags: [{ name: 'near' }, { name: 'far' }], damage: '1d8', value: 60 }, { name: 'Bundle of Arrows', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'ammo' }, { name: 'uses', value: 30 }], value: 1 }],
-        [{ name: 'Shillelagh', category: 'weapon', weight: 2, equipped: true, tags: [{ name: 'close' }], damage: '1d8', value: 1 }],
+        [
+          {
+            name: "Hunter's Bow",
+            category: 'weapon',
+            weight: 2,
+            equipped: true,
+            tags: [{ name: 'near' }, { name: 'far' }],
+            damage: '1d8',
+            value: 60,
+          },
+          {
+            name: 'Bundle of Arrows',
+            category: 'gear',
+            weight: 1,
+            equipped: false,
+            tags: [{ name: 'ammo' }, { name: 'uses', value: 30 }],
+            value: 1,
+          },
+        ],
+        [
+          {
+            name: 'Shillelagh',
+            category: 'weapon',
+            weight: 2,
+            equipped: true,
+            tags: [{ name: 'close' }],
+            damage: '1d8',
+            value: 1,
+          },
+        ],
       ],
     },
   },
   Thief: {
     base: [
-      { name: 'Leather Armor', category: 'armor', weight: 1, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 10 },
-      { name: 'Dagger', category: 'weapon', weight: 1, equipped: true, tags: [{ name: 'hand' }], damage: '1d4', value: 2 },
-      { name: 'Thieves\' Tools', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 3 }], value: 25 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
+      {
+        name: 'Leather Armor',
+        category: 'armor',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 10,
+      },
+      {
+        name: 'Dagger',
+        category: 'weapon',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'hand' }],
+        damage: '1d4',
+        value: 2,
+      },
+      {
+        name: "Thieves' Tools",
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 3 }],
+        value: 25,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
     ],
     choice: {
       prompt: 'Choose one:',
       options: [
-        [{ name: 'Ragged Bow', category: 'weapon', weight: 2, equipped: false, tags: [{ name: 'near' }], damage: '1d6', value: 15 }, { name: 'Bundle of Arrows', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'ammo' }, { name: 'uses', value: 30 }], value: 1 }],
-        [{ name: 'Rapier', category: 'weapon', weight: 1, equipped: false, tags: [{ name: 'close' }, { name: 'precise' }], damage: '1d8', value: 25 }],
+        [
+          {
+            name: 'Ragged Bow',
+            category: 'weapon',
+            weight: 2,
+            equipped: false,
+            tags: [{ name: 'near' }],
+            damage: '1d6',
+            value: 15,
+          },
+          {
+            name: 'Bundle of Arrows',
+            category: 'gear',
+            weight: 1,
+            equipped: false,
+            tags: [{ name: 'ammo' }, { name: 'uses', value: 30 }],
+            value: 1,
+          },
+        ],
+        [
+          {
+            name: 'Rapier',
+            category: 'weapon',
+            weight: 1,
+            equipped: false,
+            tags: [{ name: 'close' }, { name: 'precise' }],
+            damage: '1d8',
+            value: 25,
+          },
+        ],
       ],
     },
   },
   Bard: {
     base: [
-      { name: 'Leather Armor', category: 'armor', weight: 1, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 10 },
-      { name: 'Dueling Rapier', category: 'weapon', weight: 1, equipped: true, tags: [{ name: 'close' }, { name: 'precise' }], damage: '1d8', value: 25 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
+      {
+        name: 'Leather Armor',
+        category: 'armor',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 10,
+      },
+      {
+        name: 'Dueling Rapier',
+        category: 'weapon',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'close' }, { name: 'precise' }],
+        damage: '1d8',
+        value: 25,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
     ],
     choice: {
       prompt: 'Choose one:',
       options: [
-        [{ name: 'Healing Potion', category: 'consumable', weight: 0, equipped: false, tags: [{ name: 'magical' }], value: 50 }],
-        [{ name: 'Bandages', category: 'gear', weight: 0, equipped: false, tags: [{ name: 'uses', value: 3 }], value: 5 }],
+        [
+          {
+            name: 'Healing Potion',
+            category: 'consumable',
+            weight: 0,
+            equipped: false,
+            tags: [{ name: 'magical' }],
+            value: 50,
+          },
+        ],
+        [
+          {
+            name: 'Bandages',
+            category: 'gear',
+            weight: 0,
+            equipped: false,
+            tags: [{ name: 'uses', value: 3 }],
+            value: 5,
+          },
+        ],
       ],
     },
   },
   Cleric: {
     base: [
-      { name: 'Scale Mail', category: 'armor', weight: 3, equipped: true, tags: [{ name: 'worn' }, { name: 'mail' }], armorValue: 2, value: 50 },
-      { name: 'Shield', category: 'armor', weight: 2, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 15 },
-      { name: 'Warhammer', category: 'weapon', weight: 1, equipped: true, tags: [{ name: 'close' }], damage: '1d6', value: 8 },
-      { name: 'Symbol of the Divine', category: 'gear', weight: 0, equipped: true, tags: [{ name: 'holy' }], value: 25 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
+      {
+        name: 'Scale Mail',
+        category: 'armor',
+        weight: 3,
+        equipped: true,
+        tags: [{ name: 'worn' }, { name: 'mail' }],
+        armorValue: 2,
+        value: 50,
+      },
+      {
+        name: 'Shield',
+        category: 'armor',
+        weight: 2,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 15,
+      },
+      {
+        name: 'Warhammer',
+        category: 'weapon',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'close' }],
+        damage: '1d6',
+        value: 8,
+      },
+      {
+        name: 'Symbol of the Divine',
+        category: 'gear',
+        weight: 0,
+        equipped: true,
+        tags: [{ name: 'holy' }],
+        value: 25,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
     ],
   },
   Druid: {
     base: [
-      { name: 'Leather Armor', category: 'armor', weight: 1, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 10 },
-      { name: 'Shield', category: 'armor', weight: 2, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 15 },
-      { name: 'Scimitar', category: 'weapon', weight: 1, equipped: true, tags: [{ name: 'close' }], damage: '1d6', value: 10 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
+      {
+        name: 'Leather Armor',
+        category: 'armor',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 10,
+      },
+      {
+        name: 'Shield',
+        category: 'armor',
+        weight: 2,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 15,
+      },
+      {
+        name: 'Scimitar',
+        category: 'weapon',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'close' }],
+        damage: '1d6',
+        value: 10,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
     ],
     choice: {
       prompt: 'Choose one:',
       options: [
-        [{ name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 }],
-        [{ name: 'Poultices and Herbs', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 2 }], value: 10 }],
+        [
+          {
+            name: 'Adventuring Gear',
+            category: 'gear',
+            weight: 1,
+            equipped: false,
+            tags: [{ name: 'uses', value: 5 }],
+            value: 20,
+          },
+        ],
+        [
+          {
+            name: 'Poultices and Herbs',
+            category: 'gear',
+            weight: 1,
+            equipped: false,
+            tags: [{ name: 'uses', value: 2 }],
+            value: 10,
+          },
+        ],
       ],
     },
   },
   Wizard: {
     base: [
-      { name: 'Leather Armor', category: 'armor', weight: 1, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 10 },
-      { name: 'Spellbook', category: 'gear', weight: 1, equipped: true, tags: [{ name: 'magical' }], value: 50 },
-      { name: 'Dagger', category: 'weapon', weight: 1, equipped: false, tags: [{ name: 'hand' }], damage: '1d4', value: 2 },
-      { name: 'Staff', category: 'weapon', weight: 1, equipped: true, tags: [{ name: 'close' }, { name: 'two-handed' }], damage: '1d6', value: 1 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
+      {
+        name: 'Leather Armor',
+        category: 'armor',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 10,
+      },
+      {
+        name: 'Spellbook',
+        category: 'gear',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'magical' }],
+        value: 50,
+      },
+      {
+        name: 'Dagger',
+        category: 'weapon',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'hand' }],
+        damage: '1d4',
+        value: 2,
+      },
+      {
+        name: 'Staff',
+        category: 'weapon',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'close' }, { name: 'two-handed' }],
+        damage: '1d6',
+        value: 1,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
     ],
     choice: {
       prompt: 'Choose one:',
       options: [
-        [{ name: 'Bag of Books', category: 'gear', weight: 2, equipped: false, tags: [{ name: 'magical' }, { name: 'uses', value: 5 }], value: 10 }],
-        [{ name: 'Healing Potion', category: 'consumable', weight: 0, equipped: false, tags: [{ name: 'magical' }], value: 50 }],
+        [
+          {
+            name: 'Bag of Books',
+            category: 'gear',
+            weight: 2,
+            equipped: false,
+            tags: [{ name: 'magical' }, { name: 'uses', value: 5 }],
+            value: 10,
+          },
+        ],
+        [
+          {
+            name: 'Healing Potion',
+            category: 'consumable',
+            weight: 0,
+            equipped: false,
+            tags: [{ name: 'magical' }],
+            value: 50,
+          },
+        ],
       ],
     },
   },
   Barbarian: {
     base: [
-      { name: 'Leather Armor', category: 'armor', weight: 1, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 10 },
-      { name: 'Axe', category: 'weapon', weight: 1, equipped: true, tags: [{ name: 'close' }], damage: '1d6', value: 5 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
+      {
+        name: 'Leather Armor',
+        category: 'armor',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 10,
+      },
+      {
+        name: 'Axe',
+        category: 'weapon',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'close' }],
+        damage: '1d6',
+        value: 5,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
     ],
     choice: {
       prompt: 'Choose one:',
       options: [
-        [{ name: 'Two-handed Sword', category: 'weapon', weight: 2, equipped: false, tags: [{ name: 'close' }, { name: 'two-handed' }, { name: 'messy' }], damage: '1d10', value: 60 }],
-        [{ name: 'Shield', category: 'armor', weight: 2, equipped: false, tags: [{ name: 'worn' }], armorValue: 1, value: 15 }],
+        [
+          {
+            name: 'Two-handed Sword',
+            category: 'weapon',
+            weight: 2,
+            equipped: false,
+            tags: [
+              { name: 'close' },
+              { name: 'two-handed' },
+              { name: 'messy' },
+            ],
+            damage: '1d10',
+            value: 60,
+          },
+        ],
+        [
+          {
+            name: 'Shield',
+            category: 'armor',
+            weight: 2,
+            equipped: false,
+            tags: [{ name: 'worn' }],
+            armorValue: 1,
+            value: 15,
+          },
+        ],
       ],
     },
   },
   Immolator: {
     base: [
-      { name: 'Leather Armor', category: 'armor', weight: 1, equipped: true, tags: [{ name: 'worn' }], armorValue: 1, value: 10 },
-      { name: 'Sword', category: 'weapon', weight: 2, equipped: true, tags: [{ name: 'close' }, { name: 'messy' }], damage: '1d8', value: 15 },
-      { name: 'Adventuring Gear', category: 'gear', weight: 1, equipped: false, tags: [{ name: 'uses', value: 5 }], value: 20 },
-      { name: 'Dungeon Rations', category: 'consumable', weight: 1, equipped: false, tags: [{ name: 'ration' }, { name: 'uses', value: 5 }], value: 10 },
+      {
+        name: 'Leather Armor',
+        category: 'armor',
+        weight: 1,
+        equipped: true,
+        tags: [{ name: 'worn' }],
+        armorValue: 1,
+        value: 10,
+      },
+      {
+        name: 'Sword',
+        category: 'weapon',
+        weight: 2,
+        equipped: true,
+        tags: [{ name: 'close' }, { name: 'messy' }],
+        damage: '1d8',
+        value: 15,
+      },
+      {
+        name: 'Adventuring Gear',
+        category: 'gear',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'uses', value: 5 }],
+        value: 20,
+      },
+      {
+        name: 'Dungeon Rations',
+        category: 'consumable',
+        weight: 1,
+        equipped: false,
+        tags: [{ name: 'ration' }, { name: 'uses', value: 5 }],
+        value: 10,
+      },
     ],
     choice: {
       prompt: 'Choose one:',
       options: [
-        [{ name: 'Dagger', category: 'weapon', weight: 1, equipped: false, tags: [{ name: 'hand' }], damage: '1d4', value: 2 }],
-        [{ name: 'Firebrand', category: 'weapon', weight: 1, equipped: false, tags: [{ name: 'close' }, { name: 'dangerous' }, { name: 'fiery' }], damage: '1d6', value: 20 }],
+        [
+          {
+            name: 'Dagger',
+            category: 'weapon',
+            weight: 1,
+            equipped: false,
+            tags: [{ name: 'hand' }],
+            damage: '1d4',
+            value: 2,
+          },
+        ],
+        [
+          {
+            name: 'Firebrand',
+            category: 'weapon',
+            weight: 1,
+            equipped: false,
+            tags: [{ name: 'close' }, { name: 'dangerous' }, { name: 'fiery' }],
+            damage: '1d6',
+            value: 20,
+          },
+        ],
       ],
     },
   },
@@ -392,7 +980,7 @@ const CLASS_BOND_TEMPLATES: Record<CharacterClass, string[]> = {
     '___ will play an important role in the events to come. I have foreseen it!',
     '___ is keeping an important secret from me.',
     '___ has been my apprentice. I taught them the basics of magic.',
-    '___ witnessed me breaking the fundamental laws of magic. They saw me summon something I shouldn\'t have.',
+    "___ witnessed me breaking the fundamental laws of magic. They saw me summon something I shouldn't have.",
   ],
   Cleric: [
     '___ has insulted my deity; I must show them the true way.',
@@ -420,7 +1008,7 @@ const CLASS_BOND_TEMPLATES: Record<CharacterClass, string[]> = {
   ],
   Barbarian: [
     '___ is puny and foolish, but amusing to me.',
-    '___\'s ways are strange and confusing.',
+    "___'s ways are strange and confusing.",
     '___ is always getting into trouble—I must protect them from themselves.',
     '___ shares my hunger for glory; the earth will tremble at our deeds!',
   ],
@@ -446,7 +1034,14 @@ interface Draft {
   deity?: string // For Clerics/Paladins: chosen deity
 }
 
-const emptyAttributes: Attributes = { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 }
+const emptyAttributes: Attributes = {
+  STR: 8,
+  DEX: 8,
+  CON: 8,
+  INT: 8,
+  WIS: 8,
+  CHA: 8,
+}
 
 function ensureAttributes(value: unknown): Attributes {
   if (!value || typeof value !== 'object') {
@@ -462,6 +1057,8 @@ function ensureAttributes(value: unknown): Attributes {
     CHA: typeof attr.CHA === 'number' ? attr.CHA : emptyAttributes.CHA,
   }
 }
+
+const STORAGE_KEY = 'zmbv2-character-builder-draft'
 
 function createEmptyDraft(): Draft {
   return {
@@ -486,9 +1083,13 @@ function loadDraftFromStorage(): Draft {
   }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw)
-      return base
-    const parsed = JSON.parse(raw) as Partial<Draft> & { bonds?: unknown, spellbook?: unknown, gear?: unknown, attributes?: unknown }
+    if (!raw) return base
+    const parsed = JSON.parse(raw) as Partial<Draft> & {
+      bonds?: unknown
+      spellbook?: unknown
+      gear?: unknown
+      attributes?: unknown
+    }
     const draft: Draft = {
       ...base,
       ...parsed,
@@ -498,8 +1099,7 @@ function loadDraftFromStorage(): Draft {
       spellbook: ensureSpellbook(parsed.spellbook),
     }
     return draft
-  }
-  catch {
+  } catch {
     return base
   }
 }
@@ -512,10 +1112,22 @@ const DUNGEON_WORLD_DEITIES = [
   { name: 'Kord the Storm Lord', domain: 'Storms', alignment: 'Chaotic' },
   { name: 'Pelor the Sun God', domain: 'Sun', alignment: 'Good' },
   { name: 'The Raven Queen', domain: 'Death', alignment: 'Neutral' },
-  { name: 'Bahamut the Platinum Dragon', domain: 'Justice', alignment: 'Lawful' },
+  {
+    name: 'Bahamut the Platinum Dragon',
+    domain: 'Justice',
+    alignment: 'Lawful',
+  },
   { name: 'Melora the Wild Mother', domain: 'Nature', alignment: 'Neutral' },
-  { name: 'Ioun the Knowing Mistress', domain: 'Knowledge', alignment: 'Neutral' },
-  { name: 'Avandra the Change Bringer', domain: 'Freedom', alignment: 'Chaotic' },
+  {
+    name: 'Ioun the Knowing Mistress',
+    domain: 'Knowledge',
+    alignment: 'Neutral',
+  },
+  {
+    name: 'Avandra the Change Bringer',
+    domain: 'Freedom',
+    alignment: 'Chaotic',
+  },
 ]
 
 // Helper functions for spellcasting
@@ -527,20 +1139,19 @@ function requiresDeity(characterClass?: CharacterClass): boolean {
   return characterClass === 'Cleric' || characterClass === 'Paladin'
 }
 
-const STORAGE_KEY = 'zmbv2-character-builder-draft'
-
-export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFinished }) => {
+export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({
+  onFinished,
+}) => {
   const { createCharacter, setActiveCharacter } = useCharacterStore()
   const [step, setStep] = useState<StepId>('class')
   const [draft, setDraft] = useState<Draft>(loadDraftFromStorage)
 
   useEffect(() => {
-    if (typeof window === 'undefined')
-      return
+    if (typeof window === 'undefined') return
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
   }, [draft])
 
-  const steps: { id: StepId, title: string, desc?: string }[] = [
+  const steps: { id: StepId; title: string; desc?: string }[] = [
     { id: 'class', title: 'Choose Class' },
     { id: 'identity', title: 'Identity' },
     { id: 'alignment', title: 'Alignment' },
@@ -551,44 +1162,57 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
     { id: 'spellcasting', title: 'Spellcasting' },
     { id: 'review', title: 'Review & Create' },
   ]
-  const stepIndex = steps.findIndex(s => s.id === step)
+  const stepIndex = steps.findIndex((s) => s.id === step)
   const canNext = useMemo(() => {
     switch (step) {
-      case 'class': return !!draft.class
-      case 'identity': return !!draft.name && !!draft.race
-      case 'alignment': return !!draft.alignment
-      case 'attributes': return true
-      case 'derived': return true
-      case 'bonds': return true
-      case 'gear': return true
+      case 'class':
+        return !!draft.class
+      case 'identity':
+        return !!draft.name && !!draft.race
+      case 'alignment':
+        return !!draft.alignment
+      case 'attributes':
+        return true
+      case 'derived':
+        return true
+      case 'bonds':
+        return true
+      case 'gear':
+        return true
       case 'spellcasting': {
         // Skip if not a spellcaster/deity user, or validate required fields
         if (!isSpellcaster(draft.class) && !requiresDeity(draft.class))
           return true
-        if (requiresDeity(draft.class) && !draft.deity)
+        if (requiresDeity(draft.class) && !draft.deity) return false
+        if (
+          draft.class === 'Wizard' &&
+          (!draft.spellbook || draft.spellbook.length === 0)
+        )
           return false
-        if (draft.class === 'Wizard' && (!draft.spellbook || draft.spellbook.length === 0))
-          return false
-        if (draft.class === 'Cleric' && (!draft.spellbook || draft.spellbook.length === 0))
+        if (
+          draft.class === 'Cleric' &&
+          (!draft.spellbook || draft.spellbook.length === 0)
+        )
           return false
         return true
       }
-      case 'review': return true
-      default: return false
+      case 'review':
+        return true
+      default:
+        return false
     }
   }, [step, draft])
 
-  const next = () => setStep(steps[Math.min(stepIndex + 1, steps.length - 1)].id)
+  const next = () =>
+    setStep(steps[Math.min(stepIndex + 1, steps.length - 1)].id)
   const back = () => setStep(steps[Math.max(stepIndex - 1, 0)].id)
   const saveAndExit = () => {
-    if (typeof window === 'undefined')
-      return
+    if (typeof window === 'undefined') return
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft))
   }
 
   const derivedPreview = useMemo(() => {
-    if (!draft.class)
-      return null
+    if (!draft.class) return null
     const base: Character = {
       id: 'temp',
       name: draft.name || 'Unnamed',
@@ -597,7 +1221,14 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
       level: 1,
       alignment: draft.alignment || 'Neutral',
       attributes: draft.attributes,
-      debilities: { weak: false, shaky: false, sick: false, stunned: false, confused: false, scarred: false },
+      debilities: {
+        weak: false,
+        shaky: false,
+        sick: false,
+        stunned: false,
+        confused: false,
+        scarred: false,
+      },
       hp: { current: 1, max: 1 },
       armor: 0,
       damageDie: getClassDamageDie(draft.class),
@@ -618,11 +1249,10 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
   }, [draft])
 
   const finalize = () => {
-    if (!draft.class || !draft.race || !draft.alignment || !draft.name)
-      return
+    if (!draft.class || !draft.race || !draft.alignment || !draft.name) return
 
     const bondTexts = (draft.bonds || [])
-      .map(bond => bond.text?.trim())
+      .map((bond) => bond.text?.trim())
       .filter((value): value is string => !!value)
 
     const timestamp = Date.now()
@@ -654,19 +1284,35 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
       level: 1,
       alignment: draft.alignment,
       attributes: draft.attributes,
-      debilities: { weak: false, shaky: false, sick: false, stunned: false, confused: false, scarred: false },
-      hp: { current: derivedPreview?.maxHp || getClassBaseHP(draft.class), max: derivedPreview?.maxHp || getClassBaseHP(draft.class) },
+      debilities: {
+        weak: false,
+        shaky: false,
+        sick: false,
+        stunned: false,
+        confused: false,
+        scarred: false,
+      },
+      hp: {
+        current: derivedPreview?.maxHp || getClassBaseHP(draft.class),
+        max: derivedPreview?.maxHp || getClassBaseHP(draft.class),
+      },
       armor: 0,
       damageDie: getClassDamageDie(draft.class),
       xp: 0,
-      load: { current: 0, max: derivedPreview?.maxLoad ?? getClassBaseLoad(draft.class) },
+      load: {
+        current: 0,
+        max: derivedPreview?.maxLoad ?? getClassBaseLoad(draft.class),
+      },
       baseLoad: getClassBaseLoad(draft.class),
       coin: 0,
       bonds,
       advancements: [],
       knownMoves: STARTING_MOVES[draft.class] || [],
       knownSpells: draft.spellbook || [],
-      preparedSpells: (draft.class === 'Wizard' || draft.class === 'Cleric') ? (draft.spellbook || []) : [],
+      preparedSpells:
+        draft.class === 'Wizard' || draft.class === 'Cleric'
+          ? draft.spellbook || []
+          : [],
       deity: draft.deity,
       inventory,
       notes: '',
@@ -681,9 +1327,12 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
     onFinished?.()
   }
 
+  // eslint-disable-next-line react/no-nested-component-definitions
   const StandardArrayAssign: React.FC = () => {
     const pool = getStandardArray()
-    const [assignments, setAssignments] = useState<Record<keyof Attributes, number>>({
+    const [assignments, setAssignments] = useState<
+      Record<keyof Attributes, number>
+    >({
       STR: draft.attributes.STR,
       DEX: draft.attributes.DEX,
       CON: draft.attributes.CON,
@@ -693,7 +1342,7 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
     })
 
     const used = new Set(Object.values(assignments))
-    const remaining = pool.filter(v => !used.has(v))
+    const remaining = pool.filter((v) => !used.has(v))
 
     const setVal = (attr: keyof Attributes, value: number) => {
       setAssignments((a) => {
@@ -704,35 +1353,39 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
     }
 
     useEffect(() => {
-      setDraft(d => ({ ...d, attributes: assignments as Attributes }))
+      setDraft((d) => ({ ...d, attributes: assignments as Attributes }))
     }, [assignments])
 
     return (
-      <div className="space-y-4">
-        <div className="text-sm text-muted-foreground">
+      <div className='space-y-4'>
+        <div className='text-sm text-muted-foreground'>
           Standard Array:
           {pool.join(', ')}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {(Object.keys(assignments) as (keyof Attributes)[]).map(attr => (
-            <Card key={attr} variant="surface">
-              <CardContent className="p-4 pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-medium">{attr}</div>
-                  <Badge variant="secondary">
+        <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+          {(Object.keys(assignments) as (keyof Attributes)[]).map((attr) => (
+            <Card key={attr} variant='surface'>
+              <CardContent className='p-4 pt-4'>
+                <div className='flex items-center justify-between mb-2'>
+                  <div className='font-medium'>{attr}</div>
+                  <Badge variant='secondary'>
                     mod
-                    {getAttributeModifier(assignments[attr]) >= 0 ? `+${getAttributeModifier(assignments[attr])}` : getAttributeModifier(assignments[attr])}
+                    {getAttributeModifier(assignments[attr]) >= 0
+                      ? `+${getAttributeModifier(assignments[attr])}`
+                      : getAttributeModifier(assignments[attr])}
                   </Badge>
                 </div>
                 <select
-                  className="w-full rounded-md border px-2 py-1 bg-card text-sm"
+                  className='w-full rounded-md border px-2 py-1 bg-card text-sm'
                   value={assignments[attr]}
-                  onChange={e => setVal(attr, Number(e.target.value))}
+                  onChange={(e) => setVal(attr, Number(e.target.value))}
                   aria-label={`Assign value to ${attr}`}
                   title={`Assign value to ${attr}`}
                 >
-                  {[assignments[attr], ...remaining].map(val => (
-                    <option key={`${attr}-${val}`} value={val}>{val}</option>
+                  {[assignments[attr], ...remaining].map((val) => (
+                    <option key={`${attr}-${val}`} value={val}>
+                      {val}
+                    </option>
                   ))}
                 </select>
               </CardContent>
@@ -744,20 +1397,25 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
   }
 
   return (
-    <Card variant="magical">
+    <Card variant='magical'>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className='flex items-center justify-between'>
           <div>
             <CardTitle>Character Builder</CardTitle>
-            <CardDescription>Create a valid Dungeon World character</CardDescription>
+            <CardDescription>
+              Create a valid Dungeon World character
+            </CardDescription>
           </div>
-          <div className="min-w-[160px]">
-            <Progress variant="experience" value={stepIndex + 1} max={steps.length} aria-label={`Step ${stepIndex + 1} of ${steps.length}`} />
-            <p className="mt-1 text-xs text-muted-foreground">
+          <div className='min-w-[160px]'>
+            <Progress
+              variant='experience'
+              value={stepIndex + 1}
+              max={steps.length}
+              aria-label={`Step ${stepIndex + 1} of ${steps.length}`}
+            />
+            <p className='mt-1 text-xs text-muted-foreground'>
               Step
-              {stepIndex + 1}
-              {' '}
-              of
+              {stepIndex + 1} of
               {steps.length}
             </p>
           </div>
@@ -766,9 +1424,9 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
 
       <CardContent>
         {step === 'class' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {ALL_CLASSES.map(cls => (
+          <div className='space-y-4'>
+            <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+              {ALL_CLASSES.map((cls) => (
                 <Button
                   key={cls}
                   variant={draft.class === cls ? 'primary' : 'outline'}
@@ -776,27 +1434,51 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
                     setDraft((d) => {
                       const availableRaces = CLASS_RACIAL_OPTIONS[cls]
                       const currentRace = d.race
-                      const newRace = availableRaces.includes(currentRace || '') ? currentRace : availableRaces[0]
+                      const newRace = availableRaces.includes(currentRace || '')
+                        ? currentRace
+                        : availableRaces[0]
 
                       const availableAlignments = CLASS_ALIGNMENTS[cls]
                       const currentAlignment = d.alignment
-                      const newAlignment = availableAlignments.includes(currentAlignment || '') ? currentAlignment : availableAlignments[0]
+                      const newAlignment = availableAlignments.includes(
+                        currentAlignment || '',
+                      )
+                        ? currentAlignment
+                        : availableAlignments[0]
 
-                      const newDraft: Draft = { ...d, class: cls, race: newRace, alignment: newAlignment }
+                      const newDraft: Draft = {
+                        ...d,
+                        class: cls,
+                        race: newRace,
+                        alignment: newAlignment,
+                      }
 
                       // Class-specific attribute requirements
                       if (cls === 'Wizard') {
-                        newDraft.attributes = { ...d.attributes, INT: Math.max(d.attributes.INT, 16) }
+                        newDraft.attributes = {
+                          ...d.attributes,
+                          INT: Math.max(d.attributes.INT, 16),
+                        }
                       }
 
                       if (!isSpellcaster(cls)) {
                         newDraft.spellbook = []
-                      }
-                      else if (cls === 'Cleric' && (newDraft.spellbook?.length || 0) > 2) {
-                        newDraft.spellbook = (newDraft.spellbook || []).slice(0, 2)
-                      }
-                      else if (cls === 'Wizard' && (newDraft.spellbook?.length || 0) > 3) {
-                        newDraft.spellbook = (newDraft.spellbook || []).slice(0, 3)
+                      } else if (
+                        cls === 'Cleric' &&
+                        (newDraft.spellbook?.length || 0) > 2
+                      ) {
+                        newDraft.spellbook = (newDraft.spellbook || []).slice(
+                          0,
+                          2,
+                        )
+                      } else if (
+                        cls === 'Wizard' &&
+                        (newDraft.spellbook?.length || 0) > 3
+                      ) {
+                        newDraft.spellbook = (newDraft.spellbook || []).slice(
+                          0,
+                          3,
+                        )
                       }
 
                       if (!requiresDeity(cls)) {
@@ -815,58 +1497,95 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
         )}
 
         {step === 'identity' && (
-          <div className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+          <div className='space-y-4'>
+            <div className='grid md:grid-cols-2 gap-4'>
               <div>
-                <label className="text-sm" htmlFor="builder-name">Name</label>
-                <Input id="builder-name" value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))} placeholder="Your hero's name" />
+                <label className='text-sm' htmlFor='builder-name'>
+                  Name
+                </label>
+                <Input
+                  id='builder-name'
+                  value={draft.name}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, name: e.target.value }))
+                  }
+                  placeholder="Your hero's name"
+                />
               </div>
               <div>
-                <label className="text-sm" htmlFor="builder-race">Race</label>
+                <label className='text-sm' htmlFor='builder-race'>
+                  Race
+                </label>
                 <select
-                  id="builder-race"
-                  className="w-full rounded-md border px-2 py-2 bg-card"
+                  id='builder-race'
+                  className='w-full rounded-md border px-2 py-2 bg-card'
                   value={draft.race || ''}
-                  onChange={e => setDraft(d => ({ ...d, race: e.target.value as Race }))}
-                  aria-label="Select race"
-                  title="Select race"
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, race: e.target.value as Race }))
+                  }
+                  aria-label='Select race'
+                  title='Select race'
                 >
-                  <option value="" disabled>Select race</option>
-                  {(draft.class ? CLASS_RACIAL_OPTIONS[draft.class] : []).map(r => <option key={r} value={r}>{r}</option>)}
+                  <option value='' disabled>
+                    Select race
+                  </option>
+                  {(draft.class ? CLASS_RACIAL_OPTIONS[draft.class] : []).map(
+                    (r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
             </div>
             <div>
-              <label className="text-sm" htmlFor="builder-look">Look (appearance)</label>
-              <Input id="builder-look" value={draft.look || ''} onChange={e => setDraft(d => ({ ...d, look: e.target.value }))} placeholder="e.g., Tired eyes, ink-stained hands" />
+              <label className='text-sm' htmlFor='builder-look'>
+                Look (appearance)
+              </label>
+              <Input
+                id='builder-look'
+                value={draft.look || ''}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, look: e.target.value }))
+                }
+                placeholder='e.g., Tired eyes, ink-stained hands'
+              />
             </div>
 
             {/* Show racial move for selected class/race */}
-            {draft.class && draft.race && RACIAL_MOVES[draft.class]?.[draft.race]?.length > 0 && (
-              <Card variant="surface">
-                <CardContent className="p-4 pt-4">
-                  <div className="space-y-2">
-                    <div className="font-medium text-sm text-primary">Racial Move</div>
-                    {RACIAL_MOVES[draft.class][draft.race].map(move => (
-                      <div key={`${draft.class}-${draft.race}-${slugify(move)}`} className="text-sm text-muted-foreground">
-                        {move}
+            {draft.class &&
+              draft.race &&
+              RACIAL_MOVES[draft.class]?.[draft.race]?.length > 0 && (
+                <Card variant='surface'>
+                  <CardContent className='p-4 pt-4'>
+                    <div className='space-y-2'>
+                      <div className='font-medium text-sm text-primary'>
+                        Racial Move
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      {RACIAL_MOVES[draft.class][draft.race].map((move) => (
+                        <div
+                          key={`${draft.class}-${draft.race}-${slugify(move)}`}
+                          className='text-sm text-muted-foreground'
+                        >
+                          {move}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
           </div>
         )}
 
         {step === 'alignment' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {(draft.class ? CLASS_ALIGNMENTS[draft.class] : []).map(a => (
+          <div className='space-y-4'>
+            <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+              {(draft.class ? CLASS_ALIGNMENTS[draft.class] : []).map((a) => (
                 <Button
                   key={a}
                   variant={draft.alignment === a ? 'primary' : 'outline'}
-                  onClick={() => setDraft(d => ({ ...d, alignment: a }))}
+                  onClick={() => setDraft((d) => ({ ...d, alignment: a }))}
                 >
                   {a}
                 </Button>
@@ -874,10 +1593,8 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
             </div>
             {/* Show alignment restrictions */}
             {draft.class && (
-              <div className="text-sm text-muted-foreground">
-                <strong>{draft.class}</strong>
-                {' '}
-                can only be:
+              <div className='text-sm text-muted-foreground'>
+                <strong>{draft.class}</strong> can only be:
                 {CLASS_ALIGNMENTS[draft.class].join(', ')}
               </div>
             )}
@@ -885,104 +1602,119 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
         )}
 
         {step === 'attributes' && (
-          <div className="space-y-4">
+          <div className='space-y-4'>
             <StandardArrayAssign />
           </div>
         )}
 
         {step === 'derived' && (
-          <div className="grid md:grid-cols-3 gap-4">
-            <Card variant="parchment">
-              <CardContent className="p-4 pt-4">
-                <div className="text-sm text-muted-foreground">Base HP + CON mod</div>
-                <div className="text-2xl font-display">
-                  {draft.class ? getClassBaseHP(draft.class) : '-'}
-                  {' '}
-                  +
-                  {getAttributeModifier(draft.attributes.CON)}
-                  {' '}
-                  =
+          <div className='grid md:grid-cols-3 gap-4'>
+            <Card variant='parchment'>
+              <CardContent className='p-4 pt-4'>
+                <div className='text-sm text-muted-foreground'>
+                  Base HP + CON mod
+                </div>
+                <div className='text-2xl font-display'>
+                  {draft.class ? getClassBaseHP(draft.class) : '-'} +
+                  {getAttributeModifier(draft.attributes.CON)} =
                   <b>{derivedPreview?.maxHp ?? '-'}</b>
                 </div>
               </CardContent>
             </Card>
-            <Card variant="parchment">
-              <CardContent className="p-4 pt-4">
-                <div className="text-sm text-muted-foreground">Base Load + STR mod</div>
-                <div className="text-2xl font-display">
-                  {draft.class ? getClassBaseLoad(draft.class) : '-'}
-                  {' '}
-                  +
-                  {getAttributeModifier(draft.attributes.STR)}
-                  {' '}
-                  =
+            <Card variant='parchment'>
+              <CardContent className='p-4 pt-4'>
+                <div className='text-sm text-muted-foreground'>
+                  Base Load + STR mod
+                </div>
+                <div className='text-2xl font-display'>
+                  {draft.class ? getClassBaseLoad(draft.class) : '-'} +
+                  {getAttributeModifier(draft.attributes.STR)} =
                   <b>{derivedPreview?.maxLoad ?? '-'}</b>
                 </div>
               </CardContent>
             </Card>
-            <Card variant="parchment">
-              <CardContent className="p-4 pt-4">
-                <div className="text-sm text-muted-foreground">Damage Die</div>
-                <div className="text-2xl font-display">{draft.class ? getClassDamageDie(draft.class) : '-'}</div>
+            <Card variant='parchment'>
+              <CardContent className='p-4 pt-4'>
+                <div className='text-sm text-muted-foreground'>Damage Die</div>
+                <div className='text-2xl font-display'>
+                  {draft.class ? getClassDamageDie(draft.class) : '-'}
+                </div>
               </CardContent>
             </Card>
           </div>
         )}
 
         {step === 'bonds' && (
-          <div className="space-y-4">
-            <div className="text-sm text-muted-foreground">Choose or write bonds. They can be updated later.</div>
-            <div className="grid md:grid-cols-2 gap-3">
-              {(draft.class ? CLASS_BOND_TEMPLATES[draft.class] : []).map(template => (
-                <Button
-                  key={template}
-                  variant="outline"
-                  onClick={() => setDraft((d) => {
-                    const existingBonds = d.bonds || []
-                    if (existingBonds.some(bond => bond.text === template)) {
-                      return d
-                    }
-                    return { ...d, bonds: [...existingBonds, createBondDraft(template)] }
-                  })}
-                >
-                  +
-                  {' '}
-                  {template}
-                </Button>
-              ))}
+          <div className='space-y-4'>
+            <div className='text-sm text-muted-foreground'>
+              Choose or write bonds. They can be updated later.
             </div>
-            <div className="grid gap-2">
-              {(draft.bonds || []).map(bond => (
-                <div key={bond.id} className="flex items-center gap-2">
+            <div className='grid md:grid-cols-2 gap-3'>
+              {(draft.class ? CLASS_BOND_TEMPLATES[draft.class] : []).map(
+                (template) => (
+                  <Button
+                    key={template}
+                    variant='outline'
+                    onClick={() =>
+                      setDraft((d) => {
+                        const existingBonds = d.bonds || []
+                        if (
+                          existingBonds.some((bond) => bond.text === template)
+                        ) {
+                          return d
+                        }
+                        return {
+                          ...d,
+                          bonds: [...existingBonds, createBondDraft(template)],
+                        }
+                      })
+                    }
+                  >
+                    + {template}
+                  </Button>
+                ),
+              )}
+            </div>
+            <div className='grid gap-2'>
+              {(draft.bonds || []).map((bond) => (
+                <div key={bond.id} className='flex items-center gap-2'>
                   <Input
                     value={bond.text}
                     onChange={(e) => {
                       const nextValue = e.target.value
-                      setDraft(d => ({
+                      setDraft((d) => ({
                         ...d,
-                        bonds: (d.bonds || []).map(existing =>
-                          existing.id === bond.id ? { ...existing, text: nextValue } : existing,
+                        bonds: (d.bonds || []).map((existing) =>
+                          existing.id === bond.id
+                            ? { ...existing, text: nextValue }
+                            : existing,
                         ),
                       }))
                     }}
                   />
                   <Button
-                    variant="secondary"
-                    onClick={() => setDraft(d => ({
-                      ...d,
-                      bonds: (d.bonds || []).filter(existing => existing.id !== bond.id),
-                    }))}
+                    variant='secondary'
+                    onClick={() =>
+                      setDraft((d) => ({
+                        ...d,
+                        bonds: (d.bonds || []).filter(
+                          (existing) => existing.id !== bond.id,
+                        ),
+                      }))
+                    }
                   >
                     Remove
                   </Button>
                 </div>
               ))}
               <Button
-                variant="outline"
-                onClick={() => setDraft(d => ({
-                  ...d,
-                  bonds: [...(d.bonds || []), createBondDraft('')],
-                }))}
+                variant='outline'
+                onClick={() =>
+                  setDraft((d) => ({
+                    ...d,
+                    bonds: [...(d.bonds || []), createBondDraft('')],
+                  }))
+                }
               >
                 + Custom Bond
               </Button>
@@ -991,83 +1723,103 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
         )}
 
         {step === 'gear' && (
-          <div className="space-y-4">
-            {draft.class
-              ? (
-                  <>
-                    <div className="text-sm text-muted-foreground">
-                      Starting gear (
-                      {draft.class}
-                      )
+          <div className='space-y-4'>
+            {draft.class ? (
+              <>
+                <div className='text-sm text-muted-foreground'>
+                  Starting gear ({draft.class})
+                </div>
+                <ul className='list-disc pl-5 text-sm'>
+                  {CLASS_STARTING_GEAR[draft.class].base.map((item) => (
+                    <li key={`${slugify(item.name)}-${item.category}`}>
+                      {item.name}
+                    </li>
+                  ))}
+                </ul>
+                {CLASS_STARTING_GEAR[draft.class].choice && (
+                  <div className='mt-3'>
+                    <p className='text-sm font-medium'>
+                      {CLASS_STARTING_GEAR[draft.class].choice!.prompt}
+                    </p>
+                    <div className='grid md:grid-cols-2 gap-3 mt-2'>
+                      {CLASS_STARTING_GEAR[draft.class].choice!.options.map(
+                        (opt, optionIndex) => {
+                          const optionKeySource = opt
+                            .map((item) => `${item.name}-${item.category}`)
+                            .join('-')
+                          const optionKey =
+                            slugify(optionKeySource) || optionKeySource
+                          const optionLabel = opt
+                            .map((item) => item.name)
+                            .join(', ')
+                          return (
+                            <Button
+                              key={optionKey}
+                              variant={
+                                draft.gearChoiceIndex === optionIndex
+                                  ? 'primary'
+                                  : 'outline'
+                              }
+                              onClick={() =>
+                                setDraft((d) => ({
+                                  ...d,
+                                  gearChoiceIndex: optionIndex,
+                                }))
+                              }
+                            >
+                              {optionLabel}
+                            </Button>
+                          )
+                        },
+                      )}
                     </div>
-                    <ul className="list-disc pl-5 text-sm">
-                      {CLASS_STARTING_GEAR[draft.class].base.map(item => (
-                        <li key={`${slugify(item.name)}-${item.category}`}>{item.name}</li>
-                      ))}
-                    </ul>
-                    {CLASS_STARTING_GEAR[draft.class].choice && (
-                      <div className="mt-3">
-                        <p className="text-sm font-medium">{CLASS_STARTING_GEAR[draft.class].choice!.prompt}</p>
-                        <div className="grid md:grid-cols-2 gap-3 mt-2">
-                          {CLASS_STARTING_GEAR[draft.class].choice!.options.map((opt, optionIndex) => {
-                            const optionKeySource = opt.map(item => `${item.name}-${item.category}`).join('-')
-                            const optionKey = slugify(optionKeySource) || optionKeySource
-                            const optionLabel = opt.map(item => item.name).join(', ')
-                            return (
-                              <Button
-                                key={optionKey}
-                                variant={draft.gearChoiceIndex === optionIndex ? 'primary' : 'outline'}
-                                onClick={() => setDraft(d => ({ ...d, gearChoiceIndex: optionIndex }))}
-                              >
-                                {optionLabel}
-                              </Button>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )
-              : (
-                  <div className="text-sm">Select a class to see starting equipment.</div>
+                  </div>
                 )}
+              </>
+            ) : (
+              <div className='text-sm'>
+                Select a class to see starting equipment.
+              </div>
+            )}
           </div>
         )}
 
         {step === 'spellcasting' && (
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {!isSpellcaster(draft.class) && !requiresDeity(draft.class) ? (
-              <div className="text-center text-sm text-muted-foreground">
-                {draft.class}
-                {' '}
-                does not require spellcasting setup.
+              <div className='text-center text-sm text-muted-foreground'>
+                {draft.class} does not require spellcasting setup.
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className='space-y-6'>
                 {/* Deity Selection for Clerics/Paladins */}
                 {requiresDeity(draft.class) && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Choose Your Deity</h3>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      As a
-                      {' '}
-                      {draft.class}
-                      , your divine magic comes from your devotion to a deity.
+                    <h3 className='text-lg font-semibold mb-3'>
+                      Choose Your Deity
+                    </h3>
+                    <div className='text-sm text-muted-foreground mb-4'>
+                      As a {draft.class}, your divine magic comes from your
+                      devotion to a deity.
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {DUNGEON_WORLD_DEITIES.map(deity => (
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                      {DUNGEON_WORLD_DEITIES.map((deity) => (
                         <Button
                           key={deity.name}
-                          variant={draft.deity === deity.name ? 'primary' : 'outline'}
-                          onClick={() => setDraft(d => ({ ...d, deity: deity.name }))}
-                          className="flex flex-col items-start p-4 h-auto"
+                          variant={
+                            draft.deity === deity.name ? 'primary' : 'outline'
+                          }
+                          onClick={() =>
+                            setDraft((d) => ({ ...d, deity: deity.name }))
+                          }
+                          className='flex flex-col items-start p-4 h-auto'
                         >
-                          <div className="font-medium">{deity.name}</div>
-                          <div className="text-xs opacity-75">
+                          <div className='font-medium'>{deity.name}</div>
+                          <div className='text-xs opacity-75'>
                             Domain:
                             {deity.domain}
                           </div>
-                          <div className="text-xs opacity-75">
+                          <div className='text-xs opacity-75'>
                             Alignment:
                             {deity.alignment}
                           </div>
@@ -1080,51 +1832,66 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
                 {/* Spell Preparation for Clerics */}
                 {draft.class === 'Cleric' && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Choose Your Prayers</h3>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Select up to 2 first-level spells to prepare for your adventuring day.
+                    <h3 className='text-lg font-semibold mb-3'>
+                      Choose Your Prayers
+                    </h3>
+                    <div className='text-sm text-muted-foreground mb-4'>
+                      Select up to 2 first-level spells to prepare for your
+                      adventuring day.
                     </div>
-                    <div className="grid grid-cols-1 gap-3">
-                      {dwClericSpells.filter(spell => spell.level === 1).map((spell) => {
-                        const isSelected = draft.spellbook?.includes(spell.id) || false
-                        const canSelect = isSelected || (draft.spellbook?.length || 0) < 2
-                        return (
-                          <Button
-                            key={spell.id}
-                            variant={isSelected ? 'primary' : 'outline'}
-                            disabled={!canSelect}
-                            onClick={() => {
-                              setDraft((d) => {
-                                const currentSpells = d.spellbook || []
-                                if (isSelected) {
-                                  return { ...d, spellbook: currentSpells.filter(id => id !== spell.id) }
-                                }
-                                return { ...d, spellbook: [...currentSpells, spell.id] }
-                              })
-                            }}
-                            className="flex flex-col items-start p-4 h-auto text-left"
-                          >
-                            <div className="flex items-center gap-2 w-full">
-                              <div className="font-medium">{spell.name}</div>
-                              <Badge variant="secondary" className="ml-auto">
-                                Level
-                                {spell.level}
-                              </Badge>
-                            </div>
-                            <div className="text-xs opacity-75 mt-1">{spell.description}</div>
-                            <div className="text-xs opacity-50 mt-1">
-                              Range:
-                              {spell.range}
-                            </div>
-                          </Button>
-                        )
-                      })}
+                    <div className='grid grid-cols-1 gap-3'>
+                      {dwClericSpells
+                        .filter((spell) => spell.level === 1)
+                        .map((spell) => {
+                          const isSelected =
+                            draft.spellbook?.includes(spell.id) || false
+                          const canSelect =
+                            isSelected || (draft.spellbook?.length || 0) < 2
+                          return (
+                            <Button
+                              key={spell.id}
+                              variant={isSelected ? 'primary' : 'outline'}
+                              disabled={!canSelect}
+                              onClick={() => {
+                                setDraft((d) => {
+                                  const currentSpells = d.spellbook || []
+                                  if (isSelected) {
+                                    return {
+                                      ...d,
+                                      spellbook: currentSpells.filter(
+                                        (id) => id !== spell.id,
+                                      ),
+                                    }
+                                  }
+                                  return {
+                                    ...d,
+                                    spellbook: [...currentSpells, spell.id],
+                                  }
+                                })
+                              }}
+                              className='flex flex-col items-start p-4 h-auto text-left'
+                            >
+                              <div className='flex items-center gap-2 w-full'>
+                                <div className='font-medium'>{spell.name}</div>
+                                <Badge variant='secondary' className='ml-auto'>
+                                  Level
+                                  {spell.level}
+                                </Badge>
+                              </div>
+                              <div className='text-xs opacity-75 mt-1'>
+                                {spell.description}
+                              </div>
+                              <div className='text-xs opacity-50 mt-1'>
+                                Range:
+                                {spell.range}
+                              </div>
+                            </Button>
+                          )
+                        })}
                     </div>
                     {draft.spellbook && (
-                      <div className="text-sm text-muted-foreground mt-3">
-                        Prepared:
-                        {' '}
-                        {draft.spellbook.length}
+                      <div className='text-sm text-muted-foreground mt-3'>
+                        Prepared: {draft.spellbook.length}
                         /2 spells
                       </div>
                     )}
@@ -1134,51 +1901,66 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
                 {/* Spellbook Selection for Wizards */}
                 {draft.class === 'Wizard' && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Choose Starting Spells</h3>
-                    <div className="text-sm text-muted-foreground mb-4">
-                      Select 3 first-level spells for your starting spellbook. You can learn more during play.
+                    <h3 className='text-lg font-semibold mb-3'>
+                      Choose Starting Spells
+                    </h3>
+                    <div className='text-sm text-muted-foreground mb-4'>
+                      Select 3 first-level spells for your starting spellbook.
+                      You can learn more during play.
                     </div>
-                    <div className="grid grid-cols-1 gap-3">
-                      {dwWizardSpells.filter(spell => spell.level === 1).map((spell) => {
-                        const isSelected = draft.spellbook?.includes(spell.id) || false
-                        const canSelect = isSelected || (draft.spellbook?.length || 0) < 3
-                        return (
-                          <Button
-                            key={spell.id}
-                            variant={isSelected ? 'primary' : 'outline'}
-                            disabled={!canSelect}
-                            onClick={() => {
-                              setDraft((d) => {
-                                const currentSpells = d.spellbook || []
-                                if (isSelected) {
-                                  return { ...d, spellbook: currentSpells.filter(id => id !== spell.id) }
-                                }
-                                return { ...d, spellbook: [...currentSpells, spell.id] }
-                              })
-                            }}
-                            className="flex flex-col items-start p-4 h-auto text-left"
-                          >
-                            <div className="flex items-center gap-2 w-full">
-                              <div className="font-medium">{spell.name}</div>
-                              <Badge variant="secondary" className="ml-auto">
-                                Level
-                                {spell.level}
-                              </Badge>
-                            </div>
-                            <div className="text-xs opacity-75 mt-1">{spell.description}</div>
-                            <div className="text-xs opacity-50 mt-1">
-                              Range:
-                              {spell.range}
-                            </div>
-                          </Button>
-                        )
-                      })}
+                    <div className='grid grid-cols-1 gap-3'>
+                      {dwWizardSpells
+                        .filter((spell) => spell.level === 1)
+                        .map((spell) => {
+                          const isSelected =
+                            draft.spellbook?.includes(spell.id) || false
+                          const canSelect =
+                            isSelected || (draft.spellbook?.length || 0) < 3
+                          return (
+                            <Button
+                              key={spell.id}
+                              variant={isSelected ? 'primary' : 'outline'}
+                              disabled={!canSelect}
+                              onClick={() => {
+                                setDraft((d) => {
+                                  const currentSpells = d.spellbook || []
+                                  if (isSelected) {
+                                    return {
+                                      ...d,
+                                      spellbook: currentSpells.filter(
+                                        (id) => id !== spell.id,
+                                      ),
+                                    }
+                                  }
+                                  return {
+                                    ...d,
+                                    spellbook: [...currentSpells, spell.id],
+                                  }
+                                })
+                              }}
+                              className='flex flex-col items-start p-4 h-auto text-left'
+                            >
+                              <div className='flex items-center gap-2 w-full'>
+                                <div className='font-medium'>{spell.name}</div>
+                                <Badge variant='secondary' className='ml-auto'>
+                                  Level
+                                  {spell.level}
+                                </Badge>
+                              </div>
+                              <div className='text-xs opacity-75 mt-1'>
+                                {spell.description}
+                              </div>
+                              <div className='text-xs opacity-50 mt-1'>
+                                Range:
+                                {spell.range}
+                              </div>
+                            </Button>
+                          )
+                        })}
                     </div>
                     {draft.spellbook && (
-                      <div className="text-sm text-muted-foreground mt-3">
-                        Selected:
-                        {' '}
-                        {draft.spellbook.length}
+                      <div className='text-sm text-muted-foreground mt-3'>
+                        Selected: {draft.spellbook.length}
                         /3 spells
                       </div>
                     )}
@@ -1190,98 +1972,49 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
         )}
 
         {step === 'review' && (
-          <div className="space-y-3">
-            <div className="text-sm">Review your character and click Create.</div>
-            <ul className="text-sm space-y-1">
+          <div className='space-y-3'>
+            <div className='text-sm'>
+              Review your character and click Create.
+            </div>
+            <ul className='text-sm space-y-1'>
               <li>
-                <b>Name</b>
-                :
-                {' '}
-                {draft.name || '-'}
+                <b>Name</b>: {draft.name || '-'}
               </li>
               <li>
-                <b>Class</b>
-                :
-                {' '}
-                {draft.class || '-'}
+                <b>Class</b>: {draft.class || '-'}
               </li>
               <li>
-                <b>Race</b>
-                :
-                {' '}
-                {draft.race || '-'}
+                <b>Race</b>: {draft.race || '-'}
               </li>
               <li>
-                <b>Alignment</b>
-                :
-                {' '}
-                {draft.alignment || '-'}
+                <b>Alignment</b>: {draft.alignment || '-'}
               </li>
               <li>
-                <b>Attributes</b>
-                : STR
-                {' '}
-                {draft.attributes.STR}
-                , DEX
-                {' '}
-                {draft.attributes.DEX}
-                , CON
-                {' '}
-                {draft.attributes.CON}
-                , INT
-                {' '}
-                {draft.attributes.INT}
-                , WIS
-                {' '}
-                {draft.attributes.WIS}
-                , CHA
-                {' '}
+                <b>Attributes</b>: STR {draft.attributes.STR}, DEX{' '}
+                {draft.attributes.DEX}, CON {draft.attributes.CON}, INT{' '}
+                {draft.attributes.INT}, WIS {draft.attributes.WIS}, CHA{' '}
                 {draft.attributes.CHA}
               </li>
               <li>
-                <b>HP</b>
-                :
-                {' '}
-                {derivedPreview?.maxHp ?? '-'}
-                ,
-                {' '}
-                <b>Load</b>
-                :
-                {' '}
-                {derivedPreview?.maxLoad ?? '-'}
-                ,
-                {' '}
-                <b>Damage</b>
-                :
-                {' '}
+                <b>HP</b>: {derivedPreview?.maxHp ?? '-'}, <b>Load</b>:{' '}
+                {derivedPreview?.maxLoad ?? '-'}, <b>Damage</b>:{' '}
                 {draft.class ? getClassDamageDie(draft.class) : '-'}
               </li>
               <li>
-                <b>Bonds</b>
-                :
-                {' '}
-                {(draft.bonds || []).length}
+                <b>Bonds</b>: {(draft.bonds || []).length}
               </li>
               <li>
-                <b>Starting Moves</b>
-                :
-                {' '}
+                <b>Starting Moves</b>:{' '}
                 {draft.class ? STARTING_MOVES[draft.class].join(', ') : '-'}
               </li>
               {draft.deity && (
                 <li>
-                  <b>Deity</b>
-                  :
-                  {' '}
-                  {draft.deity}
+                  <b>Deity</b>: {draft.deity}
                 </li>
               )}
               {draft.spellbook && draft.spellbook.length > 0 && (
                 <li>
-                  <b>Starting Spells</b>
-                  :
-                  {' '}
-                  {draft.spellbook.length}
+                  <b>Starting Spells</b>: {draft.spellbook.length}
                 </li>
               )}
             </ul>
@@ -1289,20 +2022,42 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({ onFini
         )}
       </CardContent>
 
-      <div className="flex items-center justify-between px-6 pb-6">
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={saveAndExit}>Save Draft</Button>
-          <Button variant="secondary" onClick={() => { if (typeof window !== 'undefined') { window.localStorage.removeItem(STORAGE_KEY) } setDraft(createEmptyDraft()) }}>Reset</Button>
+      <div className='flex items-center justify-between px-6 pb-6'>
+        <div className='flex gap-2'>
+          <Button variant='outline' onClick={saveAndExit}>
+            Save Draft
+          </Button>
+          <Button
+            variant='secondary'
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.localStorage.removeItem(STORAGE_KEY)
+              }
+              setDraft(createEmptyDraft())
+            }}
+          >
+            Reset
+          </Button>
         </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" onClick={back} disabled={stepIndex === 0}>Back</Button>
-          {step !== 'review'
-            ? (
-                <Button variant="primary" onClick={next} disabled={!canNext}>Next</Button>
-              )
-            : (
-                <Button variant="primary" onClick={finalize} disabled={!draft.class || !draft.race || !draft.alignment || !draft.name}>Create Character</Button>
-              )}
+        <div className='flex gap-2'>
+          <Button variant='ghost' onClick={back} disabled={stepIndex === 0}>
+            Back
+          </Button>
+          {step !== 'review' ? (
+            <Button variant='primary' onClick={next} disabled={!canNext}>
+              Next
+            </Button>
+          ) : (
+            <Button
+              variant='primary'
+              onClick={finalize}
+              disabled={
+                !draft.class || !draft.race || !draft.alignment || !draft.name
+              }
+            >
+              Create Character
+            </Button>
+          )}
         </div>
       </div>
     </Card>

@@ -4,7 +4,11 @@
  * Integrates gameStateStore with session and campaign management
  */
 
-import type { GameTime, GlobalEffect, PartyResource } from '../stores/gameStateStore'
+import type {
+  GameTime,
+  GlobalEffect,
+  PartyResource,
+} from '../stores/gameStateStore'
 import { useCallback, useMemo } from 'react'
 import { useGameStateStore } from '../stores/gameStateStore'
 import { useCampaign } from './useCampaign'
@@ -13,20 +17,50 @@ import { useSession } from './useSession'
 export interface TimeOfDay {
   hour: number
   minute: number
-  period: 'dawn' | 'morning' | 'midday' | 'afternoon' | 'dusk' | 'evening' | 'night' | 'midnight'
+  period:
+    | 'dawn'
+    | 'morning'
+    | 'midday'
+    | 'afternoon'
+    | 'dusk'
+    | 'evening'
+    | 'night'
+    | 'midnight'
   description: string
 }
 
 export interface Weather {
-  condition: 'clear' | 'cloudy' | 'overcast' | 'light_rain' | 'heavy_rain' | 'storm' | 'fog' | 'snow'
-  temperature: 'freezing' | 'cold' | 'cool' | 'mild' | 'warm' | 'hot' | 'scorching'
+  condition:
+    | 'clear'
+    | 'cloudy'
+    | 'overcast'
+    | 'light_rain'
+    | 'heavy_rain'
+    | 'storm'
+    | 'fog'
+    | 'snow'
+  temperature:
+    | 'freezing'
+    | 'cold'
+    | 'cool'
+    | 'mild'
+    | 'warm'
+    | 'hot'
+    | 'scorching'
   wind: 'calm' | 'light' | 'moderate' | 'strong' | 'gale'
   visibility: 'clear' | 'reduced' | 'poor' | 'zero'
 }
 
 export interface Environment {
   location: string
-  terrain: 'urban' | 'wilderness' | 'dungeon' | 'underground' | 'water' | 'air' | 'planar'
+  terrain:
+    | 'urban'
+    | 'wilderness'
+    | 'dungeon'
+    | 'underground'
+    | 'water'
+    | 'air'
+    | 'planar'
   lighting: 'bright' | 'dim' | 'dark' | 'magical'
   hazards: string[]
   features: string[]
@@ -59,7 +93,11 @@ export interface UseGameStateReturn {
   removePartyResource: (resourceId: string) => void
 
   // World events
-  triggerWorldEvent: (eventType: string, description: string, effects?: any[]) => void
+  triggerWorldEvent: (
+    eventType: string,
+    description: string,
+    effects?: any[],
+  ) => void
   getRecentWorldEvents: () => Array<{
     id: string
     type: string
@@ -110,7 +148,7 @@ export function useGameState(): UseGameStateReturn {
   } = useGameStateStore()
 
   const { advanceTime: sessionAdvanceTime } = useSession()
-  const { currentCampaign } = useCampaign()
+  const { currentCampaign: _currentCampaign } = useCampaign()
 
   // Time of day calculation
   const timeOfDay = useMemo((): TimeOfDay => {
@@ -123,32 +161,25 @@ export function useGameState(): UseGameStateReturn {
     if (hour >= 5 && hour < 7) {
       period = 'dawn'
       description = 'The sun rises, painting the sky in soft colors'
-    }
-    else if (hour >= 7 && hour < 12) {
+    } else if (hour >= 7 && hour < 12) {
       period = 'morning'
       description = 'The morning sun climbs higher in the sky'
-    }
-    else if (hour >= 12 && hour < 13) {
+    } else if (hour >= 12 && hour < 13) {
       period = 'midday'
       description = 'The sun reaches its zenith overhead'
-    }
-    else if (hour >= 13 && hour < 17) {
+    } else if (hour >= 13 && hour < 17) {
       period = 'afternoon'
       description = 'The afternoon sun begins its descent'
-    }
-    else if (hour >= 17 && hour < 19) {
+    } else if (hour >= 17 && hour < 19) {
       period = 'dusk'
       description = 'The sun sets, casting long shadows'
-    }
-    else if (hour >= 19 && hour < 22) {
+    } else if (hour >= 19 && hour < 22) {
       period = 'evening'
       description = 'Twilight settles over the land'
-    }
-    else if (hour >= 22 || hour < 1) {
+    } else if (hour >= 22 || hour < 1) {
       period = 'night'
       description = 'Night has fallen, stars twinkle above'
-    }
-    else {
+    } else {
       period = 'midnight'
       description = 'The deepest part of night, when shadows reign'
     }
@@ -167,7 +198,9 @@ export function useGameState(): UseGameStateReturn {
   // Derive weather object from environment (store shape uses environment.weather as string)
   const weather: Weather = useMemo(() => {
     const rawCondition = (environment as any)?.weather ?? 'clear'
-    const normalized = String(rawCondition).toLowerCase().replace(/\s+/g, '_') as Weather['condition']
+    const normalized = String(rawCondition)
+      .toLowerCase()
+      .replace(/\s+/g, '_') as Weather['condition']
     const validConditions: ReadonlyArray<Weather['condition']> = [
       'clear',
       'cloudy',
@@ -178,11 +211,14 @@ export function useGameState(): UseGameStateReturn {
       'fog',
       'snow',
     ]
-    const condition = (validConditions as readonly string[]).includes(normalized)
+    const condition = (validConditions as readonly string[]).includes(
+      normalized,
+    )
       ? (normalized as Weather['condition'])
       : 'clear'
 
-    const temp = ((environment as any)?.temperature ?? 'mild') as Weather['temperature']
+    const temp = ((environment as any)?.temperature ??
+      'mild') as Weather['temperature']
 
     return {
       condition,
@@ -193,104 +229,150 @@ export function useGameState(): UseGameStateReturn {
   }, [environment])
 
   const canSeeStars = useMemo(() => {
-    return isNight && weather.condition !== 'overcast' && weather.condition !== 'storm'
+    return (
+      isNight &&
+      weather.condition !== 'overcast' &&
+      weather.condition !== 'storm'
+    )
   }, [isNight, weather.condition])
 
   const needsLight = useMemo(() => {
-    return (isNight || environment.lighting === 'dark') && environment.lighting !== 'magical'
+    return (
+      (isNight || environment.lighting === 'dark') &&
+      environment.lighting !== 'magical'
+    )
   }, [isNight, environment.lighting])
 
   // Time management
-  const advanceTime = useCallback((amount: number, unit: 'minutes' | 'hours' | 'days') => {
-    let totalMinutes = 0
+  const advanceTime = useCallback(
+    (amount: number, unit: 'minutes' | 'hours' | 'days') => {
+      let totalMinutes = 0
 
-    switch (unit) {
-      case 'minutes':
-        totalMinutes = amount
-        break
-      case 'hours':
-        totalMinutes = amount * 60
-        break
-      case 'days':
-        totalMinutes = amount * 24 * 60
-        break
-    }
+      switch (unit) {
+        case 'minutes':
+          totalMinutes = amount
+          break
+        case 'hours':
+          totalMinutes = amount * 60
+          break
+        case 'days':
+          totalMinutes = amount * 24 * 60
+          break
+      }
 
-    const newMinute = (gameTime.minute + totalMinutes) % 60
-    const newHour = (gameTime.hour + Math.floor((gameTime.minute + totalMinutes) / 60)) % 24
-    const newDay = gameTime.day + Math.floor((gameTime.hour * 60 + gameTime.minute + totalMinutes) / (24 * 60))
+      const newMinute = (gameTime.minute + totalMinutes) % 60
+      const newHour =
+        (gameTime.hour + Math.floor((gameTime.minute + totalMinutes) / 60)) % 24
+      const newDay =
+        gameTime.day +
+        Math.floor(
+          (gameTime.hour * 60 + gameTime.minute + totalMinutes) / (24 * 60),
+        )
 
-    updateGameTime({
-      minute: newMinute,
-      hour: newHour,
-      day: newDay,
-    })
+      updateGameTime({
+        minute: newMinute,
+        hour: newHour,
+        day: newDay,
+      })
 
-    // Advance session time as well
-    sessionAdvanceTime('turn')
-  }, [gameTime, updateGameTime, sessionAdvanceTime])
+      // Advance session time as well
+      sessionAdvanceTime('turn')
+    },
+    [gameTime, updateGameTime, sessionAdvanceTime],
+  )
 
-  const setTime = useCallback((hour: number, minute: number, day: number) => {
-    updateGameTime({ hour, minute, day })
-  }, [updateGameTime])
+  const setTime = useCallback(
+    (hour: number, minute: number, day: number) => {
+      updateGameTime({ hour, minute, day })
+    },
+    [updateGameTime],
+  )
 
   // Weather and environment
-  const updateWeather = useCallback((weatherUpdates: Partial<Weather>) => {
-    storeUpdateWeather(weatherUpdates)
-  }, [storeUpdateWeather])
+  const updateWeather = useCallback(
+    (weatherUpdates: Partial<Weather>) => {
+      storeUpdateWeather(weatherUpdates)
+    },
+    [storeUpdateWeather],
+  )
 
-  const updateEnvironment = useCallback((environmentUpdates: Partial<Environment>) => {
-    storeUpdateEnvironment(environmentUpdates)
-  }, [storeUpdateEnvironment])
+  const updateEnvironment = useCallback(
+    (environmentUpdates: Partial<Environment>) => {
+      storeUpdateEnvironment(environmentUpdates)
+    },
+    [storeUpdateEnvironment],
+  )
 
   // Global effects
-  const addGlobalEffect = useCallback((effect: Omit<GlobalEffect, 'id'>) => {
-    storeAddGlobalEffect(effect)
-  }, [storeAddGlobalEffect])
+  const addGlobalEffect = useCallback(
+    (effect: Omit<GlobalEffect, 'id'>) => {
+      storeAddGlobalEffect(effect)
+    },
+    [storeAddGlobalEffect],
+  )
 
-  const removeGlobalEffect = useCallback((effectId: string) => {
-    storeRemoveGlobalEffect(effectId)
-  }, [storeRemoveGlobalEffect])
+  const removeGlobalEffect = useCallback(
+    (effectId: string) => {
+      storeRemoveGlobalEffect(effectId)
+    },
+    [storeRemoveGlobalEffect],
+  )
 
-  const updateGlobalEffect = useCallback((effectId: string, updates: Partial<GlobalEffect>) => {
-    storeUpdateGlobalEffect(effectId, updates)
-  }, [storeUpdateGlobalEffect])
+  const updateGlobalEffect = useCallback(
+    (effectId: string, updates: Partial<GlobalEffect>) => {
+      storeUpdateGlobalEffect(effectId, updates)
+    },
+    [storeUpdateGlobalEffect],
+  )
 
   const getActiveGlobalEffects = useCallback(() => {
     return globalEffects.filter((effect) => {
-      if (effect.duration === 'permanent')
-        return true
-      if (typeof effect.duration === 'number')
-        return effect.duration > 0
+      if (effect.duration === 'permanent') return true
+      if (typeof effect.duration === 'number') return effect.duration > 0
       return true // Scene/encounter effects are active until removed
     })
   }, [globalEffects])
 
   // Party resources
-  const updatePartyResource = useCallback((resourceId: string, amount: number) => {
-    storeUpdatePartyResource(resourceId, amount)
-  }, [storeUpdatePartyResource])
+  const updatePartyResource = useCallback(
+    (resourceId: string, amount: number) => {
+      storeUpdatePartyResource(resourceId, amount)
+    },
+    [storeUpdatePartyResource],
+  )
 
-  const addPartyResource = useCallback((resource: Omit<PartyResource, 'id'>) => {
-    storeAddPartyResource(resource)
-  }, [storeAddPartyResource])
+  const addPartyResource = useCallback(
+    (resource: Omit<PartyResource, 'id'>) => {
+      storeAddPartyResource(resource)
+    },
+    [storeAddPartyResource],
+  )
 
-  const removePartyResource = useCallback((resourceId: string) => {
-    storeRemovePartyResource(resourceId)
-  }, [storeRemovePartyResource])
+  const removePartyResource = useCallback(
+    (resourceId: string) => {
+      storeRemovePartyResource(resourceId)
+    },
+    [storeRemovePartyResource],
+  )
 
   // World events
-  const triggerWorldEvent = useCallback((eventType: string, description: string, effects: any[] = []) => {
-    addWorldEvent({
-      type: eventType,
-      description,
-      effects,
-    })
-  }, [addWorldEvent])
+  const triggerWorldEvent = useCallback(
+    (eventType: string, description: string, effects: any[] = []) => {
+      addWorldEvent({
+        type: eventType,
+        description,
+        effects,
+      })
+    },
+    [addWorldEvent],
+  )
 
   const getRecentWorldEvents = useCallback(() => {
     return worldEvents
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      )
       .slice(0, 10)
   }, [worldEvents])
 
@@ -318,10 +400,11 @@ export function useGameState(): UseGameStateReturn {
     ])
 
     // Clear temporary global effects
-    const temporaryEffects = globalEffects.filter(effect =>
-      effect.duration !== 'permanent' && typeof effect.duration !== 'number',
+    const temporaryEffects = globalEffects.filter(
+      (effect) =>
+        effect.duration !== 'permanent' && typeof effect.duration !== 'number',
     )
-    temporaryEffects.forEach(effect => removeGlobalEffect(effect.id))
+    temporaryEffects.forEach((effect) => removeGlobalEffect(effect.id))
   }, [advanceTime, triggerWorldEvent, globalEffects, removeGlobalEffect])
 
   const advanceDay = useCallback(() => {
@@ -329,12 +412,15 @@ export function useGameState(): UseGameStateReturn {
     triggerWorldEvent('new_day', 'A new day begins', [])
   }, [advanceTime, triggerWorldEvent])
 
-  const changeLocation = useCallback((location: string, terrain: Environment['terrain'] = 'wilderness') => {
-    updateEnvironment({ location, terrain })
-    triggerWorldEvent('location_change', `The party arrives at ${location}`, [
-      { type: 'location', name: location, terrain },
-    ])
-  }, [updateEnvironment, triggerWorldEvent])
+  const changeLocation = useCallback(
+    (location: string, terrain: Environment['terrain'] = 'wilderness') => {
+      updateEnvironment({ location, terrain })
+      triggerWorldEvent('location_change', `The party arrives at ${location}`, [
+        { type: 'location', name: location, terrain },
+      ])
+    },
+    [updateEnvironment, triggerWorldEvent],
+  )
 
   return {
     // Time management

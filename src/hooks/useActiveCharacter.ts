@@ -70,7 +70,7 @@ export function useActiveCharacter(): UseActiveCharacterReturn {
   }, [activeCharacterId, activeCharacter])
 
   const availableCharacters = useMemo(() => {
-    return characters.map(character => ({
+    return characters.map((character) => ({
       id: character.id,
       name: character.name,
       class: character.class,
@@ -80,16 +80,22 @@ export function useActiveCharacter(): UseActiveCharacterReturn {
   }, [characters, activeCharacterId])
 
   // Character switching operations
-  const setActiveCharacter = useCallback((characterId: string | null) => {
-    storeSetActiveCharacter(characterId)
-  }, [storeSetActiveCharacter])
-
-  const switchToCharacter = useCallback((characterId: string) => {
-    const character = characters.find(c => c.id === characterId)
-    if (character) {
+  const setActiveCharacter = useCallback(
+    (characterId: string | null) => {
       storeSetActiveCharacter(characterId)
-    }
-  }, [characters, storeSetActiveCharacter])
+    },
+    [storeSetActiveCharacter],
+  )
+
+  const switchToCharacter = useCallback(
+    (characterId: string) => {
+      const character = characters.find((c) => c.id === characterId)
+      if (character) {
+        storeSetActiveCharacter(characterId)
+      }
+    },
+    [characters, storeSetActiveCharacter],
+  )
 
   const clearActiveCharacter = useCallback(() => {
     storeSetActiveCharacter(null)
@@ -127,10 +133,11 @@ export function useActiveCharacter(): UseActiveCharacterReturn {
  * Provides optimized data for character selector components
  */
 export function useCharacterSwitcher() {
-  const { availableCharacters, activeCharacterId, switchToCharacter } = useActiveCharacter()
+  const { availableCharacters, activeCharacterId, switchToCharacter } =
+    useActiveCharacter()
 
   const switcherData = useMemo(() => {
-    return availableCharacters.map(char => ({
+    return availableCharacters.map((char) => ({
       ...char,
       displayName: `${char.name} (${char.class} ${char.level})`,
     }))

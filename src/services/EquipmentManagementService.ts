@@ -22,8 +22,12 @@ export class EquipmentManagementService {
    */
   private load(characterId: string): void {
     try {
-      const setsRaw = localStorage.getItem(`zimbomate-equipment-sets:${characterId}`)
-      const wishRaw = localStorage.getItem(`zimbomate-equipment-wishlist:${characterId}`)
+      const setsRaw = localStorage.getItem(
+        `zimbomate-equipment-sets:${characterId}`,
+      )
+      const wishRaw = localStorage.getItem(
+        `zimbomate-equipment-wishlist:${characterId}`,
+      )
 
       if (setsRaw) {
         this.setsByCharacter.set(characterId, JSON.parse(setsRaw))
@@ -31,9 +35,11 @@ export class EquipmentManagementService {
       if (wishRaw) {
         this.wishlistByCharacter.set(characterId, JSON.parse(wishRaw))
       }
-    }
-    catch (error) {
-      console.warn(`Failed to load equipment data for character ${characterId}:`, error)
+    } catch (error) {
+      console.warn(
+        `Failed to load equipment data for character ${characterId}:`,
+        error,
+      )
     }
   }
 
@@ -45,11 +51,19 @@ export class EquipmentManagementService {
       const sets = this.setsByCharacter.get(characterId) || []
       const wish = this.wishlistByCharacter.get(characterId) || []
 
-      localStorage.setItem(`zimbomate-equipment-sets:${characterId}`, JSON.stringify(sets))
-      localStorage.setItem(`zimbomate-equipment-wishlist:${characterId}`, JSON.stringify(wish))
-    }
-    catch (error) {
-      console.warn(`Failed to save equipment data for character ${characterId}:`, error)
+      localStorage.setItem(
+        `zimbomate-equipment-sets:${characterId}`,
+        JSON.stringify(sets),
+      )
+      localStorage.setItem(
+        `zimbomate-equipment-wishlist:${characterId}`,
+        JSON.stringify(wish),
+      )
+    } catch (error) {
+      console.warn(
+        `Failed to save equipment data for character ${characterId}:`,
+        error,
+      )
     }
   }
 
@@ -66,7 +80,12 @@ export class EquipmentManagementService {
   /**
    * Create a new equipment set
    */
-  createSet(characterId: string, name: string, itemIds: string[], description?: string): EquipmentSet {
+  createSet(
+    characterId: string,
+    name: string,
+    itemIds: string[],
+    description?: string,
+  ): EquipmentSet {
     const set: EquipmentSet = {
       id: `set-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       name,
@@ -84,12 +103,15 @@ export class EquipmentManagementService {
   /**
    * Update an equipment set
    */
-  updateSet(characterId: string, setId: string, updates: Partial<Omit<EquipmentSet, 'id' | 'createdAt'>>): boolean {
+  updateSet(
+    characterId: string,
+    setId: string,
+    updates: Partial<Omit<EquipmentSet, 'id' | 'createdAt'>>,
+  ): boolean {
     const sets = this.getSets(characterId)
-    const setIndex = sets.findIndex(s => s.id === setId)
+    const setIndex = sets.findIndex((s) => s.id === setId)
 
-    if (setIndex === -1)
-      return false
+    if (setIndex === -1) return false
 
     sets[setIndex] = {
       ...sets[setIndex],
@@ -114,10 +136,9 @@ export class EquipmentManagementService {
    */
   deleteSet(characterId: string, setId: string): boolean {
     const sets = this.getSets(characterId)
-    const filteredSets = sets.filter(s => s.id !== setId)
+    const filteredSets = sets.filter((s) => s.id !== setId)
 
-    if (filteredSets.length === sets.length)
-      return false
+    if (filteredSets.length === sets.length) return false
 
     this.setsByCharacter.set(characterId, filteredSets)
     this.save(characterId)
@@ -129,13 +150,13 @@ export class EquipmentManagementService {
    */
   getSet(characterId: string, setId: string): EquipmentSet | undefined {
     const sets = this.getSets(characterId)
-    return sets.find(s => s.id === setId)
+    return sets.find((s) => s.id === setId)
   }
 
   /**
    * Mark a set as used (updates lastUsed timestamp)
    */
-  useSet(characterId: string, setId: string): boolean {
+  markSetUsed(characterId: string, setId: string): boolean {
     return this.updateSet(characterId, setId, { lastUsed: new Date() })
   }
 
@@ -171,7 +192,7 @@ export class EquipmentManagementService {
     }
 
     const list = this.wishlistByCharacter.get(characterId) || []
-    const filteredList = list.filter(id => id !== itemId)
+    const filteredList = list.filter((id) => id !== itemId)
 
     this.wishlistByCharacter.set(characterId, filteredList)
     this.save(characterId)
@@ -220,10 +241,13 @@ export class EquipmentManagementService {
 
     if (sets.length > 0) {
       // Find most recently used set
-      const setsWithUsage = sets.filter(s => s.lastUsed)
+      const setsWithUsage = sets.filter((s) => s.lastUsed)
       if (setsWithUsage.length > 0) {
         mostRecentlyUsedSet = setsWithUsage.reduce((latest, current) =>
-          (current.lastUsed && (!latest.lastUsed || current.lastUsed > latest.lastUsed)) ? current : latest,
+          current.lastUsed &&
+          (!latest.lastUsed || current.lastUsed > latest.lastUsed)
+            ? current
+            : latest,
         )
       }
 
@@ -248,9 +272,10 @@ export class EquipmentManagementService {
     const sets = this.getSets(characterId)
     const lowerQuery = query.toLowerCase()
 
-    return sets.filter(set =>
-      set.name.toLowerCase().includes(lowerQuery)
-      || (set.description && set.description.toLowerCase().includes(lowerQuery)),
+    return sets.filter(
+      (set) =>
+        set.name.toLowerCase().includes(lowerQuery) ||
+        (set.description && set.description.toLowerCase().includes(lowerQuery)),
     )
   }
 
@@ -270,10 +295,13 @@ export class EquipmentManagementService {
   /**
    * Import equipment data for a character
    */
-  importEquipmentData(characterId: string, data: {
-    sets?: EquipmentSet[]
-    wishlist?: string[]
-  }): void {
+  importEquipmentData(
+    characterId: string,
+    data: {
+      sets?: EquipmentSet[]
+      wishlist?: string[]
+    },
+  ): void {
     if (data.sets) {
       this.setsByCharacter.set(characterId, data.sets)
     }
@@ -293,9 +321,11 @@ export class EquipmentManagementService {
     try {
       localStorage.removeItem(`zimbomate-equipment-sets:${characterId}`)
       localStorage.removeItem(`zimbomate-equipment-wishlist:${characterId}`)
-    }
-    catch (error) {
-      console.warn(`Failed to clear equipment data for character ${characterId}:`, error)
+    } catch (error) {
+      console.warn(
+        `Failed to clear equipment data for character ${characterId}:`,
+        error,
+      )
     }
   }
 

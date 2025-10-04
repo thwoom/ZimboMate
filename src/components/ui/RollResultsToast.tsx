@@ -36,28 +36,40 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
 
   const getOutcomeColor = (outcome?: string) => {
     switch (outcome) {
-      case 'success': return 'var(--nature-500)'
-      case 'partial': return 'var(--yellow-500)'
-      case 'failure': return 'var(--red-500)'
-      default: return 'var(--primary)'
+      case 'success':
+        return 'var(--nature-500)'
+      case 'partial':
+        return 'var(--yellow-500)'
+      case 'failure':
+        return 'var(--red-500)'
+      default:
+        return 'var(--primary)'
     }
   }
 
   const getOutcomeIcon = (outcome?: string) => {
     switch (outcome) {
-      case 'success': return <TrendingUp size={16} />
-      case 'partial': return <Minus size={16} />
-      case 'failure': return <TrendingDown size={16} />
-      default: return <Dice6 size={16} />
+      case 'success':
+        return <TrendingUp size={16} />
+      case 'partial':
+        return <Minus size={16} />
+      case 'failure':
+        return <TrendingDown size={16} />
+      default:
+        return <Dice6 size={16} />
     }
   }
 
   const getOutcomeLabel = (outcome?: string) => {
     switch (outcome) {
-      case 'success': return 'Success!'
-      case 'partial': return 'Partial Success'
-      case 'failure': return 'Miss'
-      default: return 'Roll Complete'
+      case 'success':
+        return 'Success!'
+      case 'partial':
+        return 'Partial Success'
+      case 'failure':
+        return 'Miss'
+      default:
+        return 'Roll Complete'
     }
   }
 
@@ -73,51 +85,54 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
             stiffness: 300,
             damping: 30,
           }}
-          className="fixed top-4 right-4 z-50 max-w-sm"
+          className='fixed top-4 right-4 z-50 max-w-sm'
         >
           <Card
-            variant="magical"
-            className="border-2 border-primary/30 bg-card/95 backdrop-blur shadow-lg"
+            variant='magical'
+            className='border-2 border-primary/30 bg-card/95 backdrop-blur shadow-lg'
             style={{ borderColor: getOutcomeColor(result.outcome) }}
           >
-            <CardContent className="p-4">
-              <div className="space-y-3">
+            <CardContent className='p-4'>
+              <div className='space-y-3'>
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-2'>
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: getOutcomeColor(result.outcome), opacity: 0.2 }}
+                      className='w-8 h-8 rounded-full flex items-center justify-center'
+                      style={{
+                        backgroundColor: getOutcomeColor(result.outcome),
+                        opacity: 0.2,
+                      }}
                     >
                       <div style={{ color: getOutcomeColor(result.outcome) }}>
                         {getOutcomeIcon(result.outcome)}
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm">{result.title}</h4>
-                      <p className="text-xs text-muted-foreground">
+                      <h4 className='font-semibold text-sm'>{result.title}</h4>
+                      <p className='text-xs text-muted-foreground'>
                         {result.timestamp.toLocaleTimeString()}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={onClose}
-                    className="text-xs opacity-50 hover:opacity-100 transition-opacity"
+                    className='text-xs opacity-50 hover:opacity-100 transition-opacity'
                   >
                     ✕
                   </button>
                 </div>
 
                 {/* Dice Display */}
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1">
+                <div className='flex items-center gap-3'>
+                  <div className='flex gap-1'>
                     {result.dice.map((die, index) => (
                       <motion.div
                         key={index}
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="w-8 h-8 rounded border-2 flex items-center justify-center font-bold text-sm"
+                        className='w-8 h-8 rounded border-2 flex items-center justify-center font-bold text-sm'
                         style={{
                           borderColor: 'var(--primary)',
                           backgroundColor: 'var(--popover)',
@@ -131,11 +146,11 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
 
                   {result.modifier !== 0 && (
                     <>
-                      <span className="text-muted-foreground">
+                      <span className='text-muted-foreground'>
                         {result.modifier > 0 ? '+' : ''}
                         {result.modifier}
                       </span>
-                      <span className="text-muted-foreground">=</span>
+                      <span className='text-muted-foreground'>=</span>
                     </>
                   )}
 
@@ -143,7 +158,7 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.3, type: 'spring', stiffness: 400 }}
-                    className="text-2xl font-bold"
+                    className='text-2xl font-bold'
                     style={{ color: getOutcomeColor(result.outcome) }}
                   >
                     {result.total}
@@ -158,8 +173,14 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                     transition={{ delay: 0.4 }}
                   >
                     <Badge
-                      variant={result.outcome === 'success' ? 'default' : result.outcome === 'partial' ? 'secondary' : 'outline'}
-                      className="gap-1"
+                      variant={
+                        result.outcome === 'success'
+                          ? 'default'
+                          : result.outcome === 'partial'
+                            ? 'secondary'
+                            : 'outline'
+                      }
+                      className='gap-1'
                     >
                       {getOutcomeIcon(result.outcome)}
                       {getOutcomeLabel(result.outcome)}
@@ -173,7 +194,7 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="text-xs text-muted-foreground"
+                    className='text-xs text-muted-foreground'
                   >
                     {result.description}
                   </motion.p>

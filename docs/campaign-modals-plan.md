@@ -1,11 +1,13 @@
 # Campaign Modal Rewrite Plan (Phase 1 Spec)
 
 ## Goals
+
 - Replace legacy campaign modals with a consistent, reducer-driven architecture that satisfies the new lint suite.
 - Preserve existing UX while improving maintainability, validation clarity, and shared behaviors.
 - Provide reusable primitives so future modals can adopt the same pattern quickly.
 
 ## Shared Requirements Across Modals
+
 - **State management:**
   - Reducer-owned form state with replace/apply actions.
   - Separate error state reducer (field-keyed messages, reset + set).
@@ -30,7 +32,9 @@
   - Shared components: tag chips, section headers, stat badges.
 
 ## Modal Snapshots
+
 ### JournalEntryModal
+
 - **Fields:** title, content, tags (max 10), important flag, related session/NPC/location IDs (not exposed in UI yet), auto timestamp.
 - **Actions:** create new entry via `addJournalEntry`, update via `updateJournalEntry`, optional `onSaved` callback.
 - **Validation:**
@@ -45,6 +49,7 @@
   - Inline string concatenation for instructions to be kept or improved.
 
 ### LocationModal
+
 - **Fields:** name, description, type (city/town/village/dungeon/wilderness/other), notes, dangers (max 5), resources (max 5), connections (currently unused UI), optional `onSaved`.
 - **Actions:** `addLocation`, `updateLocation`.
 - **Validation:**
@@ -59,6 +64,7 @@
   - Direct `setState` within effect; same lint issue.
 
 ### NPCModal
+
 - **Fields:** name, description, role, location, notes, importance (low/medium/high), disposition (friendly/neutral/hostile/unknown), secrets (max 5), optional `onSaved`.
 - **Actions:** `addNPC`, `updateNPC`.
 - **Validation:**
@@ -74,6 +80,7 @@
   - Some inline color classes (ensure tokens after rewrite).
 
 ### SessionModal
+
 - **Fields:** title, date, duration (minutes), summary, notes, xpGained, highlights (max 5), challenges (max 5), nextSession text.
 - **Actions:** `addSession`, `updateSession` (builds new `CampaignSession` with Date conversion), optional `onSaved`.
 - **Validation:**
@@ -90,6 +97,7 @@
   - Same lint violation.
 
 ## Target Architecture Summary
+
 1. **Shared hook** – `useModalForm<TState, TErrors>` (specific naming TBD):
    - Accepts `initialStateFactory`, `validate`, and `onSubmit` async handler.
    - Returns `{ state, dispatchState, errors, dispatchErrors, reset(initialData), submit, helpers }`.
@@ -99,6 +107,7 @@
 4. **UI components** – small presentational helpers for chip lists, header cards, etc.
 
 ## Next Steps (Phase 2 onward preview)
+
 - Implement shared utilities with unit tests (reducer actions, validation flows, reset effect).
 - Migrate each modal to the new hook, ensuring parity with documented behavior.
 - Update parent components to use stable keys and align with new modal props if signatures change.

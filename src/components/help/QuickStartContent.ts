@@ -6,7 +6,8 @@ export const quickStartContent = [
   },
   {
     type: 'paragraph',
-    content: 'This quick guide will get you up and running with ZimboMate V2 in just a few minutes. Welcome, adventurer!',
+    content:
+      'This quick guide will get you up and running with ZimboMate V2 in just a few minutes. Welcome, adventurer!',
   },
   {
     type: 'subheading',
@@ -57,7 +58,7 @@ export const quickStartContent = [
   {
     type: 'callout',
     variant: 'info',
-    content: '🎉 Congratulations! You\'re ready to play!',
+    content: "🎉 Congratulations! You're ready to play!",
   },
   {
     type: 'subheading',
@@ -118,8 +119,14 @@ export const quickStartContent = [
     type: 'table',
     headers: ['Tip Category', 'Recommendation'],
     rows: [
-      ['Efficiency', 'Master **Ctrl+K** - The command palette is your best friend'],
-      ['Navigation', 'Learn tab numbers: **Ctrl+1** (Character), **Ctrl+2** (Dice), etc.'],
+      [
+        'Efficiency',
+        'Master **Ctrl+K** - The command palette is your best friend',
+      ],
+      [
+        'Navigation',
+        'Learn tab numbers: **Ctrl+1** (Character), **Ctrl+2** (Dice), etc.',
+      ],
       ['Rolling', 'Use **Spacebar** - Fastest way to roll dice'],
       ['Safety', 'Use File Management > Backup to keep your data safe'],
     ],
@@ -127,6 +134,7 @@ export const quickStartContent = [
   {
     type: 'callout',
     variant: 'success',
-    content: '🚀 Ready to Adventure! You now have everything you need to start using ZimboMate V2 for epic Dungeon World adventures!',
+    content:
+      '🚀 Ready to Adventure! You now have everything you need to start using ZimboMate V2 for epic Dungeon World adventures!',
   },
 ]

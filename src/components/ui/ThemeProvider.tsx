@@ -25,13 +25,8 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const {
-    theme,
-    animations,
-    sounds,
-    toggleAnimations,
-    toggleSounds,
-  } = useThemeStore()
+  const { theme, animations, sounds, toggleAnimations, toggleSounds } =
+    useThemeStore()
 
   const value = {
     theme,
@@ -41,9 +36,5 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     toggleSounds,
   }
 
-  return (
-    <ThemeContext value={value}>
-      {children}
-    </ThemeContext>
-  )
+  return <ThemeContext value={value}>{children}</ThemeContext>
 }

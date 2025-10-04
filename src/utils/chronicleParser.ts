@@ -17,8 +17,8 @@ import type {
 // Regex patterns for entity recognition
 const ENTITY_MENTION_PATTERN = /@([a-z][a-z0-9\s\-']+?)(?=[\s.,!?;:]|$)/gi
 const SCENE_BREAK_PATTERNS = [
-  /^(later|meanwhile|afterward|after|then|next|suddenly|eventually)/i,
-  /^(chapter|scene|act)\s+\d+/i,
+  /^(?:later|meanwhile|afterward|after|then|next|suddenly|eventually)/i,
+  /^(?:chapter|scene|act)\s+\d+/i,
   /^-{3,}$/,
   /^\*{3,}$/,
   /^#{1,6}\s/,
@@ -26,19 +26,79 @@ const SCENE_BREAK_PATTERNS = [
 
 // Common words that indicate relationships
 const RELATIONSHIP_INDICATORS = {
-  ally: ['friend', 'ally', 'partner', 'companion', 'helps', 'assists', 'supports'],
-  enemy: ['enemy', 'foe', 'rival', 'opponent', 'fights', 'attacks', 'opposes', 'hates'],
-  family: ['father', 'mother', 'son', 'daughter', 'brother', 'sister', 'parent', 'child'],
-  romantic: ['love', 'romance', 'marry', 'kiss', 'date', 'boyfriend', 'girlfriend', 'husband', 'wife'],
+  ally: [
+    'friend',
+    'ally',
+    'partner',
+    'companion',
+    'helps',
+    'assists',
+    'supports',
+  ],
+  enemy: [
+    'enemy',
+    'foe',
+    'rival',
+    'opponent',
+    'fights',
+    'attacks',
+    'opposes',
+    'hates',
+  ],
+  family: [
+    'father',
+    'mother',
+    'son',
+    'daughter',
+    'brother',
+    'sister',
+    'parent',
+    'child',
+  ],
+  romantic: [
+    'love',
+    'romance',
+    'marry',
+    'kiss',
+    'date',
+    'boyfriend',
+    'girlfriend',
+    'husband',
+    'wife',
+  ],
   business: ['works', 'employee', 'boss', 'merchant', 'trade', 'sells', 'buys'],
-  mentor: ['teaches', 'mentor', 'student', 'learns', 'trains', 'master', 'apprentice'],
+  mentor: [
+    'teaches',
+    'mentor',
+    'student',
+    'learns',
+    'trains',
+    'master',
+    'apprentice',
+  ],
 }
 
 // Emotional tone keywords
 const EMOTIONAL_TONE_KEYWORDS = {
-  tense: ['tension', 'nervous', 'anxious', 'worried', 'afraid', 'danger', 'threat'],
+  tense: [
+    'tension',
+    'nervous',
+    'anxious',
+    'worried',
+    'afraid',
+    'danger',
+    'threat',
+  ],
   triumphant: ['victory', 'success', 'triumph', 'celebrate', 'won', 'achieved'],
-  mysterious: ['mystery', 'unknown', 'strange', 'weird', 'curious', 'secret', 'hidden'],
+  mysterious: [
+    'mystery',
+    'unknown',
+    'strange',
+    'weird',
+    'curious',
+    'secret',
+    'hidden',
+  ],
   somber: ['sad', 'death', 'loss', 'grief', 'mourning', 'tragic', 'melancholy'],
   funny: ['laugh', 'funny', 'joke', 'humor', 'amusing', 'hilarious', 'comedy'],
 }
@@ -46,8 +106,24 @@ const EMOTIONAL_TONE_KEYWORDS = {
 // Context keywords for narrative classification
 const NARRATIVE_CONTEXT_KEYWORDS = {
   setup: ['begin', 'start', 'introduce', 'meet', 'arrive', 'enter', 'setup'],
-  action: ['fight', 'battle', 'run', 'chase', 'attack', 'defend', 'move', 'act'],
-  consequence: ['result', 'outcome', 'effect', 'because', 'therefore', 'consequently'],
+  action: [
+    'fight',
+    'battle',
+    'run',
+    'chase',
+    'attack',
+    'defend',
+    'move',
+    'act',
+  ],
+  consequence: [
+    'result',
+    'outcome',
+    'effect',
+    'because',
+    'therefore',
+    'consequently',
+  ],
   reflection: ['think', 'wonder', 'remember', 'realize', 'understand', 'feel'],
   description: ['look', 'appear', 'seem', 'describe', 'notice', 'observe'],
 }
@@ -55,27 +131,27 @@ const NARRATIVE_CONTEXT_KEYWORDS = {
 // Entity type detection patterns
 const ENTITY_TYPE_PATTERNS = {
   character: {
-    patterns: [/\b(he|she|they|him|her|them)\b/i, /\bsays?\b/i, /\btalks?\b/i],
+    patterns: [/\b(?:he|she|they|him|her|them)\b/i, /\bsays?\b/i, /\btalks?\b/i],
     keywords: ['person', 'character', 'npc', 'player', 'hero', 'villain'],
   },
   location: {
-    patterns: [/\b(in|at|to|from|near)\s+@/i, /\btravels?\s+to\s+@/i],
+    patterns: [/\b(?:in|at|to|from|near)\s+@/i, /\btravels?\s+to\s+@/i],
     keywords: ['place', 'location', 'city', 'town', 'dungeon', 'room', 'area'],
   },
   organization: {
-    patterns: [/\b(guild|clan|army|group|faction)\b/i],
+    patterns: [/\b(?:guild|clan|army|group|faction)\b/i],
     keywords: ['guild', 'organization', 'group', 'faction', 'clan', 'army'],
   },
   item: {
-    patterns: [/\b(wielding|holding|carries|found|lost)\s+@/i],
+    patterns: [/\b(?:wielding|holding|carries|found|lost)\s+@/i],
     keywords: ['item', 'weapon', 'armor', 'treasure', 'artifact', 'object'],
   },
   event: {
-    patterns: [/\b(during|after|before)\s+@/i],
+    patterns: [/\b(?:during|after|before)\s+@/i],
     keywords: ['event', 'battle', 'ceremony', 'meeting', 'celebration'],
   },
   mystery: {
-    patterns: [/\b(mystery|secret|unknown|question)\b/i],
+    patterns: [/\b(?:mystery|secret|unknown|question)\b/i],
     keywords: ['mystery', 'secret', 'question', 'puzzle', 'riddle'],
   },
 }
@@ -85,7 +161,7 @@ export class ChronicleParser {
 
   constructor(entities: Entity[] = []) {
     this.existingEntities = new Map(
-      entities.map(entity => [entity.name.toLowerCase(), entity]),
+      entities.map((entity) => [entity.name.toLowerCase(), entity]),
     )
 
     // Also map aliases
@@ -108,7 +184,11 @@ export class ChronicleParser {
     const extractedTags = this.extractHashtags(text)
 
     // Calculate overall confidence based on various factors
-    const confidence = this.calculateOverallConfidence(entities, relationships, text)
+    const confidence = this.calculateOverallConfidence(
+      entities,
+      relationships,
+      text,
+    )
 
     return {
       entities,
@@ -126,13 +206,16 @@ export class ChronicleParser {
    */
   private extractEntityMentions(text: string): EntityMention[] {
     const mentions: EntityMention[] = []
-    let match
+    const mentionPattern = new RegExp(
+      ENTITY_MENTION_PATTERN.source,
+      ENTITY_MENTION_PATTERN.flags,
+    )
 
-    while ((match = ENTITY_MENTION_PATTERN.exec(text)) !== null) {
-      const mentionText = match[0] // Full @mention
-      const entityName = match[1].trim() // Name without @
-      const startIndex = match.index
-      const endIndex = match.index + match[0].length
+    for (const match of text.matchAll(mentionPattern)) {
+      const mentionText = match[0] ?? '' // Full @mention
+      const entityName = (match[1] ?? '').trim() // Name without @
+      const startIndex = match.index ?? 0
+      const endIndex = startIndex + mentionText.length
 
       // Get context around the mention
       const contextStart = Math.max(0, startIndex - 50)
@@ -147,7 +230,9 @@ export class ChronicleParser {
         mentionText,
         startIndex,
         endIndex,
-        confidence: existingEntity ? 0.9 : this.calculateEntityConfidence(entityName, context),
+        confidence: existingEntity
+          ? 0.9
+          : this.calculateEntityConfidence(entityName, context),
         context,
       }
 
@@ -175,10 +260,10 @@ export class ChronicleParser {
 
         // Check if they're mentioned in the same sentence or nearby
         const distance = Math.abs(entity1.startIndex - entity2.startIndex)
-        if (distance > 200)
-          continue // Too far apart
+        if (distance > 200) continue // Too far apart
 
-        const contextStart = Math.min(entity1.startIndex, entity2.startIndex) - 50
+        const contextStart =
+          Math.min(entity1.startIndex, entity2.startIndex) - 50
         const contextEnd = Math.max(entity1.endIndex, entity2.endIndex) + 50
         const relationshipContext = text.substring(
           Math.max(0, contextStart),
@@ -206,11 +291,17 @@ export class ChronicleParser {
   /**
    * Infer relationship type from context text
    */
-  private inferRelationshipType(context: string): { type: RelationshipType, confidence: number } | null {
+  private inferRelationshipType(
+    context: string,
+  ): { type: RelationshipType; confidence: number } | null {
     const lowerContext = context.toLowerCase()
 
-    for (const [relationshipType, keywords] of Object.entries(RELATIONSHIP_INDICATORS)) {
-      const matches = keywords.filter(keyword => lowerContext.includes(keyword))
+    for (const [relationshipType, keywords] of Object.entries(
+      RELATIONSHIP_INDICATORS,
+    )) {
+      const matches = keywords.filter((keyword) =>
+        lowerContext.includes(keyword),
+      )
       if (matches.length > 0) {
         const confidence = Math.min(0.9, matches.length * 0.3)
         return {
@@ -228,10 +319,12 @@ export class ChronicleParser {
    */
   private detectNarrativeContext(text: string): NarrativeContext | undefined {
     const lowerText = text.toLowerCase()
-    let bestMatch: { context: NarrativeContext, score: number } | null = null
+    let bestMatch: { context: NarrativeContext; score: number } | null = null
 
-    for (const [contextType, keywords] of Object.entries(NARRATIVE_CONTEXT_KEYWORDS)) {
-      const matches = keywords.filter(keyword => lowerText.includes(keyword))
+    for (const [contextType, keywords] of Object.entries(
+      NARRATIVE_CONTEXT_KEYWORDS,
+    )) {
+      const matches = keywords.filter((keyword) => lowerText.includes(keyword))
       const score = matches.length
 
       if (score > 0 && (!bestMatch || score > bestMatch.score)) {
@@ -250,10 +343,12 @@ export class ChronicleParser {
    */
   private detectEmotionalTone(text: string): EmotionalTone | undefined {
     const lowerText = text.toLowerCase()
-    let bestMatch: { tone: EmotionalTone, score: number } | null = null
+    let bestMatch: { tone: EmotionalTone; score: number } | null = null
 
-    for (const [toneType, keywords] of Object.entries(EMOTIONAL_TONE_KEYWORDS)) {
-      const matches = keywords.filter(keyword => lowerText.includes(keyword))
+    for (const [toneType, keywords] of Object.entries(
+      EMOTIONAL_TONE_KEYWORDS,
+    )) {
+      const matches = keywords.filter((keyword) => lowerText.includes(keyword))
       const score = matches.length
 
       if (score > 0 && (!bestMatch || score > bestMatch.score)) {
@@ -273,8 +368,10 @@ export class ChronicleParser {
   private detectSceneBreak(text: string): boolean {
     const trimmed = text.trim()
 
-    return SCENE_BREAK_PATTERNS.some(pattern => pattern.test(trimmed))
-      || trimmed.length < 20 && /^(later|meanwhile|then|next)\.?$/i.test(trimmed)
+    return (
+      SCENE_BREAK_PATTERNS.some((pattern) => pattern.test(trimmed)) ||
+      (trimmed.length < 20 && /^(?:later|meanwhile|then|next)\.?$/i.test(trimmed))
+    )
   }
 
   /**
@@ -283,10 +380,12 @@ export class ChronicleParser {
   private extractHashtags(text: string): string[] {
     const hashtagPattern = /#(\w+)/g
     const tags: string[] = []
-    let match
 
-    while ((match = hashtagPattern.exec(text)) !== null) {
-      tags.push(match[1])
+    for (const match of text.matchAll(hashtagPattern)) {
+      const tag = match[1]
+      if (tag) {
+        tags.push(tag)
+      }
     }
 
     return [...new Set(tags)] // Remove duplicates
@@ -295,7 +394,10 @@ export class ChronicleParser {
   /**
    * Calculate confidence for entity recognition
    */
-  private calculateEntityConfidence(entityName: string, context: string): number {
+  private calculateEntityConfidence(
+    entityName: string,
+    context: string,
+  ): number {
     let confidence = 0.5 // Base confidence for new entities
 
     // Boost confidence for capitalized names
@@ -320,17 +422,23 @@ export class ChronicleParser {
   /**
    * Detect entity type from name and context
    */
-  private detectEntityType(entityName: string, context: string): EntityType | null {
+  private detectEntityType(
+    entityName: string,
+    context: string,
+  ): EntityType | null {
     const lowerName = entityName.toLowerCase()
     const lowerContext = context.toLowerCase()
 
     for (const [entityType, typeData] of Object.entries(ENTITY_TYPE_PATTERNS)) {
       // Check patterns
-      const patternMatch = typeData.patterns.some(pattern => pattern.test(context))
+      const patternMatch = typeData.patterns.some((pattern) =>
+        pattern.test(context),
+      )
 
       // Check keywords
-      const keywordMatch = typeData.keywords.some(keyword =>
-        lowerContext.includes(keyword) || lowerName.includes(keyword),
+      const keywordMatch = typeData.keywords.some(
+        (keyword) =>
+          lowerContext.includes(keyword) || lowerName.includes(keyword),
       )
 
       if (patternMatch || keywordMatch) {
@@ -339,7 +447,7 @@ export class ChronicleParser {
     }
 
     // Default heuristics
-    if (/^(the\s+)?[A-Z][a-z]+(\s+[A-Z][a-z]+)*$/.test(entityName)) {
+    if (/^(?:the\s+)?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*$/.test(entityName)) {
       return 'character' // Proper nouns are likely characters
     }
 
@@ -354,18 +462,23 @@ export class ChronicleParser {
     relationships: InferredRelationship[],
     text: string,
   ): number {
-    if (entities.length === 0)
-      return 0.1
+    if (entities.length === 0) return 0.1
 
-    const avgEntityConfidence = entities.reduce((sum, e) => sum + e.confidence, 0) / entities.length
-    const avgRelationshipConfidence = relationships.length > 0
-      ? relationships.reduce((sum, r) => sum + r.confidence, 0) / relationships.length
-      : 0.5
+    const avgEntityConfidence =
+      entities.reduce((sum, e) => sum + e.confidence, 0) / entities.length
+    const avgRelationshipConfidence =
+      relationships.length > 0
+        ? relationships.reduce((sum, r) => sum + r.confidence, 0) /
+          relationships.length
+        : 0.5
 
     // Factor in text quality (longer, more structured text = higher confidence)
     const textQuality = Math.min(1, text.length / 100) * 0.2
 
-    return Math.min(1, avgEntityConfidence * 0.6 + avgRelationshipConfidence * 0.3 + textQuality)
+    return Math.min(
+      1,
+      avgEntityConfidence * 0.6 + avgRelationshipConfidence * 0.3 + textQuality,
+    )
   }
 
   /**
@@ -395,22 +508,21 @@ export class ChronicleParser {
    */
   getEntitySuggestions(query: string, limit: number = 10): Entity[] {
     const lowerQuery = query.toLowerCase()
-    const suggestions: { entity: Entity, score: number }[] = []
+    const suggestions: { entity: Entity; score: number }[] = []
 
     for (const entity of this.existingEntities.values()) {
-      if (suggestions.find(s => s.entity.id === entity.id))
-        continue // Avoid duplicates
+      if (suggestions.find((s) => s.entity.id === entity.id)) continue // Avoid duplicates
 
       const name = entity.name.toLowerCase()
       let score = 0
 
       if (name.startsWith(lowerQuery)) {
         score = 3 // Exact prefix match
-      }
-      else if (name.includes(lowerQuery)) {
+      } else if (name.includes(lowerQuery)) {
         score = 2 // Contains match
-      }
-      else if (entity.aliases.some(alias => alias.toLowerCase().includes(lowerQuery))) {
+      } else if (
+        entity.aliases.some((alias) => alias.toLowerCase().includes(lowerQuery))
+      ) {
         score = 1 // Alias match
       }
 
@@ -424,7 +536,7 @@ export class ChronicleParser {
     return suggestions
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
-      .map(s => s.entity)
+      .map((s) => s.entity)
   }
 }
 
@@ -438,7 +550,10 @@ export function createChronicleParser(entities: Entity[]): ChronicleParser {
 /**
  * Quick parse function for simple entity extraction
  */
-export function parseEntityMentions(text: string, entities: Entity[] = []): EntityMention[] {
+export function parseEntityMentions(
+  text: string,
+  entities: Entity[] = [],
+): EntityMention[] {
   const parser = new ChronicleParser(entities)
   const result = parser.parseText(text)
   return result.entities

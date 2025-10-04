@@ -6,11 +6,145 @@ import { customMatchers } from '../utils/testing'
 
 import '@testing-library/jest-dom'
 
-declare global {
-  // Provide the shared logger for components that assume a global logger binding.
-  // Vitest runs in jsdom where we control the global namespace.
+vi.mock('@/services/llm', async () => {
+  const actual =
+    await vi.importActual<typeof import('@/services/llm')>('@/services/llm')
 
-  var logger: typeof logger
+  type ProgressHandler = (event: any) => void
+  type TelemetryHandler = (event: any) => void
+
+  const state = {
+    progressHandlers: new Set<ProgressHandler>(),
+    telemetryHandlers: new Set<TelemetryHandler>(),
+    proposeCalls: [] as any[],
+    applyCalls: [] as any[],
+    nextProposeResult: undefined as
+      | undefined
+      | ((request: any) => any | Promise<any>),
+    nextApplyResult: undefined as
+      | undefined
+      | ((payload: any) => any | Promise<any>),
+  }
+
+  const controls = {
+    reset() {
+      state.proposeCalls = []
+      state.applyCalls = []
+      state.nextProposeResult = undefined
+      state.nextApplyResult = undefined
+    },
+    emitProgress(event: any) {
+      for (const handler of state.progressHandlers) handler(event)
+    },
+    emitTelemetry(event: any) {
+      for (const handler of state.telemetryHandlers) handler(event)
+    },
+    setNextProposeResult(
+      factory: ((request: any) => any | Promise<any>) | undefined,
+    ) {
+      state.nextProposeResult = factory
+    },
+    setNextApplyResult(
+      factory: ((payload: any) => any | Promise<any>) | undefined,
+    ) {
+      state.nextApplyResult = factory
+    },
+    getProposeCalls() {
+      return [...state.proposeCalls]
+    },
+    getApplyCalls() {
+      return [...state.applyCalls]
+    },
+  }
+
+  const schedule =
+    globalThis.queueMicrotask ??
+    ((cb: () => void) => Promise.resolve().then(cb))
+
+  const fakeClient = {
+    onProgress(handler: ProgressHandler) {
+      state.progressHandlers.add(handler)
+      schedule(() =>
+        handler({ stage: 'idle', progress: 0, message: 'Mock idle event' }),
+      )
+      return () => state.progressHandlers.delete(handler)
+    },
+    onTelemetry(handler: TelemetryHandler) {
+      state.telemetryHandlers.add(handler)
+      return () => state.telemetryHandlers.delete(handler)
+    },
+    async proposeDeltas(request: any) {
+      state.proposeCalls.push(request)
+      if (state.nextProposeResult) {
+        return await state.nextProposeResult(request)
+      }
+      const entryId =
+        request?.entryId ?? `mock-entry-${Math.random().toString(36).slice(2)}`
+      return {
+        bundle: {
+          entryId,
+          narrative: request?.rawText?.trim()
+            ? `${request.rawText.trim()} (mocked summary)`
+            : 'Mock automation summary',
+          ops: [],
+          usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+          reasoning: 'Mocked in test environment',
+          idempotencyKey:
+            request?.idempotencyKey ??
+            `mock-bundle-${Math.random().toString(36).slice(2)}`,
+          model: 'gpt-5-mock',
+          createdAt: new Date().toISOString(),
+        },
+        warnings: [],
+      }
+    },
+    async applyBundle(payload: any) {
+      state.applyCalls.push(payload)
+      if (state.nextApplyResult) {
+        return await state.nextApplyResult(payload)
+      }
+      const bundle = payload?.bundle ?? { entryId: 'mock-bundle', ops: [] }
+      const bundleId =
+        bundle.idempotencyKey ??
+        bundle.entryId ??
+        `mock-bundle-${Math.random().toString(36).slice(2)}`
+      const ops: any[] = Array.isArray(bundle.ops) ? bundle.ops : []
+      const selected = new Set(payload?.selectedOpIndices ?? [])
+      const appliedOps =
+        selected.size > 0 ? ops.filter((_, index) => selected.has(index)) : ops
+      const skippedOps =
+        selected.size > 0 ? ops.filter((_, index) => !selected.has(index)) : []
+
+      return {
+        bundleId,
+        appliedOps,
+        skippedOps,
+        undoHandle: {
+          bundleId,
+          issuedAt: new Date().toISOString(),
+        },
+      }
+    },
+  }
+
+  controls.reset()
+
+  const exported = {
+    ...actual,
+    gpt5Client: fakeClient,
+  }
+
+  ;(fakeClient as any).__mock = controls
+  ;(exported as any).__mock = controls
+  ;(globalThis as any).__LLM_MOCK__ = controls
+
+  return exported
+})
+
+declare global {
+  interface GlobalThis {
+    logger?: typeof logger
+  }
 }
 
 if (!globalThis.logger) {
@@ -18,6 +152,14 @@ if (!globalThis.logger) {
 }
 
 expect.extend(customMatchers)
+const getLlmMockControls = () => (globalThis as any).__LLM_MOCK__
+
+beforeEach(() => {
+  const controls = getLlmMockControls()
+  if (controls?.reset) {
+    controls.reset()
+  }
+})
 
 const teardownGlobalErrorHandling = setupGlobalErrorHandling()
 const loggerConsoleError = console.error
@@ -53,10 +195,18 @@ function createStorageMock(): Storage {
 }
 
 let originalResizeObserver: typeof globalThis.ResizeObserver | undefined
-let originalIntersectionObserver: typeof globalThis.IntersectionObserver | undefined
-let originalRequestAnimationFrame: typeof globalThis.requestAnimationFrame | undefined
-let originalCancelAnimationFrame: typeof globalThis.cancelAnimationFrame | undefined
-let originalCanvasGetContext: typeof HTMLCanvasElement.prototype.getContext | undefined
+let originalIntersectionObserver:
+  | typeof globalThis.IntersectionObserver
+  | undefined
+let originalRequestAnimationFrame:
+  | typeof globalThis.requestAnimationFrame
+  | undefined
+let originalCancelAnimationFrame:
+  | typeof globalThis.cancelAnimationFrame
+  | undefined
+let originalCanvasGetContext:
+  | typeof HTMLCanvasElement.prototype.getContext
+  | undefined
 let originalUrlCreateObjectURL: typeof URL.createObjectURL | undefined
 let originalUrlRevokeObjectURL: typeof URL.revokeObjectURL | undefined
 let performanceMarkPatched = false
@@ -66,6 +216,13 @@ let localStorageDescriptor: PropertyDescriptor | undefined
 let sessionStorageDescriptor: PropertyDescriptor | undefined
 let clipboardDescriptor: PropertyDescriptor | undefined
 let mediaDevicesDescriptor: PropertyDescriptor | undefined
+let scrollToDescriptor: PropertyDescriptor | undefined
+let originalWebGLRenderingContext:
+  | typeof globalThis.WebGLRenderingContext
+  | undefined
+let originalWebGL2RenderingContext:
+  | typeof globalThis.WebGL2RenderingContext
+  | undefined
 let rafId = 0
 const rafHandles = new Map<number, ReturnType<typeof setTimeout>>()
 
@@ -76,7 +233,8 @@ beforeAll(() => {
     disconnect() {}
   }
   originalResizeObserver = globalThis.ResizeObserver
-  globalThis.ResizeObserver = MockResizeObserver as unknown as typeof globalThis.ResizeObserver
+  globalThis.ResizeObserver =
+    MockResizeObserver as unknown as typeof globalThis.ResizeObserver
 
   const MockIntersectionObserver = class {
     observe() {}
@@ -84,7 +242,8 @@ beforeAll(() => {
     disconnect() {}
   }
   originalIntersectionObserver = globalThis.IntersectionObserver
-  globalThis.IntersectionObserver = MockIntersectionObserver as unknown as typeof globalThis.IntersectionObserver
+  globalThis.IntersectionObserver =
+    MockIntersectionObserver as unknown as typeof globalThis.IntersectionObserver
 
   matchMediaDescriptor = Object.getOwnPropertyDescriptor(window, 'matchMedia')
   Object.defineProperty(window, 'matchMedia', {
@@ -100,6 +259,12 @@ beforeAll(() => {
       removeEventListener: noop,
       dispatchEvent: () => false,
     }),
+  })
+
+  scrollToDescriptor = Object.getOwnPropertyDescriptor(window, 'scrollTo')
+  Object.defineProperty(window, 'scrollTo', {
+    configurable: true,
+    value: vi.fn(),
   })
 
   originalRequestAnimationFrame = globalThis.requestAnimationFrame
@@ -122,12 +287,14 @@ beforeAll(() => {
   }
 
   if (!globalThis.performance.mark) {
-    globalThis.performance.mark = (() => undefined) as typeof globalThis.performance.mark
+    globalThis.performance.mark = (() =>
+      undefined) as typeof globalThis.performance.mark
     performanceMarkPatched = true
   }
 
   if (!globalThis.performance.measure) {
-    globalThis.performance.measure = (() => undefined) as typeof globalThis.performance.measure
+    globalThis.performance.measure = (() =>
+      undefined) as typeof globalThis.performance.measure
     performanceMeasurePatched = true
   }
 
@@ -152,10 +319,28 @@ beforeAll(() => {
     clearColor: noop,
     clear: noop,
   }
-  HTMLCanvasElement.prototype.getContext = () => mockWebGLContext as unknown as RenderingContext
+  HTMLCanvasElement.prototype.getContext = () =>
+    mockWebGLContext as unknown as RenderingContext
 
-  localStorageDescriptor = Object.getOwnPropertyDescriptor(window, 'localStorage')
-  sessionStorageDescriptor = Object.getOwnPropertyDescriptor(window, 'sessionStorage')
+  originalWebGLRenderingContext = (globalThis as any).WebGLRenderingContext
+  originalWebGL2RenderingContext = (globalThis as any).WebGL2RenderingContext
+  if (!(globalThis as any).WebGLRenderingContext) {
+    ;(globalThis as any).WebGLRenderingContext =
+      function WebGLRenderingContext() {}
+  }
+  if (!(globalThis as any).WebGL2RenderingContext) {
+    ;(globalThis as any).WebGL2RenderingContext =
+      function WebGL2RenderingContext() {}
+  }
+
+  localStorageDescriptor = Object.getOwnPropertyDescriptor(
+    window,
+    'localStorage',
+  )
+  sessionStorageDescriptor = Object.getOwnPropertyDescriptor(
+    window,
+    'sessionStorage',
+  )
   Object.defineProperty(window, 'localStorage', {
     configurable: true,
     value: createStorageMock(),
@@ -179,7 +364,10 @@ beforeAll(() => {
     } as Clipboard,
   })
 
-  mediaDevicesDescriptor = Object.getOwnPropertyDescriptor(navigator, 'mediaDevices')
+  mediaDevicesDescriptor = Object.getOwnPropertyDescriptor(
+    navigator,
+    'mediaDevices',
+  )
   Object.defineProperty(navigator, 'mediaDevices', {
     configurable: true,
     value: {
@@ -189,12 +377,10 @@ beforeAll(() => {
 
   console.error = (...args: unknown[]) => {
     if (
-      typeof args[0] === 'string'
-      && (
-        args[0].includes('Warning: ReactDOM.render is no longer supported')
-        || args[0].includes('Warning: An invalid form control')
-        || args[0].includes('Error: Uncaught [Error: WebGL not supported]')
-      )
+      typeof args[0] === 'string' &&
+      (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
+        args[0].includes('Warning: An invalid form control') ||
+        args[0].includes('Error: Uncaught [Error: WebGL not supported]'))
     ) {
       return
     }
@@ -208,8 +394,7 @@ afterEach(() => {
   // Flush any pending timers created by components/utilities
   try {
     vi.runOnlyPendingTimers()
-  }
-  catch {}
+  } catch {}
   vi.clearAllTimers()
 })
 
@@ -220,37 +405,32 @@ afterAll(() => {
 
   if (originalResizeObserver) {
     globalThis.ResizeObserver = originalResizeObserver
-  }
-  else {
-    delete (global as Record<string, unknown>).ResizeObserver
+  } else {
+    delete (globalThis as Record<string, unknown>).ResizeObserver
   }
 
   if (originalIntersectionObserver) {
     globalThis.IntersectionObserver = originalIntersectionObserver
-  }
-  else {
-    delete (global as Record<string, unknown>).IntersectionObserver
+  } else {
+    delete (globalThis as Record<string, unknown>).IntersectionObserver
   }
 
   if (matchMediaDescriptor) {
     Object.defineProperty(window, 'matchMedia', matchMediaDescriptor)
-  }
-  else {
+  } else {
     delete (window as Record<string, unknown>).matchMedia
   }
 
   if (originalRequestAnimationFrame) {
     globalThis.requestAnimationFrame = originalRequestAnimationFrame
-  }
-  else {
-    delete (global as Record<string, unknown>).requestAnimationFrame
+  } else {
+    delete (globalThis as Record<string, unknown>).requestAnimationFrame
   }
 
   if (originalCancelAnimationFrame) {
     globalThis.cancelAnimationFrame = originalCancelAnimationFrame
-  }
-  else {
-    delete (global as Record<string, unknown>).cancelAnimationFrame
+  } else {
+    delete (globalThis as Record<string, unknown>).cancelAnimationFrame
   }
 
   if (performanceMarkPatched) {
@@ -264,47 +444,60 @@ afterAll(() => {
   if (originalCanvasGetContext) {
     HTMLCanvasElement.prototype.getContext = originalCanvasGetContext
   }
+  if (originalWebGLRenderingContext) {
+    ;(globalThis as any).WebGLRenderingContext = originalWebGLRenderingContext
+  } else {
+    delete (globalThis as any).WebGLRenderingContext
+  }
+
+  if (originalWebGL2RenderingContext) {
+    ;(globalThis as any).WebGL2RenderingContext = originalWebGL2RenderingContext
+  } else {
+    delete (globalThis as any).WebGL2RenderingContext
+  }
 
   if (localStorageDescriptor) {
     Object.defineProperty(window, 'localStorage', localStorageDescriptor)
-  }
-  else {
+  } else {
     delete (window as Record<string, unknown>).localStorage
   }
 
   if (sessionStorageDescriptor) {
     Object.defineProperty(window, 'sessionStorage', sessionStorageDescriptor)
-  }
-  else {
+  } else {
     delete (window as Record<string, unknown>).sessionStorage
   }
 
   if (originalUrlCreateObjectURL) {
     globalThis.URL.createObjectURL = originalUrlCreateObjectURL
-  }
-  else {
-    delete (globalThis.URL as unknown as Record<string, unknown>).createObjectURL
+  } else {
+    delete (globalThis.URL as unknown as Record<string, unknown>)
+      .createObjectURL
   }
 
   if (originalUrlRevokeObjectURL) {
     globalThis.URL.revokeObjectURL = originalUrlRevokeObjectURL
-  }
-  else {
-    delete (globalThis.URL as unknown as Record<string, unknown>).revokeObjectURL
+  } else {
+    delete (globalThis.URL as unknown as Record<string, unknown>)
+      .revokeObjectURL
   }
 
   if (clipboardDescriptor) {
     Object.defineProperty(navigator, 'clipboard', clipboardDescriptor)
-  }
-  else {
+  } else {
     Reflect.deleteProperty(navigator as Record<string, unknown>, 'clipboard')
   }
 
   if (mediaDevicesDescriptor) {
     Object.defineProperty(navigator, 'mediaDevices', mediaDevicesDescriptor)
-  }
-  else {
+  } else {
     Reflect.deleteProperty(navigator as Record<string, unknown>, 'mediaDevices')
+  }
+
+  if (scrollToDescriptor) {
+    Object.defineProperty(window, 'scrollTo', scrollToDescriptor)
+  } else {
+    delete (window as Record<string, unknown>).scrollTo
   }
 
   console.error = loggerConsoleError
@@ -314,7 +507,7 @@ afterAll(() => {
 // Global test utilities
 declare global {
   interface CustomMatchers<R = unknown> {
-    toHaveAccessibleName(expectedName: string): R
-    toBeWithinPerformanceBudget(budget: number): R
+    toHaveAccessibleName: (expectedName: string) => R
+    toBeWithinPerformanceBudget: (budget: number) => R
   }
 }

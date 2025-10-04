@@ -1,4 +1,12 @@
-import React, { createContext, useCallback, useEffect, useState } from 'react'
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+} from 'react'
+import { logger } from '@/utils/logger'
 
 export interface User {
   id: string
@@ -17,77 +25,124 @@ export interface User {
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
-  login: (credentials: { name: string, email?: string }) => Promise<void>
+  login: (credentials: { name: string; email?: string }) => Promise<void>
   logout: () => void
   updateUser: (updates: Partial<User>) => void
   isLoading: boolean
 }
 
+interface AuthState {
+  user: User | null
+  isLoading: boolean
+}
+
+type AuthAction =
+  | { type: 'login'; user: User }
+  | { type: 'logout' }
+  | { type: 'setLoading'; isLoading: boolean }
+  | { type: 'touch' }
+  | { type: 'update'; updates: Partial<User> }
+
 const AuthContext = createContext<AuthContextType | null>(null)
+
+const loadStoredUser = (): AuthState => {
+  if (typeof window === 'undefined') {
+    return { user: null, isLoading: false }
+  }
+
+  try {
+    const storedUser = window.localStorage.getItem('zimbomate-user')
+    if (!storedUser) {
+      return { user: null, isLoading: false }
+    }
+
+    const userData = JSON.parse(storedUser)
+    return {
+      user: {
+        ...userData,
+        createdAt: new Date(userData.createdAt),
+        lastActive: new Date(userData.lastActive),
+      },
+      isLoading: false,
+    }
+  } catch (error) {
+    logger.warn(
+      { error },
+      'Failed to load user data from localStorage; clearing stale entry',
+    )
+    window.localStorage.removeItem('zimbomate-user')
+    return { user: null, isLoading: false }
+  }
+}
+
+const authReducer = (state: AuthState, action: AuthAction): AuthState => {
+  switch (action.type) {
+    case 'login':
+      return { user: action.user, isLoading: false }
+    case 'logout':
+      return { user: null, isLoading: false }
+    case 'setLoading':
+      return { ...state, isLoading: action.isLoading }
+    case 'touch':
+      return state.user
+        ? {
+            ...state,
+            user: { ...state.user, lastActive: new Date() },
+          }
+        : state
+    case 'update':
+      return state.user
+        ? {
+            ...state,
+            user: { ...state.user, ...action.updates, lastActive: new Date() },
+          }
+        : state
+    default:
+      return state
+  }
+}
 
 interface AuthProviderProps {
   children: React.ReactNode
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [state, dispatch] = useReducer(authReducer, undefined, loadStoredUser)
+  const { user, isLoading } = state
 
-  // Initialize user from localStorage on mount
   useEffect(() => {
-    const initializeAuth = () => {
-      try {
-        const storedUser = localStorage.getItem('zimbomate-user')
-        if (storedUser) {
-          const userData = JSON.parse(storedUser)
-          setUser({
-            ...userData,
-            createdAt: new Date(userData.createdAt),
-            lastActive: new Date(userData.lastActive),
-          })
-        }
-      }
-      catch (error) {
-        console.warn('Failed to load user data from localStorage:', error)
-        localStorage.removeItem('zimbomate-user')
-      }
-      finally {
-        setIsLoading(false)
-      }
+    if (!user) {
+      return undefined
     }
 
-    initializeAuth()
-  }, [])
+    const interval = window.setInterval(() => {
+      dispatch({ type: 'touch' })
+    }, 60000)
 
-  // Update lastActive timestamp periodically
-  useEffect(() => {
-    if (user) {
-      const interval = setInterval(() => {
-        setUser(prev => prev ? { ...prev, lastActive: new Date() } : null)
-      }, 60000) // Update every minute
-
-      return () => clearInterval(interval)
-    }
+    return () => window.clearInterval(interval)
   }, [user])
 
-  // Persist user data to localStorage whenever it changes
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined
+    }
+
     if (user) {
-      localStorage.setItem('zimbomate-user', JSON.stringify(user))
+      window.localStorage.setItem('zimbomate-user', JSON.stringify(user))
+    } else {
+      window.localStorage.removeItem('zimbomate-user')
     }
-    else {
-      localStorage.removeItem('zimbomate-user')
-    }
+
+    return undefined
   }, [user])
 
-  const login = useCallback(async (credentials: { name: string, email?: string }) => {
-    setIsLoading(true)
+  const login = useCallback(async (credentials: { name: string; email?: string }) => {
+    dispatch({ type: 'setLoading', isLoading: true })
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
     const newUser: User = {
-      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       name: credentials.name,
       email: credentials.email,
       preferences: {
@@ -99,48 +154,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       lastActive: new Date(),
     }
 
-    setUser(newUser)
-    setIsLoading(false)
+    dispatch({ type: 'login', user: newUser })
   }, [])
 
   const logout = useCallback(() => {
-    setUser(null)
-    localStorage.removeItem('zimbomate-user')
-    // Clear other user-specific data
-    localStorage.removeItem('zimbomate-characters')
-    localStorage.removeItem('zimbomate-campaigns')
-    localStorage.removeItem('zimbomate-preferences')
+    dispatch({ type: 'logout' })
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('zimbomate-characters')
+      window.localStorage.removeItem('zimbomate-campaigns')
+      window.localStorage.removeItem('zimbomate-preferences')
+    }
   }, [])
 
   const updateUser = useCallback((updates: Partial<User>) => {
-    setUser(prev => prev ? { ...prev, ...updates, lastActive: new Date() } : null)
+    dispatch({ type: 'update', updates })
   }, [])
 
-  const value: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    login,
-    logout,
-    updateUser,
-    isLoading,
-  }
-
-  return (
-    <AuthContext value={value}>
-      {children}
-    </AuthContext>
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      isAuthenticated: !!user,
+      login,
+      logout,
+      updateUser,
+      isLoading,
+    }),
+    [isLoading, login, logout, updateUser, user],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth(): AuthContextType {
-  const context = use(AuthContext)
+  const context = useContext(AuthContext)
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 }
 
-// Helper function to get current user ID for services
 export function getCurrentUserId(): string | null {
   try {
     const storedUser = localStorage.getItem('zimbomate-user')
@@ -148,14 +201,12 @@ export function getCurrentUserId(): string | null {
       const userData = JSON.parse(storedUser)
       return userData.id
     }
-  }
-  catch (error) {
-    console.warn('Failed to get current user ID:', error)
+  } catch (error) {
+    logger.warn({ error }, 'Failed to get current user ID')
   }
   return null
 }
 
-// Guest user creation for offline usage
 export function createGuestUser(): User {
   return {
     id: `guest-${Date.now()}`,
@@ -169,3 +220,11 @@ export function createGuestUser(): User {
     lastActive: new Date(),
   }
 }
+
+
+
+
+
+
+
+

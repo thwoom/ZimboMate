@@ -21,7 +21,7 @@ function Toaster({ theme = 'matsu', style, ...props }: MatsuToasterProps) {
   return (
     <Sonner
       theme={theme as ToasterProps['theme']}
-      className="toaster group"
+      className='toaster group'
       style={mergedStyles}
       {...props}
     />

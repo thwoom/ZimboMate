@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger'
+
 /**
  * Keyboard Shortcuts Service for ZimboMate V2
  * Manages global keyboard shortcuts with conflict detection and context awareness
@@ -212,7 +214,7 @@ class KeyboardShortcutsService {
     defaultShortcuts.forEach((shortcut) => {
       this.registerShortcut({
         ...shortcut,
-        action: () => console.log(`Shortcut triggered: ${shortcut.id}`),
+        action: () => logger.info(`Shortcut triggered: ${shortcut.id}`),
       })
     })
   }
@@ -239,8 +241,7 @@ class KeyboardShortcutsService {
    */
   unregisterShortcut(shortcutId: string): boolean {
     const shortcut = this.shortcuts.get(shortcutId)
-    if (!shortcut)
-      return false
+    if (!shortcut) return false
 
     const keyCombo = this.createKeyCombo(shortcut.key, shortcut.modifiers)
     this.shortcuts.delete(shortcutId)
@@ -253,8 +254,7 @@ class KeyboardShortcutsService {
    */
   updateShortcutAction(shortcutId: string, action: () => void): boolean {
     const shortcut = this.shortcuts.get(shortcutId)
-    if (!shortcut)
-      return false
+    if (!shortcut) return false
 
     shortcut.action = action
     return true
@@ -283,7 +283,9 @@ class KeyboardShortcutsService {
     return Array.from(categories.entries()).map(([id, shortcuts]) => ({
       id,
       name: this.getCategoryName(id),
-      shortcuts: shortcuts.sort((a, b) => a.description.localeCompare(b.description)),
+      shortcuts: shortcuts.sort((a, b) =>
+        a.description.localeCompare(b.description),
+      ),
     }))
   }
 
@@ -292,7 +294,7 @@ class KeyboardShortcutsService {
    */
   getSearchableShortcuts(): KeyboardShortcut[] {
     return Array.from(this.shortcuts.values())
-      .filter(shortcut => shortcut.enabled)
+      .filter((shortcut) => shortcut.enabled)
       .sort((a, b) => a.description.localeCompare(b.description))
   }
 
@@ -316,14 +318,10 @@ class KeyboardShortcutsService {
    */
   private parseKeyEvent(event: KeyboardEvent): string {
     const modifiers: string[] = []
-    if (event.ctrlKey)
-      modifiers.push('ctrl')
-    if (event.shiftKey)
-      modifiers.push('shift')
-    if (event.altKey)
-      modifiers.push('alt')
-    if (event.metaKey)
-      modifiers.push('meta')
+    if (event.ctrlKey) modifiers.push('ctrl')
+    if (event.shiftKey) modifiers.push('shift')
+    if (event.altKey) modifiers.push('alt')
+    if (event.metaKey) modifiers.push('meta')
 
     return this.createKeyCombo(event.key, modifiers)
   }
@@ -332,12 +330,10 @@ class KeyboardShortcutsService {
    * Check if shortcut is active in current context
    */
   private isShortcutActive(shortcut: KeyboardShortcut): boolean {
-    if (!shortcut.enabled)
-      return false
-    if (!shortcut.context)
-      return true
+    if (!shortcut.enabled) return false
+    if (!shortcut.context) return true
 
-    return shortcut.context.some(context =>
+    return shortcut.context.some((context) =>
       this.currentContext.includes(context),
     )
   }
@@ -347,12 +343,15 @@ class KeyboardShortcutsService {
    */
   private bindGlobalListener() {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!this.isEnabled)
-        return
+      if (!this.isEnabled) return
 
       // Skip if user is typing in input fields
       const target = event.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true'
+      ) {
         return
       }
 
@@ -398,7 +397,7 @@ class KeyboardShortcutsService {
     }
 
     const parts = [
-      ...shortcut.modifiers.map(mod => modifierMap[mod] || mod),
+      ...shortcut.modifiers.map((mod) => modifierMap[mod] || mod),
       shortcut.key === ' ' ? 'Space' : shortcut.key.toUpperCase(),
     ]
 

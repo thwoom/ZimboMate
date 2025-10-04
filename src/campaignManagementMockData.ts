@@ -57,40 +57,34 @@ export function toDate(input: Date | string | number | null | undefined): Date {
 
   return new Date()
 }
-export function formatCampaignDuration(created: Date | string | number): string {
+export function formatCampaignDuration(
+  created: Date | string | number,
+): string {
   const createdDate = toDate(created)
   const now = new Date()
   const diffTime = Math.abs(now.getTime() - createdDate.getTime())
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 1)
-    return '1 day'
-  if (diffDays < 30)
-    return `${diffDays} days`
-  if (diffDays < 365)
-    return `${Math.floor(diffDays / 30)} months`
+  if (diffDays === 1) return '1 day'
+  if (diffDays < 30) return `${diffDays} days`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months`
   return `${Math.floor(diffDays / 365)} years`
 }
 
 export function formatSessionDuration(duration?: number): string {
-  if (!duration)
-    return 'Unknown duration'
+  if (!duration) return 'Unknown duration'
 
   const hours = Math.floor(duration / 60)
   const minutes = duration % 60
 
-  if (hours === 0)
-    return `${minutes}m`
-  if (minutes === 0)
-    return `${hours}h`
+  if (hours === 0) return `${minutes}m`
+  if (minutes === 0) return `${hours}h`
   return `${hours}h ${minutes}m`
 }
 
 export function formatXPTotal(xp: number): string {
-  if (xp === 0)
-    return 'No XP'
-  if (xp === 1)
-    return '1 XP'
+  if (xp === 0) return 'No XP'
+  if (xp === 1) return '1 XP'
   return `${xp} XP`
 }
 
@@ -100,38 +94,45 @@ export function formatDateRelative(date: Date | string | number): string {
   const diffTime = now.getTime() - d.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0)
-    return 'Today'
-  if (diffDays === 1)
-    return 'Yesterday'
-  if (diffDays < 7)
-    return `${diffDays} days ago`
-  if (diffDays < 30)
-    return `${Math.floor(diffDays / 7)} weeks ago`
-  if (diffDays < 365)
-    return `${Math.floor(diffDays / 30)} months ago`
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
   return `${Math.floor(diffDays / 365)} years ago`
 }
 
 export function formatNPCDisposition(disposition: NPCDisposition): string {
   switch (disposition) {
-    case NPCDisposition.FRIENDLY: return 'Friendly'
-    case NPCDisposition.NEUTRAL: return 'Neutral'
-    case NPCDisposition.HOSTILE: return 'Hostile'
-    case NPCDisposition.UNKNOWN: return 'Unknown'
-    default: return 'Unknown'
+    case NPCDisposition.FRIENDLY:
+      return 'Friendly'
+    case NPCDisposition.NEUTRAL:
+      return 'Neutral'
+    case NPCDisposition.HOSTILE:
+      return 'Hostile'
+    case NPCDisposition.UNKNOWN:
+      return 'Unknown'
+    default:
+      return 'Unknown'
   }
 }
 
 export function formatLocationType(type: LocationType): string {
   switch (type) {
-    case LocationType.CITY: return 'City'
-    case LocationType.TOWN: return 'Town'
-    case LocationType.VILLAGE: return 'Village'
-    case LocationType.DUNGEON: return 'Dungeon'
-    case LocationType.WILDERNESS: return 'Wilderness'
-    case LocationType.OTHER: return 'Other'
-    default: return 'Unknown'
+    case LocationType.CITY:
+      return 'City'
+    case LocationType.TOWN:
+      return 'Town'
+    case LocationType.VILLAGE:
+      return 'Village'
+    case LocationType.DUNGEON:
+      return 'Dungeon'
+    case LocationType.WILDERNESS:
+      return 'Wilderness'
+    case LocationType.OTHER:
+      return 'Other'
+    default:
+      return 'Unknown'
   }
 }
 
@@ -140,10 +141,12 @@ export const mockCampaigns = [
   {
     id: 'campaign-1',
     name: 'The Sundered Realm',
-    description: 'A tale of political intrigue and ancient magic in the borderlands of Kaeroth',
+    description:
+      'A tale of political intrigue and ancient magic in the borderlands of Kaeroth',
     created: new Date('2024-01-15'),
     lastModified: new Date('2024-12-18'),
-    playerNotes: 'Remember to investigate the mysterious cult activities in the capital',
+    playerNotes:
+      'Remember to investigate the mysterious cult activities in the capital',
     characterIds: ['char-1', 'char-2'],
     sessions: [
       {
@@ -151,7 +154,8 @@ export const mockCampaigns = [
         title: 'The Tavern Meeting',
         date: new Date('2024-01-20'),
         duration: 180,
-        summary: 'The party met in the Silver Flagon and received their first quest',
+        summary:
+          'The party met in the Silver Flagon and received their first quest',
         notes: 'Great roleplay between characters, established party dynamics',
         xpGained: 2,
         highlights: ['Epic bar fight', 'Mysterious hooded figure'],
@@ -174,7 +178,8 @@ export const mockCampaigns = [
       {
         id: 'journal-1',
         title: 'The Cult of the Void',
-        content: 'Strange reports of missing villagers and dark rituals in the northern provinces. The cult seems to be seeking ancient artifacts.',
+        content:
+          'Strange reports of missing villagers and dark rituals in the northern provinces. The cult seems to be seeking ancient artifacts.',
         date: new Date('2024-01-22'),
         tags: ['cult', 'mystery', 'artifacts'],
         isImportant: true,
@@ -183,7 +188,8 @@ export const mockCampaigns = [
       {
         id: 'journal-2',
         title: 'The Crystal of Valdris',
-        content: 'First artifact discovered - a glowing crystal that seems to resonate with magical energy. May be connected to the old kingdom.',
+        content:
+          'First artifact discovered - a glowing crystal that seems to resonate with magical energy. May be connected to the old kingdom.',
         date: new Date('2024-02-03'),
         tags: ['artifacts', 'magic', 'kingdom'],
         isImportant: true,
@@ -221,7 +227,8 @@ export const mockCampaigns = [
       {
         id: 'location-1',
         name: 'Millhaven',
-        description: 'A small trading town at the crossroads of major merchant routes',
+        description:
+          'A small trading town at the crossroads of major merchant routes',
         type: LocationType.TOWN,
         discovered: new Date('2024-01-20'),
         visited: [new Date('2024-01-20')],
@@ -232,7 +239,8 @@ export const mockCampaigns = [
       {
         id: 'location-2',
         name: 'Temple of the Forgotten',
-        description: 'Ancient ruins covered in mysterious runes and dark energy',
+        description:
+          'Ancient ruins covered in mysterious runes and dark energy',
         type: LocationType.DUNGEON,
         discovered: new Date('2024-02-03'),
         visited: [new Date('2024-02-03')],

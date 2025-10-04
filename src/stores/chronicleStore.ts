@@ -4,16 +4,23 @@
  */
 
 import type {
+  BondLogEntry,
+  ChronicleDeltaLog,
   ChronicleEntry,
   ChronicleSearchResult,
   ChronicleSettings,
+  DebilityLogEntry,
   Entity,
   EntityType,
+  HoldLogEntry,
   NarrativeThread,
   Relationship,
+  ResourceHistoryState,
+  ResourceLogEntry,
   WikiFact,
   WikiPage,
   WikiTimelineEntry,
+  XpLogEntry,
 } from '../types/chronicle'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
@@ -38,6 +45,19 @@ interface ChronicleState {
   searchQuery: string
   isWriting: boolean
 
+  // Automation Logs
+  deltaHistory: ChronicleDeltaLog[]
+  logDeltaResult: (log: ChronicleDeltaLog) => void
+  clearDeltaLog: (bundleId?: string) => void
+  getDeltaLog: (bundleId: string) => ChronicleDeltaLog | undefined
+  resourceHistory: ResourceHistoryState
+  logResourceChange: (entry: ResourceLogEntry) => void
+  removeResourceHistoryForBundle: (bundleId: string) => void
+  getXpHistory: (characterId: string) => XpLogEntry[]
+  getBondHistory: (characterId: string) => BondLogEntry[]
+  getHoldHistory: (characterId: string) => HoldLogEntry[]
+  getDebilityHistory: (characterId: string) => DebilityLogEntry[]
+
   // Actions - Chronicle Entries
   addEntry: (entry: Omit<ChronicleEntry, 'id'>) => string
   updateEntry: (id: string, updates: Partial<ChronicleEntry>) => void
@@ -46,7 +66,9 @@ interface ChronicleState {
   getEntriesBySession: (sessionId: string) => ChronicleEntry[]
 
   // Actions - Entities
-  addEntity: (entity: Omit<Entity, 'id' | 'createdAt' | 'lastUpdated'>) => string
+  addEntity: (
+    entity: Omit<Entity, 'id' | 'createdAt' | 'lastUpdated'>,
+  ) => string
   updateEntity: (id: string, updates: Partial<Entity>) => void
   deleteEntity: (id: string) => void
   getEntity: (id: string) => Entity | undefined
@@ -54,7 +76,9 @@ interface ChronicleState {
   findEntityByName: (name: string, type?: EntityType) => Entity | undefined
 
   // Actions - Relationships
-  addRelationship: (relationship: Omit<Relationship, 'id' | 'createdAt' | 'lastUpdated'>) => string
+  addRelationship: (
+    relationship: Omit<Relationship, 'id' | 'createdAt' | 'lastUpdated'>,
+  ) => string
   updateRelationship: (id: string, updates: Partial<Relationship>) => void
   deleteRelationship: (id: string) => void
   getRelationship: (id: string) => Relationship | undefined
@@ -84,6 +108,34 @@ interface ChronicleState {
 }
 
 // Default settings
+export const MAX_DELTA_HISTORY = 50
+export const MAX_RESOURCE_HISTORY = 100
+
+function createResourceHistory(): ResourceHistoryState {
+  return {
+    xp: {},
+    bonds: {},
+    hold: {},
+    debilities: {},
+  }
+}
+
+function prependEntry<T>(entries: T[], entry: T): T[] {
+  return [entry, ...entries].slice(0, MAX_RESOURCE_HISTORY)
+}
+
+function pruneRecord<T extends { bundleId: string }>(
+  record: Record<string, T[]>,
+  bundleId: string,
+): Record<string, T[]> {
+  const next: Record<string, T[]> = {}
+  for (const [key, entries] of Object.entries(record)) {
+    const filtered = entries.filter((entry) => entry.bundleId !== bundleId)
+    if (filtered.length > 0) next[key] = filtered
+  }
+  return next
+}
+
 const defaultSettings: ChronicleSettings = {
   autoEntityCreation: true,
   minimumConfidenceForAutoCreation: 0.7,
@@ -92,6 +144,18 @@ const defaultSettings: ChronicleSettings = {
   parseOnType: true,
   defaultEntityTypes: ['character', 'location', 'item', 'event'],
   customTags: [],
+  autoApplyPolicy: {
+    apply_damage: 'confirm',
+    heal: 'confirm',
+    mark_xp: 'auto',
+    add_item: 'confirm',
+    spend_ammo: 'auto',
+    mark_hold: 'auto',
+    spend_hold: 'auto',
+  },
+  tone: 'heroic',
+  verbosity: 'standard',
+  autoEquipWeapons: false,
 }
 
 // Helper function to generate IDs
@@ -100,47 +164,61 @@ function generateId(prefix: string = '') {
 }
 
 // Helper function to calculate entity importance
-function calculateEntityImportance(entity: Entity, entries: ChronicleEntry[]): number {
+function calculateEntityImportance(
+  entity: Entity,
+  entries: ChronicleEntry[],
+): number {
   // Factor in: mention frequency, recency, user bookmarking
   const mentionCount = entity.appearances.length
   const recentMentions = entity.appearances.filter((entryId) => {
-    const entry = entries.find(e => e.id === entryId)
-    if (!entry)
-      return false
-    const daysSince = (Date.now() - entry.timestamp.getTime()) / (1000 * 60 * 60 * 24)
+    const entry = entries.find((e) => e.id === entryId)
+    if (!entry) return false
+    const daysSince =
+      (Date.now() - entry.timestamp.getTime()) / (1000 * 60 * 60 * 24)
     return daysSince < 30 // Recent = within 30 days
   }).length
 
   // Weight: 40% total mentions, 40% recent mentions, 20% type importance
-  const typeWeight = entity.type === 'character' ? 1.2 : entity.type === 'location' ? 1.1 : 1.0
-  const importance = Math.min(100, (mentionCount * 0.4 + recentMentions * 0.4 + typeWeight * 20))
+  const typeWeight =
+    entity.type === 'character' ? 1.2 : entity.type === 'location' ? 1.1 : 1.0
+  const importance = Math.min(
+    100,
+    mentionCount * 0.4 + recentMentions * 0.4 + typeWeight * 20,
+  )
 
   return Math.round(importance)
 }
 
 // Helper function to extract key facts from chronicle entries
-function extractKeyFacts(entity: Entity, entries: ChronicleEntry[]): WikiFact[] {
-  const relevantEntries = entries.filter(entry =>
-    entry.parsedEntities.some(mention => mention.entityId === entity.id),
+function extractKeyFacts(
+  entity: Entity,
+  entries: ChronicleEntry[],
+): WikiFact[] {
+  const relevantEntries = entries.filter((entry) =>
+    entry.parsedEntities.some((mention) => mention.entityId === entity.id),
   )
 
   const facts: WikiFact[] = []
 
   relevantEntries.forEach((entry) => {
     // Extract factual statements about the entity
-    const sentences = entry.rawText.split(/[.!?]+/).filter(s => s.trim().length > 0)
+    const sentences = entry.rawText
+      .split(/[.!?]+/)
+      .filter((s) => s.trim().length > 0)
 
     sentences.forEach((sentence) => {
       const lowerSentence = sentence.toLowerCase()
       const entityNameLower = entity.name.toLowerCase()
 
       // Look for factual patterns
-      if (lowerSentence.includes(entityNameLower)
-        && (lowerSentence.includes(' is ')
-          || lowerSentence.includes(' has ')
-          || lowerSentence.includes(' owns ')
-          || lowerSentence.includes(' wears ')
-          || lowerSentence.includes(' lives '))) {
+      if (
+        lowerSentence.includes(entityNameLower) &&
+        (lowerSentence.includes(' is ') ||
+          lowerSentence.includes(' has ') ||
+          lowerSentence.includes(' owns ') ||
+          lowerSentence.includes(' wears ') ||
+          lowerSentence.includes(' lives '))
+      ) {
         facts.push({
           fact: sentence.trim(),
           confidence: 0.8,
@@ -152,28 +230,38 @@ function extractKeyFacts(entity: Entity, entries: ChronicleEntry[]): WikiFact[] 
   })
 
   // Remove duplicates and sort by confidence
-  const uniqueFacts = facts.filter((fact, index, arr) =>
-    index === arr.findIndex(f => f.fact.toLowerCase() === fact.fact.toLowerCase()),
-  ).sort((a, b) => b.confidence - a.confidence)
+  const uniqueFacts = facts
+    .filter(
+      (fact, index, arr) =>
+        index ===
+        arr.findIndex((f) => f.fact.toLowerCase() === fact.fact.toLowerCase()),
+    )
+    .sort((a, b) => b.confidence - a.confidence)
 
   return uniqueFacts.slice(0, 10) // Limit to top 10 facts
 }
 
 // Helper function to build timeline from chronicle entries
-function buildEntityTimeline(entity: Entity, entries: ChronicleEntry[]): WikiTimelineEntry[] {
-  const relevantEntries = entries.filter(entry =>
-    entry.parsedEntities.some(mention => mention.entityId === entity.id),
-  ).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+function buildEntityTimeline(
+  entity: Entity,
+  entries: ChronicleEntry[],
+): WikiTimelineEntry[] {
+  const relevantEntries = entries
+    .filter((entry) =>
+      entry.parsedEntities.some((mention) => mention.entityId === entity.id),
+    )
+    .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
 
   return relevantEntries.map((entry) => {
-    const mention = entry.parsedEntities.find(m => m.entityId === entity.id)
+    const mention = entry.parsedEntities.find((m) => m.entityId === entity.id)
 
     return {
       entryId: entry.id,
       timestamp: entry.timestamp,
-      event: entry.rawText.length > 150
-        ? `${entry.rawText.substring(0, 150)}...`
-        : entry.rawText,
+      event:
+        entry.rawText.length > 150
+          ? `${entry.rawText.substring(0, 150)}...`
+          : entry.rawText,
       context: mention?.context || 'mentioned',
       importance: entry.isSceneBreak ? 'high' : 'medium',
       emotionalTone: entry.emotionalTone,
@@ -182,9 +270,12 @@ function buildEntityTimeline(entity: Entity, entries: ChronicleEntry[]): WikiTim
 }
 
 // Helper function to analyze relationships for wiki
-function generateRelationshipSummary(entity: Entity, relationships: Relationship[]): string {
-  const entityRelationships = relationships.filter(rel =>
-    rel.fromEntityId === entity.id || rel.toEntityId === entity.id,
+function generateRelationshipSummary(
+  entity: Entity,
+  relationships: Relationship[],
+): string {
+  const entityRelationships = relationships.filter(
+    (rel) => rel.fromEntityId === entity.id || rel.toEntityId === entity.id,
   )
 
   if (entityRelationships.length === 0) {
@@ -203,17 +294,20 @@ function generateRelationshipSummary(entity: Entity, relationships: Relationship
 }
 
 // Helper function to generate wiki summary
-function generateWikiSummary(entity: Entity, entries: ChronicleEntry[]): string {
-  const relevantEntries = entries.filter(entry =>
-    entry.parsedEntities.some(mention => mention.entityId === entity.id),
+function generateWikiSummary(
+  entity: Entity,
+  entries: ChronicleEntry[],
+): string {
+  const relevantEntries = entries.filter((entry) =>
+    entry.parsedEntities.some((mention) => mention.entityId === entity.id),
   )
 
   if (relevantEntries.length === 0) {
     return `${entity.name} is ${entity.type === 'character' ? 'a character' : entity.type === 'location' ? 'a location' : `an ${entity.type}`} in your campaign.`
   }
 
-  const firstMention = relevantEntries.find(e => e.id === entity.firstMention)
-  const lastMention = relevantEntries.find(e => e.id === entity.lastMention)
+  const firstMention = relevantEntries.find((e) => e.id === entity.firstMention)
+  const lastMention = relevantEntries.find((e) => e.id === entity.lastMention)
 
   let summary = `${entity.name} is ${entity.type === 'character' ? 'a character' : entity.type === 'location' ? 'a location' : `an ${entity.type}`} `
 
@@ -222,7 +316,11 @@ function generateWikiSummary(entity: Entity, entries: ChronicleEntry[]): string 
     summary += `first mentioned when: "${context}"`
   }
 
-  if (entity.appearances.length > 1 && lastMention && lastMention.id !== firstMention?.id) {
+  if (
+    entity.appearances.length > 1 &&
+    lastMention &&
+    lastMention.id !== firstMention?.id
+  ) {
     summary += ` Last seen: ${lastMention.timestamp.toLocaleDateString()}`
   }
 
@@ -244,6 +342,115 @@ export const useChronicleStore = create<ChronicleState>()(
       selectedEntity: null,
       searchQuery: '',
       isWriting: false,
+      deltaHistory: [],
+      resourceHistory: createResourceHistory(),
+
+      logDeltaResult: (log: ChronicleDeltaLog) => {
+        set((state) => {
+          const filtered = state.deltaHistory.filter(
+            (entry) => entry.bundleId !== log.bundleId,
+          )
+          const nextHistory = [log, ...filtered].slice(0, MAX_DELTA_HISTORY)
+          return { deltaHistory: nextHistory }
+        })
+      },
+
+      clearDeltaLog: (bundleId?: string) => {
+        set((state) => ({
+          deltaHistory: bundleId
+            ? state.deltaHistory.filter((entry) => entry.bundleId !== bundleId)
+            : [],
+        }))
+      },
+
+      getDeltaLog: (bundleId: string) =>
+        get().deltaHistory.find((entry) => entry.bundleId === bundleId),
+
+      logResourceChange: (entry) => {
+        set((state) => {
+          const history = state.resourceHistory
+          switch (entry.type) {
+            case 'xp': {
+              return {
+                resourceHistory: {
+                  ...history,
+                  xp: {
+                    ...history.xp,
+                    [entry.characterId]: prependEntry(
+                      history.xp[entry.characterId] ?? [],
+                      entry,
+                    ),
+                  },
+                },
+              }
+            }
+            case 'bond': {
+              return {
+                resourceHistory: {
+                  ...history,
+                  bonds: {
+                    ...history.bonds,
+                    [entry.characterId]: prependEntry(
+                      history.bonds[entry.characterId] ?? [],
+                      entry,
+                    ),
+                  },
+                },
+              }
+            }
+            case 'hold': {
+              return {
+                resourceHistory: {
+                  ...history,
+                  hold: {
+                    ...history.hold,
+                    [entry.characterId]: prependEntry(
+                      history.hold[entry.characterId] ?? [],
+                      entry,
+                    ),
+                  },
+                },
+              }
+            }
+            case 'debility': {
+              return {
+                resourceHistory: {
+                  ...history,
+                  debilities: {
+                    ...history.debilities,
+                    [entry.characterId]: prependEntry(
+                      history.debilities[entry.characterId] ?? [],
+                      entry,
+                    ),
+                  },
+                },
+              }
+            }
+            default:
+              return {}
+          }
+        })
+      },
+
+      removeResourceHistoryForBundle: (bundleId: string) => {
+        set((state) => ({
+          resourceHistory: {
+            xp: pruneRecord(state.resourceHistory.xp, bundleId),
+            bonds: pruneRecord(state.resourceHistory.bonds, bundleId),
+            hold: pruneRecord(state.resourceHistory.hold, bundleId),
+            debilities: pruneRecord(state.resourceHistory.debilities, bundleId),
+          },
+        }))
+      },
+
+      getXpHistory: (characterId: string) =>
+        get().resourceHistory.xp[characterId] ?? [],
+      getBondHistory: (characterId: string) =>
+        get().resourceHistory.bonds[characterId] ?? [],
+      getHoldHistory: (characterId: string) =>
+        get().resourceHistory.hold[characterId] ?? [],
+      getDebilityHistory: (characterId: string) =>
+        get().resourceHistory.debilities[characterId] ?? [],
 
       // Chronicle Entries Actions
       addEntry: (entryData) => {
@@ -254,7 +461,7 @@ export const useChronicleStore = create<ChronicleState>()(
           timestamp: new Date(),
         }
 
-        set(state => ({
+        set((state) => ({
           entries: [...state.entries, entry],
         }))
 
@@ -262,25 +469,25 @@ export const useChronicleStore = create<ChronicleState>()(
       },
 
       updateEntry: (id, updates) => {
-        set(state => ({
-          entries: state.entries.map(entry =>
+        set((state) => ({
+          entries: state.entries.map((entry) =>
             entry.id === id ? { ...entry, ...updates } : entry,
           ),
         }))
       },
 
       deleteEntry: (id) => {
-        set(state => ({
-          entries: state.entries.filter(entry => entry.id !== id),
+        set((state) => ({
+          entries: state.entries.filter((entry) => entry.id !== id),
         }))
       },
 
       getEntry: (id) => {
-        return get().entries.find(entry => entry.id === id)
+        return get().entries.find((entry) => entry.id === id)
       },
 
       getEntriesBySession: (sessionId) => {
-        return get().entries.filter(entry => entry.sessionId === sessionId)
+        return get().entries.filter((entry) => entry.sessionId === sessionId)
       },
 
       // Entity Actions
@@ -312,14 +519,17 @@ export const useChronicleStore = create<ChronicleState>()(
       },
 
       updateEntity: (id, updates) => {
-        set(state => ({
-          entities: state.entities.map(entity =>
+        set((state) => ({
+          entities: state.entities.map((entity) =>
             entity.id === id
               ? {
                   ...entity,
                   ...updates,
                   lastUpdated: new Date(),
-                  importance: calculateEntityImportance({ ...entity, ...updates }, state.entries),
+                  importance: calculateEntityImportance(
+                    { ...entity, ...updates },
+                    state.entries,
+                  ),
                 }
               : entity,
           ),
@@ -327,21 +537,74 @@ export const useChronicleStore = create<ChronicleState>()(
       },
 
       deleteEntity: (id) => {
-        set(state => ({
-          entities: state.entities.filter(entity => entity.id !== id),
-          wikiPages: state.wikiPages.filter(page => page.entityId !== id),
-          relationships: state.relationships.filter(rel =>
-            rel.fromEntityId !== id && rel.toEntityId !== id,
-          ),
-        }))
+        set((state) => {
+          const remainingRelationships = state.relationships.filter(
+            (rel) => rel.fromEntityId !== id && rel.toEntityId !== id,
+          )
+          const remainingRelationshipIds = new Set(
+            remainingRelationships.map((rel) => rel.id),
+          )
+
+          const remainingEntities = state.entities
+            .filter((entity) => entity.id !== id)
+            .map((entity) => {
+              const filteredRelationships = entity.relationships.filter((rel) =>
+                remainingRelationshipIds.has(rel.id),
+              )
+              if (filteredRelationships.length === entity.relationships.length)
+                return entity
+
+              const updatedEntity = {
+                ...entity,
+                relationships: filteredRelationships,
+                lastUpdated: new Date(),
+              }
+              return {
+                ...updatedEntity,
+                importance: calculateEntityImportance(
+                  updatedEntity,
+                  state.entries,
+                ),
+              }
+            })
+
+          return {
+            entities: remainingEntities,
+            wikiPages: state.wikiPages.filter((page) => page.entityId !== id),
+            relationships: remainingRelationships,
+          }
+        })
       },
 
       getEntity: (id) => {
-        return get().entities.find(entity => entity.id === id)
+        return get().entities.find((entity) => entity.id === id)
+      },
+
+      recordEntityMention: (entityId, entryId) => {
+        set((state) => ({
+          entities: state.entities.map((entity) => {
+            if (entity.id !== entityId) return entity
+
+            const appearances = entity.appearances.includes(entryId)
+              ? entity.appearances
+              : [...entity.appearances, entryId]
+            const updated = {
+              ...entity,
+              firstMention: entity.firstMention ?? entryId,
+              lastMention: entryId,
+              appearances,
+              lastUpdated: new Date(),
+            }
+            return {
+              ...updated,
+              importance: calculateEntityImportance(updated, state.entries),
+            }
+          }),
+        }))
       },
 
       getEntitiesByType: (type) => {
-        return get().entities.filter(entity => entity.type === type)
+        return get().entities.filter((entity) => entity.type === type)
       },
 
       findEntityByName: (name, type) => {
@@ -349,12 +612,11 @@ export const useChronicleStore = create<ChronicleState>()(
         const lowerName = name.toLowerCase()
 
         return entities.find((entity) => {
-          if (type && entity.type !== type)
-            return false
+          if (type && entity.type !== type) return false
 
           const matchesName = entity.name.toLowerCase() === lowerName
-          const matchesAlias = entity.aliases.some(alias =>
-            alias.toLowerCase() === lowerName,
+          const matchesAlias = entity.aliases.some(
+            (alias) => alias.toLowerCase() === lowerName,
           )
 
           return matchesName || matchesAlias
@@ -373,69 +635,166 @@ export const useChronicleStore = create<ChronicleState>()(
           history: [],
         }
 
-        set(state => ({
+        set((state) => ({
           relationships: [...state.relationships, relationship],
+          entities: state.entities.map((entity) => {
+            if (
+              entity.id !== relationship.fromEntityId &&
+              entity.id !== relationship.toEntityId
+            )
+              return entity
+
+            const filtered = entity.relationships.filter(
+              (rel) => rel.id !== relationship.id,
+            )
+            const updatedEntity = {
+              ...entity,
+              relationships: [...filtered, relationship],
+              lastUpdated: now,
+            }
+            return {
+              ...updatedEntity,
+              importance: calculateEntityImportance(
+                updatedEntity,
+                state.entries,
+              ),
+            }
+          }),
         }))
 
         return id
       },
 
       updateRelationship: (id, updates) => {
-        set(state => ({
-          relationships: state.relationships.map(rel =>
-            rel.id === id
-              ? { ...rel, ...updates, lastUpdated: new Date() }
-              : rel,
-          ),
-        }))
+        const now = new Date()
+        set((state) => {
+          let previous: Relationship | undefined
+          let updated: Relationship | undefined
+
+          const relationships = state.relationships.map((rel) => {
+            if (rel.id === id) {
+              previous = rel
+              updated = { ...rel, ...updates, lastUpdated: now }
+              return updated
+            }
+            return rel
+          })
+
+          if (!updated) return { relationships }
+
+          const entities = state.entities.map((entity) => {
+            let relationshipsList = entity.relationships
+            let changed = false
+
+            if (
+              previous &&
+              (entity.id === previous.fromEntityId ||
+                entity.id === previous.toEntityId)
+            ) {
+              relationshipsList = relationshipsList.filter(
+                (rel) => rel.id !== id,
+              )
+              changed = true
+            }
+
+            if (
+              entity.id === updated.fromEntityId ||
+              entity.id === updated.toEntityId
+            ) {
+              const filtered = relationshipsList.filter((rel) => rel.id !== id)
+              relationshipsList = [...filtered, updated]
+              changed = true
+            }
+
+            if (!changed) return entity
+
+            const refreshed = {
+              ...entity,
+              relationships: relationshipsList,
+              lastUpdated: now,
+            }
+            return {
+              ...refreshed,
+              importance: calculateEntityImportance(refreshed, state.entries),
+            }
+          })
+
+          return { relationships, entities }
+        })
       },
 
       deleteRelationship: (id) => {
-        set(state => ({
-          relationships: state.relationships.filter(rel => rel.id !== id),
+        const now = new Date()
+        set((state) => ({
+          relationships: state.relationships.filter((rel) => rel.id !== id),
+          entities: state.entities.map((entity) => {
+            const filtered = entity.relationships.filter((rel) => rel.id !== id)
+            if (filtered.length === entity.relationships.length) return entity
+
+            const updatedEntity = {
+              ...entity,
+              relationships: filtered,
+              lastUpdated: now,
+            }
+            return {
+              ...updatedEntity,
+              importance: calculateEntityImportance(
+                updatedEntity,
+                state.entries,
+              ),
+            }
+          }),
         }))
       },
 
       getRelationship: (id) => {
-        return get().relationships.find(rel => rel.id === id)
+        return get().relationships.find((rel) => rel.id === id)
       },
 
       getEntityRelationships: (entityId) => {
-        return get().relationships.filter(rel =>
-          rel.fromEntityId === entityId || rel.toEntityId === entityId,
+        return get().relationships.filter(
+          (rel) => rel.fromEntityId === entityId || rel.toEntityId === entityId,
         )
       },
 
       // Wiki Actions
       generateWikiPage: (entityId) => {
         const { entities, entries, relationships, wikiPages } = get()
-        const entity = entities.find(e => e.id === entityId)
-        if (!entity)
-          return
+        const entity = entities.find((e) => e.id === entityId)
+        if (!entity) return
 
-        const existingPage = wikiPages.find(p => p.entityId === entityId)
+        const existingPage = wikiPages.find((p) => p.entityId === entityId)
 
         // Generate comprehensive wiki data
         const autoGeneratedSummary = generateWikiSummary(entity, entries)
         const keyFacts = extractKeyFacts(entity, entries)
         const timeline = buildEntityTimeline(entity, entries)
-        const relationshipSummary = generateRelationshipSummary(entity, relationships)
+        const relationshipSummary = generateRelationshipSummary(
+          entity,
+          relationships,
+        )
 
         // Extract potential mysteries/questions about the entity
         const mysteries: string[] = []
-        const relevantEntries = entries.filter(entry =>
-          entry.parsedEntities.some(mention => mention.entityId === entity.id),
+        const relevantEntries = entries.filter((entry) =>
+          entry.parsedEntities.some(
+            (mention) => mention.entityId === entity.id,
+          ),
         )
 
         relevantEntries.forEach((entry) => {
           // Look for questions or mysterious references
-          const sentences = entry.rawText.split(/[.!?]+/).filter(s => s.trim().length > 0)
+          const sentences = entry.rawText
+            .split(/[.!?]+/)
+            .filter((s) => s.trim().length > 0)
           sentences.forEach((sentence) => {
-            if ((sentence.includes('?')
-              || sentence.toLowerCase().includes('mystery')
-              || sentence.toLowerCase().includes('unknown')
-              || sentence.toLowerCase().includes('secret'))
-            && sentence.toLowerCase().includes(entity.name.toLowerCase())) {
+            if (
+              (sentence.includes('?') ||
+                sentence.toLowerCase().includes('mystery') ||
+                sentence.toLowerCase().includes('unknown') ||
+                sentence.toLowerCase().includes('secret')) &&
+              sentence.toLowerCase().includes(entity.name.toLowerCase())
+            ) {
               mysteries.push(sentence.trim())
             }
           })
@@ -454,28 +813,28 @@ export const useChronicleStore = create<ChronicleState>()(
           bookmarked: existingPage?.bookmarked || false,
         }
 
-        set(state => ({
-          wikiPages: state.wikiPages.filter(p => p.entityId !== entityId).concat(wikiPage),
+        set((state) => ({
+          wikiPages: state.wikiPages
+            .filter((p) => p.entityId !== entityId)
+            .concat(wikiPage),
         }))
       },
 
       updateWikiPage: (entityId, updates) => {
-        set(state => ({
-          wikiPages: state.wikiPages.map(page =>
-            page.entityId === entityId
-              ? { ...page, ...updates }
-              : page,
+        set((state) => ({
+          wikiPages: state.wikiPages.map((page) =>
+            page.entityId === entityId ? { ...page, ...updates } : page,
           ),
         }))
       },
 
       getWikiPage: (entityId) => {
-        return get().wikiPages.find(page => page.entityId === entityId)
+        return get().wikiPages.find((page) => page.entityId === entityId)
       },
 
       incrementWikiView: (entityId) => {
-        set(state => ({
-          wikiPages: state.wikiPages.map(page =>
+        set((state) => ({
+          wikiPages: state.wikiPages.map((page) =>
             page.entityId === entityId
               ? { ...page, viewCount: page.viewCount + 1 }
               : page,
@@ -512,8 +871,12 @@ export const useChronicleStore = create<ChronicleState>()(
         // Search entities
         entities.forEach((entity) => {
           const nameMatch = entity.name.toLowerCase().includes(lowerQuery)
-          const descMatch = entity.description.toLowerCase().includes(lowerQuery)
-          const tagMatch = entity.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+          const descMatch = entity.description
+            .toLowerCase()
+            .includes(lowerQuery)
+          const tagMatch = entity.tags.some((tag) =>
+            tag.toLowerCase().includes(lowerQuery),
+          )
 
           if (nameMatch || descMatch || tagMatch) {
             results.push({
@@ -535,9 +898,10 @@ export const useChronicleStore = create<ChronicleState>()(
         const { entries } = get()
         const lowerQuery = query.toLowerCase()
 
-        return entries.filter(entry =>
-          entry.rawText.toLowerCase().includes(lowerQuery)
-          || entry.tags.some(tag => tag.toLowerCase().includes(lowerQuery)),
+        return entries.filter(
+          (entry) =>
+            entry.rawText.toLowerCase().includes(lowerQuery) ||
+            entry.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)),
         )
       },
 
@@ -545,11 +909,14 @@ export const useChronicleStore = create<ChronicleState>()(
         const { entities } = get()
         const lowerQuery = query.toLowerCase()
 
-        return entities.filter(entity =>
-          entity.name.toLowerCase().includes(lowerQuery)
-          || entity.description.toLowerCase().includes(lowerQuery)
-          || entity.aliases.some(alias => alias.toLowerCase().includes(lowerQuery))
-          || entity.tags.some(tag => tag.toLowerCase().includes(lowerQuery)),
+        return entities.filter(
+          (entity) =>
+            entity.name.toLowerCase().includes(lowerQuery) ||
+            entity.description.toLowerCase().includes(lowerQuery) ||
+            entity.aliases.some((alias) =>
+              alias.toLowerCase().includes(lowerQuery),
+            ) ||
+            entity.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)),
         )
       },
 
@@ -573,10 +940,9 @@ export const useChronicleStore = create<ChronicleState>()(
 
       getCurrentSession: () => {
         const { currentSessionId, entries } = get()
-        if (!currentSessionId)
-          return []
+        if (!currentSessionId) return []
 
-        return entries.filter(entry => entry.sessionId === currentSessionId)
+        return entries.filter((entry) => entry.sessionId === currentSessionId)
       },
 
       // Utility Actions
@@ -591,20 +957,31 @@ export const useChronicleStore = create<ChronicleState>()(
           currentCampaignId: null,
           selectedEntity: null,
           searchQuery: '',
+          resourceHistory: createResourceHistory(),
         }))
       },
 
       exportData: () => {
-        const { entries, entities, relationships, wikiPages, narrativeThreads } = get()
-        return JSON.stringify({
+        const {
           entries,
           entities,
           relationships,
           wikiPages,
           narrativeThreads,
-          exportedAt: new Date(),
-          version: '1.0',
-        }, null, 2)
+        } = get()
+        return JSON.stringify(
+          {
+            entries,
+            entities,
+            relationships,
+            wikiPages,
+            narrativeThreads,
+            exportedAt: new Date(),
+            version: '1.0',
+          },
+          null,
+          2,
+        )
       },
 
       importData: (data) => {
@@ -617,14 +994,13 @@ export const useChronicleStore = create<ChronicleState>()(
             wikiPages: parsed.wikiPages || [],
             narrativeThreads: parsed.narrativeThreads || [],
           }))
-        }
-        catch (error) {
+        } catch (error) {
           console.error('Failed to import chronicle data:', error)
         }
       },
 
       updateSettings: (newSettings) => {
-        set(state => ({
+        set((state) => ({
           settings: { ...state.settings, ...newSettings },
         }))
       },

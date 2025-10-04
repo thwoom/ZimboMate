@@ -62,13 +62,19 @@ test.describe('Visual Regression - Matsu Theme', () => {
   }
 
   test('Button Debug tab matches baseline when available', async ({ page }) => {
-    const button = page.getByRole('button', { name: 'Button Debug', exact: true })
+    const button = page.getByRole('button', {
+      name: 'Button Debug',
+      exact: true,
+    })
     if ((await button.count()) === 0) {
       test.skip('Button Debug tab not available in this build')
     }
 
     await button.first().click()
     await page.waitForTimeout(300)
-    await expect(page).toHaveScreenshot('button-debug-tab.png', screenshotOptions)
+    await expect(page).toHaveScreenshot(
+      'button-debug-tab.png',
+      screenshotOptions,
+    )
   })
 })

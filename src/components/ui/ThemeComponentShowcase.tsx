@@ -31,6 +31,57 @@ import { Input } from './Input'
 import { Progress } from './Progress'
 import { Textarea } from './Textarea'
 
+interface ColorSwatchProps {
+  colorVar: string
+  name: string
+}
+
+const ColorSwatch: React.FC<ColorSwatchProps> = ({ colorVar, name }) => {
+  const handleEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.currentTarget.style.backgroundColor = 'var(--popover)'
+  }
+
+  const handleLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.currentTarget.style.backgroundColor = 'var(--card)'
+  }
+
+  return (
+    <div
+      className='flex items-center gap-3 p-2 rounded-lg transition-colors'
+      style={{ backgroundColor: 'var(--card)' }}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
+      <div
+        className='w-8 h-8 rounded-lg border-2 shadow-sm'
+        style={{
+          backgroundColor: `var(${colorVar})`,
+          borderColor: 'var(--border)',
+        }}
+      />
+      <div className='flex-1 min-w-0'>
+        <div className='text-sm font-medium truncate text-foreground'>{name}</div>
+        <div className='text-xs text-muted-foreground'>{colorVar}</div>
+      </div>
+    </div>
+  )
+}
+
+interface TypographyExampleProps {
+  className: string
+  text: string
+  description: string
+}
+
+const TypographyExample: React.FC<TypographyExampleProps> = (
+  { className, text, description },
+) => (
+  <div className='space-y-2'>
+    <div className={className}>{text}</div>
+    <div className='text-xs text-muted-foreground'>{description}</div>
+  </div>
+)
+
 interface ThemeComponentShowcaseProps {
   isOpen: boolean
   onClose: () => void
@@ -92,57 +143,6 @@ export const ThemeComponentShowcase: React.FC<ThemeComponentShowcaseProps> = ({
     setActiveTheme(themeId)
     document.documentElement.setAttribute('data-theme', themeId)
   }
-
-  const ColorSwatch: React.FC<{ colorVar: string, name: string }> = ({ colorVar, name }) => (
-    <div
-      className="flex items-center gap-3 p-2 rounded-lg transition-colors"
-      style={{
-        'backgroundColor': 'var(--card)',
-        ':hover': { backgroundColor: 'var(--popover)' },
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = 'var(--popover)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = 'var(--card)'
-      }}
-    >
-      <div
-        className="w-8 h-8 rounded-lg border-2 shadow-sm"
-        style={{
-          backgroundColor: `var(${colorVar})`,
-          borderColor: 'var(--border)',
-        }}
-      />
-      <div className="flex-1 min-w-0">
-        <div
-          className="text-sm font-medium truncate text-foreground"
-        >
-          {name}
-        </div>
-        <div
-          className="text-xs font-mono text-muted-foreground"
-        >
-          {colorVar}
-        </div>
-      </div>
-    </div>
-  )
-
-  const TypographyExample: React.FC<{ className: string, text: string, description: string }> = ({
-    className,
-    text,
-    description,
-  }) => (
-    <div className="space-y-2">
-      <div className={className}>{text}</div>
-      <div
-        className="text-xs text-muted-foreground"
-      >
-        {description}
-      </div>
-    </div>
-  )
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>

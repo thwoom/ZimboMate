@@ -54,9 +54,22 @@ interface DiceState {
   historyByCharacter: Record<string, RollResult[]>
   settings: DiceSettings
 
-  rollStat: (stat: keyof Attributes, characterId: string, label?: string) => Promise<RollResult>
-  rollMove: (params: { moveId: string, stat: keyof Attributes, characterId: string, label?: string }) => Promise<RollResult>
-  rollCustom: (params: { modifier: number, context: RollContext, characterId: string }) => Promise<RollResult>
+  rollStat: (
+    stat: keyof Attributes,
+    characterId: string,
+    label?: string,
+  ) => Promise<RollResult>
+  rollMove: (params: {
+    moveId: string
+    stat: keyof Attributes
+    characterId: string
+    label?: string
+  }) => Promise<RollResult>
+  rollCustom: (params: {
+    modifier: number
+    context: RollContext
+    characterId: string
+  }) => Promise<RollResult>
 
   recordRoll: (roll: RollResult) => void
   getHistoryForCharacter: (characterId: string) => RollResult[]
@@ -71,15 +84,16 @@ interface DiceState {
 }
 
 function determineOutcome(total: number): RollOutcome {
-  if (total >= 10)
-    return 'success'
-  if (total >= 7)
-    return 'partial'
+  if (total >= 10) return 'success'
+  if (total >= 7) return 'partial'
   return 'failure'
 }
 
 function generateRollId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
     return `roll-${crypto.randomUUID()}`
   }
 
@@ -97,14 +111,19 @@ function getCharacterAttributes(characterId: string): Attributes | null {
   try {
     const character = useCharacterStore.getState().getCharacter(characterId)
     return character?.attributes ?? null
-  }
-  catch (error) {
+  } catch (error) {
     logger.error('diceStore: failed to read character attributes', error)
     return null
   }
 }
 
-function createRollResult(type: RollType, characterId: string, modifier: number, context: RollContext, dice: { dice1: number, dice2: number }): RollResult {
+function createRollResult(
+  type: RollType,
+  characterId: string,
+  modifier: number,
+  context: RollContext,
+  dice: { dice1: number; dice2: number },
+): RollResult {
   const diceTotal = dice.dice1 + dice.dice2
   const finalResult = diceTotal + modifier
 
@@ -138,10 +157,8 @@ function determineHoldGain(moveId: string, outcome: RollOutcome): number {
     case 'defend':
     case 'discern-realities':
     case 'spout-lore':
-      if (isStrongHit)
-        return 3
-      if (isWeakHit)
-        return 1
+      if (isStrongHit) return 3
+      if (isWeakHit) return 1
       return 0
     default:
       return 0
@@ -181,7 +198,13 @@ export const useDiceStore = create<DiceState>()(
             description: `${stat} roll with ${modifier >= 0 ? '+' : ''}${modifier}`,
           }
 
-          const roll = createRollResult('stat', characterId, modifier, context, dice)
+          const roll = createRollResult(
+            'stat',
+            characterId,
+            modifier,
+            context,
+            dice,
+          )
           const { settings } = get()
 
           if (settings.autoAwardXp && roll.outcome === 'failure') {
@@ -194,12 +217,10 @@ export const useDiceStore = create<DiceState>()(
 
           get().recordRoll(roll)
           return roll
-        }
-        catch (error) {
+        } catch (error) {
           logger.error('diceStore: rollStat failed', error)
           throw error
-        }
-        finally {
+        } finally {
           set({ isRolling: false })
         }
       },
@@ -220,13 +241,23 @@ export const useDiceStore = create<DiceState>()(
           const modifier = getAttributeModifier(attributes[stat])
           const dice = rollDicePair()
           const context: RollContext = {
-            label: label ?? moveId.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase()),
+            label:
+              label ??
+              moveId
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, (char) => char.toUpperCase()),
             stat,
             moveId,
             description: `${moveId} on ${stat} (${modifier >= 0 ? '+' : ''}${modifier})`,
           }
 
-          const roll = createRollResult('move', characterId, modifier, context, dice)
+          const roll = createRollResult(
+            'move',
+            characterId,
+            modifier,
+            context,
+            dice,
+          )
           const { settings } = get()
 
           if (settings.autoAwardXp && roll.outcome === 'failure') {
@@ -250,12 +281,10 @@ export const useDiceStore = create<DiceState>()(
 
           get().recordRoll(roll)
           return roll
-        }
-        catch (error) {
+        } catch (error) {
           logger.error('diceStore: rollMove failed', error)
           throw error
-        }
-        finally {
+        } finally {
           set({ isRolling: false })
         }
       },
@@ -273,10 +302,20 @@ export const useDiceStore = create<DiceState>()(
 
         try {
           const dice = rollDicePair()
-          const roll = createRollResult('custom', characterId, modifier, context, dice)
+          const roll = createRollResult(
+            'custom',
+            characterId,
+            modifier,
+            context,
+            dice,
+          )
           const { settings } = get()
 
-          if (settings.autoAwardXp && roll.outcome === 'failure' && context.stat) {
+          if (
+            settings.autoAwardXp &&
+            roll.outcome === 'failure' &&
+            context.stat
+          ) {
             roll.effects = { ...roll.effects, xpAwarded: true }
             const xpStore = useXPStore.getState()
             if (xpStore.awardFailedRoll) {
@@ -286,12 +325,10 @@ export const useDiceStore = create<DiceState>()(
 
           get().recordRoll(roll)
           return roll
-        }
-        catch (error) {
+        } catch (error) {
           logger.error('diceStore: rollCustom failed', error)
           throw error
-        }
-        finally {
+        } finally {
           set({ isRolling: false })
         }
       },
@@ -299,7 +336,10 @@ export const useDiceStore = create<DiceState>()(
       recordRoll(roll) {
         set((state) => {
           const existing = state.historyByCharacter[roll.characterId] ?? []
-          const updated = clampHistory([roll, ...existing], state.settings.historyLimit)
+          const updated = clampHistory(
+            [roll, ...existing],
+            state.settings.historyLimit,
+          )
 
           return {
             currentRoll: roll,
@@ -340,16 +380,24 @@ export const useDiceStore = create<DiceState>()(
         const state = get()
 
         for (const rolls of Object.values(state.historyByCharacter)) {
-          const original = rolls.find(roll => roll.id === rollId)
+          const original = rolls.find((roll) => roll.id === rollId)
           if (!original) {
             continue
           }
 
           if (original.type === 'stat' && original.context.stat) {
-            return state.rollStat(original.context.stat, original.characterId, original.context.label)
+            return state.rollStat(
+              original.context.stat,
+              original.characterId,
+              original.context.label,
+            )
           }
 
-          if (original.type === 'move' && original.context.moveId && original.context.stat) {
+          if (
+            original.type === 'move' &&
+            original.context.moveId &&
+            original.context.stat
+          ) {
             return state.rollMove({
               moveId: original.context.moveId,
               stat: original.context.stat,
@@ -374,10 +422,12 @@ export const useDiceStore = create<DiceState>()(
         set((state) => {
           const safeLimit = Math.max(1, limit)
           const trimmedHistory = Object.fromEntries(
-            Object.entries(state.historyByCharacter).map(([characterId, rolls]) => [
-              characterId,
-              clampHistory(rolls, safeLimit),
-            ]),
+            Object.entries(state.historyByCharacter).map(
+              ([characterId, rolls]) => [
+                characterId,
+                clampHistory(rolls, safeLimit),
+              ],
+            ),
           )
 
           return {
@@ -391,7 +441,7 @@ export const useDiceStore = create<DiceState>()(
       },
 
       setAutoAwardXp(enabled) {
-        set(state => ({
+        set((state) => ({
           settings: {
             ...state.settings,
             autoAwardXp: enabled,
@@ -400,7 +450,7 @@ export const useDiceStore = create<DiceState>()(
       },
 
       setAutoGrantHold(enabled) {
-        set(state => ({
+        set((state) => ({
           settings: {
             ...state.settings,
             autoGrantHold: enabled,
@@ -410,7 +460,7 @@ export const useDiceStore = create<DiceState>()(
     }),
     {
       name: 'zimbomate-dice-store',
-      partialize: state => ({
+      partialize: (state) => ({
         historyByCharacter: state.historyByCharacter,
         settings: state.settings,
       }),
@@ -419,8 +469,7 @@ export const useDiceStore = create<DiceState>()(
 )
 
 export function migrateRollHistory(data: unknown[]): RollResult[] {
-  if (!Array.isArray(data))
-    return []
+  if (!Array.isArray(data)) return []
 
   return data.map((item) => {
     const record = item as Partial<RollResult>

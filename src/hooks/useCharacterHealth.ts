@@ -68,8 +68,8 @@ export interface UseCharacterHealthReturn {
   isRegenerating: boolean
 
   // Animation triggers
-  lastDamage: { amount: number, timestamp: number } | null
-  lastHealing: { amount: number, timestamp: number } | null
+  lastDamage: { amount: number; timestamp: number } | null
+  lastHealing: { amount: number; timestamp: number } | null
 
   // Utility
   character: Character | undefined
@@ -77,11 +77,52 @@ export interface UseCharacterHealthReturn {
   error: string | null
 }
 
+interface DeathSaveState {
+  successes: number
+  failures: number
+}
+
+type DeathSaveAction =
+  | { type: 'reset' }
+  | { type: 'set'; successes: number; failures: number }
+
+const deathSaveReducer = (
+  state: DeathSaveState,
+  action: DeathSaveAction,
+): DeathSaveState => {
+  switch (action.type) {
+    case 'reset':
+      if (state.successes === 0 && state.failures === 0) {
+        return state
+      }
+
+      return { successes: 0, failures: 0 }
+
+    case 'set':
+      if (
+        state.successes === action.successes &&
+        state.failures === action.failures
+      ) {
+        return state
+      }
+
+      return {
+        successes: action.successes,
+        failures: action.failures,
+      }
+
+    default:
+      return state
+  }
+}
+
 /**
  * Hook for managing character health with advanced features
  * @param characterId - Character ID (optional, uses active character if not provided)
  */
-export function useCharacterHealth(characterId?: string): UseCharacterHealthReturn {
+export function useCharacterHealth(
+  characterId?: string,
+): UseCharacterHealthReturn {
   const {
     character,
     updateHP: storeUpdateHP,
@@ -92,11 +133,22 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
   } = useCharacter(characterId)
 
   // Local state for death saves and animations
-  const [deathSaveSuccesses, setDeathSaveSuccesses] = useState(0)
-  const [deathSaveFailures, setDeathSaveFailures] = useState(0)
-  const [lastDamage, setLastDamage] = useState<{ amount: number, timestamp: number } | null>(null)
-  const [lastHealing, setLastHealing] = useState<{ amount: number, timestamp: number } | null>(null)
-  const [regenerationTimer, setRegenerationTimer] = useState<NodeJS.Timeout | null>(null)
+  const [deathSaveState, dispatchDeathSave] = useReducer(deathSaveReducer, {
+    successes: 0,
+    failures: 0,
+  })
+  const { successes: deathSaveSuccesses, failures: deathSaveFailures } =
+    deathSaveState
+  const [lastDamage, setLastDamage] = useState<{
+    amount: number
+    timestamp: number
+  } | null>(null)
+  const [lastHealing, setLastHealing] = useState<{
+    amount: number
+    timestamp: number
+  } | null>(null)
+  const [regenerationTimer, setRegenerationTimer] =
+    useState<NodeJS.Timeout | null>(null)
 
   // Health status calculation
   const health = useMemo((): HealthStatus => {
@@ -120,20 +172,16 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
     if (current <= 0) {
       status = 'unconscious'
       statusColor = 'red'
-    }
-    else if (percentage <= 25) {
+    } else if (percentage <= 25) {
       status = 'critical'
       statusColor = 'red'
-    }
-    else if (percentage <= 50) {
+    } else if (percentage <= 50) {
       status = 'wounded'
       statusColor = 'orange'
-    }
-    else if (percentage <= 75) {
+    } else if (percentage <= 75) {
       status = 'wounded'
       statusColor = 'yellow'
-    }
-    else {
+    } else {
       status = 'healthy'
       statusColor = 'green'
     }
@@ -145,117 +193,121 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
       status,
       statusColor,
     }
-  }, [character?.hp])
+  }, [character])
 
-  // Computed health states
-  const isUnconscious = useMemo(() => health.current <= 0, [health.current])
-  const isDead = useMemo(() => deathSaveFailures >= 3, [deathSaveFailures])
-  const isFullHealth = useMemo(() => health.current >= health.max, [health.current, health.max])
+  const isUnconscious = health.current <= 0
+  const isDead = deathSaveFailures >= 3
+  const isFullHealth = health.current >= health.max
 
-  // Death saves state
-  const deathSaves = useMemo(() => ({
+  const deathSaves = {
     successes: deathSaveSuccesses,
     failures: deathSaveFailures,
     isStabilized: deathSaveSuccesses >= 3,
     needsDeathSave: isUnconscious && !isDead && deathSaveSuccesses < 3,
-  }), [deathSaveSuccesses, deathSaveFailures, isUnconscious, isDead])
+  }
 
   // Reset death saves when character is healed above 0
   useEffect(() => {
-    if (health.current > 0) {
-      setDeathSaveSuccesses(0)
-      setDeathSaveFailures(0)
+    if (health.current > 0 && (deathSaveSuccesses > 0 || deathSaveFailures > 0)) {
+      dispatchDeathSave({ type: 'reset' })
     }
-  }, [health.current])
+  }, [deathSaveFailures, deathSaveSuccesses, health])
 
   // Health operations
-  const updateHP = useCallback((newHP: number) => {
-    if (!character)
-      return
-    storeUpdateHP(newHP)
-  }, [character, storeUpdateHP])
+  const updateHP = useCallback(
+    (newHP: number) => {
+      if (!character) return
+      storeUpdateHP(newHP)
+    },
+    [character, storeUpdateHP],
+  )
 
-  const heal = useCallback((amount: number, source = 'Unknown'): HealingResult => {
-    if (!character) {
-      return {
-        previousHP: 0,
-        newHP: 0,
-        healingDone: 0,
-        wasUnconscious: false,
-        isFullyHealed: false,
+  const heal = useCallback(
+    (amount: number, source = 'Unknown'): HealingResult => {
+      if (!character) {
+        return {
+          previousHP: 0,
+          newHP: 0,
+          healingDone: 0,
+          wasUnconscious: false,
+          isFullyHealed: false,
+        }
       }
-    }
 
-    const previousHP = character.hp.current
-    const wasUnconscious = previousHP <= 0
-    const maxPossibleHealing = character.hp.max - previousHP
-    const actualHealing = Math.min(amount, maxPossibleHealing)
-    const newHP = previousHP + actualHealing
+      const previousHP = character.hp.current
+      const wasUnconscious = previousHP <= 0
+      const maxPossibleHealing = character.hp.max - previousHP
+      const actualHealing = Math.min(amount, maxPossibleHealing)
+      const newHP = previousHP + actualHealing
 
-    storeHealCharacter(actualHealing)
+      storeHealCharacter(actualHealing)
 
-    // Trigger healing animation
-    setLastHealing({ amount: actualHealing, timestamp: Date.now() })
+      // Trigger healing animation
+      setLastHealing({ amount: actualHealing, timestamp: Date.now() })
 
-    // Add healing to character state service as a temporary effect
-    if (character && actualHealing > 0) {
-      characterStateService.setResource(character.id, {
-        id: `healing-${Date.now()}`,
-        name: `Healing from ${source}`,
-        current: actualHealing,
-        max: actualHealing,
-        type: 'custom',
-        source,
-        refreshOn: 'manual',
-      })
-    }
-
-    return {
-      previousHP,
-      newHP,
-      healingDone: actualHealing,
-      wasUnconscious,
-      isFullyHealed: newHP >= character.hp.max,
-    }
-  }, [character, storeHealCharacter])
-
-  const damage = useCallback((amount: number, source = 'Unknown'): DamageResult => {
-    if (!character) {
-      return {
-        previousHP: 0,
-        newHP: 0,
-        damageDealt: 0,
-        isUnconscious: false,
-        isDead: false,
-        triggeredDeathSave: false,
+      // Add healing to character state service as a temporary effect
+      if (character && actualHealing > 0) {
+        characterStateService.setResource(character.id, {
+          id: `healing-${Date.now()}`,
+          name: `Healing from ${source}`,
+          current: actualHealing,
+          max: actualHealing,
+          type: 'custom',
+          source,
+          refreshOn: 'manual',
+        })
       }
-    }
 
-    const previousHP = character.hp.current
-    const actualDamage = Math.min(amount, previousHP)
-    const newHP = previousHP - actualDamage
+      return {
+        previousHP,
+        newHP,
+        healingDone: actualHealing,
+        wasUnconscious,
+        isFullyHealed: newHP >= character.hp.max,
+      }
+    },
+    [character, storeHealCharacter],
+  )
 
-    storeDamageCharacter(actualDamage)
+  const damage = useCallback(
+    (amount: number, _source = 'Unknown'): DamageResult => {
+      if (!character) {
+        return {
+          previousHP: 0,
+          newHP: 0,
+          damageDealt: 0,
+          isUnconscious: false,
+          isDead: false,
+          triggeredDeathSave: false,
+        }
+      }
 
-    // Trigger damage animation
-    setLastDamage({ amount: actualDamage, timestamp: Date.now() })
+      const previousHP = character.hp.current
+      const actualDamage = Math.min(amount, previousHP)
+      const newHP = previousHP - actualDamage
 
-    const isNowUnconscious = newHP <= 0
-    const triggeredDeathSave = isNowUnconscious && previousHP > 0
+      storeDamageCharacter(actualDamage)
 
-    return {
-      previousHP,
-      newHP,
-      damageDealt: actualDamage,
-      isUnconscious: isNowUnconscious,
-      isDead: false, // Death is determined by death saves, not HP
-      triggeredDeathSave,
-    }
-  }, [character, storeDamageCharacter])
+      // Trigger damage animation
+      setLastDamage({ amount: actualDamage, timestamp: Date.now() })
+
+      const isNowUnconscious = newHP <= 0
+      const triggeredDeathSave = isNowUnconscious && previousHP > 0
+
+      return {
+        previousHP,
+        newHP,
+        damageDealt: actualDamage,
+        isUnconscious: isNowUnconscious,
+        isDead: false, // Death is determined by death saves, not HP
+        triggeredDeathSave,
+      }
+    },
+    [character, storeDamageCharacter],
+  )
 
   const setToFullHealth = useCallback(() => {
-    if (!character)
-      return
+    if (!character) return
     updateHP(character.hp.max)
   }, [character, updateHP])
 
@@ -265,7 +317,8 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
 
   // Death save mechanics
   const rollDeathSave = useCallback(() => {
-    const roll = Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6) + 2 // 2d6
+    const roll =
+      Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6) + 2 // 2d6
 
     let result: 'success' | 'failure' | 'critical_success'
     let newSuccesses = deathSaveSuccesses
@@ -274,18 +327,19 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
     if (roll >= 10) {
       result = 'success'
       newSuccesses++
-    }
-    else if (roll >= 12) {
+    } else if (roll >= 12) {
       result = 'critical_success'
       newSuccesses = 3 // Immediately stabilized
-    }
-    else {
+    } else {
       result = 'failure'
       newFailures++
     }
 
-    setDeathSaveSuccesses(newSuccesses)
-    setDeathSaveFailures(newFailures)
+    dispatchDeathSave({
+      type: 'set',
+      successes: newSuccesses,
+      failures: newFailures,
+    })
 
     const isStabilized = newSuccesses >= 3
     const isDead = newFailures >= 3
@@ -299,25 +353,28 @@ export function useCharacterHealth(characterId?: string): UseCharacterHealthRetu
   }, [deathSaveSuccesses, deathSaveFailures])
 
   // Regeneration mechanics
-  const startRegeneration = useCallback((amountPerTurn: number, duration: number) => {
-    if (regenerationTimer) {
-      clearInterval(regenerationTimer)
-    }
-
-    let turnsRemaining = duration
-    const timer = setInterval(() => {
-      if (turnsRemaining <= 0 || !character) {
-        clearInterval(timer)
-        setRegenerationTimer(null)
-        return
+  const startRegeneration = useCallback(
+    (amountPerTurn: number, duration: number) => {
+      if (regenerationTimer) {
+        clearInterval(regenerationTimer)
       }
 
-      heal(amountPerTurn, 'Regeneration')
-      turnsRemaining--
-    }, 6000) // 6 seconds per "turn" for demo purposes
+      let turnsRemaining = duration
+      const timer = setInterval(() => {
+        if (turnsRemaining <= 0 || !character) {
+          clearInterval(timer)
+          setRegenerationTimer(null)
+          return
+        }
 
-    setRegenerationTimer(timer)
-  }, [regenerationTimer, character, heal])
+        heal(amountPerTurn, 'Regeneration')
+        turnsRemaining--
+      }, 6000) // 6 seconds per "turn" for demo purposes
+
+      setRegenerationTimer(timer)
+    },
+    [regenerationTimer, character, heal],
+  )
 
   const stopRegeneration = useCallback(() => {
     if (regenerationTimer) {
@@ -388,3 +445,5 @@ export function useSimpleHealth(characterId?: string) {
     updateHP,
   }
 }
+
+

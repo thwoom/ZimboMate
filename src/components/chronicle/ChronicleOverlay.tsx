@@ -7,6 +7,7 @@
  */
 
 import type { ChroniclePrompt } from '../../services/ChronicleActionListenerService'
+import type { DeltaOperation } from '@/services/llm'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   BookOpen,
@@ -14,13 +15,30 @@ import {
   ChevronUp,
   Clock,
   Feather,
+  Loader2,
+  RefreshCcw,
   Target,
   X,
   Zap,
 } from 'lucide-react'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+  describeDeltaOperation as formatDeltaOperation,
+  undoChronicleBundle,
+} from '@/services/chronicle'
+import { useChronicleStore } from '@/stores/chronicleStore'
 import { chronicleActionListener } from '../../services/ChronicleActionListenerService'
 import { contextIntelligence } from '../../services/ChronicleContextIntelligence'
+import { useChronicleLLM } from './ChronicleProvider'
+import { DeltaChecklist } from './DeltaChecklist'
 
 interface ChronicleOverlayProps {
   isEnabled?: boolean
@@ -29,23 +47,94 @@ interface ChronicleOverlayProps {
   className?: string
 }
 
+interface PromptOverlayState {
+  prompts: ChroniclePrompt[]
+  isVisible: boolean
+}
+
+type PromptOverlayAction =
+  | { type: 'sync'; prompts: ChroniclePrompt[] }
+  | { type: 'remove'; id: string }
+  | { type: 'clear' }
+
+const arePromptsEqual = (
+  current: ChroniclePrompt[],
+  next: ChroniclePrompt[],
+) => {
+  if (current.length !== next.length) {
+    return false
+  }
+
+  return current.every((prompt, index) => prompt.id === next[index]?.id)
+}
+
+const promptOverlayReducer = (
+  state: PromptOverlayState,
+  action: PromptOverlayAction,
+): PromptOverlayState => {
+  switch (action.type) {
+    case 'sync': {
+      const nextPrompts = action.prompts
+      const nextVisibility = nextPrompts.length > 0
+
+      if (
+        arePromptsEqual(state.prompts, nextPrompts) &&
+        state.isVisible === nextVisibility
+      ) {
+        return state
+      }
+
+      return {
+        prompts: nextPrompts,
+        isVisible: nextVisibility,
+      }
+    }
+
+    case 'remove': {
+      const nextPrompts = state.prompts.filter(
+        (prompt) => prompt.id !== action.id,
+      )
+
+      if (nextPrompts.length === state.prompts.length) {
+        return state
+      }
+
+      return {
+        prompts: nextPrompts,
+        isVisible: nextPrompts.length > 0,
+      }
+    }
+
+    case 'clear': {
+      if (state.prompts.length === 0 && !state.isVisible) {
+        return state
+      }
+
+      return {
+        prompts: [],
+        isVisible: false,
+      }
+    }
+
+    default:
+      return state
+  }
+}
+
 // Individual prompt card component
 const ChroniclePromptCard: React.FC<{
   prompt: ChroniclePrompt
   index: number
-  onAccept: (promptId: string, selectedEntry: string, customText?: string) => void
+  onAccept: (
+    promptId: string,
+    selectedEntry: string,
+    customText?: string,
+  ) => void
   onDismiss: (promptId: string) => void
 }> = ({ prompt, index, onAccept, onDismiss }) => {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(() => prompt.priority === 'high')
   const [customText, setCustomText] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
-
-  // Auto-expand high priority prompts
-  useEffect(() => {
-    if (prompt.priority === 'high') {
-      setIsExpanded(true)
-    }
-  }, [prompt.priority])
 
   // Auto-dismiss after expiration
   useEffect(() => {
@@ -67,25 +156,36 @@ const ChroniclePromptCard: React.FC<{
 
   const handleQuickInsert = (suggestion: string) => {
     setCustomText((prev) => {
-      if (!prev.trim())
-        return suggestion
-      return prev + (prev.endsWith('.') || prev.endsWith('!') || prev.endsWith('?') ? ' ' : '. ') + suggestion
+      if (!prev.trim()) return suggestion
+      return (
+        prev +
+        (prev.endsWith('.') || prev.endsWith('!') || prev.endsWith('?')
+          ? ' '
+          : '. ') +
+        suggestion
+      )
     })
   }
 
   const getPriorityIcon = () => {
     switch (prompt.priority) {
-      case 'high': return <Zap size={16} className="text-chart-4" />
-      case 'medium': return <Target size={16} className="text-primary" />
-      case 'low': return <Clock size={16} className="text-muted-foreground" />
+      case 'high':
+        return <Zap size={16} className='text-chart-4' />
+      case 'medium':
+        return <Target size={16} className='text-primary' />
+      case 'low':
+        return <Clock size={16} className='text-muted-foreground' />
     }
   }
 
   const getPriorityColor = () => {
     switch (prompt.priority) {
-      case 'high': return 'from-orange-400 to-red-500'
-      case 'medium': return 'from-primary to-indigo-500'
-      case 'low': return 'from-gray-400 to-gray-600'
+      case 'high':
+        return 'from-orange-400 to-red-500'
+      case 'medium':
+        return 'from-primary to-indigo-500'
+      case 'low':
+        return 'from-gray-400 to-gray-600'
     }
   }
 
@@ -110,21 +210,23 @@ const ChroniclePromptCard: React.FC<{
       `}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-border">
-        <div className="flex items-center gap-2">
+      <div className='flex items-center justify-between p-3 border-b border-border'>
+        <div className='flex items-center gap-2'>
           {getPriorityIcon()}
-          <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${getPriorityColor()}`} />
-          <span className="text-sm font-medium text-foreground ">
+          <div
+            className={`w-2 h-2 rounded-full bg-gradient-to-r ${getPriorityColor()}`}
+          />
+          <span className='text-sm font-medium text-foreground '>
             Chronicle This?
           </span>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className='flex items-center gap-1'>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 hover:bg-muted hover:bg-muted rounded"
+            className='p-1 hover:bg-muted hover:bg-muted rounded'
           >
             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </motion.button>
@@ -133,7 +235,7 @@ const ChroniclePromptCard: React.FC<{
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onDismiss(prompt.id)}
-            className="p-1 hover:bg-muted hover:bg-muted rounded text-muted-foreground"
+            className='p-1 hover:bg-muted hover:bg-muted rounded text-muted-foreground'
           >
             <X size={14} />
           </motion.button>
@@ -141,8 +243,8 @@ const ChroniclePromptCard: React.FC<{
       </div>
 
       {/* Prompt Text */}
-      <div className="p-3">
-        <p className="text-sm text-foreground  leading-relaxed">
+      <div className='p-3'>
+        <p className='text-sm text-foreground  leading-relaxed'>
           {prompt.promptText}
         </p>
       </div>
@@ -155,35 +257,33 @@ const ChroniclePromptCard: React.FC<{
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className='overflow-hidden'
           >
-            <div className="px-3 pb-3 space-y-3">
+            <div className='px-3 pb-3 space-y-3'>
               {/* Main Text Input */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-foreground ">
+              <div className='space-y-2'>
+                <label className='text-xs font-medium text-foreground '>
                   What happened?
                 </label>
-                <div className="relative">
+                <div className='relative'>
                   <textarea
                     value={customText}
-                    onChange={e => setCustomText(e.target.value)}
-                    placeholder="Describe what happened in this moment..."
+                    onChange={(e) => setCustomText(e.target.value)}
+                    placeholder='Describe what happened in this moment...'
                     autoFocus
-                    className="
+                    className='
                       w-full h-24 p-3 text-sm
                       border-2 border-primary/30
                       rounded-lg resize-none
                       bg-card
                       focus:ring-2 focus:ring-primary/40 focus:border-primary/40
                       placeholder-muted-foreground placeholder-muted-foreground
-                    "
+                    '
                   />
                   {customText.length > 0 && (
-                    <div className="absolute top-2 right-2">
-                      <span className="text-xs text-muted-foreground">
-                        {customText.length}
-                        {' '}
-                        chars
+                    <div className='absolute top-2 right-2'>
+                      <span className='text-xs text-muted-foreground'>
+                        {customText.length} chars
                       </span>
                     </div>
                   )}
@@ -191,75 +291,71 @@ const ChroniclePromptCard: React.FC<{
               </div>
 
               {/* Smart Suggestions - Compact Pills */}
-              {prompt.suggestedEntries && prompt.suggestedEntries.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-muted-foreground ">
-                      Quick additions
-                    </label>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setShowSuggestions(!showSuggestions)}
-                      className="text-xs text-primary hover:text-primary"
-                    >
-                      {showSuggestions ? 'Hide' : 'Show'}
-                      {' '}
-                      (
-                      {prompt.suggestedEntries.length}
-                      )
-                    </motion.button>
-                  </div>
-
-                  <AnimatePresence>
-                    {showSuggestions && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="flex flex-wrap gap-2"
+              {prompt.suggestedEntries &&
+                prompt.suggestedEntries.length > 0 && (
+                  <div className='space-y-2'>
+                    <div className='flex items-center justify-between'>
+                      <label className='text-xs font-medium text-muted-foreground '>
+                        Quick additions
+                      </label>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowSuggestions(!showSuggestions)}
+                        className='text-xs text-primary hover:text-primary'
                       >
-                        {prompt.suggestedEntries.slice(0, 4).map(entry => (
-                          <motion.button
-                            key={`${prompt.id}-${entry}`}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleQuickInsert(entry)}
-                            className="
+                        {showSuggestions ? 'Hide' : 'Show'} (
+                        {prompt.suggestedEntries.length})
+                      </motion.button>
+                    </div>
+
+                    <AnimatePresence>
+                      {showSuggestions && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className='flex flex-wrap gap-2'
+                        >
+                          {prompt.suggestedEntries.slice(0, 4).map((entry) => (
+                            <motion.button
+                              key={`${prompt.id}-${entry}`}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleQuickInsert(entry)}
+                              className='
                               px-2 py-1 text-xs
                               bg-primary/10 hover:bg-primary/10
                               border border-primary/30
                               rounded-full transition-colors
                               text-primary
                               max-w-32 truncate
-                            "
-                            title={entry}
-                          >
-                            +
-                            {' '}
-                            {entry}
-                          </motion.button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
+                            '
+                              title={entry}
+                            >
+                              + {entry}
+                            </motion.button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
 
               {/* Action Buttons */}
-              <div className="flex gap-2 pt-2">
+              <div className='flex gap-2 pt-2'>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleAccept()}
                   disabled={!customText.trim()}
-                  className="
+                  className='
                     flex-1 px-4 py-2 text-sm font-medium
                     bg-primary hover:bg-primary/80
                     disabled:bg-gray-300 disabled:cursor-not-allowed
                     text-white rounded-lg transition-colors
                     flex items-center justify-center gap-2
-                  "
+                  '
                 >
                   <BookOpen size={14} />
                   Chronicle It
@@ -268,11 +364,11 @@ const ChroniclePromptCard: React.FC<{
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onDismiss(prompt.id)}
-                  className="
+                  className='
                     px-3 py-2 text-sm font-medium
                     bg-muted hover:bg-muted text-foreground
                     rounded-lg transition-colors
-                  "
+                  '
                 >
                   Skip
                 </motion.button>
@@ -284,17 +380,17 @@ const ChroniclePromptCard: React.FC<{
 
       {/* Quick Actions (when collapsed) */}
       {!isExpanded && (
-        <div className="flex gap-2 p-3 pt-0">
+        <div className='flex gap-2 p-3 pt-0'>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setIsExpanded(true)}
-            className="
+            className='
               flex-1 px-3 py-2 text-xs font-medium
               bg-primary hover:bg-primary/80 text-white
               rounded transition-colors
               flex items-center justify-center gap-1
-            "
+            '
           >
             <Feather size={12} />
             Write Entry
@@ -304,12 +400,12 @@ const ChroniclePromptCard: React.FC<{
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onDismiss(prompt.id)}
-            className="
+            className='
               px-3 py-2 text-xs font-medium
               bg-muted hover:bg-muted text-foreground
                hover:bg-muted
               rounded transition-colors
-            "
+            '
           >
             Skip
           </motion.button>
@@ -326,18 +422,90 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   position = 'top-right',
   className = '',
 }) => {
-  const [activePrompts, setActivePrompts] = useState<ChroniclePrompt[]>([])
-  const [isVisible, setIsVisible] = useState(false)
+  const {
+    isProposing,
+    isApplyingBundle,
+    lastProgressEvent,
+    lastTelemetryEvent,
+  } = useChronicleLLM()
+  const deltaHistory = useChronicleStore((state) => state.deltaHistory)
+  const clearDeltaLog = useChronicleStore((state) => state.clearDeltaLog)
+  const [undoingBundleId, setUndoingBundleId] = useState<string | null>(null)
+  const [promptState, dispatchPromptState] = useReducer(promptOverlayReducer, {
+    prompts: [],
+    isVisible: false,
+  })
+  const { prompts: activePrompts, isVisible } = promptState
+
+  const latestAutomation = deltaHistory.length > 0 ? deltaHistory[0] : null
+  const describeDeltaOperation = useCallback((op: DeltaOperation) => {
+    return formatDeltaOperation(op)
+  }, [])
+
+  const automationStatus = useMemo(() => {
+    if (isApplyingBundle) {
+      return {
+        label: 'Applying updates',
+        message: 'Recording Chronicle deltas…',
+        toneClass: 'bg-primary/10 text-primary border border-primary/30',
+      }
+    }
+
+    if (isProposing) {
+      return {
+        label: 'Drafting entry',
+        message: lastProgressEvent?.text ?? 'GPT-5 is parsing the latest note.',
+        toneClass: 'bg-muted text-muted-foreground border border-border/60',
+      }
+    }
+
+    if (lastProgressEvent) {
+      return {
+        label: lastProgressEvent.stage.replaceAll('_', ' '),
+        message: lastProgressEvent.text,
+        toneClass: 'bg-muted text-muted-foreground border border-border/60',
+      }
+    }
+
+    if (lastTelemetryEvent) {
+      const latency = `${Math.round(lastTelemetryEvent.latencyMs)}ms`
+      return {
+        label: 'Automation ready',
+        message: `${latency}, ${lastTelemetryEvent.usage.totalTokens} tokens`,
+        toneClass: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
+      }
+    }
+
+    return null
+  }, [isApplyingBundle, isProposing, lastProgressEvent, lastTelemetryEvent])
+
+  const statusChip = useMemo(() => {
+    if (!automationStatus) return null
+
+    return (
+      <div
+        className={`text-xs rounded-full px-3 py-1 font-medium flex flex-col sm:flex-row sm:items-center gap-1 ${automationStatus.toneClass}`}
+      >
+        <span>{automationStatus.label}</span>
+        {automationStatus.message && (
+          <span className='text-[11px] sm:text-xs font-normal text-muted-foreground'>
+            {automationStatus.message}
+          </span>
+        )}
+      </div>
+    )
+  }, [automationStatus])
 
   // Subscribe to action listener for new prompts
   useEffect(() => {
-    if (!isEnabled)
-      return
+    if (!isEnabled) return
 
     const updatePrompts = () => {
       const prompts = chronicleActionListener.getActivePrompts()
-      setActivePrompts(prompts.slice(0, maxPrompts))
-      setIsVisible(prompts.length > 0)
+      dispatchPromptState({
+        type: 'sync',
+        prompts: prompts.slice(0, maxPrompts),
+      })
     }
 
     // Initial load
@@ -348,54 +516,188 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     return () => clearInterval(interval)
   }, [isEnabled, maxPrompts])
 
-  const handleAcceptPrompt = useCallback((promptId: string, selectedEntry: string, customText?: string) => {
-    chronicleActionListener.acceptPrompt(promptId, selectedEntry, customText)
+  const handleAcceptPrompt = useCallback(
+    (promptId: string, selectedEntry: string, customText?: string) => {
+      chronicleActionListener.acceptPrompt(promptId, selectedEntry, customText)
 
-    // Remove from local state
-    setActivePrompts(prev => prev.filter(p => p.id !== promptId))
+      // Remove from local state
+      dispatchPromptState({ type: 'remove', id: promptId })
 
-    // Record user behavior for learning
-    contextIntelligence.recordUserBehavior(
-      activePrompts.find(p => p.id === promptId)?.actionContext.actionType || 'dice_roll',
-      true,
-      Date.now(), // Would calculate actual response time
-      customText || selectedEntry,
-    )
-  }, [activePrompts])
+      // Record user behavior for learning
+      contextIntelligence.recordUserBehavior(
+        activePrompts.find((p) => p.id === promptId)?.actionContext
+          .actionType || 'dice_roll',
+        true,
+        Date.now(), // Would calculate actual response time
+        customText || selectedEntry,
+      )
+    },
+    [activePrompts],
+  )
 
-  const handleDismissPrompt = useCallback((promptId: string) => {
-    chronicleActionListener.dismissPrompt(promptId)
+  const handleDismissPrompt = useCallback(
+    (promptId: string) => {
+      chronicleActionListener.dismissPrompt(promptId)
 
-    // Remove from local state
-    setActivePrompts(prev => prev.filter(p => p.id !== promptId))
+      // Remove from local state
+      dispatchPromptState({ type: 'remove', id: promptId })
 
-    // Record dismissal for learning
-    contextIntelligence.recordUserBehavior(
-      activePrompts.find(p => p.id === promptId)?.actionContext.actionType || 'dice_roll',
-      false,
-      Date.now(),
-      '',
-    )
-  }, [activePrompts])
+      // Record dismissal for learning
+      contextIntelligence.recordUserBehavior(
+        activePrompts.find((p) => p.id === promptId)?.actionContext
+          .actionType || 'dice_roll',
+        false,
+        Date.now(),
+        '',
+      )
+    },
+    [activePrompts],
+  )
+
+  const handleUndoAutomation = useCallback(
+    async (bundleId: string) => {
+      setUndoingBundleId(bundleId)
+      try {
+        const success = await undoChronicleBundle(bundleId)
+        if (!success) {
+          console.warn(`[chronicle] Unable to undo bundle ${bundleId}`)
+          return
+        }
+        clearDeltaLog(bundleId)
+      } catch (error) {
+        console.error('[chronicle] Undo bundle failed', error)
+      } finally {
+        setUndoingBundleId(null)
+      }
+    },
+    [clearDeltaLog],
+  )
+
+  const handleDismissAutomation = useCallback(
+    (bundleId: string) => {
+      clearDeltaLog(bundleId)
+    },
+    [clearDeltaLog],
+  )
 
   const getPositionClasses = () => {
     switch (position) {
-      case 'top-left': return 'top-4 left-4'
-      case 'top-right': return 'top-4 right-4'
-      case 'bottom-left': return 'bottom-4 left-4'
-      case 'bottom-right': return 'bottom-4 right-4'
-      default: return 'top-4 right-4'
+      case 'top-left':
+        return 'top-4 left-4'
+      case 'top-right':
+        return 'top-4 right-4'
+      case 'bottom-left':
+        return 'bottom-4 left-4'
+      case 'bottom-right':
+        return 'bottom-4 right-4'
+      default:
+        return 'top-4 right-4'
     }
   }
 
-  if (!isEnabled || !isVisible || activePrompts.length === 0) {
+  const hasAutomationCard = Boolean(latestAutomation)
+
+  if (!isEnabled || (!hasAutomationCard && !isVisible)) {
     return null
   }
 
   return (
-    <div className={`fixed ${getPositionClasses()} z-50 pointer-events-none ${className}`}>
-      <div className="flex flex-col gap-3 pointer-events-auto">
-        <AnimatePresence mode="popLayout">
+    <div
+      className={`fixed ${getPositionClasses()} z-50 pointer-events-none ${className}`}
+    >
+      <div className='flex flex-col gap-3 pointer-events-auto'>
+        {statusChip}
+        {latestAutomation && (
+          <motion.div
+            layout
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+            className='bg-card border border-border rounded-lg shadow-lg p-3'
+          >
+            <div className='flex items-start justify-between gap-3'>
+              <div>
+                <p className='text-sm font-semibold text-foreground'>
+                  Latest Chronicle Update
+                </p>
+                <p className='text-xs text-muted-foreground'>
+                  Entry {latestAutomation.entryId} -{' '}
+                  {new Date(latestAutomation.createdAt).toLocaleTimeString()}
+                </p>
+              </div>
+              <div className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                {latestAutomation.appliedOps.length} applied
+                {latestAutomation.skippedOps.length > 0
+                  ? ` - ${latestAutomation.skippedOps.length} skipped`
+                  : ''}
+              </div>
+            </div>
+            <div className='mt-3'>
+              <DeltaChecklist
+                operations={latestAutomation.appliedOps}
+                renderDescription={describeDeltaOperation}
+                variant='readOnly'
+                size='compact'
+                showRuleReference
+                className='space-y-1'
+                itemClassName='bg-transparent border-border/40'
+              />
+            </div>
+            {latestAutomation.skippedOps.length > 0 && (
+              <Alert variant='outline' className='mt-3'>
+                <AlertTitle className='text-xs font-semibold'>
+                  Skipped
+                </AlertTitle>
+                <AlertDescription className='text-xs'>
+                  <DeltaChecklist
+                    operations={latestAutomation.skippedOps}
+                    renderDescription={describeDeltaOperation}
+                    variant='readOnly'
+                    size='compact'
+                    showRuleReference
+                    className='space-y-1'
+                    itemClassName='bg-transparent border-none p-0'
+                  />
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className='mt-3 flex flex-wrap items-center gap-2'>
+              <Button
+                size='sm'
+                variant='outline'
+                onClick={() =>
+                  void handleUndoAutomation(latestAutomation.bundleId)
+                }
+                disabled={undoingBundleId === latestAutomation.bundleId}
+                className='gap-1'
+              >
+                {undoingBundleId === latestAutomation.bundleId ? (
+                  <>
+                    <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                    Undoing
+                  </>
+                ) : (
+                  <>
+                    <RefreshCcw className='h-3.5 w-3.5' />
+                    Undo
+                  </>
+                )}
+              </Button>
+              <Button
+                size='sm'
+                variant='ghost'
+                onClick={() =>
+                  handleDismissAutomation(latestAutomation.bundleId)
+                }
+                disabled={undoingBundleId === latestAutomation.bundleId}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </motion.div>
+        )}
+        <AnimatePresence mode='popLayout'>
           {activePrompts.map((prompt, index) => (
             <ChroniclePromptCard
               key={prompt.id}

@@ -1,5 +1,4 @@
 import type { RenderOptions } from '@testing-library/react'
-import { TooltipProvider } from '../components/ui/tooltip'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -7,71 +6,9 @@ import React from 'react'
 import { vi } from 'vitest'
 import { ErrorBoundary } from '../components/ui/ErrorBoundary'
 import { ThemeProvider } from '../components/ui/ThemeProvider'
+import { TooltipProvider } from '../components/ui/tooltip'
 
 // Test utilities for ZimboMate V2
-interface TestWrapperProps {
-  children: React.ReactNode
-  theme?: 'matsu'
-  withErrorBoundary?: boolean
-  withQueryClient?: boolean
-  withTooltips?: boolean
-}
-
-// Custom test wrapper with all providers
-const TestWrapper: React.FC<TestWrapperProps> = ({
-  children,
-  theme = 'matsu',
-  withErrorBoundary = true,
-  withQueryClient = true,
-  withTooltips = true,
-}) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-        gcTime: 0,
-      },
-    },
-  })
-
-  let wrappedChildren = children
-
-  // Wrap with QueryClient if needed
-  if (withQueryClient) {
-    wrappedChildren = (
-      <QueryClientProvider client={queryClient}>
-        {wrappedChildren}
-      </QueryClientProvider>
-    )
-  }
-
-  // Wrap with Tooltips if needed
-  if (withTooltips) {
-    wrappedChildren = (
-      <TooltipProvider delayDuration={0}>
-        {wrappedChildren}
-      </TooltipProvider>
-    )
-  }
-  // Wrap with ThemeProvider
-  wrappedChildren = (
-    <ThemeProvider defaultTheme={theme}>
-      {wrappedChildren}
-    </ThemeProvider>
-  )
-
-  // Wrap with ErrorBoundary if needed
-  if (withErrorBoundary) {
-    wrappedChildren = (
-      <ErrorBoundary>
-        {wrappedChildren}
-      </ErrorBoundary>
-    )
-  }
-
-  return <>{wrappedChildren}</>
-}
-
 // Enhanced render function with custom wrapper
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   theme?: 'matsu'
@@ -80,7 +17,10 @@ interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   withTooltips?: boolean
 }
 
-export function renderWithProviders(ui: React.ReactElement, options: CustomRenderOptions = {}) {
+export function renderWithProviders(
+  ui: React.ReactElement,
+  options: CustomRenderOptions = {},
+) {
   const {
     theme = 'matsu',
     withErrorBoundary = true,
@@ -89,16 +29,43 @@ export function renderWithProviders(ui: React.ReactElement, options: CustomRende
     ...renderOptions
   } = options
 
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <TestWrapper
-      theme={theme}
-      withErrorBoundary={withErrorBoundary}
-      withQueryClient={withQueryClient}
-      withTooltips={withTooltips}
-    >
-      {children}
-    </TestWrapper>
-  )
+  const queryClient = withQueryClient
+    ? new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: false,
+            gcTime: 0,
+          },
+        },
+      })
+    : null
+
+  const wrapWithProviders = (children: React.ReactNode) => {
+    let content = children
+
+    if (withQueryClient && queryClient) {
+      content = (
+        <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>
+      )
+    }
+
+    if (withTooltips) {
+      content = (
+        <TooltipProvider delayDuration={0}>{content}</TooltipProvider>
+      )
+    }
+
+    content = <ThemeProvider defaultTheme={theme}>{content}</ThemeProvider>
+
+    if (withErrorBoundary) {
+      content = <ErrorBoundary>{content}</ErrorBoundary>
+    }
+
+    return <>{content}</>
+  }
+
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    wrapWithProviders(children)
 
   return {
     user: userEvent.setup({ writeToClipboard: false }),
@@ -142,7 +109,11 @@ export const mockCharacter = {
   },
   bonds: [
     { id: 'bond-1', text: 'I owe Althea my life.', resolved: false },
-    { id: 'bond-2', text: 'I will prove myself to the guild.', resolved: false },
+    {
+      id: 'bond-2',
+      text: 'I will prove myself to the guild.',
+      resolved: false,
+    },
   ],
   inventory: [
     {
@@ -170,7 +141,9 @@ export const mockCampaign = {
 
 // Test utilities for async operations
 export function waitForLoadingToFinish() {
-  return waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument())
+  return waitFor(() =>
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument(),
+  )
 }
 
 export function waitForErrorToAppear() {
@@ -178,11 +151,17 @@ export function waitForErrorToAppear() {
 }
 
 // Keyboard testing utilities
-export async function pressKey(user: ReturnType<typeof userEvent.setup>, key: string) {
+export async function pressKey(
+  user: ReturnType<typeof userEvent.setup>,
+  key: string,
+) {
   await user.keyboard(`{${key}}`)
 }
 
-export async function pressKeyCombo(user: ReturnType<typeof userEvent.setup>, ...keys: string[]) {
+export async function pressKeyCombo(
+  user: ReturnType<typeof userEvent.setup>,
+  ...keys: string[]
+) {
   await user.keyboard(`{${keys.join('+')}}`)
 }
 
@@ -237,9 +216,10 @@ export async function checkAccessibility(container: HTMLElement) {
   // Check for missing labels on form elements
   const inputs = container.querySelectorAll('input, select, textarea')
   inputs.forEach((input, index) => {
-    const hasLabel = input.getAttribute('aria-label')
-      || input.getAttribute('aria-labelledby')
-      || container.querySelector(`label[for="${input.id}"]`)
+    const hasLabel =
+      input.getAttribute('aria-label') ||
+      input.getAttribute('aria-labelledby') ||
+      container.querySelector(`label[for="${input.id}"]`)
 
     if (!hasLabel) {
       issues.push(`Form element ${index + 1} missing label`)
@@ -247,12 +227,16 @@ export async function checkAccessibility(container: HTMLElement) {
   })
 
   // Check for proper heading hierarchy
-  const headings = Array.from(container.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+  const headings = Array.from(
+    container.querySelectorAll('h1, h2, h3, h4, h5, h6'),
+  )
   let lastLevel = 0
   headings.forEach((heading, index) => {
     const level = Number.parseInt(heading.tagName.charAt(1))
     if (level > lastLevel + 1) {
-      issues.push(`Heading ${index + 1} skips levels (h${lastLevel} to h${level})`)
+      issues.push(
+        `Heading ${index + 1} skips levels (h${lastLevel} to h${level})`,
+      )
     }
     lastLevel = level
   })
@@ -263,26 +247,31 @@ export async function checkAccessibility(container: HTMLElement) {
 // Custom matchers for testing
 export const customMatchers = {
   toHaveAccessibleName: (element: HTMLElement, expectedName: string) => {
-    const accessibleName = element.getAttribute('aria-label')
-      || element.getAttribute('aria-labelledby')
-      || element.textContent
+    const accessibleName =
+      element.getAttribute('aria-label') ||
+      element.getAttribute('aria-labelledby') ||
+      element.textContent
 
     return {
       pass: accessibleName === expectedName,
-      message: () => `Expected element to have accessible name "${expectedName}", got "${accessibleName}"`,
+      message: () =>
+        `Expected element to have accessible name "${expectedName}", got "${accessibleName}"`,
     }
   },
 
   toBeWithinPerformanceBudget: (renderTime: number, budget: number) => {
     return {
       pass: renderTime <= budget,
-      message: () => `Expected render time ${renderTime}ms to be within budget ${budget}ms`,
+      message: () =>
+        `Expected render time ${renderTime}ms to be within budget ${budget}ms`,
     }
   },
 }
 
 // Test data factories
-export function createMockCharacter(overrides: Partial<typeof mockCharacter> = {}) {
+export function createMockCharacter(
+  overrides: Partial<typeof mockCharacter> = {},
+) {
   return {
     ...mockCharacter,
     ...overrides,
@@ -290,7 +279,9 @@ export function createMockCharacter(overrides: Partial<typeof mockCharacter> = {
   }
 }
 
-export function createMockCampaign(overrides: Partial<typeof mockCampaign> = {}) {
+export function createMockCampaign(
+  overrides: Partial<typeof mockCampaign> = {},
+) {
   return {
     ...mockCampaign,
     ...overrides,
@@ -313,7 +304,10 @@ export const simulateUserFlow = {
     await waitFor(() => expect(screen.getByText(/result/i)).toBeInTheDocument())
   },
 
-  equipItem: async (user: ReturnType<typeof userEvent.setup>, itemName: string) => {
+  equipItem: async (
+    user: ReturnType<typeof userEvent.setup>,
+    itemName: string,
+  ) => {
     const item = screen.getByText(itemName)
     await user.click(item)
     await user.click(screen.getByRole('button', { name: /equip/i }))
@@ -377,7 +371,10 @@ export function setupTestEnvironment() {
   const performanceEntries: PerformanceEntry[] = []
   const originalMark = performance.mark
   performance.mark = (name: string) => {
-    performanceEntries.push({ name, startTime: performance.now() } as PerformanceEntry)
+    performanceEntries.push({
+      name,
+      startTime: performance.now(),
+    } as PerformanceEntry)
     return originalMark.call(performance, name)
   }
 
@@ -390,7 +387,7 @@ export function setupTestEnvironment() {
   }
 }
 
-export default {
+export const testingUtils = {
   renderWithProviders,
   mockCharacter,
   mockCampaign,
@@ -409,7 +406,3 @@ export default {
   mockImplementations,
   setupTestEnvironment,
 }
-
-
-
-

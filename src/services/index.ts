@@ -12,7 +12,10 @@ export type {
   XPSource,
 } from './AdvancementService'
 export { CampaignService, campaignService } from './CampaignService'
-export { CharacterStateService, characterStateService } from './CharacterStateService'
+export {
+  CharacterStateService,
+  characterStateService,
+} from './CharacterStateService'
 export type {
   BondState,
   // Character State types
@@ -49,7 +52,10 @@ export type {
   RollTemplate,
   RollType,
 } from './DiceRollingService'
-export { EquipmentManagementService, equipmentManagementService } from './EquipmentManagementService'
+export {
+  EquipmentManagementService,
+  equipmentManagementService,
+} from './EquipmentManagementService'
 
 export type {
   // Equipment Management types
@@ -57,7 +63,10 @@ export type {
 } from './EquipmentManagementService'
 
 // Phase 4C Desktop Power Features
-export { KeyboardShortcutsService, keyboardShortcutsService } from './KeyboardShortcutsService'
+export {
+  KeyboardShortcutsService,
+  keyboardShortcutsService,
+} from './KeyboardShortcutsService'
 
 export type {
   // Keyboard Shortcuts types
@@ -65,7 +74,10 @@ export type {
   ShortcutCategory,
 } from './KeyboardShortcutsService'
 
-export { MoveCompendiumService, moveCompendiumService } from './MoveCompendiumService'
+export {
+  MoveCompendiumService,
+  moveCompendiumService,
+} from './MoveCompendiumService'
 
 export type {
   CompendiumMove,
@@ -89,7 +101,10 @@ export type {
   SpellClass,
 } from './SpellCastingService'
 
-export { XPIntegrationService, xpIntegrationService } from './XPIntegrationService'
+export {
+  XPIntegrationService,
+  xpIntegrationService,
+} from './XPIntegrationService'
 
 export type {
   XPAnalytics,

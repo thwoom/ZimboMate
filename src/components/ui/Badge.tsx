@@ -14,12 +14,14 @@ export const badgeVariants = cva(
         outline: 'border-border bg-transparent text-foreground',
         destructive: 'bg-destructive text-white border-transparent',
         success: 'bg-[color:var(--chart-2)] text-white border-transparent',
-        warning: 'bg-[color:var(--chart-4)] text-[color:var(--foreground)] border-transparent',
+        warning:
+          'bg-[color:var(--chart-4)] text-[color:var(--foreground)] border-transparent',
         magical:
           'bg-gradient-to-r from-primary to-accent text-white border-transparent shadow-sm',
         health: 'bg-[color:var(--chart-2)] text-white border-transparent',
         mana: 'bg-[color:var(--chart-3)] text-white border-transparent',
-        experience: 'bg-[color:var(--chart-4)] text-[color:var(--foreground)] border-transparent',
+        experience:
+          'bg-[color:var(--chart-4)] text-[color:var(--foreground)] border-transparent',
       },
     },
     defaultVariants: {
@@ -30,10 +32,21 @@ export const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {}
 
-function Badge({ ref, className, variant, ...props }: BadgeProps & { ref?: React.RefObject<HTMLDivElement | null> }) {
-  return <div ref={ref} className={cn(badgeVariants({ variant, className }))} {...props} />
+function Badge({
+  ref,
+  className,
+  variant,
+  ...props
+}: BadgeProps & { ref?: React.RefObject<HTMLDivElement | null> }) {
+  return (
+    <div
+      ref={ref}
+      className={cn(badgeVariants({ variant, className }))}
+      {...props}
+    />
+  )
 }
 Badge.displayName = 'Badge'
 

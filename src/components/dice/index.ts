@@ -4,7 +4,12 @@
  */
 
 export { useDiceStore } from '../../stores/diceStore'
-export type { RollContext, RollOutcome, RollResult, RollType } from '../../stores/diceStore'
+export type {
+  RollContext,
+  RollOutcome,
+  RollResult,
+  RollType,
+} from '../../stores/diceStore'
 export { formatRollSummary } from '../../utils/diceFormatting'
 
 export { RollLog } from './RollLog'

@@ -6,7 +6,8 @@ export const userGuideContent = [
   },
   {
     type: 'paragraph',
-    content: 'This comprehensive guide covers all features and functionality in ZimboMate V2. Whether you\'re a player or Game Master, this guide will help you make the most of your Dungeon World adventures.',
+    content:
+      "This comprehensive guide covers all features and functionality in ZimboMate V2. Whether you're a player or Game Master, this guide will help you make the most of your Dungeon World adventures.",
   },
   {
     type: 'subheading',
@@ -22,17 +23,17 @@ export const userGuideContent = [
     type: 'list',
     items: [
       'Navigate to the Character tab (first tab)',
-      'Enter your character\'s name and choose a class',
+      "Enter your character's name and choose a class",
       'Set your six attributes (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma)',
       'Your modifiers and derived stats are calculated automatically',
       'Add your starting equipment and spells (if applicable)',
-      'Set your character\'s bonds with other party members',
+      "Set your character's bonds with other party members",
     ],
   },
   {
     type: 'subheading',
     title: 'Managing Health and Resources',
-    content: 'Track your character\'s condition',
+    content: "Track your character's condition",
   },
   {
     type: 'list',
@@ -120,7 +121,7 @@ export const userGuideContent = [
   {
     type: 'subheading',
     title: 'Inventory System',
-    content: 'Managing your character\'s possessions',
+    content: "Managing your character's possessions",
   },
   {
     type: 'list',
@@ -289,6 +290,7 @@ export const userGuideContent = [
   {
     type: 'callout',
     variant: 'success',
-    content: '🎉 You\'re now ready to master ZimboMate V2! Use this guide as a reference during play, and don\'t forget to explore the keyboard shortcuts for maximum efficiency.',
+    content:
+      "🎉 You're now ready to master ZimboMate V2! Use this guide as a reference during play, and don't forget to explore the keyboard shortcuts for maximum efficiency.",
   },
 ]

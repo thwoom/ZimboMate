@@ -5,11 +5,7 @@
 
 import type { Attribute, Debilities } from '../../../models/Character'
 import { motion } from 'framer-motion'
-import {
-  Activity,
-  AlertTriangle,
-  Users,
-} from 'lucide-react'
+import { Activity, AlertTriangle, Users } from 'lucide-react'
 import React from 'react'
 import { useCharacterStore } from '../../../stores'
 import { Badge, Card, CardContent } from '../../ui'
@@ -25,24 +21,24 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
   characterId,
   className = '',
 }) => {
-  const updateCharacter = useCharacterStore(state => state.updateCharacter)
-  const character = useCharacterStore(state => (
-    characterId ? state.getCharacter(characterId) : state.getActiveCharacter()
-  ))
+  const updateCharacter = useCharacterStore((state) => state.updateCharacter)
+  const character = useCharacterStore((state) =>
+    characterId ? state.getCharacter(characterId) : state.getActiveCharacter(),
+  )
 
   // Get character (use active if not specified)
 
   if (!character) {
     return (
-      <Card variant="surface" className={className}>
+      <Card variant='surface' className={className}>
         <CardContent>
-          <div className="text-center py-8">
+          <div className='text-center py-8'>
             <Users
               size={48}
-              className="mx-auto mb-4 opacity-50 text-muted-foreground"
+              className='mx-auto mb-4 opacity-50 text-muted-foreground'
             />
-            <h3 className="text-lg font-medium mb-2">No Character Selected</h3>
-            <p className="text-muted-foreground">
+            <h3 className='text-lg font-medium mb-2'>No Character Selected</h3>
+            <p className='text-muted-foreground'>
               Select a character to manage their debilities.
             </p>
           </div>
@@ -52,7 +48,9 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
   }
 
   const debilities = character.debilities
-  const activeDebilities = Object.entries(debilities).filter(([_, active]) => active)
+  const activeDebilities = Object.entries(debilities).filter(
+    ([_, active]) => active,
+  )
   const debilityCount = activeDebilities.length
 
   const updateDebility = (debilityKey: keyof Debilities, active: boolean) => {
@@ -135,30 +133,24 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className='flex items-center justify-between'>
         <div>
-          <h2 className="text-2xl font-display mb-2">Debility Tracker</h2>
-          <p className="text-muted-foreground">
+          <h2 className='text-2xl font-display mb-2'>Debility Tracker</h2>
+          <p className='text-muted-foreground'>
             Track conditions that reduce your attribute modifiers
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           <Badge
             variant={debilityCount > 0 ? 'default' : 'secondary'}
             className={`gap-1 ${debilityCount > 0 ? 'bg-destructive/15 text-destructive' : ''}`}
           >
             <AlertTriangle size={12} />
-            {debilityCount}
-            {' '}
-            Active
+            {debilityCount} Active
           </Badge>
           {debilityCount > 0 && (
-            <Badge variant="secondary" className="gap-1">
-              <Activity size={12} />
-              -
-              {debilityCount}
-              {' '}
-              to rolls
+            <Badge variant='secondary' className='gap-1'>
+              <Activity size={12} />-{debilityCount} to rolls
             </Badge>
           )}
         </div>
@@ -167,30 +159,35 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       {/* Overview Card */}
       <Card variant={debilityCount > 0 ? 'magical' : 'surface'}>
         <CardContent>
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-3">
+          <div className='text-center space-y-4'>
+            <div className='flex items-center justify-center gap-3'>
               <AlertTriangle
                 size={24}
-                className={debilityCount > 0 ? 'text-destructive' : 'text-muted-foreground'}
+                className={
+                  debilityCount > 0
+                    ? 'text-destructive'
+                    : 'text-muted-foreground'
+                }
               />
-              <h3 className="text-xl font-medium">
-                {debilityCount > 0 ? `${debilityCount} Active Debilities` : 'No Active Debilities'}
+              <h3 className='text-xl font-medium'>
+                {debilityCount > 0
+                  ? `${debilityCount} Active Debilities`
+                  : 'No Active Debilities'}
               </h3>
             </div>
 
-            <p
-              className="max-w-md mx-auto text-muted-foreground"
-            >
+            <p className='max-w-md mx-auto text-muted-foreground'>
               {debilityCount > 0
                 ? 'These debilities are currently affecting your dice rolls and attribute modifiers.'
                 : 'Your character is in good health with no debilities affecting their abilities.'}
             </p>
 
             {debilityCount > 0 && (
-              <div className="pt-4">
+              <div className='pt-4'>
                 <button
+                  type='button'
                   onClick={clearAllDebilities}
-                  className="px-4 py-2 text-sm rounded-lg transition-colors"
+                  className='px-4 py-2 text-sm rounded-lg transition-colors'
                   style={{
                     backgroundColor: 'var(--card)',
                     borderColor: 'var(--border)',
@@ -206,7 +203,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
       </Card>
 
       {/* Debility Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
         {debilityDefinitions.map((debility, index) => (
           <motion.div
             key={debility.key}
@@ -216,7 +213,7 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
           >
             <DebilityCard
               debility={debility}
-              onToggle={active => updateDebility(debility.key, active)}
+              onToggle={(active) => updateDebility(debility.key, active)}
             />
           </motion.div>
         ))}
@@ -224,33 +221,32 @@ export const DebilityTracker: React.FC<DebilityTrackerProps> = ({
 
       {/* Effects Summary */}
       {debilityCount > 0 && (
-        <DebilityEffects
-          character={character}
-          debilities={debilities}
-        />
+        <DebilityEffects character={character} debilities={debilities} />
       )}
 
       {/* Help Text */}
-      <Card variant="surface">
+      <Card variant='surface'>
         <CardContent>
-          <div className="space-y-4">
-            <h4 className="font-medium flex items-center gap-2">
+          <div className='space-y-4'>
+            <h4 className='font-medium flex items-center gap-2'>
               <AlertTriangle size={16} />
               About Debilities
             </h4>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className='grid gap-4 md:grid-cols-2'>
               <div>
-                <h5 className="font-medium mb-2">How Debilities Work:</h5>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Each debility reduces the related attribute modifier by 1</li>
+                <h5 className='font-medium mb-2'>How Debilities Work:</h5>
+                <ul className='text-sm space-y-1 text-muted-foreground'>
+                  <li>
+                    • Each debility reduces the related attribute modifier by 1
+                  </li>
                   <li>• This affects all dice rolls using that attribute</li>
                   <li>• Multiple debilities can stack their effects</li>
                   <li>• Debilities persist until healed or removed</li>
                 </ul>
               </div>
               <div>
-                <h5 className="font-medium mb-2">Removing Debilities:</h5>
-                <ul className="text-sm space-y-1 text-muted-foreground">
+                <h5 className='font-medium mb-2'>Removing Debilities:</h5>
+                <ul className='text-sm space-y-1 text-muted-foreground'>
                   <li>• Rest and medical attention</li>
                   <li>• Magical healing (some debilities)</li>
                   <li>• Specific moves or abilities</li>

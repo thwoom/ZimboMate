@@ -46,7 +46,11 @@ export interface RollResult extends DiceRoll {
 export interface UseDiceRollReturn {
   // Roll execution
   roll: (request: RollRequest) => Promise<RollResult>
-  rollWithStat: (stat: keyof Attribute, modifier?: number, description?: string) => Promise<RollResult>
+  rollWithStat: (
+    stat: keyof Attribute,
+    modifier?: number,
+    description?: string,
+  ) => Promise<RollResult>
   rollBasic: (modifier?: number, description?: string) => Promise<RollResult>
 
   // Quick roll shortcuts
@@ -86,7 +90,9 @@ export interface UseDiceRollReturn {
  */
 export function useDiceRoll(): UseDiceRollReturn {
   const { activeCharacter } = useActiveCharacter()
-  const { getStatModifier, getTotalModifierForStat } = useCharacterStats(activeCharacter?.id)
+  const { getStatModifier, getTotalModifierForStat } = useCharacterStats(
+    activeCharacter?.id,
+  )
   const { addRoll, getRecentRolls, clearRollHistory } = useSessionStore()
 
   const [isRolling, setIsRolling] = useState(false)
@@ -102,8 +108,7 @@ export function useDiceRoll(): UseDiceRollReturn {
 
   // Get available modifiers for the active character
   const availableModifiers = useMemo(() => {
-    if (!activeCharacter)
-      return []
+    if (!activeCharacter) return []
 
     const modifiers: Array<{
       id: string
@@ -132,141 +137,175 @@ export function useDiceRoll(): UseDiceRollReturn {
     return modifiers
   }, [activeCharacter])
 
-  // Main roll function
-  const roll = useCallback(async (request: RollRequest): Promise<RollResult> => {
-    if (!canRoll || !activeCharacter) {
-      throw new Error('Cannot roll: no active character or already rolling')
-    }
-
-    setIsRolling(true)
-
-    try {
-      // Calculate total modifier
-      let totalModifier = request.modifier || 0
-
-      // Add stat modifier if specified
-      if (request.stat) {
-        const statMod = getStatModifier(request.stat)
-        const additionalMod = getTotalModifierForStat(request.stat)
-        totalModifier += statMod + additionalMod
-      }
-
-      // Apply available forward modifiers
-      const characterId = request.characterId || activeCharacter.id
-      const forwardMods = characterStateService.getAvailableForwardModifiers(
-        characterId,
-        'next_roll',
-      )
-
-      forwardMods.forEach((mod) => {
-        totalModifier += mod.value
-        characterStateService.useForwardModifier(characterId, mod.id)
-      })
-
-      // Create roll options
-      const rollOptions: RollOptions = {
-        description: request.description || 'Roll',
-        characterId,
-        moveId: request.moveId,
-        moveName: request.moveName,
-      }
-
-      // Execute the roll
-      const rollResult = await diceRollingService.rollDice(
-        '2d6',
-        { flat: totalModifier },
-        rollOptions,
-      )
-
-      // Add to session history
-      addRoll(rollResult)
-
-      // Clean up used forward modifiers
-      characterStateService.cleanupForwardModifiers(characterId)
-
-      // Create enhanced result
-      const enhancedResult: RollResult = {
-        ...rollResult,
-        wasSuccess: rollResult.result === 'success',
-        wasPartialSuccess: rollResult.result === 'partial',
-        wasFailure: rollResult.result === 'failure',
-        outcomeDescription: getOutcomeDescription(rollResult.total),
-        shouldTriggerParticles: true,
-        particleType: getParticleType(rollResult.result),
-        particleColor: getParticleColor(rollResult.result),
-      }
-
-      return enhancedResult
-    }
-    finally {
-      setIsRolling(false)
-    }
-  }, [canRoll, activeCharacter, getStatModifier, getTotalModifierForStat, addRoll])
-
-  // Roll with specific stat
-  const rollWithStat = useCallback(async (
-    stat: keyof Attribute,
-    modifier = 0,
-    description?: string,
-  ): Promise<RollResult> => {
-    return roll({
-      stat,
-      modifier,
-      description: description || `${stat.charAt(0).toUpperCase() + stat.slice(1)} roll`,
-    })
-  }, [roll])
-
-  // Basic roll without stat
-  const rollBasic = useCallback(async (
-    modifier = 0,
-    description = 'Basic roll',
-  ): Promise<RollResult> => {
-    return roll({ modifier, description })
-  }, [roll])
-
-  // Quick stat roll shortcuts
-  const rollStrength = useCallback((modifier = 0) =>
-    rollWithStat('strength', modifier), [rollWithStat])
-
-  const rollDexterity = useCallback((modifier = 0) =>
-    rollWithStat('dexterity', modifier), [rollWithStat])
-
-  const rollConstitution = useCallback((modifier = 0) =>
-    rollWithStat('constitution', modifier), [rollWithStat])
-
-  const rollIntelligence = useCallback((modifier = 0) =>
-    rollWithStat('intelligence', modifier), [rollWithStat])
-
-  const rollWisdom = useCallback((modifier = 0) =>
-    rollWithStat('wisdom', modifier), [rollWithStat])
-
-  const rollCharisma = useCallback((modifier = 0) =>
-    rollWithStat('charisma', modifier), [rollWithStat])
-
   // Utility functions
   const getOutcomeDescription = useCallback((total: number): string => {
-    if (total >= 10)
-      return 'Success! You do it.'
-    if (total >= 7)
-      return 'Partial success. You do it, but...'
+    if (total >= 10) return 'Success! You do it.'
+    if (total >= 7) return 'Partial success. You do it, but...'
     return 'Failure. The GM makes a move.'
   }, [])
 
-  const getParticleType = useCallback((result: string): 'success' | 'partial' | 'failure' => {
+  const getParticleType = useCallback(
+    (result: string): 'success' | 'partial' | 'failure' => {
+      switch (result) {
+        case 'success':
+          return 'success'
+        case 'partial':
+          return 'partial'
+        default:
+          return 'failure'
+      }
+    },
+    [],
+  )
+
+  const getParticleColor = useCallback((result: string): string => {
     switch (result) {
-      case 'success': return 'success'
-      case 'partial': return 'partial'
-      default: return 'failure'
+      case 'success':
+        return '#10B981' // Green
+      case 'partial':
+        return '#F59E0B' // Amber
+      default:
+        return '#EF4444' // Red
     }
   }, [])
 
-  const getParticleColor = (result: string): string => {
-    switch (result) {
-      case 'success': return '#10B981' // Green
-      case 'partial': return '#F59E0B' // Amber
-      default: return '#EF4444' // Red
-    }
-  }
+  // Main roll function
+  const roll = useCallback(
+    async (request: RollRequest): Promise<RollResult> => {
+      if (!canRoll || !activeCharacter) {
+        throw new Error('Cannot roll: no active character or already rolling')
+      }
+
+      setIsRolling(true)
+
+      try {
+        // Calculate total modifier
+        let totalModifier = request.modifier || 0
+
+        // Add stat modifier if specified
+        if (request.stat) {
+          const statMod = getStatModifier(request.stat)
+          const additionalMod = getTotalModifierForStat(request.stat)
+          totalModifier += statMod + additionalMod
+        }
+
+        // Apply available forward modifiers
+        const characterId = request.characterId || activeCharacter.id
+        const forwardMods = characterStateService.getAvailableForwardModifiers(
+          characterId,
+          'next_roll',
+        )
+
+        forwardMods.forEach((mod) => {
+          totalModifier += mod.value
+          characterStateService.useForwardModifier(characterId, mod.id)
+        })
+
+        // Create roll options
+        const rollOptions: RollOptions = {
+          description: request.description || 'Roll',
+          characterId,
+          moveId: request.moveId,
+          moveName: request.moveName,
+        }
+
+        // Execute the roll
+        const rollResult = await diceRollingService.rollDice(
+          '2d6',
+          { flat: totalModifier },
+          rollOptions,
+        )
+
+        // Add to session history
+        addRoll(rollResult)
+
+        // Clean up used forward modifiers
+        characterStateService.cleanupForwardModifiers(characterId)
+
+        // Create enhanced result
+        const enhancedResult: RollResult = {
+          ...rollResult,
+          wasSuccess: rollResult.result === 'success',
+          wasPartialSuccess: rollResult.result === 'partial',
+          wasFailure: rollResult.result === 'failure',
+          outcomeDescription: getOutcomeDescription(rollResult.total),
+          shouldTriggerParticles: true,
+          particleType: getParticleType(rollResult.result),
+          particleColor: getParticleColor(rollResult.result),
+        }
+
+        return enhancedResult
+      } finally {
+        setIsRolling(false)
+      }
+    },
+    [
+      canRoll,
+      activeCharacter,
+      getStatModifier,
+      getTotalModifierForStat,
+      addRoll,
+      getOutcomeDescription,
+      getParticleType,
+      getParticleColor,
+    ],
+  )
+
+  // Roll with specific stat
+  const rollWithStat = useCallback(
+    async (
+      stat: keyof Attribute,
+      modifier = 0,
+      description?: string,
+    ): Promise<RollResult> => {
+      return roll({
+        stat,
+        modifier,
+        description:
+          description || `${stat.charAt(0).toUpperCase() + stat.slice(1)} roll`,
+      })
+    },
+    [roll],
+  )
+
+  // Basic roll without stat
+  const rollBasic = useCallback(
+    async (modifier = 0, description = 'Basic roll'): Promise<RollResult> => {
+      return roll({ modifier, description })
+    },
+    [roll],
+  )
+
+  // Quick stat roll shortcuts
+  const rollStrength = useCallback(
+    (modifier = 0) => rollWithStat('strength', modifier),
+    [rollWithStat],
+  )
+
+  const rollDexterity = useCallback(
+    (modifier = 0) => rollWithStat('dexterity', modifier),
+    [rollWithStat],
+  )
+
+  const rollConstitution = useCallback(
+    (modifier = 0) => rollWithStat('constitution', modifier),
+    [rollWithStat],
+  )
+
+  const rollIntelligence = useCallback(
+    (modifier = 0) => rollWithStat('intelligence', modifier),
+    [rollWithStat],
+  )
+
+  const rollWisdom = useCallback(
+    (modifier = 0) => rollWithStat('wisdom', modifier),
+    [rollWithStat],
+  )
+
+  const rollCharisma = useCallback(
+    (modifier = 0) => rollWithStat('charisma', modifier),
+    [rollWithStat],
+  )
 
   return {
     // Roll execution

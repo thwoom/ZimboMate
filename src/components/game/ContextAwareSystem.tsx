@@ -27,15 +27,15 @@ import { useSessionStore } from '../../stores/sessionStore'
 import { Badge, Button, Card, CardContent } from '../ui'
 
 // Suggestion types
-export type SuggestionType
-  = | 'move'
-    | 'equipment'
-    | 'health'
-    | 'resource'
-    | 'advancement'
-    | 'tactical'
-    | 'roleplay'
-    | 'warning'
+export type SuggestionType =
+  | 'move'
+  | 'equipment'
+  | 'health'
+  | 'resource'
+  | 'advancement'
+  | 'tactical'
+  | 'roleplay'
+  | 'warning'
 
 export type SuggestionPriority = 'low' | 'medium' | 'high' | 'critical'
 
@@ -56,7 +56,13 @@ export interface ContextSuggestion {
 
 interface ContextAwareSystemProps {
   characterId?: string
-  context?: 'character' | 'dice' | 'moves' | 'equipment' | 'session' | 'campaign'
+  context?:
+    | 'character'
+    | 'dice'
+    | 'moves'
+    | 'equipment'
+    | 'session'
+    | 'campaign'
   maxSuggestions?: number
   showDismissed?: boolean
   compact?: boolean
@@ -69,20 +75,26 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
   showDismissed = false,
   compact = false,
 }) => {
-  const { getActiveCharacter, getCharacter, healCharacter, levelUpCharacter } = useCharacterStore()
+  const { getActiveCharacter, getCharacter, healCharacter, levelUpCharacter } =
+    useCharacterStore()
   const { rollHistory, combat, currentSession } = useSessionStore()
-  const { gameTime, environment, globalModifiers } = useGameStateStore()
+  const { environment } = useGameStateStore()
 
-  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set())
-  const [expandedSuggestion, setExpandedSuggestion] = useState<string | null>(null)
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(
+    new Set(),
+  )
+  const [expandedSuggestion, setExpandedSuggestion] = useState<string | null>(
+    null,
+  )
 
   // Get the target character
-  const character = characterId ? getCharacter(characterId) : getActiveCharacter()
+  const character = characterId
+    ? getCharacter(characterId)
+    : getActiveCharacter()
 
   // Generate context-aware suggestions
   const suggestions = useMemo(() => {
-    if (!character)
-      return []
+    if (!character) return []
 
     const suggestions: ContextSuggestion[] = []
     const now = new Date()
@@ -98,13 +110,13 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         reason: 'Character is in immediate danger',
         action: {
           label: 'Heal Character',
-          onClick: () => healCharacter(character.id, Math.ceil(character.hp.max * 0.5)),
+          onClick: () =>
+            healCharacter(character.id, Math.ceil(character.hp.max * 0.5)),
         },
         dismissible: false,
         timestamp: now,
       })
-    }
-    else if (character.hp.current <= character.hp.max * 0.5) {
+    } else if (character.hp.current <= character.hp.max * 0.5) {
       suggestions.push({
         id: 'low-health',
         type: 'health',
@@ -114,7 +126,8 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         reason: 'Character health is below 50%',
         action: {
           label: 'Heal Character',
-          onClick: () => healCharacter(character.id, Math.ceil(character.hp.max * 0.25)),
+          onClick: () =>
+            healCharacter(character.id, Math.ceil(character.hp.max * 0.25)),
         },
         dismissible: true,
         timestamp: now,
@@ -151,8 +164,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         dismissible: true,
         timestamp: now,
       })
-    }
-    else if (character.load.current >= character.load.max * 0.8) {
+    } else if (character.load.current >= character.load.max * 0.8) {
       suggestions.push({
         id: 'heavy-load',
         type: 'equipment',
@@ -166,7 +178,9 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     }
 
     // Debility warnings
-    const activeDebilities = Object.entries(character.debilities).filter(([_, active]) => active)
+    const activeDebilities = Object.entries(character.debilities).filter(
+      ([_, active]) => active,
+    )
     if (activeDebilities.length > 0) {
       suggestions.push({
         id: 'active-debilities',
@@ -183,7 +197,9 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     // Combat-specific suggestions
     if (combat.isActive && context === 'dice') {
       const recentRolls = rollHistory.slice(0, 3)
-      const recentFailures = recentRolls.filter(roll => roll.result === 'failure').length
+      const recentFailures = recentRolls.filter(
+        (roll) => roll.result === 'failure',
+      ).length
 
       if (recentFailures >= 2) {
         suggestions.push({
@@ -191,7 +207,8 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           type: 'tactical',
           priority: 'medium',
           title: 'Consider Different Tactics',
-          description: 'Recent failures suggest trying a different approach or using Aid/Interfere.',
+          description:
+            'Recent failures suggest trying a different approach or using Aid/Interfere.',
           reason: `${recentFailures} failures in last 3 rolls`,
           dismissible: true,
           timestamp: now,
@@ -205,7 +222,8 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           type: 'tactical',
           priority: 'high',
           title: 'Consider Defensive Actions',
-          description: 'Low health in combat - consider Defend or retreating to safety.',
+          description:
+            'Low health in combat - consider Defend or retreating to safety.',
           reason: 'Low health during active combat',
           dismissible: true,
           timestamp: now,
@@ -216,7 +234,10 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     // Move suggestions based on context
     if (context === 'moves') {
       // Suggest contextual moves based on character state
-      if (character.class === 'Wizard' && character.hp.current <= character.hp.max * 0.3) {
+      if (
+        character.class === 'Wizard' &&
+        character.hp.current <= character.hp.max * 0.3
+      ) {
         suggestions.push({
           id: 'wizard-defensive-spells',
           type: 'move',
@@ -229,7 +250,10 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         })
       }
 
-      if (character.class === 'Cleric' && character.hp.current <= character.hp.max * 0.6) {
+      if (
+        character.class === 'Cleric' &&
+        character.hp.current <= character.hp.max * 0.6
+      ) {
         suggestions.push({
           id: 'cleric-healing',
           type: 'move',
@@ -246,16 +270,29 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     // Equipment suggestions
     if (context === 'equipment') {
       // Suggest equipment optimization based on class and stats
-      const strMod = getEffectiveModifier('STR', character.attributes, character.debilities)
-      const dexMod = getEffectiveModifier('DEX', character.attributes, character.debilities)
+      const strMod = getEffectiveModifier(
+        'STR',
+        character.attributes,
+        character.debilities,
+      )
+      const dexMod = getEffectiveModifier(
+        'DEX',
+        character.attributes,
+        character.debilities,
+      )
 
-      if (character.class === 'Fighter' && strMod >= 2 && character.load.current < character.load.max * 0.7) {
+      if (
+        character.class === 'Fighter' &&
+        strMod >= 2 &&
+        character.load.current < character.load.max * 0.7
+      ) {
         suggestions.push({
           id: 'fighter-heavy-armor',
           type: 'equipment',
           priority: 'low',
           title: 'Consider Heavier Armor',
-          description: 'High STR allows for better armor without encumbrance issues.',
+          description:
+            'High STR allows for better armor without encumbrance issues.',
           reason: `STR modifier is +${strMod}, load capacity available`,
           dismissible: true,
           timestamp: now,
@@ -287,7 +324,8 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
           type: 'roleplay',
           priority: 'low',
           title: 'Consider Taking a Rest',
-          description: 'Long session - characters might want to rest and recover.',
+          description:
+            'Long session - characters might want to rest and recover.',
           reason: `Session running for ${Math.floor(hoursPlayed)} hours`,
           dismissible: true,
           timestamp: now,
@@ -296,13 +334,18 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     }
 
     // Environmental suggestions
-    if (environment.lighting === 'dark' && character.race !== 'Elf' && character.race !== 'Dwarf') {
+    if (
+      environment.lighting === 'dark' &&
+      character.race !== 'Elf' &&
+      character.race !== 'Dwarf'
+    ) {
       suggestions.push({
         id: 'darkness-penalty',
         type: 'warning',
         priority: 'medium',
         title: 'Darkness Affects Vision',
-        description: 'Poor lighting may impose penalties on sight-based actions.',
+        description:
+          'Poor lighting may impose penalties on sight-based actions.',
         reason: 'Current environment is dark',
         dismissible: true,
         timestamp: now,
@@ -310,14 +353,17 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     }
 
     // XP opportunity suggestions
-    const recentFailures = rollHistory.slice(0, 5).filter(roll => roll.result === 'failure').length
+    const recentFailures = rollHistory
+      .slice(0, 5)
+      .filter((roll) => roll.result === 'failure').length
     if (recentFailures === 0 && rollHistory.length >= 5) {
       suggestions.push({
         id: 'xp-opportunity',
         type: 'roleplay',
         priority: 'low',
         title: 'XP Opportunity',
-        description: 'No recent failures - consider taking risks for XP and story development.',
+        description:
+          'No recent failures - consider taking risks for XP and story development.',
         reason: 'No failures in last 5 rolls',
         dismissible: true,
         timestamp: now,
@@ -330,7 +376,10 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
         const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 }
         return priorityOrder[b.priority] - priorityOrder[a.priority]
       })
-      .filter(suggestion => showDismissed || !dismissedSuggestions.has(suggestion.id))
+      .filter(
+        (suggestion) =>
+          showDismissed || !dismissedSuggestions.has(suggestion.id),
+      )
       .slice(0, maxSuggestions)
   }, [
     character,
@@ -347,29 +396,42 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
   ])
 
   const handleDismiss = (suggestionId: string) => {
-    setDismissedSuggestions(prev => new Set([...prev, suggestionId]))
+    setDismissedSuggestions((prev) => new Set([...prev, suggestionId]))
   }
 
   const getSuggestionIcon = (type: SuggestionType) => {
     switch (type) {
-      case 'move': return BookOpen
-      case 'equipment': return Shield
-      case 'health': return Heart
-      case 'resource': return Zap
-      case 'advancement': return TrendingUp
-      case 'tactical': return Target
-      case 'roleplay': return Sparkles
-      case 'warning': return AlertTriangle
-      default: return Lightbulb
+      case 'move':
+        return BookOpen
+      case 'equipment':
+        return Shield
+      case 'health':
+        return Heart
+      case 'resource':
+        return Zap
+      case 'advancement':
+        return TrendingUp
+      case 'tactical':
+        return Target
+      case 'roleplay':
+        return Sparkles
+      case 'warning':
+        return AlertTriangle
+      default:
+        return Lightbulb
     }
   }
 
   const getPriorityColor = (priority: SuggestionPriority) => {
     switch (priority) {
-      case 'critical': return 'var(--destructive)'
-      case 'high': return 'var(--chart-4)'
-      case 'medium': return 'var(--primary)'
-      case 'low': return 'var(--muted-foreground)'
+      case 'critical':
+        return 'var(--destructive)'
+      case 'high':
+        return 'var(--chart-4)'
+      case 'medium':
+        return 'var(--primary)'
+      case 'low':
+        return 'var(--muted-foreground)'
     }
   }
 
@@ -378,16 +440,13 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
   }
 
   return (
-    <Card variant="magical">
+    <Card variant='magical'>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Lightbulb
-              className="text-primary"
-              size={20}
-            />
-            <h3 className="font-display text-lg">Smart Suggestions</h3>
-            <Badge variant="secondary" size="sm">
+        <div className='space-y-4'>
+          <div className='flex items-center gap-2'>
+            <Lightbulb className='text-primary' size={20} />
+            <h3 className='font-display text-lg'>Smart Suggestions</h3>
+            <Badge variant='secondary' size='sm'>
               {suggestions.length}
             </Badge>
           </div>
@@ -406,48 +465,56 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <Card
-                    variant="outline"
+                    variant='outline'
                     className={`cursor-pointer transition-all duration-200 ${
                       isExpanded ? 'ring-2' : 'hover:shadow-md'
                     }`}
                     style={{
-                      ringColor: isExpanded ? getPriorityColor(suggestion.priority) : undefined,
+                      ringColor: isExpanded
+                        ? getPriorityColor(suggestion.priority)
+                        : undefined,
                     }}
-                    onClick={() => setExpandedSuggestion(
-                      isExpanded ? null : suggestion.id,
-                    )}
+                    onClick={() =>
+                      setExpandedSuggestion(isExpanded ? null : suggestion.id)
+                    }
                   >
                     <CardContent>
-                      <div className="flex items-start gap-3">
+                      <div className='flex items-start gap-3'>
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                          className='w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0'
                           style={{
-                            backgroundColor: getPriorityColor(suggestion.priority),
+                            backgroundColor: getPriorityColor(
+                              suggestion.priority,
+                            ),
                             opacity: 0.2,
                           }}
                         >
                           <Icon
                             size={16}
-                            style={{ color: getPriorityColor(suggestion.priority) }}
+                            style={{
+                              color: getPriorityColor(suggestion.priority),
+                            }}
                           />
                         </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-sm truncate">
+                        <div className='flex-1 min-w-0'>
+                          <div className='flex items-center gap-2 mb-1'>
+                            <h4 className='font-medium text-sm truncate'>
                               {suggestion.title}
                             </h4>
                             <Badge
-                              variant={suggestion.priority === 'critical' ? 'destructive' : 'secondary'}
-                              size="xs"
+                              variant={
+                                suggestion.priority === 'critical'
+                                  ? 'destructive'
+                                  : 'secondary'
+                              }
+                              size='xs'
                             >
                               {suggestion.priority}
                             </Badge>
                           </div>
 
-                          <p
-                            className="text-sm mb-2 text-muted-foreground"
-                          >
+                          <p className='text-sm mb-2 text-muted-foreground'>
                             {suggestion.description}
                           </p>
 
@@ -458,25 +525,23 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="space-y-3"
+                                className='space-y-3'
                               >
                                 <div
-                                  className="text-xs p-2 rounded"
+                                  className='text-xs p-2 rounded'
                                   style={{
                                     backgroundColor: 'var(--card)',
                                     color: 'var(--muted-foreground)',
                                   }}
                                 >
-                                  <strong>Why:</strong>
-                                  {' '}
-                                  {suggestion.reason}
+                                  <strong>Why:</strong> {suggestion.reason}
                                 </div>
 
-                                <div className="flex items-center gap-2">
+                                <div className='flex items-center gap-2'>
                                   {suggestion.action && (
                                     <Button
-                                      variant="primary"
-                                      size="xs"
+                                      variant='primary'
+                                      size='xs'
                                       onClick={(e) => {
                                         e.stopPropagation()
                                         suggestion.action!.onClick()
@@ -488,8 +553,8 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
 
                                   {suggestion.dismissible && (
                                     <Button
-                                      variant="ghost"
-                                      size="xs"
+                                      variant='ghost'
+                                      size='xs'
                                       onClick={(e) => {
                                         e.stopPropagation()
                                         handleDismiss(suggestion.id)
@@ -505,12 +570,10 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
                           </AnimatePresence>
                         </div>
 
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className='flex items-center gap-1 flex-shrink-0'>
                           {!compact && (
-                            <span
-                              className="text-xs text-muted-foreground"
-                            >
-                              <Clock size={10} className="inline mr-1" />
+                            <span className='text-xs text-muted-foreground'>
+                              <Clock size={10} className='inline mr-1' />
                               {suggestion.timestamp.toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit',
@@ -535,16 +598,12 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
 
           {dismissedSuggestions.size > 0 && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={() => setDismissedSuggestions(new Set())}
-              className="w-full"
+              className='w-full'
             >
-              Show
-              {' '}
-              {dismissedSuggestions.size}
-              {' '}
-              Dismissed Suggestion
+              Show {dismissedSuggestions.size} Dismissed Suggestion
               {dismissedSuggestions.size !== 1 ? 's' : ''}
             </Button>
           )}

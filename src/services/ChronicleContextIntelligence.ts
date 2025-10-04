@@ -14,7 +14,10 @@
  */
 
 import type { ChronicleEntry, EntityMention } from '../types/chronicle'
-import type { ActionContext, ChronicleActionType } from './ChronicleActionListenerService'
+import type {
+  ActionContext,
+  ChronicleActionType,
+} from './ChronicleActionListenerService'
 import { useCharacterStore } from '../stores/characterStore'
 import { useChronicleStore } from '../stores/chronicleStore'
 import { useGameStateStore } from '../stores/gameStateStore'
@@ -100,7 +103,9 @@ export class ChronicleContextIntelligence {
   /**
    * Analyze the current context and generate intelligent Chronicle suggestions
    */
-  async analyzeContext(recentActions: ActionContext[]): Promise<ContextAnalysis> {
+  async analyzeContext(
+    recentActions: ActionContext[],
+  ): Promise<ContextAnalysis> {
     const chronicleStore = useChronicleStore.getState()
     const characterStore = useCharacterStore.getState()
     const gameState = useGameStateStore.getState()
@@ -113,10 +118,16 @@ export class ChronicleContextIntelligence {
     const characterState = this.analyzeCharacterState(characterStore, gameState)
 
     // Analyze narrative context
-    const narrative = await this.analyzeNarrativeContext(recentActions, chronicleStore)
+    const narrative = await this.analyzeNarrativeContext(
+      recentActions,
+      chronicleStore,
+    )
 
     // Analyze entity context
-    const entities = await this.analyzeEntityContext(recentActions, chronicleStore)
+    const entities = await this.analyzeEntityContext(
+      recentActions,
+      chronicleStore,
+    )
 
     // Generate prompt intelligence
     const promptContext = this.generatePromptIntelligence(
@@ -153,22 +164,39 @@ export class ChronicleContextIntelligence {
     contextAnalysis: ContextAnalysis,
   ): string[] {
     // Generate highly contextual suggestions based on the specific action
-    const contextualSuggestions = this.generateContextualSuggestions(actionContext, contextAnalysis)
+    const contextualSuggestions = this.generateContextualSuggestions(
+      actionContext,
+      contextAnalysis,
+    )
 
     // Add stat-specific suggestions if it's a stat roll
-    const statSuggestions = this.generateStatSpecificSuggestions(actionContext, contextAnalysis)
+    const statSuggestions = this.generateStatSpecificSuggestions(
+      actionContext,
+      contextAnalysis,
+    )
 
     // Add situation-specific suggestions
-    const situationSuggestions = this.generateSituationSuggestions(actionContext, contextAnalysis)
+    const situationSuggestions = this.generateSituationSuggestions(
+      actionContext,
+      contextAnalysis,
+    )
 
     // Combine all suggestions
-    const allSuggestions = [...contextualSuggestions, ...statSuggestions, ...situationSuggestions]
-    const uniqueSuggestions = allSuggestions.filter((suggestion, index) =>
-      allSuggestions.indexOf(suggestion) === index,
+    const allSuggestions = [
+      ...contextualSuggestions,
+      ...statSuggestions,
+      ...situationSuggestions,
+    ]
+    const uniqueSuggestions = allSuggestions.filter(
+      (suggestion, index) => allSuggestions.indexOf(suggestion) === index,
     )
 
     // Sort by relevance and limit results
-    return this.rankSuggestions(uniqueSuggestions, actionContext, contextAnalysis).slice(0, 4)
+    return this.rankSuggestions(
+      uniqueSuggestions,
+      actionContext,
+      contextAnalysis,
+    ).slice(0, 4)
   }
 
   /**
@@ -178,8 +206,12 @@ export class ChronicleContextIntelligence {
     actionContext: ActionContext,
     contextAnalysis: ContextAnalysis,
     partialInput: string = '',
-  ): Array<{ name: string, type: string, confidence: number }> {
-    const suggestions: Array<{ name: string, type: string, confidence: number }> = []
+  ): Array<{ name: string; type: string; confidence: number }> {
+    const suggestions: Array<{
+      name: string
+      type: string
+      confidence: number
+    }> = []
 
     // Suggest recently mentioned entities
     contextAnalysis.entities.recentlyMentioned.forEach((entityName) => {
@@ -193,7 +225,10 @@ export class ChronicleContextIntelligence {
     })
 
     // Suggest contextually relevant entities based on action type
-    const contextualEntities = this.getContextualEntities(actionContext, contextAnalysis)
+    const contextualEntities = this.getContextualEntities(
+      actionContext,
+      contextAnalysis,
+    )
     contextualEntities.forEach((entity) => {
       if (entity.name.toLowerCase().includes(partialInput.toLowerCase())) {
         suggestions.push(entity)
@@ -201,9 +236,7 @@ export class ChronicleContextIntelligence {
     })
 
     // Sort by confidence and return top matches
-    return suggestions
-      .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, 8)
+    return suggestions.sort((a, b) => b.confidence - a.confidence).slice(0, 8)
   }
 
   /**
@@ -231,7 +264,8 @@ export class ChronicleContextIntelligence {
 
     // Update acceptance rate
     const currentAcceptance = pattern.promptAcceptanceRate
-    pattern.promptAcceptanceRate = (currentAcceptance + (promptAccepted ? 1 : 0)) / 2
+    pattern.promptAcceptanceRate =
+      (currentAcceptance + (promptAccepted ? 1 : 0)) / 2
 
     // Update average response time
     pattern.avgResponseTime = (pattern.avgResponseTime + responseTime) / 2
@@ -244,8 +278,7 @@ export class ChronicleContextIntelligence {
       // Determine preferred style based on text length
       if (finalText.length > 100) {
         pattern.preferredPromptStyle = 'detailed'
-      }
-      else if (finalText.length < 50) {
+      } else if (finalText.length < 50) {
         pattern.preferredPromptStyle = 'concise'
       }
     }
@@ -261,10 +294,11 @@ export class ChronicleContextIntelligence {
     gameState: ExtendedGameState,
   ): 'combat' | 'exploration' | 'social' | 'downtime' | 'unknown' {
     // Check for combat indicators
-    const hasCombatActions = recentActions.some(action =>
-      action.actionType === 'combat_action'
-      || action.actionType === 'damage_roll'
-      || action.combat,
+    const hasCombatActions = recentActions.some(
+      (action) =>
+        action.actionType === 'combat_action' ||
+        action.actionType === 'damage_roll' ||
+        action.combat,
     )
 
     if (hasCombatActions || gameState?.inCombat) {
@@ -272,8 +306,9 @@ export class ChronicleContextIntelligence {
     }
 
     // Check for movement/exploration
-    const hasMovement = recentActions.some(action =>
-      action.location?.currentLocation !== action.location?.previousLocation,
+    const hasMovement = recentActions.some(
+      (action) =>
+        action.location?.currentLocation !== action.location?.previousLocation,
     )
 
     if (hasMovement) {
@@ -281,9 +316,10 @@ export class ChronicleContextIntelligence {
     }
 
     // Check for social interaction
-    const hasSocialRolls = recentActions.some(action =>
-      action.diceRoll?.stat === 'CHA'
-      || action.diceRoll?.moveName?.toLowerCase().includes('parley'),
+    const hasSocialRolls = recentActions.some(
+      (action) =>
+        action.diceRoll?.stat === 'CHA' ||
+        action.diceRoll?.moveName?.toLowerCase().includes('parley'),
     )
 
     if (hasSocialRolls) {
@@ -300,9 +336,11 @@ export class ChronicleContextIntelligence {
     situation: string,
   ): 'low' | 'medium' | 'high' {
     const actionCount = recentActions.length
-    const timeSpan = recentActions.length > 1
-      ? recentActions[recentActions.length - 1].timestamp.getTime() - recentActions[0].timestamp.getTime()
-      : 0
+    const timeSpan =
+      recentActions.length > 1
+        ? recentActions[recentActions.length - 1].timestamp.getTime() -
+          recentActions[0].timestamp.getTime()
+        : 0
 
     // High intensity: lots of actions in short time, or combat
     if (situation === 'combat' || (actionCount >= 5 && timeSpan < 60000)) {
@@ -355,27 +393,38 @@ export class ChronicleContextIntelligence {
 
     // Determine emotional tone from recent actions
     let emotionalTone: 'positive' | 'negative' | 'neutral' | 'tense' = 'neutral'
-    const failures = recentActions.filter(a => a.diceRoll?.result === 'failure').length
-    const successes = recentActions.filter(a => a.diceRoll?.result === 'success').length
+    const failures = recentActions.filter(
+      (a) => a.diceRoll?.result === 'failure',
+    ).length
+    const successes = recentActions.filter(
+      (a) => a.diceRoll?.result === 'success',
+    ).length
 
     if (failures > successes) {
       emotionalTone = 'negative'
-    }
-    else if (successes > failures * 2) {
+    } else if (successes > failures * 2) {
       emotionalTone = 'positive'
-    }
-    else if (recentActions.some(a => a.combat)) {
+    } else if (recentActions.some((a) => a.combat)) {
       emotionalTone = 'tense'
     }
 
     // Determine pacing
-    const actionFrequency = recentActions.length / Math.max(1, (Date.now() - (recentActions[0]?.timestamp?.getTime() || Date.now())) / 60000,
-    )
+    const actionFrequency =
+      recentActions.length /
+      Math.max(
+        1,
+        (Date.now() - (recentActions[0]?.timestamp?.getTime() || Date.now())) /
+          60000,
+      )
 
-    const pacing = actionFrequency > 2 ? 'fast' : actionFrequency < 0.5 ? 'slow' : 'normal'
+    const pacing =
+      actionFrequency > 2 ? 'fast' : actionFrequency < 0.5 ? 'slow' : 'normal'
 
     const lastEntry = chronicleStore.entries.at(-1)
-    const currentScene = lastEntry?.tags?.[0] || lastEntry?.rawText?.slice(0, 80) || 'current scene'
+    const currentScene =
+      lastEntry?.tags?.[0] ||
+      lastEntry?.rawText?.slice(0, 80) ||
+      'current scene'
 
     return {
       recentEvents,
@@ -438,8 +487,7 @@ export class ChronicleContextIntelligence {
     let recommendedStyle: 'detailed' | 'concise' | 'dramatic' = 'concise'
     if (situation === 'combat' || intensity === 'high') {
       recommendedStyle = 'dramatic'
-    }
-    else if (narrative.pacing === 'slow') {
+    } else if (narrative.pacing === 'slow') {
       recommendedStyle = 'detailed'
     }
 
@@ -459,7 +507,8 @@ export class ChronicleContextIntelligence {
   ): boolean {
     // Don't prompt too frequently
     const lastPromptTime = this.getLastPromptTime()
-    if (Date.now() - lastPromptTime < 10000) { // 10 seconds cooldown
+    if (Date.now() - lastPromptTime < 10000) {
+      // 10 seconds cooldown
       return false
     }
 
@@ -474,7 +523,7 @@ export class ChronicleContextIntelligence {
     }
 
     // Prompt for failures (learning opportunities)
-    if (recentActions.some(a => a.diceRoll?.result === 'failure')) {
+    if (recentActions.some((a) => a.diceRoll?.result === 'failure')) {
       return true
     }
 
@@ -485,19 +534,21 @@ export class ChronicleContextIntelligence {
     actionContext: ActionContext,
     contextAnalysis: ContextAnalysis,
   ): PromptTemplate[] {
-    return this.promptTemplates.filter((template) => {
-      // Match action type
-      if (!template.actionTypes.includes(actionContext.actionType)) {
-        return false
-      }
+    return this.promptTemplates
+      .filter((template) => {
+        // Match action type
+        if (!template.actionTypes.includes(actionContext.actionType)) {
+          return false
+        }
 
-      // Match situation
-      if (!template.situation.includes(contextAnalysis.situation)) {
-        return false
-      }
+        // Match situation
+        if (!template.situation.includes(contextAnalysis.situation)) {
+          return false
+        }
 
-      return true
-    }).sort((a, b) => b.priority - a.priority)
+        return true
+      })
+      .sort((a, b) => b.priority - a.priority)
   }
 
   private populateTemplate(
@@ -508,21 +559,39 @@ export class ChronicleContextIntelligence {
     let result = template.template
 
     // Replace common variables
-    result = result.replace(/\{character\}/g, actionContext.characterName || 'your character')
-    result = result.replace(/\{action\}/g, actionContext.actionType.replace('_', ' '))
+    result = result.replace(
+      /\{character\}/g,
+      actionContext.characterName || 'your character',
+    )
+    result = result.replace(
+      /\{action\}/g,
+      actionContext.actionType.replace('_', ' '),
+    )
 
     if (actionContext.diceRoll) {
       result = result.replace(/\{result\}/g, actionContext.diceRoll.result)
-      result = result.replace(/\{stat\}/g, actionContext.diceRoll.stat || 'unknown')
-      result = result.replace(/\{total\}/g, actionContext.diceRoll.total.toString())
+      result = result.replace(
+        /\{stat\}/g,
+        actionContext.diceRoll.stat || 'unknown',
+      )
+      result = result.replace(
+        /\{total\}/g,
+        actionContext.diceRoll.total.toString(),
+      )
     }
 
     if (actionContext.equipment) {
       result = result.replace(/\{item\}/g, actionContext.equipment.itemName)
-      result = result.replace(/\{equipment_action\}/g, actionContext.equipment.action)
+      result = result.replace(
+        /\{equipment_action\}/g,
+        actionContext.equipment.action,
+      )
     }
 
-    if (contextAnalysis.promptContext.recommendedStyle === 'dramatic' && !result.includes('!')) {
+    if (
+      contextAnalysis.promptContext.recommendedStyle === 'dramatic' &&
+      !result.includes('!')
+    ) {
       result = `${result}!`
     }
 
@@ -549,31 +618,29 @@ export class ChronicleContextIntelligence {
       if (result === 'success' && total >= 12) {
         suggestions.push(`${character} exceeded expectations`)
         suggestions.push(`The success was more impressive than anticipated`)
-      }
-      else if (result === 'success') {
+      } else if (result === 'success') {
         suggestions.push(`${character} accomplished the goal`)
         suggestions.push(`Things went according to plan`)
-      }
-      else if (result === 'partial') {
+      } else if (result === 'partial') {
         suggestions.push(`${character} succeeded, but with complications`)
         suggestions.push(`There was a cost to this success`)
-      }
-      else if (result === 'failure') {
+      } else if (result === 'failure') {
         suggestions.push(`${character} faced an unexpected setback`)
         suggestions.push(`This didn't go as planned`)
       }
 
       // Move-specific context
       if (moveName) {
-        if (moveName.toLowerCase().includes('hack') || moveName.toLowerCase().includes('slash')) {
+        if (
+          moveName.toLowerCase().includes('hack') ||
+          moveName.toLowerCase().includes('slash')
+        ) {
           suggestions.push(`${character} struck with determination`)
           suggestions.push(`The combat was fierce and brutal`)
-        }
-        else if (moveName.toLowerCase().includes('defy')) {
+        } else if (moveName.toLowerCase().includes('defy')) {
           suggestions.push(`${character} refused to back down`)
           suggestions.push(`Danger was met head-on`)
-        }
-        else if (moveName.toLowerCase().includes('discern')) {
+        } else if (moveName.toLowerCase().includes('discern')) {
           suggestions.push(`${character} carefully observed the situation`)
           suggestions.push(`Important details became clear`)
         }
@@ -587,12 +654,11 @@ export class ChronicleContextIntelligence {
 
     if (contextAnalysis.narrative.emotionalTone === 'tense') {
       suggestions.push(`${character} felt the pressure of the moment`)
-    }
-    else if (contextAnalysis.narrative.emotionalTone === 'positive') {
+    } else if (contextAnalysis.narrative.emotionalTone === 'positive') {
       suggestions.push(`Hope flickered through the scene`)
     }
 
-    return suggestions.filter(s => s.length > 0)
+    return suggestions.filter((s) => s.length > 0)
   }
 
   private generateStatSpecificSuggestions(
@@ -612,13 +678,11 @@ export class ChronicleContextIntelligence {
             suggestions.push(`${character} overpowered the obstacle`)
             suggestions.push(`Raw strength proved decisive`)
             suggestions.push(`Physical force was exactly what was needed`)
-          }
-          else if (result === 'failure') {
+          } else if (result === 'failure') {
             suggestions.push(`${character} wasn't strong enough`)
             suggestions.push(`The physical challenge proved too much`)
             suggestions.push(`Brute force wasn't the answer`)
-          }
-          else {
+          } else {
             suggestions.push(`${character} strained with effort`)
             suggestions.push(`It required every ounce of strength`)
           }
@@ -629,13 +693,11 @@ export class ChronicleContextIntelligence {
             suggestions.push(`${character} moved with perfect timing`)
             suggestions.push(`Agility and precision paid off`)
             suggestions.push(`The quick reflexes made all the difference`)
-          }
-          else if (result === 'failure') {
+          } else if (result === 'failure') {
             suggestions.push(`${character} was too slow`)
             suggestions.push(`The timing was off`)
             suggestions.push(`Clumsiness at the worst moment`)
-          }
-          else {
+          } else {
             suggestions.push(`${character} managed with careful coordination`)
             suggestions.push(`It was a close call requiring dexterity`)
           }
@@ -646,13 +708,11 @@ export class ChronicleContextIntelligence {
             suggestions.push(`${character} endured through sheer toughness`)
             suggestions.push(`Resilience and stamina prevailed`)
             suggestions.push(`The constitution training paid off`)
-          }
-          else if (result === 'failure') {
+          } else if (result === 'failure') {
             suggestions.push(`${character} reached physical limits`)
             suggestions.push(`The strain was too much to bear`)
             suggestions.push(`Exhaustion took its toll`)
-          }
-          else {
+          } else {
             suggestions.push(`${character} pushed through the discomfort`)
             suggestions.push(`It took significant physical effort`)
           }
@@ -663,13 +723,11 @@ export class ChronicleContextIntelligence {
             suggestions.push(`${character} figured out the solution`)
             suggestions.push(`Quick thinking saved the day`)
             suggestions.push(`The puzzle pieces fell into place`)
-          }
-          else if (result === 'failure') {
+          } else if (result === 'failure') {
             suggestions.push(`${character} was stumped by the complexity`)
             suggestions.push(`The problem proved too challenging`)
             suggestions.push(`Logic wasn't enough this time`)
-          }
-          else {
+          } else {
             suggestions.push(`${character} worked through the problem`)
             suggestions.push(`It required careful analysis`)
           }
@@ -680,13 +738,11 @@ export class ChronicleContextIntelligence {
             suggestions.push(`${character} trusted their instincts`)
             suggestions.push(`Experience and wisdom guided the choice`)
             suggestions.push(`The gut feeling was right`)
-          }
-          else if (result === 'failure') {
+          } else if (result === 'failure') {
             suggestions.push(`${character} misread the situation`)
             suggestions.push(`The instincts were wrong this time`)
             suggestions.push(`Wisdom failed in this moment`)
-          }
-          else {
+          } else {
             suggestions.push(`${character} sensed something important`)
             suggestions.push(`Intuition provided partial clarity`)
           }
@@ -697,13 +753,11 @@ export class ChronicleContextIntelligence {
             suggestions.push(`${character} was charming and persuasive`)
             suggestions.push(`The words had exactly the right effect`)
             suggestions.push(`Charisma won them over`)
-          }
-          else if (result === 'failure') {
+          } else if (result === 'failure') {
             suggestions.push(`${character} said the wrong thing`)
             suggestions.push(`The social approach backfired`)
             suggestions.push(`Words failed to convince`)
-          }
-          else {
+          } else {
             suggestions.push(`${character} made some headway socially`)
             suggestions.push(`The conversation was complex`)
           }
@@ -718,20 +772,25 @@ export class ChronicleContextIntelligence {
 
     if (contextAnalysis.narrative.emotionalTone === 'tense') {
       suggestions.push(`${character} felt the pressure of the moment`)
-    }
-    else if (contextAnalysis.narrative.emotionalTone === 'positive') {
+    } else if (contextAnalysis.narrative.emotionalTone === 'positive') {
       suggestions.push(`Hope flickered through the scene`)
     }
 
-    if (contextAnalysis.intensity === 'high' && actionContext.diceRoll?.result === 'failure') {
+    if (
+      contextAnalysis.intensity === 'high' &&
+      actionContext.diceRoll?.result === 'failure'
+    ) {
       suggestions.push(`${character} felt the stakes rise sharply`)
     }
 
-    if (contextAnalysis.situation === 'social' && actionContext.diceRoll?.stat === 'CHA') {
+    if (
+      contextAnalysis.situation === 'social' &&
+      actionContext.diceRoll?.stat === 'CHA'
+    ) {
       suggestions.push(`${character} noticed every subtle reaction around them`)
     }
 
-    return suggestions.filter(s => s.length > 0)
+    return suggestions.filter((s) => s.length > 0)
   }
 
   private generateSituationSuggestions(
@@ -747,8 +806,7 @@ export class ChronicleContextIntelligence {
         if (contextAnalysis.intensity === 'high') {
           suggestions.push(`The battle reached a critical moment`)
           suggestions.push(`Adrenaline surged through the fight`)
-        }
-        else {
+        } else {
           suggestions.push(`The combat continued steadily`)
           suggestions.push(`Each move was calculated`)
         }
@@ -796,12 +854,11 @@ export class ChronicleContextIntelligence {
 
     if (contextAnalysis.narrative.emotionalTone === 'tense') {
       suggestions.push(`${character} felt the pressure of the moment`)
-    }
-    else if (contextAnalysis.narrative.emotionalTone === 'positive') {
+    } else if (contextAnalysis.narrative.emotionalTone === 'positive') {
       suggestions.push(`Hope flickered through the scene`)
     }
 
-    return suggestions.filter(s => s.length > 0)
+    return suggestions.filter((s) => s.length > 0)
   }
 
   private generatePatternBasedSuggestions(
@@ -821,7 +878,9 @@ export class ChronicleContextIntelligence {
     }
 
     if (contextAnalysis.entities.currentLocation) {
-      suggestions.push(`${character} took in the surroundings of ${contextAnalysis.entities.currentLocation}.`)
+      suggestions.push(
+        `${character} took in the surroundings of ${contextAnalysis.entities.currentLocation}.`,
+      )
     }
 
     return suggestions
@@ -845,22 +904,25 @@ export class ChronicleContextIntelligence {
       if (preferredStyle === 'detailed') {
         scoreA += a.length > 80 ? 10 : 0
         scoreB += b.length > 80 ? 10 : 0
-      }
-      else if (preferredStyle === 'concise') {
+      } else if (preferredStyle === 'concise') {
         scoreA += a.length < 60 ? 10 : 0
         scoreB += b.length < 60 ? 10 : 0
       }
 
       // Score based on context relevance
-      if (contextAnalysis.entities.recentlyMentioned.some(entity =>
-        a.toLowerCase().includes(entity.toLowerCase()),
-      )) {
+      if (
+        contextAnalysis.entities.recentlyMentioned.some((entity) =>
+          a.toLowerCase().includes(entity.toLowerCase()),
+        )
+      ) {
         scoreA += 5
       }
 
-      if (contextAnalysis.entities.recentlyMentioned.some(entity =>
-        b.toLowerCase().includes(entity.toLowerCase()),
-      )) {
+      if (
+        contextAnalysis.entities.recentlyMentioned.some((entity) =>
+          b.toLowerCase().includes(entity.toLowerCase()),
+        )
+      ) {
         scoreB += 5
       }
 
@@ -871,8 +933,9 @@ export class ChronicleContextIntelligence {
   private getContextualEntities(
     actionContext: ActionContext,
     contextAnalysis: ContextAnalysis,
-  ): Array<{ name: string, type: string, confidence: number }> {
-    const entities: Array<{ name: string, type: string, confidence: number }> = []
+  ): Array<{ name: string; type: string; confidence: number }> {
+    const entities: Array<{ name: string; type: string; confidence: number }> =
+      []
 
     // Add character name if available
     if (actionContext.characterName) {
@@ -904,7 +967,10 @@ export class ChronicleContextIntelligence {
     return entities
   }
 
-  private updateWordFrequency(currentWords: string[], newWords: string[]): string[] {
+  private updateWordFrequency(
+    currentWords: string[],
+    newWords: string[],
+  ): string[] {
     const wordCount: Map<string, number> = new Map()
 
     // Count current words
@@ -913,15 +979,17 @@ export class ChronicleContextIntelligence {
     })
 
     // Add new words
-    newWords.filter(word => word.length > 3).forEach((word) => {
-      wordCount.set(word, (wordCount.get(word) || 0) + 1)
-    })
+    newWords
+      .filter((word) => word.length > 3)
+      .forEach((word) => {
+        wordCount.set(word, (wordCount.get(word) || 0) + 1)
+      })
 
     // Return top words
     return Array.from(wordCount.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 20)
-      .map(entry => entry[0])
+      .map((entry) => entry[0])
   }
 
   private getLastPromptTime(): number {
@@ -935,28 +1003,37 @@ export class ChronicleContextIntelligence {
         id: 'dice-success-combat',
         actionTypes: ['dice_roll', 'move_roll'],
         situation: ['combat'],
-        template: '{character} rolled {total} and {result}! What happens in this intense combat moment?',
+        template:
+          '{character} rolled {total} and {result}! What happens in this intense combat moment?',
         variables: ['character', 'total', 'result'],
         priority: 10,
-        examples: ['Thorin rolled 12 and succeeded! What happens in this intense combat moment?'],
+        examples: [
+          'Thorin rolled 12 and succeeded! What happens in this intense combat moment?',
+        ],
       },
       {
         id: 'stat-roll-general',
         actionTypes: ['stat_roll'],
         situation: ['exploration', 'social', 'unknown'],
-        template: 'Why did {character} need to test their {stat}? What were they trying to do?',
+        template:
+          'Why did {character} need to test their {stat}? What were they trying to do?',
         variables: ['character', 'stat'],
         priority: 8,
-        examples: ['Why did Thorin need to test their STR? What were they trying to do?'],
+        examples: [
+          'Why did Thorin need to test their STR? What were they trying to do?',
+        ],
       },
       {
         id: 'equipment-use-dramatic',
         actionTypes: ['equipment_use'],
         situation: ['combat', 'exploration'],
-        template: '{character} used their {item} at a crucial moment. How did this change the situation?',
+        template:
+          '{character} used their {item} at a crucial moment. How did this change the situation?',
         variables: ['character', 'item'],
         priority: 7,
-        examples: ['Thorin used their sword at a crucial moment. How did this change the situation?'],
+        examples: [
+          'Thorin used their sword at a crucial moment. How did this change the situation?',
+        ],
       },
       // More templates would be added here
     ]
@@ -970,11 +1047,13 @@ export class ChronicleContextIntelligence {
     try {
       const saved = window.localStorage.getItem('chronicle-user-patterns')
       if (saved) {
-        const patterns = JSON.parse(saved) as Record<string, UserBehaviorPattern>
+        const patterns = JSON.parse(saved) as Record<
+          string,
+          UserBehaviorPattern
+        >
         this.userPatterns = new Map(Object.entries(patterns))
       }
-    }
-    catch (error) {
+    } catch (error) {
       logger.warn('Failed to load user patterns:', error)
     }
   }
@@ -986,9 +1065,11 @@ export class ChronicleContextIntelligence {
 
     try {
       const patterns = Object.fromEntries(this.userPatterns.entries())
-      window.localStorage.setItem('chronicle-user-patterns', JSON.stringify(patterns))
-    }
-    catch (error) {
+      window.localStorage.setItem(
+        'chronicle-user-patterns',
+        JSON.stringify(patterns),
+      )
+    } catch (error) {
       logger.warn('Failed to save user patterns:', error)
     }
   }

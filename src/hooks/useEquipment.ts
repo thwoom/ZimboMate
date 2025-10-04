@@ -38,7 +38,7 @@ export interface LoadCalculation {
 export interface DragDropContext {
   draggedItem: Equipment | null
   draggedFromSlot: string | null
-  canDrop: (targetSlot: string) => boolean
+  canDrop: (_targetSlot: string) => boolean
   drop: (targetSlot: string) => void
   cancelDrag: () => void
 }
@@ -66,7 +66,10 @@ export interface UseEquipmentReturn {
   unequipItem: (itemId: string) => void
   addItem: (item: Equipment) => void
   removeItem: (itemId: string) => void
-  updateItemCondition: (itemId: string, condition: EquipmentWithState['condition']) => void
+  updateItemCondition: (
+    itemId: string,
+    condition: EquipmentWithState['condition'],
+  ) => void
   updateItemCharges: (itemId: string, charges: number) => void
 
   // Equipment sets
@@ -103,23 +106,32 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     items,
     addItem: storeAddItem,
     removeItem: storeRemoveItem,
-    updateItem: storeUpdateItem,
     getItemsByCharacter,
   } = useInventoryStore()
+
+  const itemsSignature = useMemo(
+    () => items.map((item) => `${item.id}:${item.quantity}:${item.equipped ? 1 : 0}`).join('|'),
+    [items],
+  )
 
   const [draggedItem, setDraggedItem] = useState<Equipment | null>(null)
   const [draggedFromSlot, setDraggedFromSlot] = useState<string | null>(null)
 
   // Get character's equipment with state
   const allItems = useMemo((): EquipmentWithState[] => {
-    if (!character)
-      return []
+    if (!character) return []
 
     const characterItems = getItemsByCharacter(character.id)
     const characterState = characterStateService.getCharacterState(character.id)
 
+    if (itemsSignature.length === 0 && characterItems.length === 0) {
+      return []
+    }
+
     return characterItems.map((item) => {
-      const equipmentState = characterState.equipment.find(eq => eq.itemId === item.id)
+      const equipmentState = characterState.equipment.find(
+        (eq) => eq.itemId === item.id,
+      )
 
       return {
         ...item,
@@ -130,29 +142,43 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
         modifiers: equipmentState?.modifiers || [],
       }
     })
-  }, [character, getItemsByCharacter, items])
+  }, [character, getItemsByCharacter, itemsSignature])
 
   // Categorize equipment
-  const equippedItems = useMemo(() =>
-    allItems.filter(item => item.equipped), [allItems])
+  const equippedItems = useMemo(
+    () => allItems.filter((item) => item.equipped),
+    [allItems],
+  )
 
-  const carriedItems = useMemo(() =>
-    allItems.filter(item => !item.equipped), [allItems])
+  const carriedItems = useMemo(
+    () => allItems.filter((item) => !item.equipped),
+    [allItems],
+  )
 
-  const storedItems = useMemo(() =>
-    allItems.filter(item => item.tags?.includes('stored')), [allItems])
+  const storedItems = useMemo(
+    () => allItems.filter((item) => item.tags?.includes('stored')),
+    [allItems],
+  )
 
-  const weapons = useMemo(() =>
-    allItems.filter(item => item.category === 'weapon'), [allItems])
+  const weapons = useMemo(
+    () => allItems.filter((item) => item.category === 'weapon'),
+    [allItems],
+  )
 
-  const armor = useMemo(() =>
-    allItems.filter(item => item.category === 'armor'), [allItems])
+  const armor = useMemo(
+    () => allItems.filter((item) => item.category === 'armor'),
+    [allItems],
+  )
 
-  const gear = useMemo(() =>
-    allItems.filter(item => item.category === 'gear'), [allItems])
+  const gear = useMemo(
+    () => allItems.filter((item) => item.category === 'gear'),
+    [allItems],
+  )
 
-  const consumables = useMemo(() =>
-    allItems.filter(item => item.category === 'consumable'), [allItems])
+  const consumables = useMemo(
+    () => allItems.filter((item) => item.category === 'consumable'),
+    [allItems],
+  )
 
   // Load calculation
   const loadCalculation = useMemo((): LoadCalculation => {
@@ -166,14 +192,17 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
       }
     }
 
-    const calculation = equipmentManagementService.calculateLoad(character, allItems)
+    const calculation = equipmentManagementService.calculateLoad(
+      character,
+      allItems,
+    )
 
     return {
       current: calculation.currentLoad,
       max: calculation.maxLoad,
       percentage: calculation.loadPercentage,
       status: calculation.loadStatus as any,
-      breakdown: calculation.breakdown.map(item => ({
+      breakdown: calculation.breakdown.map((item) => ({
         item: item.name,
         weight: item.weight,
         category: item.equipped ? 'equipped' : 'carried',
@@ -181,229 +210,289 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
     }
   }, [character, allItems])
 
-  const canCarryMore = useMemo(() =>
-    loadCalculation.current < loadCalculation.max, [loadCalculation])
+  const canCarryMore = useMemo(
+    () => loadCalculation.current < loadCalculation.max,
+    [loadCalculation],
+  )
 
   const weightToNextThreshold = useMemo(() => {
     const { current, max } = loadCalculation
     const lightThreshold = max * 0.33
     const normalThreshold = max * 0.66
 
-    if (current <= lightThreshold)
-      return lightThreshold - current
-    if (current <= normalThreshold)
-      return normalThreshold - current
+    if (current <= lightThreshold) return lightThreshold - current
+    if (current <= normalThreshold) return normalThreshold - current
     return max - current
   }, [loadCalculation])
 
   // Equipment operations
-  const equipItem = useCallback((itemId: string) => {
-    if (!character)
-      return
+  const equipItem = useCallback(
+    (itemId: string) => {
+      if (!character) return
 
-    const item = allItems.find(i => i.id === itemId)
-    if (!item)
-      return
+      const item = allItems.find((i) => i.id === itemId)
+      if (!item) return
 
-    // Check if item can be equipped
-    const canEquip = equipmentManagementService.canEquipItem(character, item, equippedItems)
-    if (!canEquip.canEquip)
-      return
+      // Check if item can be equipped
+      const canEquip = equipmentManagementService.canEquipItem(
+        character,
+        item,
+        equippedItems,
+      )
+      if (!canEquip.canEquip) return
 
-    // Update equipment state
-    characterStateService.updateCharacterState(character.id, {
-      equipment: [
-        ...characterStateService.getCharacterState(character.id).equipment.filter(eq => eq.itemId !== itemId),
-        {
-          itemId,
-          equipped: true,
-          condition: 'good',
-          modifiers: item.modifiers || [],
-        },
-      ],
-    })
+      // Update equipment state
+      characterStateService.updateCharacterState(character.id, {
+        equipment: [
+          ...characterStateService
+            .getCharacterState(character.id)
+            .equipment.filter((eq) => eq.itemId !== itemId),
+          {
+            itemId,
+            equipped: true,
+            condition: 'good',
+            modifiers: item.modifiers || [],
+          },
+        ],
+      })
 
-    // Recalculate load
-    const newLoad = equipmentManagementService.calculateLoad(character, allItems)
-    updateLoad(newLoad.currentLoad)
-  }, [character, allItems, equippedItems, updateLoad])
+      // Recalculate load
+      const newLoad = equipmentManagementService.calculateLoad(
+        character,
+        allItems,
+      )
+      updateLoad(newLoad.currentLoad)
+    },
+    [character, allItems, equippedItems, updateLoad],
+  )
 
-  const unequipItem = useCallback((itemId: string) => {
-    if (!character)
-      return
+  const unequipItem = useCallback(
+    (itemId: string) => {
+      if (!character) return
 
-    const characterState = characterStateService.getCharacterState(character.id)
-    const updatedEquipment = characterState.equipment.map(eq =>
-      eq.itemId === itemId ? { ...eq, equipped: false } : eq,
-    )
-
-    characterStateService.updateCharacterState(character.id, {
-      equipment: updatedEquipment,
-    })
-
-    // Recalculate load
-    const newLoad = equipmentManagementService.calculateLoad(character, allItems)
-    updateLoad(newLoad.currentLoad)
-  }, [character, allItems, updateLoad])
-
-  const addItem = useCallback((item: Equipment) => {
-    if (!character)
-      return
-
-    const newItem = {
-      ...item,
-      characterId: character.id,
-      id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-    }
-
-    storeAddItem(newItem)
-  }, [character, storeAddItem])
-
-  const removeItem = useCallback((itemId: string) => {
-    storeRemoveItem(itemId)
-
-    // Also remove from character state
-    if (character) {
-      const characterState = characterStateService.getCharacterState(character.id)
-      const updatedEquipment = characterState.equipment.filter(eq => eq.itemId !== itemId)
+      const characterState = characterStateService.getCharacterState(
+        character.id,
+      )
+      const updatedEquipment = characterState.equipment.map((eq) =>
+        eq.itemId === itemId ? { ...eq, equipped: false } : eq,
+      )
 
       characterStateService.updateCharacterState(character.id, {
         equipment: updatedEquipment,
       })
-    }
-  }, [character, storeRemoveItem])
 
-  const updateItemCondition = useCallback((itemId: string, condition: EquipmentWithState['condition']) => {
-    if (!character)
-      return
+      // Recalculate load
+      const newLoad = equipmentManagementService.calculateLoad(
+        character,
+        allItems,
+      )
+      updateLoad(newLoad.currentLoad)
+    },
+    [character, allItems, updateLoad],
+  )
 
-    const characterState = characterStateService.getCharacterState(character.id)
-    const updatedEquipment = characterState.equipment.map(eq =>
-      eq.itemId === itemId ? { ...eq, condition } : eq,
-    )
+  const addItem = useCallback(
+    (item: Equipment) => {
+      if (!character) return
 
-    characterStateService.updateCharacterState(character.id, {
-      equipment: updatedEquipment,
-    })
-  }, [character])
+      const newItem = {
+        ...item,
+        characterId: character.id,
+        id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+      }
 
-  const updateItemCharges = useCallback((itemId: string, charges: number) => {
-    if (!character)
-      return
+      storeAddItem(newItem)
+    },
+    [character, storeAddItem],
+  )
 
-    const characterState = characterStateService.getCharacterState(character.id)
-    const updatedEquipment = characterState.equipment.map(eq =>
-      eq.itemId === itemId ? { ...eq, charges } : eq,
-    )
+  const removeItem = useCallback(
+    (itemId: string) => {
+      storeRemoveItem(itemId)
 
-    characterStateService.updateCharacterState(character.id, {
-      equipment: updatedEquipment,
-    })
-  }, [character])
+      // Also remove from character state
+      if (character) {
+        const characterState = characterStateService.getCharacterState(
+          character.id,
+        )
+        const updatedEquipment = characterState.equipment.filter(
+          (eq) => eq.itemId !== itemId,
+        )
+
+        characterStateService.updateCharacterState(character.id, {
+          equipment: updatedEquipment,
+        })
+      }
+    },
+    [character, storeRemoveItem],
+  )
+
+  const updateItemCondition = useCallback(
+    (itemId: string, condition: EquipmentWithState['condition']) => {
+      if (!character) return
+
+      const characterState = characterStateService.getCharacterState(
+        character.id,
+      )
+      const updatedEquipment = characterState.equipment.map((eq) =>
+        eq.itemId === itemId ? { ...eq, condition } : eq,
+      )
+
+      characterStateService.updateCharacterState(character.id, {
+        equipment: updatedEquipment,
+      })
+    },
+    [character],
+  )
+
+  const updateItemCharges = useCallback(
+    (itemId: string, charges: number) => {
+      if (!character) return
+
+      const characterState = characterStateService.getCharacterState(
+        character.id,
+      )
+      const updatedEquipment = characterState.equipment.map((eq) =>
+        eq.itemId === itemId ? { ...eq, charges } : eq,
+      )
+
+      characterStateService.updateCharacterState(character.id, {
+        equipment: updatedEquipment,
+      })
+    },
+    [character],
+  )
 
   // Equipment sets
-  const saveEquipmentSet = useCallback((name: string) => {
-    if (!character)
-      return
+  const saveEquipmentSet = useCallback(
+    (name: string) => {
+      if (!character) return
 
-    const equipmentSet = {
-      id: `set-${Date.now()}`,
-      name,
-      characterId: character.id,
-      items: equippedItems.map(item => ({
-        itemId: item.id,
-        equipped: true,
-        condition: item.condition,
-      })),
-    }
+      const equipmentSet = {
+        id: `set-${Date.now()}`,
+        name,
+        characterId: character.id,
+        items: equippedItems.map((item) => ({
+          itemId: item.id,
+          equipped: true,
+          condition: item.condition,
+        })),
+      }
 
-    equipmentManagementService.saveEquipmentSet(equipmentSet)
-  }, [character, equippedItems])
+      equipmentManagementService.saveEquipmentSet(equipmentSet)
+    },
+    [character, equippedItems],
+  )
 
-  const loadEquipmentSet = useCallback((setId: string) => {
-    if (!character)
-      return
+  const loadEquipmentSet = useCallback(
+    (setId: string) => {
+      if (!character) return
 
-    const equipmentSet = equipmentManagementService.getEquipmentSet(setId)
-    if (!equipmentSet)
-      return
+      const equipmentSet = equipmentManagementService.getEquipmentSet(setId)
+      if (!equipmentSet) return
 
-    equipmentManagementService.applyEquipmentSet(character, equipmentSet)
-  }, [character])
+      equipmentManagementService.applyEquipmentSet(character, equipmentSet)
+    },
+    [character],
+  )
 
   const availableEquipmentSets = useMemo(() => {
-    if (!character)
-      return []
+    if (!character) return []
 
-    return equipmentManagementService.getEquipmentSetsForCharacter(character.id)
-      .map(set => ({
+    return equipmentManagementService
+      .getEquipmentSetsForCharacter(character.id)
+      .map((set) => ({
         id: set.id,
         name: set.name,
         itemCount: set.items.length,
         totalWeight: set.items.reduce((total, item) => {
-          const equipment = allItems.find(eq => eq.id === item.itemId)
+          const equipment = allItems.find((eq) => eq.id === item.itemId)
           return total + (equipment?.weight || 0)
         }, 0),
       }))
   }, [character, allItems])
 
   // Drag and drop
-  const dragDropContext: DragDropContext = useMemo(() => ({
-    draggedItem,
-    draggedFromSlot,
-    canDrop: (targetSlot: string) => {
-      if (!draggedItem || !character)
-        return false
+  const dragDropContext: DragDropContext = useMemo(
+    () => ({
+      draggedItem,
+      draggedFromSlot,
+      canDrop: (_targetSlot: string) => {
+        if (!draggedItem || !character) return false
 
-      // Implement drop validation logic
-      return equipmentManagementService.canEquipItem(character, draggedItem, equippedItems).canEquip
-    },
-    drop: (targetSlot: string) => {
-      if (!draggedItem)
-        return
+        // Implement drop validation logic
+        return equipmentManagementService.canEquipItem(
+          character,
+          draggedItem,
+          equippedItems,
+        ).canEquip
+      },
+      drop: (targetSlot: string) => {
+        if (!draggedItem) return
 
-      if (targetSlot === 'equipped') {
-        equipItem(draggedItem.id)
-      }
-      else if (targetSlot === 'inventory') {
-        unequipItem(draggedItem.id)
-      }
+        if (targetSlot === 'equipped') {
+          equipItem(draggedItem.id)
+        } else if (targetSlot === 'inventory') {
+          unequipItem(draggedItem.id)
+        }
 
-      setDraggedItem(null)
-      setDraggedFromSlot(null)
-    },
-    cancelDrag: () => {
-      setDraggedItem(null)
-      setDraggedFromSlot(null)
-    },
-  }), [draggedItem, draggedFromSlot, character, equippedItems, equipItem, unequipItem])
+        setDraggedItem(null)
+        setDraggedFromSlot(null)
+      },
+      cancelDrag: () => {
+        setDraggedItem(null)
+        setDraggedFromSlot(null)
+      },
+    }),
+    [
+      draggedItem,
+      draggedFromSlot,
+      character,
+      equippedItems,
+      equipItem,
+      unequipItem,
+    ],
+  )
 
   // Quick actions
-  const equipWeapon = useCallback((weaponId: string) => {
-    // Unequip current weapon first
-    const currentWeapon = equippedItems.find(item => item.category === 'weapon')
-    if (currentWeapon) {
-      unequipItem(currentWeapon.id)
-    }
+  const equipWeapon = useCallback(
+    (weaponId: string) => {
+      // Unequip current weapon first
+      const currentWeapon = equippedItems.find(
+        (item) => item.category === 'weapon',
+      )
+      if (currentWeapon) {
+        unequipItem(currentWeapon.id)
+      }
 
-    equipItem(weaponId)
-  }, [equippedItems, equipItem, unequipItem])
+      equipItem(weaponId)
+    },
+    [equippedItems, equipItem, unequipItem],
+  )
 
-  const equipArmor = useCallback((armorId: string) => {
-    // Unequip current armor first
-    const currentArmor = equippedItems.find(item => item.category === 'armor')
-    if (currentArmor) {
-      unequipItem(currentArmor.id)
-    }
+  const equipArmor = useCallback(
+    (armorId: string) => {
+      // Unequip current armor first
+      const currentArmor = equippedItems.find(
+        (item) => item.category === 'armor',
+      )
+      if (currentArmor) {
+        unequipItem(currentArmor.id)
+      }
 
-    equipItem(armorId)
-  }, [equippedItems, equipItem, unequipItem])
+      equipItem(armorId)
+    },
+    [equippedItems, equipItem, unequipItem],
+  )
 
-  const quickEquipSet = useCallback((setName: 'combat' | 'exploration' | 'social') => {
-    // This would load predefined equipment sets
-    const setId = `${character?.id}-${setName}`
-    loadEquipmentSet(setId)
-  }, [character, loadEquipmentSet])
+  const quickEquipSet = useCallback(
+    (setName: 'combat' | 'exploration' | 'social') => {
+      // This would load predefined equipment sets
+      const setId = `${character?.id}-${setName}`
+      loadEquipmentSet(setId)
+    },
+    [character, loadEquipmentSet],
+  )
 
   return {
     // Character equipment

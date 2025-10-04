@@ -26,12 +26,12 @@ export const textareaVariants = cva(
 
 export interface TextareaProps
   extends React.ComponentProps<'textarea'>,
-  VariantProps<typeof textareaVariants> {}
+    VariantProps<typeof textareaVariants> {}
 
 function Textarea({ className, variant, size, ...props }: TextareaProps) {
   return (
     <textarea
-      data-slot="textarea"
+      data-slot='textarea'
       className={cn(textareaVariants({ className, variant, size }))}
       {...props}
     />

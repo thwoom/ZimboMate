@@ -1,6 +1,8 @@
 import { useCallback, useReducer, useRef, useState } from 'react'
 
-export interface ModalFormValidationError<TErrors extends Record<string, unknown>> {
+export interface ModalFormValidationError<
+  TErrors extends Record<string, unknown>,
+> {
   status: 'validation-error'
   errors: TErrors
 }
@@ -15,10 +17,13 @@ export interface ModalFormError {
   error: unknown
 }
 
-export type ModalFormSubmitResult<TResult, TErrors extends Record<string, unknown>>
-  = ModalFormValidationError<TErrors>
-    | ModalFormSuccess<TResult>
-    | ModalFormError
+export type ModalFormSubmitResult<
+  TResult,
+  TErrors extends Record<string, unknown>,
+> =
+  | ModalFormValidationError<TErrors>
+  | ModalFormSuccess<TResult>
+  | ModalFormError
 
 interface ReplaceAction<TState> {
   type: 'replace'
@@ -32,18 +37,26 @@ interface ApplyAction<TState> {
 
 type FormAction<TState> = ReplaceAction<TState> | ApplyAction<TState>
 
-type ErrorsAction<TErrors extends Record<string, unknown>>
-  = { type: 'reset', payload: TErrors }
-    | { type: 'set', payload: TErrors }
+type ErrorsAction<TErrors extends Record<string, unknown>> =
+  | { type: 'reset'; payload: TErrors }
+  | { type: 'set'; payload: TErrors }
 
-export interface UseModalFormOptions<TState, TErrors extends Record<string, unknown>, TResult> {
+export interface UseModalFormOptions<
+  TState,
+  TErrors extends Record<string, unknown>,
+  TResult,
+> {
   getInitialState: () => TState
   getInitialErrors?: () => TErrors
   validate?: (state: TState) => TErrors
   onSubmit: (state: TState) => Promise<TResult> | TResult
 }
 
-export interface UseModalFormReturn<TState, TErrors extends Record<string, unknown>, TResult> {
+export interface UseModalFormReturn<
+  TState,
+  TErrors extends Record<string, unknown>,
+  TResult,
+> {
   state: TState
   setState: (updater: (state: TState) => TState) => void
   replaceState: (nextState: TState) => void
@@ -55,9 +68,11 @@ export interface UseModalFormReturn<TState, TErrors extends Record<string, unkno
   isSubmitting: boolean
 }
 
-function formReducer<TState>(state: TState, action: FormAction<TState>): TState {
-  if (action.type === 'replace')
-    return action.payload
+function formReducer<TState>(
+  state: TState,
+  action: FormAction<TState>,
+): TState {
+  if (action.type === 'replace') return action.payload
 
   return action.updater(state)
 }
@@ -70,10 +85,17 @@ function errorsReducer<TErrors extends Record<string, unknown>>(
 }
 
 function hasValidationErrors(errors: Record<string, unknown>) {
-  return Object.values(errors).some(value => value !== undefined && value !== null && value !== false && value !== '')
+  return Object.values(errors).some(
+    (value) =>
+      value !== undefined && value !== null && value !== false && value !== '',
+  )
 }
 
-export function useModalForm<TState extends Record<string, unknown>, TErrors extends Record<string, unknown>, TResult = void>(
+export function useModalForm<
+  TState extends Record<string, unknown>,
+  TErrors extends Record<string, unknown>,
+  TResult = void,
+>(
   options: UseModalFormOptions<TState, TErrors, TResult>,
 ): UseModalFormReturn<TState, TErrors, TResult> {
   const initialStateFactoryRef = useRef(options.getInitialState)
@@ -96,11 +118,17 @@ export function useModalForm<TState extends Record<string, unknown>, TErrors ext
   if (!initialErrorsRef.current) {
     initialErrorsRef.current = initialErrorsFactoryRef.current
       ? initialErrorsFactoryRef.current()
-      : {} as TErrors
+      : ({} as TErrors)
   }
 
-  const [state, dispatchState] = useReducer(formReducer<TState>, initialStateRef.current)
-  const [errors, dispatchErrors] = useReducer(errorsReducer<TErrors>, initialErrorsRef.current)
+  const [state, dispatchState] = useReducer(
+    formReducer<TState>,
+    initialStateRef.current,
+  )
+  const [errors, dispatchErrors] = useReducer(
+    errorsReducer<TErrors>,
+    initialErrorsRef.current,
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const replaceState = useCallback((nextState: TState) => {
@@ -118,18 +146,23 @@ export function useModalForm<TState extends Record<string, unknown>, TErrors ext
   const resetErrors = useCallback(() => {
     const freshErrors = initialErrorsFactoryRef.current
       ? initialErrorsFactoryRef.current()
-      : {} as TErrors
+      : ({} as TErrors)
     dispatchErrors({ type: 'reset', payload: freshErrors })
   }, [])
 
-  const reset = useCallback((nextState?: TState) => {
-    const computedState = nextState ?? initialStateFactoryRef.current()
-    initialStateRef.current = computedState
-    replaceState(computedState)
-    resetErrors()
-  }, [replaceState, resetErrors])
+  const reset = useCallback(
+    (nextState?: TState) => {
+      const computedState = nextState ?? initialStateFactoryRef.current()
+      initialStateRef.current = computedState
+      replaceState(computedState)
+      resetErrors()
+    },
+    [replaceState, resetErrors],
+  )
 
-  const submit = useCallback(async (): Promise<ModalFormSubmitResult<TResult, TErrors>> => {
+  const submit = useCallback(async (): Promise<
+    ModalFormSubmitResult<TResult, TErrors>
+  > => {
     const validator = validateRef.current
 
     if (validator) {
@@ -137,8 +170,7 @@ export function useModalForm<TState extends Record<string, unknown>, TErrors ext
       setErrors(validationErrors)
       if (hasValidationErrors(validationErrors))
         return { status: 'validation-error', errors: validationErrors }
-    }
-    else {
+    } else {
       resetErrors()
     }
 
@@ -146,11 +178,9 @@ export function useModalForm<TState extends Record<string, unknown>, TErrors ext
     try {
       const result = await submitRef.current(state)
       return { status: 'success', result }
-    }
-    catch (error) {
+    } catch (error) {
       return { status: 'error', error }
-    }
-    finally {
+    } finally {
       setIsSubmitting(false)
     }
   }, [resetErrors, setErrors, state])

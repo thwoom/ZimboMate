@@ -1,39 +1,39 @@
 # 📊 ZimboMate V2 Performance Baselines
 
-*Established performance benchmarks and optimization targets*
+_Established performance benchmarks and optimization targets_
 
 ## 🎯 Performance Targets
 
 ### **Web Vitals Targets**
 
-| Metric | Target | Current | Status |
-|--------|--------|---------|---------|
-| **First Contentful Paint (FCP)** | < 1.5s | 1.2s | ✅ Good |
-| **Largest Contentful Paint (LCP)** | < 2.5s | 2.1s | ✅ Good |
-| **Cumulative Layout Shift (CLS)** | < 0.1 | 0.05 | ✅ Good |
-| **First Input Delay (FID)** | < 100ms | 45ms | ✅ Good |
-| **Time to Interactive (TTI)** | < 3.5s | 2.8s | ✅ Good |
-| **Total Blocking Time (TBT)** | < 200ms | 150ms | ✅ Good |
+| Metric                             | Target  | Current | Status  |
+| ---------------------------------- | ------- | ------- | ------- |
+| **First Contentful Paint (FCP)**   | < 1.5s  | 1.2s    | ✅ Good |
+| **Largest Contentful Paint (LCP)** | < 2.5s  | 2.1s    | ✅ Good |
+| **Cumulative Layout Shift (CLS)**  | < 0.1   | 0.05    | ✅ Good |
+| **First Input Delay (FID)**        | < 100ms | 45ms    | ✅ Good |
+| **Time to Interactive (TTI)**      | < 3.5s  | 2.8s    | ✅ Good |
+| **Total Blocking Time (TBT)**      | < 200ms | 150ms   | ✅ Good |
 
 ### **Bundle Size Targets**
 
-| Bundle | Target | Current | Compressed | Status |
-|--------|--------|---------|------------|---------|
-| **Main Bundle** | < 250KB | 220KB | 65KB | ✅ Good |
-| **Vendor Bundle** | < 150KB | 135KB | 42KB | ✅ Good |
-| **3D Bundle** | < 200KB | 180KB | 55KB | ✅ Good |
-| **UI Bundle** | < 100KB | 85KB | 28KB | ✅ Good |
-| **Total Initial** | < 400KB | 355KB | 105KB | ✅ Good |
+| Bundle            | Target  | Current | Compressed | Status  |
+| ----------------- | ------- | ------- | ---------- | ------- |
+| **Main Bundle**   | < 250KB | 220KB   | 65KB       | ✅ Good |
+| **Vendor Bundle** | < 150KB | 135KB   | 42KB       | ✅ Good |
+| **3D Bundle**     | < 200KB | 180KB   | 55KB       | ✅ Good |
+| **UI Bundle**     | < 100KB | 85KB    | 28KB       | ✅ Good |
+| **Total Initial** | < 400KB | 355KB   | 105KB      | ✅ Good |
 
 ### **Runtime Performance Targets**
 
-| Metric | Target | Current | Status |
-|--------|--------|---------|---------|
-| **Component Render** | < 16ms | 12ms | ✅ Good |
-| **State Updates** | < 5ms | 3ms | ✅ Good |
-| **3D Frame Rate** | 60fps | 58-60fps | ✅ Good |
-| **Memory Usage (1hr)** | < 50MB | 42MB | ✅ Good |
-| **Memory Leaks** | 0 | 0 | ✅ Good |
+| Metric                 | Target | Current  | Status  |
+| ---------------------- | ------ | -------- | ------- |
+| **Component Render**   | < 16ms | 12ms     | ✅ Good |
+| **State Updates**      | < 5ms  | 3ms      | ✅ Good |
+| **3D Frame Rate**      | 60fps  | 58-60fps | ✅ Good |
+| **Memory Usage (1hr)** | < 50MB | 42MB     | ✅ Good |
+| **Memory Leaks**       | 0      | 0        | ✅ Good |
 
 ## 📈 Performance Monitoring
 
@@ -46,12 +46,12 @@ describe('Performance Baselines', () => {
     const metrics = await measurePageLoad()
     expect(metrics.fcp).toBeLessThan(1500) // 1.5s
   })
-  
+
   it('meets component render baseline', async () => {
     const renderTime = await measureComponentRender(<CharacterSheet />)
     expect(renderTime).toBeLessThan(16) // 16ms for 60fps
   })
-  
+
   it('meets memory usage baseline', async () => {
     const memoryUsage = await simulateExtendedUse(3600000) // 1 hour
     expect(memoryUsage).toBeLessThan(50 * 1024 * 1024) // 50MB
@@ -65,7 +65,7 @@ describe('Performance Baselines', () => {
 // Performance monitoring service
 export class PerformanceMonitor {
   private metrics: PerformanceMetric[] = []
-  
+
   startMonitoring() {
     // Monitor Web Vitals
     getCLS(this.recordMetric.bind(this))
@@ -73,16 +73,16 @@ export class PerformanceMonitor {
     getFCP(this.recordMetric.bind(this))
     getLCP(this.recordMetric.bind(this))
     getTTFB(this.recordMetric.bind(this))
-    
+
     // Monitor custom metrics
     this.monitorComponentRenderTimes()
     this.monitorMemoryUsage()
     this.monitor3DPerformance()
   }
-  
+
   private recordMetric(metric: PerformanceMetric) {
     this.metrics.push(metric)
-    
+
     // Alert if metric exceeds baseline
     if (this.exceedsBaseline(metric)) {
       console.warn(`Performance baseline exceeded:`, metric)
@@ -95,35 +95,35 @@ export class PerformanceMonitor {
 
 ### **Component Performance Breakdown**
 
-| Component | Render Time | Memory Usage | Optimization Status |
-|-----------|-------------|--------------|-------------------|
-| **CharacterSheet** | 8ms | 2.1MB | ✅ Optimized |
-| **DiceRoller** | 12ms | 3.5MB | ✅ Optimized |
-| **MovesPanel** | 6ms | 1.8MB | ✅ Optimized |
-| **EquipmentPanel** | 9ms | 2.3MB | ✅ Optimized |
-| **SessionTools** | 5ms | 1.2MB | ✅ Optimized |
-| **CampaignPanel** | 7ms | 1.9MB | ✅ Optimized |
-| **Dice3D** | 14ms | 8.2MB | ✅ Optimized |
-| **SpellBook** | 11ms | 4.1MB | ✅ Optimized |
+| Component          | Render Time | Memory Usage | Optimization Status |
+| ------------------ | ----------- | ------------ | ------------------- |
+| **CharacterSheet** | 8ms         | 2.1MB        | ✅ Optimized        |
+| **DiceRoller**     | 12ms        | 3.5MB        | ✅ Optimized        |
+| **MovesPanel**     | 6ms         | 1.8MB        | ✅ Optimized        |
+| **EquipmentPanel** | 9ms         | 2.3MB        | ✅ Optimized        |
+| **SessionTools**   | 5ms         | 1.2MB        | ✅ Optimized        |
+| **CampaignPanel**  | 7ms         | 1.9MB        | ✅ Optimized        |
+| **Dice3D**         | 14ms        | 8.2MB        | ✅ Optimized        |
+| **SpellBook**      | 11ms        | 4.1MB        | ✅ Optimized        |
 
 ### **3D Performance Analysis**
 
-| Scene | FPS | Draw Calls | Triangles | Memory | Status |
-|-------|-----|------------|-----------|---------|---------|
-| **Dice Rolling** | 60fps | 15 | 2,400 | 12MB | ✅ Good |
-| **Spell Effects** | 58fps | 25 | 4,800 | 18MB | ✅ Good |
-| **Equipment Preview** | 60fps | 8 | 1,200 | 8MB | ✅ Good |
-| **Particle Systems** | 55fps | 35 | 8,000 | 25MB | ⚠️ Monitor |
+| Scene                 | FPS   | Draw Calls | Triangles | Memory | Status     |
+| --------------------- | ----- | ---------- | --------- | ------ | ---------- |
+| **Dice Rolling**      | 60fps | 15         | 2,400     | 12MB   | ✅ Good    |
+| **Spell Effects**     | 58fps | 25         | 4,800     | 18MB   | ✅ Good    |
+| **Equipment Preview** | 60fps | 8          | 1,200     | 8MB    | ✅ Good    |
+| **Particle Systems**  | 55fps | 35         | 8,000     | 25MB   | ⚠️ Monitor |
 
 ### **Network Performance**
 
-| Resource Type | Size | Load Time | Cache Hit Rate | Status |
-|---------------|------|-----------|----------------|---------|
-| **JavaScript** | 105KB | 450ms | 95% | ✅ Good |
-| **CSS** | 28KB | 120ms | 98% | ✅ Good |
-| **Images** | 85KB | 200ms | 90% | ✅ Good |
-| **3D Models** | 55KB | 300ms | 85% | ✅ Good |
-| **Audio** | 120KB | 400ms | 80% | ✅ Good |
+| Resource Type  | Size  | Load Time | Cache Hit Rate | Status  |
+| -------------- | ----- | --------- | -------------- | ------- |
+| **JavaScript** | 105KB | 450ms     | 95%            | ✅ Good |
+| **CSS**        | 28KB  | 120ms     | 98%            | ✅ Good |
+| **Images**     | 85KB  | 200ms     | 90%            | ✅ Good |
+| **3D Models**  | 55KB  | 300ms     | 85%            | ✅ Good |
+| **Audio**      | 120KB | 400ms     | 80%            | ✅ Good |
 
 ## 🚀 Optimization Strategies
 
@@ -139,12 +139,12 @@ const FileManagement = lazy(() => import('./components/game/FileManagement'))
 const routes = [
   {
     path: '/dice',
-    component: lazy(() => import('./pages/DicePage'))
+    component: lazy(() => import('./pages/DicePage')),
   },
   {
     path: '/spells',
-    component: lazy(() => import('./pages/SpellsPage'))
-  }
+    component: lazy(() => import('./pages/SpellsPage')),
+  },
 ]
 ```
 
@@ -153,10 +153,10 @@ const routes = [
 ```typescript
 // Component memoization
 const CharacterStats = memo(({ character }: { character: Character }) => {
-  const modifiers = useMemo(() => 
+  const modifiers = useMemo(() =>
     calculateModifiers(character.stats), [character.stats]
   )
-  
+
   return <StatsDisplay modifiers={modifiers} />
 })
 
@@ -180,24 +180,24 @@ const Dice3D = ({ distance }: { distance: number }) => {
     if (distance > 10) return mediumDetailGeometry
     return highDetailGeometry
   }, [distance])
-  
+
   return <mesh geometry={geometry} />
 }
 
 // Instancing for multiple objects
 const MultipleDice = ({ count }: { count: number }) => {
   const meshRef = useRef<InstancedMesh>(null)
-  
+
   useFrame(() => {
     if (!meshRef.current) return
-    
+
     // Update instances efficiently
     for (let i = 0; i < count; i++) {
       meshRef.current.setMatrixAt(i, matrices[i])
     }
     meshRef.current.instanceMatrix.needsUpdate = true
   })
-  
+
   return <instancedMesh ref={meshRef} args={[geometry, material, count]} />
 }
 ```
@@ -212,20 +212,20 @@ useEffect(() => {
     geometry.dispose()
     material.dispose()
     texture.dispose()
-    
+
     // Clear event listeners
     window.removeEventListener('resize', handleResize)
-    
+
     // Cancel pending requests
     abortController.abort()
   }
-  
+
   return cleanup
 }, [])
 
 // Efficient state updates
 const updateCharacter = useCallback((updates: Partial<Character>) => {
-  setCharacter(prev => ({ ...prev, ...updates }))
+  setCharacter((prev) => ({ ...prev, ...updates }))
 }, [])
 ```
 
@@ -237,32 +237,32 @@ const updateCharacter = useCallback((updates: Partial<Character>) => {
 // Performance dashboard component
 const PerformanceDashboard = () => {
   const [metrics, setMetrics] = useState<PerformanceMetrics>()
-  
+
   useEffect(() => {
     const monitor = new PerformanceMonitor()
     monitor.onMetricsUpdate(setMetrics)
     monitor.start()
-    
+
     return () => monitor.stop()
   }, [])
-  
+
   return (
     <div className="performance-dashboard">
-      <MetricCard 
-        title="FPS" 
-        value={metrics?.fps} 
+      <MetricCard
+        title="FPS"
+        value={metrics?.fps}
         target={60}
         status={metrics?.fps >= 55 ? 'good' : 'warning'}
       />
-      <MetricCard 
-        title="Memory" 
-        value={`${metrics?.memory}MB`} 
+      <MetricCard
+        title="Memory"
+        value={`${metrics?.memory}MB`}
         target="< 50MB"
         status={metrics?.memory < 50 ? 'good' : 'warning'}
       />
-      <MetricCard 
-        title="Render Time" 
-        value={`${metrics?.renderTime}ms`} 
+      <MetricCard
+        title="Render Time"
+        value={`${metrics?.renderTime}ms`}
         target="< 16ms"
         status={metrics?.renderTime < 16 ? 'good' : 'warning'}
       />
@@ -280,26 +280,26 @@ class PerformanceAlertSystem {
     fps: 50,
     memory: 50 * 1024 * 1024, // 50MB
     renderTime: 20, // 20ms
-    loadTime: 3000 // 3s
+    loadTime: 3000, // 3s
   }
-  
+
   checkMetrics(metrics: PerformanceMetrics) {
     if (metrics.fps < this.thresholds.fps) {
       this.alert('Low FPS detected', 'warning')
     }
-    
+
     if (metrics.memory > this.thresholds.memory) {
       this.alert('High memory usage detected', 'error')
     }
-    
+
     if (metrics.renderTime > this.thresholds.renderTime) {
       this.alert('Slow render time detected', 'warning')
     }
   }
-  
+
   private alert(message: string, level: 'info' | 'warning' | 'error') {
     console[level](`Performance Alert: ${message}`)
-    
+
     // Send to monitoring service
     this.sendToMonitoring({ message, level, timestamp: Date.now() })
   }
@@ -320,12 +320,12 @@ export const performanceTests = {
     const end = performance.now()
     return end - start
   },
-  
+
   async measureMemoryUsage(): Promise<number> {
     const memInfo = (performance as any).memory
     return memInfo ? memInfo.usedJSHeapSize : 0
   },
-  
+
   async measureBundleSize(): Promise<BundleSizeMetrics> {
     const response = await fetch('/stats.json')
     const stats = await response.json()
@@ -345,7 +345,7 @@ describe('Performance Regression Tests', () => {
     )
     expect(renderTime).toBeLessThan(16) // 60fps budget
   })
-  
+
   it('maintains bundle size limits', async () => {
     const bundleSize = await performanceTests.measureBundleSize()
     expect(bundleSize.main).toBeLessThan(250 * 1024) // 250KB
@@ -360,17 +360,19 @@ describe('Performance Regression Tests', () => {
 // Simulate heavy usage
 const loadTest = async () => {
   const startMemory = await performanceTests.measureMemoryUsage()
-  
+
   // Simulate 1 hour of usage
   for (let i = 0; i < 3600; i++) {
     // Simulate user actions every second
     await simulateUserAction()
-    
-    if (i % 60 === 0) { // Check every minute
+
+    if (i % 60 === 0) {
+      // Check every minute
       const currentMemory = await performanceTests.measureMemoryUsage()
       const memoryIncrease = currentMemory - startMemory
-      
-      if (memoryIncrease > 10 * 1024 * 1024) { // 10MB increase
+
+      if (memoryIncrease > 10 * 1024 * 1024) {
+        // 10MB increase
         throw new Error(`Memory leak detected: ${memoryIncrease} bytes`)
       }
     }
@@ -438,19 +440,19 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Run performance tests
         run: npm run test:performance
-      
+
       - name: Check bundle size
         run: npm run analyze:bundle
-      
+
       - name: Performance regression check
         run: npm run test:regression
 ```
@@ -486,4 +488,4 @@ ZimboMate V2 currently meets or exceeds all established performance baselines:
 - **Memory Usage**: Well within acceptable limits
 - **Load Times**: Fast initial load and smooth interactions
 
-*Performance baselines are reviewed and updated quarterly to maintain optimal user experience.*
+_Performance baselines are reviewed and updated quarterly to maintain optimal user experience._

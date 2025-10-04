@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger'
+
 /**
  * Button utilities for debugging and fixing common button issues in ZimboMate v2
  */
@@ -24,7 +26,8 @@ export function diagnoseButton(button: HTMLButtonElement): ButtonDiagnostic {
 
   // Check for click handlers
   const hasOnClick = button.onclick !== null
-  const hasEventListeners = (button as any).getEventListeners?.('click')?.length > 0
+  const hasEventListeners =
+    (button as any).getEventListeners?.('click')?.length > 0
 
   if (!hasOnClick && !hasEventListeners) {
     issues.push('No click handler found')
@@ -39,7 +42,10 @@ export function diagnoseButton(button: HTMLButtonElement): ButtonDiagnostic {
   }
 
   // Check if button is hidden
-  if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+  if (
+    computedStyle.display === 'none' ||
+    computedStyle.visibility === 'hidden'
+  ) {
     issues.push('Button is hidden')
     fixes.push('Make button visible')
   }
@@ -57,7 +63,11 @@ export function diagnoseButton(button: HTMLButtonElement): ButtonDiagnostic {
   const centerY = rect.top + rect.height / 2
   const elementAtCenter = document.elementFromPoint(centerX, centerY)
 
-  if (elementAtCenter && elementAtCenter !== button && !button.contains(elementAtCenter)) {
+  if (
+    elementAtCenter &&
+    elementAtCenter !== button &&
+    !button.contains(elementAtCenter)
+  ) {
     issues.push('Button is covered by another element')
     fixes.push('Adjust z-index or element positioning')
   }
@@ -105,7 +115,7 @@ export function fixButtonIssues(button: HTMLButtonElement): boolean {
   // Add basic click handler if none exists
   if (!button.onclick && !button.hasAttribute('data-has-listeners')) {
     button.onclick = function (e) {
-      console.log('🔧 Auto-fixed button clicked:', this)
+      logger.info('🔧 Auto-fixed button clicked:', this)
       // Prevent default if it's a submit button without a form
       if (this.type === 'submit' && !this.form) {
         e.preventDefault()
@@ -123,20 +133,24 @@ export function fixButtonIssues(button: HTMLButtonElement): boolean {
  */
 export function enableButtonDebugging(): void {
   // Add click logging to all buttons
-  document.addEventListener('click', (e) => {
-    if (e.target instanceof HTMLButtonElement) {
-      console.log('🎯 Button clicked:', {
-        element: e.target,
-        text: e.target.textContent,
-        disabled: e.target.disabled,
-        type: e.target.type,
-        className: e.target.className,
-        hasOnClick: !!e.target.onclick,
-        variant: e.target.getAttribute('data-variant'),
-        event: e,
-      })
-    }
-  }, true)
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (e.target instanceof HTMLButtonElement) {
+        logger.info('🎯 Button clicked:', {
+          element: e.target,
+          text: e.target.textContent,
+          disabled: e.target.disabled,
+          type: e.target.type,
+          className: e.target.className,
+          hasOnClick: !!e.target.onclick,
+          variant: e.target.getAttribute('data-variant'),
+          event: e,
+        })
+      }
+    },
+    true,
+  )
 
   // Add visual debugging
   const style = document.createElement('style')
@@ -183,8 +197,8 @@ export function enableButtonDebugging(): void {
  */
 export function generateButtonReport(): string {
   const diagnostics = diagnoseAllButtons()
-  const workingButtons = diagnostics.filter(d => d.working).length
-  const brokenButtons = diagnostics.filter(d => !d.working)
+  const workingButtons = diagnostics.filter((d) => d.working).length
+  const brokenButtons = diagnostics.filter((d) => !d.working)
 
   let report = `ZimboMate v2 Button Functionality Report\n`
   report += `========================================\n\n`
@@ -247,7 +261,7 @@ if (typeof window !== 'undefined') {
   window.ZimboMate.fixButtons = autoFixAllButtons
   window.ZimboMate.buttonReport = () => {
     const report = generateButtonReport()
-    console.log(report)
+    logger.info(report)
     return report
   }
   window.ZimboMate.diagnoseButtons = diagnoseAllButtons

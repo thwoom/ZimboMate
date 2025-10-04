@@ -27,39 +27,102 @@ export interface HoldOption {
 }
 
 // Define hold-granting moves and their options
-export const HOLD_MOVES: Record<string, {
-  name: string
-  description: string
-  options: HoldOption[]
-}> = {
-  'defend': {
+export const HOLD_MOVES: Record<
+  string,
+  {
+    name: string
+    description: string
+    options: HoldOption[]
+  }
+> = {
+  defend: {
     name: 'Defend',
     description: 'Stand in defense of a person, item, or location',
     options: [
-      { id: 'redirect-attack', label: 'Redirect Attack', description: 'Redirect an attack from the thing you defend to yourself', cost: 1 },
-      { id: 'halve-damage', label: 'Halve Damage', description: 'Halve the attack\'s effect or damage', cost: 1 },
-      { id: 'open-attacker', label: 'Open Up Attacker', description: 'Open up the attacker to an ally giving them +1 forward', cost: 1 },
-      { id: 'deal-damage', label: 'Deal Damage', description: 'Deal damage to the attacker equal to your level', cost: 1 },
+      {
+        id: 'redirect-attack',
+        label: 'Redirect Attack',
+        description: 'Redirect an attack from the thing you defend to yourself',
+        cost: 1,
+      },
+      {
+        id: 'halve-damage',
+        label: 'Halve Damage',
+        description: "Halve the attack's effect or damage",
+        cost: 1,
+      },
+      {
+        id: 'open-attacker',
+        label: 'Open Up Attacker',
+        description: 'Open up the attacker to an ally giving them +1 forward',
+        cost: 1,
+      },
+      {
+        id: 'deal-damage',
+        label: 'Deal Damage',
+        description: 'Deal damage to the attacker equal to your level',
+        cost: 1,
+      },
     ],
   },
   'discern-realities': {
     name: 'Discern Realities',
     description: 'Study a situation or person',
     options: [
-      { id: 'what-happened', label: 'What happened here recently?', description: 'Learn about recent events', cost: 1 },
-      { id: 'about-to-happen', label: 'What is about to happen?', description: 'Anticipate immediate events', cost: 1 },
-      { id: 'should-be-cautious', label: 'What should I be on the lookout for?', description: 'Identify potential threats', cost: 1 },
-      { id: 'most-valuable', label: 'What here is most valuable to me?', description: 'Identify valuable things', cost: 1 },
-      { id: 'who-in-control', label: 'Who\'s really in control here?', description: 'Understand power dynamics', cost: 1 },
-      { id: 'not-what-seems', label: 'What here is not what it appears to be?', description: 'Reveal hidden truths', cost: 1 },
+      {
+        id: 'what-happened',
+        label: 'What happened here recently?',
+        description: 'Learn about recent events',
+        cost: 1,
+      },
+      {
+        id: 'about-to-happen',
+        label: 'What is about to happen?',
+        description: 'Anticipate immediate events',
+        cost: 1,
+      },
+      {
+        id: 'should-be-cautious',
+        label: 'What should I be on the lookout for?',
+        description: 'Identify potential threats',
+        cost: 1,
+      },
+      {
+        id: 'most-valuable',
+        label: 'What here is most valuable to me?',
+        description: 'Identify valuable things',
+        cost: 1,
+      },
+      {
+        id: 'who-in-control',
+        label: "Who's really in control here?",
+        description: 'Understand power dynamics',
+        cost: 1,
+      },
+      {
+        id: 'not-what-seems',
+        label: 'What here is not what it appears to be?',
+        description: 'Reveal hidden truths',
+        cost: 1,
+      },
     ],
   },
   'spout-lore': {
     name: 'Spout Lore',
     description: 'Consult your accumulated knowledge',
     options: [
-      { id: 'ask-question', label: 'Ask a Question', description: 'Ask the GM a question about the subject', cost: 1 },
-      { id: 'useful-fact', label: 'Useful Fact', description: 'The GM will tell you something useful about the subject', cost: 1 },
+      {
+        id: 'ask-question',
+        label: 'Ask a Question',
+        description: 'Ask the GM a question about the subject',
+        cost: 1,
+      },
+      {
+        id: 'useful-fact',
+        label: 'Useful Fact',
+        description: 'The GM will tell you something useful about the subject',
+        cost: 1,
+      },
     ],
   },
 }
@@ -69,8 +132,18 @@ interface HoldState {
   characterHolds: Record<string, HoldEntry[]>
 
   // Actions
-  grantHold: (characterId: string, moveId: string, amount: number, rollId?: string) => void
-  spendHold: (characterId: string, holdId: string, optionId?: string, amount?: number) => boolean
+  grantHold: (
+    characterId: string,
+    moveId: string,
+    amount: number,
+    rollId?: string,
+  ) => void
+  spendHold: (
+    characterId: string,
+    holdId: string,
+    optionId?: string,
+    amount?: number,
+  ) => boolean
   getHoldsForCharacter: (characterId: string) => HoldEntry[]
   getHoldsForMove: (characterId: string, moveId: string) => HoldEntry[]
   clearExpiredHolds: (characterId: string) => void
@@ -103,7 +176,7 @@ export const useHoldStore = create<HoldState>()(
           rollId,
         }
 
-        set(state => ({
+        set((state) => ({
           characterHolds: {
             ...state.characterHolds,
             [characterId]: [
@@ -113,14 +186,16 @@ export const useHoldStore = create<HoldState>()(
           },
         }))
 
-        logger.info(`[Hold] Granted ${amount} hold for ${moveInfo.name} to ${characterId}`)
+        logger.info(
+          `[Hold] Granted ${amount} hold for ${moveInfo.name} to ${characterId}`,
+        )
       },
 
       // Spend hold points
       spendHold: (characterId, holdId, optionId, amount = 1) => {
         const state = get()
         const characterHolds = state.characterHolds[characterId] || []
-        const holdEntry = characterHolds.find(h => h.id === holdId)
+        const holdEntry = characterHolds.find((h) => h.id === holdId)
 
         if (!holdEntry) {
           logger.warn(`[Hold] Hold not found: ${holdId}`)
@@ -135,18 +210,20 @@ export const useHoldStore = create<HoldState>()(
         // Log the option used if provided
         if (optionId) {
           const moveInfo = HOLD_MOVES[holdEntry.moveId]
-          const option = moveInfo?.options.find(o => o.id === optionId)
+          const option = moveInfo?.options.find((o) => o.id === optionId)
           if (option) {
             logger.info(`[Hold] ${holdEntry.moveName}: ${option.label}`)
           }
         }
 
         set((state) => {
-          const updatedHolds = state.characterHolds[characterId].map(hold =>
-            hold.id === holdId
-              ? { ...hold, amount: hold.amount - amount }
-              : hold,
-          ).filter(hold => hold.amount > 0) // Remove holds with 0 points
+          const updatedHolds = state.characterHolds[characterId]
+            .map((hold) =>
+              hold.id === holdId
+                ? { ...hold, amount: hold.amount - amount }
+                : hold,
+            )
+            .filter((hold) => hold.amount > 0) // Remove holds with 0 points
 
           return {
             characterHolds: {
@@ -162,27 +239,27 @@ export const useHoldStore = create<HoldState>()(
       // Get all holds for a character
       getHoldsForCharacter: (characterId) => {
         const state = get()
-        return (state.characterHolds[characterId] || [])
-          .sort((a, b) => b.timestamp - a.timestamp) // Most recent first
+        return (state.characterHolds[characterId] || []).sort(
+          (a, b) => b.timestamp - a.timestamp,
+        ) // Most recent first
       },
 
       // Get holds for a specific move
       getHoldsForMove: (characterId, moveId) => {
         const state = get()
         return (state.characterHolds[characterId] || [])
-          .filter(hold => hold.moveId === moveId)
+          .filter((hold) => hold.moveId === moveId)
           .sort((a, b) => b.timestamp - a.timestamp)
       },
 
       // Clear expired holds (if we ever implement expiration)
-      clearExpiredHolds: (characterId) => {
-        // For now, holds don't expire in basic Dungeon World
-        // This could be used for custom rules or time-based holds
+      clearExpiredHolds: (_characterId) => {
+        // Holds don't expire under base rules; reserved for house variants
       },
 
       // Clear all holds for a character
       clearAllHolds: (characterId) => {
-        set(state => ({
+        set((state) => ({
           characterHolds: {
             ...state.characterHolds,
             [characterId]: [],

@@ -14,24 +14,25 @@
  */
 
 import { useChronicleStore } from '../stores/chronicleStore'
+import { logger } from '../utils/logger'
 import { contextIntelligence } from './ChronicleContextIntelligence'
 import { chronicleTemplateService } from './ChronicleTemplateService'
 
 // Action types that can trigger Chronicle prompts
-export type ChronicleActionType
-  = | 'dice_roll'
-    | 'stat_roll'
-    | 'move_roll'
-    | 'damage_roll'
-    | 'equipment_use'
-    | 'equipment_equip'
-    | 'equipment_drop'
-    | 'item_acquire'
-    | 'combat_action'
-    | 'spell_cast'
-    | 'advancement_gain'
-    | 'character_creation'
-    | 'session_milestone'
+export type ChronicleActionType =
+  | 'dice_roll'
+  | 'stat_roll'
+  | 'move_roll'
+  | 'damage_roll'
+  | 'equipment_use'
+  | 'equipment_equip'
+  | 'equipment_drop'
+  | 'item_acquire'
+  | 'combat_action'
+  | 'spell_cast'
+  | 'advancement_gain'
+  | 'character_creation'
+  | 'session_milestone'
 
 // Context data structure for different action types
 export interface ActionContext {
@@ -47,8 +48,8 @@ export interface ActionContext {
     type: 'move' | 'stat' | 'damage' | 'custom'
     stat?: string // STR, DEX, CON, etc.
     moveName?: string
-    result: 'success' | 'partial' | 'failure'
-    total: number
+    _result: 'success' | 'partial' | 'failure'
+    _total: number
     modifier: number
     dice: number[]
   }
@@ -92,7 +93,7 @@ export interface ChroniclePrompt {
   priority: 'low' | 'medium' | 'high'
   expiresAt: Date
   isVisible: boolean
-  position?: { x: number, y: number }
+  position?: { x: number; y: number }
 }
 
 // Action listener callback type
@@ -126,7 +127,10 @@ export class ChronicleActionListenerService {
   /**
    * Register an action listener for a specific action type
    */
-  addListener(actionType: ChronicleActionType, listener: ActionListener): () => void {
+  addListener(
+    actionType: ChronicleActionType,
+    listener: ActionListener,
+  ): () => void {
     if (!this.listeners.has(actionType)) {
       this.listeners.set(actionType, [])
     }
@@ -147,8 +151,7 @@ export class ChronicleActionListenerService {
    * Emit an action event to trigger listeners and potential Chronicle prompts
    */
   emitAction(context: ActionContext): void {
-    if (!this.isEnabled)
-      return
+    if (!this.isEnabled) return
 
     // Add to recent actions
     this.recentActions.push(context)
@@ -161,8 +164,7 @@ export class ChronicleActionListenerService {
     listeners.forEach((listener) => {
       try {
         listener(context)
-      }
-      catch (error) {
+      } catch (error) {
         console.error('Error in action listener:', error)
       }
     })
@@ -175,14 +177,14 @@ export class ChronicleActionListenerService {
    * Get all active Chronicle prompts
    */
   getActivePrompts(): ChroniclePrompt[] {
-    return this.activePrompts.filter(p => p.isVisible)
+    return this.activePrompts.filter((p) => p.isVisible)
   }
 
   /**
    * Dismiss a Chronicle prompt
    */
   dismissPrompt(promptId: string): void {
-    const prompt = this.activePrompts.find(p => p.id === promptId)
+    const prompt = this.activePrompts.find((p) => p.id === promptId)
     if (prompt) {
       prompt.isVisible = false
     }
@@ -191,10 +193,13 @@ export class ChronicleActionListenerService {
   /**
    * Accept a Chronicle prompt and create an entry
    */
-  acceptPrompt(promptId: string, selectedEntry: string, customText?: string): void {
-    const prompt = this.activePrompts.find(p => p.id === promptId)
-    if (!prompt)
-      return
+  acceptPrompt(
+    promptId: string,
+    selectedEntry: string,
+    customText?: string,
+  ): void {
+    const prompt = this.activePrompts.find((p) => p.id === promptId)
+    if (!prompt) return
 
     const chronicleStore = useChronicleStore.getState()
 
@@ -205,7 +210,10 @@ export class ChronicleActionListenerService {
     chronicleStore.addEntry({
       rawText: entryText,
       tags,
-      sessionId: prompt.actionContext.sessionId || chronicleStore.currentSessionId || undefined,
+      sessionId:
+        prompt.actionContext.sessionId ||
+        chronicleStore.currentSessionId ||
+        undefined,
       parsedEntities: [], // Will be parsed by Chronicle system
       actionContext: prompt.actionContext, // Store the original action for reference
       isSceneBreak: false,
@@ -230,7 +238,7 @@ export class ChronicleActionListenerService {
    * Clear all active prompts
    */
   clearAllPrompts(): void {
-    this.activePrompts.forEach(p => p.isVisible = false)
+    this.activePrompts.forEach((p) => (p.isVisible = false))
   }
 
   /**
@@ -250,7 +258,7 @@ export class ChronicleActionListenerService {
     }
 
     // Check active prompt limit
-    const visiblePrompts = this.activePrompts.filter(p => p.isVisible)
+    const visiblePrompts = this.activePrompts.filter((p) => p.isVisible)
     if (visiblePrompts.length >= this.maxActivePrompts) {
       return
     }
@@ -270,7 +278,7 @@ export class ChronicleActionListenerService {
         }
       })
       .catch((err) => {
-        console.error('Failed to generate Chronicle prompt:', err)
+        logger.error('Failed to generate Chronicle prompt', err)
       })
   }
 
@@ -328,19 +336,33 @@ export class ChronicleActionListenerService {
     return tags
   }
 
-  private inferEmotionalTone(text: string): 'positive' | 'negative' | 'neutral' {
+  private inferEmotionalTone(
+    text: string,
+  ): 'positive' | 'negative' | 'neutral' {
     const lowerText = text.toLowerCase()
 
-    const positiveWords = ['success', 'triumph', 'victory', 'amazing', 'excellent', 'great']
-    const negativeWords = ['fail', 'disaster', 'terrible', 'awful', 'miss', 'fumble']
+    const positiveWords = [
+      'success',
+      'triumph',
+      'victory',
+      'amazing',
+      'excellent',
+      'great',
+    ]
+    const negativeWords = [
+      'fail',
+      'disaster',
+      'terrible',
+      'awful',
+      'miss',
+      'fumble',
+    ]
 
-    const hasPositive = positiveWords.some(word => lowerText.includes(word))
-    const hasNegative = negativeWords.some(word => lowerText.includes(word))
+    const hasPositive = positiveWords.some((word) => lowerText.includes(word))
+    const hasNegative = negativeWords.some((word) => lowerText.includes(word))
 
-    if (hasPositive && !hasNegative)
-      return 'positive'
-    if (hasNegative && !hasPositive)
-      return 'negative'
+    if (hasPositive && !hasNegative) return 'positive'
+    if (hasNegative && !hasPositive) return 'negative'
     return 'neutral'
   }
 
@@ -353,15 +375,15 @@ export class ChronicleActionListenerService {
 
 class DiceRollPromptStrategy implements PromptStrategy {
   async generatePrompt(context: ActionContext): Promise<ChroniclePrompt | null> {
-    if (!context.diceRoll)
-      return null
+    if (!context.diceRoll) return null
 
     const { result, total } = context.diceRoll
     const character = context.characterName || 'your character'
 
     // Use template service for better suggestions
     const recentActions = [context] // Would get from action listener
-    const contextAnalysis = await contextIntelligence.analyzeContext(recentActions)
+    const contextAnalysis =
+      await contextIntelligence.analyzeContext(recentActions)
     const suggestedEntries = chronicleTemplateService.generateSuggestions(
       context,
       contextAnalysis.situation,
@@ -374,11 +396,9 @@ class DiceRollPromptStrategy implements PromptStrategy {
     let promptText: string
     if (result === 'success') {
       promptText = `${character} rolled a ${total}! Chronicle this success?`
-    }
-    else if (result === 'partial') {
+    } else if (result === 'partial') {
       promptText = `${character} got a partial success (${total}). What's the complication?`
-    }
-    else {
+    } else {
       promptText = `${character} missed with a ${total}. What goes wrong?`
     }
 
@@ -386,18 +406,17 @@ class DiceRollPromptStrategy implements PromptStrategy {
       id: `dice-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       actionContext: context,
       promptText,
-      suggestedEntries: suggestedEntries.length > 0
-        ? suggestedEntries
-        : [
-            `${character}'s ${result} shapes what happens next.`,
-          ],
+      suggestedEntries:
+        suggestedEntries.length > 0
+          ? suggestedEntries
+          : [`${character}'s ${result} shapes what happens next.`],
       priority: result === 'failure' ? 'high' : 'medium',
       expiresAt: new Date(Date.now() + 30000),
       isVisible: true,
     }
   }
 
-  shouldPrompt(context: ActionContext): boolean {
+  shouldPrompt(_context: ActionContext): boolean {
     // Always prompt for dice rolls - they're core moments
     return true
   }
@@ -405,10 +424,9 @@ class DiceRollPromptStrategy implements PromptStrategy {
 
 class StatRollPromptStrategy implements PromptStrategy {
   generatePrompt(context: ActionContext): ChroniclePrompt | null {
-    if (!context.diceRoll?.stat)
-      return null
+    if (!context.diceRoll?.stat) return null
 
-    const { stat, result, total } = context.diceRoll
+    const { stat } = context.diceRoll
     const character = context.characterName || 'your character'
 
     const statActions: Record<string, string[]> = {
@@ -438,15 +456,14 @@ class StatRollPromptStrategy implements PromptStrategy {
     }
   }
 
-  shouldPrompt(context: ActionContext): boolean {
+  shouldPrompt(_context: ActionContext): boolean {
     return true // Stat rolls are always significant
   }
 }
 
 class MoveRollPromptStrategy implements PromptStrategy {
   generatePrompt(context: ActionContext): ChroniclePrompt | null {
-    if (!context.diceRoll?.moveName)
-      return null
+    if (!context.diceRoll?.moveName) return null
 
     const { moveName, result } = context.diceRoll
     const character = context.characterName || 'your character'
@@ -466,15 +483,14 @@ class MoveRollPromptStrategy implements PromptStrategy {
     }
   }
 
-  shouldPrompt(context: ActionContext): boolean {
+  shouldPrompt(_context: ActionContext): boolean {
     return true // Moves are always significant
   }
 }
 
 class EquipmentPromptStrategy implements PromptStrategy {
   generatePrompt(context: ActionContext): ChroniclePrompt | null {
-    if (!context.equipment)
-      return null
+    if (!context.equipment) return null
 
     const { action, itemName } = context.equipment
     const character = context.characterName || 'your character'
@@ -506,14 +522,16 @@ class EquipmentPromptStrategy implements PromptStrategy {
 
   shouldPrompt(context: ActionContext): boolean {
     // Only prompt for meaningful equipment actions
-    return context.equipment?.action === 'use' || context.equipment?.action === 'acquire'
+    return (
+      context.equipment?.action === 'use' ||
+      context.equipment?.action === 'acquire'
+    )
   }
 }
 
 class CombatPromptStrategy implements PromptStrategy {
   generatePrompt(context: ActionContext): ChroniclePrompt | null {
-    if (!context.combat)
-      return null
+    if (!context.combat) return null
 
     const { action, target, weapon, damage } = context.combat
     const character = context.characterName || 'your character'
@@ -528,8 +546,7 @@ class CombatPromptStrategy implements PromptStrategy {
         `The battle intensifies as ${character} launches their attack.`,
         `${character}'s combat prowess is on full display.`,
       ]
-    }
-    else {
+    } else {
       promptText = `${character} ${action}ed in combat. What happened?`
       suggestedEntries = [
         `${character}'s ${action} in combat was ${['crucial', 'decisive', 'impressive'][Math.floor(Math.random() * 3)]}.`,
@@ -550,7 +567,7 @@ class CombatPromptStrategy implements PromptStrategy {
   }
 
   shouldPrompt(context: ActionContext): boolean {
-    return true // Combat actions are always worth chronicling
+    return !!context.combat
   }
 }
 

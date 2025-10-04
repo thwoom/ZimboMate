@@ -6,7 +6,10 @@
  * and narrative situation to provide intelligent chronicle suggestions.
  */
 
-import type { ActionContext, ChronicleActionType } from './ChronicleActionListenerService'
+import type {
+  ActionContext,
+  ChronicleActionType,
+} from './ChronicleActionListenerService'
 
 // Template definition
 export interface ChronicleTemplate {
@@ -72,7 +75,7 @@ export class ChronicleTemplateService {
    * Get templates matching the action context
    */
   getTemplatesForContext(
-    actionContext: ActionContext,
+    _actionContext: ActionContext,
     situation?: string,
     intensity?: string,
     emotionalTone?: string,
@@ -80,7 +83,15 @@ export class ChronicleTemplateService {
     const matchingTemplates: ChronicleTemplate[] = []
 
     for (const template of this.templates.values()) {
-      if (this.templateMatchesContext(template, actionContext, situation, intensity, emotionalTone)) {
+      if (
+        this.templateMatchesContext(
+          template,
+          actionContext,
+          situation,
+          intensity,
+          emotionalTone,
+        )
+      ) {
         matchingTemplates.push(template)
       }
     }
@@ -99,19 +110,27 @@ export class ChronicleTemplateService {
    * Generate chronicle suggestions from templates
    */
   generateSuggestions(
-    actionContext: ActionContext,
+    _actionContext: ActionContext,
     situation?: string,
     intensity?: string,
     emotionalTone?: string,
     count = 3,
   ): string[] {
-    const templates = this.getTemplatesForContext(actionContext, situation, intensity, emotionalTone)
+    const templates = this.getTemplatesForContext(
+      actionContext,
+      situation,
+      intensity,
+      emotionalTone,
+    )
     const suggestions: string[] = []
 
     for (const template of templates.slice(0, count)) {
       const variation = this.selectVariation(template, actionContext)
       if (variation) {
-        const suggestion = this.populateTemplate(variation.template, actionContext)
+        const suggestion = this.populateTemplate(
+          variation.template,
+          actionContext,
+        )
         if (suggestion && !suggestions.includes(suggestion)) {
           suggestions.push(suggestion)
         }
@@ -119,10 +138,16 @@ export class ChronicleTemplateService {
     }
 
     // Fill remaining slots with fallback templates if needed
-    while (suggestions.length < count && templates.length > suggestions.length) {
+    while (
+      suggestions.length < count &&
+      templates.length > suggestions.length
+    ) {
       const fallbackTemplate = templates[suggestions.length]
       const variation = fallbackTemplate.variations[0] // Use first variation
-      const suggestion = this.populateTemplate(variation.template, actionContext)
+      const suggestion = this.populateTemplate(
+        variation.template,
+        actionContext,
+      )
       if (suggestion && !suggestions.includes(suggestion)) {
         suggestions.push(suggestion)
       }
@@ -136,8 +161,7 @@ export class ChronicleTemplateService {
    */
   recordTemplateUsage(templateId: string, wasUseful: boolean): void {
     const template = this.templates.get(templateId)
-    if (!template)
-      return
+    if (!template) return
 
     // Update usage count
     template.usageCount = (template.usageCount || 0) + 1
@@ -155,7 +179,7 @@ export class ChronicleTemplateService {
 
   private templateMatchesContext(
     template: ChronicleTemplate,
-    actionContext: ActionContext,
+    _actionContext: ActionContext,
     situation?: string,
     intensity?: string,
     emotionalTone?: string,
@@ -205,12 +229,17 @@ export class ChronicleTemplateService {
     return true
   }
 
-  private selectVariation(template: ChronicleTemplate, actionContext: ActionContext): TemplateVariation | null {
-    if (template.variations.length === 0)
-      return null
+  private selectVariation(
+    template: ChronicleTemplate,
+    _actionContext: ActionContext,
+  ): TemplateVariation | null {
+    if (template.variations.length === 0) return null
 
     // Weighted random selection
-    const totalWeight = template.variations.reduce((sum, v) => sum + v.weight, 0)
+    const totalWeight = template.variations.reduce(
+      (sum, v) => sum + v.weight,
+      0,
+    )
     let random = Math.random() * totalWeight
 
     for (const variation of template.variations) {
@@ -223,7 +252,10 @@ export class ChronicleTemplateService {
     return template.variations[0] // Fallback
   }
 
-  private populateTemplate(templateString: string, actionContext: ActionContext): string {
+  private populateTemplate(
+    templateString: string,
+    _actionContext: ActionContext,
+  ): string {
     const variables: TemplateVariables = {
       character: actionContext.characterName || 'your character',
       stat: actionContext.diceRoll?.stat,
@@ -272,22 +304,31 @@ export class ChronicleTemplateService {
       },
       variations: [
         {
-          template: '{character} demonstrates incredible strength, easily {action} with pure physical power.',
+          template:
+            '{character} demonstrates incredible strength, easily {action} with pure physical power.',
           weight: 3,
           tags: ['strength', 'success', 'physical'],
-          examples: ['Thorin demonstrates incredible strength, easily lifting the massive stone with pure physical power.'],
+          examples: [
+            'Thorin demonstrates incredible strength, easily lifting the massive stone with pure physical power.',
+          ],
         },
         {
-          template: 'With a mighty heave, {character} overpowers the obstacle through sheer strength.',
+          template:
+            'With a mighty heave, {character} overpowers the obstacle through sheer strength.',
           weight: 2,
           tags: ['strength', 'success', 'dramatic'],
-          examples: ['With a mighty heave, Thorin overpowers the obstacle through sheer strength.'],
+          examples: [
+            'With a mighty heave, Thorin overpowers the obstacle through sheer strength.',
+          ],
         },
         {
-          template: '{character}\'s muscles strain momentarily before succeeding through raw physical might.',
+          template:
+            "{character}'s muscles strain momentarily before succeeding through raw physical might.",
           weight: 2,
           tags: ['strength', 'success', 'effort'],
-          examples: ['Thorin\'s muscles strain momentarily before succeeding through raw physical might.'],
+          examples: [
+            "Thorin's muscles strain momentarily before succeeding through raw physical might.",
+          ],
         },
       ],
       priority: 8,
@@ -304,22 +345,31 @@ export class ChronicleTemplateService {
       },
       variations: [
         {
-          template: '{character} moves with fluid grace, their dexterity allowing perfect execution.',
+          template:
+            '{character} moves with fluid grace, their dexterity allowing perfect execution.',
           weight: 3,
           tags: ['dexterity', 'success', 'grace'],
-          examples: ['Thorin moves with fluid grace, their dexterity allowing perfect execution.'],
+          examples: [
+            'Thorin moves with fluid grace, their dexterity allowing perfect execution.',
+          ],
         },
         {
-          template: 'Quick reflexes and nimble movements serve {character} well in this moment.',
+          template:
+            'Quick reflexes and nimble movements serve {character} well in this moment.',
           weight: 2,
           tags: ['dexterity', 'success', 'reflexes'],
-          examples: ['Quick reflexes and nimble movements serve Thorin well in this moment.'],
+          examples: [
+            'Quick reflexes and nimble movements serve Thorin well in this moment.',
+          ],
         },
         {
-          template: '{character} demonstrates exceptional agility, navigating the challenge with ease.',
+          template:
+            '{character} demonstrates exceptional agility, navigating the challenge with ease.',
           weight: 2,
           tags: ['dexterity', 'success', 'agility'],
-          examples: ['Thorin demonstrates exceptional agility, navigating the challenge with ease.'],
+          examples: [
+            'Thorin demonstrates exceptional agility, navigating the challenge with ease.',
+          ],
         },
       ],
       priority: 8,
@@ -336,22 +386,31 @@ export class ChronicleTemplateService {
       },
       variations: [
         {
-          template: 'Despite {character}\'s best efforts, things don\'t go according to plan. They learn from this setback and mark XP.',
+          template:
+            "Despite {character}'s best efforts, things don't go according to plan. They learn from this setback and mark XP.",
           weight: 3,
           tags: ['failure', 'learning', 'xp'],
-          examples: ['Despite Thorin\'s best efforts, things don\'t go according to plan. They learn from this setback and mark XP.'],
+          examples: [
+            "Despite Thorin's best efforts, things don't go according to plan. They learn from this setback and mark XP.",
+          ],
         },
         {
-          template: '{character} faces an unexpected complication, but failure often teaches us more than success.',
+          template:
+            '{character} faces an unexpected complication, but failure often teaches us more than success.',
           weight: 2,
           tags: ['failure', 'complication', 'wisdom'],
-          examples: ['Thorin faces an unexpected complication, but failure often teaches us more than success.'],
+          examples: [
+            'Thorin faces an unexpected complication, but failure often teaches us more than success.',
+          ],
         },
         {
-          template: 'The dice show no mercy to {character}, but this failure will forge them into something stronger.',
+          template:
+            'The dice show no mercy to {character}, but this failure will forge them into something stronger.',
           weight: 2,
           tags: ['failure', 'growth', 'drama'],
-          examples: ['The dice show no mercy to Thorin, but this failure will forge them into something stronger.'],
+          examples: [
+            'The dice show no mercy to Thorin, but this failure will forge them into something stronger.',
+          ],
         },
       ],
       priority: 9,
@@ -366,22 +425,31 @@ export class ChronicleTemplateService {
       conditions: {},
       variations: [
         {
-          template: '{character} draws their {item}, its weight familiar and reassuring in their grip.',
+          template:
+            '{character} draws their {item}, its weight familiar and reassuring in their grip.',
           weight: 3,
           tags: ['weapon', 'preparation', 'comfort'],
-          examples: ['Thorin draws their sword, its weight familiar and reassuring in their grip.'],
+          examples: [
+            'Thorin draws their sword, its weight familiar and reassuring in their grip.',
+          ],
         },
         {
-          template: 'With practiced ease, {character} brings {item} to bear against the challenge ahead.',
+          template:
+            'With practiced ease, {character} brings {item} to bear against the challenge ahead.',
           weight: 2,
           tags: ['weapon', 'skill', 'readiness'],
-          examples: ['With practiced ease, Thorin brings their sword to bear against the challenge ahead.'],
+          examples: [
+            'With practiced ease, Thorin brings their sword to bear against the challenge ahead.',
+          ],
         },
         {
-          template: '{character}\'s {item} gleams as they prepare to face whatever comes next.',
+          template:
+            "{character}'s {item} gleams as they prepare to face whatever comes next.",
           weight: 2,
           tags: ['weapon', 'dramatic', 'anticipation'],
-          examples: ['Thorin\'s sword gleams as they prepare to face whatever comes next.'],
+          examples: [
+            "Thorin's sword gleams as they prepare to face whatever comes next.",
+          ],
         },
       ],
       priority: 7,
@@ -398,22 +466,31 @@ export class ChronicleTemplateService {
       },
       variations: [
         {
-          template: '{character} strikes {target} with their {weapon}, dealing {damage} damage in a display of martial prowess.',
+          template:
+            '{character} strikes {target} with their {weapon}, dealing {damage} damage in a display of martial prowess.',
           weight: 3,
           tags: ['combat', 'attack', 'success', 'damage'],
-          examples: ['Thorin strikes the orc with their sword, dealing 8 damage in a display of martial prowess.'],
+          examples: [
+            'Thorin strikes the orc with their sword, dealing 8 damage in a display of martial prowess.',
+          ],
         },
         {
-          template: 'The battle intensifies as {character}\'s attack finds its mark against {target}.',
+          template:
+            "The battle intensifies as {character}'s attack finds its mark against {target}.",
           weight: 2,
           tags: ['combat', 'attack', 'intensity'],
-          examples: ['The battle intensifies as Thorin\'s attack finds its mark against the orc.'],
+          examples: [
+            "The battle intensifies as Thorin's attack finds its mark against the orc.",
+          ],
         },
         {
-          template: '{character}\'s {weapon} cuts through the air, connecting with {target} in a decisive blow.',
+          template:
+            "{character}'s {weapon} cuts through the air, connecting with {target} in a decisive blow.",
           weight: 2,
           tags: ['combat', 'attack', 'decisive'],
-          examples: ['Thorin\'s sword cuts through the air, connecting with the orc in a decisive blow.'],
+          examples: [
+            "Thorin's sword cuts through the air, connecting with the orc in a decisive blow.",
+          ],
         },
       ],
       priority: 9,
@@ -432,22 +509,31 @@ export class ChronicleTemplateService {
       },
       variations: [
         {
-          template: '{character}\'s words carry weight and conviction, swaying hearts and minds with natural charisma.',
+          template:
+            "{character}'s words carry weight and conviction, swaying hearts and minds with natural charisma.",
           weight: 3,
           tags: ['charisma', 'success', 'persuasion'],
-          examples: ['Thorin\'s words carry weight and conviction, swaying hearts and minds with natural charisma.'],
+          examples: [
+            "Thorin's words carry weight and conviction, swaying hearts and minds with natural charisma.",
+          ],
         },
         {
-          template: 'With charm and eloquence, {character} navigates the social situation masterfully.',
+          template:
+            'With charm and eloquence, {character} navigates the social situation masterfully.',
           weight: 2,
           tags: ['charisma', 'success', 'social'],
-          examples: ['With charm and eloquence, Thorin navigates the social situation masterfully.'],
+          examples: [
+            'With charm and eloquence, Thorin navigates the social situation masterfully.',
+          ],
         },
         {
-          template: '{character}\'s presence commands attention and respect in this crucial moment.',
+          template:
+            "{character}'s presence commands attention and respect in this crucial moment.",
           weight: 2,
           tags: ['charisma', 'success', 'leadership'],
-          examples: ['Thorin\'s presence commands attention and respect in this crucial moment.'],
+          examples: [
+            "Thorin's presence commands attention and respect in this crucial moment.",
+          ],
         },
       ],
       priority: 8,
@@ -465,22 +551,31 @@ export class ChronicleTemplateService {
       },
       variations: [
         {
-          template: '{character}\'s keen senses reveal something others might have missed in this place.',
+          template:
+            "{character}'s keen senses reveal something others might have missed in this place.",
           weight: 3,
           tags: ['exploration', 'wisdom', 'discovery'],
-          examples: ['Thorin\'s keen senses reveal something others might have missed in this place.'],
+          examples: [
+            "Thorin's keen senses reveal something others might have missed in this place.",
+          ],
         },
         {
-          template: 'Drawing upon experience and intuition, {character} pieces together the puzzle before them.',
+          template:
+            'Drawing upon experience and intuition, {character} pieces together the puzzle before them.',
           weight: 2,
           tags: ['exploration', 'intelligence', 'deduction'],
-          examples: ['Drawing upon experience and intuition, Thorin pieces together the puzzle before them.'],
+          examples: [
+            'Drawing upon experience and intuition, Thorin pieces together the puzzle before them.',
+          ],
         },
         {
-          template: '{character} pauses, studying their surroundings with the careful eye of an experienced adventurer.',
+          template:
+            '{character} pauses, studying their surroundings with the careful eye of an experienced adventurer.',
           weight: 2,
           tags: ['exploration', 'caution', 'experience'],
-          examples: ['Thorin pauses, studying their surroundings with the careful eye of an experienced adventurer.'],
+          examples: [
+            'Thorin pauses, studying their surroundings with the careful eye of an experienced adventurer.',
+          ],
         },
       ],
       priority: 7,
@@ -497,22 +592,31 @@ export class ChronicleTemplateService {
       },
       variations: [
         {
-          template: '{character} succeeds, but the victory comes with unexpected complications.',
+          template:
+            '{character} succeeds, but the victory comes with unexpected complications.',
           weight: 3,
           tags: ['partial', 'success', 'complications'],
-          examples: ['Thorin succeeds, but the victory comes with unexpected complications.'],
+          examples: [
+            'Thorin succeeds, but the victory comes with unexpected complications.',
+          ],
         },
         {
-          template: 'Things don\'t go entirely as planned for {character}, though they achieve their goal.',
+          template:
+            "Things don't go entirely as planned for {character}, though they achieve their goal.",
           weight: 2,
           tags: ['partial', 'success', 'mixed'],
-          examples: ['Things don\'t go entirely as planned for Thorin, though they achieve their goal.'],
+          examples: [
+            "Things don't go entirely as planned for Thorin, though they achieve their goal.",
+          ],
         },
         {
-          template: '{character} finds success, but at a cost that will shape what happens next.',
+          template:
+            '{character} finds success, but at a cost that will shape what happens next.',
           weight: 2,
           tags: ['partial', 'success', 'cost'],
-          examples: ['Thorin finds success, but at a cost that will shape what happens next.'],
+          examples: [
+            'Thorin finds success, but at a cost that will shape what happens next.',
+          ],
         },
       ],
       priority: 8,
@@ -530,22 +634,31 @@ export class ChronicleTemplateService {
       },
       variations: [
         {
-          template: 'Time seems to slow as {character} faces this critical moment, everything hanging in the balance.',
+          template:
+            'Time seems to slow as {character} faces this critical moment, everything hanging in the balance.',
           weight: 3,
           tags: ['tension', 'critical', 'drama'],
-          examples: ['Time seems to slow as Thorin faces this critical moment, everything hanging in the balance.'],
+          examples: [
+            'Time seems to slow as Thorin faces this critical moment, everything hanging in the balance.',
+          ],
         },
         {
-          template: 'The stakes have never been higher as {character} acts with decisive {intensity}.',
+          template:
+            'The stakes have never been higher as {character} acts with decisive {intensity}.',
           weight: 2,
           tags: ['tension', 'stakes', 'decisive'],
-          examples: ['The stakes have never been higher as Thorin acts with decisive focus.'],
+          examples: [
+            'The stakes have never been higher as Thorin acts with decisive focus.',
+          ],
         },
         {
-          template: '{character} feels the weight of the moment pressing down as they make their move.',
+          template:
+            '{character} feels the weight of the moment pressing down as they make their move.',
           weight: 2,
           tags: ['tension', 'pressure', 'weight'],
-          examples: ['Thorin feels the weight of the moment pressing down as they make their move.'],
+          examples: [
+            'Thorin feels the weight of the moment pressing down as they make their move.',
+          ],
         },
       ],
       priority: 9,
@@ -559,8 +672,7 @@ export class ChronicleTemplateService {
         const preferences = JSON.parse(saved)
         this.userPreferences = new Map(Object.entries(preferences))
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.warn('Failed to load template preferences:', error)
     }
   }
@@ -568,9 +680,11 @@ export class ChronicleTemplateService {
   private saveUserPreferences(): void {
     try {
       const preferences = Object.fromEntries(this.userPreferences.entries())
-      localStorage.setItem('chronicle-template-preferences', JSON.stringify(preferences))
-    }
-    catch (error) {
+      localStorage.setItem(
+        'chronicle-template-preferences',
+        JSON.stringify(preferences),
+      )
+    } catch (error) {
       console.warn('Failed to save template preferences:', error)
     }
   }

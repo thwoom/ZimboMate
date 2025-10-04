@@ -41,7 +41,8 @@ interface TrackersWidgetProps {
 export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
   className = '',
 }) => {
-  const { sessionTrackers, addTracker, updateTracker, deleteTracker } = useSessionStore()
+  const { sessionTrackers, addTracker, updateTracker, deleteTracker } =
+    useSessionStore()
   const [isCreating, setIsCreating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newTracker, setNewTracker] = useState({
@@ -75,13 +76,15 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
   ]
 
   const createTracker = () => {
-    if (!newTracker.name.trim())
-      return
+    if (!newTracker.name.trim()) return
 
     const tracker: Tracker = {
       id: `tracker-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       name: newTracker.name.trim(),
-      current: Math.max(newTracker.min, Math.min(newTracker.max, newTracker.current)),
+      current: Math.max(
+        newTracker.min,
+        Math.min(newTracker.max, newTracker.current),
+      ),
       max: newTracker.max,
       min: newTracker.min,
       color: newTracker.color,
@@ -117,12 +120,14 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
   }
 
   const saveEdit = () => {
-    if (!editingId || !newTracker.name.trim())
-      return
+    if (!editingId || !newTracker.name.trim()) return
 
     updateTracker(editingId, {
       name: newTracker.name.trim(),
-      current: Math.max(newTracker.min, Math.min(newTracker.max, newTracker.current)),
+      current: Math.max(
+        newTracker.min,
+        Math.min(newTracker.max, newTracker.current),
+      ),
       max: newTracker.max,
       min: newTracker.min,
       color: newTracker.color,
@@ -157,18 +162,19 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
   }
 
   const adjustTracker = (trackerId: string, delta: number) => {
-    const tracker = sessionTrackers.find(t => t.id === trackerId)
-    if (!tracker)
-      return
+    const tracker = sessionTrackers.find((t) => t.id === trackerId)
+    if (!tracker) return
 
-    const newValue = Math.max(tracker.min, Math.min(tracker.max, tracker.current + delta))
+    const newValue = Math.max(
+      tracker.min,
+      Math.min(tracker.max, tracker.current + delta),
+    )
     updateTracker(trackerId, { current: newValue })
   }
 
   const resetTracker = (trackerId: string) => {
-    const tracker = sessionTrackers.find(t => t.id === trackerId)
-    if (!tracker)
-      return
+    const tracker = sessionTrackers.find((t) => t.id === trackerId)
+    if (!tracker) return
 
     updateTracker(trackerId, { current: tracker.max })
   }
@@ -221,20 +227,20 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-2'>
           <Target size={20} />
-          <span className="font-medium">Custom Trackers</span>
-          <Badge variant="secondary">{sessionTrackers.length}</Badge>
+          <span className='font-medium'>Custom Trackers</span>
+          <Badge variant='secondary'>{sessionTrackers.length}</Badge>
         </div>
       </div>
 
       {/* Add Tracker Button */}
       <Button
-        variant="primary"
-        size="sm"
+        variant='primary'
+        size='sm'
         onClick={() => setIsCreating(true)}
-        className="w-full gap-2"
+        className='w-full gap-2'
       >
         <Plus size={16} />
         Add Tracker
@@ -249,20 +255,25 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card variant="magical">
-              <CardContent className="p-6">
-                <div className="space-y-4">
+            <Card variant='magical'>
+              <CardContent className='p-6'>
+                <div className='space-y-4'>
                   {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">
+                    <label className='block text-sm font-medium mb-2'>
                       Tracker Name
                     </label>
                     <input
-                      type="text"
+                      type='text'
                       value={newTracker.name}
-                      onChange={e => setNewTracker(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Torch Duration, Spell Slots, Rations, etc."
-                      className="w-full px-3 py-2 rounded-lg border transition-colors"
+                      onChange={(e) =>
+                        setNewTracker((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      placeholder='Torch Duration, Spell Slots, Rations, etc.'
+                      className='w-full px-3 py-2 rounded-lg border transition-colors'
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
@@ -274,19 +285,21 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                   </div>
 
                   {/* Values */}
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className='grid grid-cols-3 gap-4'>
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className='block text-sm font-medium mb-2'>
                         Current
                       </label>
                       <input
-                        type="number"
+                        type='number'
                         value={newTracker.current}
-                        onChange={e => setNewTracker(prev => ({
-                          ...prev,
-                          current: Number.parseInt(e.target.value) || 0,
-                        }))}
-                        className="w-full px-3 py-2 rounded-lg border transition-colors"
+                        onChange={(e) =>
+                          setNewTracker((prev) => ({
+                            ...prev,
+                            current: Number.parseInt(e.target.value) || 0,
+                          }))
+                        }
+                        className='w-full px-3 py-2 rounded-lg border transition-colors'
                         style={{
                           backgroundColor: 'var(--card)',
                           borderColor: 'var(--primary)',
@@ -296,17 +309,19 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className='block text-sm font-medium mb-2'>
                         Maximum
                       </label>
                       <input
-                        type="number"
+                        type='number'
                         value={newTracker.max}
-                        onChange={e => setNewTracker(prev => ({
-                          ...prev,
-                          max: Number.parseInt(e.target.value) || 10,
-                        }))}
-                        className="w-full px-3 py-2 rounded-lg border transition-colors"
+                        onChange={(e) =>
+                          setNewTracker((prev) => ({
+                            ...prev,
+                            max: Number.parseInt(e.target.value) || 10,
+                          }))
+                        }
+                        className='w-full px-3 py-2 rounded-lg border transition-colors'
                         style={{
                           backgroundColor: 'var(--card)',
                           borderColor: 'var(--primary)',
@@ -316,17 +331,19 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className='block text-sm font-medium mb-2'>
                         Minimum
                       </label>
                       <input
-                        type="number"
+                        type='number'
                         value={newTracker.min}
-                        onChange={e => setNewTracker(prev => ({
-                          ...prev,
-                          min: Number.parseInt(e.target.value) || 0,
-                        }))}
-                        className="w-full px-3 py-2 rounded-lg border transition-colors"
+                        onChange={(e) =>
+                          setNewTracker((prev) => ({
+                            ...prev,
+                            min: Number.parseInt(e.target.value) || 0,
+                          }))
+                        }
+                        className='w-full px-3 py-2 rounded-lg border transition-colors'
                         style={{
                           backgroundColor: 'var(--card)',
                           borderColor: 'var(--primary)',
@@ -338,15 +355,20 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                   </div>
 
                   {/* Icon and Color */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className='grid grid-cols-2 gap-4'>
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className='block text-sm font-medium mb-2'>
                         Icon
                       </label>
                       <select
                         value={newTracker.icon}
-                        onChange={e => setNewTracker(prev => ({ ...prev, icon: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-lg border transition-colors"
+                        onChange={(e) =>
+                          setNewTracker((prev) => ({
+                            ...prev,
+                            icon: e.target.value,
+                          }))
+                        }
+                        className='w-full px-3 py-2 rounded-lg border transition-colors'
                         style={{
                           backgroundColor: 'var(--card)',
                           borderColor: 'var(--primary)',
@@ -354,7 +376,7 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                           color: 'var(--foreground)',
                         }}
                       >
-                        {iconOptions.map(option => (
+                        {iconOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
                           </option>
@@ -362,18 +384,20 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className='block text-sm font-medium mb-2'>
                         Color
                       </label>
-                      <div className="flex gap-2">
-                        {colorOptions.map(option => (
+                      <div className='flex gap-2'>
+                        {colorOptions.map((option) => (
                           <button
                             key={option.value}
-                            type="button"
-                            onClick={() => setNewTracker(prev => ({
-                              ...prev,
-                              color: option.value as Tracker['color'],
-                            }))}
+                            type='button'
+                            onClick={() =>
+                              setNewTracker((prev) => ({
+                                ...prev,
+                                color: option.value as Tracker['color'],
+                              }))
+                            }
                             className={`w-8 h-8 rounded-full border-2 transition-all ${option.class} ${
                               newTracker.color === option.value
                                 ? 'border-white shadow-lg scale-110'
@@ -388,15 +412,20 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">
+                    <label className='block text-sm font-medium mb-2'>
                       Description (optional)
                     </label>
                     <input
-                      type="text"
+                      type='text'
                       value={newTracker.description}
-                      onChange={e => setNewTracker(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="What does this tracker represent?"
-                      className="w-full px-3 py-2 rounded-lg border transition-colors"
+                      onChange={(e) =>
+                        setNewTracker((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
+                      placeholder='What does this tracker represent?'
+                      className='w-full px-3 py-2 rounded-lg border transition-colors'
                       style={{
                         backgroundColor: 'var(--card)',
                         borderColor: 'var(--primary)',
@@ -407,20 +436,16 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2">
+                  <div className='flex gap-2'>
                     <Button
-                      variant="primary"
-                      size="sm"
+                      variant='primary'
+                      size='sm'
                       onClick={editingId ? saveEdit : createTracker}
                       disabled={!newTracker.name.trim()}
                     >
                       {editingId ? 'Save Changes' : 'Create Tracker'}
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={cancelEdit}
-                    >
+                    <Button variant='ghost' size='sm' onClick={cancelEdit}>
                       Cancel
                     </Button>
                   </div>
@@ -432,7 +457,7 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
       </AnimatePresence>
 
       {/* Trackers Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className='grid gap-4 md:grid-cols-2'>
         <AnimatePresence>
           {sessionTrackers.map((tracker, index) => {
             const IconComponent = getIconComponent(tracker.icon)
@@ -446,39 +471,41 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <Card variant="surface">
-                  <CardContent className="p-4 pt-4">
-                    <div className="space-y-3">
+                <Card variant='surface'>
+                  <CardContent className='p-4 pt-4'>
+                    <div className='space-y-3'>
                       {/* Header */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`p-2 rounded-lg ${getColorClasses(tracker.color)}`}>
+                      <div className='flex items-start justify-between gap-2'>
+                        <div className='flex items-center gap-2'>
+                          <div
+                            className={`p-2 rounded-lg ${getColorClasses(tracker.color)}`}
+                          >
                             <IconComponent size={16} />
                           </div>
                           <div>
-                            <div className="font-medium">{tracker.name}</div>
+                            <div className='font-medium'>{tracker.name}</div>
                             {tracker.description && (
-                              <div className="text-xs text-muted-foreground">
+                              <div className='text-xs text-muted-foreground'>
                                 {tracker.description}
                               </div>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1">
+                        <div className='flex items-center gap-1'>
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant='ghost'
+                            size='sm'
                             onClick={() => startEditing(tracker)}
-                            className="p-1"
+                            className='p-1'
                           >
                             <Edit3 size={14} />
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant='ghost'
+                            size='sm'
                             onClick={() => deleteTracker(tracker.id)}
-                            className="p-1 text-destructive hover:text-destructive"
+                            className='p-1 text-destructive hover:text-destructive'
                           >
                             <Trash2 size={14} />
                           </Button>
@@ -486,21 +513,14 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                       </div>
 
                       {/* Progress Bar */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
+                      <div className='space-y-2'>
+                        <div className='flex items-center justify-between text-sm'>
                           <span>
-                            {tracker.current}
-                            {' '}
-                            /
-                            {' '}
-                            {tracker.max}
+                            {tracker.current} / {tracker.max}
                           </span>
-                          <span>
-                            {progress.toFixed(0)}
-                            %
-                          </span>
+                          <span>{progress.toFixed(0)}%</span>
                         </div>
-                        <div className="w-full bg-muted rounded-full h-2">
+                        <div className='w-full bg-muted rounded-full h-2'>
                           <div
                             className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(tracker.color)}`}
                             style={{ width: `${progress}%` }}
@@ -509,33 +529,33 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
                       </div>
 
                       {/* Controls */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
+                      <div className='flex items-center justify-between'>
+                        <div className='flex items-center gap-1'>
                           <Button
-                            variant="outline"
-                            size="sm"
+                            variant='outline'
+                            size='sm'
                             onClick={() => adjustTracker(tracker.id, -1)}
                             disabled={tracker.current <= tracker.min}
-                            className="p-2"
+                            className='p-2'
                           >
                             <Minus size={14} />
                           </Button>
                           <Button
-                            variant="outline"
-                            size="sm"
+                            variant='outline'
+                            size='sm'
                             onClick={() => adjustTracker(tracker.id, 1)}
                             disabled={tracker.current >= tracker.max}
-                            className="p-2"
+                            className='p-2'
                           >
                             <Plus size={14} />
                           </Button>
                         </div>
 
                         <Button
-                          variant="ghost"
-                          size="sm"
+                          variant='ghost'
+                          size='sm'
                           onClick={() => resetTracker(tracker.id)}
-                          className="gap-1 text-xs"
+                          className='gap-1 text-xs'
                         >
                           <RotateCcw size={12} />
                           Reset
@@ -552,16 +572,17 @@ export const TrackersWidget: React.FC<TrackersWidgetProps> = ({
 
       {/* Empty State */}
       {sessionTrackers.length === 0 && (
-        <Card variant="surface">
-          <CardContent className="p-6 pt-6">
-            <div className="text-center py-8">
+        <Card variant='surface'>
+          <CardContent className='p-6 pt-6'>
+            <div className='text-center py-8'>
               <Target
                 size={48}
-                className="mx-auto mb-4 opacity-50 text-muted-foreground"
+                className='mx-auto mb-4 opacity-50 text-muted-foreground'
               />
-              <h3 className="text-lg font-medium mb-2">No Trackers Yet</h3>
-              <p className="text-muted-foreground">
-                Create custom trackers for torch duration, spell slots, rations, or any other session values you need to monitor!
+              <h3 className='text-lg font-medium mb-2'>No Trackers Yet</h3>
+              <p className='text-muted-foreground'>
+                Create custom trackers for torch duration, spell slots, rations,
+                or any other session values you need to monitor!
               </p>
             </div>
           </CardContent>

@@ -81,7 +81,9 @@ export default defineConfig({
     actionTimeout: 10000,
     navigationTimeout: 20000,
   },
-  projects: runAllDevices ? [...desktopMatrix, ...extendedMatrix] : desktopMatrix,
+  projects: runAllDevices
+    ? [...desktopMatrix, ...extendedMatrix]
+    : desktopMatrix,
   webServer: {
     command: webCommand,
     url: `http://localhost:${DEV_SERVER_PORT}`,

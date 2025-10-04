@@ -13,19 +13,19 @@ export interface StateHistory<T = GameState> {
 }
 
 // History action types
-export type HistoryAction<T = GameState>
-  = | { type: 'UNDO' }
-    | { type: 'REDO' }
-    | { type: 'SAVE_STATE', payload: T }
-    | { type: 'CLEAR_HISTORY' }
-    | { type: 'JUMP_TO_PAST', payload: number }
-    | { type: 'JUMP_TO_FUTURE', payload: number }
+export type HistoryAction<T = GameState> =
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
+  | { type: 'SAVE_STATE'; payload: T }
+  | { type: 'CLEAR_HISTORY' }
+  | { type: 'JUMP_TO_PAST'; payload: number }
+  | { type: 'JUMP_TO_FUTURE'; payload: number }
 
 // Create initial history state
 export function createInitialHistory<T>(
   initialState: T,
   maxHistorySize = 50,
-): StateHistory <T> {
+): StateHistory<T> {
   return {
     past: [],
     present: initialState,
@@ -36,13 +36,12 @@ export function createInitialHistory<T>(
 
 // History reducer
 export function historyReducer<T>(
-  state: StateHistory <T>,
-  action: HistoryAction <T>,
-): StateHistory <T> {
+  state: StateHistory<T>,
+  action: HistoryAction<T>,
+): StateHistory<T> {
   switch (action.type) {
     case 'UNDO': {
-      if (state.past.length === 0)
-        return state
+      if (state.past.length === 0) return state
 
       const previousState = state.past[state.past.length - 1]
       const newPast = state.past.slice(0, state.past.length - 1)
@@ -56,8 +55,7 @@ export function historyReducer<T>(
     }
 
     case 'REDO': {
-      if (state.future.length === 0)
-        return state
+      if (state.future.length === 0) return state
 
       const nextState = state.future[0]
       const newFuture = state.future.slice(1)
@@ -72,8 +70,7 @@ export function historyReducer<T>(
 
     case 'SAVE_STATE': {
       // Don't save if the state hasn't changed
-      if (deepEqual(state.present, action.payload))
-        return state
+      if (deepEqual(state.present, action.payload)) return state
 
       let newPast = [...state.past, state.present]
 
@@ -99,8 +96,7 @@ export function historyReducer<T>(
 
     case 'JUMP_TO_PAST': {
       const pastIndex = action.payload
-      if (pastIndex < 0 || pastIndex >= state.past.length)
-        return state
+      if (pastIndex < 0 || pastIndex >= state.past.length) return state
 
       const targetPastState = state.past[pastIndex]
       const statesAfterTarget = [
@@ -119,8 +115,7 @@ export function historyReducer<T>(
 
     case 'JUMP_TO_FUTURE': {
       const futureIndex = action.payload
-      if (futureIndex < 0 || futureIndex >= state.future.length)
-        return state
+      if (futureIndex < 0 || futureIndex >= state.future.length) return state
 
       const targetFutureState = state.future[futureIndex]
       const statesBeforeTarget = [
@@ -147,21 +142,21 @@ export function historyReducer<T>(
 /**
  * Check if undo is available
  */
-export function canUndo<T>(history: StateHistory <T>): boolean {
+export function canUndo<T>(history: StateHistory<T>): boolean {
   return history.past.length > 0
 }
 
 /**
  * Check if redo is available
  */
-export function canRedo<T>(history: StateHistory <T>): boolean {
+export function canRedo<T>(history: StateHistory<T>): boolean {
   return history.future.length > 0
 }
 
 /**
  * Get undo / redo counts
  */
-export function getHistoryCounts<T>(history: StateHistory <T>): {
+export function getHistoryCounts<T>(history: StateHistory<T>): {
   undoCount: number
   redoCount: number
 } {
@@ -179,9 +174,9 @@ export function withHistory<T, A>(
   shouldSaveHistory?: (action: A) => boolean,
 ) {
   return function historyAwareReducer(
-    history: StateHistory <T>,
-    action: A | HistoryAction <T>,
-  ): StateHistory <T> {
+    history: StateHistory<T>,
+    action: A | HistoryAction<T>,
+  ): StateHistory<T> {
     // Handle history actions
     if (isHistoryAction(action)) {
       return historyReducer(history, action)
@@ -209,7 +204,7 @@ export function withHistory<T, A>(
 /**
  * Type guard for history actions
  */
-function isHistoryAction<T>(action: any): action is HistoryAction <T> {
+function isHistoryAction<T>(action: any): action is HistoryAction<T> {
   return [
     'UNDO',
     'REDO',
@@ -224,25 +219,20 @@ function isHistoryAction<T>(action: any): action is HistoryAction <T> {
  * Simple deep equality check
  */
 function deepEqual(a: unknown, b: any): boolean {
-  if (a === b)
-    return true
+  if (a === b) return true
 
-  if (a == null || b == null)
-    return false
+  if (a == null || b == null) return false
 
-  if (a.constructor !== b.constructor)
-    return false
+  if (a.constructor !== b.constructor) return false
 
   if (a instanceof Date && b instanceof Date) {
     return a.getTime() === b.getTime()
   }
 
   if (Array.isArray(a)) {
-    if (a.length !== b.length)
-      return false
+    if (a.length !== b.length) return false
     for (let i = 0; i < a.length; i++) {
-      if (!deepEqual(a[i], b[i]))
-        return false
+      if (!deepEqual(a[i], b[i])) return false
     }
     return true
   }
@@ -251,14 +241,11 @@ function deepEqual(a: unknown, b: any): boolean {
     const keysA = Object.keys(a)
     const keysB = Object.keys(b)
 
-    if (keysA.length !== keysB.length)
-      return false
+    if (keysA.length !== keysB.length) return false
 
     for (const key of keysA) {
-      if (!keysB.includes(key))
-        return false
-      if (!deepEqual(a[key], b[key]))
-        return false
+      if (!keysB.includes(key)) return false
+      if (!deepEqual(a[key], b[key])) return false
     }
 
     return true
@@ -274,7 +261,7 @@ export function createHistorySaver<T>(
   saveHistory: (state: T) => void,
   debounceMs = 1000,
 ) {
-  let timeoutId: ReturnType <typeof setTimeout> | null = null
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
 
   return (state: T) => {
     if (timeoutId) {

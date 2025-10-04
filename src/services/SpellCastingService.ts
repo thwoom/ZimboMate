@@ -49,12 +49,9 @@ export class SpellCastingService {
    * Which stat is used to cast spells for this character
    */
   getSpellcastingStat(character: Character): keyof Attribute | undefined {
-    if (character.class === 'Wizard')
-      return 'INT'
-    if (character.class === 'Cleric')
-      return 'WIS'
-    if (character.class === 'Immolator')
-      return 'INT' // Immolator uses INT
+    if (character.class === 'Wizard') return 'INT'
+    if (character.class === 'Cleric') return 'WIS'
+    if (character.class === 'Immolator') return 'INT' // Immolator uses INT
     return undefined
   }
 
@@ -89,7 +86,10 @@ export class SpellCastingService {
   /**
    * Check if spell list fits within preparation budget
    */
-  canPrepareSpells(character: Character, spells: ServiceSpell[]): {
+  canPrepareSpells(
+    character: Character,
+    spells: ServiceSpell[],
+  ): {
     canPrepare: boolean
     totalLevels: number
     budget: number
@@ -110,21 +110,28 @@ export class SpellCastingService {
   /**
    * Replace prepared spells for Wizard / Cleric according to budget rules
    */
-  prepareSpells(character: Character, selectedSpells: ServiceSpell[]): Character {
+  prepareSpells(
+    character: Character,
+    selectedSpells: ServiceSpell[],
+  ): Character {
     if (!this.canCastSpells(character)) {
       throw new Error('This class does not cast spells.')
     }
 
     const preparationCheck = this.canPrepareSpells(character, selectedSpells)
     if (!preparationCheck.canPrepare) {
-      throw new Error(`Preparation exceeds budget by ${preparationCheck.overflow} spell levels`)
+      throw new Error(
+        `Preparation exceeds budget by ${preparationCheck.overflow} spell levels`,
+      )
     }
 
     const updated: Character = {
       ...character,
-      preparedSpells: selectedSpells.map(s => s.id),
+      preparedSpells: selectedSpells.map((s) => s.id),
       // Remove spellcasting strain on new preparation / commune
-      conditions: character.conditions.filter(c => c !== 'spellcasting-strain'),
+      conditions: character.conditions.filter(
+        (c) => c !== 'spellcasting-strain',
+      ),
       updatedAt: new Date(),
     }
 
@@ -186,13 +193,13 @@ export class SpellCastingService {
       // 10+: success, retain spell
       tier = '10+'
       consequences.push('The spell is successfully cast and retained.')
-    }
-    else if (roll.total >= 7) {
+    } else if (roll.total >= 7) {
       // 7–9: caller must choose one of DW-listed consequences
       tier = '7-9'
-      consequences.push('Choose one: draw unwelcome attention, forget the spell, or take -1 ongoing to cast a spell until you prepare spells again.')
-    }
-    else {
+      consequences.push(
+        'Choose one: draw unwelcome attention, forget the spell, or take -1 ongoing to cast a spell until you prepare spells again.',
+      )
+    } else {
       // 6-: failure — mark XP immediately
       tier = '6-'
       updated = { ...updated, xp: (updated.xp || 0) + 1 }
@@ -213,23 +220,23 @@ export class SpellCastingService {
     const updated = { ...character, updatedAt: new Date() }
 
     switch (consequence) {
-      case 'forget':
+      case 'forget': {
         // Wizard: forgotten; Cleric: revoked — same effect: remove from prepared
         const prepared = character.preparedSpells || []
-        updated.preparedSpells = prepared.filter(id => id !== spell.id)
+        updated.preparedSpells = prepared.filter((id) => id !== spell.id)
         break
+      }
 
-      case 'strain':
-        // -1 ongoing to Cast a Spell until next Prepare / Commune
+      case 'strain': {
         const conditions = new Set(character.conditions || [])
         conditions.add('spellcasting-strain')
         updated.conditions = [...conditions]
         break
+      }
 
-      case 'unwelcome-attention':
-        // This is fictional; no mechanical change here
-        // The GM will make a move based on the fiction
+      case 'unwelcome-attention': {
         break
+      }
     }
 
     return updated
@@ -238,7 +245,10 @@ export class SpellCastingService {
   /**
    * Get available spells for a character class and level
    */
-  getAvailableSpells(characterClass: CharacterClass, level: number): ServiceSpell[] {
+  getAvailableSpells(
+    _characterClass: CharacterClass,
+    _level: number,
+  ): ServiceSpell[] {
     // This would typically load from a spell compendium
     // For now, return empty array as we don't have spell data loaded
     return []
@@ -247,7 +257,7 @@ export class SpellCastingService {
   /**
    * Get spell by ID
    */
-  getSpellById(spellId: string): ServiceSpell | undefined {
+  getSpellById(_spellId: string): ServiceSpell | undefined {
     // This would typically load from a spell compendium
     // For now, return undefined as we don't have spell data loaded
     return undefined
@@ -256,7 +266,10 @@ export class SpellCastingService {
   /**
    * Check if a spell can be cast by a character
    */
-  canCastSpell(character: Character, spell: ServiceSpell): {
+  canCastSpell(
+    character: Character,
+    spell: ServiceSpell,
+  ): {
     canCast: boolean
     reasons: string[]
   } {
@@ -325,7 +338,9 @@ export class SpellCastingService {
   removeSpellcastingStrain(character: Character): Character {
     return {
       ...character,
-      conditions: character.conditions.filter(c => c !== 'spellcasting-strain'),
+      conditions: character.conditions.filter(
+        (c) => c !== 'spellcasting-strain',
+      ),
       updatedAt: new Date(),
     }
   }

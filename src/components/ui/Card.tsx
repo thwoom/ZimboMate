@@ -32,14 +32,31 @@ const cardVariants = cva(
  */
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof cardVariants> {}
+    VariantProps<typeof cardVariants> {}
 
-function Card({ ref, className, variant, ...props }: CardProps & { ref?: React.RefObject<HTMLDivElement | null> }) {
-  return <div ref={ref} className={cn(cardVariants({ variant, className }))} {...props} />
+function Card({
+  ref,
+  className,
+  variant,
+  ...props
+}: CardProps & { ref?: React.RefObject<HTMLDivElement | null> }) {
+  return (
+    <div
+      ref={ref}
+      className={cn(cardVariants({ variant, className }))}
+      {...props}
+    />
+  )
 }
 Card.displayName = 'Card'
 
-function CardHeader({ ref, className, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.RefObject<HTMLDivElement | null> }) {
+function CardHeader({
+  ref,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  ref?: React.RefObject<HTMLDivElement | null>
+}) {
   return (
     <div
       ref={ref}
@@ -50,30 +67,77 @@ function CardHeader({ ref, className, ...props }: React.HTMLAttributes<HTMLDivEl
 }
 CardHeader.displayName = 'CardHeader'
 
-function CardTitle({ ref, className, ...props }: React.HTMLAttributes<HTMLHeadingElement> & { ref?: React.RefObject<HTMLHeadingElement | null> }) {
+function CardTitle({
+  ref,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement> & {
+  ref?: React.RefObject<HTMLHeadingElement | null>
+}) {
   return (
     <h3
       ref={ref}
-      className={cn('text-lg font-semibold leading-none tracking-tight', className)}
+      className={cn(
+        'text-lg font-semibold leading-none tracking-tight',
+        className,
+      )}
       {...props}
     />
   )
 }
 CardTitle.displayName = 'CardTitle'
 
-function CardDescription({ ref, className, ...props }: React.HTMLAttributes<HTMLParagraphElement> & { ref?: React.RefObject<HTMLParagraphElement | null> }) {
-  return <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+function CardDescription({
+  ref,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement> & {
+  ref?: React.RefObject<HTMLParagraphElement | null>
+}) {
+  return (
+    <p
+      ref={ref}
+      className={cn('text-sm text-muted-foreground', className)}
+      {...props}
+    />
+  )
 }
 CardDescription.displayName = 'CardDescription'
 
-function CardContent({ ref, className, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.RefObject<HTMLDivElement | null> }) {
+function CardContent({
+  ref,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  ref?: React.RefObject<HTMLDivElement | null>
+}) {
   return <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
 }
 CardContent.displayName = 'CardContent'
 
-function CardFooter({ ref, className, ...props }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.RefObject<HTMLDivElement | null> }) {
-  return <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
+function CardFooter({
+  ref,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
+  ref?: React.RefObject<HTMLDivElement | null>
+}) {
+  return (
+    <div
+      ref={ref}
+      className={cn('flex items-center p-6 pt-0', className)}
+      {...props}
+    />
+  )
 }
 CardFooter.displayName = 'CardFooter'
 
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cardVariants }
+export {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  cardVariants,
+}

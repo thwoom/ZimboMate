@@ -3,54 +3,54 @@
  */
 
 // The six core debilities in Dungeon World
-export type DebilityType
-  = | 'weak' // -1 to STR
-    | 'shaky' // -1 to DEX
-    | 'sick' // -1 to CON
-    | 'stunned' // -1 to INT
-    | 'confused' // -1 to WIS
-    | 'scarred' // -1 to CHA
+export type DebilityType =
+  | 'weak' // -1 to STR
+  | 'shaky' // -1 to DEX
+  | 'sick' // -1 to CON
+  | 'stunned' // -1 to INT
+  | 'confused' // -1 to WIS
+  | 'scarred' // -1 to CHA
 
 // Ongoing effect types
-export type OngoingEffectType
-  = | '+1 forward'
-    | '-1 ongoing'
-    | '+2 forward'
-    | '-2 ongoing'
-    | '+3 forward'
-    | '-3 ongoing'
-    | 'advantage'
-    | 'disadvantage'
-    | 'immune'
-    | 'vulnerable'
-    | 'resistant'
+export type OngoingEffectType =
+  | '+1 forward'
+  | '-1 ongoing'
+  | '+2 forward'
+  | '-2 ongoing'
+  | '+3 forward'
+  | '-3 ongoing'
+  | 'advantage'
+  | 'disadvantage'
+  | 'immune'
+  | 'vulnerable'
+  | 'resistant'
 
 // Condition duration types
-export type DurationType
-  = | 'instant' // Immediate effect, no duration
-    | 'until_end_of_turn' // Until end of current turn
-    | 'until_end_of_scene' // Until end of current scene
-    | 'until_rest' // Until next rest
-    | 'until_dawn' // Until next dawn
-    | 'permanent' // Permanent until removed
-    | 'custom' // Custom duration with specific end time
+export type DurationType =
+  | 'instant' // Immediate effect, no duration
+  | 'until_end_of_turn' // Until end of current turn
+  | 'until_end_of_scene' // Until end of current scene
+  | 'until_rest' // Until next rest
+  | 'until_dawn' // Until next dawn
+  | 'permanent' // Permanent until removed
+  | 'custom' // Custom duration with specific end time
 
 // Condition source types
-export type ConditionSource
-  = | 'move' // From a character move
-    | 'spell' // From a spell
-    | 'item' // From an item or equipment
-    | 'environment' // From environmental effects
-    | 'npc' // From NPC actions
-    | 'gm' // From GM decisions
-    | 'manual' // Manually added
+export type ConditionSource =
+  | 'move' // From a character move
+  | 'spell' // From a spell
+  | 'item' // From an item or equipment
+  | 'environment' // From environmental effects
+  | 'npc' // From NPC actions
+  | 'gm' // From GM decisions
+  | 'manual' // Manually added
 
 // Condition priority for stacking
-export type ConditionPriority
-  = | 'low' // Can be overridden by higher priority
-    | 'normal' // Standard priority
-    | 'high' // Overrides lower priority conditions
-    | 'critical' // Cannot be overridden
+export type ConditionPriority =
+  | 'low' // Can be overridden by higher priority
+  | 'normal' // Standard priority
+  | 'high' // Overrides lower priority conditions
+  | 'critical' // Cannot be overridden
 
 // Base condition interface
 export interface Condition {
@@ -63,7 +63,7 @@ export interface Condition {
   // Effect details
   debilityType?: DebilityType
   ongoingEffectType?: OngoingEffectType
-  statModifiers?: Partial <Record<string, number>> // Generic stat modifiers
+  statModifiers?: Partial<Record<string, number>> // Generic stat modifiers
 
   // Duration and timing
   duration: DurationType
@@ -94,7 +94,7 @@ export interface Condition {
 
   // Notes and custom data
   notes?: string
-  customData?: Record <string, unknown>
+  customData?: Record<string, unknown>
 
   // Timestamps
   createdAt: Date
@@ -105,7 +105,7 @@ export interface Condition {
 export interface Debility extends Condition {
   type: 'debility'
   debilityType: DebilityType
-  statModifiers: Record <DebilityType, number> // Maps debility to stat penalty
+  statModifiers: Record<DebilityType, number> // Maps debility to stat penalty
 }
 
 // Ongoing effect interface
@@ -140,7 +140,7 @@ export interface CreateConditionOptions {
   color?: string
   category?: string
   notes?: string
-  customData?: Record <string, unknown>
+  customData?: Record<string, unknown>
 
   // Type-specific options
   debilityType?: DebilityType
@@ -178,9 +178,9 @@ export interface ConditionStats {
   debilities: number
   ongoingEffects: number
   temporaryConditions: number
-  bySource: Record <ConditionSource, number>
-  byPriority: Record <ConditionPriority, number>
-  byType: Record <Condition['type'], number>
+  bySource: Record<ConditionSource, number>
+  byPriority: Record<ConditionPriority, number>
+  byType: Record<Condition['type'], number>
 }
 
 // Condition calculation result

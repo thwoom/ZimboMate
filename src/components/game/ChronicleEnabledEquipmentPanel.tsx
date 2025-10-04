@@ -23,7 +23,9 @@ interface ChronicleEnabledEquipmentPanelProps {
   className?: string
 }
 
-export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentPanelProps> = ({
+export const ChronicleEnabledEquipmentPanel: React.FC<
+  ChronicleEnabledEquipmentPanelProps
+> = ({
   character,
   onItemEquip,
   onItemUnequip,
@@ -36,113 +38,132 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
   const { emitEquipmentAction, isOverlayEnabled } = useChronicle()
 
   // Get item details from inventory
-  const getItemDetails = (itemId: string) => {
-    const item = character.inventory?.find(item => item.id === itemId)
-    return item
-      ? {
-          name: item.name,
-          type: item.category || 'item',
-          description: item.description || '',
-        }
-      : {
-          name: 'Unknown Item',
-          type: 'item',
-          description: '',
-        }
-  }
+  const getItemDetails = useCallback(
+    (itemId: string) => {
+      const item = character.inventory?.find((inventoryItem) => inventoryItem.id === itemId)
+      return item
+        ? {
+            name: item.name,
+            type: item.category || 'item',
+            description: item.description || '',
+          }
+        : {
+            name: 'Unknown Item',
+            type: 'item',
+            description: '',
+          }
+    },
+    [character.inventory],
+  )
 
   // Enhanced callbacks with Chronicle integration
-  const handleItemEquip = useCallback((itemId: string) => {
-    const item = getItemDetails(itemId)
+  const handleItemEquip = useCallback(
+    (itemId: string) => {
+      const item = getItemDetails(itemId)
 
-    // Trigger Chronicle system if enabled
-    if (enableChronicleIntegration && isOverlayEnabled) {
-      emitEquipmentAction({
-        characterName: character.name,
-        action: 'equip',
-        itemName: item.name,
-        itemType: item.type,
-      })
-    }
+      // Trigger Chronicle system if enabled
+      if (enableChronicleIntegration && isOverlayEnabled) {
+        emitEquipmentAction({
+          characterName: character.name,
+          action: 'equip',
+          itemName: item.name,
+          itemType: item.type,
+        })
+      }
 
-    // Call original callback
-    onItemEquip?.(itemId)
-  }, [
-    character.name,
-    enableChronicleIntegration,
-    isOverlayEnabled,
-    emitEquipmentAction,
-    onItemEquip,
-  ])
+      // Call original callback
+      onItemEquip?.(itemId)
+    },
+    [
+      character.name,
+      enableChronicleIntegration,
+      getItemDetails,
+      isOverlayEnabled,
+      emitEquipmentAction,
+      onItemEquip,
+    ],
+  )
 
-  const handleItemUnequip = useCallback((itemId: string) => {
-    const item = getItemDetails(itemId)
+  const handleItemUnequip = useCallback(
+    (itemId: string) => {
+      const item = getItemDetails(itemId)
 
-    // Trigger Chronicle system if enabled
-    if (enableChronicleIntegration && isOverlayEnabled) {
-      emitEquipmentAction({
-        characterName: character.name,
-        action: 'unequip',
-        itemName: item.name,
-        itemType: item.type,
-      })
-    }
+      // Trigger Chronicle system if enabled
+      if (enableChronicleIntegration && isOverlayEnabled) {
+        emitEquipmentAction({
+          characterName: character.name,
+          action: 'unequip',
+          itemName: item.name,
+          itemType: item.type,
+        })
+      }
 
-    // Call original callback
-    onItemUnequip?.(itemId)
-  }, [
-    character.name,
-    enableChronicleIntegration,
-    isOverlayEnabled,
-    emitEquipmentAction,
-    onItemUnequip,
-  ])
+      // Call original callback
+      onItemUnequip?.(itemId)
+    },
+    [
+      character.name,
+      enableChronicleIntegration,
+      getItemDetails,
+      isOverlayEnabled,
+      emitEquipmentAction,
+      onItemUnequip,
+    ],
+  )
 
-  const handleItemUse = useCallback((itemId: string) => {
-    const item = getItemDetails(itemId)
+  const handleItemUse = useCallback(
+    (itemId: string) => {
+      const item = getItemDetails(itemId)
 
-    // Trigger Chronicle system if enabled (this is the main one we want to prompt for)
-    if (enableChronicleIntegration && isOverlayEnabled) {
-      emitEquipmentAction({
-        characterName: character.name,
-        action: 'use',
-        itemName: item.name,
-        itemType: item.type,
-      })
-    }
+      // Trigger Chronicle system if enabled (this is the main one we want to prompt for)
+      if (enableChronicleIntegration && isOverlayEnabled) {
+        emitEquipmentAction({
+          characterName: character.name,
+          action: 'use',
+          itemName: item.name,
+          itemType: item.type,
+        })
+      }
 
-    // Call original callback
-    onItemUse?.(itemId)
-  }, [
-    character.name,
-    enableChronicleIntegration,
-    isOverlayEnabled,
-    emitEquipmentAction,
-    onItemUse,
-  ])
+      // Call original callback
+      onItemUse?.(itemId)
+    },
+    [
+      character.name,
+      enableChronicleIntegration,
+      getItemDetails,
+      isOverlayEnabled,
+      emitEquipmentAction,
+      onItemUse,
+    ],
+  )
 
-  const handleItemDrop = useCallback((itemId: string) => {
-    const item = getItemDetails(itemId)
+  const handleItemDrop = useCallback(
+    (itemId: string) => {
+      const item = getItemDetails(itemId)
 
-    // Trigger Chronicle system if enabled
-    if (enableChronicleIntegration && isOverlayEnabled) {
-      emitEquipmentAction({
-        characterName: character.name,
-        action: 'drop',
-        itemName: item.name,
-        itemType: item.type,
-      })
-    }
+      // Trigger Chronicle system if enabled
+      if (enableChronicleIntegration && isOverlayEnabled) {
+        emitEquipmentAction({
+          characterName: character.name,
+          action: 'drop',
+          itemName: item.name,
+          itemType: item.type,
+        })
+      }
 
-    // Call original callback
-    onItemDrop?.(itemId)
-  }, [
-    character.name,
-    enableChronicleIntegration,
-    isOverlayEnabled,
-    emitEquipmentAction,
-    onItemDrop,
-  ])
+      // Call original callback
+      onItemDrop?.(itemId)
+    },
+    [
+      character.name,
+      enableChronicleIntegration,
+      getItemDetails,
+      isOverlayEnabled,
+      emitEquipmentAction,
+      onItemDrop,
+    ],
+  )
 
   return (
     <div className={className}>
@@ -157,19 +178,14 @@ export const ChronicleEnabledEquipmentPanel: React.FC<ChronicleEnabledEquipmentP
 
       {/* Chronicle Integration Status Indicator */}
       {enableChronicleIntegration && (
-        <div className="mt-4 flex items-center justify-center">
-          <div className="flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-primary/10 text-primary">
-            <div className={`w-2 h-2 rounded-full ${isOverlayEnabled ? 'bg-chart-2' : 'bg-gray-400'}`} />
+        <div className='mt-4 flex items-center justify-center'>
+          <div className='flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-primary/10 text-primary'>
+            <div
+              className={`w-2 h-2 rounded-full ${isOverlayEnabled ? 'bg-chart-2' : 'bg-gray-400'}`}
+            />
             <span>
-              Chronicle
-              {' '}
-              {isOverlayEnabled ? 'enabled' : 'disabled'}
-              {' '}
-              - Item usage will
-              {' '}
-              {isOverlayEnabled ? '' : 'not'}
-              {' '}
-              trigger story prompts
+              Chronicle {isOverlayEnabled ? 'enabled' : 'disabled'} - Item usage
+              will {isOverlayEnabled ? '' : 'not'} trigger story prompts
             </span>
           </div>
         </div>

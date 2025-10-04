@@ -61,28 +61,34 @@ const resultVariants = {
 }
 
 function getOutcome(total: number): 'success' | 'partial' | 'failure' {
-  if (total >= 10)
-    return 'success'
-  if (total >= 7)
-    return 'partial'
+  if (total >= 10) return 'success'
+  if (total >= 7) return 'partial'
   return 'failure'
 }
 
 function getOutcomeColor(outcome: string) {
   switch (outcome) {
-    case 'success': return 'text-chart-2'
-    case 'partial': return 'text-chart-4'
-    case 'failure': return 'text-destructive'
-    default: return 'text-foreground'
+    case 'success':
+      return 'text-chart-2'
+    case 'partial':
+      return 'text-chart-4'
+    case 'failure':
+      return 'text-destructive'
+    default:
+      return 'text-foreground'
   }
 }
 
 function getOutcomeText(outcome: string) {
   switch (outcome) {
-    case 'success': return 'Success! (10+)'
-    case 'partial': return 'Partial Success (7-9)'
-    case 'failure': return 'Failure (6-)'
-    default: return ''
+    case 'success':
+      return 'Success! (10+)'
+    case 'partial':
+      return 'Partial Success (7-9)'
+    case 'failure':
+      return 'Failure (6-)'
+    default:
+      return ''
   }
 }
 
@@ -94,13 +100,12 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
   const [isRolling, setIsRolling] = useState(false)
   const [result, setResult] = useState<DiceResult | null>(null)
   const rollDice = useCallback(async () => {
-    if (isRolling || disabled)
-      return
+    if (isRolling || disabled) return
 
     setIsRolling(true)
     setResult(null)
     // Simulate dice rolling delay
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    await new Promise((resolve) => setTimeout(resolve, 1500))
 
     const dice1 = Math.floor(Math.random() * 6) + 1
     const dice2 = Math.floor(Math.random() * 6) + 1
@@ -123,12 +128,12 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
   }, [isRolling, disabled, modifier, onRoll])
 
   return (
-    <Card variant="magical" className="relative overflow-hidden">
-      <CardContent className="text-center space-y-6">
-        <div className="flex items-center justify-center gap-4">
-          <h3 className="text-xl font-display">2d6 Roll</h3>
+    <Card variant='magical' className='relative overflow-hidden'>
+      <CardContent className='text-center space-y-6'>
+        <div className='flex items-center justify-center gap-4'>
+          <h3 className='text-xl font-display'>2d6 Roll</h3>
           {modifier !== 0 && (
-            <div className="flex items-center gap-1 text-sm font-mono bg-popover px-2 py-1 rounded">
+            <div className='flex items-center gap-1 text-sm font-mono bg-popover px-2 py-1 rounded'>
               {modifier > 0 ? <Plus size={12} /> : <Minus size={12} />}
               {Math.abs(modifier)}
             </div>
@@ -136,31 +141,29 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
         </div>
 
         {/* Dice Display */}
-        <div className="flex items-center justify-center gap-6">
+        <div className='flex items-center justify-center gap-6'>
           <motion.div
             variants={diceVariants}
             animate={isRolling ? 'rolling' : result ? 'result' : 'idle'}
-            className="relative"
+            className='relative'
           >
-            <div className="w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg">
-              {isRolling
-                ? (
-                    <Dice6 size={32} className="text-primary" />
-                  )
-                : result
-                  ? (
-                      <span className="text-2xl font-bold font-display">{result.dice1}</span>
-                    )
-                  : (
-                      <Dice6 size={32} className="text-muted-foreground" />
-                    )}
+            <div className='w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg'>
+              {isRolling ? (
+                <Dice6 size={32} className='text-primary' />
+              ) : result ? (
+                <span className='text-2xl font-bold font-display'>
+                  {result.dice1}
+                </span>
+              ) : (
+                <Dice6 size={32} className='text-muted-foreground' />
+              )}
             </div>
           </motion.div>
 
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="text-2xl font-display text-muted-foreground"
+            className='text-2xl font-display text-muted-foreground'
           >
             +
           </motion.div>
@@ -168,20 +171,18 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
           <motion.div
             variants={diceVariants}
             animate={isRolling ? 'rolling' : result ? 'result' : 'idle'}
-            className="relative"
+            className='relative'
           >
-            <div className="w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg">
-              {isRolling
-                ? (
-                    <Dice6 size={32} className="text-primary" />
-                  )
-                : result
-                  ? (
-                      <span className="text-2xl font-bold font-display">{result.dice2}</span>
-                    )
-                  : (
-                      <Dice6 size={32} className="text-muted-foreground" />
-                    )}
+            <div className='w-16 h-16 bg-popover rounded-lg border-2 border-primary/30 flex items-center justify-center shadow-lg'>
+              {isRolling ? (
+                <Dice6 size={32} className='text-primary' />
+              ) : result ? (
+                <span className='text-2xl font-bold font-display'>
+                  {result.dice2}
+                </span>
+              ) : (
+                <Dice6 size={32} className='text-muted-foreground' />
+              )}
             </div>
           </motion.div>
         </div>
@@ -192,26 +193,24 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
             <motion.div
               key={`result-${result.finalResult}-${result.dice1}-${result.dice2}`}
               variants={resultVariants}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              className="space-y-3 dice-result roll-result"
+              initial='hidden'
+              animate='visible'
+              exit='hidden'
+              className='space-y-3 dice-result roll-result'
             >
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground font-mono">
-                  {result.dice1}
-                  {' '}
-                  +
-                  {result.dice2}
-                  {' '}
-                  {modifier !== 0 ? `+ ${modifier}` : ''}
-                  {' '}
-                  =
+              <div className='text-center'>
+                <div className='text-sm text-muted-foreground font-mono'>
+                  {result.dice1} +{result.dice2}{' '}
+                  {modifier !== 0 ? `+ ${modifier}` : ''} =
                 </div>
-                <div className={`text-4xl font-bold font-display ${getOutcomeColor(result.outcome)}`}>
+                <div
+                  className={`text-4xl font-bold font-display ${getOutcomeColor(result.outcome)}`}
+                >
                   {result.finalResult}
                 </div>
-                <div className={`text-lg font-medium ${getOutcomeColor(result.outcome)}`}>
+                <div
+                  className={`text-lg font-medium ${getOutcomeColor(result.outcome)}`}
+                >
                   {getOutcomeText(result.outcome)}
                 </div>
               </div>
@@ -220,20 +219,17 @@ export const DiceRoller: React.FC<DiceRollerProps> = ({
         </AnimatePresence>
 
         {/* Roll Button */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
-            variant="primary"
-            size="lg"
+            variant='primary'
+            size='lg'
             onClick={rollDice}
             disabled={isRolling || disabled}
-            className="w-full relative overflow-hidden"
-            aria-label="Roll dice"
+            className='w-full relative overflow-hidden'
+            aria-label='Roll dice'
           >
             <motion.div
-              className="flex items-center gap-2"
+              className='flex items-center gap-2'
               animate={isRolling ? { x: [0, 5, -5, 0] } : { x: 0 }}
               transition={{ duration: 0.3, repeat: isRolling ? Infinity : 0 }}
             >

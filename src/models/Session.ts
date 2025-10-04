@@ -6,22 +6,22 @@ import type { Attribute } from './Character'
 import type { RollResult } from './Move'
 
 // Types of rolls
-export type RollType
-  = | 'attribute' // Rolling + attribute
-    | 'damage' // Rolling damage
-    | 'custom' // Custom dice roll
-    | 'move' // Rolling for a specific move
+export type RollType =
+  | 'attribute' // Rolling + attribute
+  | 'damage' // Rolling damage
+  | 'custom' // Custom dice roll
+  | 'move' // Rolling for a specific move
 
 // Dice notation
-export type DiceNotation
-  = | '2d6'
-    | '1d4'
-    | '1d6'
-    | '1d8'
-    | '1d10'
-    | '1d12'
-    | '1d20'
-    | 'custom'
+export type DiceNotation =
+  | '2d6'
+  | '1d4'
+  | '1d6'
+  | '1d8'
+  | '1d10'
+  | '1d12'
+  | '1d20'
+  | 'custom'
 
 // Single roll record
 export interface Roll {
@@ -118,7 +118,7 @@ export function createNewSession(): Session {
  */
 export function addRoll(
   session: Session,
-  rollData: Omit <Roll, 'id' | 'timestamp'>,
+  rollData: Omit<Roll, 'id' | 'timestamp'>,
 ): Session {
   const roll: Roll = {
     ...rollData,
@@ -137,7 +137,7 @@ export function addRoll(
  */
 export function addNote(
   session: Session,
-  noteData: Omit <Note, 'id' | 'timestamp' | 'pinned'>,
+  noteData: Omit<Note, 'id' | 'timestamp' | 'pinned'>,
 ): Session {
   const note: Note = {
     ...noteData,
@@ -157,7 +157,7 @@ export function addNote(
  */
 export function addEvent(
   session: Session,
-  eventData: Omit <SessionEvent, 'id' | 'timestamp'>,
+  eventData: Omit<SessionEvent, 'id' | 'timestamp'>,
 ): Session {
   const event: SessionEvent = {
     ...eventData,
@@ -176,22 +176,21 @@ export function addEvent(
  */
 export function setTracker(
   session: Session,
-  trackerData: Omit <Tracker, 'id'> & { id?: string },
+  trackerData: Omit<Tracker, 'id'> & { id?: string },
 ): Session {
   const tracker: Tracker = {
     ...trackerData,
     id: trackerData.id || generateId(),
   }
 
-  const existingIndex = session.trackers.findIndex(t => t.id === tracker.id)
+  const existingIndex = session.trackers.findIndex((t) => t.id === tracker.id)
 
   if (existingIndex >= 0) {
     // Update existing
     const newTrackers = [...session.trackers]
     newTrackers[existingIndex] = tracker
     return { ...session, trackers: newTrackers }
-  }
-  else {
+  } else {
     // Add new
     return { ...session, trackers: [...session.trackers, tracker] }
   }
@@ -203,7 +202,7 @@ export function setTracker(
 export function removeTracker(session: Session, trackerId: string): Session {
   return {
     ...session,
-    trackers: session.trackers.filter(t => t.id !== trackerId),
+    trackers: session.trackers.filter((t) => t.id !== trackerId),
   }
 }
 
@@ -238,7 +237,10 @@ export function rollDice(notation: DiceNotation | string): {
  */
 export function formatRoll(roll: Roll): string {
   const diceStr = roll.rolls.join(' + ')
-  const modStr = roll.modifier !== 0 ? ` ${roll.modifier >= 0 ? '+' : ''}${roll.modifier}` : ''
+  const modStr =
+    roll.modifier !== 0
+      ? ` ${roll.modifier >= 0 ? '+' : ''}${roll.modifier}`
+      : ''
   return `${diceStr}${modStr} = ${roll.total}`
 }
 
@@ -253,7 +255,7 @@ export function getRecentRolls(session: Session, count = 10): Roll[] {
  * Get pinned notes
  */
 export function getPinnedNotes(session: Session): Note[] {
-  return session.notes.filter(note => note.pinned)
+  return session.notes.filter((note) => note.pinned)
 }
 
 /**
@@ -261,10 +263,11 @@ export function getPinnedNotes(session: Session): Note[] {
  */
 export function searchNotes(session: Session, query: string): Note[] {
   const lowerQuery = query.toLowerCase()
-  return session.notes.filter(note =>
-    note.content.toLowerCase().includes(lowerQuery)
-    || (note.title && note.title.toLowerCase().includes(lowerQuery))
-    || note.tags.some(tag => tag.toLowerCase().includes(lowerQuery)),
+  return session.notes.filter(
+    (note) =>
+      note.content.toLowerCase().includes(lowerQuery) ||
+      (note.title && note.title.toLowerCase().includes(lowerQuery)) ||
+      note.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)),
   )
 }
 

@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
 import { expect, test } from '@playwright/test'
@@ -23,14 +23,6 @@ test.describe('Bundle Size & Performance Tests', () => {
 
     // CSS should be under 200KB
     expect(bundleStats.cssSize).toBeLessThan(200 * 1024)
-
-    console.log('Bundle Analysis:', {
-      main: `${(bundleStats.mainBundle.size / 1024 / 1024).toFixed(2)}MB`,
-      vendor: `${(bundleStats.vendorBundle.size / 1024 / 1024).toFixed(2)}MB`,
-      three: `${(bundleStats.threeBundle.size / 1024 / 1024).toFixed(2)}MB`,
-      css: `${(bundleStats.cssSize / 1024).toFixed(2)}KB`,
-      total: `${(bundleStats.totalSize / 1024 / 1024).toFixed(2)}MB`,
-    })
   })
 
   test('lighthouse performance score', async ({ page }) => {
@@ -71,23 +63,23 @@ test.describe('Bundle Size & Performance Tests', () => {
           })
 
           setTimeout(() => resolve(metrics), 3000)
-        }).observe({ entryTypes: ['paint', 'largest-contentful-paint', 'first-input', 'layout-shift'] })
+        }).observe({
+          entryTypes: [
+            'paint',
+            'largest-contentful-paint',
+            'first-input',
+            'layout-shift',
+          ],
+        })
       })
     })
 
-    const metrics = await performanceMetrics as any
+    const metrics = (await performanceMetrics) as any
 
     // Gaming apps can be more lenient on some metrics
     expect(metrics.fcp).toBeLessThan(3000) // 3s for first paint
     expect(metrics.lcp).toBeLessThan(4000) // 4s for largest paint (3D loading)
     expect(metrics.cls).toBeLessThan(0.25) // Cumulative layout shift
-
-    console.log('Performance Metrics:', {
-      FCP: `${metrics.fcp.toFixed(0)}ms`,
-      LCP: `${metrics.lcp.toFixed(0)}ms`,
-      FID: `${metrics.fid.toFixed(0)}ms`,
-      CLS: metrics.cls.toFixed(3),
-    })
   })
 
   test('memory usage during gaming session', async ({ page }) => {
@@ -110,7 +102,7 @@ test.describe('Bundle Size & Performance Tests', () => {
       if (i % 10 === 0) {
         await page.evaluate(() => {
           if ('gc' in window) {
-            (window as any).gc()
+            ;(window as any).gc()
           }
         })
       }
@@ -122,12 +114,6 @@ test.describe('Bundle Size & Performance Tests', () => {
 
     // Memory growth should be under 50MB for extended session
     expect(memoryGrowth).toBeLessThan(50 * 1024 * 1024)
-
-    console.log('Memory Analysis:', {
-      initial: `${(initialMemory / 1024 / 1024).toFixed(2)}MB`,
-      final: `${(finalMemory / 1024 / 1024).toFixed(2)}MB`,
-      growth: `${(memoryGrowth / 1024 / 1024).toFixed(2)}MB`,
-    })
   })
 
   test('3D rendering performance', async ({ page }) => {
@@ -153,8 +139,7 @@ test.describe('Bundle Size & Performance Tests', () => {
 
           if (fps.length < 5) {
             requestAnimationFrame(measureFPS)
-          }
-          else {
+          } else {
             resolve(fps)
           }
         }
@@ -163,20 +148,19 @@ test.describe('Bundle Size & Performance Tests', () => {
       })
     })
 
-    const avgFPS = (fpsData as number[]).reduce((a, b) => a + b, 0) / (fpsData as number[]).length
+    const avgFPS =
+      (fpsData as number[]).reduce((a, b) => a + b, 0) /
+      (fpsData as number[]).length
 
     // Gaming apps should maintain at least 30 FPS
     expect(avgFPS).toBeGreaterThan(30)
-
-    console.log('3D Performance:', {
-      averageFPS: avgFPS.toFixed(1),
-      samples: fpsData,
-    })
   })
 })
 
 function getBundleStats(distPath: string) {
-  const files = require('node:fs').readdirSync(`${distPath}/assets`, { withFileTypes: true })
+  const files = readdirSync(`${distPath}/assets`, {
+    withFileTypes: true,
+  })
 
   let mainBundle = { size: 0, name: '' }
   let vendorBundle = { size: 0, name: '' }
@@ -187,20 +171,17 @@ function getBundleStats(distPath: string) {
   files.forEach((file: any) => {
     if (file.isFile()) {
       const filePath = join(distPath, 'assets', file.name)
-      const stats = require('node:fs').statSync(filePath)
+      const stats = statSync(filePath)
       const size = stats.size
       totalSize += size
 
       if (file.name.includes('index-') && file.name.endsWith('.js')) {
         mainBundle = { size, name: file.name }
-      }
-      else if (file.name.includes('vendor-') && file.name.endsWith('.js')) {
+      } else if (file.name.includes('vendor-') && file.name.endsWith('.js')) {
         vendorBundle = { size, name: file.name }
-      }
-      else if (file.name.includes('three-') && file.name.endsWith('.js')) {
+      } else if (file.name.includes('three-') && file.name.endsWith('.js')) {
         threeBundle = { size, name: file.name }
-      }
-      else if (file.name.endsWith('.css')) {
+      } else if (file.name.endsWith('.css')) {
         cssSize += size
       }
     }

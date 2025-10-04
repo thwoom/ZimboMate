@@ -66,37 +66,34 @@ export const EquippedItemsDisplay: React.FC<EquippedItemsDisplayProps> = ({
   }
 
   return (
-    <Card variant="magical">
+    <Card variant='magical'>
       <CardHeader>
-        <CardTitle className="text-xl font-display text-(--parchment-900) flex items-center gap-2">
-          <Sword size={20} className="text-(--parchment-800)" />
+        <CardTitle className='text-xl font-display text-(--parchment-900) flex items-center gap-2'>
+          <Sword size={20} className='text-(--parchment-800)' />
           Equipped Items
         </CardTitle>
-        <p className="text-(--parchment-700) font-body">
+        <p className='text-(--parchment-700) font-body'>
           Currently equipped weapons, armor, and accessories
         </p>
       </CardHeader>
 
       <CardContent>
         <motion.div
-          className="space-y-6"
+          className='space-y-6'
           variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          initial='hidden'
+          animate='visible'
         >
           {/* Equipment Slots Grid */}
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-3 gap-4"
+            className='grid grid-cols-2 md:grid-cols-3 gap-4'
             variants={containerVariants}
           >
             {equipmentSlots.map((slot) => {
               const equippedItem = getItemForSlot(slot.category)
 
               return (
-                <motion.div
-                  key={slot.id}
-                  variants={slotVariants}
-                >
+                <motion.div key={slot.id} variants={slotVariants}>
                   <EquipmentSlot
                     slot={slot}
                     equippedItem={equippedItem}
@@ -110,17 +107,17 @@ export const EquippedItemsDisplay: React.FC<EquippedItemsDisplayProps> = ({
           {/* All Equipped Items List */}
           {equippedItems.length > 0 && (
             <motion.div
-              className="space-y-3"
+              className='space-y-3'
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <h3 className="text-lg font-semibold text-(--parchment-900) font-display">
+              <h3 className='text-lg font-semibold text-(--parchment-900) font-display'>
                 All Equipped Items
               </h3>
 
-              <div className="space-y-2">
-                {equippedItems.map(item => (
+              <div className='space-y-2'>
+                {equippedItems.map((item) => (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -143,16 +140,19 @@ export const EquippedItemsDisplay: React.FC<EquippedItemsDisplayProps> = ({
 
           {equippedItems.length === 0 && (
             <motion.div
-              className="text-center py-12"
+              className='text-center py-12'
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Sword size={48} className="text-(--parchment-400) mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-(--parchment-700) mb-2 font-display">
+              <Sword
+                size={48}
+                className='text-(--parchment-400) mx-auto mb-4'
+              />
+              <h3 className='text-lg font-semibold text-(--parchment-700) mb-2 font-display'>
                 No Equipment
               </h3>
-              <p className="text-(--parchment-600) font-body">
+              <p className='text-(--parchment-600) font-body'>
                 Equip weapons, armor, and accessories to see them here.
               </p>
             </motion.div>

@@ -41,8 +41,7 @@ class PerformanceMonitor {
   private rafId: number | null = null
 
   start() {
-    if (this.isMonitoring)
-      return
+    if (this.isMonitoring) return
 
     this.isMonitoring = true
     this.trackFPS()
@@ -62,7 +61,9 @@ class PerformanceMonitor {
     this.fpsCounter++
 
     if (now - this.lastFpsTime >= 1000) {
-      const fps = Math.round((this.fpsCounter * 1000) / (now - this.lastFpsTime))
+      const fps = Math.round(
+        (this.fpsCounter * 1000) / (now - this.lastFpsTime),
+      )
       this.fpsCounter = 0
       this.lastFpsTime = now
 
@@ -71,7 +72,12 @@ class PerformanceMonitor {
         logger.warn(`⚠️ Low FPS detected: ${fps}fps`)
       }
 
-      this.addMetric({ fps, memoryUsage: this.getMemoryUsage(), renderTime: 0, timestamp: now })
+      this.addMetric({
+        fps,
+        memoryUsage: this.getMemoryUsage(),
+        renderTime: 0,
+        timestamp: now,
+      })
     }
 
     if (this.isMonitoring) {
@@ -112,10 +118,10 @@ class PerformanceMonitor {
     if (existing) {
       existing.renderCount++
       existing.totalRenderTime += renderTime
-      existing.averageRenderTime = existing.totalRenderTime / existing.renderCount
+      existing.averageRenderTime =
+        existing.totalRenderTime / existing.renderCount
       existing.lastRenderTime = renderTime
-    }
-    else {
+    } else {
       this.componentMetrics.set(componentName, {
         name: componentName,
         renderCount: 1,
@@ -126,8 +132,11 @@ class PerformanceMonitor {
     }
 
     // Log warning for slow renders
-    if (renderTime > 16) { // 60fps = 16.67ms per frame
-      logger.warn(`🐌 Slow render detected: ${componentName} took ${renderTime.toFixed(2)}ms`)
+    if (renderTime > 16) {
+      // 60fps = 16.67ms per frame
+      logger.warn(
+        `🐌 Slow render detected: ${componentName} took ${renderTime.toFixed(2)}ms`,
+      )
     }
 
     return result
@@ -143,48 +152,48 @@ class PerformanceMonitor {
 
   getCurrentFPS(): number {
     const recent = this.metrics.slice(-5)
-    if (recent.length === 0)
-      return 0
+    if (recent.length === 0) return 0
     return recent.reduce((sum, m) => sum + m.fps, 0) / recent.length
   }
 
   getAverageMemoryUsage(): number {
     const recent = this.metrics.slice(-10)
-    if (recent.length === 0)
-      return 0
+    if (recent.length === 0) return 0
     return recent.reduce((sum, m) => sum + m.memoryUsage, 0) / recent.length
   }
 
   // Get performance report
   getReport(): {
-    fps: { current: number, average: number, min: number }
-    memory: { current: number, average: number, max: number }
+    fps: { current: number; average: number; min: number }
+    memory: { current: number; average: number; max: number }
     components: ComponentMetrics[]
     warnings: string[]
   } {
-    const fps = this.metrics.map(m => m.fps)
-    const memory = this.metrics.map(m => m.memoryUsage)
+    const fps = this.metrics.map((m) => m.fps)
+    const memory = this.metrics.map((m) => m.memoryUsage)
     const warnings: string[] = []
 
     const currentFPS = this.getCurrentFPS()
     const avgMemory = this.getAverageMemoryUsage()
 
-    if (currentFPS < 30)
-      warnings.push(`Low FPS: ${currentFPS.toFixed(1)}`)
+    if (currentFPS < 30) warnings.push(`Low FPS: ${currentFPS.toFixed(1)}`)
     if (avgMemory > 100)
       warnings.push(`High memory usage: ${avgMemory.toFixed(1)}MB`)
 
     // Check for slow components
     this.componentMetrics.forEach((comp) => {
       if (comp.averageRenderTime > 10) {
-        warnings.push(`Slow component: ${comp.name} (${comp.averageRenderTime.toFixed(2)}ms avg)`)
+        warnings.push(
+          `Slow component: ${comp.name} (${comp.averageRenderTime.toFixed(2)}ms avg)`,
+        )
       }
     })
 
     return {
       fps: {
         current: currentFPS,
-        average: fps.length > 0 ? fps.reduce((a, b) => a + b, 0) / fps.length : 0,
+        average:
+          fps.length > 0 ? fps.reduce((a, b) => a + b, 0) / fps.length : 0,
         min: fps.length > 0 ? Math.min(...fps) : 0,
       },
       memory: {
@@ -208,8 +217,7 @@ export function usePerformanceMonitor() {
   React.useEffect(() => {
     if (isMonitoring) {
       performanceMonitor.start()
-    }
-    else {
+    } else {
       performanceMonitor.stop()
     }
 
@@ -226,8 +234,15 @@ export function usePerformanceMonitor() {
 }
 
 // Higher-order component for performance tracking
-export function withPerformanceTracking<P extends object>(WrappedComponent: React.ComponentType<P>, componentName?: string) {
-  const displayName = componentName || WrappedComponent.displayName || WrappedComponent.name || 'Component'
+export function withPerformanceTracking<P extends object>(
+  WrappedComponent: React.ComponentType<P>,
+  componentName?: string,
+) {
+  const displayName =
+    componentName ||
+    WrappedComponent.displayName ||
+    WrappedComponent.name ||
+    'Component'
 
   const PerformanceTrackedComponent = (props: P) => {
     return performanceMonitor.trackComponentRender(displayName, () => (
@@ -240,7 +255,10 @@ export function withPerformanceTracking<P extends object>(WrappedComponent: Reac
 }
 
 // Performance optimization utilities
-export function debounce<Args extends unknown[]>(func: (...args: Args) => void, wait: number): ((...args: Args) => void) {
+export function debounce<Args extends unknown[]>(
+  func: (...args: Args) => void,
+  wait: number,
+): (...args: Args) => void {
   let timeout: NodeJS.Timeout | null = null
 
   return (...args: Args) => {
@@ -251,7 +269,10 @@ export function debounce<Args extends unknown[]>(func: (...args: Args) => void, 
   }
 }
 
-export function throttle<Args extends unknown[]>(func: (...args: Args) => void, limit: number): ((...args: Args) => void) {
+export function throttle<Args extends unknown[]>(
+  func: (...args: Args) => void,
+  limit: number,
+): (...args: Args) => void {
   let inThrottle = false
 
   return (...args: Args) => {
@@ -274,8 +295,11 @@ export function detectMemoryLeaks() {
       const currentMemory = perf.memory?.usedJSHeapSize ?? 0
       const increase = currentMemory - initialMemory
 
-      if (increase > 50 * 1024 * 1024) { // 50MB increase
-        logger.warn(`🚨 Potential memory leak detected: ${(increase / 1024 / 1024).toFixed(2)}MB increase`)
+      if (increase > 50 * 1024 * 1024) {
+        // 50MB increase
+        logger.warn(
+          `🚨 Potential memory leak detected: ${(increase / 1024 / 1024).toFixed(2)}MB increase`,
+        )
         return true
       }
       return false
@@ -292,8 +316,12 @@ if (import.meta.env.DEV) {
     const report = performanceMonitor.getReport()
     if (report.warnings.length > 0) {
       logger.info('🔍 Performance Report')
-      logger.info(`FPS: ${report.fps.current.toFixed(1)} (avg: ${report.fps.average.toFixed(1)})`)
-      logger.info(`Memory: ${report.memory.current.toFixed(1)}MB (avg: ${report.memory.average.toFixed(1)}MB)`)
+      logger.info(
+        `FPS: ${report.fps.current.toFixed(1)} (avg: ${report.fps.average.toFixed(1)})`,
+      )
+      logger.info(
+        `Memory: ${report.memory.current.toFixed(1)}MB (avg: ${report.memory.average.toFixed(1)}MB)`,
+      )
       logger.warn('Warnings:', report.warnings)
       logger.info()
     }

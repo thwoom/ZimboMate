@@ -28,13 +28,23 @@ interface MonsterState {
   quickMonsters: QuickMonster[]
 
   // Template operations
-  addCustomTemplate: (template: Omit<MonsterTemplate, 'id' | 'createdAt' | 'updatedAt'>) => void
+  addCustomTemplate: (
+    template: Omit<MonsterTemplate, 'id' | 'createdAt' | 'updatedAt'>,
+  ) => void
   updateTemplate: (id: string, updates: Partial<MonsterTemplate>) => void
   deleteTemplate: (id: string) => void
   duplicateTemplate: (id: string, newName?: string) => void
 
   // Quick monster operations
-  createQuickMonster: (name: string, hp: number, armor: number, damage: string, tags?: MonsterTag[], instinct?: string, moves?: string[]) => void
+  createQuickMonster: (
+    name: string,
+    hp: number,
+    armor: number,
+    damage: string,
+    tags?: MonsterTag[],
+    instinct?: string,
+    moves?: string[],
+  ) => void
   updateQuickMonster: (index: number, updates: Partial<QuickMonster>) => void
   deleteQuickMonster: (index: number) => void
 
@@ -43,7 +53,11 @@ interface MonsterState {
   getFavoriteTemplates: () => MonsterTemplate[]
 
   // Search and filtering
-  searchTemplates: (query: string, origin?: MonsterOrigin, tags?: MonsterTag[]) => MonsterTemplate[]
+  searchTemplates: (
+    query: string,
+    origin?: MonsterOrigin,
+    tags?: MonsterTag[],
+  ) => MonsterTemplate[]
   getTemplatesByLevel: (minLevel: number, maxLevel: number) => MonsterTemplate[]
 
   // Combat integration
@@ -51,7 +65,10 @@ interface MonsterState {
   createEncounterGroup: (templateIds: string[], count: number[]) => any[]
 
   // Scaling and customization
-  scaleTemplateForLevel: (templateId: string, level: number) => MonsterTemplate | null
+  scaleTemplateForLevel: (
+    templateId: string,
+    level: number,
+  ) => MonsterTemplate | null
 
   // Utility
   getAllTemplates: () => MonsterTemplate[]
@@ -77,14 +94,14 @@ export const useMonsterStore = create<MonsterState>()(
           updatedAt: new Date(),
         }
 
-        set(state => ({
+        set((state) => ({
           customTemplates: [...state.customTemplates, newTemplate],
         }))
       },
 
       updateTemplate: (id, updates) => {
-        set(state => ({
-          customTemplates: state.customTemplates.map(template =>
+        set((state) => ({
+          customTemplates: state.customTemplates.map((template) =>
             template.id === id
               ? { ...template, ...updates, updatedAt: new Date() }
               : template,
@@ -93,16 +110,17 @@ export const useMonsterStore = create<MonsterState>()(
       },
 
       deleteTemplate: (id) => {
-        set(state => ({
-          customTemplates: state.customTemplates.filter(template => template.id !== id),
-          favorites: state.favorites.filter(fav => fav !== id),
+        set((state) => ({
+          customTemplates: state.customTemplates.filter(
+            (template) => template.id !== id,
+          ),
+          favorites: state.favorites.filter((fav) => fav !== id),
         }))
       },
 
       duplicateTemplate: (id, newName) => {
         const template = get().getTemplateById(id)
-        if (!template)
-          return
+        if (!template) return
 
         const duplicatedTemplate: MonsterTemplate = {
           ...template,
@@ -113,21 +131,37 @@ export const useMonsterStore = create<MonsterState>()(
           updatedAt: new Date(),
         }
 
-        set(state => ({
+        set((state) => ({
           customTemplates: [...state.customTemplates, duplicatedTemplate],
         }))
       },
 
       // Quick monster operations
-      createQuickMonster: (name, hp, armor, damage, tags = [], instinct = 'To survive', moves = ['Attack']) => {
-        const quickMonster = createQuickMonster(name, hp, armor, damage, tags, instinct, moves)
-        set(state => ({
+      createQuickMonster: (
+        name,
+        hp,
+        armor,
+        damage,
+        tags = [],
+        instinct = 'To survive',
+        moves = ['Attack'],
+      ) => {
+        const quickMonster = createQuickMonster(
+          name,
+          hp,
+          armor,
+          damage,
+          tags,
+          instinct,
+          moves,
+        )
+        set((state) => ({
           quickMonsters: [...state.quickMonsters, quickMonster],
         }))
       },
 
       updateQuickMonster: (index, updates) => {
-        set(state => ({
+        set((state) => ({
           quickMonsters: state.quickMonsters.map((monster, i) =>
             i === index ? { ...monster, ...updates } : monster,
           ),
@@ -135,38 +169,43 @@ export const useMonsterStore = create<MonsterState>()(
       },
 
       deleteQuickMonster: (index) => {
-        set(state => ({
+        set((state) => ({
           quickMonsters: state.quickMonsters.filter((_, i) => i !== index),
         }))
       },
 
       // Favorites
       toggleFavorite: (templateId) => {
-        set(state => ({
+        set((state) => ({
           favorites: state.favorites.includes(templateId)
-            ? state.favorites.filter(id => id !== templateId)
+            ? state.favorites.filter((id) => id !== templateId)
             : [...state.favorites, templateId],
         }))
       },
 
       getFavoriteTemplates: () => {
         const { favorites, getAllTemplates } = get()
-        return getAllTemplates().filter(template => favorites.includes(template.id))
+        return getAllTemplates().filter((template) =>
+          favorites.includes(template.id),
+        )
       },
 
       // Search and filtering
       searchTemplates: (query, origin, tags) => {
         const allTemplates = get().getAllTemplates()
         return allTemplates.filter((template) => {
-          const matchesQuery = !query
-            || template.name.toLowerCase().includes(query.toLowerCase())
-            || template.description.toLowerCase().includes(query.toLowerCase())
-            || template.instinct.toLowerCase().includes(query.toLowerCase())
+          const matchesQuery =
+            !query ||
+            template.name.toLowerCase().includes(query.toLowerCase()) ||
+            template.description.toLowerCase().includes(query.toLowerCase()) ||
+            template.instinct.toLowerCase().includes(query.toLowerCase())
 
           const matchesOrigin = !origin || template.origin === origin
 
-          const matchesTags = !tags || tags.length === 0
-            || tags.every(tag => template.tags.includes(tag))
+          const matchesTags =
+            !tags ||
+            tags.length === 0 ||
+            tags.every((tag) => template.tags.includes(tag))
 
           return matchesQuery && matchesOrigin && matchesTags
         })
@@ -199,8 +238,7 @@ export const useMonsterStore = create<MonsterState>()(
 
         templateIds.forEach((templateId, index) => {
           const template = getTemplateById(templateId)
-          if (!template)
-            return
+          if (!template) return
 
           const count = counts[index] || 1
           for (let i = 0; i < count; i++) {
@@ -208,7 +246,8 @@ export const useMonsterStore = create<MonsterState>()(
               template,
               `${templateId}-${i + 1}`,
             )
-            participant.name = count > 1 ? `${template.name} ${i + 1}` : template.name
+            participant.name =
+              count > 1 ? `${template.name} ${i + 1}` : template.name
             participants.push(participant)
           }
         })
@@ -219,8 +258,7 @@ export const useMonsterStore = create<MonsterState>()(
       // Scaling
       scaleTemplateForLevel: (templateId, level) => {
         const template = get().getTemplateById(templateId)
-        if (!template)
-          return null
+        if (!template) return null
         return scaleMonster(template, level)
       },
 
@@ -232,12 +270,12 @@ export const useMonsterStore = create<MonsterState>()(
 
       getTemplateById: (id) => {
         const allTemplates = get().getAllTemplates()
-        return allTemplates.find(template => template.id === id) || null
+        return allTemplates.find((template) => template.id === id) || null
       },
     }),
     {
       name: 'zimbomate-monster-storage',
-      partialize: state => ({
+      partialize: (state) => ({
         customTemplates: state.customTemplates,
         favorites: state.favorites,
         quickMonsters: state.quickMonsters,

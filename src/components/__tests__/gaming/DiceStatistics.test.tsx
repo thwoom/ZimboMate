@@ -4,16 +4,19 @@ import { describe, expect, it } from 'vitest'
 // Gaming-specific statistical tests for dice rolling
 describe('dice Statistics & Game Mechanics', () => {
   // Mock dice rolling functions (replace with actual imports)
-  const roll2d6 = () => Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1
+  const roll2d6 = () =>
+    Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1
   const rollDie = (sides: number) => Math.floor(Math.random() * sides) + 1
 
   describe('dice Probability Distribution', () => {
     it('2d6 produces statistically valid distribution over many rolls', () => {
-      const rolls = Array.from({ length: 10000 }).fill(0).map(() => roll2d6())
+      const rolls = Array.from({ length: 10000 })
+        .fill(0)
+        .map(() => roll2d6())
 
       // Count occurrences of each result (2-12)
       const distribution = Array.from({ length: 13 }).fill(0)
-      rolls.forEach(roll => distribution[roll]++)
+      rolls.forEach((roll) => distribution[roll]++)
 
       // Check expected probabilities (within reasonable variance)
       // 7 should be most common (~16.67%)
@@ -32,9 +35,11 @@ describe('dice Statistics & Game Mechanics', () => {
     })
 
     it('single die produces uniform distribution', () => {
-      const rolls = Array.from({ length: 6000 }).fill(0).map(() => rollDie(6))
+      const rolls = Array.from({ length: 6000 })
+        .fill(0)
+        .map(() => rollDie(6))
       const distribution = Array.from({ length: 7 }).fill(0)
-      rolls.forEach(roll => distribution[roll]++)
+      rolls.forEach((roll) => distribution[roll]++)
 
       // Each face should appear roughly 1000 times (±200 for variance)
       for (let i = 1; i <= 6; i++) {
@@ -45,24 +50,31 @@ describe('dice Statistics & Game Mechanics', () => {
 
     it('advantage/disadvantage mechanics work correctly', () => {
       // Simulate rolling with advantage (take higher of two rolls)
-      const advantageRolls = Array.from({ length: 1000 }).fill(0).map(() => {
-        const roll1 = roll2d6()
-        const roll2 = roll2d6()
-        return Math.max(roll1, roll2)
-      })
+      const advantageRolls = Array.from({ length: 1000 })
+        .fill(0)
+        .map(() => {
+          const roll1 = roll2d6()
+          const roll2 = roll2d6()
+          return Math.max(roll1, roll2)
+        })
 
       // Simulate rolling with disadvantage (take lower of two rolls)
-      const disadvantageRolls = Array.from({ length: 1000 }).fill(0).map(() => {
-        const roll1 = roll2d6()
-        const roll2 = roll2d6()
-        return Math.min(roll1, roll2)
-      })
+      const disadvantageRolls = Array.from({ length: 1000 })
+        .fill(0)
+        .map(() => {
+          const roll1 = roll2d6()
+          const roll2 = roll2d6()
+          return Math.min(roll1, roll2)
+        })
 
-      const normalRolls = Array.from({ length: 1000 }).fill(0).map(() => roll2d6())
+      const normalRolls = Array.from({ length: 1000 })
+        .fill(0)
+        .map(() => roll2d6())
 
       const avgAdvantage = advantageRolls.reduce((a, b) => a + b, 0) / 1000
       const avgNormal = normalRolls.reduce((a, b) => a + b, 0) / 1000
-      const avgDisadvantage = disadvantageRolls.reduce((a, b) => a + b, 0) / 1000
+      const avgDisadvantage =
+        disadvantageRolls.reduce((a, b) => a + b, 0) / 1000
 
       // Advantage should have higher average than normal
       expect(avgAdvantage).toBeGreaterThan(avgNormal)
@@ -119,7 +131,7 @@ describe('dice Statistics & Game Mechanics', () => {
         const baseLoad = 7 + strModifier
 
         const totalWeight = items.reduce(
-          (total, item) => total + (item.weight * item.quantity),
+          (total, item) => total + item.weight * item.quantity,
           0,
         )
 
@@ -134,34 +146,35 @@ describe('dice Statistics & Game Mechanics', () => {
   describe('game Balance Testing', () => {
     it('spell slots regeneration follows rules', () => {
       // Property-based test for spell slot mechanics
-      fc.assert(fc.property(
-        fc.record({
-          level: fc.integer(1, 10),
-          restType: fc.constantFrom('short', 'long'),
-          slotsUsed: fc.integer(0, 9),
-        }),
-        (props) => {
-          // Mock spell slot calculation (replace with actual)
-          const availableSlots = Math.max(1, Math.floor(props.level / 2) + 1)
-          let currentSlots = Math.max(0, availableSlots - props.slotsUsed)
+      fc.assert(
+        fc.property(
+          fc.record({
+            level: fc.integer(1, 10),
+            restType: fc.constantFrom('short', 'long'),
+            slotsUsed: fc.integer(0, 9),
+          }),
+          (props) => {
+            // Mock spell slot calculation (replace with actual)
+            const availableSlots = Math.max(1, Math.floor(props.level / 2) + 1)
+            let currentSlots = Math.max(0, availableSlots - props.slotsUsed)
 
-          if (props.restType === 'long') {
-            currentSlots = availableSlots // Full restoration
-          }
-          else if (props.restType === 'short') {
-            currentSlots = Math.min(availableSlots, currentSlots + 1) // Partial restoration
-          }
+            if (props.restType === 'long') {
+              currentSlots = availableSlots // Full restoration
+            } else if (props.restType === 'short') {
+              currentSlots = Math.min(availableSlots, currentSlots + 1) // Partial restoration
+            }
 
-          expect(currentSlots).toBeGreaterThanOrEqual(0)
-          expect(currentSlots).toBeLessThanOrEqual(availableSlots)
-          return true
-        },
-      ))
+            expect(currentSlots).toBeGreaterThanOrEqual(0)
+            expect(currentSlots).toBeLessThanOrEqual(availableSlots)
+            return true
+          },
+        ),
+      )
     })
 
     it('experience points scale appropriately', () => {
       const levels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-      const xpRequirements = levels.map(level => level + 7) // Dungeon World XP
+      const xpRequirements = levels.map((level) => level + 7) // Dungeon World XP
 
       // XP requirements should increase with level
       for (let i = 1; i < xpRequirements.length; i++) {
@@ -181,8 +194,15 @@ describe('dice Statistics & Game Mechanics', () => {
       // Generate 100 random encounters
       for (let i = 0; i < 100; i++) {
         // Mock encounter generation (replace with actual)
-        const encounterTypes = ['combat', 'social', 'exploration', 'mystery', 'trap']
-        const randomType = encounterTypes[Math.floor(Math.random() * encounterTypes.length)]
+        const encounterTypes = [
+          'combat',
+          'social',
+          'exploration',
+          'mystery',
+          'trap',
+        ]
+        const randomType =
+          encounterTypes[Math.floor(Math.random() * encounterTypes.length)]
         encounters.push(randomType)
       }
 
@@ -191,10 +211,13 @@ describe('dice Statistics & Game Mechanics', () => {
       expect(uniqueTypes.size).toBeGreaterThan(3) // At least 4 different types
 
       // No single type should dominate completely
-      const typeCounts = encounters.reduce((counts, type) => {
-        counts[type] = (counts[type] || 0) + 1
-        return counts
-      }, {} as Record<string, number>)
+      const typeCounts = encounters.reduce(
+        (counts, type) => {
+          counts[type] = (counts[type] || 0) + 1
+          return counts
+        },
+        {} as Record<string, number>,
+      )
 
       Object.values(typeCounts).forEach((count) => {
         expect(count).toBeLessThan(80) // No type should be >80% of results

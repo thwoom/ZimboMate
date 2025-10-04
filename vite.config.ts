@@ -22,7 +22,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      'src': path.resolve(__dirname, './src'),
+      src: path.resolve(__dirname, './src'),
     },
   },
   build: {
@@ -40,7 +40,11 @@ export default defineConfig({
         // Code splitting for better caching
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+          ui: [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+          ],
           three: ['three', '@react-three/fiber', '@react-three/drei'],
           animation: ['framer-motion', 'lottie-react'],
           utils: ['zustand', '@tanstack/react-query', 'clsx'],

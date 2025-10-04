@@ -1,14 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap');
-@import "tw-animate-css";
-@import "tailwindcss";
+@import 'tw-animate-css';
+@import 'tailwindcss';
 
 /* === ZIMBOMATE V2 - MATSU THEME (GHIBLI INSPIRED) === */
 /* === MATSU THEME FONTS === */
 @custom-variant dark (&:is(.dark *));
 /* === SHADCN/UI BASE LAYER WITH MATSU THEME === */
-@layer base 
-{
+@layer base {
   :root {
     --background: oklch(0.91 0.048 83.6);
     --foreground: oklch(0.41 0.077 78.9);
@@ -69,9 +68,17 @@
     --color-text: var(--foreground);
     --color-text-primary: var(--foreground);
     --color-text-secondary: var(--muted-foreground);
-    --color-text-muted: color-mix(in oklch, var(--muted-foreground) 85%, var(--background) 15%);
+    --color-text-muted: color-mix(
+      in oklch,
+      var(--muted-foreground) 85%,
+      var(--background) 15%
+    );
     --color-primary: var(--primary);
-    --color-primary-light: color-mix(in oklch, var(--primary) 18%, var(--background) 82%);
+    --color-primary-light: color-mix(
+      in oklch,
+      var(--primary) 18%,
+      var(--background) 82%
+    );
     --color-primary-dark: color-mix(in oklch, var(--primary) 60%, black 40%);
     --color-secondary: var(--secondary);
     --color-accent: var(--accent);
@@ -107,16 +114,56 @@
     --color-importance-high: var(--destructive);
     --color-importance-medium: var(--chart-4);
 
-    --parchment-50: color-mix(in oklch, var(--background) 96%, var(--primary) 4%);
-    --parchment-100: color-mix(in oklch, var(--background) 92%, var(--primary) 8%);
-    --parchment-200: color-mix(in oklch, var(--background) 88%, var(--primary) 12%);
-    --parchment-300: color-mix(in oklch, var(--background) 82%, var(--primary) 18%);
-    --parchment-400: color-mix(in oklch, var(--background) 76%, var(--primary) 24%);
-    --parchment-500: color-mix(in oklch, var(--background) 68%, var(--primary) 32%);
-    --parchment-600: color-mix(in oklch, var(--background) 60%, var(--primary) 40%);
-    --parchment-700: color-mix(in oklch, var(--background) 50%, var(--primary) 50%);
-    --parchment-800: color-mix(in oklch, var(--background) 40%, var(--primary) 60%);
-    --parchment-900: color-mix(in oklch, var(--background) 32%, var(--primary) 68%);
+    --parchment-50: color-mix(
+      in oklch,
+      var(--background) 96%,
+      var(--primary) 4%
+    );
+    --parchment-100: color-mix(
+      in oklch,
+      var(--background) 92%,
+      var(--primary) 8%
+    );
+    --parchment-200: color-mix(
+      in oklch,
+      var(--background) 88%,
+      var(--primary) 12%
+    );
+    --parchment-300: color-mix(
+      in oklch,
+      var(--background) 82%,
+      var(--primary) 18%
+    );
+    --parchment-400: color-mix(
+      in oklch,
+      var(--background) 76%,
+      var(--primary) 24%
+    );
+    --parchment-500: color-mix(
+      in oklch,
+      var(--background) 68%,
+      var(--primary) 32%
+    );
+    --parchment-600: color-mix(
+      in oklch,
+      var(--background) 60%,
+      var(--primary) 40%
+    );
+    --parchment-700: color-mix(
+      in oklch,
+      var(--background) 50%,
+      var(--primary) 50%
+    );
+    --parchment-800: color-mix(
+      in oklch,
+      var(--background) 40%,
+      var(--primary) 60%
+    );
+    --parchment-900: color-mix(
+      in oklch,
+      var(--background) 32%,
+      var(--primary) 68%
+    );
 
     --gold-200: color-mix(in oklch, var(--chart-4) 40%, var(--background) 60%);
     --gold-300: color-mix(in oklch, var(--chart-4) 55%, var(--background) 45%);
@@ -131,8 +178,16 @@
     --magic-600: color-mix(in oklch, var(--chart-3) 75%, black 25%);
     --magic-700: color-mix(in oklch, var(--chart-3) 65%, black 35%);
 
-    --nature-300: color-mix(in oklch, var(--chart-2) 55%, var(--background) 45%);
-    --nature-400: color-mix(in oklch, var(--chart-2) 65%, var(--background) 35%);
+    --nature-300: color-mix(
+      in oklch,
+      var(--chart-2) 55%,
+      var(--background) 45%
+    );
+    --nature-400: color-mix(
+      in oklch,
+      var(--chart-2) 65%,
+      var(--background) 35%
+    );
     --nature-500: var(--chart-2);
     --nature-600: color-mix(in oklch, var(--chart-2) 75%, black 25%);
     --nature-700: color-mix(in oklch, var(--chart-2) 65%, black 35%);
@@ -145,7 +200,11 @@
     --green-600: color-mix(in oklch, var(--chart-2) 85%, black 15%);
     --blue-500: var(--primary);
     --blue-600: color-mix(in oklch, var(--primary) 85%, black 15%);
-    --danger-100: color-mix(in oklch, var(--destructive) 15%, var(--background) 85%);
+    --danger-100: color-mix(
+      in oklch,
+      var(--destructive) 15%,
+      var(--background) 85%
+    );
     --danger-500: var(--destructive);
     --danger-600: color-mix(in oklch, var(--destructive) 85%, black 15%);
     --purple-500: color-mix(in oklch, var(--accent) 80%, var(--chart-3) 20%);
@@ -251,7 +310,11 @@
   }
 
   .card-parchment {
-    background-image: linear-gradient(to bottom right, var(--parchment-100), var(--parchment-400));
+    background-image: linear-gradient(
+      to bottom right,
+      var(--parchment-100),
+      var(--parchment-400)
+    );
     border: 1px solid var(--parchment-500);
     box-shadow: 0 2px 6px color-mix(in oklch, var(--primary) 12%, transparent);
   }
@@ -270,13 +333,11 @@
   /* Matsu-themed button variants */
   .button-magical {
     color: var(--primary-foreground);
-    background-image: linear-gradient(
-      to right,
-      var(--primary),
-      var(--accent)
-    );
+    background-image: linear-gradient(to right, var(--primary), var(--accent));
     box-shadow: 0 10px 25px color-mix(in oklch, var(--primary) 15%, transparent);
-    transition: box-shadow 0.2s ease, filter 0.2s ease;
+    transition:
+      box-shadow 0.2s ease,
+      filter 0.2s ease;
   }
 
   .button-magical:hover {
@@ -436,6 +497,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-
-

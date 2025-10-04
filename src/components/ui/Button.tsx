@@ -8,13 +8,18 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-primary-foreground border border-primary-border shadow-primary hover:bg-primary/90',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/90 border border-secondary',
+        primary:
+          'bg-primary text-primary-foreground border border-primary-border shadow-primary hover:bg-primary/90',
+        secondary:
+          'bg-secondary text-secondary-foreground hover:bg-secondary/90 border border-secondary',
         outline: 'border border-border bg-transparent hover:bg-popover/70',
         ghost: 'bg-transparent hover:bg-popover',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 border border-destructive-border',
-        magical: 'bg-gradient-to-r from-chart-4 to-chart-3 text-white border border-primary-border shadow-primary hover:opacity-90',
-        cyber: 'bg-chart-3 text-primary-foreground hover:bg-chart-3/85 border border-primary-border',
+        destructive:
+          'bg-destructive text-destructive-foreground hover:bg-destructive/90 border border-destructive-border',
+        magical:
+          'bg-gradient-to-r from-chart-4 to-chart-3 text-white border border-primary-border shadow-primary hover:opacity-90',
+        cyber:
+          'bg-chart-3 text-primary-foreground hover:bg-chart-3/85 border border-primary-border',
       },
       size: {
         sm: 'h-8 px-3',
@@ -33,9 +38,15 @@ export const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-  VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {}
 
-function Button({ ref, className, variant, size, ...props }: ButtonProps & { ref?: React.RefObject<HTMLButtonElement | null> }) {
+function Button({
+  ref,
+  className,
+  variant,
+  size,
+  ...props
+}: ButtonProps & { ref?: React.RefObject<HTMLButtonElement | null> }) {
   return (
     <button
       ref={ref}

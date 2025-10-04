@@ -15,7 +15,11 @@ import {
   Wine,
 } from 'lucide-react'
 import React, { useState } from 'react'
-import { formatItemQuantity, formatValue, formatWeight } from '../../equipmentSystemMockData'
+import {
+  formatItemQuantity,
+  formatValue,
+  formatWeight,
+} from '../../equipmentSystemMockData'
 import { formatTags, isArmor, isWeapon } from '../../models/Equipment'
 import { Badge, Button } from '../ui'
 
@@ -48,16 +52,106 @@ function getItemIcon(item: Item) {
 }
 
 function getRarityColor(item: Item) {
-  // Simple rarity detection based on value
-  if (!item.value)
-    return 'item-common'
-  if (item.value > 200)
-    return 'item-legendary'
-  if (item.value > 100)
-    return 'item-rare'
-  if (item.value > 50)
-    return 'item-uncommon'
+  if (!item.value) return 'item-common'
+  if (item.value > 200) return 'item-legendary'
+  if (item.value > 100) return 'item-rare'
+  if (item.value > 50) return 'item-uncommon'
   return 'item-common'
+}
+
+interface ItemTooltipContentProps {
+  item: Item
+  isEquipped: boolean
+  ItemIcon: React.ComponentType<{ size?: number; className?: string }>
+}
+
+const ItemTooltipContent: React.FC<ItemTooltipContentProps> = ({
+  item,
+  isEquipped,
+  ItemIcon,
+}) => {
+  return (
+    <div className='space-y-3 max-w-sm'>
+      <div className='flex items-start gap-3'>
+        <ItemIcon size={20} className='text-(--parchment-800) mt-0.5' />
+        <div className='flex-1'>
+          <h4 className='font-semibold text-(--parchment-900) font-display'>
+            {item.name}
+            {formatItemQuantity(item.quantity) && (
+              <span className='ml-2 text-sm text-(--parchment-600)'>
+                {formatItemQuantity(item.quantity)}
+              </span>
+            )}
+          </h4>
+          <p className='text-xs text-(--parchment-600) capitalize font-ui'>
+            {item.category}
+            {isEquipped && (
+              <Badge variant='success' className='ml-2 text-xs'>
+                Equipped
+              </Badge>
+            )}
+          </p>
+        </div>
+      </div>
+
+      {item.description && (
+        <p className='text-sm text-(--parchment-700) font-body'>
+          {item.description}
+        </p>
+      )}
+
+      <div className='grid grid-cols-2 gap-2 text-xs'>
+        <div>
+          <span className='text-(--parchment-600)'>Weight:</span>
+          <span className='ml-1 text-(--parchment-800) font-medium'>
+            {formatWeight(item.weight)}
+          </span>
+        </div>
+        {item.value && (
+          <div>
+            <span className='text-(--parchment-600)'>Value:</span>
+            <span className='ml-1 text-(--parchment-800) font-medium'>
+              {formatValue(item.value)}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {isWeapon(item) && item.damage && (
+        <div className='text-xs'>
+          <span className='text-(--parchment-600)'>Damage:</span>
+          <span className='ml-1 text-(--parchment-800) font-medium'>
+            {item.damage}
+          </span>
+        </div>
+      )}
+
+      {isArmor(item) && (
+        <div className='text-xs'>
+          <span className='text-(--parchment-600)'>Armor:</span>
+          <span className='ml-1 text-(--parchment-800) font-medium'>
+            {item.armorValue} AC
+          </span>
+        </div>
+      )}
+
+      {item.tags.length > 0 && (
+        <div className='text-xs'>
+          <span className='text-(--parchment-600)'>Tags:</span>
+          <p className='text-(--parchment-700) mt-1'>{formatTags(item.tags)}</p>
+        </div>
+      )}
+
+      {item.uses && (
+        <div className='text-xs'>
+          <span className='text-(--parchment-600)'>Uses:</span>
+          <span className='ml-1 text-(--parchment-800) font-medium'>
+            {item.uses.current}/{item.uses.max}
+          </span>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export const ItemCard: React.FC<ItemCardProps> = ({
@@ -94,8 +188,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   const handleEquipToggle = () => {
     if (isEquipped && onUnequip) {
       onUnequip(item.id)
-    }
-    else if (!isEquipped && onEquip) {
+    } else if (!isEquipped && onEquip) {
       onEquip(item.id)
     }
   }
@@ -118,95 +211,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     }
   }
 
-  const ItemTooltipContent = () => (
-    <div className="space-y-3 max-w-sm">
-      <div className="flex items-start gap-3">
-        <ItemIcon size={20} className="text-(--parchment-800) mt-0.5" />
-        <div className="flex-1">
-          <h4 className="font-semibold text-(--parchment-900) font-display">
-            {item.name}
-            {formatItemQuantity(item.quantity) && (
-              <span className="ml-2 text-sm text-(--parchment-600)">
-                {formatItemQuantity(item.quantity)}
-              </span>
-            )}
-          </h4>
-          <p className="text-xs text-(--parchment-600) capitalize font-ui">
-            {item.category}
-            {isEquipped && (
-              <Badge variant="success" className="ml-2 text-xs">
-                Equipped
-              </Badge>
-            )}
-          </p>
-        </div>
-      </div>
-
-      {item.description && (
-        <p className="text-sm text-(--parchment-700) font-body">
-          {item.description}
-        </p>
-      )}
-
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div>
-          <span className="text-(--parchment-600)">Weight:</span>
-          <span className="ml-1 text-(--parchment-800) font-medium">
-            {formatWeight(item.weight)}
-          </span>
-        </div>
-        {item.value && (
-          <div>
-            <span className="text-(--parchment-600)">Value:</span>
-            <span className="ml-1 text-(--parchment-800) font-medium">
-              {formatValue(item.value)}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {isWeapon(item) && item.damage && (
-        <div className="text-xs">
-          <span className="text-(--parchment-600)">Damage:</span>
-          <span className="ml-1 text-(--parchment-800) font-medium">
-            {item.damage}
-          </span>
-        </div>
-      )}
-
-      {isArmor(item) && (
-        <div className="text-xs">
-          <span className="text-(--parchment-600)">Armor:</span>
-          <span className="ml-1 text-(--parchment-800) font-medium">
-            {item.armorValue}
-            {' '}
-            AC
-          </span>
-        </div>
-      )}
-
-      {item.tags.length > 0 && (
-        <div className="text-xs">
-          <span className="text-(--parchment-600)">Tags:</span>
-          <p className="text-(--parchment-700) mt-1">
-            {formatTags(item.tags)}
-          </p>
-        </div>
-      )}
-
-      {item.uses && (
-        <div className="text-xs">
-          <span className="text-(--parchment-600)">Uses:</span>
-          <span className="ml-1 text-(--parchment-800) font-medium">
-            {item.uses.current}
-            /
-            {item.uses.max}
-          </span>
-        </div>
-      )}
-    </div>
-  )
-
   if (compact) {
     return (
       <Tooltip.Root>
@@ -216,20 +220,20 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               isDragging ? 'item-card-dragging' : ''
             } cursor-pointer h-full flex items-center justify-center p-2`}
             variants={cardVariants}
-            whileHover="hover"
-            whileTap="tap"
+            whileHover='hover'
+            whileTap='tap'
           >
-            <ItemIcon size={16} className="text-(--parchment-800)" />
+            <ItemIcon size={16} className='text-(--parchment-800)' />
           </motion.div>
         </Tooltip.Trigger>
 
         <Tooltip.Portal>
           <Tooltip.Content
-            className="bg-card border border-(--parchment-300) rounded-lg p-3 shadow-lg z-50"
+            className='bg-card border border-(--parchment-300) rounded-lg p-3 shadow-lg z-50'
             sideOffset={5}
           >
-            <ItemTooltipContent />
-            <Tooltip.Arrow className="fill-card" />
+            <ItemTooltipContent item={item} isEquipped={isEquipped} ItemIcon={ItemIcon} />
+            <Tooltip.Arrow className='fill-card' />
           </Tooltip.Content>
         </Tooltip.Portal>
       </Tooltip.Root>
@@ -244,31 +248,31 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             isDragging ? 'item-card-dragging' : ''
           }`}
           variants={cardVariants}
-          whileHover="hover"
-          whileTap="tap"
+          whileHover='hover'
+          whileTap='tap'
         >
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0">
-              <ItemIcon size={20} className="text-(--parchment-800)" />
+          <div className='flex items-start gap-3'>
+            <div className='flex-shrink-0'>
+              <ItemIcon size={20} className='text-(--parchment-800)' />
             </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-(--parchment-900) font-display text-sm truncate">
+            <div className='flex-1 min-w-0'>
+              <div className='flex items-start justify-between'>
+                <div className='flex-1'>
+                  <h4 className='font-semibold text-(--parchment-900) font-display text-sm truncate'>
                     {item.name}
                   </h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-(--parchment-600) capitalize font-ui">
+                  <div className='flex items-center gap-2 mt-1'>
+                    <span className='text-xs text-(--parchment-600) capitalize font-ui'>
                       {item.category}
                     </span>
                     {formatItemQuantity(item.quantity) && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant='secondary' className='text-xs'>
                         {formatItemQuantity(item.quantity)}
                       </Badge>
                     )}
                     {isEquipped && (
-                      <Badge variant="success" className="text-xs">
+                      <Badge variant='success' className='text-xs'>
                         Equipped
                       </Badge>
                     )}
@@ -276,12 +280,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 </div>
 
                 {showActions && (
-                  <DropdownMenu.Root open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                  <DropdownMenu.Root
+                    open={isMenuOpen}
+                    onOpenChange={setIsMenuOpen}
+                  >
                     <DropdownMenu.Trigger asChild>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-(--parchment-600) hover:text-(--parchment-800)"
+                        variant='ghost'
+                        size='icon'
+                        className='h-6 w-6 text-(--parchment-600) hover:text-(--parchment-800)'
                       >
                         <MoreHorizontal size={14} />
                       </Button>
@@ -289,12 +296,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
                     <DropdownMenu.Portal>
                       <DropdownMenu.Content
-                        className="bg-card border border-(--parchment-300) rounded-lg p-1 shadow-lg z-50 min-w-[160px]"
+                        className='bg-card border border-(--parchment-300) rounded-lg p-1 shadow-lg z-50 min-w-[160px]'
                         sideOffset={5}
                       >
                         {!isEquipped && onEquip && (
                           <DropdownMenu.Item
-                            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--parchment-100) cursor-pointer"
+                            className='flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--parchment-100) cursor-pointer'
                             onClick={handleEquipToggle}
                           >
                             <ArrowUpRight size={14} />
@@ -304,7 +311,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
                         {isEquipped && onUnequip && (
                           <DropdownMenu.Item
-                            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--parchment-100) cursor-pointer"
+                            className='flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--parchment-100) cursor-pointer'
                             onClick={handleEquipToggle}
                           >
                             <ArrowDownRight size={14} />
@@ -314,7 +321,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
                         {item.category === 'consumable' && onUse && (
                           <DropdownMenu.Item
-                            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--parchment-100) cursor-pointer"
+                            className='flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--parchment-100) cursor-pointer'
                             onClick={handleUse}
                           >
                             <Wine size={14} />
@@ -324,7 +331,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
                         {onInspect && (
                           <DropdownMenu.Item
-                            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--parchment-100) cursor-pointer"
+                            className='flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--parchment-100) cursor-pointer'
                             onClick={handleInspect}
                           >
                             <Eye size={14} />
@@ -332,11 +339,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                           </DropdownMenu.Item>
                         )}
 
-                        <DropdownMenu.Separator className="h-px bg-(--parchment-300) my-1" />
+                        <DropdownMenu.Separator className='h-px bg-(--parchment-300) my-1' />
 
                         {onDrop && (
                           <DropdownMenu.Item
-                            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--danger-100) text-(--danger-600) cursor-pointer"
+                            className='flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-(--danger-100) text-(--danger-600) cursor-pointer'
                             onClick={handleDrop}
                           >
                             <Trash2 size={14} />
@@ -349,7 +356,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 )}
               </div>
 
-              <div className="flex items-center gap-3 mt-2 text-xs text-(--parchment-600)">
+              <div className='flex items-center gap-3 mt-2 text-xs text-(--parchment-600)'>
                 <span>{formatWeight(item.weight)}</span>
                 {item.value && <span>{formatValue(item.value)}</span>}
               </div>
@@ -360,11 +367,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       <Tooltip.Portal>
         <Tooltip.Content
-          className="bg-card border border-(--parchment-300) rounded-lg p-3 shadow-lg z-50"
+          className='bg-card border border-(--parchment-300) rounded-lg p-3 shadow-lg z-50'
           sideOffset={5}
         >
-          <ItemTooltipContent />
-          <Tooltip.Arrow className="fill-card" />
+          <ItemTooltipContent item={item} isEquipped={isEquipped} ItemIcon={ItemIcon} />
+          <Tooltip.Arrow className='fill-card' />
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>

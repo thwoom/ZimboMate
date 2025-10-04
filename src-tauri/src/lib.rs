@@ -20,6 +20,8 @@ pub fn run() {
             commands::check_llm_status,
             commands::list_models,
             commands::initialize_llm,
+            commands::chronicle_propose_deltas,
+            commands::chronicle_apply_delta_bundle,
             commands::enhance_note,
             commands::is_llm_ready,
         ])

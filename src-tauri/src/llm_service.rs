@@ -1,8 +1,8 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-use std::time::Duration;
-use tauri::Emitter;
+use serde_json::{json, Map, Value};
+use std::time::{Duration, Instant};
+use tauri::{AppHandle, Emitter};
 use tokio::sync::RwLock;
 
 const DEFAULT_BASE_URL: &str = "https://api.openai.com/v1";
@@ -45,6 +45,38 @@ pub struct EnhancementResult {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct TokenUsage {
+    #[serde(default)]
+    pub input_tokens: i64,
+    #[serde(default)]
+    pub output_tokens: i64,
+    #[serde(default)]
+    pub total_tokens: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ChronicleProposeRequest {
+    pub entry_id: String,
+    pub raw_text: String,
+    pub summary: Option<String>,
+    pub context: Option<Value>,
+    pub settings: Option<Value>,
+    #[serde(rename = "toolSchemas")]
+    pub tool_schemas: Option<Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ChronicleProposeResponse {
+    pub narrative: String,
+    pub operations: Vec<Value>,
+    pub usage: TokenUsage,
+    pub warnings: Vec<String>,
+    pub reasoning: Option<String>,
+    pub model: String,
+    pub created_at: Option<String>,
+}
 pub struct AIProgress {
     pub progress: f64, // 0.0 - 100.0
     pub text: String,
@@ -591,6 +623,113 @@ Return JSON that matches the provided schema exactly. Never omit required fields
     }
 }
 
+    pub async fn propose_deltas(
+        &self,
+        request: ChronicleProposeRequest,
+        app_handle: &AppHandle,
+    ) -> Result<ChronicleProposeResponse, String> {
+        {
+            let is_ready = self.is_ready.read().await;
+            if !*is_ready {
+                return Err("LLM not ready - call initialize first".to_string());
+            }
+        }
+
+        let api_key = self.require_api_key()?;
+        let model_name = {
+            let current_model = self.current_model.read().await;
+            current_model
+                .clone()
+                .unwrap_or_else(|| self.default_model.clone())
+        };
+
+        let system_prompt = compose_chronicle_system_prompt();
+        let user_prompt = compose_user_prompt(&request);
+
+        let mut payload = json!({
+            "model": model_name,
+            "input": [
+                {
+                    "role": "system",
+                    "content": [{ "type": "text", "text": system_prompt }]
+                },
+                {
+                    "role": "user",
+                    "content": [{ "type": "text", "text": user_prompt }]
+                }
+            ],
+            "parallel_tool_calls": true,
+            "temperature": 0.65,
+            "max_output_tokens": 900
+        });
+
+        if let Some(tools) = prepare_tool_schemas(request.tool_schemas.clone()) {
+            payload["tools"] = Value::Array(tools);
+        }
+
+        let start = Instant::now();
+
+        let response = self
+            .client
+            .post(format!("{}/responses", self.base_url))
+            .bearer_auth(api_key)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| format!("OpenAI request failed: {}", e))?;
+
+        let status = response.status();
+        let raw_body = response.text().await.unwrap_or_default();
+
+        if !status.is_success() {
+            return Err(format!("OpenAI API error ({}): {}", status, raw_body));
+        }
+
+        let value: Value = serde_json::from_str(&raw_body)
+            .map_err(|e| format!("Failed to parse OpenAI response JSON: {}", e))?;
+
+        if let Some(error) = value.get("error") {
+            let serialized = serde_json::to_string(error).unwrap_or_else(|_| "unknown error".to_string());
+            return Err(format!("OpenAI returned an error payload: {}", serialized));
+        }
+
+        let usage = extract_token_usage(&value);
+        let (narrative, operations, reasoning) = extract_outputs(&value);
+        let created_at = value
+            .get("created_at")
+            .and_then(Value::as_i64)
+            .map(|ts| ts.to_string());
+        let model = value
+            .get("model")
+            .and_then(Value::as_str)
+            .unwrap_or(&model_name)
+            .to_string();
+
+        let response = ChronicleProposeResponse {
+            narrative,
+            operations,
+            usage: usage.clone(),
+            warnings: Vec::new(),
+            reasoning,
+            model: model.clone(),
+            created_at,
+        };
+
+        let latency_ms = start.elapsed().as_secs_f64() * 1000.0;
+        let telemetry_payload = json!({
+            "model": model,
+            "latencyMs": latency_ms,
+            "usage": {
+                "inputTokens": usage.input_tokens,
+                "outputTokens": usage.output_tokens,
+                "totalTokens": usage.total_tokens
+            }
+        });
+        let _ = app_handle.emit("llm_telemetry", telemetry_payload);
+
+        Ok(response)
+    }
+
 impl Default for LlmService {
     fn default() -> Self {
         Self::new()
@@ -659,4 +798,167 @@ fn extract_structured_json(value: &Value) -> Option<Value> {
     }
 
     None
+}
+
+fn compose_chronicle_system_prompt() -> &'static str {
+    "You are Chronicle, the dungeon table's historian. Always produce 1-3 sentences of fiction-first narrative that mirrors Dungeon World's tone. Never decide outcomes beyond what the note states. Use the available tools to emit precise, idempotent game-state deltas for every mechanical change you can confirm. If there is ambiguity, prefer to ask for clarification by including a boolean field `needsConfirmation`."
+}
+
+fn compose_user_prompt(request: &ChronicleProposeRequest) -> String {
+    let mut sections = Vec::new();
+    sections.push(format!("Entry ID: {}", request.entry_id));
+    sections.push(format!("Raw Note:\n{}", request.raw_text.trim()));
+
+    if let Some(summary) = &request.summary {
+        if !summary.trim().is_empty() {
+            sections.push(format!("Summary Hint:\n{}", summary.trim()));
+        }
+    }
+
+    if let Some(context) = &request.context {
+        if !context.is_null() {
+            if let Ok(json) = serde_json::to_string_pretty(context) {
+                sections.push(format!("Context JSON:\n{}", json));
+            }
+        }
+    }
+
+    if let Some(settings) = &request.settings {
+        if !settings.is_null() {
+            if let Ok(json) = serde_json::to_string_pretty(settings) {
+                sections.push(format!("Settings JSON:\n{}", json));
+            }
+        }
+    }
+
+    sections.push("Return:
+1. Narrative text (concise, 1-3 sentences).
+2. Tool calls for every mechanical change detected.
+3. Only call tools that are fully supported by the provided schema.".to_string());
+
+    sections.join("\n\n")
+}
+
+fn prepare_tool_schemas(tool_schemas: Option<Value>) -> Option<Vec<Value>> {
+    match tool_schemas {
+        Some(Value::Array(items)) => {
+            let tools = items
+                .into_iter()
+                .filter_map(|schema| {
+                    let name = schema.get("name")?.as_str()?.to_string();
+                    let parameters = schema.get("parameters")?.clone();
+                    let strict = schema.get("strict").and_then(Value::as_bool).unwrap_or(true);
+                    Some(json!({
+                        "type": "function",
+                        "function": {
+                            "name": name,
+                            "parameters": parameters,
+                            "strict": strict
+                        }
+                    }))
+                })
+                .collect::<Vec<_>>();
+
+            if tools.is_empty() {
+                None
+            }
+            else {
+                Some(tools)
+            }
+        }
+        _ => None,
+    }
+}
+
+fn extract_token_usage(value: &Value) -> TokenUsage {
+    let usage = value.get("usage").cloned().unwrap_or(Value::Null);
+    let mut result = TokenUsage::default();
+
+    if let Value::Object(map) = usage {
+        result.input_tokens = map.get("input_tokens").and_then(Value::as_i64).unwrap_or(0);
+        result.output_tokens = map.get("output_tokens").and_then(Value::as_i64).unwrap_or(0);
+        result.total_tokens = map
+            .get("total_tokens")
+            .and_then(Value::as_i64)
+            .unwrap_or(result.input_tokens + result.output_tokens);
+    }
+
+    result
+}
+
+fn extract_outputs(value: &Value) -> (String, Vec<Value>, Option<String>) {
+    let mut narrative_parts: Vec<String> = Vec::new();
+    let mut operations: Vec<Value> = Vec::new();
+    let mut reasoning: Option<String> = None;
+
+    if let Some(outputs) = value.get("output").and_then(|o| o.as_array()) {
+        for output in outputs {
+            if let Some(contents) = output.get("content").and_then(|c| c.as_array()) {
+                for content in contents {
+                    if let Some(content_type) = content.get("type").and_then(|t| t.as_str()) {
+                        match content_type {
+                            "output_text" | "text" => {
+                                if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
+                                    if !text.trim().is_empty() {
+                                        narrative_parts.push(text.trim().to_string());
+                                    }
+                                }
+                            }
+                            "tool_call" => {
+                                if let Some(tool_call) = content.get("tool_call") {
+                                    if let Some(name) = tool_call.get("name").and_then(|n| n.as_str()) {
+                                        let args = tool_call.get("arguments").cloned().unwrap_or(Value::Null);
+                                        operations.push(build_operation_from_tool(name, args));
+                                    }
+                                }
+                            }
+                            "reasoning" => {
+                                if let Some(text) = content.get("text").and_then(|t| t.as_str()) {
+                                    reasoning = Some(text.to_string());
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if narrative_parts.is_empty() {
+        if let Some(message) = value.get("output_text").and_then(|t| t.as_str()) {
+            if !message.trim().is_empty() {
+                narrative_parts.push(message.trim().to_string());
+            }
+        }
+    }
+
+    (narrative_parts.join("\n"), operations, reasoning)
+}
+
+fn build_operation_from_tool(name: &str, args: Value) -> Value {
+    match args {
+        Value::Object(mut map) => {
+            map.insert("type".to_string(), Value::String(name.to_string()));
+            Value::Object(map)
+        }
+        Value::String(arg_str) => {
+            if let Ok(Value::Object(mut map)) = serde_json::from_str::<Value>(&arg_str) {
+                map.insert("type".to_string(), Value::String(name.to_string()));
+                Value::Object(map)
+            }
+            else {
+                let mut map = Map::new();
+                map.insert("type".to_string(), Value::String(name.to_string()));
+                map.insert("rawArguments".to_string(), Value::String(arg_str));
+                Value::Object(map)
+            }
+        }
+        other => {
+            let mut map = Map::new();
+            map.insert("type".to_string(), Value::String(name.to_string()));
+            map.insert("arguments".to_string(), other);
+            Value::Object(map)
+        }
+    }
 }

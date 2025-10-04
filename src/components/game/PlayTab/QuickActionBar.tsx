@@ -12,9 +12,7 @@ import {
   AlertTriangle,
   Droplets,
   Heart,
-  Minus,
   Package,
-  Plus,
   Shield,
   Star,
   Sword,
@@ -22,8 +20,16 @@ import {
   Zap,
 } from 'lucide-react'
 import React, { useCallback, useState } from 'react'
+import { logger } from '@/utils/logger'
 import { useChronicle } from '../../chronicle/ChronicleProvider'
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '../../ui'
 
 interface QuickActionBarProps {
   character: Character
@@ -36,7 +42,7 @@ interface QuickItem {
   id: string
   name: string
   description: string
-  icon: React.ComponentType<{ size?: number, className?: string }>
+  icon: React.ComponentType<{ size?: number; className?: string }>
   type: 'consumable' | 'equipment' | 'emergency'
   uses?: number
   maxUses?: number
@@ -48,43 +54,10 @@ interface EmergencyAction {
   id: string
   name: string
   description: string
-  icon: React.ComponentType<{ size?: number, className?: string }>
+  icon: React.ComponentType<{ size?: number; className?: string }>
   color: string
   hotkey?: string
   action: () => void
-}
-
-const UseCounter: React.FC<{
-  current: number
-  max: number
-  onIncrease: () => void
-  onDecrease: () => void
-}> = ({ current, max, onIncrease, onDecrease }) => {
-  return (
-    <div className="flex items-center gap-1 text-xs">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onDecrease}
-        disabled={current <= 0}
-        className="w-5 h-5 p-0"
-      >
-        <Minus size={10} />
-      </Button>
-      <span className="font-mono text-xs min-w-[2ch] text-center">
-        {current}
-      </span>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onIncrease}
-        disabled={current >= max}
-        className="w-5 h-5 p-0"
-      >
-        <Plus size={10} />
-      </Button>
-    </div>
-  )
 }
 
 const QuickItemCard: React.FC<{
@@ -105,17 +78,15 @@ const QuickItemCard: React.FC<{
         className={`cursor-pointer transition-all hover:shadow-md ${item.color}`}
         onClick={onClick}
       >
-        <div className="text-center space-y-2">
-          <div className="w-8 h-8 mx-auto rounded-full bg-card/20 flex items-center justify-center">
+        <div className='text-center space-y-2'>
+          <div className='w-8 h-8 mx-auto rounded-full bg-card/20 flex items-center justify-center'>
             <Icon size={16} />
           </div>
           <div>
-            <div className="text-xs font-medium truncate">{item.name}</div>
+            <div className='text-xs font-medium truncate'>{item.name}</div>
             {item.uses !== undefined && item.maxUses && (
-              <div className="text-xs text-white/80">
-                {item.uses}
-                /
-                {item.maxUses}
+              <div className='text-xs text-white/80'>
+                {item.uses}/{item.maxUses}
               </div>
             )}
           </div>
@@ -123,8 +94,8 @@ const QuickItemCard: React.FC<{
 
         {/* Low uses warning */}
         {item.uses !== undefined && item.uses <= 1 && item.uses > 0 && (
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive/120 rounded-full flex items-center justify-center">
-            <AlertTriangle size={8} className="text-white" />
+          <div className='absolute -top-1 -right-1 w-3 h-3 bg-destructive/120 rounded-full flex items-center justify-center'>
+            <AlertTriangle size={8} className='text-white' />
           </div>
         )}
       </Card>
@@ -144,16 +115,16 @@ const EmergencyButton: React.FC<{
       whileTap={{ scale: disabled ? 1 : 0.95 }}
     >
       <Button
-        variant="outline"
+        variant='outline'
         className={`w-full h-16 flex flex-col gap-1 ${action.color} ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
         onClick={disabled ? undefined : action.action}
       >
         <Icon size={20} />
-        <span className="text-xs">{action.name}</span>
+        <span className='text-xs'>{action.name}</span>
         {action.hotkey && (
-          <Badge variant="secondary" className="text-xs px-1 py-0">
+          <Badge variant='secondary' className='text-xs px-1 py-0'>
             {action.hotkey}
           </Badge>
         )}
@@ -169,15 +140,46 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
   className = '',
 }) => {
   const { emitEquipmentAction } = useChronicle()
-  const [selectedCategory, setSelectedCategory] = useState<'consumables' | 'equipment' | 'emergency'>('consumables')
+  const [selectedCategory, setSelectedCategory] = useState<
+    'consumables' | 'equipment' | 'emergency'
+  >('consumables')
+
+  const handleUseItem = useCallback(
+    (item: Inventory) => {
+      logger.info('inventory_use_item', { itemId: item.id, itemName: item.name })
+
+      emitEquipmentAction({
+        characterName: character.name,
+        action: 'use',
+        itemName: item.name,
+        itemType: item.category || 'item',
+      })
+
+      // TODO: Implement actual item usage logic
+    },
+    [character.name, emitEquipmentAction],
+  )
+
+  const swapEquipment = useCallback((item: Inventory) => {
+    logger.info('swap_equipment_requested', { itemId: item.id, itemName: item.name })
+
+    // TODO: Implement equipment swapping logic
+  }, [])
+
+  const triggerEmergencyAction = useCallback((actionId: string) => {
+    logger.warn('emergency_action_triggered', { actionId })
+
+    // TODO: Implement emergency actions
+  }, [])
 
   // Extract consumable items from inventory
-  const consumableItems = character.inventory?.filter(
-    item => item.category === 'consumable' && (item.uses || 0) > 0,
-  ) || []
+  const consumableItems =
+    character.inventory?.filter(
+      (item) => item.category === 'consumable' && (item.uses || 0) > 0,
+    ) || []
 
   // Convert inventory items to QuickItems
-  const quickConsumables: QuickItem[] = consumableItems.map(item => ({
+  const quickConsumables: QuickItem[] = consumableItems.map((item) => ({
     id: item.id,
     name: item.name,
     description: item.description || '',
@@ -186,12 +188,13 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
     uses: item.uses || 0,
     maxUses: item.uses || 1, // This would come from item definition
     color: getItemColor(item),
-    action: () => useItem(item),
+    action: () => handleUseItem(item),
   }))
 
   // Quick equipment items (equipped weapons/armor)
-  const equippedItems = character.inventory?.filter(item => item.equipped) || []
-  const quickEquipment: QuickItem[] = equippedItems.map(item => ({
+  const equippedItems =
+    character.inventory?.filter((item) => item.equipped) || []
+  const quickEquipment: QuickItem[] = equippedItems.map((item) => ({
     id: item.id,
     name: item.name,
     description: item.description || '',
@@ -248,10 +251,8 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
   function getItemIcon(item: Inventory) {
     switch (item.category) {
       case 'consumable':
-        if (item.name.toLowerCase().includes('healing'))
-          return Heart
-        if (item.name.toLowerCase().includes('potion'))
-          return Droplets
+        if (item.name.toLowerCase().includes('healing')) return Heart
+        if (item.name.toLowerCase().includes('potion')) return Droplets
         return Package
       case 'weapon':
         return Sword
@@ -275,41 +276,8 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
     }
   }
 
-  const useItem = useCallback((item: Inventory) => {
-    console.log(`Using ${item.name}`)
-
-    // Trigger Chronicle system
-    emitEquipmentAction({
-      characterName: character.name,
-      action: 'use',
-      itemName: item.name,
-      itemType: item.category || 'item',
-    })
-
-    // TODO: Implement actual item usage logic
-  }, [character.name, emitEquipmentAction])
-
-  const swapEquipment = useCallback((item: Inventory) => {
-    console.log(`Swapping ${item.name}`)
-
-    // TODO: Implement equipment swapping logic
-  }, [])
-
-  const triggerEmergencyAction = useCallback((actionId: string) => {
-    console.log(`Emergency action: ${actionId}`)
-
-    // TODO: Implement emergency actions
-  }, [])
-
-  const currentItems
-    = selectedCategory === 'consumables'
-      ? quickConsumables
-      : selectedCategory === 'equipment'
-        ? quickEquipment
-        : []
-
-  const cardVariant
-    = theme === 'combat'
+  const cardVariant =
+    theme === 'combat'
       ? 'elevated'
       : theme === 'dungeon'
         ? 'parchment'
@@ -322,120 +290,116 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
       variant={cardVariant}
       className={`h-full overflow-y-auto ${className}`}
     >
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <Zap size={16} className="text-chart-4" />
+      <CardHeader className='pb-2'>
+        <CardTitle className='flex items-center gap-2 text-sm'>
+          <Zap size={16} className='text-chart-4' />
           Quick Actions
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className='space-y-3'>
         {/* Category Selector */}
-        <div className="flex gap-1">
+        <div className='flex gap-1'>
           <Button
             variant={selectedCategory === 'consumables' ? 'primary' : 'ghost'}
-            size="sm"
+            size='sm'
             onClick={() => setSelectedCategory('consumables')}
-            className="flex-1 text-xs"
+            className='flex-1 text-xs'
           >
-            <Droplets size={12} className="mr-1" />
+            <Droplets size={12} className='mr-1' />
             Items
           </Button>
           <Button
             variant={selectedCategory === 'equipment' ? 'primary' : 'ghost'}
-            size="sm"
+            size='sm'
             onClick={() => setSelectedCategory('equipment')}
-            className="flex-1 text-xs"
+            className='flex-1 text-xs'
           >
-            <Sword size={12} className="mr-1" />
+            <Sword size={12} className='mr-1' />
             Gear
           </Button>
           <Button
             variant={selectedCategory === 'emergency' ? 'primary' : 'ghost'}
-            size="sm"
+            size='sm'
             onClick={() => setSelectedCategory('emergency')}
-            className="flex-1 text-xs"
+            className='flex-1 text-xs'
           >
-            <AlertTriangle size={12} className="mr-1" />
+            <AlertTriangle size={12} className='mr-1' />
             SOS
           </Button>
         </div>
 
         {/* Content Area */}
-        <div className="min-h-[200px]">
-          <AnimatePresence mode="wait">
+        <div className='min-h-[200px]'>
+          <AnimatePresence mode='wait'>
             {/* Consumables */}
             {selectedCategory === 'consumables' && (
               <motion.div
-                key="consumables"
+                key='consumables'
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-3"
+                className='space-y-3'
               >
-                {quickConsumables.length === 0
-                  ? (
-                      <div className="text-center text-xs text-muted-foreground py-8">
-                        <Package size={24} className="mx-auto mb-2 opacity-50" />
-                        <p>No consumable items</p>
-                      </div>
-                    )
-                  : (
-                      <div className="grid grid-cols-2 gap-2">
-                        {quickConsumables.map(item => (
-                          <QuickItemCard
-                            key={item.id}
-                            item={item}
-                            isActive={false}
-                            onClick={item.action}
-                          />
-                        ))}
-                      </div>
-                    )}
+                {quickConsumables.length === 0 ? (
+                  <div className='text-center text-xs text-muted-foreground py-8'>
+                    <Package size={24} className='mx-auto mb-2 opacity-50' />
+                    <p>No consumable items</p>
+                  </div>
+                ) : (
+                  <div className='grid grid-cols-2 gap-2'>
+                    {quickConsumables.map((item) => (
+                      <QuickItemCard
+                        key={item.id}
+                        item={item}
+                        isActive={false}
+                        onClick={item.action}
+                      />
+                    ))}
+                  </div>
+                )}
               </motion.div>
             )}
 
             {/* Equipment */}
             {selectedCategory === 'equipment' && (
               <motion.div
-                key="equipment"
+                key='equipment'
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-3"
+                className='space-y-3'
               >
-                {quickEquipment.length === 0
-                  ? (
-                      <div className="text-center text-xs text-muted-foreground py-8">
-                        <Sword size={24} className="mx-auto mb-2 opacity-50" />
-                        <p>No equipped items</p>
-                      </div>
-                    )
-                  : (
-                      <div className="space-y-2">
-                        {quickEquipment.map(item => (
-                          <QuickItemCard
-                            key={item.id}
-                            item={item}
-                            isActive={false}
-                            onClick={item.action}
-                          />
-                        ))}
-                      </div>
-                    )}
+                {quickEquipment.length === 0 ? (
+                  <div className='text-center text-xs text-muted-foreground py-8'>
+                    <Sword size={24} className='mx-auto mb-2 opacity-50' />
+                    <p>No equipped items</p>
+                  </div>
+                ) : (
+                  <div className='space-y-2'>
+                    {quickEquipment.map((item) => (
+                      <QuickItemCard
+                        key={item.id}
+                        item={item}
+                        isActive={false}
+                        onClick={item.action}
+                      />
+                    ))}
+                  </div>
+                )}
               </motion.div>
             )}
 
             {/* Emergency Actions */}
             {selectedCategory === 'emergency' && (
               <motion.div
-                key="emergency"
+                key='emergency'
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-2"
+                className='space-y-2'
               >
-                {emergencyActions.map(action => (
+                {emergencyActions.map((action) => (
                   <EmergencyButton
                     key={action.id}
                     action={action}
@@ -448,11 +412,12 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
         </div>
 
         {/* Game Mode Specific Quick Tips */}
-        <div className="pt-2 border-t border-border">
-          <div className="text-xs text-muted-foreground text-center">
+        <div className='pt-2 border-t border-border'>
+          <div className='text-xs text-muted-foreground text-center'>
             {gameMode === 'combat' && '⚔️ Combat: Use items strategically'}
             {gameMode === 'exploration' && '🗺️ Exploration: Conserve resources'}
-            {gameMode === 'social' && '🤝 Social: Items can be conversation tools'}
+            {gameMode === 'social' &&
+              '🤝 Social: Items can be conversation tools'}
             {gameMode === 'rest' && '🏕️ Rest: Perfect time to organize gear'}
           </div>
         </div>

@@ -5,6 +5,7 @@
  * scannable categories, and dedicated Chronicle settings section.
  */
 
+import type { ChronicleSettings } from '../../types/chronicle'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   BookOpen,
@@ -18,8 +19,8 @@ import {
   Sparkles,
   Wrench,
 } from 'lucide-react'
-import React, { useMemo, useState } from 'react'
-import { useChronicle } from '../chronicle/ChronicleProvider'
+import React, { useCallback, useMemo, useState } from 'react'
+import { useChronicle, useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { FileManagementPanel } from '../game/FileManagementPanel'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
 import { AccessibilityChecker } from './AccessibilityChecker'
@@ -35,21 +36,26 @@ interface SettingsPanelProps {
 interface SettingsCategory {
   id: string
   title: string
-  icon: React.ComponentType<{ size?: number, className?: string }>
+  icon: React.ComponentType<{ size?: number; className?: string }>
   description: string
   color: string
   expanded?: boolean
   featured?: boolean
 }
 
-type ChronicleOverlayPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
+type ChronicleOverlayPosition =
+  | 'top-right'
+  | 'top-left'
+  | 'bottom-right'
+  | 'bottom-left'
 
 const SETTINGS_CATEGORIES: SettingsCategory[] = [
   {
     id: 'gameplay',
     title: 'Gameplay Settings',
     icon: Gamepad2,
-    description: 'Chronicle settings, keyboard shortcuts, and gameplay preferences',
+    description:
+      'Chronicle settings, keyboard shortcuts, and gameplay preferences',
     color: 'var(--primary)',
     featured: true,
   },
@@ -83,12 +89,17 @@ const SETTINGS_CATEGORIES: SettingsCategory[] = [
   },
 ]
 
-const OVERLAY_POSITIONS: ChronicleOverlayPosition[] = ['top-right', 'top-left', 'bottom-right', 'bottom-left']
+const OVERLAY_POSITIONS: ChronicleOverlayPosition[] = [
+  'top-right',
+  'top-left',
+  'bottom-right',
+  'bottom-left',
+]
 
 function formatOverlayPosition(position: ChronicleOverlayPosition) {
   return position
     .split('-')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ')
 }
 
@@ -101,44 +112,42 @@ const ExpandableSettingsCard: React.FC<{
   const Icon = category.icon
 
   return (
-    <Card variant="surface" className="overflow-hidden">
+    <Card variant='surface' className='overflow-hidden'>
       <motion.div
-        className="cursor-pointer"
+        className='cursor-pointer'
         onClick={onToggle}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
       >
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <CardHeader className='pb-3'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                className='w-10 h-10 rounded-lg flex items-center justify-center'
                 style={{ backgroundColor: category.color, opacity: 0.2 }}
               >
                 <Icon size={20} style={{ color: category.color }} />
               </div>
               <div>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className='text-lg flex items-center gap-2'>
                   {category.title}
                   {category.featured && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant='secondary' className='text-xs'>
                       Enhanced
                     </Badge>
                   )}
                 </CardTitle>
-                <p
-                  className="text-sm mt-1 text-muted-foreground"
-                >
+                <p className='text-sm mt-1 text-muted-foreground'>
                   {category.description}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               <motion.div
                 animate={{ rotate: isExpanded ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <ChevronDown className="text-muted-foreground" size={20} />
+                <ChevronDown className='text-muted-foreground' size={20} />
               </motion.div>
             </div>
           </div>
@@ -152,9 +161,9 @@ const ExpandableSettingsCard: React.FC<{
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden"
+            className='overflow-hidden'
           >
-            <CardContent className="pt-0 border-t border-border ">
+            <CardContent className='pt-0 border-t border-border '>
               {children}
             </CardContent>
           </motion.div>
@@ -173,32 +182,72 @@ const GameplaySettingsContent: React.FC = () => {
     maxPrompts,
     setMaxPrompts,
   } = useChronicle()
+  const { settings, updateSettings } = useChronicleLLM()
+
+  const autoApplyPolicy = useMemo(
+    () => settings.autoApplyPolicy ?? {},
+    [settings.autoApplyPolicy],
+  )
+  const toneOptions: Array<ChronicleSettings['tone']> = [
+    'gritty',
+    'heroic',
+    'terse',
+  ]
+  const verbosityOptions: Array<ChronicleSettings['verbosity']> = [
+    'short',
+    'standard',
+    'long',
+  ]
+  const autoApplyConfig = [
+    { key: 'mark_xp', label: 'XP on miss' },
+    { key: 'add_item', label: 'Loot pickups' },
+    { key: 'apply_damage', label: 'Damage adjustments' },
+    { key: 'spend_ammo', label: 'Ammo & Hold' },
+  ] as const
+  const autoApplyOptions = ['auto', 'confirm', 'off'] as const
+
+  const updateAutoApply = useCallback(
+    (
+      key: (typeof autoApplyConfig)[number]['key'],
+      value: (typeof autoApplyOptions)[number],
+    ) => {
+      updateSettings({
+        autoApplyPolicy: {
+          ...autoApplyPolicy,
+          [key]: value,
+        },
+      })
+    },
+    [autoApplyPolicy, updateSettings],
+  )
 
   const [autoSave, setAutoSave] = useState(true)
   const [diceSound, setDiceSound] = useState(true)
   const [quickRolls, setQuickRolls] = useState(true)
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Chronicle Settings - Featured */}
-      <div className="p-4 rounded-lg border-2 border-primary/30 bg-primary/10/50 ">
-        <div className="flex items-center gap-2 mb-4">
-          <BookOpen size={20} className="text-primary" />
-          <h4 className="font-semibold text-primary ">Chronicle Settings</h4>
-          <Badge variant="default" className="text-xs">Featured</Badge>
+      <div className='p-4 rounded-lg border-2 border-primary/30 bg-primary/10/50 '>
+        <div className='flex items-center gap-2 mb-4'>
+          <BookOpen size={20} className='text-primary' />
+          <h4 className='font-semibold text-primary '>Chronicle Settings</h4>
+          <Badge variant='default' className='text-xs'>
+            Featured
+          </Badge>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
             <div>
-              <label className="text-sm font-medium">Chronicle Overlay</label>
-              <p className="text-xs text-muted-foreground ">
+              <label className='text-sm font-medium'>Chronicle Overlay</label>
+              <p className='text-xs text-muted-foreground '>
                 Show contextual chronicle prompts during gameplay
               </p>
             </div>
             <Button
               variant={isOverlayEnabled ? 'primary' : 'outline'}
-              size="sm"
+              size='sm'
               onClick={() => toggleOverlay()}
             >
               {isOverlayEnabled ? 'Enabled' : 'Disabled'}
@@ -207,24 +256,30 @@ const GameplaySettingsContent: React.FC = () => {
 
           {isOverlayEnabled && (
             <>
-              <div className="flex items-center justify-between">
+              <div className='flex items-center justify-between'>
                 <div>
-                  <label className="text-sm font-medium">Overlay Position</label>
-                  <p className="text-xs text-muted-foreground ">
+                  <label className='text-sm font-medium'>
+                    Overlay Position
+                  </label>
+                  <p className='text-xs text-muted-foreground '>
                     Where chronicle prompts appear on screen
                   </p>
                 </div>
                 <select
                   value={overlayPosition}
-                  onChange={event => setOverlayPosition(event.target.value as ChronicleOverlayPosition)}
-                  className="px-3 py-1 rounded border text-sm"
+                  onChange={(event) =>
+                    setOverlayPosition(
+                      event.target.value as ChronicleOverlayPosition,
+                    )
+                  }
+                  className='px-3 py-1 rounded border text-sm'
                   style={{
                     backgroundColor: 'var(--card)',
                     borderColor: 'var(--border)',
                     color: 'var(--foreground)',
                   }}
                 >
-                  {OVERLAY_POSITIONS.map(position => (
+                  {OVERLAY_POSITIONS.map((position) => (
                     <option key={position} value={position}>
                       {formatOverlayPosition(position)}
                     </option>
@@ -232,26 +287,26 @@ const GameplaySettingsContent: React.FC = () => {
                 </select>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className='flex items-center justify-between'>
                 <div>
-                  <label className="text-sm font-medium">Max Prompts</label>
-                  <p className="text-xs text-muted-foreground ">
+                  <label className='text-sm font-medium'>Max Prompts</label>
+                  <p className='text-xs text-muted-foreground '>
                     Maximum number of prompts shown at once
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className='flex items-center gap-2'>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant='outline'
+                    size='sm'
                     onClick={() => setMaxPrompts(Math.max(1, maxPrompts - 1))}
                     disabled={maxPrompts <= 1}
                   >
                     -
                   </Button>
-                  <span className="w-8 text-center text-sm">{maxPrompts}</span>
+                  <span className='w-8 text-center text-sm'>{maxPrompts}</span>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant='outline'
+                    size='sm'
                     onClick={() => setMaxPrompts(Math.min(5, maxPrompts + 1))}
                     disabled={maxPrompts >= 5}
                   >
@@ -261,67 +316,169 @@ const GameplaySettingsContent: React.FC = () => {
               </div>
             </>
           )}
+
+          <div className='flex items-center justify-between'>
+            <div>
+              <label className='text-sm font-medium'>Narrative Tone</label>
+              <p className='text-xs text-muted-foreground '>
+                Choose how Chronicle phrases summaries.
+              </p>
+            </div>
+            <div className='flex gap-2'>
+              {toneOptions.map((option) => (
+                <Button
+                  key={option}
+                  variant={settings.tone === option ? 'primary' : 'outline'}
+                  size='sm'
+                  onClick={() => updateSettings({ tone: option })}
+                >
+                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className='flex items-center justify-between'>
+            <div>
+              <label className='text-sm font-medium'>Narrative Verbosity</label>
+              <p className='text-xs text-muted-foreground '>
+                Set Chronicle entry length.
+              </p>
+            </div>
+            <div className='flex gap-2'>
+              {verbosityOptions.map((option) => (
+                <Button
+                  key={option}
+                  variant={
+                    settings.verbosity === option ? 'primary' : 'outline'
+                  }
+                  size='sm'
+                  onClick={() => updateSettings({ verbosity: option })}
+                >
+                  {option === 'short'
+                    ? 'Short'
+                    : option === 'standard'
+                      ? 'Standard'
+                      : 'Long'}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className='flex items-center justify-between'>
+            <div>
+              <label className='text-sm font-medium'>Auto-equip weapons</label>
+              <p className='text-xs text-muted-foreground '>
+                Equip weapon-tagged loot automatically when slots allow.
+              </p>
+            </div>
+            <Button
+              variant={settings.autoEquipWeapons ? 'primary' : 'outline'}
+              size='sm'
+              onClick={() =>
+                updateSettings({ autoEquipWeapons: !settings.autoEquipWeapons })
+              }
+            >
+              {settings.autoEquipWeapons ? 'On' : 'Off'}
+            </Button>
+          </div>
+
+          <div>
+            <label className='text-sm font-medium'>
+              Auto-apply Preferences
+            </label>
+            <p className='text-xs text-muted-foreground '>
+              Choose which deltas Chronicle applies without prompting.
+            </p>
+            <div className='space-y-2 mt-2'>
+              {autoApplyConfig.map(({ key, label }) => {
+                const choice = (autoApplyPolicy[key] ??
+                  'confirm') as (typeof autoApplyOptions)[number]
+                return (
+                  <div key={key} className='flex items-center justify-between'>
+                    <span className='text-sm'>{label}</span>
+                    <div className='flex gap-2'>
+                      {autoApplyOptions.map((option) => (
+                        <Button
+                          key={option}
+                          variant={choice === option ? 'primary' : 'outline'}
+                          size='sm'
+                          onClick={() => updateAutoApply(key, option)}
+                        >
+                          {option === 'auto'
+                            ? 'Auto'
+                            : option === 'confirm'
+                              ? 'Confirm'
+                              : 'Off'}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Other Gameplay Settings */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="flex items-center justify-between p-3 rounded-lg bg-popover">
+      <div className='grid md:grid-cols-2 gap-4'>
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
           <div>
-            <label className="text-sm font-medium">Auto-save</label>
-            <p className="text-xs text-muted-foreground ">
+            <label className='text-sm font-medium'>Auto-save</label>
+            <p className='text-xs text-muted-foreground '>
               Automatically save character data
             </p>
           </div>
           <Button
             variant={autoSave ? 'primary' : 'outline'}
-            size="sm"
+            size='sm'
             onClick={() => setAutoSave(!autoSave)}
           >
             {autoSave ? 'On' : 'Off'}
           </Button>
         </div>
 
-        <div className="flex items-center justify-between p-3 rounded-lg bg-popover">
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
           <div>
-            <label className="text-sm font-medium">Dice Sound Effects</label>
-            <p className="text-xs text-muted-foreground ">
+            <label className='text-sm font-medium'>Dice Sound Effects</label>
+            <p className='text-xs text-muted-foreground '>
               Play sounds when rolling dice
             </p>
           </div>
           <Button
             variant={diceSound ? 'primary' : 'outline'}
-            size="sm"
+            size='sm'
             onClick={() => setDiceSound(!diceSound)}
           >
             {diceSound ? 'On' : 'Off'}
           </Button>
         </div>
 
-        <div className="flex items-center justify-between p-3 rounded-lg bg-popover">
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
           <div>
-            <label className="text-sm font-medium">Quick Rolls</label>
-            <p className="text-xs text-muted-foreground ">
+            <label className='text-sm font-medium'>Quick Rolls</label>
+            <p className='text-xs text-muted-foreground '>
               Enable keyboard shortcuts for stat rolls
             </p>
           </div>
           <Button
             variant={quickRolls ? 'primary' : 'outline'}
-            size="sm"
+            size='sm'
             onClick={() => setQuickRolls(!quickRolls)}
           >
             {quickRolls ? 'On' : 'Off'}
           </Button>
         </div>
 
-        <div className="flex items-center justify-between p-3 rounded-lg bg-popover">
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
           <div>
-            <label className="text-sm font-medium">Keyboard Shortcuts</label>
-            <p className="text-xs text-muted-foreground ">
+            <label className='text-sm font-medium'>Keyboard Shortcuts</label>
+            <p className='text-xs text-muted-foreground '>
               View and customize keyboard shortcuts
             </p>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant='outline' size='sm'>
             <Keyboard size={16} />
             Configure
           </Button>
@@ -335,23 +492,25 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   className = '',
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['gameplay'])
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([
+    'gameplay',
+  ])
   const [themeShowcaseOpen, setThemeShowcaseOpen] = useState(false)
 
   const filteredCategories = useMemo(() => {
-    if (!searchQuery.trim())
-      return SETTINGS_CATEGORIES
+    if (!searchQuery.trim()) return SETTINGS_CATEGORIES
 
-    return SETTINGS_CATEGORIES.filter(category =>
-      category.title.toLowerCase().includes(searchQuery.toLowerCase())
-      || category.description.toLowerCase().includes(searchQuery.toLowerCase()),
+    return SETTINGS_CATEGORIES.filter(
+      (category) =>
+        category.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        category.description.toLowerCase().includes(searchQuery.toLowerCase()),
     )
   }, [searchQuery])
 
   const toggleCategory = (categoryId: string) => {
-    setExpandedCategories(prev =>
+    setExpandedCategories((prev) =>
       prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
+        ? prev.filter((id) => id !== categoryId)
         : [...prev, categoryId],
     )
   }
@@ -363,19 +522,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
       case 'interface':
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-popover">
+          <div className='space-y-4'>
+            <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
               <div>
-                <label className="text-sm font-medium">Theme Showcase</label>
-                <p className="text-xs text-muted-foreground ">
+                <label className='text-sm font-medium'>Theme Showcase</label>
+                <p className='text-xs text-muted-foreground '>
                   Preview all themes and components
                 </p>
               </div>
               <Button
-                variant="primary"
-                size="sm"
+                variant='primary'
+                size='sm'
                 onClick={() => setThemeShowcaseOpen(true)}
-                className="gap-2"
+                className='gap-2'
               >
                 <Sparkles size={16} />
                 Open Showcase
@@ -390,40 +549,43 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
       case 'system':
         return (
-          <div className="space-y-4">
+          <div className='space-y-4'>
             <PerformanceMonitor />
           </div>
         )
 
       case 'help':
         return (
-          <div className="space-y-4">
+          <div className='space-y-4'>
             <HelpSystem />
             <KeyboardShortcutsPanel />
             <div
-              className="p-4 rounded-lg border"
+              className='p-4 rounded-lg border'
               style={{
                 backgroundColor: 'var(--popover)',
                 borderColor: 'var(--border)',
               }}
             >
-              <h4 className="text-sm font-semibold mb-2">Need more assistance?</h4>
-              <p className="text-xs mb-3 text-muted-foreground">
-                Explore the in-app help center, review the latest release notes, or reach out to your GM for tailored guidance.
+              <h4 className='text-sm font-semibold mb-2'>
+                Need more assistance?
+              </h4>
+              <p className='text-xs mb-3 text-muted-foreground'>
+                Explore the in-app help center, review the latest release notes,
+                or reach out to your GM for tailored guidance.
               </p>
-              <ul className="text-xs space-y-2 text-muted-foreground">
+              <ul className='text-xs space-y-2 text-muted-foreground'>
                 <li>
-                  • Use the Command Palette (
-                  <kbd>Ctrl</kbd>
-                  /
-                  <kbd>⌘</kbd>
-                  {' '}
-                  +
-                  <kbd>K</kbd>
-                  ) to jump to tools quickly.
+                  • Use the Command Palette (<kbd>Ctrl</kbd>/<kbd>⌘</kbd> +
+                  <kbd>K</kbd>) to jump to tools quickly.
                 </li>
-                <li>• Visit the Knowledge Base from the Help menu for setup walkthroughs and FAQs.</li>
-                <li>• Join the community Discord to share rulings, house rules, and collaborative campaigns.</li>
+                <li>
+                  • Visit the Knowledge Base from the Help menu for setup
+                  walkthroughs and FAQs.
+                </li>
+                <li>
+                  • Join the community Discord to share rulings, house rules,
+                  and collaborative campaigns.
+                </li>
               </ul>
             </div>
           </div>
@@ -438,32 +600,32 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     <>
       <div className={`space-y-6 ${className}`}>
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className='flex items-center justify-between'>
           <div>
-            <h2 className="text-2xl font-display mb-2">Settings</h2>
-            <p className="text-muted-foreground">
+            <h2 className='text-2xl font-display mb-2'>Settings</h2>
+            <p className='text-muted-foreground'>
               Customize your ZimboMate experience
             </p>
           </div>
-          <Badge variant="default" className="magical-glow">
+          <Badge variant='default' className='magical-glow'>
             Enhanced ✨
           </Badge>
         </div>
 
         {/* Search */}
-        <Card variant="surface">
-          <CardContent className="p-4">
-            <div className="relative">
+        <Card variant='surface'>
+          <CardContent className='p-4'>
+            <div className='relative'>
               <Search
                 size={16}
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground'
               />
               <input
-                type="text"
-                placeholder="Search settings..."
+                type='text'
+                placeholder='Search settings...'
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border transition-colors"
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className='w-full pl-10 pr-4 py-2 rounded-lg border transition-colors'
                 style={{
                   backgroundColor: 'var(--card)',
                   borderColor: 'var(--primary)',
@@ -476,8 +638,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </Card>
 
         {/* Settings Categories */}
-        <div className="space-y-4">
-          {filteredCategories.map(category => (
+        <div className='space-y-4'>
+          {filteredCategories.map((category) => (
             <ExpandableSettingsCard
               key={category.id}
               category={category}
@@ -490,12 +652,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
 
         {filteredCategories.length === 0 && (
-          <Card variant="surface">
-            <CardContent className="p-6">
-              <div className="text-center py-8">
-                <Search size={48} className="mx-auto mb-4 opacity-30" />
-                <h3 className="text-lg font-semibold mb-2">No settings found</h3>
-                <p className="text-muted-foreground">
+          <Card variant='surface'>
+            <CardContent className='p-6'>
+              <div className='text-center py-8'>
+                <Search size={48} className='mx-auto mb-4 opacity-30' />
+                <h3 className='text-lg font-semibold mb-2'>
+                  No settings found
+                </h3>
+                <p className='text-muted-foreground'>
                   Try adjusting your search query
                 </p>
               </div>

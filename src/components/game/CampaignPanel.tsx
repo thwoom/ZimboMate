@@ -40,9 +40,9 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
 
-  const activeCampaign = useCampaignStore(state => state.getActiveCampaign())
-  const campaigns = useCampaignStore(state => state.campaigns)
-  const setActiveCampaign = useCampaignStore(state => state.setActiveCampaign)
+  const activeCampaign = useCampaignStore((state) => state.getActiveCampaign())
+  const campaigns = useCampaignStore((state) => state.campaigns)
+  const setActiveCampaign = useCampaignStore((state) => state.setActiveCampaign)
 
   const tabs = [
     {
@@ -80,33 +80,29 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
   const renderContent = () => {
     if (!activeCampaign) {
       return (
-        <Card variant="surface">
-          <CardContent className="p-6">
-            <div className="text-center space-y-6">
-              <div
-                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-primary/20"
-              >
-                <Scroll
-                  className="text-primary"
-                  size={32}
-                />
+        <Card variant='surface'>
+          <CardContent className='p-6'>
+            <div className='text-center space-y-6'>
+              <div className='w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-primary/20'>
+                <Scroll className='text-primary' size={32} />
               </div>
               <div>
-                <h3 className="text-xl font-display mb-2">No Campaign Selected</h3>
-                <p className="text-muted-foreground">
-                  Select an existing campaign or create a new one to get started.
+                <h3 className='text-xl font-display mb-2'>
+                  No Campaign Selected
+                </h3>
+                <p className='text-muted-foreground'>
+                  Select an existing campaign or create a new one to get
+                  started.
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <div className='flex flex-col sm:flex-row gap-3 justify-center items-center'>
                 {campaigns.length > 0 && (
-                  <CampaignSelector
-                    onCampaignSelect={setActiveCampaign}
-                  />
+                  <CampaignSelector onCampaignSelect={setActiveCampaign} />
                 )}
                 <Button
-                  variant="primary"
-                  size="md"
-                  className="gap-2"
+                  variant='primary'
+                  size='md'
+                  className='gap-2'
                   onClick={() => setShowCreateModal(true)}
                 >
                   <Plus size={16} />
@@ -123,13 +119,33 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
       case 'overview':
         return <CampaignOverview campaignId={activeCampaign.id} />
       case 'sessions':
-        return <SessionHistory campaignId={activeCampaign.id} searchQuery={searchQuery} />
+        return (
+          <SessionHistory
+            campaignId={activeCampaign.id}
+            searchQuery={searchQuery}
+          />
+        )
       case 'journal':
-        return <CampaignJournal campaignId={activeCampaign.id} searchQuery={searchQuery} />
+        return (
+          <CampaignJournal
+            campaignId={activeCampaign.id}
+            searchQuery={searchQuery}
+          />
+        )
       case 'npcs':
-        return <NPCManager campaignId={activeCampaign.id} searchQuery={searchQuery} />
+        return (
+          <NPCManager
+            campaignId={activeCampaign.id}
+            searchQuery={searchQuery}
+          />
+        )
       case 'locations':
-        return <LocationTracker campaignId={activeCampaign.id} searchQuery={searchQuery} />
+        return (
+          <LocationTracker
+            campaignId={activeCampaign.id}
+            searchQuery={searchQuery}
+          />
+        )
       default:
         return <CampaignOverview campaignId={activeCampaign.id} />
     }
@@ -145,14 +161,16 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className='flex items-center justify-between'>
         <div>
-          <h2 className="text-2xl font-display mb-2">Campaign Management</h2>
-          <p className="text-muted-foreground">
-            {activeCampaign ? `Managing: ${activeCampaign.name}` : 'GM tools for long-term campaign continuity'}
+          <h2 className='text-2xl font-display mb-2'>Campaign Management</h2>
+          <p className='text-muted-foreground'>
+            {activeCampaign
+              ? `Managing: ${activeCampaign.name}`
+              : 'GM tools for long-term campaign continuity'}
           </p>
         </div>
-        <Badge variant="default" className="magical-glow">
+        <Badge variant='default' className='magical-glow'>
           Phase 4B ✨
         </Badge>
       </div>
@@ -160,9 +178,9 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
       {activeCampaign && (
         <>
           {/* Tab Navigation */}
-          <Card variant="surface">
-            <CardContent className="p-4">
-              <div className="flex flex-wrap gap-2">
+          <Card variant='surface'>
+            <CardContent className='p-4'>
+              <div className='flex flex-wrap gap-2'>
                 {tabs.map((tab) => {
                   const Icon = tab.icon
                   const isActive = activeTab === tab.id
@@ -171,19 +189,22 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
                     <Button
                       key={tab.id}
                       variant={isActive ? 'primary' : 'ghost'}
-                      size="sm"
+                      size='sm'
                       onClick={() => setActiveTab(tab.id)}
-                      className="relative flex-1 min-w-0"
+                      className='relative flex-1 min-w-0'
                       title={tab.description}
                     >
                       <Icon size={16} />
-                      <span className="truncate">{tab.label}</span>
+                      <span className='truncate'>{tab.label}</span>
                       {isActive && (
                         <motion.div
-                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-
-                          layoutId="campaignTab"
-                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                          className='absolute bottom-0 left-0 right-0 h-0.5 bg-primary'
+                          layoutId='campaignTab'
+                          transition={{
+                            type: 'spring',
+                            stiffness: 300,
+                            damping: 30,
+                          }}
                         />
                       )}
                     </Button>
@@ -194,20 +215,23 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
           </Card>
 
           {/* Search Bar (for applicable tabs) */}
-          {(activeTab === 'sessions' || activeTab === 'journal' || activeTab === 'npcs' || activeTab === 'locations') && (
-            <Card variant="surface">
-              <CardContent className="p-4">
-                <div className="relative">
+          {(activeTab === 'sessions' ||
+            activeTab === 'journal' ||
+            activeTab === 'npcs' ||
+            activeTab === 'locations') && (
+            <Card variant='surface'>
+              <CardContent className='p-4'>
+                <div className='relative'>
                   <Search
                     size={16}
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+                    className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground'
                   />
                   <input
-                    type="text"
+                    type='text'
                     placeholder={`Search ${activeTab}...`}
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border transition-colors"
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className='w-full pl-10 pr-4 py-2 rounded-lg border transition-colors'
                     style={{
                       backgroundColor: 'var(--card)',
                       borderColor: 'var(--primary)',

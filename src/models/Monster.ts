@@ -3,17 +3,57 @@
  * Based on official DW SRD creature rules
  */
 
-export type MonsterSize = 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan'
+export type MonsterSize =
+  | 'Tiny'
+  | 'Small'
+  | 'Medium'
+  | 'Large'
+  | 'Huge'
+  | 'Gargantuan'
 
-export type MonsterTag
-  = | 'Magical' | 'Devious' | 'Amorphous' | 'Organized' | 'Intelligent' | 'Cautious'
-    | 'Construct' | 'Planar' | 'Terrifying' | 'Undead' | 'Horde' | 'Group' | 'Solitary'
-    | 'Stealthy' | 'Messy' | 'Forceful' | 'Ignores Armor' | 'Piercing' | 'Near' | 'Close'
-    | 'Reach' | 'Far' | 'Throwing' | 'Reload' | 'Precise' | 'Area' | 'Divine'
+export type MonsterTag =
+  | 'Magical'
+  | 'Devious'
+  | 'Amorphous'
+  | 'Organized'
+  | 'Intelligent'
+  | 'Cautious'
+  | 'Construct'
+  | 'Planar'
+  | 'Terrifying'
+  | 'Undead'
+  | 'Horde'
+  | 'Group'
+  | 'Solitary'
+  | 'Stealthy'
+  | 'Messy'
+  | 'Forceful'
+  | 'Ignores Armor'
+  | 'Piercing'
+  | 'Near'
+  | 'Close'
+  | 'Reach'
+  | 'Far'
+  | 'Throwing'
+  | 'Reload'
+  | 'Precise'
+  | 'Area'
+  | 'Divine'
 
-export type MonsterOrigin
-  = | 'Beast' | 'Humanoid' | 'Construct' | 'Undead' | 'Fey' | 'Elemental'
-    | 'Dragon' | 'Aberration' | 'Demon' | 'Devil' | 'Giant' | 'Ooze' | 'Plant'
+export type MonsterOrigin =
+  | 'Beast'
+  | 'Humanoid'
+  | 'Construct'
+  | 'Undead'
+  | 'Fey'
+  | 'Elemental'
+  | 'Dragon'
+  | 'Aberration'
+  | 'Demon'
+  | 'Devil'
+  | 'Giant'
+  | 'Ooze'
+  | 'Plant'
 
 export interface MonsterMove {
   name: string
@@ -77,7 +117,8 @@ export const DW_MONSTER_TEMPLATES: MonsterTemplate[] = [
   {
     id: 'goblin-warrior',
     name: 'Goblin Warrior',
-    description: 'Small, cunning humanoid with crude weapons and tribal organization.',
+    description:
+      'Small, cunning humanoid with crude weapons and tribal organization.',
     hp: 3,
     armor: 1,
     damage: '1d6',
@@ -86,11 +127,15 @@ export const DW_MONSTER_TEMPLATES: MonsterTemplate[] = [
     tags: ['Group', 'Stealthy', 'Organized'],
     instinct: 'To raid and pillage',
     moves: [
-      { name: 'Ambush from shadows', description: 'Attack from hiding with advantage' },
+      {
+        name: 'Ambush from shadows',
+        description: 'Attack from hiding with advantage',
+      },
       { name: 'Rally the pack', description: 'Call for goblin reinforcements' },
       { name: 'Fight dirty', description: 'Use underhanded tactics in combat' },
     ],
-    appearance: 'Green-skinned, pointed ears, crude leather armor and rusty weapons',
+    appearance:
+      'Green-skinned, pointed ears, crude leather armor and rusty weapons',
     habitat: 'Caves, ruins, dark forests',
     treasure: ['Crude weapons', 'A few coins', 'Tribal trinkets'],
     minLevel: 1,
@@ -104,7 +149,8 @@ export const DW_MONSTER_TEMPLATES: MonsterTemplate[] = [
   {
     id: 'orc-warrior',
     name: 'Orc Warrior',
-    description: 'Brutish humanoid warrior, stronger and more organized than goblins.',
+    description:
+      'Brutish humanoid warrior, stronger and more organized than goblins.',
     hp: 6,
     armor: 2,
     damage: '1d8+1',
@@ -113,11 +159,21 @@ export const DW_MONSTER_TEMPLATES: MonsterTemplate[] = [
     tags: ['Group', 'Organized', 'Forceful'],
     instinct: 'To conquer and dominate',
     moves: [
-      { name: 'Charge into battle', description: 'Rush forward with a powerful attack' },
-      { name: 'Intimidate foes', description: 'Use size and ferocity to frighten enemies' },
-      { name: 'Coordinated assault', description: 'Attack in formation with allies' },
+      {
+        name: 'Charge into battle',
+        description: 'Rush forward with a powerful attack',
+      },
+      {
+        name: 'Intimidate foes',
+        description: 'Use size and ferocity to frighten enemies',
+      },
+      {
+        name: 'Coordinated assault',
+        description: 'Attack in formation with allies',
+      },
     ],
-    appearance: 'Large, muscular humanoid with tusks, crude armor and brutal weapons',
+    appearance:
+      'Large, muscular humanoid with tusks, crude armor and brutal weapons',
     habitat: 'Mountains, wastelands, fortified camps',
     treasure: ['Iron weapons', 'Chain mail scraps', 'War trophies'],
     minLevel: 2,
@@ -140,12 +196,22 @@ export const DW_MONSTER_TEMPLATES: MonsterTemplate[] = [
     tags: ['Group', 'Undead', 'Organized'],
     instinct: 'To serve its master',
     moves: [
-      { name: 'Fight without fear', description: 'Cannot be intimidated or frightened' },
-      { name: 'Reform when broken', description: 'Reassemble from scattered bones' },
-      { name: 'Ancient weapon mastery', description: 'Use weapons with old skill' },
+      {
+        name: 'Fight without fear',
+        description: 'Cannot be intimidated or frightened',
+      },
+      {
+        name: 'Reform when broken',
+        description: 'Reassemble from scattered bones',
+      },
+      {
+        name: 'Ancient weapon mastery',
+        description: 'Use weapons with old skill',
+      },
     ],
     weaknesses: ['Holy water', 'Turn undead', 'Crushing damage'],
-    appearance: 'Yellowed bones held together by dark magic, rusted weapons and armor',
+    appearance:
+      'Yellowed bones held together by dark magic, rusted weapons and armor',
     habitat: 'Crypts, dungeons, ancient battlefields',
     treasure: ['Ancient coins', 'Old weapons', 'Bone trinkets'],
     minLevel: 1,
@@ -159,7 +225,8 @@ export const DW_MONSTER_TEMPLATES: MonsterTemplate[] = [
   {
     id: 'owlbear',
     name: 'Owlbear',
-    description: 'A massive creature with the body of a bear and the head of an owl.',
+    description:
+      'A massive creature with the body of a bear and the head of an owl.',
     hp: 16,
     armor: 1,
     damage: '2d6+3',
@@ -172,7 +239,8 @@ export const DW_MONSTER_TEMPLATES: MonsterTemplate[] = [
       { name: 'Keen senses', description: 'Detect hidden or invisible foes' },
       { name: 'Territorial roar', description: 'Frighten away intruders' },
     ],
-    appearance: 'Eight feet tall, brown feathers and fur, massive claws and beak',
+    appearance:
+      'Eight feet tall, brown feathers and fur, massive claws and beak',
     habitat: 'Deep forests, caves, wilderness areas',
     treasure: ['Owlbear pelt', 'Giant feathers', 'Natural treasures'],
     minLevel: 4,
@@ -195,8 +263,15 @@ export const DW_MONSTER_TEMPLATES: MonsterTemplate[] = [
     tags: ['Solitary', 'Intelligent', 'Magical', 'Terrifying'],
     instinct: 'To grow in power and hoard treasure',
     moves: [
-      { name: 'Breath weapon', description: 'Unleash elemental destruction', tags: ['Area', 'Far'] },
-      { name: 'Draconic cunning', description: 'Outwit opponents with ancient intelligence' },
+      {
+        name: 'Breath weapon',
+        description: 'Unleash elemental destruction',
+        tags: ['Area', 'Far'],
+      },
+      {
+        name: 'Draconic cunning',
+        description: 'Outwit opponents with ancient intelligence',
+      },
       { name: 'Magical resistance', description: 'Shrug off magical effects' },
     ],
     appearance: 'Scaled hide, glowing eyes, wings, and elemental breath',
@@ -233,7 +308,10 @@ export function createQuickMonster(
 }
 
 // Convert monster template to combat participant
-export function monsterToCombatParticipant(monster: MonsterTemplate | QuickMonster, id?: string) {
+export function monsterToCombatParticipant(
+  monster: MonsterTemplate | QuickMonster,
+  id?: string,
+) {
   return {
     id: id || `monster-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     name: monster.name,
@@ -248,24 +326,35 @@ export function monsterToCombatParticipant(monster: MonsterTemplate | QuickMonst
     damage: monster.damage,
     tags: monster.tags,
     instinct: monster.instinct,
-    moves: 'moves' in monster ? monster.moves : monster.moves.map(m => ({ name: m, description: m })),
+    moves:
+      'moves' in monster
+        ? monster.moves
+        : monster.moves.map((m) => ({ name: m, description: m })),
   }
 }
 
 // Scale monster for different levels
-export function scaleMonster(template: MonsterTemplate, targetLevel: number): MonsterTemplate {
-  if (!template.minLevel || !template.maxLevel)
-    return template
+export function scaleMonster(
+  template: MonsterTemplate,
+  targetLevel: number,
+): MonsterTemplate {
+  if (!template.minLevel || !template.maxLevel) return template
 
   const levelRange = template.maxLevel - template.minLevel
-  const levelFactor = Math.max(1, (targetLevel - template.minLevel) / levelRange)
+  const levelFactor = Math.max(
+    1,
+    (targetLevel - template.minLevel) / levelRange,
+  )
 
   return {
     ...template,
     hp: Math.floor(template.hp * levelFactor),
     armor: Math.min(4, Math.floor(template.armor * Math.sqrt(levelFactor))), // Armor scales slower
     // Damage scaling would need more complex parsing, keep simple for now
-    name: targetLevel > template.maxLevel ? `Elite ${template.name}` : template.name,
+    name:
+      targetLevel > template.maxLevel
+        ? `Elite ${template.name}`
+        : template.name,
   }
 }
 

@@ -104,7 +104,10 @@ export function createSession(title: string, summary: string): CampaignSession {
 }
 
 // Journal entry creation helper
-export function createJournalEntry(title: string, content: string): JournalEntry {
+export function createJournalEntry(
+  title: string,
+  content: string,
+): JournalEntry {
   return {
     id: `journal-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
     title,
@@ -116,7 +119,11 @@ export function createJournalEntry(title: string, content: string): JournalEntry
 }
 
 // NPC creation helper
-export function createNPC(name: string, description: string, role: string): NPC {
+export function createNPC(
+  name: string,
+  description: string,
+  role: string,
+): NPC {
   return {
     id: `npc-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
     name,
@@ -130,7 +137,11 @@ export function createNPC(name: string, description: string, role: string): NPC 
 }
 
 // Location creation helper
-export function createLocation(name: string, description: string, type: Location['type']): Location {
+export function createLocation(
+  name: string,
+  description: string,
+  type: Location['type'],
+): Location {
   return {
     id: `location-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
     name,

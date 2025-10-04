@@ -16,7 +16,9 @@ describe('toaster', () => {
       ).toBeInTheDocument()
     })
 
-    const toaster = document.querySelector('[data-sonner-toaster]') as HTMLElement
+    const toaster = document.querySelector(
+      '[data-sonner-toaster]',
+    ) as HTMLElement
 
     expect(toaster).toHaveAttribute('data-sonner-theme', 'matsu')
     expect(toaster).toHaveStyle('--normal-bg: var(--popover)')

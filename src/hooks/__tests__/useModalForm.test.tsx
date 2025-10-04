@@ -7,57 +7,74 @@ type SubmitReturn<T> = T extends Promise<infer R> ? R : never
 
 describe('useModalForm', () => {
   const getInitialState = () => ({ name: '', notes: '' })
-  const getInitialErrors = () => ({ name: undefined as string | undefined, notes: undefined as string | undefined })
+  const getInitialErrors = () => ({
+    name: undefined as string | undefined,
+    notes: undefined as string | undefined,
+  })
 
   it('initialises state and errors using the provided factories', () => {
-    const { result } = renderHook(() => useModalForm({
-      getInitialState,
-      getInitialErrors,
-      onSubmit: vi.fn(),
-    }))
+    const { result } = renderHook(() =>
+      useModalForm({
+        getInitialState,
+        getInitialErrors,
+        onSubmit: vi.fn(),
+      }),
+    )
 
     expect(result.current.state).toEqual({ name: '', notes: '' })
-    expect(result.current.errors).toEqual({ name: undefined, notes: undefined })
+    expect(result.current.errors).toEqual({
+      name: undefined,
+      notes: undefined,
+    })
   })
 
   it('applies updater functions via setState', () => {
-    const { result } = renderHook(() => useModalForm({
-      getInitialState,
-      getInitialErrors,
-      onSubmit: vi.fn(),
-    }))
+    const { result } = renderHook(() =>
+      useModalForm({
+        getInitialState,
+        getInitialErrors,
+        onSubmit: vi.fn(),
+      }),
+    )
 
     act(() => {
-      result.current.setState(prev => ({ ...prev, name: 'Scholar' }))
+      result.current.setState((prev) => ({ ...prev, name: 'Scholar' }))
     })
 
     expect(result.current.state.name).toBe('Scholar')
   })
 
   it('replaces state when reset is called with a value', () => {
-    const { result } = renderHook(() => useModalForm({
-      getInitialState,
-      getInitialErrors,
-      onSubmit: vi.fn(),
-    }))
+    const { result } = renderHook(() =>
+      useModalForm({
+        getInitialState,
+        getInitialErrors,
+        onSubmit: vi.fn(),
+      }),
+    )
 
     act(() => {
       result.current.reset({ name: 'Alchemist', notes: 'Brews potions' })
     })
 
-    expect(result.current.state).toEqual({ name: 'Alchemist', notes: 'Brews potions' })
+    expect(result.current.state).toEqual({
+      name: 'Alchemist',
+      notes: 'Brews potions',
+    })
   })
 
   it('runs validation before submission and returns validation errors', async () => {
-    const { result } = renderHook(() => useModalForm({
-      getInitialState,
-      getInitialErrors,
-      validate: state => ({
-        name: state.name ? undefined : 'Name is required',
-        notes: undefined,
+    const { result } = renderHook(() =>
+      useModalForm({
+        getInitialState,
+        getInitialErrors,
+        validate: (state) => ({
+          name: state.name ? undefined : 'Name is required',
+          notes: undefined,
+        }),
+        onSubmit: vi.fn(),
       }),
-      onSubmit: vi.fn(),
-    }))
+    )
 
     let submitResult: SubmitReturn<ReturnType<typeof result.current.submit>>
 
@@ -76,15 +93,17 @@ describe('useModalForm', () => {
 
   it('passes validation, calls submit handler, and returns the handler result', async () => {
     const handleSubmit = vi.fn().mockResolvedValue('created-id')
-    const { result } = renderHook(() => useModalForm({
-      getInitialState,
-      getInitialErrors,
-      validate: () => ({ name: undefined, notes: undefined }),
-      onSubmit: handleSubmit,
-    }))
+    const { result } = renderHook(() =>
+      useModalForm({
+        getInitialState,
+        getInitialErrors,
+        validate: () => ({ name: undefined, notes: undefined }),
+        onSubmit: handleSubmit,
+      }),
+    )
 
     act(() => {
-      result.current.setState(prev => ({ ...prev, name: 'Navigator' }))
+      result.current.setState((prev) => ({ ...prev, name: 'Navigator' }))
     })
 
     let submitResult: SubmitReturn<ReturnType<typeof result.current.submit>>
@@ -99,15 +118,17 @@ describe('useModalForm', () => {
 
   it('returns an error status when the submit handler throws', async () => {
     const handleSubmit = vi.fn().mockRejectedValue(new Error('Network broken'))
-    const { result } = renderHook(() => useModalForm({
-      getInitialState,
-      getInitialErrors,
-      validate: () => ({ name: undefined, notes: undefined }),
-      onSubmit: handleSubmit,
-    }))
+    const { result } = renderHook(() =>
+      useModalForm({
+        getInitialState,
+        getInitialErrors,
+        validate: () => ({ name: undefined, notes: undefined }),
+        onSubmit: handleSubmit,
+      }),
+    )
 
     act(() => {
-      result.current.setState(prev => ({ ...prev, name: 'Navigator' }))
+      result.current.setState((prev) => ({ ...prev, name: 'Navigator' }))
     })
 
     let submitResult: SubmitReturn<ReturnType<typeof result.current.submit>>

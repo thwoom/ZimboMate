@@ -268,7 +268,7 @@ const ExplorationMode: React.FC<{
 const SocialMode: React.FC<{
   character: Character
   onAction: (actionId: string) => void
-}> = ({ character, onAction }) => {
+}> = ({ character: _character, onAction }) => {
   const chaModifier = Math.floor(((character.attributes?.CHA || 10) - 10) / 2)
   const wisModifier = Math.floor(((character.attributes?.WIS || 10) - 10) / 2)
 
@@ -360,7 +360,7 @@ const SocialMode: React.FC<{
 const RestMode: React.FC<{
   character: Character
   onAction: (actionId: string) => void
-}> = ({ character, onAction }) => {
+}> = ({ character: _character, onAction }) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -415,10 +415,10 @@ export const ContextualActionZone: React.FC<ContextualActionZoneProps> = ({
   character,
   gameMode,
   theme,
-  onGameModeChange,
+  onGameModeChange: _onGameModeChange,
   className = '',
 }) => {
-  const { emitDiceRoll, promptForChronicle } = useChronicle()
+  const { promptForChronicle } = useChronicle()
 
   const handleCombatAction = useCallback((action: CombatAction) => {
     logger.info('Combat action:', action)

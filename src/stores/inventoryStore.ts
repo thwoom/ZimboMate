@@ -1,9 +1,19 @@
 import type { Item } from '../models/Equipment'
-import type { Inventory } from '../models/Inventory'
+import type { Inventory, InventoryEquipSlot } from '../models/Inventory'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { InventoryFilter, InventoryView, ItemSortBy } from '../equipmentSystemMockData'
-import { addItem, moveItem, removeItem, toggleEquipped } from '../models/Inventory'
+import {
+  InventoryFilter,
+  InventoryView,
+  ItemSortBy,
+} from '../equipmentSystemMockData'
+import {
+  addItem,
+  moveItem,
+  removeItem,
+  setEquippedState,
+  toggleEquipped,
+} from '../models/Inventory'
 
 interface InventoryState {
   inventory: Inventory | null
@@ -19,8 +29,17 @@ interface InventoryState {
   setInventory: (inventory: Inventory) => void
   addItemToInventory: (item: Item, containerId?: string) => void
   removeItemFromInventory: (itemId: string) => void
-  moveItemBetweenContainers: (itemId: string, fromContainer: string, toContainer: string) => void
-  toggleItemEquipped: (itemId: string) => void
+  moveItemBetweenContainers: (
+    itemId: string,
+    fromContainer: string,
+    toContainer: string,
+  ) => void
+  setItemEquipped: (
+    itemId: string,
+    equipped: boolean,
+    slot?: InventoryEquipSlot,
+  ) => void
+  toggleItemEquipped: (itemId: string, slot?: InventoryEquipSlot) => void
   setSelectedItems: (itemIds: string[]) => void
   setDraggedItem: (itemId: string | null) => void
   setInventoryView: (view: InventoryView) => void
@@ -46,8 +65,7 @@ export const useInventoryStore = create<InventoryState>()(
 
       addItemToInventory: (item: Item, containerId?: string) => {
         const { inventory } = get()
-        if (!inventory)
-          return
+        if (!inventory) return
 
         const updatedInventory = addItem(inventory, item, containerId)
         set({ inventory: updatedInventory })
@@ -55,28 +73,51 @@ export const useInventoryStore = create<InventoryState>()(
 
       removeItemFromInventory: (itemId: string) => {
         const { inventory } = get()
-        if (!inventory)
-          return
+        if (!inventory) return
 
         const updatedInventory = removeItem(inventory, itemId)
         set({ inventory: updatedInventory })
       },
 
-      moveItemBetweenContainers: (itemId: string, fromContainer: string, toContainer: string) => {
+      moveItemBetweenContainers: (
+        itemId: string,
+        fromContainer: string,
+        toContainer: string,
+      ) => {
         const { inventory } = get()
-        if (!inventory)
-          return
+        if (!inventory) return
 
-        const updatedInventory = moveItem(inventory, itemId, fromContainer, toContainer)
+        const updatedInventory = moveItem(
+          inventory,
+          itemId,
+          fromContainer,
+          toContainer,
+        )
         set({ inventory: updatedInventory })
       },
 
-      toggleItemEquipped: (itemId: string) => {
+      setItemEquipped: (
+        itemId: string,
+        equipped: boolean,
+        slot?: InventoryEquipSlot,
+      ) => {
         const { inventory } = get()
-        if (!inventory)
-          return
+        if (!inventory) return
 
-        const updatedInventory = toggleEquipped(inventory, itemId)
+        const updatedInventory = setEquippedState(
+          inventory,
+          itemId,
+          equipped,
+          slot,
+        )
+        set({ inventory: updatedInventory })
+      },
+
+      toggleItemEquipped: (itemId: string, slot?: InventoryEquipSlot) => {
+        const { inventory } = get()
+        if (!inventory) return
+
+        const updatedInventory = toggleEquipped(inventory, itemId, slot)
         set({ inventory: updatedInventory })
       },
 
@@ -96,7 +137,7 @@ export const useInventoryStore = create<InventoryState>()(
     }),
     {
       name: 'zimbomate-inventory-storage',
-      partialize: state => ({
+      partialize: (state) => ({
         inventoryView: state.inventoryView,
         sortBy: state.sortBy,
         filterBy: state.filterBy,

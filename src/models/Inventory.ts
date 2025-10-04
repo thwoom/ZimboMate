@@ -6,19 +6,19 @@ import type { Item } from './Equipment'
 import { getItemTotalWeight } from './Equipment'
 
 // Inventory categories for organization
-export type InventoryCategory
-  = | 'equipped' // Currently equipped items
-    | 'carried' // In backpack / pouches
-    | 'stored' // In storage / stash
-    | 'consumables' // Quick access consumables
-    | 'treasure' // Valuable items
-    | 'other' // Miscellaneous
+export type InventoryCategory =
+  | 'equipped' // Currently equipped items
+  | 'carried' // In backpack / pouches
+  | 'stored' // In storage / stash
+  | 'consumables' // Quick access consumables
+  | 'treasure' // Valuable items
+  | 'other' // Miscellaneous
 
 // Encumbrance status
-export type EncumbranceStatus
-  = | 'normal' // Weight <= Load
-    | 'encumbered' // Weight <= Load + 2 (-1 ongoing)
-    | 'overloaded' // Weight > Load + 2 (can barely move)
+export type EncumbranceStatus =
+  | 'normal' // Weight <= Load
+  | 'encumbered' // Weight <= Load + 2 (-1 ongoing)
+  | 'overloaded' // Weight > Load + 2 (can barely move)
 
 // Container for organizing items
 export interface Container {
@@ -32,7 +32,7 @@ export interface Container {
 
 // Complete inventory
 export interface Inventory {
-  items: Record <string, Item> // All items keyed by ID
+  items: Record<string, Item> // All items keyed by ID
   containers: Container[] // Organization containers
   quickSlots: string[] // Item IDs for quick access
   lastUpdated: Date
@@ -44,7 +44,7 @@ export interface InventoryStats {
   totalValue: number
   itemCount: number
   encumbranceStatus: EncumbranceStatus
-  weightByCategory: Record <InventoryCategory, number>
+  weightByCategory: Record<InventoryCategory, number>
 }
 
 // Utility functions
@@ -83,13 +83,17 @@ export function createEmptyInventory(): Inventory {
 /**
  * Add item to inventory
  */
-export function addItem(inventory: Inventory, item: Item, containerId?: string): Inventory {
+export function addItem(
+  inventory: Inventory,
+  item: Item,
+  containerId?: string,
+): Inventory {
   const newInventory = { ...inventory }
   newInventory.items[item.id] = item
 
   // Add to container if specified
   if (containerId) {
-    const container = newInventory.containers.find(c => c.id === containerId)
+    const container = newInventory.containers.find((c) => c.id === containerId)
     if (container && !container.items.includes(item.id)) {
       container.items.push(item.id)
     }
@@ -110,11 +114,13 @@ export function removeItem(inventory: Inventory, itemId: string): Inventory {
 
   // Remove from all containers
   for (const container of newInventory.containers) {
-    container.items = container.items.filter(id => id !== itemId)
+    container.items = container.items.filter((id) => id !== itemId)
   }
 
   // Remove from quick slots
-  newInventory.quickSlots = newInventory.quickSlots.filter(id => id !== itemId)
+  newInventory.quickSlots = newInventory.quickSlots.filter(
+    (id) => id !== itemId,
+  )
 
   newInventory.lastUpdated = new Date()
   return newInventory
@@ -131,11 +137,15 @@ export function moveItem(
 ): Inventory {
   const newInventory = { ...inventory }
 
-  const fromContainer = newInventory.containers.find(c => c.id === fromContainerId)
-  const toContainer = newInventory.containers.find(c => c.id === toContainerId)
+  const fromContainer = newInventory.containers.find(
+    (c) => c.id === fromContainerId,
+  )
+  const toContainer = newInventory.containers.find(
+    (c) => c.id === toContainerId,
+  )
 
   if (fromContainer && toContainer) {
-    fromContainer.items = fromContainer.items.filter(id => id !== itemId)
+    fromContainer.items = fromContainer.items.filter((id) => id !== itemId)
     if (!toContainer.items.includes(itemId)) {
       toContainer.items.push(itemId)
     }
@@ -148,39 +158,117 @@ export function moveItem(
 /**
  * Toggle item equipped status
  */
-export function toggleEquipped(inventory: Inventory, itemId: string): Inventory {
+export type InventoryEquipSlot =
+  | 'main_hand'
+  | 'off_hand'
+  | 'two_handed'
+  | string
+
+function insertItemIntoSlot(
+  container: Container | undefined,
+  itemId: string,
+  slot?: InventoryEquipSlot,
+): void {
+  if (!container) return
+
+  if (slot === 'main_hand') {
+    container.items.unshift(itemId)
+    return
+  }
+
+  if (slot === 'off_hand') {
+    if (container.items.length === 0) {
+      container.items.push(itemId)
+    } else if (container.items.length === 1) {
+      container.items.push(itemId)
+    } else {
+      container.items.splice(1, 0, itemId)
+    }
+    return
+  }
+
+  container.items.push(itemId)
+}
+
+export function setEquippedState(
+  inventory: Inventory,
+  itemId: string,
+  equipped: boolean,
+  slot?: InventoryEquipSlot,
+): Inventory {
   const newInventory = { ...inventory }
   const item = newInventory.items[itemId]
 
-  if (item) {
-    item.equipped = !item.equipped
+  if (!item) return inventory
 
-    // Move between equipped and carried containers
-    const equippedContainer = newInventory.containers.find(c => c.category === 'equipped')
-    const carriedContainer = newInventory.containers.find(c => c.category === 'carried')
+  const equippedContainer = newInventory.containers.find(
+    (c) => c.category === 'equipped',
+  )
+  const carriedContainer = newInventory.containers.find(
+    (c) => c.category === 'carried',
+  )
 
-    if (item.equipped) {
-      // Move to equipped
-      if (carriedContainer) {
-        carriedContainer.items = carriedContainer.items.filter(id => id !== itemId)
-      }
-      if (equippedContainer && !equippedContainer.items.includes(itemId)) {
-        equippedContainer.items.push(itemId)
-      }
+  item.equipped = equipped
+
+  if (equipped) {
+    if (carriedContainer)
+      carriedContainer.items = carriedContainer.items.filter(
+        (id) => id !== itemId,
+      )
+
+    if (equippedContainer) {
+      equippedContainer.items = equippedContainer.items.filter(
+        (id) => id !== itemId,
+      )
+      insertItemIntoSlot(equippedContainer, itemId, slot)
     }
-    else {
-      // Move to carried
-      if (equippedContainer) {
-        equippedContainer.items = equippedContainer.items.filter(id => id !== itemId)
-      }
-      if (carriedContainer && !carriedContainer.items.includes(itemId)) {
-        carriedContainer.items.push(itemId)
-      }
-    }
+  } else {
+    if (equippedContainer)
+      equippedContainer.items = equippedContainer.items.filter(
+        (id) => id !== itemId,
+      )
+
+    if (carriedContainer && !carriedContainer.items.includes(itemId))
+      carriedContainer.items.push(itemId)
   }
 
   newInventory.lastUpdated = new Date()
   return newInventory
+}
+
+export function toggleEquipped(
+  inventory: Inventory,
+  itemId: string,
+  slot?: InventoryEquipSlot,
+): Inventory {
+  const item = inventory.items[itemId]
+  if (!item) return inventory
+
+  return setEquippedState(inventory, itemId, !item.equipped, slot)
+}
+
+export function getEquippedSlot(
+  inventory: Inventory,
+  itemId: string,
+): InventoryEquipSlot | undefined {
+  const item = inventory.items[itemId]
+  if (!item || !item.equipped) return undefined
+
+  if (item.category === 'armor') return 'armor'
+
+  if (item.tags.some((tag) => tag.name.toLowerCase() === 'two-handed'))
+    return 'two_handed'
+
+  const equippedContainer = inventory.containers.find(
+    (c) => c.category === 'equipped',
+  )
+  if (!equippedContainer) return undefined
+
+  const index = equippedContainer.items.findIndex((id) => id === itemId)
+  if (index === 0) return 'main_hand'
+  if (index === 1) return 'off_hand'
+
+  return undefined
 }
 
 /**
@@ -193,7 +281,7 @@ export function calculateInventoryStats(
   let totalWeight = 0
   let totalValue = 0
   let itemCount = 0
-  const weightByCategory: Record <InventoryCategory, number> = {
+  const weightByCategory: Record<InventoryCategory, number> = {
     equipped: 0,
     carried: 0,
     stored: 0,
@@ -210,7 +298,9 @@ export function calculateInventoryStats(
     itemCount += item.quantity
 
     // Find which container has this item
-    const container = inventory.containers.find(c => c.items.includes(item.id))
+    const container = inventory.containers.find((c) =>
+      c.items.includes(item.id),
+    )
     if (container) {
       weightByCategory[container.category] += itemWeight
     }
@@ -220,8 +310,7 @@ export function calculateInventoryStats(
   let encumbranceStatus: EncumbranceStatus = 'normal'
   if (totalWeight > maxLoad + 2) {
     encumbranceStatus = 'overloaded'
-  }
-  else if (totalWeight > maxLoad) {
+  } else if (totalWeight > maxLoad) {
     encumbranceStatus = 'encumbered'
   }
 
@@ -237,14 +326,16 @@ export function calculateInventoryStats(
 /**
  * Get items in a specific container
  */
-export function getContainerItems(inventory: Inventory, containerId: string): Item[] {
-  const container = inventory.containers.find(c => c.id === containerId)
-  if (!container)
-    return []
+export function getContainerItems(
+  inventory: Inventory,
+  containerId: string,
+): Item[] {
+  const container = inventory.containers.find((c) => c.id === containerId)
+  if (!container) return []
 
   return container.items
-    .map(itemId => inventory.items[itemId])
-    .filter(item => item !== undefined)
+    .map((itemId) => inventory.items[itemId])
+    .filter((item) => item !== undefined)
 }
 
 /**
@@ -252,9 +343,10 @@ export function getContainerItems(inventory: Inventory, containerId: string): It
  */
 export function searchItems(inventory: Inventory, query: string): Item[] {
   const lowerQuery = query.toLowerCase()
-  return Object.values(inventory.items).filter(item =>
-    item.name.toLowerCase().includes(lowerQuery)
-    || (item.description && item.description.toLowerCase().includes(lowerQuery)),
+  return Object.values(inventory.items).filter(
+    (item) =>
+      item.name.toLowerCase().includes(lowerQuery) ||
+      (item.description && item.description.toLowerCase().includes(lowerQuery)),
   )
 }
 
@@ -262,7 +354,7 @@ export function searchItems(inventory: Inventory, query: string): Item[] {
  * Get all equipped items
  */
 export function getEquippedItems(inventory: Inventory): Item[] {
-  return Object.values(inventory.items).filter(item => item.equipped)
+  return Object.values(inventory.items).filter((item) => item.equipped)
 }
 
 /**

@@ -1,6 +1,6 @@
 # 🛠️ ZimboMate V2 Developer Guide
 
-*Complete technical documentation for ZimboMate V2 development*
+_Complete technical documentation for ZimboMate V2 development_
 
 ## 📋 Table of Contents
 
@@ -50,6 +50,7 @@
 ### **Design Patterns**
 
 #### **Component Composition**
+
 ```typescript
 // ✅ Good: Composable components
 const CharacterSheet = () => {
@@ -69,39 +70,42 @@ const CharacterSheet = () => {
 ```
 
 #### **Custom Hooks Pattern**
+
 ```typescript
 // ✅ Good: Reusable logic in hooks
 const useCharacter = (characterId: string) => {
-  const character = useCharacterStore(state => 
-    state.characters.find(c => c.id === characterId)
+  const character = useCharacterStore((state) =>
+    state.characters.find((c) => c.id === characterId),
   )
-  
-  const updateCharacter = useCharacterStore(state => state.updateCharacter)
-  
+
+  const updateCharacter = useCharacterStore((state) => state.updateCharacter)
+
   return {
     character,
-    updateCharacter: (updates: Partial<Character>) => 
-      updateCharacter(characterId, updates)
+    updateCharacter: (updates: Partial<Character>) =>
+      updateCharacter(characterId, updates),
   }
 }
 ```
 
 #### **Service Layer Pattern**
+
 ```typescript
 // ✅ Good: Business logic in services
 export class DiceService {
   static rollDice(sides: number, count: number = 1): DiceRoll {
-    const dice = Array.from({ length: count }, () => 
-      Math.floor(Math.random() * sides) + 1
+    const dice = Array.from(
+      { length: count },
+      () => Math.floor(Math.random() * sides) + 1,
     )
-    
+
     return {
       dice,
       total: dice.reduce((sum, die) => sum + die, 0),
-      timestamp: new Date()
+      timestamp: new Date(),
     }
   }
-  
+
   static calculateDungeonWorldResult(total: number): DWResult {
     if (total >= 10) return 'success'
     if (total >= 7) return 'partial'
@@ -115,6 +119,7 @@ export class DiceService {
 ### **Core UI Components**
 
 #### **Button Component**
+
 ```typescript
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive'
@@ -132,6 +137,7 @@ interface ButtonProps {
 ```
 
 #### **Card Component**
+
 ```typescript
 interface CardProps {
   variant?: 'default' | 'magical' | 'glass'
@@ -154,6 +160,7 @@ interface CardProps {
 ### **Game Components**
 
 #### **CharacterSheet Component**
+
 ```typescript
 interface CharacterSheetProps {
   characterId?: string
@@ -162,7 +169,7 @@ interface CharacterSheetProps {
 }
 
 // Usage
-<CharacterSheet 
+<CharacterSheet
   characterId="char-1"
   onCharacterUpdate={handleUpdate}
   onStatRoll={handleStatRoll}
@@ -170,6 +177,7 @@ interface CharacterSheetProps {
 ```
 
 #### **DiceRoller Component**
+
 ```typescript
 interface DiceRollerProps {
   modifier?: number
@@ -180,7 +188,7 @@ interface DiceRollerProps {
 }
 
 // Usage
-<DiceRoller 
+<DiceRoller
   modifier={2}
   onRoll={handleRollResult}
   showAnimation={true}
@@ -188,6 +196,7 @@ interface DiceRollerProps {
 ```
 
 #### **MovesPanel Component**
+
 ```typescript
 interface MovesPanelProps {
   character: Character
@@ -197,7 +206,7 @@ interface MovesPanelProps {
 }
 
 // Usage
-<MovesPanel 
+<MovesPanel
   character={character}
   characterClass="wizard"
   onMoveSelect={handleMoveSelect}
@@ -208,6 +217,7 @@ interface MovesPanelProps {
 ### **3D Components**
 
 #### **Dice3D Component**
+
 ```typescript
 interface Dice3DProps {
   sides: number
@@ -218,7 +228,7 @@ interface Dice3DProps {
 }
 
 // Usage
-<Dice3D 
+<Dice3D
   sides={6}
   onResult={handleDiceResult}
   position={[0, 2, 0]}
@@ -231,18 +241,19 @@ interface Dice3DProps {
 ### **Zustand Store Structure**
 
 #### **Character Store**
+
 ```typescript
 interface CharacterStore {
   // State
   characters: Character[]
   activeCharacterId: string | null
-  
+
   // Actions
   addCharacter: (character: Character) => void
   updateCharacter: (id: string, updates: Partial<Character>) => void
   removeCharacter: (id: string) => void
   setActiveCharacter: (id: string) => void
-  
+
   // Computed
   activeCharacter: Character | null
 }
@@ -251,35 +262,40 @@ interface CharacterStore {
 const useCharacterStore = create<CharacterStore>((set, get) => ({
   characters: [],
   activeCharacterId: null,
-  
-  addCharacter: (character) => set(state => ({
-    characters: [...state.characters, character]
-  })),
-  
-  updateCharacter: (id, updates) => set(state => ({
-    characters: state.characters.map(char =>
-      char.id === id ? { ...char, ...updates } : char
-    )
-  })),
-  
+
+  addCharacter: (character) =>
+    set((state) => ({
+      characters: [...state.characters, character],
+    })),
+
+  updateCharacter: (id, updates) =>
+    set((state) => ({
+      characters: state.characters.map((char) =>
+        char.id === id ? { ...char, ...updates } : char,
+      ),
+    })),
+
   get activeCharacter() {
     const state = get()
-    return state.characters.find(c => c.id === state.activeCharacterId) || null
-  }
+    return (
+      state.characters.find((c) => c.id === state.activeCharacterId) || null
+    )
+  },
 }))
 ```
 
 #### **Game State Store**
+
 ```typescript
 interface GameStateStore {
   // Dice Rolling
   rollHistory: DiceRoll[]
   isRolling: boolean
-  
+
   // Session
   sessionNotes: Note[]
   sessionTimers: Timer[]
-  
+
   // Actions
   addRoll: (roll: DiceRoll) => void
   setRolling: (rolling: boolean) => void
@@ -291,33 +307,35 @@ interface GameStateStore {
 ### **Store Best Practices**
 
 #### **Immutable Updates**
+
 ```typescript
 // ✅ Good: Immutable update
-updateCharacter: (id, updates) => set(state => ({
-  characters: state.characters.map(char =>
-    char.id === id ? { ...char, ...updates } : char
-  )
-}))
+updateCharacter: (id, updates) =>
+  set((state) => ({
+    characters: state.characters.map((char) =>
+      char.id === id ? { ...char, ...updates } : char,
+    ),
+  }))
 
 // ❌ Bad: Mutating state
-updateCharacter: (id, updates) => set(state => {
-  const char = state.characters.find(c => c.id === id)
-  Object.assign(char, updates) // Mutation!
-  return state
-})
+updateCharacter: (id, updates) =>
+  set((state) => {
+    const char = state.characters.find((c) => c.id === id)
+    Object.assign(char, updates) // Mutation!
+    return state
+  })
 ```
 
 #### **Computed Properties**
+
 ```typescript
 // ✅ Good: Computed property
 interface CharacterStore {
   characters: Character[]
   activeCharacterId: string | null
-  
+
   // Computed property
-  get activeCharacter(): Character | null {
-    return this.characters.find(c => c.id === this.activeCharacterId) || null
-  }
+  get activeCharacter(): Character | null
 }
 ```
 
@@ -333,6 +351,7 @@ interface CharacterStore {
 ### **Testing Utilities**
 
 #### **Custom Render Function**
+
 ```typescript
 export const renderWithProviders = (
   ui: React.ReactElement,
@@ -345,7 +364,7 @@ export const renderWithProviders = (
       </Tooltip.Provider>
     </ThemeProvider>
   )
-  
+
   return {
     user: userEvent.setup(),
     ...render(ui, { wrapper: Wrapper, ...options })
@@ -354,6 +373,7 @@ export const renderWithProviders = (
 ```
 
 #### **Mock Data Generators**
+
 ```typescript
 export const mockCharacter = (): Character => ({
   id: 'test-char-1',
@@ -365,13 +385,14 @@ export const mockCharacter = (): Character => ({
     strength: { value: 16, modifier: 2 },
     dexterity: { value: 13, modifier: 1 },
     // ... other stats
-  }
+  },
 })
 ```
 
 ### **Test Categories**
 
 #### **Unit Tests**
+
 ```typescript
 describe('DiceService', () => {
   it('calculates Dungeon World results correctly', () => {
@@ -383,12 +404,13 @@ describe('DiceService', () => {
 ```
 
 #### **Component Tests**
+
 ```typescript
 describe('CharacterSheet', () => {
   it('displays character information correctly', () => {
     const character = mockCharacter()
     renderWithProviders(<CharacterSheet character={character} />)
-    
+
     expect(screen.getByText(character.name)).toBeInTheDocument()
     expect(screen.getByText(`Level ${character.level}`)).toBeInTheDocument()
   })
@@ -396,25 +418,27 @@ describe('CharacterSheet', () => {
 ```
 
 #### **Integration Tests**
+
 ```typescript
 describe('Character and Dice Integration', () => {
   it('passes correct modifier when rolling stats', async () => {
     const { user } = renderWithProviders(<App />)
-    
+
     const strRollButton = screen.getByRole('button', { name: /roll strength/i })
     await user.click(strRollButton)
-    
+
     expect(screen.getByText(/\+2/)).toBeInTheDocument() // STR modifier
   })
 })
 ```
 
 #### **E2E Tests**
+
 ```typescript
 describe('Complete Gaming Session', () => {
   it('supports full session workflow', async () => {
     const { user } = renderWithProviders(<App />)
-    
+
     // Create session notes
     await user.click(screen.getByRole('tab', { name: /session tools/i }))
     // ... complete workflow test
@@ -425,17 +449,19 @@ describe('Complete Gaming Session', () => {
 ### **Performance Testing**
 
 #### **Render Performance**
+
 ```typescript
 it('renders within performance budget', async () => {
   const start = performance.now()
   renderWithProviders(<CharacterSheet />)
   const end = performance.now()
-  
+
   expect(end - start).toBeLessThan(50) // 50ms budget
 })
 ```
 
 #### **Memory Testing**
+
 ```typescript
 it('handles memory efficiently', async () => {
   // Simulate extended use
@@ -443,7 +469,7 @@ it('handles memory efficiently', async () => {
     const { unmount } = renderWithProviders(<DiceRoller />)
     unmount()
   }
-  
+
   // Check for memory leaks
   const memoryInfo = (performance as any).memory
   if (memoryInfo) {
@@ -457,18 +483,20 @@ it('handles memory efficiently', async () => {
 ### **React Performance**
 
 #### **Memoization**
+
 ```typescript
 // ✅ Good: Memoize expensive calculations
 const CharacterStats = memo(({ character }: { character: Character }) => {
-  const statModifiers = useMemo(() => 
+  const statModifiers = useMemo(() =>
     calculateAllModifiers(character.stats), [character.stats]
   )
-  
+
   return <div>{/* Render stats */}</div>
 })
 ```
 
 #### **Code Splitting**
+
 ```typescript
 // ✅ Good: Lazy load heavy components
 const SpellBook = lazy(() => import('./SpellBook'))
@@ -487,28 +515,30 @@ const App = () => (
 ### **3D Performance**
 
 #### **LOD (Level of Detail)**
+
 ```typescript
 const Dice3D = ({ distance }: { distance: number }) => {
   const geometry = useMemo(() => {
     // Use simpler geometry for distant objects
-    return distance > 10 
-      ? new BoxGeometry(1, 1, 1) 
+    return distance > 10
+      ? new BoxGeometry(1, 1, 1)
       : new DetailedDiceGeometry()
   }, [distance])
-  
+
   return <mesh geometry={geometry} />
 }
 ```
 
 #### **Instancing**
+
 ```typescript
 // ✅ Good: Use instancing for multiple dice
 const MultipleDice = ({ count }: { count: number }) => {
   const meshRef = useRef<InstancedMesh>(null)
-  
+
   useEffect(() => {
     if (!meshRef.current) return
-    
+
     for (let i = 0; i < count; i++) {
       const matrix = new Matrix4()
       matrix.setPosition(i * 2, 0, 0)
@@ -516,7 +546,7 @@ const MultipleDice = ({ count }: { count: number }) => {
     }
     meshRef.current.instanceMatrix.needsUpdate = true
   }, [count])
-  
+
   return (
     <instancedMesh ref={meshRef} args={[geometry, material, count]} />
   )
@@ -526,6 +556,7 @@ const MultipleDice = ({ count }: { count: number }) => {
 ### **Bundle Optimization**
 
 #### **Vite Configuration**
+
 ```typescript
 // vite.config.ts
 export default defineConfig({
@@ -535,11 +566,11 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           '3d-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-select']
-        }
-      }
-    }
-  }
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-select'],
+        },
+      },
+    },
+  },
 })
 ```
 
@@ -624,11 +655,11 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           ui: ['@radix-ui/react-dialog', 'framer-motion'],
-          game: ['three', '@react-three/fiber']
-        }
-      }
-    }
-  }
+          game: ['three', '@react-three/fiber'],
+        },
+      },
+    },
+  },
 })
 ```
 
@@ -714,4 +745,4 @@ export const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
 6. **Type Safety**: Leverage TypeScript for better DX
 7. **Documentation**: Keep docs up to date with code changes
 
-*This guide is a living document. Update it as the codebase evolves.*
+_This guide is a living document. Update it as the codebase evolves._

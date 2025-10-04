@@ -6,8 +6,16 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { logger } from '@/utils/logger'
 
-export type NotificationType = 'dice-roll' | 'xp-award' | 'hold-granted' | 'level-up' | 'achievement' | 'error' | 'info'
+export type NotificationType =
+  | 'dice-roll'
+  | 'xp-award'
+  | 'hold-granted'
+  | 'level-up'
+  | 'achievement'
+  | 'error'
+  | 'info'
 
 export interface Notification {
   id: string
@@ -44,12 +52,17 @@ interface NotificationState {
   }
 
   // Actions
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void
+  addNotification: (
+    notification: Omit<Notification, 'id' | 'timestamp'>,
+  ) => void
   dismissNotification: (id: string) => void
   dismissAllNotifications: () => void
   muteNotifications: (durationMs: number) => void
   unmuteNotifications: () => void
-  setPreference: <K extends keyof NotificationState['preferences']>(key: K, value: NotificationState['preferences'][K]) => void
+  setPreference: <K extends keyof NotificationState['preferences']>(
+    key: K,
+    value: NotificationState['preferences'][K],
+  ) => void
   clearHistory: () => void
   getNotificationsByType: (type: NotificationType) => Notification[]
   getNotificationsByCharacter: (characterId: string) => Notification[]
@@ -60,9 +73,9 @@ const DEFAULT_DURATIONS: Record<NotificationType, number> = {
   'xp-award': 4000,
   'hold-granted': 3500,
   'level-up': 8000,
-  'achievement': 6000,
-  'error': 6000,
-  'info': 4000,
+  achievement: 6000,
+  error: 6000,
+  info: 4000,
 }
 
 const PRIORITY_WEIGHTS: Record<Notification['priority'], number> = {
@@ -94,30 +107,38 @@ export const useNotificationStore = create<NotificationState>()(
         const state = get()
 
         // Check if notifications are muted
-        if (!state.isEnabled || (state.preferences.mutedDuration > Date.now())) {
+        if (!state.isEnabled || state.preferences.mutedDuration > Date.now()) {
           return
         }
 
         // Check type-specific preferences
         const typeEnabled = (() => {
           switch (notificationData.type) {
-            case 'dice-roll': return state.preferences.enableDiceRolls
-            case 'xp-award': return state.preferences.enableXPAwards
-            case 'hold-granted': return state.preferences.enableHoldGrants
-            case 'level-up': return state.preferences.enableLevelUps
-            case 'achievement': return state.preferences.enableAchievements
-            default: return true
+            case 'dice-roll':
+              return state.preferences.enableDiceRolls
+            case 'xp-award':
+              return state.preferences.enableXPAwards
+            case 'hold-granted':
+              return state.preferences.enableHoldGrants
+            case 'level-up':
+              return state.preferences.enableLevelUps
+            case 'achievement':
+              return state.preferences.enableAchievements
+            default:
+              return true
           }
         })()
 
-        if (!typeEnabled)
-          return
+        if (!typeEnabled) return
 
         const notification: Notification = {
           ...notificationData,
           id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           timestamp: Date.now(),
-          duration: notificationData.duration || DEFAULT_DURATIONS[notificationData.type] || 4000,
+          duration:
+            notificationData.duration ||
+            DEFAULT_DURATIONS[notificationData.type] ||
+            4000,
         }
 
         set((state) => {
@@ -125,7 +146,9 @@ export const useNotificationStore = create<NotificationState>()(
 
           // Handle duplicate prevention for dice rolls
           if (notification.type === 'dice-roll' && notification.rollId) {
-            newActive = newActive.filter(n => n.rollId !== notification.rollId)
+            newActive = newActive.filter(
+              (n) => n.rollId !== notification.rollId,
+            )
           }
 
           // Add new notification
@@ -133,9 +156,9 @@ export const useNotificationStore = create<NotificationState>()(
 
           // Sort by priority and timestamp
           newActive.sort((a, b) => {
-            const priorityDiff = PRIORITY_WEIGHTS[b.priority] - PRIORITY_WEIGHTS[a.priority]
-            if (priorityDiff !== 0)
-              return priorityDiff
+            const priorityDiff =
+              PRIORITY_WEIGHTS[b.priority] - PRIORITY_WEIGHTS[a.priority]
+            if (priorityDiff !== 0) return priorityDiff
             return b.timestamp - a.timestamp
           })
 
@@ -153,9 +176,12 @@ export const useNotificationStore = create<NotificationState>()(
           }
 
           // Add to history
-          const newHistory = [notification, ...state.notificationHistory].slice(0, 100) // Keep last 100
+          const newHistory = [notification, ...state.notificationHistory].slice(
+            0,
+            100,
+          ) // Keep last 100
 
-          console.log(`[Notifications] Added: ${notification.title} (${notification.type})`)
+          logger.info(`[Notifications] Added: ${notification.title} (${notification.type})`)
 
           return {
             activeNotifications: newActive,
@@ -173,8 +199,10 @@ export const useNotificationStore = create<NotificationState>()(
 
       // Dismiss specific notification
       dismissNotification: (id) => {
-        set(state => ({
-          activeNotifications: state.activeNotifications.filter(n => n.id !== id),
+        set((state) => ({
+          activeNotifications: state.activeNotifications.filter(
+            (n) => n.id !== id,
+          ),
         }))
       },
 
@@ -185,7 +213,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       // Mute notifications temporarily
       muteNotifications: (durationMs) => {
-        set(state => ({
+        set((state) => ({
           preferences: {
             ...state.preferences,
             mutedDuration: Date.now() + durationMs,
@@ -195,7 +223,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       // Unmute notifications
       unmuteNotifications: () => {
-        set(state => ({
+        set((state) => ({
           preferences: {
             ...state.preferences,
             mutedDuration: 0,
@@ -205,7 +233,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       // Update preferences
       setPreference: (key, value) => {
-        set(state => ({
+        set((state) => ({
           preferences: {
             ...state.preferences,
             [key]: value,
@@ -221,20 +249,22 @@ export const useNotificationStore = create<NotificationState>()(
       // Get notifications by type
       getNotificationsByType: (type) => {
         const state = get()
-        return state.notificationHistory.filter(n => n.type === type)
+        return state.notificationHistory.filter((n) => n.type === type)
       },
 
       // Get notifications by character
       getNotificationsByCharacter: (characterId) => {
         const state = get()
-        return state.notificationHistory.filter(n => n.characterId === characterId)
+        return state.notificationHistory.filter(
+          (n) => n.characterId === characterId,
+        )
       },
     }),
     {
       name: 'zimbomate-notification-store',
       version: 1,
       // Don't persist active notifications - they should reset on page reload
-      partialize: state => ({
+      partialize: (state) => ({
         preferences: state.preferences,
         notificationHistory: state.notificationHistory,
         maxActiveNotifications: state.maxActiveNotifications,
@@ -245,7 +275,13 @@ export const useNotificationStore = create<NotificationState>()(
 )
 
 // Convenience functions for common notification types
-export function notifyDiceRoll(result: number, outcome: 'success' | 'partial' | 'failure', context: string, characterId: string, rollId: string) {
+export function notifyDiceRoll(
+  result: number,
+  outcome: 'success' | 'partial' | 'failure',
+  context: string,
+  characterId: string,
+  rollId: string,
+) {
   const outcomeEmojis = {
     success: '🎉',
     partial: '⚡',
@@ -271,7 +307,12 @@ export function notifyDiceRoll(result: number, outcome: 'success' | 'partial' | 
   })
 }
 
-export function notifyXPAward(amount: number, reason: string, characterId: string, newTotal?: number) {
+export function notifyXPAward(
+  amount: number,
+  reason: string,
+  characterId: string,
+  newTotal?: number,
+) {
   useNotificationStore.getState().addNotification({
     type: 'xp-award',
     title: `+${amount} XP`,
@@ -284,7 +325,11 @@ export function notifyXPAward(amount: number, reason: string, characterId: strin
   })
 }
 
-export function notifyHoldGranted(amount: number, moveName: string, characterId: string) {
+export function notifyHoldGranted(
+  amount: number,
+  moveName: string,
+  characterId: string,
+) {
   useNotificationStore.getState().addNotification({
     type: 'hold-granted',
     title: `${moveName}`,
@@ -312,7 +357,7 @@ export function notifyLevelUp(newLevel: number, characterId: string) {
         label: 'View Character',
         action: () => {
           // Navigate to character sheet
-          console.log('Navigate to character sheet')
+          logger.info('Navigate to character sheet')
         },
         style: 'primary',
       },

@@ -6,7 +6,8 @@ export const keyboardShortcutsContent = [
   },
   {
     type: 'paragraph',
-    content: 'ZimboMate V2 is designed for keyboard efficiency. Learn these shortcuts to dramatically speed up your gameplay and become a power user.',
+    content:
+      'ZimboMate V2 is designed for keyboard efficiency. Learn these shortcuts to dramatically speed up your gameplay and become a power user.',
   },
   {
     type: 'subheading',
@@ -18,7 +19,11 @@ export const keyboardShortcutsContent = [
     headers: ['Shortcut', 'Action', 'Description'],
     rows: [
       ['**Ctrl+K**', 'Command Palette', 'Open the universal command search'],
-      ['**Ctrl+Shift+T**', 'Toggle Theme', 'Switch between light/dark/fantasy themes'],
+      [
+        '**Ctrl+Shift+T**',
+        'Toggle Theme',
+        'Switch between light/dark/fantasy themes',
+      ],
       ['**Ctrl+S**', 'Save Character', 'Save current character data'],
       ['**Ctrl+/**', 'Show Shortcuts', 'Display this shortcuts panel'],
     ],
@@ -43,7 +48,8 @@ export const keyboardShortcutsContent = [
   {
     type: 'callout',
     variant: 'info',
-    content: '💡 Pro Tip: Tab navigation works from anywhere in the app - you don\'t need to be in a specific context!',
+    content:
+      "💡 Pro Tip: Tab navigation works from anywhere in the app - you don't need to be in a specific context!",
   },
   {
     type: 'subheading',
@@ -84,7 +90,8 @@ export const keyboardShortcutsContent = [
   {
     type: 'callout',
     variant: 'warning',
-    content: '⚠️ Number key shortcuts only work in the Dice tab to avoid conflicts with text input.',
+    content:
+      '⚠️ Number key shortcuts only work in the Dice tab to avoid conflicts with text input.',
   },
   {
     type: 'subheading',
@@ -198,7 +205,11 @@ export const keyboardShortcutsContent = [
     type: 'table',
     headers: ['Priority', 'Shortcuts to Learn', 'Impact'],
     rows: [
-      ['Essential', '**Ctrl+K**, **Spacebar**', 'Command palette and quick rolling'],
+      [
+        'Essential',
+        '**Ctrl+K**, **Spacebar**',
+        'Command palette and quick rolling',
+      ],
       ['High', '**Ctrl+1-6**', 'Tab navigation for workflow'],
       ['Medium', '**1-6** (in Dice tab)', 'Stat-specific rolling'],
       ['Advanced', '**Ctrl+N**, **Ctrl+F**', 'Session management efficiency'],
@@ -207,7 +218,8 @@ export const keyboardShortcutsContent = [
   {
     type: 'callout',
     variant: 'success',
-    content: '🚀 Master these shortcuts and you\'ll be rolling dice and managing characters faster than ever! Start with Ctrl+K and Spacebar, then gradually add more shortcuts to your workflow.',
+    content:
+      "🚀 Master these shortcuts and you'll be rolling dice and managing characters faster than ever! Start with Ctrl+K and Spacebar, then gradually add more shortcuts to your workflow.",
   },
   {
     type: 'subheading',
@@ -216,11 +228,13 @@ export const keyboardShortcutsContent = [
   },
   {
     type: 'paragraph',
-    content: 'While ZimboMate V2 comes with carefully chosen default shortcuts, future versions will allow customization. The current shortcuts are designed based on common patterns and user research for optimal efficiency.',
+    content:
+      'While ZimboMate V2 comes with carefully chosen default shortcuts, future versions will allow customization. The current shortcuts are designed based on common patterns and user research for optimal efficiency.',
   },
   {
     type: 'callout',
     variant: 'info',
-    content: '💡 Remember: You can always press Ctrl+K and type what you want to do - the command palette is your safety net when you forget a shortcut!',
+    content:
+      '💡 Remember: You can always press Ctrl+K and type what you want to do - the command palette is your safety net when you forget a shortcut!',
   },
 ]

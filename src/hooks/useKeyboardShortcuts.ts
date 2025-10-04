@@ -9,19 +9,24 @@ interface UseKeyboardShortcutsOptions {
 /**
  * Hook to integrate keyboard shortcuts with React components
  */
-export function useKeyboardShortcuts(shortcuts: Record<string, () => void>, options: UseKeyboardShortcutsOptions = {}) {
+export function useKeyboardShortcuts(
+  shortcuts: Record<string, () => void>,
+  options: UseKeyboardShortcutsOptions = {},
+) {
   const { context = [], enabled = true } = options
   const shortcutIdsRef = useRef<string[]>([])
 
   // Register shortcuts
   useEffect(() => {
-    if (!enabled)
-      return
+    if (!enabled) return
 
     const shortcutIds: string[] = []
 
     Object.entries(shortcuts).forEach(([shortcutId, action]) => {
-      const success = keyboardShortcutsService.updateShortcutAction(shortcutId, action)
+      const success = keyboardShortcutsService.updateShortcutAction(
+        shortcutId,
+        action,
+      )
       if (success) {
         shortcutIds.push(shortcutId)
       }
@@ -57,21 +62,24 @@ export function useCommandPalette() {
   const onOpenRef = useRef<(() => void) | null>(null)
   const onCloseRef = useRef<(() => void) | null>(null)
 
-  const registerCommandPalette = useCallback((
-    onOpen: () => void,
-    onClose: () => void,
-  ) => {
-    onOpenRef.current = onOpen
-    onCloseRef.current = onClose
+  const registerCommandPalette = useCallback(
+    (onOpen: () => void, onClose: () => void) => {
+      onOpenRef.current = onOpen
+      onCloseRef.current = onClose
 
-    // Register the command palette shortcut
-    keyboardShortcutsService.updateShortcutAction('open-command-palette', () => {
-      if (!isOpenRef.current && onOpenRef.current) {
-        isOpenRef.current = true
-        onOpenRef.current()
-      }
-    })
-  }, [])
+      // Register the command palette shortcut
+      keyboardShortcutsService.updateShortcutAction(
+        'open-command-palette',
+        () => {
+          if (!isOpenRef.current && onOpenRef.current) {
+            isOpenRef.current = true
+            onOpenRef.current()
+          }
+        },
+      )
+    },
+    [],
+  )
 
   const setIsOpen = useCallback((open: boolean) => {
     isOpenRef.current = open
@@ -89,7 +97,10 @@ export function useCommandPalette() {
 /**
  * Hook for quick dice rolling shortcuts
  */
-export function useDiceShortcuts(onRoll: (stat?: string) => void, enabled: boolean = true) {
+export function useDiceShortcuts(
+  onRoll: (stat?: string) => void,
+  enabled: boolean = true,
+) {
   const shortcuts = {
     'quick-roll': () => onRoll(),
     'roll-strength': () => onRoll('strength'),
@@ -109,7 +120,10 @@ export function useDiceShortcuts(onRoll: (stat?: string) => void, enabled: boole
 /**
  * Hook for navigation shortcuts
  */
-export function useNavigationShortcuts(onNavigate: (tabId: string) => void, enabled: boolean = true) {
+export function useNavigationShortcuts(
+  onNavigate: (tabId: string) => void,
+  enabled: boolean = true,
+) {
   const shortcuts = {
     'tab-character': () => onNavigate('character'),
     'tab-dice': () => onNavigate('dice'),
@@ -125,11 +139,14 @@ export function useNavigationShortcuts(onNavigate: (tabId: string) => void, enab
 /**
  * Hook for session tools shortcuts
  */
-export function useSessionToolsShortcuts(actions: {
-  onNewNote?: () => void
-  onSearchNotes?: () => void
-  onStartTimer?: () => void
-}, enabled: boolean = true) {
+export function useSessionToolsShortcuts(
+  actions: {
+    onNewNote?: () => void
+    onSearchNotes?: () => void
+    onStartTimer?: () => void
+  },
+  enabled: boolean = true,
+) {
   const shortcuts: Record<string, () => void> = {}
 
   if (actions.onNewNote) {
@@ -151,12 +168,15 @@ export function useSessionToolsShortcuts(actions: {
 /**
  * Hook for character management shortcuts
  */
-export function useCharacterShortcuts(actions: {
-  onSave?: () => void
-  onHeal?: () => void
-  onRest?: () => void
-  onLevelUp?: () => void
-}, enabled: boolean = true) {
+export function useCharacterShortcuts(
+  actions: {
+    onSave?: () => void
+    onHeal?: () => void
+    onRest?: () => void
+    onLevelUp?: () => void
+  },
+  enabled: boolean = true,
+) {
   const shortcuts: Record<string, () => void> = {}
 
   if (actions.onSave) {
@@ -175,9 +195,12 @@ export function useCharacterShortcuts(actions: {
 /**
  * Hook for global shortcuts
  */
-export function useGlobalShortcuts(actions: {
-  onToggleTheme?: () => void
-}, enabled: boolean = true) {
+export function useGlobalShortcuts(
+  actions: {
+    onToggleTheme?: () => void
+  },
+  enabled: boolean = true,
+) {
   const shortcuts: Record<string, () => void> = {}
 
   if (actions.onToggleTheme) {

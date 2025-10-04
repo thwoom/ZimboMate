@@ -55,7 +55,9 @@ export function SpellItem({
       necromancy: 'bg-muted/500/20 text-muted-foreground',
       transmutation: 'bg-chart-4/120/20 text-chart-4',
     }
-    return colors[school.toLowerCase()] || 'bg-muted/500/20 text-muted-foreground'
+    return (
+      colors[school.toLowerCase()] || 'bg-muted/500/20 text-muted-foreground'
+    )
   }
 
   const getPreparationColor = (status: string) => {
@@ -85,31 +87,29 @@ export function SpellItem({
         `}
         onClick={() => onSelect(spell)}
       >
-        <div className="p-4">
+        <div className='p-4'>
           {/* Header */}
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <h4 className="text-body-lg font-display text-foreground">
+          <div className='flex items-start justify-between mb-2'>
+            <div className='flex items-center gap-2'>
+              <h4 className='text-body-lg font-display text-foreground'>
                 {spell.name}
               </h4>
-              {spell.ritual && (
-                <Sparkles size={14} className="text-accent" />
-              )}
+              {spell.ritual && <Sparkles size={14} className='text-accent' />}
             </div>
-            <div className="flex gap-1">
-              <Badge variant="outline" className="text-xs">
+            <div className='flex gap-1'>
+              <Badge variant='outline' className='text-xs'>
                 {spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`}
               </Badge>
             </div>
           </div>
 
           {/* School and casting info */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className='flex items-center gap-2 mb-3'>
             <Badge className={getSpellSchoolColor(spell.school)}>
               {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)}
             </Badge>
             <Badge
-              variant="outline"
+              variant='outline'
               className={getPreparationColor(spell.preparationStatus)}
             >
               {spell.preparationStatus.replace('_', ' ')}
@@ -117,44 +117,44 @@ export function SpellItem({
           </div>
 
           {/* Casting details */}
-          <div className="text-ui-small text-muted-foreground mb-3 space-y-1">
-            <div className="flex justify-between">
+          <div className='text-ui-small text-muted-foreground mb-3 space-y-1'>
+            <div className='flex justify-between'>
               <span>Casting Time:</span>
               <span>{spell.castingTime}</span>
             </div>
-            <div className="flex justify-between">
+            <div className='flex justify-between'>
               <span>Range:</span>
               <span>{spell.range}</span>
             </div>
-            <div className="flex justify-between">
+            <div className='flex justify-between'>
               <span>Duration:</span>
               <span>
                 {spell.duration}
                 {spell.concentration && ' (Concentration)'}
               </span>
             </div>
-            <div className="flex justify-between">
+            <div className='flex justify-between'>
               <span>Components:</span>
               <span>{spell.components.join(', ').toUpperCase()}</span>
             </div>
           </div>
 
           {/* Description preview */}
-          <p className="text-body-sm text-muted-foreground mb-4 line-clamp-2">
+          <p className='text-body-sm text-muted-foreground mb-4 line-clamp-2'>
             {spell.description}
           </p>
 
           {/* Action buttons */}
-          <div className="flex gap-2">
+          <div className='flex gap-2'>
             {spell.preparationStatus === 'not_prepared' && spell.level > 0 && (
               <Button
-                variant="outline"
-                size="sm"
+                variant='outline'
+                size='sm'
                 onClick={(e) => {
                   e.stopPropagation()
                   onPrepare(spell.id)
                 }}
-                className="flex-1"
+                className='flex-1'
               >
                 Prepare
               </Button>
@@ -162,13 +162,13 @@ export function SpellItem({
 
             {canCast && (
               <Button
-                variant="default"
-                size="sm"
+                variant='default'
+                size='sm'
                 onClick={(e) => {
                   e.stopPropagation()
                   onCast(spell.id, spell.level)
                 }}
-                className="flex-1 gap-2"
+                className='flex-1 gap-2'
                 disabled={spell.preparationStatus === 'used'}
               >
                 <Wand size={14} />

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 /**
  * Initialize mock data for development and demo purposes
  * This file sets up sample characters, campaigns, and other data
@@ -68,7 +69,7 @@ function initializeMockData() {
       load: { current: 15, max: 18 },
       xp: 8,
       bonds: [
-        'Eldara\'s magic has saved my life',
+        "Eldara's magic has saved my life",
         'I must protect the innocent from harm',
       ],
       debilities: {
@@ -122,7 +123,7 @@ function initializeMockData() {
     }
   })
 
-  console.log('🎭 Mock data initialized with sample characters')
+  logger.info('🎭 Mock data initialized with sample characters')
 }
 
 // Run initialization

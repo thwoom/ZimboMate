@@ -4,8 +4,16 @@
  * New service for V2 to handle character progression
  */
 
-import type { AdvancementChoice, Attribute, Character } from '../models/Character'
-import { calculateMaxHP, calculateMaxLoad, getXPThreshold } from '../models/Character'
+import type {
+  AdvancementChoice,
+  Attribute,
+  Character,
+} from '../models/Character'
+import {
+  calculateMaxHP,
+  calculateMaxLoad,
+  getXPThreshold,
+} from '../models/Character'
 
 // Advancement options available when leveling up
 export interface AdvancementOption {
@@ -27,13 +35,13 @@ export interface LevelUpResult {
 }
 
 // XP sources for tracking
-export type XPSource
-  = | 'failed-roll'
-    | 'end-of-session'
-    | 'bond-resolution'
-    | 'alignment-move'
-    | 'gm-award'
-    | 'other'
+export type XPSource =
+  | 'failed-roll'
+  | 'end-of-session'
+  | 'bond-resolution'
+  | 'alignment-move'
+  | 'gm-award'
+  | 'other'
 
 // XP entry for history tracking
 export interface XPEntry {
@@ -74,7 +82,13 @@ export class AdvancementService {
   /**
    * Add XP to character
    */
-  addXP(character: Character, amount: number, source: XPSource, description: string, sessionId?: string): Character {
+  addXP(
+    character: Character,
+    amount: number,
+    source: XPSource,
+    description: string,
+    sessionId?: string,
+  ): Character {
     const entry: XPEntry = {
       id: `xp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       amount,
@@ -159,7 +173,10 @@ export class AdvancementService {
 
     // Calculate average XP per session
     if (sessionXP.size > 0) {
-      const totalSessionXP = Array.from(sessionXP.values()).reduce((sum, xp) => sum + xp, 0)
+      const totalSessionXP = Array.from(sessionXP.values()).reduce(
+        (sum, xp) => sum + xp,
+        0,
+      )
       stats.averageXPPerSession = totalSessionXP / sessionXP.size
     }
 
@@ -173,7 +190,14 @@ export class AdvancementService {
     const options: AdvancementOption[] = []
 
     // Stat improvements (can increase any stat by 1, max 18)
-    for (const stat of ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as Attribute[]) {
+    for (const stat of [
+      'STR',
+      'DEX',
+      'CON',
+      'INT',
+      'WIS',
+      'CHA',
+    ] as Attribute[]) {
       if (character.attributes[stat] < 18) {
         options.push({
           id: `stat-${stat.toLowerCase()}`,
@@ -281,7 +305,7 @@ export class AdvancementService {
 
     // Apply the specific advancement
     switch (option.type) {
-      case 'stat':
+      case 'stat': {
         const statMatch = option.id.match(/stat-(\w+)/)
         if (statMatch) {
           const stat = statMatch[1].toUpperCase() as Attribute
@@ -308,7 +332,7 @@ export class AdvancementService {
           }
         }
         break
-
+      }
       case 'move':
         // Add move to known moves
         updated.knownMoves = [...updated.knownMoves, option.id]
@@ -326,13 +350,18 @@ export class AdvancementService {
    * Get advancement history for character
    */
   getAdvancementHistory(character: Character): AdvancementChoice[] {
-    return [...character.advancements].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    return [...character.advancements].sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+    )
   }
 
   /**
    * Check if character can take a specific advancement
    */
-  canTakeAdvancement(character: Character, option: AdvancementOption): {
+  canTakeAdvancement(
+    character: Character,
+    option: AdvancementOption,
+  ): {
     canTake: boolean
     reasons: string[]
   } {
@@ -341,7 +370,7 @@ export class AdvancementService {
 
     // Check requirements
     if (option.requirements) {
-      for (const requirement of option.requirements) {
+      for (const _requirement of option.requirements) {
         // This would check specific requirements
         // For now, assume all requirements are met
       }
@@ -349,7 +378,7 @@ export class AdvancementService {
 
     // Check mutually exclusive options
     if (option.mutuallyExclusive) {
-      const takenChoices = character.advancements.map(a => a.choice)
+      const takenChoices = character.advancements.map((a) => a.choice)
       for (const exclusive of option.mutuallyExclusive) {
         if (takenChoices.includes(exclusive)) {
           reasons.push(`Cannot take because you already have ${exclusive}`)

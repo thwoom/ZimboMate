@@ -11,12 +11,13 @@ interface ThemeState {
 
 export const useThemeStore = create<ThemeState>()(
   persist(
-    set => ({
+    (set) => ({
       theme: 'matsu',
       animations: true,
       sounds: true,
-      toggleAnimations: () => set(state => ({ animations: !state.animations })),
-      toggleSounds: () => set(state => ({ sounds: !state.sounds })),
+      toggleAnimations: () =>
+        set((state) => ({ animations: !state.animations })),
+      toggleSounds: () => set((state) => ({ sounds: !state.sounds })),
     }),
     {
       name: 'zimbomate-matsu-theme-storage',

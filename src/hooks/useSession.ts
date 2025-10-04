@@ -35,7 +35,11 @@ export interface UseSessionReturn {
   sessionStats: SessionStats
 
   // Session management
-  startSession: (name: string, characterIds: string[], campaignId?: string) => void
+  startSession: (
+    name: string,
+    characterIds: string[],
+    campaignId?: string,
+  ) => void
   endSession: () => void
   updateSessionNotes: (notes: string) => void
   awardXP: (amount: number) => void
@@ -97,12 +101,10 @@ export function useSession(): UseSessionReturn {
     rollHistory,
     combat,
     sessionConditions,
-    sessionModifiers,
     startSession: storeStartSession,
     endSession: storeEndSession,
     updateSessionNotes: storeUpdateSessionNotes,
     awardXP: storeAwardXP,
-    addRoll,
     clearRollHistory: storeClearRollHistory,
     getRecentRolls,
     startCombat: storeStartCombat,
@@ -119,12 +121,14 @@ export function useSession(): UseSessionReturn {
     getSessionStats,
   } = useSessionStore()
 
-  const { characters, getCharacter } = useCharacterStore()
+  const { getCharacter } = useCharacterStore()
 
   // Session statistics
   const sessionStats = useMemo((): SessionStats => {
     const stats = getSessionStats()
-    const partialRolls = rollHistory.filter(roll => roll.result === 'partial').length
+    const partialRolls = rollHistory.filter(
+      (roll) => roll.result === 'partial',
+    ).length
 
     return {
       duration: stats.duration,
@@ -141,18 +145,29 @@ export function useSession(): UseSessionReturn {
   const recentRolls = useMemo(() => getRecentRolls(10), [getRecentRolls])
   const lastRoll = useMemo(() => recentRolls[0] || null, [recentRolls])
 
-  const getRollsByCharacter = useCallback((characterId: string) => {
-    return rollHistory.filter(roll => roll.characterId === characterId)
-  }, [rollHistory])
+  const getRollsByCharacter = useCallback(
+    (characterId: string) => {
+      return rollHistory.filter((roll) => roll.characterId === characterId)
+    },
+    [rollHistory],
+  )
 
   const getRollStats = useCallback(() => {
     const total = rollHistory.length
-    const successes = rollHistory.filter(roll => roll.result === 'success').length
-    const partials = rollHistory.filter(roll => roll.result === 'partial').length
-    const failures = rollHistory.filter(roll => roll.result === 'failure').length
-    const averageRoll = rollHistory.length > 0
-      ? rollHistory.reduce((sum, roll) => sum + roll.total, 0) / rollHistory.length
-      : 0
+    const successes = rollHistory.filter(
+      (roll) => roll.result === 'success',
+    ).length
+    const partials = rollHistory.filter(
+      (roll) => roll.result === 'partial',
+    ).length
+    const failures = rollHistory.filter(
+      (roll) => roll.result === 'failure',
+    ).length
+    const averageRoll =
+      rollHistory.length > 0
+        ? rollHistory.reduce((sum, roll) => sum + roll.total, 0) /
+          rollHistory.length
+        : 0
 
     return { total, successes, partials, failures, averageRoll }
   }, [rollHistory])
@@ -172,32 +187,44 @@ export function useSession(): UseSessionReturn {
   }, [combat, getCharacter])
 
   const currentTurn = useMemo(() => {
-    return combatTurns.find(turn => turn.isActive) || null
+    return combatTurns.find((turn) => turn.isActive) || null
   }, [combatTurns])
 
   const isInCombat = useMemo(() => combat.isActive, [combat.isActive])
 
   // Session management
-  const startSession = useCallback((name: string, characterIds: string[], campaignId?: string) => {
-    storeStartSession(name, characterIds, campaignId)
-  }, [storeStartSession])
+  const startSession = useCallback(
+    (name: string, characterIds: string[], campaignId?: string) => {
+      storeStartSession(name, characterIds, campaignId)
+    },
+    [storeStartSession],
+  )
 
   const endSession = useCallback(() => {
     storeEndSession()
   }, [storeEndSession])
 
-  const updateSessionNotes = useCallback((notes: string) => {
-    storeUpdateSessionNotes(notes)
-  }, [storeUpdateSessionNotes])
+  const updateSessionNotes = useCallback(
+    (notes: string) => {
+      storeUpdateSessionNotes(notes)
+    },
+    [storeUpdateSessionNotes],
+  )
 
-  const awardXP = useCallback((amount: number) => {
-    storeAwardXP(amount)
-  }, [storeAwardXP])
+  const awardXP = useCallback(
+    (amount: number) => {
+      storeAwardXP(amount)
+    },
+    [storeAwardXP],
+  )
 
   // Combat operations
-  const startCombat = useCallback((characterIds: string[]) => {
-    storeStartCombat(characterIds)
-  }, [storeStartCombat])
+  const startCombat = useCallback(
+    (characterIds: string[]) => {
+      storeStartCombat(characterIds)
+    },
+    [storeStartCombat],
+  )
 
   const endCombat = useCallback(() => {
     storeEndCombat()
@@ -211,30 +238,48 @@ export function useSession(): UseSessionReturn {
     storeNextRound()
   }, [storeNextRound])
 
-  const setInitiative = useCallback((characterId: string, initiative: number) => {
-    storeSetInitiative(characterId, initiative)
-  }, [storeSetInitiative])
+  const setInitiative = useCallback(
+    (characterId: string, initiative: number) => {
+      storeSetInitiative(characterId, initiative)
+    },
+    [storeSetInitiative],
+  )
 
-  const markCharacterActed = useCallback((characterId: string) => {
-    storeMarkCharacterActed(characterId)
-  }, [storeMarkCharacterActed])
+  const markCharacterActed = useCallback(
+    (characterId: string) => {
+      storeMarkCharacterActed(characterId)
+    },
+    [storeMarkCharacterActed],
+  )
 
   // Condition and modifier management
-  const addSessionCondition = useCallback((characterId: string, condition: any) => {
-    storeAddSessionCondition(characterId, condition)
-  }, [storeAddSessionCondition])
+  const addSessionCondition = useCallback(
+    (characterId: string, condition: any) => {
+      storeAddSessionCondition(characterId, condition)
+    },
+    [storeAddSessionCondition],
+  )
 
-  const removeSessionCondition = useCallback((characterId: string, conditionId: string) => {
-    storeRemoveSessionCondition(characterId, conditionId)
-  }, [storeRemoveSessionCondition])
+  const removeSessionCondition = useCallback(
+    (characterId: string, conditionId: string) => {
+      storeRemoveSessionCondition(characterId, conditionId)
+    },
+    [storeRemoveSessionCondition],
+  )
 
-  const addSessionModifier = useCallback((characterId: string, modifier: any) => {
-    storeAddSessionModifier(characterId, modifier)
-  }, [storeAddSessionModifier])
+  const addSessionModifier = useCallback(
+    (characterId: string, modifier: any) => {
+      storeAddSessionModifier(characterId, modifier)
+    },
+    [storeAddSessionModifier],
+  )
 
-  const removeSessionModifier = useCallback((characterId: string, modifierId: string) => {
-    storeRemoveSessionModifier(characterId, modifierId)
-  }, [storeRemoveSessionModifier])
+  const removeSessionModifier = useCallback(
+    (characterId: string, modifierId: string) => {
+      storeRemoveSessionModifier(characterId, modifierId)
+    },
+    [storeRemoveSessionModifier],
+  )
 
   const getActiveConditions = useCallback(() => {
     return sessionConditions.map((sc) => {
@@ -248,16 +293,20 @@ export function useSession(): UseSessionReturn {
   }, [sessionConditions, getCharacter])
 
   // Time management
-  const advanceTime = useCallback((timeType: 'turn' | 'scene' | 'encounter') => {
-    storeAdvanceTime(timeType)
-  }, [storeAdvanceTime])
+  const advanceTime = useCallback(
+    (timeType: 'turn' | 'scene' | 'encounter') => {
+      storeAdvanceTime(timeType)
+    },
+    [storeAdvanceTime],
+  )
 
   // Quick actions
   const quickStartCombat = useCallback(() => {
-    if (!currentSession)
-      return
+    if (!currentSession) return
 
-    const availableCharacters = currentSession.characterIds.filter(id => getCharacter(id))
+    const availableCharacters = currentSession.characterIds.filter((id) =>
+      getCharacter(id),
+    )
     if (availableCharacters.length > 0) {
       startCombat(availableCharacters)
     }
@@ -270,20 +319,23 @@ export function useSession(): UseSessionReturn {
     endSession()
   }, [isInCombat, endCombat, endSession])
 
-  const quickAwardXP = useCallback((amount: number) => {
-    awardXP(amount)
+  const quickAwardXP = useCallback(
+    (amount: number) => {
+      awardXP(amount)
 
-    // Also award XP to all characters in the session
-    if (currentSession) {
-      currentSession.characterIds.forEach((characterId) => {
-        const character = getCharacter(characterId)
-        if (character) {
-          // This would integrate with the character store's addXP method
-          // For now, we'll just track it in the session
-        }
-      })
-    }
-  }, [awardXP, currentSession, getCharacter])
+      // Also award XP to all characters in the session
+      if (currentSession) {
+        currentSession.characterIds.forEach((characterId) => {
+          const character = getCharacter(characterId)
+          if (character) {
+            // This would integrate with the character store's addXP method
+            // For now, we'll just track it in the session
+          }
+        })
+      }
+    },
+    [awardXP, currentSession, getCharacter],
+  )
 
   return {
     // Current session
@@ -339,13 +391,8 @@ export function useSession(): UseSessionReturn {
  * Simplified session hook for basic session operations
  */
 export function useSimpleSession() {
-  const {
-    isSessionActive,
-    startSession,
-    endSession,
-    lastRoll,
-    isInCombat,
-  } = useSession()
+  const { isSessionActive, startSession, endSession, lastRoll, isInCombat } =
+    useSession()
 
   return {
     isActive: isSessionActive,

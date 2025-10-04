@@ -51,13 +51,13 @@ export function PageNavigation({
       transition={{ duration: 0.3 }}
     >
       {/* Left side - Previous page */}
-      <div className="flex items-center gap-3">
+      <div className='flex items-center gap-3'>
         <Button
-          variant="ghost"
-          size="sm"
+          variant='ghost'
+          size='sm'
           onClick={handlePreviousPage}
           disabled={!canGoBack}
-          className="gap-2"
+          className='gap-2'
         >
           <ChevronLeft size={16} />
           Previous
@@ -65,7 +65,7 @@ export function PageNavigation({
 
         {canGoBack && (
           <motion.span
-            className="text-ui-small text-muted-foreground"
+            className='text-ui-small text-muted-foreground'
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
           >
@@ -75,25 +75,19 @@ export function PageNavigation({
       </div>
 
       {/* Center - Current page and book icon */}
-      <div className="flex items-center gap-3">
-        <BookOpen size={20} className="text-gold-500" />
-        <div className="text-center">
-          <div className="text-display-sm font-display text-foreground">
+      <div className='flex items-center gap-3'>
+        <BookOpen size={20} className='text-gold-500' />
+        <div className='text-center'>
+          <div className='text-display-sm font-display text-foreground'>
             {getPageName(currentPage)}
           </div>
-          <div className="text-ui-small text-muted-foreground">
-            Page
-            {' '}
-            {currentPage + 1}
-            {' '}
-            of
-            {' '}
-            {totalPages}
+          <div className='text-ui-small text-muted-foreground'>
+            Page {currentPage + 1} of {totalPages}
           </div>
         </div>
 
         {/* Page dots indicator */}
-        <div className="flex gap-1 ml-4">
+        <div className='flex gap-1 ml-4'>
           {Array.from({ length: totalPages }, (_, i) => (
             <motion.button
               key={i}
@@ -111,10 +105,10 @@ export function PageNavigation({
       </div>
 
       {/* Right side - Next page and close */}
-      <div className="flex items-center gap-3">
+      <div className='flex items-center gap-3'>
         {canGoForward && (
           <motion.span
-            className="text-ui-small text-muted-foreground"
+            className='text-ui-small text-muted-foreground'
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
           >
@@ -123,11 +117,11 @@ export function PageNavigation({
         )}
 
         <Button
-          variant="ghost"
-          size="sm"
+          variant='ghost'
+          size='sm'
           onClick={handleNextPage}
           disabled={!canGoForward}
-          className="gap-2"
+          className='gap-2'
         >
           Next
           <ChevronRight size={16} />
@@ -135,10 +129,10 @@ export function PageNavigation({
 
         {onClose && (
           <Button
-            variant="ghost"
-            size="sm"
+            variant='ghost'
+            size='sm'
             onClick={onClose}
-            className="ml-2 text-muted-foreground hover:text-foreground"
+            className='ml-2 text-muted-foreground hover:text-foreground'
           >
             <X size={16} />
           </Button>

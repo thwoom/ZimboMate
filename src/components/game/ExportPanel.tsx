@@ -1,7 +1,14 @@
 import * as Checkbox from '@radix-ui/react-checkbox'
 import * as Select from '@radix-ui/react-select'
 import { motion } from 'framer-motion'
-import { Download, FileText, NotebookPen, Package, Settings, Users } from 'lucide-react'
+import {
+  Download,
+  FileText,
+  NotebookPen,
+  Package,
+  Settings,
+  Users,
+} from 'lucide-react'
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ExportFormat } from '../../fileManagementMockData'
@@ -80,17 +87,33 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   ]
 
   const formatOptions = [
-    { value: ExportFormat.JSON, label: 'JSON', description: 'JavaScript Object Notation' },
-    { value: ExportFormat.CSV, label: 'CSV', description: 'Comma Separated Values' },
-    { value: ExportFormat.XML, label: 'XML', description: 'Extensible Markup Language' },
-    { value: ExportFormat.PDF, label: 'PDF', description: 'Portable Document Format' },
+    {
+      value: ExportFormat.JSON,
+      label: 'JSON',
+      description: 'JavaScript Object Notation',
+    },
+    {
+      value: ExportFormat.CSV,
+      label: 'CSV',
+      description: 'Comma Separated Values',
+    },
+    {
+      value: ExportFormat.XML,
+      label: 'XML',
+      description: 'Extensible Markup Language',
+    },
+    {
+      value: ExportFormat.PDF,
+      label: 'PDF',
+      description: 'Portable Document Format',
+    },
   ]
 
   const handlePresetSelect = (presetId: string) => {
     setSelectedPreset(presetId)
-    const preset = exportPresets.find(p => p.id === presetId)
+    const preset = exportPresets.find((p) => p.id === presetId)
     if (preset) {
-      setExportOptions(prev => ({
+      setExportOptions((prev) => ({
         ...prev,
         ...preset.options,
       }))
@@ -99,7 +122,9 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const handleExport = () => {
     const exportData = {
-      characters: exportOptions.includeCharacters ? ['character1', 'character2'] : [],
+      characters: exportOptions.includeCharacters
+        ? ['character1', 'character2']
+        : [],
       campaigns: exportOptions.includeCampaigns ? ['campaign1'] : [],
       notes: exportOptions.includeNotes ? ['notes1', 'notes2'] : [],
       settings: exportOptions.includeSettings ? { theme: 'fantasy' } : null,
@@ -112,27 +137,23 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
   const getEstimatedSize = (): string => {
     let size = 0
-    if (exportOptions.includeCharacters)
-      size += 50 // KB
-    if (exportOptions.includeCampaigns)
-      size += 200
-    if (exportOptions.includeNotes)
-      size += 30
-    if (exportOptions.includeSettings)
-      size += 5
+    if (exportOptions.includeCharacters) size += 50 // KB
+    if (exportOptions.includeCampaigns) size += 200
+    if (exportOptions.includeNotes) size += 30
+    if (exportOptions.includeSettings) size += 5
 
     return size > 1000 ? `${(size / 1000).toFixed(1)} MB` : `${size} KB`
   }
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Export Presets */}
-      <Card variant="default">
+      <Card variant='default'>
         <CardHeader>
           <CardTitle>Quick Export Presets</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             {exportPresets.map((preset) => {
               const Icon = preset.icon
               const isSelected = selectedPreset === preset.id
@@ -144,22 +165,23 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                   whileTap={{ scale: 0.98 }}
                 >
                   <button
+                    type='button'
                     onClick={() => handlePresetSelect(preset.id)}
                     className={cn(
                       'w-full p-4 rounded-lg border-2 transition-all duration-200 text-left border-border bg-card hover:border-primary/50 hover:bg-popover/60',
                       isSelected && 'border-primary bg-primary/10',
                     )}
                   >
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className='flex items-center gap-3 mb-2'>
                       <Icon
                         size={20}
-                        className={cn(isSelected ? 'text-primary' : 'text-muted-foreground')}
+                        className={cn(
+                          isSelected ? 'text-primary' : 'text-muted-foreground',
+                        )}
                       />
-                      <h3 className="font-medium">{preset.name}</h3>
+                      <h3 className='font-medium'>{preset.name}</h3>
                     </div>
-                    <p
-                      className="text-sm text-muted-foreground"
-                    >
+                    <p className='text-sm text-muted-foreground'>
                       {preset.description}
                     </p>
                   </button>
@@ -171,59 +193,82 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       </Card>
 
       {/* Export Configuration */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
         {/* Data Selection */}
-        <Card variant="default">
+        <Card variant='default'>
           <CardHeader>
             <CardTitle>Select Data to Export</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className='space-y-4'>
               {[
-                { key: 'includeCharacters', label: 'Characters', icon: Users, count: 3 },
-                { key: 'includeCampaigns', label: 'Campaigns', icon: NotebookPen, count: 2 },
-                { key: 'includeNotes', label: 'Session Notes', icon: FileText, count: 15 },
-                { key: 'includeSettings', label: 'App Settings', icon: Settings, count: 1 },
+                {
+                  key: 'includeCharacters',
+                  label: 'Characters',
+                  icon: Users,
+                  count: 3,
+                },
+                {
+                  key: 'includeCampaigns',
+                  label: 'Campaigns',
+                  icon: NotebookPen,
+                  count: 2,
+                },
+                {
+                  key: 'includeNotes',
+                  label: 'Session Notes',
+                  icon: FileText,
+                  count: 15,
+                },
+                {
+                  key: 'includeSettings',
+                  label: 'App Settings',
+                  icon: Settings,
+                  count: 1,
+                },
               ].map((item) => {
                 const Icon = item.icon
-                const isChecked = exportOptions[item.key as keyof ExportOptions] as boolean
+                const isChecked = exportOptions[
+                  item.key as keyof ExportOptions
+                ] as boolean
 
                 return (
-                  <div key={item.key} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                  <div
+                    key={item.key}
+                    className='flex items-center justify-between'
+                  >
+                    <div className='flex items-center gap-3'>
                       <Checkbox.Root
                         checked={isChecked}
                         onCheckedChange={(checked) => {
-                          setExportOptions(prev => ({
+                          setExportOptions((prev) => ({
                             ...prev,
                             [item.key]: checked,
                           }))
                           setSelectedPreset('custom')
                         }}
-                        className="w-5 h-5 border-2 rounded flex items-center justify-center"
+                        className='w-5 h-5 border-2 rounded flex items-center justify-center'
                         style={{
                           borderColor: 'var(--primary)',
-                          backgroundColor: isChecked ? 'var(--primary)' : 'transparent',
+                          backgroundColor: isChecked
+                            ? 'var(--primary)'
+                            : 'transparent',
                         }}
                       >
                         <Checkbox.Indicator>
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="text-white"
+                            className='text-white'
                           >
                             ✓
                           </motion.div>
                         </Checkbox.Indicator>
                       </Checkbox.Root>
-                      <Icon className="text-muted-foreground" size={18} />
-                      <span className="font-medium">{item.label}</span>
+                      <Icon className='text-muted-foreground' size={18} />
+                      <span className='font-medium'>{item.label}</span>
                     </div>
-                    <Badge variant="secondary">
-                      {item.count}
-                      {' '}
-                      items
-                    </Badge>
+                    <Badge variant='secondary'>{item.count} items</Badge>
                   </div>
                 )
               })}
@@ -232,20 +277,27 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         </Card>
 
         {/* Export Format & Options */}
-        <Card variant="default">
+        <Card variant='default'>
           <CardHeader>
             <CardTitle>Export Format</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className='space-y-4'>
               <div>
-                <label className="text-sm font-medium mb-2 block">File Format</label>
+                <label className='text-sm font-medium mb-2 block'>
+                  File Format
+                </label>
                 <Select.Root
                   value={exportOptions.format}
-                  onValueChange={value => setExportOptions(prev => ({ ...prev, format: value as ExportFormat }))}
+                  onValueChange={(value) =>
+                    setExportOptions((prev) => ({
+                      ...prev,
+                      format: value as ExportFormat,
+                    }))
+                  }
                 >
                   <Select.Trigger
-                    className="w-full p-3 border rounded-lg flex items-center justify-between"
+                    className='w-full p-3 border rounded-lg flex items-center justify-between'
                     style={{
                       borderColor: 'var(--border)',
                       backgroundColor: 'var(--card)',
@@ -253,20 +305,16 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                   >
                     <Select.Value />
                   </Select.Trigger>
-                  <Select.Content
-                    className="bg-surface border border-border rounded-lg shadow-lg z-50 bg-card"
-                  >
-                    {formatOptions.map(format => (
+                  <Select.Content className='bg-surface border border-border rounded-lg shadow-lg z-50 bg-card'>
+                    {formatOptions.map((format) => (
                       <Select.Item
                         key={format.value}
                         value={format.value}
-                        className="p-3 hover:bg-surface-elevated cursor-pointer"
+                        className='p-3 hover:bg-surface-elevated cursor-pointer'
                       >
                         <div>
-                          <div className="font-medium">{format.label}</div>
-                          <div
-                            className="text-sm text-muted-foreground"
-                          >
+                          <div className='font-medium'>{format.label}</div>
+                          <div className='text-sm text-muted-foreground'>
                             {format.description}
                           </div>
                         </div>
@@ -276,27 +324,30 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
                 </Select.Root>
               </div>
 
-              <div className="p-4 rounded-lg bg-popover">
-                <h4 className="font-medium mb-2">Export Summary</h4>
-                <div className="space-y-1 text-sm text-muted-foreground">
+              <div className='p-4 rounded-lg bg-popover'>
+                <h4 className='font-medium mb-2'>Export Summary</h4>
+                <div className='space-y-1 text-sm text-muted-foreground'>
                   <div>
                     Estimated size:
-                    <span className="font-medium">{getEstimatedSize()}</span>
+                    <span className='font-medium'>{getEstimatedSize()}</span>
                   </div>
                   <div>
                     Format:
-                    <span className="font-medium">{exportOptions.format.toUpperCase()}</span>
+                    <span className='font-medium'>
+                      {exportOptions.format.toUpperCase()}
+                    </span>
                   </div>
                   <div>
-                    Items:
-                    {' '}
-                    <span className="font-medium">
+                    Items:{' '}
+                    <span className='font-medium'>
                       {[
                         exportOptions.includeCharacters && 'Characters',
                         exportOptions.includeCampaigns && 'Campaigns',
                         exportOptions.includeNotes && 'Notes',
                         exportOptions.includeSettings && 'Settings',
-                      ].filter(Boolean).join(', ') || 'None selected'}
+                      ]
+                        .filter(Boolean)
+                        .join(', ') || 'None selected'}
                     </span>
                   </div>
                 </div>
@@ -307,27 +358,28 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       </div>
 
       {/* Export Actions */}
-      <Card variant="magical">
+      <Card variant='magical'>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className='flex items-center justify-between'>
             <div>
-              <h3 className="font-medium mb-1">Ready to Export</h3>
-              <p
-                className="text-sm text-muted-foreground"
-              >
-                Your data will be packaged and downloaded as a
-                {' '}
-                {exportOptions.format.toUpperCase()}
-                {' '}
-                file
+              <h3 className='font-medium mb-1'>Ready to Export</h3>
+              <p className='text-sm text-muted-foreground'>
+                Your data will be packaged and downloaded as a{' '}
+                {exportOptions.format.toUpperCase()} file
               </p>
             </div>
             <Button
-              variant="primary"
-              size="lg"
+              variant='primary'
+              size='lg'
               onClick={handleExport}
-              disabled={operationInProgress || (!exportOptions.includeCharacters && !exportOptions.includeCampaigns && !exportOptions.includeNotes && !exportOptions.includeSettings)}
-              className="gap-2"
+              disabled={
+                operationInProgress ||
+                (!exportOptions.includeCharacters &&
+                  !exportOptions.includeCampaigns &&
+                  !exportOptions.includeNotes &&
+                  !exportOptions.includeSettings)
+              }
+              className='gap-2'
             >
               <Download size={20} />
               {operationInProgress ? 'Exporting...' : 'Export Data'}

@@ -25,25 +25,20 @@ export interface Debilities {
 }
 
 // Character classes in Dungeon World
-export type CharacterClass
-  = | 'Fighter'
-    | 'Paladin'
-    | 'Ranger'
-    | 'Thief'
-    | 'Bard'
-    | 'Cleric'
-    | 'Druid'
-    | 'Wizard'
-    | 'Barbarian'
-    | 'Immolator'
+export type CharacterClass =
+  | 'Fighter'
+  | 'Paladin'
+  | 'Ranger'
+  | 'Thief'
+  | 'Bard'
+  | 'Cleric'
+  | 'Druid'
+  | 'Wizard'
+  | 'Barbarian'
+  | 'Immolator'
 
 // Alignments
-export type Alignment
-  = | 'Good'
-    | 'Lawful'
-    | 'Neutral'
-    | 'Chaotic'
-    | 'Evil'
+export type Alignment = 'Good' | 'Lawful' | 'Neutral' | 'Chaotic' | 'Evil'
 
 // Damage dice types
 export type DamageDie = 'd4' | 'd6' | 'd8' | 'd10' | 'd12'
@@ -57,12 +52,7 @@ export interface Bond {
 }
 
 // Character race / species
-export type Race
-  = | 'Human'
-    | 'Elf'
-    | 'Dwarf'
-    | 'Halfling'
-    | 'Other'
+export type Race = 'Human' | 'Elf' | 'Dwarf' | 'Halfling' | 'Other'
 
 // Advancement choice when leveling up
 export interface AdvancementChoice {
@@ -163,7 +153,14 @@ export function createDummyCharacter(): Character {
     level: 1,
     alignment: 'Neutral',
     attributes: { STR: 16, DEX: 13, CON: 15, INT: 8, WIS: 12, CHA: 9 },
-    debilities: { weak: false, shaky: false, sick: false, stunned: false, confused: false, scarred: false },
+    debilities: {
+      weak: false,
+      shaky: false,
+      sick: false,
+      stunned: false,
+      confused: false,
+      scarred: false,
+    },
     hp: { current: 21, max: 21 },
     armor: 2,
     baseArmor: undefined,
@@ -209,18 +206,12 @@ export interface CharacterCreationData {
  * Calculate modifier from attribute score * 3: -3, 4-5: -2, 6-8: -1, 9-12: 0, 13-15: +1, 16-17: +2, 18: +3
  */
 export function getAttributeModifier(score: number): number {
-  if (score <= 3)
-    return -3
-  if (score <= 5)
-    return -2
-  if (score <= 8)
-    return -1
-  if (score <= 12)
-    return 0
-  if (score <= 15)
-    return 1
-  if (score <= 17)
-    return 2
+  if (score <= 3) return -3
+  if (score <= 5) return -2
+  if (score <= 8) return -1
+  if (score <= 12) return 0
+  if (score <= 15) return 1
+  if (score <= 17) return 2
   return 3
 }
 
@@ -235,18 +226,12 @@ export function getEffectiveModifier(
   let modifier = getAttributeModifier(attributes[attribute])
 
   // Apply debility penalties
-  if (attribute === 'STR' && debilities.weak)
-    modifier -= 1
-  if (attribute === 'DEX' && debilities.shaky)
-    modifier -= 1
-  if (attribute === 'CON' && debilities.sick)
-    modifier -= 1
-  if (attribute === 'INT' && debilities.stunned)
-    modifier -= 1
-  if (attribute === 'WIS' && debilities.confused)
-    modifier -= 1
-  if (attribute === 'CHA' && debilities.scarred)
-    modifier -= 1
+  if (attribute === 'STR' && debilities.weak) modifier -= 1
+  if (attribute === 'DEX' && debilities.shaky) modifier -= 1
+  if (attribute === 'CON' && debilities.sick) modifier -= 1
+  if (attribute === 'INT' && debilities.stunned) modifier -= 1
+  if (attribute === 'WIS' && debilities.confused) modifier -= 1
+  if (attribute === 'CHA' && debilities.scarred) modifier -= 1
 
   return modifier
 }
@@ -270,7 +255,14 @@ export function getStandardArray(): number[] {
  * Roll 3d6 for ability score
  */
 export function rollAbilityScore(): number {
-  return Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1
+  return (
+    Math.floor(Math.random() * 6) +
+    1 +
+    Math.floor(Math.random() * 6) +
+    1 +
+    Math.floor(Math.random() * 6) +
+    1
+  )
 }
 
 /**
@@ -361,6 +353,10 @@ export function calculateMaxHP(character: Character): number {
  */
 export function calculateMaxLoad(character: Character): number {
   const baseLoad = getClassBaseLoad(character.class)
-  const strModifier = getEffectiveModifier('STR', character.attributes, character.debilities)
+  const strModifier = getEffectiveModifier(
+    'STR',
+    character.attributes,
+    character.debilities,
+  )
   return Math.max(1, baseLoad + strModifier) // Minimum 1 load
 }
