@@ -17,7 +17,6 @@ import {
 import React, { useState } from 'react'
 import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
 import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
-import { CharacterSheet } from './components/game/CharacterSheet'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
 import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
 import { GameManagementTab } from './components/game/GameManagementTab'
@@ -31,6 +30,9 @@ import {
   CardContent,
   ThemeComponentShowcase,
 } from './components/ui'
+import Folio from './components/game/CharacterSheet/Folio'
+import { RightRail, SplitPane } from './components/layout'
+import { cn } from './lib/utils'
 import { ButtonDebugger } from './components/ui/ButtonDebugger'
 import { CommandPalette } from './components/ui/CommandPalette'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
@@ -64,7 +66,10 @@ type ActiveTab =
   | 'button-debug'
 
 const App: React.FC = () => {
-  const { characters } = useCharacterStore()
+  const { characters, getActiveCharacter } = useCharacterStore()
+  const activeCharacter = getActiveCharacter
+    ? getActiveCharacter()
+    : characters[0] ?? null
   const [activeTab, setActiveTab] = useState<ActiveTab>('play')
   const [showCharacterBuilder, setShowCharacterBuilder] = useState(false)
   const [showSessionManager, setShowSessionManager] = useState(false)
@@ -238,16 +243,98 @@ const App: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <div className='flex justify-end'>
-                    <Button
-                      variant='primary'
-                      size='sm'
-                      onClick={() => setShowCharacterBuilder(true)}
-                    >
-                      Create Character
-                    </Button>
+                  <div className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card/60 px-4 py-3 shadow-sm'>
+                    <div className='space-y-1'>
+                      <p className='text-xs uppercase tracking-wide text-muted-foreground'>Active Character</p>
+                      <div className='flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground'>
+                        <span>{activeCharacter?.name ?? 'Unassigned'}</span>
+                        {activeCharacter ? (
+                          <Badge variant='outline' className='text-xs'>
+                            Level {activeCharacter.level} · {activeCharacter.class}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className='flex flex-wrap items-center gap-2'>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => setShowSessionManager(true)}
+                      >
+                        Manage Session
+                      </Button>
+                      <Button
+                        variant='primary'
+                        size='sm'
+                        onClick={() => setShowCharacterBuilder(true)}
+                      >
+                        Create Character
+                      </Button>
+                    </div>
                   </div>
-                  <CharacterSheet />
+                  <SplitPane
+                    className='min-h-[720px] gap-4 md:gap-6'
+                    left={<Folio className='h-full' />}
+                    right={
+                      <RightRail
+                        className='h-full'
+                        header={
+                          activeCharacter ? (
+                            <div className='space-y-3'>
+                              <div className='flex items-center justify-between gap-3'>
+                                <h3 className='text-sm font-semibold text-foreground'>
+                                  {activeCharacter.name}
+                                </h3>
+                                <Badge variant='secondary' className='text-xs'>
+                                  XP {activeCharacter.xp}
+                                </Badge>
+                              </div>
+                              <div className='flex flex-wrap items-center gap-3 text-xs text-muted-foreground'>
+                                <span>
+                                  HP {activeCharacter.hp.current}/{activeCharacter.hp.max}
+                                </span>
+                                <span>Armor {activeCharacter.armor}</span>
+                                <span>
+                                  Load {activeCharacter.load.current}/{activeCharacter.load.max}
+                                </span>
+                                <span>Coin {activeCharacter.coin}</span>
+                              </div>
+                            </div>
+                          ) : null
+                        }
+                      >
+                        <Card variant='surface'>
+                          <CardContent className='space-y-3 p-4'>
+                            <h4 className='text-sm font-semibold text-foreground'>Quick Actions</h4>
+                            <div className='flex flex-wrap gap-2'>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setShowCharacterBuilder(true)}
+                              >
+                                Edit in Builder
+                              </Button>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => setActiveTab('play')}
+                              >
+                                Jump to Play
+                              </Button>
+                            </div>
+                            <p className='text-xs text-muted-foreground'>
+                              Inline counters in the Folio apply updates instantly via GPT-5. Use the builder for deeper sheet edits.
+                            </p>
+                          </CardContent>
+                        </Card>
+                        <Card variant='surface'>
+                          <CardContent className='p-4'>
+                            <ContextAwareSystem context='character' compact />
+                          </CardContent>
+                        </Card>
+                      </RightRail>
+                    }
+                  />
                 </>
               )}
             </div>

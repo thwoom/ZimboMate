@@ -3,7 +3,6 @@ export { AlignmentXPTracker } from './AlignmentXPTracker'
 // Bond Tracker Components - Phase 4A
 export { BondTracker } from './BondTracker'
 
-export { CharacterSheet } from './CharacterSheet'
 // Debility Tracker Components - Phase 4A
 export { DebilityTracker } from './DebilityTracker'
 export { DiceRoller } from './DiceRoller'
