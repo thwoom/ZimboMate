@@ -11,13 +11,13 @@ import type {
   DeltaOperation,
   ProposedDeltaBundle,
 } from '../../services/llm'
+import type { FolioHighlight } from '@/components/game/CharacterSheet/Folio'
+import type { EquipmentChange } from '@/components/game/CharacterSheet/FolioGearPage'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertTriangle,
   BookOpen,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   Crown,
   Loader2,
   RefreshCcw,
@@ -29,7 +29,9 @@ import {
   Wrench,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getXPThreshold } from '../../models/Character'
+import Folio from '@/components/game/CharacterSheet/Folio'
+import { RightRail, SplitPane } from '@/components/layout'
+import { cn } from '@/lib/utils'
 import {
   describeDeltaOperation as formatDeltaOperation,
   undoChronicleBundle,
@@ -38,24 +40,8 @@ import { useCharacterStore } from '../../stores/characterStore'
 import { useChronicleStore } from '../../stores/chronicleStore'
 import { useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { DeltaChecklist } from '../chronicle/DeltaChecklist'
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  Input,
-  Progress,
-  Textarea,
-} from '../ui'
+import { Badge, Button, Card, CardContent, Input, Textarea } from '../ui'
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
-
-export type GameMode = 'exploration' | 'combat' | 'social' | 'rest'
-export type ActiveTab = 'chronicle' | 'tools'
-export type ToolsSubTab = 'items' | 'monsters' | 'npcs'
-
-interface PlayTabProps {
-  className?: string
-}
 
 interface DiceRollContext {
   id: string
@@ -257,6 +243,32 @@ const campaignVibes: Record<CampaignVibe, VibeDefinition> = {
   },
 }
 
+const SLOT_LABELS: Record<string, string> = {
+  main_hand: 'Main Hand',
+  off_hand: 'Off Hand',
+  armor: 'Armor',
+}
+
+const COMPOSER_KEYWORDS = {
+  gear: [
+    'equip',
+    'unequip',
+    'weapon',
+    'blade',
+    'bow',
+    'shield',
+    'armor',
+    'gear',
+  ],
+  stats: ['hp', 'damage', 'heal', 'wound', 'xp', 'level', 'mark xp'],
+  spells: ['spell', 'ritual', 'cast', 'hold', 'arcane', 'magic'],
+  bonds: ['bond', 'debility', 'relationship', 'ally', 'friend', 'connection'],
+  notes: ['note', 'journal', 'record', 'log'],
+} as const
+
+const includesAny = (source: string, targets: readonly string[]) =>
+  targets.some((target) => source.includes(target))
+
 // Smart pattern-based note enhancement
 function enhanceNote(note: string, vibe: CampaignVibe = 'fantasy'): string {
   if (note.length < 3) return note
@@ -302,7 +314,8 @@ function enhanceNote(note: string, vibe: CampaignVibe = 'fantasy'): string {
 
     // Combat patterns
     {
-      pattern: /\bfought?\s+([^,]+)(?:,\s*(?:got|took)\s+(?:hurt|dmg|damage))?/gi,
+      pattern:
+        /\bfought?\s+([^,]+)(?:,\s*(?:got|took)\s+(?:hurt|dmg|damage))?/gi,
       replacement: (_match: string, enemy: string) =>
         `You engaged ${enemy.trim()} in ${getRandomTerm(vibeConfig.combatTerms)}, suffering ${getRandomTerm(vibeConfig.injuryTerms)} in the struggle`,
     },
@@ -619,8 +632,10 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
   // New state for Immersive Storyteller Mode
   const [activeTab, setActiveTab] = useState<ActiveTab>('chronicle')
   const [toolsSubTab, setToolsSubTab] = useState<ToolsSubTab>('items')
-  const [characterPanelCollapsed, setCharacterPanelCollapsed] = useState(true)
   const [campaignVibe, setCampaignVibe] = useState<CampaignVibe>('fantasy')
+  const [transientFolioHighlight, setTransientFolioHighlight] =
+    useState<FolioHighlight | null>(null)
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Chronicle state
   const [chronicleText, setChronicleText] = useState('')
@@ -635,6 +650,14 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     entriesRef.current = chronicleEntries
   }, [chronicleEntries])
 
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current)
+      }
+    }
+  }, [])
+
   // Tool creation state
   const [itemInput, setItemInput] = useState('')
   const [npcInput, setNpcInput] = useState('')
@@ -642,10 +665,6 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
   const [createdItems, setCreatedItems] = useState<CreatedItem[]>([])
   const [createdNPCs, setCreatedNPCs] = useState<CreatedNPC[]>([])
   const [createdMonsters, setCreatedMonsters] = useState<CreatedMonster[]>([])
-
-  // Session management
-  const [isSessionActive, _setIsSessionActive] = useState(false)
-  const [sessionTime, _setSessionTime] = useState(0)
 
   // Chronicle automation helpers
   const updateEntry = useCallback(
@@ -704,6 +723,72 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       return selection
     },
     [settings?.autoApplyPolicy],
+  )
+
+  const flashFolioHighlight = useCallback(
+    (highlight: FolioHighlight, duration = 3000) => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current)
+      }
+      setTransientFolioHighlight({ ...highlight, focus: true })
+      highlightTimeoutRef.current = setTimeout(() => {
+        setTransientFolioHighlight(null)
+      }, duration)
+    },
+    [],
+  )
+
+  const composerHighlight = useMemo<FolioHighlight | null>(() => {
+    if (pendingDiceContext) {
+      return { page: 'stats', label: 'Dice roll in progress', focus: false }
+    }
+    const trimmed = chronicleText.trim()
+    if (!trimmed) return null
+    const lower = chronicleText.toLowerCase()
+
+    if (/@\w+/.test(trimmed)) {
+      return { page: 'notes', label: 'Mention detected', focus: true }
+    }
+    if (includesAny(lower, COMPOSER_KEYWORDS.gear)) {
+      return { page: 'gear', label: 'Gear keywords detected', focus: false }
+    }
+    if (includesAny(lower, COMPOSER_KEYWORDS.stats)) {
+      return { page: 'stats', label: 'Stat keywords detected', focus: false }
+    }
+    if (includesAny(lower, COMPOSER_KEYWORDS.spells)) {
+      return { page: 'spells', label: 'Spell keywords detected', focus: false }
+    }
+    if (includesAny(lower, COMPOSER_KEYWORDS.bonds)) {
+      return { page: 'bonds', label: 'Bond keywords detected', focus: false }
+    }
+    if (includesAny(lower, COMPOSER_KEYWORDS.notes)) {
+      return { page: 'notes', label: 'Note keywords detected', focus: false }
+    }
+    return null
+  }, [chronicleText, pendingDiceContext])
+
+  const folioHighlight: FolioHighlight | null =
+    transientFolioHighlight ?? composerHighlight
+
+  const handleNoteCreated = useCallback(
+    (noteTitle?: string) => {
+      const label = noteTitle ? `Saved note: ${noteTitle}` : 'Note saved'
+      flashFolioHighlight({ page: 'notes', label, focus: true })
+    },
+    [flashFolioHighlight],
+  )
+
+  const handleFolioEquipmentChange = useCallback(
+    ({ slot, action, itemName }: EquipmentChange) => {
+      const slotLabel = SLOT_LABELS[slot] ?? slot
+      const baseName = itemName ?? 'item'
+      const label =
+        action === 'equip'
+          ? `Equipped ${baseName} (${slotLabel})`
+          : `Unequipped ${baseName} (${slotLabel})`
+      flashFolioHighlight({ page: 'gear', label, focus: true })
+    },
+    [flashFolioHighlight],
   )
 
   const shouldAutoApplyBundle = useCallback(
@@ -880,6 +965,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       campaignVibe,
       proposeEntryDeltas,
       shouldAutoApplyBundle,
+      updateEntry,
     ],
   )
 
@@ -970,7 +1056,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     const Icon = automationStatus.icon
 
     return (
-      <Alert variant={automationStatus.alertVariant} className='mb-4'>
+      <Alert variant={automationStatus.alertVariant} className='shadow-sm'>
         <Icon
           className={
             automationStatus.spinning ? 'h-4 w-4 animate-spin' : 'h-4 w-4'
@@ -1016,19 +1102,19 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className={`p-4 ${className}`}
+        className={cn('p-4', className)}
       >
         <Card variant='magical'>
           <CardContent className='p-6 pt-6'>
-            <div className='text-center space-y-4'>
-              <div className='w-12 h-12 mx-auto rounded-full bg-muted  flex items-center justify-center'>
+            <div className='space-y-4 text-center'>
+              <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted'>
                 <BookOpen size={24} className='text-muted-foreground' />
               </div>
               <div>
-                <h2 className='text-lg font-display mb-2'>
+                <h2 className='mb-2 text-lg font-display'>
                   Ready to Chronicle?
                 </h2>
-                <p className='text-muted-foreground  text-sm mb-4'>
+                <p className='mb-4 text-sm text-muted-foreground'>
                   Create or select a character to begin your storytelling
                   adventure
                 </p>
@@ -1043,738 +1129,675 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     )
   }
 
-  const xpNeeded = getXPThreshold(activeCharacter.level)
-
   return (
-    <div className={`flex h-screen overflow-hidden ${className}`}>
-      {/* Collapsible Character Panel */}
-      <motion.div
-        initial={false}
-        animate={{ width: characterPanelCollapsed ? 60 : 300 }}
-        className='bg-muted/50  border-r border-border flex-shrink-0'
-      >
-        <div className='p-4'>
-          <div className='flex items-center justify-between mb-4'>
-            {!characterPanelCollapsed && (
-              <h3 className='text-lg font-semibold'>{activeCharacter.name}</h3>
-            )}
-            <Button
-              variant='ghost'
-              size='sm'
-              onClick={() =>
-                setCharacterPanelCollapsed(!characterPanelCollapsed)
-              }
-              className='p-2'
-            >
-              {characterPanelCollapsed ? (
-                <ChevronRight size={16} />
-              ) : (
-                <ChevronLeft size={16} />
-              )}
-            </Button>
-          </div>
-
-          {!characterPanelCollapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className='space-y-4'
-            >
-              <div className='text-sm text-muted-foreground'>
-                Level {activeCharacter.level} {activeCharacter.class}
-              </div>
-
-              {/* Campaign Vibe Selector */}
-              <div className='space-y-2'>
-                <label
-                  htmlFor='campaign-setting'
-                  className='text-xs font-medium text-foreground '
-                >
-                  Campaign Setting
-                </label>
-                <select
-                  id='campaign-setting'
-                  value={campaignVibe}
-                  onChange={(e) =>
-                    setCampaignVibe(e.target.value as CampaignVibe)
-                  }
-                  className='w-full text-xs p-2 rounded border border-border bg-card'
-                >
-                  {Object.entries(campaignVibes).map(([key, config]) => (
-                    <option key={key} value={key}>
-                      {config.name}
-                    </option>
-                  ))}
-                </select>
-                <div className='text-xs text-muted-foreground'>
-                  Current: {campaignVibes[campaignVibe].name}
+    <div
+      className={cn(
+        'flex h-screen flex-col overflow-hidden bg-background',
+        className,
+      )}
+    >
+      <SplitPane
+        className='flex-1 gap-4 overflow-hidden p-4 md:p-6'
+        left={
+          <Folio
+            highlight={folioHighlight}
+            onNoteCreated={handleNoteCreated}
+            onEquipmentChange={handleFolioEquipmentChange}
+            className='h-full'
+          />
+        }
+        right={
+          <RightRail
+            className='h-full'
+            header={
+              <div className='space-y-4'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <Button
+                    variant={activeTab === 'chronicle' ? 'primary' : 'ghost'}
+                    onClick={() => setActiveTab('chronicle')}
+                    className='flex items-center gap-2 rounded-md border-b-2 border-transparent data-[active]:border-primary'
+                    data-active={activeTab === 'chronicle'}
+                  >
+                    <BookOpen size={16} />
+                    Chronicle
+                  </Button>
+                  <Button
+                    variant={activeTab === 'tools' ? 'primary' : 'ghost'}
+                    onClick={() => setActiveTab('tools')}
+                    className='flex items-center gap-2 rounded-md border-b-2 border-transparent data-[active]:border-primary'
+                    data-active={activeTab === 'tools'}
+                  >
+                    <Wrench size={16} />
+                    Tools
+                  </Button>
                 </div>
-              </div>
-
-              <div className='space-y-3'>
-                <div>
-                  <div className='flex justify-between text-xs mb-1'>
-                    <span>Health</span>
-                    <span>
-                      {activeCharacter.hp.current}/{activeCharacter.hp.max}
-                    </span>
-                  </div>
-                  <Progress
-                    value={activeCharacter.hp.current}
-                    max={activeCharacter.hp.max}
-                    variant='health'
-                    className='h-2'
-                  />
-                </div>
-
-                <div>
-                  <div className='flex justify-between text-xs mb-1'>
-                    <span>XP</span>
-                    <span>
-                      {activeCharacter.xp}/{xpNeeded}
-                    </span>
-                  </div>
-                  <Progress
-                    value={activeCharacter.xp}
-                    max={xpNeeded}
-                    variant='experience'
-                    className='h-2'
-                  />
-                </div>
-              </div>
-
-              <div className='pt-2 border-t border-border'>
-                <div className='flex items-center gap-2 mb-2'>
-                  <div
-                    className={`w-2 h-2 rounded-full ${isSessionActive ? 'bg-chart-2' : 'bg-gray-400'}`}
-                  />
-                  <span className='text-xs font-medium'>
-                    {isSessionActive ? `${sessionTime}m` : 'Paused'}
+                {automationBanner ? <div>{automationBanner}</div> : null}
+                <div className='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+                  <label
+                    htmlFor='campaign-setting'
+                    className='font-semibold uppercase tracking-wide text-muted-foreground'
+                  >
+                    Campaign Setting
+                  </label>
+                  <select
+                    id='campaign-setting'
+                    value={campaignVibe}
+                    onChange={(event) =>
+                      setCampaignVibe(event.target.value as CampaignVibe)
+                    }
+                    className='min-w-[160px] rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground shadow-sm'
+                  >
+                    {Object.entries(campaignVibes).map(([key, config]) => (
+                      <option key={key} value={key}>
+                        {config.name}
+                      </option>
+                    ))}
+                  </select>
+                  <span className='font-medium text-foreground'>
+                    {campaignVibes[campaignVibe].name}
                   </span>
                 </div>
-                <Button
-                  variant={isSessionActive ? 'destructive' : 'primary'}
-                  size='sm'
-                  onClick={isSessionActive ? endSession : startSession}
-                  className='w-full text-xs'
-                >
-                  {isSessionActive ? 'End Session' : 'Start Session'}
-                </Button>
               </div>
-            </motion.div>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Main Content Area */}
-      <div className='flex-1 flex flex-col overflow-hidden'>
-        {/* Tab Navigation */}
-        <div className='border-b border-border bg-card'>
-          <div className='flex'>
-            <Button
-              variant={activeTab === 'chronicle' ? 'primary' : 'ghost'}
-              onClick={() => setActiveTab('chronicle')}
-              className='rounded-none border-b-2 border-transparent data-[active]:border-primary'
-              data-active={activeTab === 'chronicle'}
-            >
-              <BookOpen size={16} />
-              Chronicle
-            </Button>
-            <Button
-              variant={activeTab === 'tools' ? 'primary' : 'ghost'}
-              onClick={() => setActiveTab('tools')}
-              className='rounded-none border-b-2 border-transparent data-[active]:border-primary'
-              data-active={activeTab === 'tools'}
-            >
-              <Wrench size={16} />
-              Tools
-            </Button>
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className='flex-1 overflow-hidden'>
-          <div className='px-6 pt-6 pb-0'>{automationBanner}</div>
-          <AnimatePresence mode='wait'>
-            {activeTab === 'chronicle' && (
-              <motion.div
-                key='chronicle'
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className='h-full flex flex-col p-6'
-              >
-                {/* Chronicle Canvas - 60% of available space */}
-                <div className='flex-1 mb-6'>
-                  <Card variant='parchment' className='h-full'>
-                    <CardContent className='p-6 h-full flex flex-col'>
-                      <div className='flex items-center justify-between mb-4'>
-                        <h2 className='text-xl font-display flex items-center gap-2'>
-                          <Scroll size={20} className='text-primary' />
-                          Your Story
-                          {automationStatus && (
-                            <Badge
-                              variant={automationStatus.badgeVariant}
-                              className='text-xs flex items-center gap-1'
-                            >
-                              <automationStatus.icon
-                                className={
-                                  automationStatus.spinning
-                                    ? 'h-3.5 w-3.5 animate-spin'
-                                    : 'h-3.5 w-3.5'
-                                }
-                              />
-                              {automationStatus.label}
-                            </Badge>
-                          )}
-                        </h2>
-                        <Badge variant='secondary' className='text-xs'>
-                          {chronicleEntries.length} entries
-                        </Badge>
-                      </div>
-
-                      {/* Chronicle Text Area */}
-                      <div className='flex-1 flex flex-col'>
-                        <Textarea
-                          ref={chronicleTextareaRef}
-                          value={chronicleText}
-                          onChange={(e) => setChronicleText(e.target.value)}
-                          placeholder="What happens in your adventure? Write your story here...
-
-Tip: Write naturally - 'fought goblins, got hurt' becomes 'You battled the goblin raiders, suffering wounds in the fierce struggle.'"
-                          className='flex-1 resize-none text-base leading-relaxed font-serif'
-                          style={{ minHeight: '400px' }}
-                        />
-
-                        <div className='flex justify-between items-center mt-4'>
-                          <div className='flex items-center gap-2'>
-                            <Sparkles size={14} className='text-primary' />
-                            <span className='text-xs text-muted-foreground'>
-                              GPT-5 automation parses every note
-                            </span>
-                          </div>
-                          <Button
-                            onClick={() =>
-                              void addChronicleEntry(chronicleText)
-                            }
-                            disabled={!chronicleText.trim() || isProposing}
-                            className='gap-2'
-                          >
-                            {isProposing ? (
-                              <>
-                                <Loader2 className='h-4 w-4 animate-spin' />
-                                Parsing...
-                              </>
-                            ) : (
-                              <>
-                                <Send size={16} />
-                                Add to Chronicle
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Recent Entries & Dice Context */}
-                <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-                  <div className='space-y-6'>
-                    {/* Recent Chronicle Entries */}
-                    <Card variant='surface'>
-                      <CardContent className='p-4'>
-                        <h3 className='font-semibold mb-3 flex items-center gap-2'>
-                          <BookOpen size={16} />
-                          Recent Story
-                        </h3>
-                        <div className='space-y-3 max-h-72 overflow-y-auto'>
-                          {[...chronicleEntries]
-                            .slice(-5)
-                            .reverse()
-                            .map((entry) => {
-                              const statusLabel = (() => {
-                                switch (entry.status) {
-                                  case 'proposing':
-                                    return 'Drafting'
-                                  case 'applying':
-                                    return 'Applying'
-                                  case 'applied':
-                                    return 'Applied'
-                                  case 'error':
-                                    return 'Needs review'
-                                  default:
-                                    return 'Ready'
-                                }
-                              })()
-
-                              const badgeVariant = (
-                                entry.status === 'applied'
-                                  ? 'default'
-                                  : entry.status === 'error'
-                                    ? 'destructive'
-                                    : 'outline'
-                              ) as 'default' | 'destructive' | 'outline'
-
-                              return (
-                                <div
-                                  key={`${entry.id}`}
-                                  className='rounded-lg border border-border/60 bg-card p-3 shadow-sm'
+            }
+          >
+            <div className='flex h-full flex-col overflow-hidden'>
+              <AnimatePresence mode='wait'>
+                {activeTab === 'chronicle' && (
+                  <motion.div
+                    key='chronicle'
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className='h-full flex flex-col p-6'
+                  >
+                    {/* Chronicle Canvas - 60% of available space */}
+                    <div className='flex-1 mb-6'>
+                      <Card variant='parchment' className='h-full'>
+                        <CardContent className='p-6 h-full flex flex-col'>
+                          <div className='flex items-center justify-between mb-4'>
+                            <h2 className='text-xl font-display flex items-center gap-2'>
+                              <Scroll size={20} className='text-primary' />
+                              Your Story
+                              {automationStatus && (
+                                <Badge
+                                  variant={automationStatus.badgeVariant}
+                                  className='text-xs flex items-center gap-1'
                                 >
-                                  <div className='flex flex-wrap items-center justify-between gap-2'>
-                                    <div className='flex items-center gap-2'>
-                                      <Badge
-                                        variant={badgeVariant}
-                                        className='text-[10px] uppercase tracking-wide'
-                                      >
-                                        {statusLabel}
-                                      </Badge>
-                                      <span className='text-xs text-muted-foreground'>
-                                        {entry.createdAt.toLocaleTimeString()}
-                                      </span>
-                                    </div>
-                                    {entry.bundle &&
-                                      entry.bundle.ops.length > 0 && (
-                                        <span className='text-[11px] text-muted-foreground'>
-                                          {entry.bundle.ops.length} update
-                                          {entry.bundle.ops.length === 1
-                                            ? ''
-                                            : 's'}
-                                        </span>
-                                      )}
-                                  </div>
+                                  <automationStatus.icon
+                                    className={
+                                      automationStatus.spinning
+                                        ? 'h-3.5 w-3.5 animate-spin'
+                                        : 'h-3.5 w-3.5'
+                                    }
+                                  />
+                                  {automationStatus.label}
+                                </Badge>
+                              )}
+                            </h2>
+                            <Badge variant='secondary' className='text-xs'>
+                              {chronicleEntries.length} entries
+                            </Badge>
+                          </div>
 
-                                  <div className='mt-2 text-sm leading-relaxed whitespace-pre-wrap'>
-                                    {entry.narrative ?? entry.rawText}
-                                  </div>
+                          {/* Chronicle Text Area */}
+                          <div className='flex-1 flex flex-col'>
+                            <Textarea
+                              ref={chronicleTextareaRef}
+                              value={chronicleText}
+                              onChange={(e) => setChronicleText(e.target.value)}
+                              placeholder="What happens in your adventure? Write your story here...
+        
+        Tip: Write naturally - 'fought goblins, got hurt' becomes 'You battled the goblin raiders, suffering wounds in the fierce struggle.'"
+                              className='flex-1 resize-none text-base leading-relaxed font-serif'
+                              style={{ minHeight: '400px' }}
+                            />
 
-                                  {entry.narrative &&
-                                    entry.narrative !== entry.rawText && (
-                                      <div className='mt-2 text-[11px] text-muted-foreground italic'>
-                                        {entry.rawText}
-                                      </div>
-                                    )}
+                            <div className='flex justify-between items-center mt-4'>
+                              <div className='flex items-center gap-2'>
+                                <Sparkles size={14} className='text-primary' />
+                                <span className='text-xs text-muted-foreground'>
+                                  GPT-5 automation parses every note
+                                </span>
+                              </div>
+                              <Button
+                                onClick={() =>
+                                  void addChronicleEntry(chronicleText)
+                                }
+                                disabled={!chronicleText.trim() || isProposing}
+                                className='gap-2'
+                              >
+                                {isProposing ? (
+                                  <>
+                                    <Loader2 className='h-4 w-4 animate-spin' />
+                                    Parsing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send size={16} />
+                                    Add to Chronicle
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
 
-                                  {entry.warnings.length > 0 && (
-                                    <Alert
-                                      variant='destructive'
-                                      className='mt-3'
+                    {/* Recent Entries & Dice Context */}
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                      <div className='space-y-6'>
+                        {/* Recent Chronicle Entries */}
+                        <Card variant='surface'>
+                          <CardContent className='p-4'>
+                            <h3 className='font-semibold mb-3 flex items-center gap-2'>
+                              <BookOpen size={16} />
+                              Recent Story
+                            </h3>
+                            <div className='space-y-3 max-h-72 overflow-y-auto'>
+                              {[...chronicleEntries]
+                                .slice(-5)
+                                .reverse()
+                                .map((entry) => {
+                                  const statusLabel = (() => {
+                                    switch (entry.status) {
+                                      case 'proposing':
+                                        return 'Drafting'
+                                      case 'applying':
+                                        return 'Applying'
+                                      case 'applied':
+                                        return 'Applied'
+                                      case 'error':
+                                        return 'Needs review'
+                                      default:
+                                        return 'Ready'
+                                    }
+                                  })()
+
+                                  const badgeVariant = (
+                                    entry.status === 'applied'
+                                      ? 'default'
+                                      : entry.status === 'error'
+                                        ? 'destructive'
+                                        : 'outline'
+                                  ) as 'default' | 'destructive' | 'outline'
+
+                                  return (
+                                    <div
+                                      key={`${entry.id}`}
+                                      className='rounded-lg border border-border/60 bg-card p-3 shadow-sm'
                                     >
-                                      <AlertTitle className='text-xs font-semibold flex items-center gap-1'>
-                                        <AlertTriangle className='h-3.5 w-3.5' />
-                                        Review this note
-                                      </AlertTitle>
-                                      <AlertDescription className='text-xs space-y-1'>
-                                        {entry.warnings.map(
-                                          (warning, warningIndex) => (
-                                            <div key={warningIndex}>
-                                              {warning}
-                                            </div>
-                                          ),
-                                        )}
-                                      </AlertDescription>
-                                    </Alert>
-                                  )}
-
-                                  {entry.bundle &&
-                                    entry.bundle.ops.length > 0 && (
-                                      <div className='mt-3 space-y-2'>
-                                        <span className='text-[11px] uppercase tracking-wide text-muted-foreground'>
-                                          Proposed updates
-                                        </span>
-                                        <DeltaChecklist
-                                          operations={entry.bundle.ops}
-                                          selection={entry.selection}
-                                          onToggle={(index, checked) =>
-                                            toggleOperationSelection(
-                                              entry.id,
-                                              index,
-                                              checked,
-                                            )
-                                          }
-                                          disabled={
-                                            entry.status === 'applied' ||
-                                            entry.status === 'applying'
-                                          }
-                                          renderDescription={
-                                            describeDeltaOperation
-                                          }
-                                          showRuleReference
-                                        />
-                                        <div className='flex flex-wrap items-center gap-2 pt-1'>
-                                          <Button
-                                            size='sm'
-                                            variant={
-                                              entry.status === 'applied'
-                                                ? 'outline'
-                                                : 'primary'
-                                            }
-                                            onClick={() =>
-                                              void applyBundleForEntry(entry.id)
-                                            }
-                                            disabled={
-                                              entry.status === 'applying' ||
-                                              isApplyingBundle
-                                            }
-                                            className='gap-2'
+                                      <div className='flex flex-wrap items-center justify-between gap-2'>
+                                        <div className='flex items-center gap-2'>
+                                          <Badge
+                                            variant={badgeVariant}
+                                            className='text-[10px] uppercase tracking-wide'
                                           >
-                                            {entry.status === 'applying' ? (
-                                              <>
-                                                <Loader2 className='h-4 w-4 animate-spin' />
-                                                Applying...
-                                              </>
-                                            ) : entry.status === 'applied' ? (
-                                              <>
-                                                <CheckCircle2 className='h-4 w-4 text-emerald-500' />
-                                                Applied
-                                              </>
-                                            ) : (
-                                              <>
-                                                <CheckCircle2 className='h-4 w-4' />
-                                                Apply selected
-                                              </>
-                                            )}
-                                          </Button>
-                                          {entry.result && (
+                                            {statusLabel}
+                                          </Badge>
+                                          <span className='text-xs text-muted-foreground'>
+                                            {entry.createdAt.toLocaleTimeString()}
+                                          </span>
+                                        </div>
+                                        {entry.bundle &&
+                                          entry.bundle.ops.length > 0 && (
                                             <span className='text-[11px] text-muted-foreground'>
-                                              {entry.result.appliedOps.length}{' '}
-                                              applied
-                                              {entry.result.skippedOps.length >
-                                              0
-                                                ? ` · ${entry.result.skippedOps.length} skipped`
-                                                : ''}
+                                              {entry.bundle.ops.length} update
+                                              {entry.bundle.ops.length === 1
+                                                ? ''
+                                                : 's'}
                                             </span>
                                           )}
-                                        </div>
                                       </div>
-                                    )}
 
-                                  {entry.errorMessage && (
-                                    <Alert
-                                      variant='destructive'
-                                      className='mt-3'
-                                    >
-                                      <AlertTitle className='text-xs font-semibold'>
-                                        Automation failed
-                                      </AlertTitle>
-                                      <AlertDescription className='text-xs'>
-                                        {entry.errorMessage}
-                                      </AlertDescription>
-                                    </Alert>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          {chronicleEntries.length === 0 && (
-                            <div className='text-center text-muted-foreground py-8'>
-                              <BookOpen
-                                size={32}
-                                className='mx-auto mb-2 opacity-50'
-                              />
-                              <p className='text-sm'>
-                                Your chronicle awaits...
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                                      <div className='mt-2 text-sm leading-relaxed whitespace-pre-wrap'>
+                                        {entry.narrative ?? entry.rawText}
+                                      </div>
 
-                    {/* Automation Log */}
-                    <Card variant='surface'>
-                      <CardContent className='p-4'>
-                        <div className='flex items-center justify-between mb-3'>
-                          <h3 className='font-semibold flex items-center gap-2'>
-                            <Sparkles size={16} />
-                            Automation Log
-                          </h3>
-                          <span className='text-xs text-muted-foreground'>
-                            Last
-                            {Math.min(recentDeltaHistory.length, 5)} bundles
-                          </span>
-                        </div>
-                        {recentDeltaHistory.length === 0 ? (
-                          <div className='text-sm text-muted-foreground'>
-                            Run a Dungeon World move or jot a note to see
-                            Chronicle's updates.
-                          </div>
-                        ) : (
-                          <div className='space-y-3 max-h-72 overflow-y-auto'>
-                            {recentDeltaHistory.map((log) => {
-                              const createdAt = new Date(log.createdAt)
-                              const appliedCount = log.appliedOps.length
-                              const skippedCount = log.skippedOps.length
-                              return (
-                                <div
-                                  key={log.bundleId}
-                                  className='rounded-md border border-border/60 bg-card p-3'
-                                >
-                                  <div className='flex flex-wrap items-center justify-between gap-2'>
-                                    <div className='space-y-0.5'>
-                                      <div className='text-xs text-muted-foreground'>
-                                        {createdAt.toLocaleTimeString()}
-                                      </div>
-                                      <div className='text-sm font-medium leading-tight'>
-                                        Entry
-                                        {log.entryId}
-                                      </div>
-                                    </div>
-                                    <Badge
-                                      variant='outline'
-                                      className='text-[10px] uppercase tracking-wide'
-                                    >
-                                      {appliedCount} applied
-                                      {skippedCount > 0
-                                        ? ` / ${skippedCount} skipped`
-                                        : ''}
-                                    </Badge>
-                                  </div>
-                                  {log.appliedOps.length > 0 && (
-                                    <div className='mt-2'>
-                                      <DeltaChecklist
-                                        operations={log.appliedOps}
-                                        renderDescription={
-                                          describeDeltaOperation
-                                        }
-                                        variant='readOnly'
-                                        size='compact'
-                                        showRuleReference
-                                        className='space-y-1'
-                                        itemClassName='bg-transparent border-border/40'
-                                      />
-                                    </div>
-                                  )}
-                                  {skippedCount > 0 && (
-                                    <Alert variant='outline' className='mt-3'>
-                                      <AlertTitle className='text-xs font-semibold'>
-                                        Skipped
-                                      </AlertTitle>
-                                      <AlertDescription className='text-xs space-y-0.5'>
-                                        <DeltaChecklist
-                                          operations={log.skippedOps}
-                                          renderDescription={
-                                            describeDeltaOperation
-                                          }
-                                          variant='readOnly'
-                                          size='compact'
-                                          showRuleReference
-                                          className='space-y-1'
-                                          itemClassName='bg-transparent border-none p-0'
-                                        />
-                                      </AlertDescription>
-                                    </Alert>
-                                  )}
-                                  <div className='mt-3 flex flex-wrap items-center gap-2'>
-                                    <Button
-                                      size='xs'
-                                      variant='outline'
-                                      disabled={
-                                        !log.undoHandle ||
-                                        undoingBundleId === log.bundleId
-                                      }
-                                      onClick={() =>
-                                        void handleUndoBundle(log.bundleId)
-                                      }
-                                      className='gap-2'
-                                    >
-                                      {undoingBundleId === log.bundleId ? (
-                                        <>
-                                          <Loader2 className='h-3.5 w-3.5 animate-spin' />
-                                          Undoing
-                                        </>
-                                      ) : (
-                                        <>
-                                          <RefreshCcw className='h-3.5 w-3.5' />
-                                          Undo
-                                        </>
+                                      {entry.narrative &&
+                                        entry.narrative !== entry.rawText && (
+                                          <div className='mt-2 text-[11px] text-muted-foreground italic'>
+                                            {entry.rawText}
+                                          </div>
+                                        )}
+
+                                      {entry.warnings.length > 0 && (
+                                        <Alert
+                                          variant='destructive'
+                                          className='mt-3'
+                                        >
+                                          <AlertTitle className='text-xs font-semibold flex items-center gap-1'>
+                                            <AlertTriangle className='h-3.5 w-3.5' />
+                                            Review this note
+                                          </AlertTitle>
+                                          <AlertDescription className='text-xs space-y-1'>
+                                            {entry.warnings.map(
+                                              (warning, warningIndex) => (
+                                                <div key={warningIndex}>
+                                                  {warning}
+                                                </div>
+                                              ),
+                                            )}
+                                          </AlertDescription>
+                                        </Alert>
                                       )}
-                                    </Button>
-                                    <Button
-                                      size='xs'
-                                      variant='ghost'
-                                      disabled={
-                                        undoingBundleId === log.bundleId
-                                      }
-                                      onClick={() =>
-                                        clearDeltaLog(log.bundleId)
-                                      }
+
+                                      {entry.bundle &&
+                                        entry.bundle.ops.length > 0 && (
+                                          <div className='mt-3 space-y-2'>
+                                            <span className='text-[11px] uppercase tracking-wide text-muted-foreground'>
+                                              Proposed updates
+                                            </span>
+                                            <DeltaChecklist
+                                              operations={entry.bundle.ops}
+                                              selection={entry.selection}
+                                              onToggle={(index, checked) =>
+                                                toggleOperationSelection(
+                                                  entry.id,
+                                                  index,
+                                                  checked,
+                                                )
+                                              }
+                                              disabled={
+                                                entry.status === 'applied' ||
+                                                entry.status === 'applying'
+                                              }
+                                              renderDescription={
+                                                describeDeltaOperation
+                                              }
+                                              showRuleReference
+                                            />
+                                            <div className='flex flex-wrap items-center gap-2 pt-1'>
+                                              <Button
+                                                size='sm'
+                                                variant={
+                                                  entry.status === 'applied'
+                                                    ? 'outline'
+                                                    : 'primary'
+                                                }
+                                                onClick={() =>
+                                                  void applyBundleForEntry(
+                                                    entry.id,
+                                                  )
+                                                }
+                                                disabled={
+                                                  entry.status === 'applying' ||
+                                                  isApplyingBundle
+                                                }
+                                                className='gap-2'
+                                              >
+                                                {entry.status === 'applying' ? (
+                                                  <>
+                                                    <Loader2 className='h-4 w-4 animate-spin' />
+                                                    Applying...
+                                                  </>
+                                                ) : entry.status ===
+                                                  'applied' ? (
+                                                  <>
+                                                    <CheckCircle2 className='h-4 w-4 text-emerald-500' />
+                                                    Applied
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <CheckCircle2 className='h-4 w-4' />
+                                                    Apply selected
+                                                  </>
+                                                )}
+                                              </Button>
+                                              {entry.result && (
+                                                <span className='text-[11px] text-muted-foreground'>
+                                                  {
+                                                    entry.result.appliedOps
+                                                      .length
+                                                  }{' '}
+                                                  applied
+                                                  {entry.result.skippedOps
+                                                    .length > 0
+                                                    ? ` · ${entry.result.skippedOps.length} skipped`
+                                                    : ''}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                      {entry.errorMessage && (
+                                        <Alert
+                                          variant='destructive'
+                                          className='mt-3'
+                                        >
+                                          <AlertTitle className='text-xs font-semibold'>
+                                            Automation failed
+                                          </AlertTitle>
+                                          <AlertDescription className='text-xs'>
+                                            {entry.errorMessage}
+                                          </AlertDescription>
+                                        </Alert>
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              {chronicleEntries.length === 0 && (
+                                <div className='text-center text-muted-foreground py-8'>
+                                  <BookOpen
+                                    size={32}
+                                    className='mx-auto mb-2 opacity-50'
+                                  />
+                                  <p className='text-sm'>
+                                    Your chronicle awaits...
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Automation Log */}
+                        <Card variant='surface'>
+                          <CardContent className='p-4'>
+                            <div className='flex items-center justify-between mb-3'>
+                              <h3 className='font-semibold flex items-center gap-2'>
+                                <Sparkles size={16} />
+                                Automation Log
+                              </h3>
+                              <span className='text-xs text-muted-foreground'>
+                                Last
+                                {Math.min(recentDeltaHistory.length, 5)} bundles
+                              </span>
+                            </div>
+                            {recentDeltaHistory.length === 0 ? (
+                              <div className='text-sm text-muted-foreground'>
+                                Run a Dungeon World move or jot a note to see
+                                Chronicle's updates.
+                              </div>
+                            ) : (
+                              <div className='space-y-3 max-h-72 overflow-y-auto'>
+                                {recentDeltaHistory.map((log) => {
+                                  const createdAt = new Date(log.createdAt)
+                                  const appliedCount = log.appliedOps.length
+                                  const skippedCount = log.skippedOps.length
+                                  return (
+                                    <div
+                                      key={log.bundleId}
+                                      className='rounded-md border border-border/60 bg-card p-3'
                                     >
-                                      Dismiss
-                                    </Button>
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
+                                      <div className='flex flex-wrap items-center justify-between gap-2'>
+                                        <div className='space-y-0.5'>
+                                          <div className='text-xs text-muted-foreground'>
+                                            {createdAt.toLocaleTimeString()}
+                                          </div>
+                                          <div className='text-sm font-medium leading-tight'>
+                                            Entry
+                                            {log.entryId}
+                                          </div>
+                                        </div>
+                                        <Badge
+                                          variant='outline'
+                                          className='text-[10px] uppercase tracking-wide'
+                                        >
+                                          {appliedCount} applied
+                                          {skippedCount > 0
+                                            ? ` / ${skippedCount} skipped`
+                                            : ''}
+                                        </Badge>
+                                      </div>
+                                      {log.appliedOps.length > 0 && (
+                                        <div className='mt-2'>
+                                          <DeltaChecklist
+                                            operations={log.appliedOps}
+                                            renderDescription={
+                                              describeDeltaOperation
+                                            }
+                                            variant='readOnly'
+                                            size='compact'
+                                            showRuleReference
+                                            className='space-y-1'
+                                            itemClassName='bg-transparent border-border/40'
+                                          />
+                                        </div>
+                                      )}
+                                      {skippedCount > 0 && (
+                                        <Alert
+                                          variant='outline'
+                                          className='mt-3'
+                                        >
+                                          <AlertTitle className='text-xs font-semibold'>
+                                            Skipped
+                                          </AlertTitle>
+                                          <AlertDescription className='text-xs space-y-0.5'>
+                                            <DeltaChecklist
+                                              operations={log.skippedOps}
+                                              renderDescription={
+                                                describeDeltaOperation
+                                              }
+                                              variant='readOnly'
+                                              size='compact'
+                                              showRuleReference
+                                              className='space-y-1'
+                                              itemClassName='bg-transparent border-none p-0'
+                                            />
+                                          </AlertDescription>
+                                        </Alert>
+                                      )}
+                                      <div className='mt-3 flex flex-wrap items-center gap-2'>
+                                        <Button
+                                          size='xs'
+                                          variant='outline'
+                                          disabled={
+                                            !log.undoHandle ||
+                                            undoingBundleId === log.bundleId
+                                          }
+                                          onClick={() =>
+                                            void handleUndoBundle(log.bundleId)
+                                          }
+                                          className='gap-2'
+                                        >
+                                          {undoingBundleId === log.bundleId ? (
+                                            <>
+                                              <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                                              Undoing
+                                            </>
+                                          ) : (
+                                            <>
+                                              <RefreshCcw className='h-3.5 w-3.5' />
+                                              Undo
+                                            </>
+                                          )}
+                                        </Button>
+                                        <Button
+                                          size='xs'
+                                          variant='ghost'
+                                          disabled={
+                                            undoingBundleId === log.bundleId
+                                          }
+                                          onClick={() =>
+                                            clearDeltaLog(log.bundleId)
+                                          }
+                                        >
+                                          Dismiss
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
 
-                  <div className='space-y-6'>
-                    {/* Tools Sub-navigation */}
-                    <div className='flex gap-2 mb-6'>
-                      <Button
-                        variant={
-                          toolsSubTab === 'items' ? 'primary' : 'outline'
-                        }
-                        onClick={() => setToolsSubTab('items')}
-                        size='sm'
-                      >
-                        <Sword size={16} />
-                        Items
-                      </Button>
-                      <Button
-                        variant={
-                          toolsSubTab === 'monsters' ? 'primary' : 'outline'
-                        }
-                        onClick={() => setToolsSubTab('monsters')}
-                        size='sm'
-                      >
-                        <Crown size={16} />
-                        Monsters
-                      </Button>
-                      <Button
-                        variant={toolsSubTab === 'npcs' ? 'primary' : 'outline'}
-                        onClick={() => setToolsSubTab('npcs')}
-                        size='sm'
-                      >
-                        <User size={16} />
-                        NPCs
-                      </Button>
-                    </div>
+                      <div className='space-y-6'>
+                        {/* Tools Sub-navigation */}
+                        <div className='flex gap-2 mb-6'>
+                          <Button
+                            variant={
+                              toolsSubTab === 'items' ? 'primary' : 'outline'
+                            }
+                            onClick={() => setToolsSubTab('items')}
+                            size='sm'
+                          >
+                            <Sword size={16} />
+                            Items
+                          </Button>
+                          <Button
+                            variant={
+                              toolsSubTab === 'monsters' ? 'primary' : 'outline'
+                            }
+                            onClick={() => setToolsSubTab('monsters')}
+                            size='sm'
+                          >
+                            <Crown size={16} />
+                            Monsters
+                          </Button>
+                          <Button
+                            variant={
+                              toolsSubTab === 'npcs' ? 'primary' : 'outline'
+                            }
+                            onClick={() => setToolsSubTab('npcs')}
+                            size='sm'
+                          >
+                            <User size={16} />
+                            NPCs
+                          </Button>
+                        </div>
 
-                    {/* Tools Content */}
-                    <div className='grid grid-cols-2 gap-6'>
-                      {/* Creator Panel */}
-                      <Card variant='elevated'>
-                        <CardContent className='p-4'>
-                          <h3 className='font-semibold mb-3'>
-                            Create{' '}
-                            {toolsSubTab === 'items'
-                              ? 'Item'
-                              : toolsSubTab === 'monsters'
-                                ? 'Monster'
-                                : 'NPC'}
-                          </h3>
-                          <div className='space-y-3'>
-                            <Input
-                              value={
-                                toolsSubTab === 'items'
-                                  ? itemInput
+                        {/* Tools Content */}
+                        <div className='grid grid-cols-2 gap-6'>
+                          {/* Creator Panel */}
+                          <Card variant='elevated'>
+                            <CardContent className='p-4'>
+                              <h3 className='font-semibold mb-3'>
+                                Create{' '}
+                                {toolsSubTab === 'items'
+                                  ? 'Item'
                                   : toolsSubTab === 'monsters'
-                                    ? monsterInput
-                                    : npcInput
-                              }
-                              onChange={(e) => {
-                                if (toolsSubTab === 'items')
-                                  setItemInput(e.target.value)
-                                else if (toolsSubTab === 'monsters')
-                                  setMonsterInput(e.target.value)
-                                else setNpcInput(e.target.value)
-                              }}
-                              placeholder={`Describe your ${toolsSubTab.slice(0, -1)}...`}
-                            />
-                            <Button
-                              onClick={
-                                toolsSubTab === 'items'
-                                  ? handleCreateItem
-                                  : toolsSubTab === 'monsters'
-                                    ? handleCreateMonster
-                                    : handleCreateNPC
-                              }
-                              className='w-full gap-2'
-                            >
-                              <Sparkles size={16} />
-                              Create with AI
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Created Items List */}
-                      <Card variant='surface'>
-                        <CardContent className='p-4'>
-                          <h3 className='font-semibold mb-3'>
-                            Your{' '}
-                            {toolsSubTab.charAt(0).toUpperCase() +
-                              toolsSubTab.slice(1)}
-                          </h3>
-                          <div className='space-y-3 max-h-96 overflow-y-auto'>
-                            {toolsSubTab === 'items' &&
-                              createdItems.map((item) => (
-                                <div
-                                  key={item.id}
-                                  className='p-3 bg-card rounded border'
+                                    ? 'Monster'
+                                    : 'NPC'}
+                              </h3>
+                              <div className='space-y-3'>
+                                <Input
+                                  value={
+                                    toolsSubTab === 'items'
+                                      ? itemInput
+                                      : toolsSubTab === 'monsters'
+                                        ? monsterInput
+                                        : npcInput
+                                  }
+                                  onChange={(e) => {
+                                    if (toolsSubTab === 'items')
+                                      setItemInput(e.target.value)
+                                    else if (toolsSubTab === 'monsters')
+                                      setMonsterInput(e.target.value)
+                                    else setNpcInput(e.target.value)
+                                  }}
+                                  placeholder={`Describe your ${toolsSubTab.slice(0, -1)}...`}
+                                />
+                                <Button
+                                  onClick={
+                                    toolsSubTab === 'items'
+                                      ? handleCreateItem
+                                      : toolsSubTab === 'monsters'
+                                        ? handleCreateMonster
+                                        : handleCreateNPC
+                                  }
+                                  className='w-full gap-2'
                                 >
-                                  <div className='font-medium'>{item.name}</div>
-                                  <div className='text-xs text-muted-foreground'>
-                                    {item.tags.join(', ')}
-                                  </div>
-                                  <div className='text-sm mt-1'>
-                                    {item.description}
-                                  </div>
-                                  <div className='text-xs font-mono mt-1'>
-                                    {item.stats}
-                                  </div>
-                                </div>
-                              ))}
+                                  <Sparkles size={16} />
+                                  Create with AI
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
 
-                            {toolsSubTab === 'monsters' &&
-                              createdMonsters.map((monster) => (
-                                <div
-                                  key={monster.id}
-                                  className='p-3 bg-card rounded border'
-                                >
-                                  <div className='font-medium'>
-                                    {monster.name}
-                                  </div>
-                                  <div className='text-xs text-muted-foreground'>
-                                    {monster.hp} HP, {monster.armor} armor
-                                  </div>
-                                  <div className='text-sm mt-1'>
-                                    {monster.instinct}
-                                  </div>
-                                  <ul className='text-xs mt-1 list-disc list-inside'>
-                                    {monster.moves.map((move, i) => (
-                                      <li key={i}>{move}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              ))}
+                          {/* Created Items List */}
+                          <Card variant='surface'>
+                            <CardContent className='p-4'>
+                              <h3 className='font-semibold mb-3'>
+                                Your{' '}
+                                {toolsSubTab.charAt(0).toUpperCase() +
+                                  toolsSubTab.slice(1)}
+                              </h3>
+                              <div className='space-y-3 max-h-96 overflow-y-auto'>
+                                {toolsSubTab === 'items' &&
+                                  createdItems.map((item) => (
+                                    <div
+                                      key={item.id}
+                                      className='p-3 bg-card rounded border'
+                                    >
+                                      <div className='font-medium'>
+                                        {item.name}
+                                      </div>
+                                      <div className='text-xs text-muted-foreground'>
+                                        {item.tags.join(', ')}
+                                      </div>
+                                      <div className='text-sm mt-1'>
+                                        {item.description}
+                                      </div>
+                                      <div className='text-xs font-mono mt-1'>
+                                        {item.stats}
+                                      </div>
+                                    </div>
+                                  ))}
 
-                            {toolsSubTab === 'npcs' &&
-                              createdNPCs.map((npc) => (
-                                <div
-                                  key={npc.id}
-                                  className='p-3 bg-card rounded border'
-                                >
-                                  <div className='font-medium'>{npc.name}</div>
-                                  <div className='text-xs text-muted-foreground'>
-                                    {npc.quirk}
-                                  </div>
-                                  <div className='text-sm mt-1'>
-                                    {npc.appearance}
-                                  </div>
-                                  <div className='text-xs mt-1'>
-                                    <strong>Drive:</strong> {npc.drive}
-                                  </div>
-                                  <div className='text-xs'>
-                                    <strong>Knows:</strong> {npc.knows}
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </CardContent>
-                      </Card>
+                                {toolsSubTab === 'monsters' &&
+                                  createdMonsters.map((monster) => (
+                                    <div
+                                      key={monster.id}
+                                      className='p-3 bg-card rounded border'
+                                    >
+                                      <div className='font-medium'>
+                                        {monster.name}
+                                      </div>
+                                      <div className='text-xs text-muted-foreground'>
+                                        {monster.hp} HP, {monster.armor} armor
+                                      </div>
+                                      <div className='text-sm mt-1'>
+                                        {monster.instinct}
+                                      </div>
+                                      <ul className='text-xs mt-1 list-disc list-inside'>
+                                        {monster.moves.map((move, i) => (
+                                          <li key={i}>{move}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  ))}
+
+                                {toolsSubTab === 'npcs' &&
+                                  createdNPCs.map((npc) => (
+                                    <div
+                                      key={npc.id}
+                                      className='p-3 bg-card rounded border'
+                                    >
+                                      <div className='font-medium'>
+                                        {npc.name}
+                                      </div>
+                                      <div className='text-xs text-muted-foreground'>
+                                        {npc.quirk}
+                                      </div>
+                                      <div className='text-sm mt-1'>
+                                        {npc.appearance}
+                                      </div>
+                                      <div className='text-xs mt-1'>
+                                        <strong>Drive:</strong> {npc.drive}
+                                      </div>
+                                      <div className='text-xs'>
+                                        <strong>Knows:</strong> {npc.knows}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </RightRail>
+        }
+      />
     </div>
   )
 }
