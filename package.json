@@ -80,7 +80,7 @@
     "framer-motion": "^11.0.0",
     "howler": "^2.2.4",
     "lottie-react": "^2.4.0",
-    "lucide-react": "^0.543.0",
+    "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-error-boundary": "^6.0.0",
