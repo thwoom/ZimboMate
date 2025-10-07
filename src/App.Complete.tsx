@@ -32,6 +32,7 @@ import {
   CardContent,
   ThemeComponentShowcase,
 } from './components/ui'
+import { AuthProvider } from './components/ui/AuthProvider'
 import { ButtonDebugger } from './components/ui/ButtonDebugger'
 import { CommandPalette } from './components/ui/CommandPalette'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
@@ -625,10 +626,11 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <ChronicleProvider defaultEnabled={true}>
-          <TooltipProvider delayDuration={200} skipDelayDuration={300}>
-            <div className='texture' aria-hidden='true' />
+      <AuthProvider>
+        <ThemeProvider>
+          <ChronicleProvider defaultEnabled={true}>
+            <TooltipProvider delayDuration={200} skipDelayDuration={300}>
+              <div className='texture' aria-hidden='true' />
 
             <div className='relative isolate min-h-screen transition-colors duration-300 bg-background text-foreground'>
               {/* Header */}
@@ -808,8 +810,13 @@ const App: React.FC = () => {
           </TooltipProvider>
         </ChronicleProvider>
       </ThemeProvider>
-    </ErrorBoundary>
+    </AuthProvider>
+  </ErrorBoundary>
   )
 }
 
 export default App
+
+
+
+

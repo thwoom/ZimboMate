@@ -1,6 +1,6 @@
 import { Palette } from 'lucide-react'
 import React from 'react'
-import { useTheme } from './ThemeProvider'
+import { useTheme } from './ThemeContext'
 
 interface ThemeStatusBadgeProps {
   /**
