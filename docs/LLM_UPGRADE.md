@@ -507,6 +507,8 @@ OpenAI Help Center
 
 **2025-10-07 update:** Chronicle store tracks pending delta bundles and audit history with undo metadata. Overlay and panel surface Tauri guard messaging, pending bundle progress, and expandable audit log status chips so GMs know when automations are queued or applied. Added unit coverage for the new store state and the provider lifecycle.
 
+**2025-10-07 PlayTab polish:** PlayTab automation log adopts shared badge/button variants for status chips and actions, mirrors the Tauri guard messaging used in the overlay/panel, and ships targeted tests for undo, dismiss, and guard dismissal flows.
+
 Compute idempotencyKey = sha256(entryId + stableSerialize(ops)).
 
 Store bundle + ops transactionally; prevent duplicate applies.

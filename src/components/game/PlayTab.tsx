@@ -11,6 +11,7 @@ import type {
   DeltaOperation,
   ProposedDeltaBundle,
 } from '../../services/llm'
+import type { BadgeProps } from '../ui'
 import type { FolioHighlight } from '@/components/game/CharacterSheet/Folio'
 import type { EquipmentChange } from '@/components/game/CharacterSheet/FolioGearPage'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -23,6 +24,7 @@ import {
   RefreshCcw,
   Scroll,
   Send,
+  ShieldAlert,
   Sparkles,
   Sword,
   User,
@@ -113,7 +115,7 @@ type CampaignVibe =
 interface AutomationSummary {
   label: string
   message: string
-  badgeVariant: 'default' | 'destructive' | 'outline'
+  badgeVariant: 'default' | 'destructive' | 'outline' | 'success' | 'warning' | 'secondary'
   alertVariant: 'default' | 'destructive'
   icon: React.ComponentType<{ className?: string }>
   spinning?: boolean
@@ -597,6 +599,14 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     [deltaHistory],
   )
   const [undoingBundleId, setUndoingBundleId] = useState<string | null>(null)
+  const [isAutomationGuardDismissed, setIsAutomationGuardDismissed] =
+    useState(false)
+  const tauriBridge =
+    typeof window !== 'undefined'
+      ? (window as typeof window & { __TAURI__?: unknown })
+      : undefined
+  const isTauriRuntime = Boolean(tauriBridge?.__TAURI__)
+  const showAutomationGuard = !isTauriRuntime && !isAutomationGuardDismissed
   const chronicleTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   const {
@@ -1016,7 +1026,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       return {
         label: 'Applying updates',
         message: progressMessage || 'Syncing selected deltas to your sheet.',
-        badgeVariant: 'outline',
+        badgeVariant: 'warning',
         alertVariant: 'default',
         icon: Loader2,
         spinning: true,
@@ -1027,7 +1037,21 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       return {
         label: 'Drafting deltas',
         message: progressMessage || 'GPT-5 is parsing the latest note.',
-        badgeVariant: 'outline',
+        badgeVariant: 'secondary',
+        alertVariant: 'default',
+        icon: Sparkles,
+        spinning: false,
+      }
+    }
+
+    if (lastProgressEvent) {
+      const stageLabel = lastProgressEvent.stage
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase())
+      return {
+        label: stageLabel,
+        message: progressMessage,
+        badgeVariant: 'secondary',
         alertVariant: 'default',
         icon: Sparkles,
         spinning: false,
@@ -1040,7 +1064,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       return {
         label: 'Automation ready',
         message: `${latency} · ${tokens}`,
-        badgeVariant: 'default',
+        badgeVariant: 'success',
         alertVariant: 'default',
         icon: CheckCircle2,
         spinning: false,
@@ -1314,13 +1338,14 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                     }
                                   })()
 
-                                  const badgeVariant = (
+                                  const badgeVariant: BadgeProps['variant'] =
                                     entry.status === 'applied'
-                                      ? 'default'
+                                      ? 'success'
                                       : entry.status === 'error'
                                         ? 'destructive'
-                                        : 'outline'
-                                  ) as 'default' | 'destructive' | 'outline'
+                                        : entry.status === 'applying'
+                                          ? 'warning'
+                                          : 'secondary'
 
                                   return (
                                     <div
@@ -1371,13 +1396,13 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                             Review this note
                                           </AlertTitle>
                                           <AlertDescription className='text-xs space-y-1'>
-                                            {entry.warnings.map(
-                                              (warning, warningIndex) => (
-                                                <div key={warningIndex}>
-                                                  {warning}
-                                                </div>
-                                              ),
-                                            )}
+                                            {entry.warnings.map((warning) => (
+                                              <div
+                                                key={`${entry.id}-${warning}`}
+                                              >
+                                                {warning}
+                                              </div>
+                                            ))}
                                           </AlertDescription>
                                         </Alert>
                                       )}
@@ -1505,6 +1530,35 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                 {Math.min(recentDeltaHistory.length, 5)} bundles
                               </span>
                             </div>
+                            {showAutomationGuard && (
+                              <Alert
+                                variant='destructive'
+                                className='mb-3 border-destructive/40 bg-destructive/10'
+                              >
+                                <ShieldAlert className='h-4 w-4 text-destructive' />
+                                <AlertTitle className='text-sm font-semibold text-destructive'>
+                                  Desktop bridge unavailable
+                                </AlertTitle>
+                                <AlertDescription className='space-y-2 text-xs text-destructive/90'>
+                                  <p>
+                                    Chronicle automations need the Tauri desktop bridge. Launch the desktop shell to enable live Chronicle updates.
+                                  </p>
+                                  <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide'>
+                                    <span className='rounded bg-destructive/10 px-2 py-0.5 font-mono text-[10px] text-destructive'>
+                                      npm run dev:tauri
+                                    </span>
+                                    <Button
+                                      size='sm'
+                                      variant='ghost'
+                                      className='h-7 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10'
+                                      onClick={() => setIsAutomationGuardDismissed(true)}
+                                    >
+                                      Dismiss
+                                    </Button>
+                                  </div>
+                                </AlertDescription>
+                              </Alert>
+                            )}
                             {recentDeltaHistory.length === 0 ? (
                               <div className='text-sm text-muted-foreground'>
                                 Run a Dungeon World move or jot a note to see
@@ -1516,6 +1570,12 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                   const createdAt = new Date(log.createdAt)
                                   const appliedCount = log.appliedOps.length
                                   const skippedCount = log.skippedOps.length
+                                  const statusVariant: BadgeProps['variant'] =
+                                    skippedCount > 0
+                                      ? 'warning'
+                                      : appliedCount > 0
+                                        ? 'success'
+                                        : 'secondary'
                                   return (
                                     <div
                                       key={log.bundleId}
@@ -1532,7 +1592,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                           </div>
                                         </div>
                                         <Badge
-                                          variant='outline'
+                                          variant={statusVariant}
                                           className='text-[10px] uppercase tracking-wide'
                                         >
                                           {appliedCount} applied
@@ -1558,8 +1618,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                       )}
                                       {skippedCount > 0 && (
                                         <Alert
-                                          variant='outline'
-                                          className='mt-3'
+                                          className='mt-3 border-border/60 bg-muted/30'
                                         >
                                           <AlertTitle className='text-xs font-semibold'>
                                             Skipped
@@ -1581,7 +1640,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                       )}
                                       <div className='mt-3 flex flex-wrap items-center gap-2'>
                                         <Button
-                                          size='xs'
+                                          size='sm'
                                           variant='outline'
                                           disabled={
                                             !log.undoHandle ||
@@ -1590,7 +1649,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                           onClick={() =>
                                             void handleUndoBundle(log.bundleId)
                                           }
-                                          className='gap-2'
+                                          className='h-8 gap-2 px-3 text-xs'
                                         >
                                           {undoingBundleId === log.bundleId ? (
                                             <>
@@ -1605,7 +1664,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                           )}
                                         </Button>
                                         <Button
-                                          size='xs'
+                                          size='sm'
                                           variant='ghost'
                                           disabled={
                                             undoingBundleId === log.bundleId
@@ -1613,6 +1672,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                           onClick={() =>
                                             clearDeltaLog(log.bundleId)
                                           }
+                                          className='h-8 px-2 text-xs text-muted-foreground hover:text-foreground'
                                         >
                                           Dismiss
                                         </Button>
@@ -1755,8 +1815,10 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                         {monster.instinct}
                                       </div>
                                       <ul className='text-xs mt-1 list-disc list-inside'>
-                                        {monster.moves.map((move, i) => (
-                                          <li key={i}>{move}</li>
+                                        {monster.moves.map((move) => (
+                                          <li key={`${monster.id}-${move}`}>
+                                            {move}
+                                          </li>
                                         ))}
                                       </ul>
                                     </div>
@@ -1803,3 +1865,4 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
 }
 
 export default PlayTab
+
