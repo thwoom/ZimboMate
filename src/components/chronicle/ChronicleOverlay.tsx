@@ -7,13 +7,16 @@
  */
 
 import type { ChroniclePrompt } from '../../services/ChronicleActionListenerService'
+import type { MentionHighlight, ResourceChangeDisplay } from './highlightUtils'
 import type { DeltaOperation } from '@/services/llm'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  AtSign,
   BookOpen,
   ChevronDown,
   ChevronUp,
   Clock,
+  Coins,
   Feather,
   Loader2,
   RefreshCcw,
@@ -29,17 +32,26 @@ import React, {
   useState,
 } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   describeDeltaOperation as formatDeltaOperation,
   undoChronicleBundle,
 } from '@/services/chronicle'
+import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
 import { chronicleActionListener } from '../../services/ChronicleActionListenerService'
 import { contextIntelligence } from '../../services/ChronicleContextIntelligence'
 import { useChronicleLLM } from './ChronicleProvider'
 import { DeltaChecklist } from './DeltaChecklist'
-
+import {
+  buildMentionContext,
+  collectMentionHighlights,
+  collectResourceChanges,
+  describeResourceChange,
+  EMPTY_RESOURCE_HISTORY,
+  formatActorLabel,
+} from './highlightUtils'
 interface ChronicleOverlayProps {
   isEnabled?: boolean
   maxPrompts?: number
@@ -430,6 +442,17 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   } = useChronicleLLM()
   const deltaHistory = useChronicleStore((state) => state.deltaHistory)
   const clearDeltaLog = useChronicleStore((state) => state.clearDeltaLog)
+  const auditLog = useChronicleStore((state) => state.auditLog)
+  const clearAuditLog = useChronicleStore((state) => state.clearAuditLog)
+  const pendingBundle = useChronicleStore((state) => state.pendingDeltaBundle)
+  const entities = useChronicleStore((state) => state.entities)
+  const resourceHistory = useChronicleStore(
+    (state) => state.resourceHistory ?? EMPTY_RESOURCE_HISTORY,
+  )
+  const getEntry = useChronicleStore((state) => state.getEntry)
+  const setSelectedEntity = useChronicleStore((state) => state.setSelectedEntity)
+  const incrementWikiView = useChronicleStore((state) => state.incrementWikiView)
+  const getCharacter = useCharacterStore((state) => state.getCharacter)
   const [undoingBundleId, setUndoingBundleId] = useState<string | null>(null)
   const [promptState, dispatchPromptState] = useReducer(promptOverlayReducer, {
     prompts: [],
@@ -438,9 +461,67 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   const { prompts: activePrompts, isVisible } = promptState
 
   const latestAutomation = deltaHistory.length > 0 ? deltaHistory[0] : null
+  const latestEntry = useMemo(
+    () => (latestAutomation ? getEntry(latestAutomation.entryId) : undefined),
+    [latestAutomation, getEntry],
+  )
   const describeDeltaOperation = useCallback((op: DeltaOperation) => {
     return formatDeltaOperation(op)
   }, [])
+
+  const mentionHighlights = useMemo<MentionHighlight[]>(() => {
+
+    if (!latestAutomation) return []
+
+    return collectMentionHighlights(latestAutomation, entities).slice(0, 3)
+
+  }, [entities, latestAutomation])
+
+  const resolveCharacterName = useCallback(
+    (characterId?: string | null) => {
+      if (!characterId) return 'Unknown adventurer'
+
+      const character = getCharacter(characterId)
+
+      return character?.name ?? characterId
+    },
+
+    [getCharacter],
+  )
+
+  const bundleResourceChanges = useMemo(() => {
+    return collectResourceChanges(latestAutomation, resourceHistory)
+  }, [latestAutomation, resourceHistory])
+
+  const handleEntityNavigate = useCallback(
+    (entityId: string) => {
+      setSelectedEntity(entityId)
+      incrementWikiView(entityId)
+    },
+    [incrementWikiView, setSelectedEntity],
+  )
+
+  const resourceChangeDisplay = useMemo<ResourceChangeDisplay[]>(() => {
+    if (!latestAutomation || bundleResourceChanges.length === 0) {
+      return []
+    }
+
+    return bundleResourceChanges
+
+      .slice(0, 5)
+
+      .map((entry) => describeResourceChange(entry, resolveCharacterName))
+
+      .filter((change): change is ResourceChangeDisplay => change !== null)
+  }, [bundleResourceChanges, latestAutomation, resolveCharacterName])
+
+  const mentionContextFallback = useMemo(
+    () => latestEntry?.rawText ?? '',
+
+    [latestEntry],
+  )
+
+  const auditPreview = useMemo(() => auditLog.slice(0, 5), [auditLog])
 
   const automationStatus = useMemo(() => {
     if (isApplyingBundle) {
@@ -478,6 +559,12 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
 
     return null
   }, [isApplyingBundle, isProposing, lastProgressEvent, lastTelemetryEvent])
+
+
+  const latestActorLabel = useMemo(
+    () => (latestAutomation ? formatActorLabel(latestAutomation.actor) : ''),
+    [latestAutomation],
+  )
 
   const statusChip = useMemo(() => {
     if (!automationStatus) return null
@@ -558,7 +645,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     async (bundleId: string) => {
       setUndoingBundleId(bundleId)
       try {
-        const success = await undoChronicleBundle(bundleId)
+        const success = await undoChronicleBundle(bundleId, { actor: 'user' })
         if (!success) {
           console.warn(`[chronicle] Unable to undo bundle ${bundleId}`)
           return
@@ -603,9 +690,21 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
 
   return (
     <div
-      className={`fixed ${getPositionClasses()} z-50 pointer-events-none ${className}`}
+      className={`fixed ${getPositionClasses()} z-[var(--layer-popover)] pointer-events-none ${className}`}
     >
       <div className='flex flex-col gap-3 pointer-events-auto'>
+        {pendingBundle && (
+          <Alert variant='outline' className='border-primary/40 bg-primary/5'>
+            <AlertTitle className='text-sm font-semibold text-primary'>
+              Pending bundle
+            </AlertTitle>
+            <AlertDescription className='text-xs text-muted-foreground'>
+              Entry {pendingBundle.entryId} -{' '}
+              {pendingBundle.autoApply ? 'Auto-applies when ready' : 'Awaiting confirmation'} at{' '}
+              {new Date(pendingBundle.requestedAt ?? new Date().toISOString()).toLocaleTimeString()}
+            </AlertDescription>
+          </Alert>
+        )}
         {statusChip}
         {latestAutomation && (
           <motion.div
@@ -614,7 +713,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-            className='bg-card border border-border rounded-lg shadow-lg p-3'
+            className='bg-card border border-border rounded-lg shadow-lg p-3 flex flex-col max-h-[calc(100vh-12rem)] min-h-0'
           >
             <div className='flex items-start justify-between gap-3'>
               <div>
@@ -626,42 +725,111 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                   {new Date(latestAutomation.createdAt).toLocaleTimeString()}
                 </p>
               </div>
-              <div className='text-[10px] uppercase tracking-wide text-muted-foreground'>
-                {latestAutomation.appliedOps.length} applied
-                {latestAutomation.skippedOps.length > 0
-                  ? ` - ${latestAutomation.skippedOps.length} skipped`
-                  : ''}
+              <div className='flex flex-col items-end gap-1 text-[10px] uppercase tracking-wide text-muted-foreground'>
+                <span>
+                  {latestAutomation.appliedOps.length} applied
+                  {latestAutomation.skippedOps.length > 0
+                    ? ` - ${latestAutomation.skippedOps.length} skipped`
+                    : ''}
+                </span>
+                {latestActorLabel && (
+                  <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                    {latestActorLabel}
+                  </Badge>
+                )}
               </div>
             </div>
-            <div className='mt-3'>
-              <DeltaChecklist
-                operations={latestAutomation.appliedOps}
-                renderDescription={describeDeltaOperation}
-                variant='readOnly'
-                size='compact'
-                showRuleReference
-                className='space-y-1'
-                itemClassName='bg-transparent border-border/40'
-              />
+            <div className='mt-3 flex-1 overflow-y-auto space-y-3 pr-1 pb-3 min-h-0'>
+              <div className='space-y-2'>
+                <DeltaChecklist
+                  operations={latestAutomation.appliedOps}
+                  renderDescription={describeDeltaOperation}
+                  variant='readOnly'
+                  size='compact'
+                  showRuleReference
+                  className='space-y-1'
+                  itemClassName='bg-transparent border-border/40'
+                />
+                {mentionHighlights.length > 0 && (
+                  <div className='space-y-2'>
+                    <div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                      <AtSign size={12} /> Latest mentions
+                    </div>
+                    <div className='space-y-2'>
+                      {mentionHighlights.map((highlight) => (
+                        <button
+                          type='button'
+                          key={`${highlight.entityId}-${highlight.record.entryId}-${highlight.record.createdAt}`}
+                          onClick={() => handleEntityNavigate(highlight.entityId)}
+                          className='w-full rounded-md border border-border/40 bg-muted/20 p-2 text-left text-xs leading-snug transition-colors hover:border-primary/40 hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                        >
+                          <div className='flex items-center gap-2 font-semibold text-foreground'>
+                            <span>{highlight.entityName}</span>
+                            <Badge
+                              variant='outline'
+                              className='text-[10px] uppercase tracking-wide'
+                            >
+                              {highlight.entityType}
+                            </Badge>
+                          </div>
+                          <div className='mt-1 text-muted-foreground'>
+                            {buildMentionContext(
+                              highlight.record,
+                              mentionContextFallback,
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {resourceChangeDisplay.length > 0 && (
+                  <div className='space-y-2'>
+                    <div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                      <Coins size={12} /> Resource updates
+                    </div>
+                    <div className='space-y-1'>
+                      {resourceChangeDisplay.map(
+                        ({ key, Icon, colorClass, message, detail }) => (
+                          <div
+                            key={key}
+                            className='flex items-center justify-between gap-3 rounded-md border border-border/40 bg-muted/10 px-2 py-1 text-xs'
+                          >
+                            <div className='flex items-center gap-2 text-foreground'>
+                              <Icon className={`h-3.5 w-3.5 ${colorClass}`} />
+                              <span>{message}</span>
+                            </div>
+                            {detail && (
+                              <span className='text-muted-foreground'>
+                                {detail}
+                              </span>
+                            )}
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {latestAutomation.skippedOps.length > 0 && (
+                <Alert variant='outline'>
+                  <AlertTitle className='text-xs font-semibold'>
+                    Skipped
+                  </AlertTitle>
+                  <AlertDescription className='text-xs'>
+                    <DeltaChecklist
+                      operations={latestAutomation.skippedOps}
+                      renderDescription={describeDeltaOperation}
+                      variant='readOnly'
+                      size='compact'
+                      showRuleReference
+                      className='space-y-1'
+                      itemClassName='bg-transparent border-none p-0'
+                    />
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
-            {latestAutomation.skippedOps.length > 0 && (
-              <Alert variant='outline' className='mt-3'>
-                <AlertTitle className='text-xs font-semibold'>
-                  Skipped
-                </AlertTitle>
-                <AlertDescription className='text-xs'>
-                  <DeltaChecklist
-                    operations={latestAutomation.skippedOps}
-                    renderDescription={describeDeltaOperation}
-                    variant='readOnly'
-                    size='compact'
-                    showRuleReference
-                    className='space-y-1'
-                    itemClassName='bg-transparent border-none p-0'
-                  />
-                </AlertDescription>
-              </Alert>
-            )}
             <div className='mt-3 flex flex-wrap items-center gap-2'>
               <Button
                 size='sm'
@@ -697,6 +865,57 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
             </div>
           </motion.div>
         )}
+        {auditPreview.length > 0 && (
+          <div className='rounded-lg border border-border/60 bg-muted/20 p-3 space-y-3'>
+            <div className='flex items-center justify-between gap-2'>
+              <div className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                Audit history
+              </div>
+              <div className='flex items-center gap-2'>
+                <span className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Showing {auditPreview.length} of {auditLog.length}
+                </span>
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  onClick={() => clearAuditLog()}
+                  disabled={auditLog.length === 0}
+                  className='h-7 px-2 text-xs text-muted-foreground hover:text-foreground transition-colors'
+                >
+                  Clear audit
+                </Button>
+              </div>
+            </div>
+            <div className='space-y-2 max-h-[40vh] overflow-y-auto pr-1'>
+              {auditPreview.map((entry) => {
+                const timestamp = new Date(entry.timestamp)
+                return (
+                  <div
+                    key={entry.id}
+                    className='flex items-start justify-between gap-3 rounded-md border border-border/40 bg-card/70 px-2.5 py-2 text-xs'
+                  >
+                    <div className='space-y-1'>
+                      <div className='font-semibold text-foreground'>
+                        {entry.action === 'applied' ? 'Applied' : 'Undone'} bundle
+                      </div>
+                      <div className='text-muted-foreground'>
+                        Entry {entry.entryId} - {timestamp.toLocaleTimeString()}
+                      </div>
+                    </div>
+                    <div className='flex flex-col items-end gap-1'>
+                      <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                        {formatActorLabel(entry.actor)}
+                      </Badge>
+                      <span className='text-[10px] text-muted-foreground'>
+                        {entry.appliedOps.length} applied / {entry.skippedOps.length} skipped
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
         <AnimatePresence mode='popLayout'>
           {activePrompts.map((prompt, index) => (
             <ChroniclePromptCard
@@ -714,3 +933,5 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
 }
 
 // Hook for easy integration
+
+export default ChronicleOverlay

@@ -17,12 +17,14 @@ import {
 import React, { useState } from 'react'
 import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
 import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
+import Folio from './components/game/CharacterSheet/Folio'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
 import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
 import { GameManagementTab } from './components/game/GameManagementTab'
 import { PlayTab } from './components/game/PlayTab'
 import { SessionManager } from './components/game/SessionManager'
 import { StatRoller } from './components/game/StatRoller'
+import { RightRail, SplitPane } from './components/layout'
 import {
   Badge,
   Button,
@@ -30,9 +32,6 @@ import {
   CardContent,
   ThemeComponentShowcase,
 } from './components/ui'
-import Folio from './components/game/CharacterSheet/Folio'
-import { RightRail, SplitPane } from './components/layout'
-import { cn } from './lib/utils'
 import { ButtonDebugger } from './components/ui/ButtonDebugger'
 import { CommandPalette } from './components/ui/CommandPalette'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
@@ -69,7 +68,7 @@ const App: React.FC = () => {
   const { characters, getActiveCharacter } = useCharacterStore()
   const activeCharacter = getActiveCharacter
     ? getActiveCharacter()
-    : characters[0] ?? null
+    : (characters[0] ?? null)
   const [activeTab, setActiveTab] = useState<ActiveTab>('play')
   const [showCharacterBuilder, setShowCharacterBuilder] = useState(false)
   const [showSessionManager, setShowSessionManager] = useState(false)
@@ -82,6 +81,17 @@ const App: React.FC = () => {
   const [autoFixCount, setAutoFixCount] = useState(0)
 
   // Dice sidebar state
+
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '::1')
+
+  const shouldShowButtonDebugTab =
+    import.meta.env.DEV ||
+    import.meta.env.VITE_ENABLE_BUTTON_DEBUG === 'true' ||
+    isLocalhost
 
   const tabs = [
     { id: 'play' as const, label: 'Play', icon: Play, featured: true },
@@ -99,7 +109,7 @@ const App: React.FC = () => {
       icon: Settings,
       enhanced: true,
     },
-    ...(import.meta.env.DEV
+    ...(shouldShowButtonDebugTab
       ? [
           {
             id: 'button-debug' as const,
@@ -245,12 +255,15 @@ const App: React.FC = () => {
                 <>
                   <div className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card/60 px-4 py-3 shadow-sm'>
                     <div className='space-y-1'>
-                      <p className='text-xs uppercase tracking-wide text-muted-foreground'>Active Character</p>
+                      <p className='text-xs uppercase tracking-wide text-muted-foreground'>
+                        Active Character
+                      </p>
                       <div className='flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground'>
                         <span>{activeCharacter?.name ?? 'Unassigned'}</span>
                         {activeCharacter ? (
                           <Badge variant='outline' className='text-xs'>
-                            Level {activeCharacter.level} · {activeCharacter.class}
+                            Level {activeCharacter.level} ·{' '}
+                            {activeCharacter.class}
                           </Badge>
                         ) : null}
                       </div>
@@ -274,10 +287,10 @@ const App: React.FC = () => {
                   </div>
                   <SplitPane
                     className='min-h-[720px] gap-4 md:gap-6'
-                    left={<Folio className='h-full' />}
+                    left={<Folio className='h-full min-h-0' />}
                     right={
                       <RightRail
-                        className='h-full'
+                        className='h-full min-h-0'
                         header={
                           activeCharacter ? (
                             <div className='space-y-3'>
@@ -291,11 +304,13 @@ const App: React.FC = () => {
                               </div>
                               <div className='flex flex-wrap items-center gap-3 text-xs text-muted-foreground'>
                                 <span>
-                                  HP {activeCharacter.hp.current}/{activeCharacter.hp.max}
+                                  HP {activeCharacter.hp.current}/
+                                  {activeCharacter.hp.max}
                                 </span>
                                 <span>Armor {activeCharacter.armor}</span>
                                 <span>
-                                  Load {activeCharacter.load.current}/{activeCharacter.load.max}
+                                  Load {activeCharacter.load.current}/
+                                  {activeCharacter.load.max}
                                 </span>
                                 <span>Coin {activeCharacter.coin}</span>
                               </div>
@@ -305,7 +320,9 @@ const App: React.FC = () => {
                       >
                         <Card variant='surface'>
                           <CardContent className='space-y-3 p-4'>
-                            <h4 className='text-sm font-semibold text-foreground'>Quick Actions</h4>
+                            <h4 className='text-sm font-semibold text-foreground'>
+                              Quick Actions
+                            </h4>
                             <div className='flex flex-wrap gap-2'>
                               <Button
                                 variant='outline'
@@ -323,7 +340,9 @@ const App: React.FC = () => {
                               </Button>
                             </div>
                             <p className='text-xs text-muted-foreground'>
-                              Inline counters in the Folio apply updates instantly via GPT-5. Use the builder for deeper sheet edits.
+                              Inline counters in the Folio apply updates
+                              instantly via GPT-5. Use the builder for deeper
+                              sheet edits.
                             </p>
                           </CardContent>
                         </Card>
@@ -611,7 +630,7 @@ const App: React.FC = () => {
           <TooltipProvider delayDuration={200} skipDelayDuration={300}>
             <div className='texture' aria-hidden='true' />
 
-            <div className='relative min-h-screen transition-colors duration-300 bg-background text-foreground'>
+            <div className='relative isolate min-h-screen transition-colors duration-300 bg-background text-foreground'>
               {/* Header */}
               <header className='sticky top-0 z-50 border-b border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm'>
                 <div className='container mx-auto px-6 py-4'>
@@ -710,9 +729,9 @@ const App: React.FC = () => {
               </nav>
 
               {/* Main Content */}
-              <div className='flex h-screen'>
-                <main role='main' className='flex-1 overflow-y-auto'>
-                  <div className='container mx-auto px-6 py-8'>
+              <div className='flex min-h-[calc(100vh-12rem)] min-w-0'>
+                <main role='main' className='flex-1 min-h-0 overflow-y-auto'>
+                  <div className='container mx-auto px-6 py-8 pb-12'>
                     <AnimatePresence mode='wait'>
                       {renderContent()}
                     </AnimatePresence>
