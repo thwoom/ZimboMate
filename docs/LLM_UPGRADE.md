@@ -505,6 +505,8 @@ OpenAI Help Center
 
 17.2 Idempotency & Atomicity\n\n**2025-10-02 update:** Chronicle delta executor now applies Dungeon World core ops in-app (damage, healing, XP, coin, inventory, debilities, hold, ammo, bonds) with idempotent undo. Remaining work: entity linking history + advanced inventory slotting. PlayTab now surfaces an automation log with per-bundle undo controls for GMs.
 
+**2025-10-07 update:** Chronicle store tracks pending delta bundles and audit history with undo metadata. Overlay and panel surface Tauri guard messaging, pending bundle progress, and expandable audit log status chips so GMs know when automations are queued or applied. Added unit coverage for the new store state and the provider lifecycle.
+
 Compute idempotencyKey = sha256(entryId + stableSerialize(ops)).
 
 Store bundle + ops transactionally; prevent duplicate applies.
@@ -514,6 +516,10 @@ Store bundle + ops transactionally; prevent duplicate applies.
 17.3 Templates as Fallback
 
 If API quota/timeout/refusal, render minimal DW‑tone text via ChronicleTemplateService, and enqueue a parse retry if configured.
+
+17.4 Application scaffolding
+
+Auth and Theme providers now expose dedicated contexts (`AuthContext`, `ThemeContext`) with test coverage so Chronicle surfaces can gate auto-apply features for authenticated GMs without pulling legacy exports. Shared testing utilities wrap stories in the new providers.
 
 18. DW Prompting Snippets (Illustrative)
 
