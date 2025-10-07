@@ -1,6 +1,6 @@
 import type { Item, ItemCategory, Tag } from '../../models/Equipment'
 import type { Inventory, InventoryEquipSlot } from '../../models/Inventory'
-import type { EntityType, RelationshipType } from '../../types/chronicle'
+import type { EntityMentionRecord, EntityType, RelationshipType } from '../../types/chronicle'
 import type { Condition } from '../CharacterStateService'
 import type {
   ApplyDeltaBundleRequest,
@@ -27,6 +27,8 @@ interface AppliedBundleRecord {
   appliedOps: DeltaOperation[]
   skippedOps: DeltaOperation[]
   issuedAt: string
+  entryId: string
+  actor: 'auto' | 'manual' | 'system' | 'user'
 }
 
 const appliedBundles = new Map<string, AppliedBundleRecord>()
@@ -289,10 +291,14 @@ function convertRelationshipType(value: string | undefined): RelationshipType {
     : 'ally'
 }
 
-function recordEntityMention(entityId: string | undefined, entryId: string) {
+function recordEntityMention(
+  entityId: string | undefined,
+  entryId: string,
+  detail?: Partial<EntityMentionRecord>,
+) {
   if (!entityId) return
   const chronicle = useChronicleStore.getState()
-  chronicle.recordEntityMention(entityId, entryId)
+  chronicle.recordEntityMention(entityId, entryId, detail)
 }
 
 function tagValueToNumber(tags: Tag[], target: string): number | undefined {
@@ -363,6 +369,18 @@ export async function applyChronicleDeltaBundle(
             }
 
             characterState.updateHP(characterId, nextHP)
+            chronicleStore.logResourceChange({
+              type: 'hp',
+              id: generateId('hp-log-'),
+              bundleId,
+              entryId: bundle.entryId,
+              createdAt: nowIso(),
+              characterId,
+              delta: -op.amount,
+              previous: previousHP,
+              next: nextHP,
+              reason: op.source ?? 'damage',
+            })
             undoActions.push(() =>
               characterState.updateHP(characterId, previousHP),
             )
@@ -386,6 +404,18 @@ export async function applyChronicleDeltaBundle(
             }
 
             characterState.updateHP(characterId, nextHP)
+            chronicleStore.logResourceChange({
+              type: 'hp',
+              id: generateId('hp-log-'),
+              bundleId,
+              entryId: bundle.entryId,
+              createdAt: nowIso(),
+              characterId,
+              delta: op.amount,
+              previous: previousHP,
+              next: nextHP,
+              reason: op.source ?? 'healing',
+            })
             undoActions.push(() =>
               characterState.updateHP(characterId, previousHP),
             )
@@ -440,6 +470,17 @@ export async function applyChronicleDeltaBundle(
             characterState.updateCharacter(characterId, {
               coin: previousCoin + op.amount,
             })
+            chronicleStore.logResourceChange({
+              type: 'coin',
+              id: generateId('coin-log-'),
+              bundleId,
+              entryId: bundle.entryId,
+              createdAt: nowIso(),
+              characterId,
+              amount: op.amount,
+              previous: previousCoin,
+              next: previousCoin + op.amount,
+            })
             undoActions.push(() =>
               characterState.updateCharacter(characterId, {
                 coin: previousCoin,
@@ -453,7 +494,55 @@ export async function applyChronicleDeltaBundle(
         break
       }
 
-      case 'add_debility': {
+            case 'spend_coin': {
+        const response = withCharacter(
+          op.characterId,
+          ({ characterId, characterState, character }) => {
+            const previousCoin = character.coin ?? 0
+            const requestedAmount = Math.abs(op.amount)
+            if (requestedAmount <= 0) {
+              skippedOps.push(op)
+              return
+            }
+
+            const spendAmount = Math.min(requestedAmount, previousCoin)
+            if (spendAmount <= 0) {
+              skippedOps.push(op)
+              return
+            }
+
+            const nextCoin = previousCoin - spendAmount
+            characterState.updateCharacter(characterId, {
+              coin: nextCoin,
+            })
+            chronicleStore.logResourceChange({
+              type: 'coin',
+              id: generateId('coin-log-'),
+              bundleId,
+              entryId: bundle.entryId,
+              createdAt: nowIso(),
+              characterId,
+              amount: -spendAmount,
+              previous: previousCoin,
+              next: nextCoin,
+            })
+            undoActions.push(() =>
+              characterState.updateCharacter(characterId, {
+                coin: previousCoin,
+              }),
+            )
+            const normalizedOp: DeltaOperation = {
+              ...op,
+              amount: spendAmount,
+            }
+            appliedOps.push(normalizedOp)
+          },
+        )
+
+        if (!response.ok) skippedOps.push(op)
+        break
+      }
+case 'add_debility': {
         const response = withCharacter(
           op.characterId,
           ({ characterId, characterState, character }) => {
@@ -573,6 +662,11 @@ export async function applyChronicleDeltaBundle(
               itemId: actualId,
               slot: resolvedSlot,
               reason: 'auto_equip_weapon',
+              metadata: {
+                autoAssigned: true,
+                previousSlot: null,
+                requestedSlot: resolvedSlot ?? autoSlot ?? null,
+              },
             }
           }
         }
@@ -673,20 +767,34 @@ export async function applyChronicleDeltaBundle(
 
         const shouldEquip = op.type === 'equip_item'
         const slotBefore = getEquippedSlot(inventory, resolvedId)
+        const buildMetadata = (targetSlot: string | undefined) => ({
+          ...op.metadata,
+          previousSlot: slotBefore ?? null,
+          autoAssigned:
+            op.metadata?.autoAssigned ?? op.reason === 'auto_equip_weapon',
+          requestedSlot:
+            op.metadata?.requestedSlot ??
+            op.slot ??
+            (shouldEquip ? targetSlot ?? null : slotBefore ?? null),
+        })
 
         if (shouldEquip) {
           if (item.equipped && (!op.slot || op.slot === slotBefore)) {
+            const slotValue = slotBefore ?? op.slot
             const opWithSlot: DeltaOperation = {
               ...op,
-              slot: slotBefore ?? op.slot,
+              slot: slotValue,
+              metadata: buildMetadata(slotValue ?? undefined),
             }
             appliedOps.push(opWithSlot)
             break
           }
         } else if (!item.equipped) {
+          const slotValue = slotBefore ?? op.slot
           const opWithSlot: DeltaOperation = {
             ...op,
-            slot: slotBefore ?? op.slot,
+            slot: slotValue,
+            metadata: buildMetadata(slotValue ?? undefined),
           }
           appliedOps.push(opWithSlot)
           break
@@ -709,12 +817,17 @@ export async function applyChronicleDeltaBundle(
             : (op.slot ?? slotBefore)
           : (slotBefore ?? op.slot)
 
-        const opWithSlot: DeltaOperation = { ...op, slot: resolvedSlot }
+        const opWithSlot: DeltaOperation = {
+          ...op,
+          slot: resolvedSlot,
+          metadata: buildMetadata(resolvedSlot),
+        }
         appliedOps.push(opWithSlot)
         break
       }
 
-      case 'spend_ammo': {
+      
+case 'spend_ammo': {
         const characterId = resolveCharacterId(op.characterId)
         if (!characterId) {
           skippedOps.push(op)
@@ -1115,7 +1228,13 @@ export async function applyChronicleDeltaBundle(
         if (op.entity.id) idMap.set(op.entity.id, entityId)
         idMap.set(entityId, entityId)
 
-        chronicle.recordEntityMention(entityId, bundle.entryId)
+        recordEntityMention(entityId, bundle.entryId, {
+          mentionText: op.entity.name,
+          context: op.entity.description ?? undefined,
+          entityType: convertEntityType(op.entity.type),
+          createdAt: bundle.createdAt,
+          source: 'automation',
+        })
 
         undoActions.push(() => chronicle.deleteEntity(entityId))
         appliedOps.push(op)
@@ -1142,8 +1261,16 @@ export async function applyChronicleDeltaBundle(
           confidence: 1,
         })
 
-        recordEntityMention(fromId, bundle.entryId)
-        recordEntityMention(toId, bundle.entryId)
+        recordEntityMention(fromId, bundle.entryId, {
+          context: op.context ?? undefined,
+          createdAt: bundle.createdAt,
+          source: 'automation',
+        })
+        recordEntityMention(toId, bundle.entryId, {
+          context: op.context ?? undefined,
+          createdAt: bundle.createdAt,
+          source: 'automation',
+        })
 
         undoActions.push(() => chronicle.deleteRelationship(relationshipId))
         appliedOps.push(op)
@@ -1170,7 +1297,11 @@ export async function applyChronicleDeltaBundle(
           : op.note
 
         chronicle.updateEntity(entityId, { userNotes: updatedNotes })
-        recordEntityMention(entityId, bundle.entryId)
+        recordEntityMention(entityId, bundle.entryId, {
+          context: op.note,
+          createdAt: bundle.createdAt,
+          source: 'automation',
+        })
         undoActions.push(() =>
           chronicle.updateEntity(entityId, { userNotes: previousNotes }),
         )
@@ -1186,12 +1317,16 @@ export async function applyChronicleDeltaBundle(
   })
 
   const issuedAt = nowIso()
+  const actor: 'auto' | 'manual' | 'system' | 'user' =
+    request.autoApply ? 'auto' : 'manual'
 
   appliedBundles.set(bundleId, {
     undoActions,
     appliedOps,
     skippedOps,
     issuedAt,
+    entryId: bundle.entryId,
+    actor,
   })
 
   return {
@@ -1205,9 +1340,15 @@ export async function applyChronicleDeltaBundle(
   }
 }
 
-export async function undoChronicleBundle(bundleId: string): Promise<boolean> {
+export async function undoChronicleBundle(
+  bundleId: string,
+  options: { actor?: 'auto' | 'manual' | 'system' | 'user' } = {},
+): Promise<boolean> {
   const record = appliedBundles.get(bundleId)
   if (!record) return false
+
+  const actor = options.actor ?? 'user'
+  const chronicleStore = useChronicleStore.getState()
 
   for (const undo of [...record.undoActions].reverse()) {
     try {
@@ -1217,7 +1358,19 @@ export async function undoChronicleBundle(bundleId: string): Promise<boolean> {
     }
   }
 
-  useChronicleStore.getState().removeResourceHistoryForBundle(bundleId)
+  chronicleStore.removeResourceHistoryForBundle(bundleId)
+
+  chronicleStore.recordAuditEvent({
+    id: generateId('audit-'),
+    bundleId,
+    entryId: record.entryId,
+    action: 'undone',
+    actor,
+    timestamp: nowIso(),
+    appliedOps: record.appliedOps,
+    skippedOps: record.skippedOps,
+  })
+
   appliedBundles.delete(bundleId)
   return true
 }
@@ -1231,3 +1384,6 @@ export function getAppliedBundle(
 export function resetChronicleExecutorForTesting(): void {
   appliedBundles.clear()
 }
+
+
+

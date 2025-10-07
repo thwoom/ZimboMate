@@ -17,7 +17,9 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { buildMentionContext } from '@/components/chronicle/highlightUtils'
+import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
 import { createChronicleParser } from '@/utils/chronicleParser'
 import { logger } from '@/utils/logger'
@@ -39,6 +41,9 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
     addEntity,
     startSession,
     settings,
+    resourceHistory,
+    getEntry,
+    getDeltaLog,
   } = useChronicleStore()
 
   // Local state
@@ -54,11 +59,41 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
   const [lastRecognizedEntity, setLastRecognizedEntity] = useState<
     string | null
   >(null)
-  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null)
+  const selectedEntityId = useChronicleStore((state) => state.selectedEntity)
+  const setSelectedEntityId = useChronicleStore((state) => state.setSelectedEntity)
+  const getEntityById = useChronicleStore((state) => state.getEntity)
+  const selectedEntity = useMemo(() => {
+    if (!selectedEntityId) return null
+    return getEntityById(selectedEntityId) ?? null
+  }, [getEntityById, selectedEntityId])
+  const handleSelectEntity = useCallback((entity: Entity) => {
+    setSelectedEntityId(entity.id)
+  }, [setSelectedEntityId])
+  const getCharacter = useCharacterStore((state) => state.getCharacter)
+
+  const resolveCharacterName = useCallback(
+    (characterId?: string | null) => {
+      if (!characterId) return 'Unknown adventurer'
+      const character = getCharacter(characterId)
+      return character?.name ?? characterId
+    },
+    [getCharacter],
+  )
   const [activeView, setActiveView] = useState<
     'write' | 'timeline' | 'entities'
   >('write')
   const [searchQuery, setSearchQuery] = useState('')
+
+  const handleNavigateToEntry = useCallback(
+    (entryId: string, entityName?: string) => {
+      setActiveView('timeline')
+      if (entityName) {
+        setSearchQuery(entityName)
+      }
+      setSelectedEntityId(null)
+    },
+    [setActiveView, setSearchQuery, setSelectedEntityId],
+  )
 
   // Refs
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -433,7 +468,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.2 }}
-                          className='absolute z-50 mt-2'
+                          className='absolute z-[var(--layer-popover)] mt-2'
                           style={{ left: '20px', top: '120px' }}
                         >
                           {isProcessingMention ? (
@@ -527,8 +562,11 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
             <ChronicleTimeline
               entries={entries}
               entities={entities}
+              resourceHistory={resourceHistory}
+              getDeltaLog={getDeltaLog}
+              resolveCharacterName={resolveCharacterName}
               searchQuery={searchQuery}
-              onEntitySelect={setSelectedEntity}
+              onEntitySelect={handleSelectEntity}
             />
           </motion.div>
         )}
@@ -554,37 +592,83 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                       .includes(searchQuery.toLowerCase()),
                 )
                 .sort((a, b) => b.importance - a.importance)
-                .map((entity) => (
-                  <Card
-                    key={entity.id}
-                    variant='surface'
-                    className='cursor-pointer hover:shadow-lg transition-all'
-                    onClick={() => setSelectedEntity(entity)}
-                  >
-                    <CardContent>
-                      <div className='space-y-2'>
-                        <div className='flex items-start justify-between gap-2'>
-                          <h4 className='font-medium'>{entity.name}</h4>
-                          <Badge variant='secondary' className='text-xs'>
-                            {entity.type}
-                          </Badge>
-                        </div>
-                        <p className='text-sm line-clamp-2 text-muted-foreground'>
-                          {entity.description}
-                        </p>
-                        <div className='flex items-center justify-between text-xs'>
-                          <span className='text-muted-foreground'>
-                            {entity.appearances.length} mentions
-                          </span>
-                          <div className='flex items-center gap-1'>
-                            <Eye size={12} />
-                            <ArrowRight size={12} />
+                .map((entity) => {
+                  const mentionHistory = Array.isArray(entity.mentionHistory)
+                    ? entity.mentionHistory
+                    : []
+                  const latestMention = mentionHistory[0]
+                  const entryForMention =
+                    latestMention && latestMention.entryId
+                      ? getEntry(latestMention.entryId)
+                      : undefined
+                  const mentionSnippet =
+                    latestMention
+                      ? buildMentionContext(
+                          latestMention,
+                          entryForMention?.rawText ?? entity.description ?? '',
+                        )
+                      : null
+                  const mentionDateRaw =
+                    latestMention && latestMention.createdAt
+                      ? new Date(latestMention.createdAt)
+                      : null
+                  const mentionDateLabel =
+                    mentionDateRaw && !Number.isNaN(mentionDateRaw.getTime())
+                      ? mentionDateRaw.toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
+                      : null
+
+                  return (
+                    <Card
+                      key={entity.id}
+                      variant='surface'
+                      className='cursor-pointer hover:shadow-lg transition-all'
+                      onClick={() => handleSelectEntity(entity)}
+                    >
+                      <CardContent>
+                        <div className='space-y-3'>
+                          <div className='flex items-start justify-between gap-2'>
+                            <div className='space-y-1'>
+                              <h4 className='font-medium'>{entity.name}</h4>
+                              {mentionDateLabel && (
+                                <p className='text-[11px] text-muted-foreground'>
+                                  Last mentioned {mentionDateLabel}
+                                </p>
+                              )}
+                            </div>
+                            <Badge variant='secondary' className='text-xs'>
+                              {entity.type}
+                            </Badge>
+                          </div>
+                          {entity.description && (
+                            <p className='text-sm line-clamp-2 text-muted-foreground'>
+                              {entity.description}
+                            </p>
+                          )}
+                          {mentionSnippet && (
+                            <div className='rounded-md border border-border/40 bg-muted/10 px-2 py-1 text-xs leading-snug text-muted-foreground'>
+                              {mentionSnippet}
+                            </div>
+                          )}
+                          <div className='flex items-center justify-between text-xs text-muted-foreground'>
+                            <span>
+                              {entity.mentionHistory?.length ?? entity.appearances.length} mentions
+                            </span>
+                            <div className='flex items-center gap-2'>
+                              <div className='flex items-center gap-1'>
+                                <Eye size={12} />
+                                <ArrowRight size={12} />
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  )
+                })}
             </div>
 
             {entities.length === 0 && (
@@ -613,7 +697,8 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
           <EntityPreview
             entity={selectedEntity}
             entries={entries}
-            onClose={() => setSelectedEntity(null)}
+            onClose={() => setSelectedEntityId(null)}
+            onNavigateToEntry={handleNavigateToEntry}
           />
         )}
       </AnimatePresence>
@@ -651,3 +736,4 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
     </div>
   )
 }
+

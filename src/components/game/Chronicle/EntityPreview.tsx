@@ -9,12 +9,10 @@ import type {
 } from '../../../types/chronicle'
 import { motion } from 'framer-motion'
 import {
-  ArrowRight,
   BookOpen,
   Building,
   Calendar,
   Clock,
-  Eye,
   Hash,
   HelpCircle,
   MapPin,
@@ -24,6 +22,7 @@ import {
   X,
 } from 'lucide-react'
 import React from 'react'
+import { buildMentionContext } from '@/components/chronicle/highlightUtils'
 import { useChronicleStore } from '../../../stores'
 import {
   Badge,
@@ -39,6 +38,7 @@ interface EntityPreviewProps {
   entity: Entity
   entries: ChronicleEntry[]
   onClose: () => void
+  onNavigateToEntry?: (entryId: string, entityName?: string) => void
 }
 
 // Icon mapping for entity types
@@ -79,12 +79,12 @@ function getEntityColor(type: EntityType) {
   }
 }
 
-const escapeRegExp = (value: string) => value.replace(/[\^$.*+?()[\]{}|]/g, '\\$&')
 
 export const EntityPreview: React.FC<EntityPreviewProps> = ({
   entity,
   entries,
   onClose,
+  onNavigateToEntry,
 }) => {
   const [showWiki, setShowWiki] = React.useState(false)
   const { getWikiPage } = useChronicleStore()
@@ -97,6 +97,29 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     )
+
+  const sortedMentionHistory = React.useMemo(() => {
+    const history = Array.isArray(entity.mentionHistory)
+      ? entity.mentionHistory
+      : []
+    return [...history].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+  }, [entity.mentionHistory])
+
+  const mentionEntries = React.useMemo(() => {
+    return sortedMentionHistory.slice(0, 5).map((mention) => ({
+      mention,
+      entry: entries.find((entry) => entry.id === mention.entryId),
+    }))
+  }, [sortedMentionHistory, entries])
+
+  const handleMentionNavigate = (entryId: string) => {
+    if (onNavigateToEntry) {
+      onNavigateToEntry(entryId, entity.name)
+    }
+    onClose()
+  }
 
   const IconComponent = getEntityIcon(entity.type)
 
@@ -111,35 +134,12 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
     return date.toLocaleDateString()
   }
 
-  const renderHighlightedEntry = (entry: ChronicleEntry) => {
-    const pattern = new RegExp(`(@${escapeRegExp(entity.name)})`, 'gi')
-    let offset = 0
-
-    return entry.rawText.split(pattern).map((segment, segmentIndex) => {
-      const key = `${entry.id}-mention-${offset}`
-      offset += segment.length
-
-      if (segmentIndex % 2 === 1) {
-        return (
-          <mark
-            key={key}
-            className='bg-yellow-200 text-chart-4 px-1 rounded'
-          >
-            {segment}
-          </mark>
-        )
-      }
-
-      return <React.Fragment key={key}>{segment}</React.Fragment>
-    })
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className='fixed inset-0 z-50 flex items-center justify-center p-4'
+      className='fixed inset-0 z-[var(--layer-overlay-content)] flex items-center justify-center p-4'
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onClick={onClose}
     >
@@ -274,68 +274,92 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
                 </div>
               )}
 
-              {/* Recent Appearances */}
+              {/* Recent Mentions */}
               <div>
                 <h4 className='font-medium mb-3 flex items-center gap-2'>
                   <Clock size={16} />
-                  Recent Appearances
+                  Recent Mentions
                 </h4>
                 <div className='space-y-3'>
-                  {entityEntries.slice(0, 5).map((entry) => (
-                    <div
-                      key={entry.id}
-                      className='p-3 rounded-lg border'
-                      style={{
-                        backgroundColor: 'var(--card)',
-                        borderColor: 'var(--border)',
-                      }}
-                    >
-                      <div className='flex items-start justify-between gap-2 mb-2'>
-                        <div className='text-sm font-medium'>
-                          {formatTimestamp(entry.timestamp)}
-                        </div>
-                        <div className='flex items-center gap-1 text-xs text-muted-foreground'>
-                          <Eye size={12} />
-                          <ArrowRight size={12} />
-                        </div>
-                      </div>
+                  {mentionEntries.map(({ mention, entry }) => {
+                    const mentionDate = mention.createdAt
+                      ? new Date(mention.createdAt)
+                      : null
+                    const mentionDateLabel =
+                      mentionDate && !Number.isNaN(mentionDate.getTime())
+                        ? formatTimestamp(mentionDate)
+                        : mention.createdAt
+                    const mentionContext = buildMentionContext(
+                      mention,
+                      entry?.rawText ?? entity.description ?? '',
+                    )
 
-                      <div className='text-sm leading-relaxed'>
-                        {/* Highlight entity mentions in the text */}
-                        {renderHighlightedEntry(entry)}
-                      </div>
-
-                      {entry.tags.length > 0 && (
-                        <div className='flex flex-wrap gap-1 mt-2'>
-                          {entry.tags.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant='secondary'
-                              className='text-xs'
-                            >
-                              #{tag}
+                    return (
+                      <button
+                        type='button'
+                        key={`${mention.entryId}-${mention.createdAt}`}
+                        onClick={() => handleMentionNavigate(mention.entryId)}
+                        className='w-full rounded-md border border-border/40 bg-muted/10 px-3 py-2 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                      >
+                        <div className='flex items-start justify-between gap-2'>
+                          <div className='space-y-1'>
+                            <span className='text-sm font-semibold text-foreground'>
+                              Entry {mention.entryId}
+                            </span>
+                            {mentionDateLabel && (
+                              <span className='text-xs text-muted-foreground'>
+                                {mentionDateLabel}
+                              </span>
+                            )}
+                          </div>
+                          <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground'>
+                            <Badge variant='outline' className='text-[10px] uppercase tracking-wide'>
+                              {mention.entityType ?? entity.type}
                             </Badge>
-                          ))}
+                            {mention.source && (
+                              <Badge variant='outline' className='text-[10px] uppercase tracking-wide'>
+                                {mention.source}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
 
-                  {entityEntries.length > 5 && (
+                        <div className='mt-2 text-sm leading-relaxed text-muted-foreground'>
+                          {mentionContext}
+                        </div>
+
+                        {entry?.tags?.length ? (
+                          <div className='flex flex-wrap gap-1 mt-3'>
+                            {entry.tags.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant='secondary'
+                                className='text-xs'
+                              >
+                                #{tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : null}
+                      </button>
+                    )
+                  })}
+
+                  {sortedMentionHistory.length > 5 && (
                     <div className='text-center py-2 text-sm text-muted-foreground'>
-                      And {entityEntries.length - 5} more appearances...
+                      And {sortedMentionHistory.length - 5} more mentions...
                     </div>
                   )}
                 </div>
               </div>
 
-              {entityEntries.length === 0 && (
+              {sortedMentionHistory.length === 0 && (
                 <div className='text-center py-8'>
                   <div className='opacity-50 mb-2'>
                     <IconComponent size={48} />
                   </div>
                   <p className='text-muted-foreground'>
-                    No chronicle entries yet for this entity.
+                    No chronicle mentions logged yet for this entity.
                   </p>
                 </div>
               )}
@@ -350,6 +374,12 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
           entity={entity}
           wikiPage={getWikiPage(entity.id)}
           onClose={() => setShowWiki(false)}
+          onNavigateToEntry={(entryId) => {
+            if (onNavigateToEntry) {
+              onNavigateToEntry(entryId, entity.name)
+            }
+            onClose()
+          }}
         />
       )}
     </motion.div>

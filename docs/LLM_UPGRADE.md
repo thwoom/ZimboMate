@@ -439,9 +439,18 @@ Cost overruns -> model tokens budget, cap per session, template fallback.
 
 14. Rollout Plan
 
-Phase 0 (Dark): Route events through GPT‑5, surface read-only Automation Log with Dismiss only (no apply/undo), and validate delta payload quality.
+Phase 0 (Dark): Route events through GPT-5, surface read-only Automation Log with Dismiss only (no apply/undo), and validate delta payload quality.
 
-Phase 1 (Opt‑in): Enable apply with confirmation for GM accounts; Automation Log unlocks Undo + Dismiss and emits telemetry for rollback success/fail.
+Phase 0.1 (Matsu Folio): Ship the sheet-first Folio split view with inline counters wiring directly into the Chronicle delta executor.
+
+- Add shared layout primitives (`SplitPane`, `RightRail`, `Gutter`) so the Folio and Chronicle surfaces share a responsive two-pane shell.
+- Replace the legacy `CharacterSheet` with `Folio.tsx` pages (stats, gear, spells, bonds, notes) and widget library (inline counters, slot grid, quick note popover, move chips).
+- Ensure inline HP/XP/Ammo adjustments emit GPT-5 delta bundles (damage, heal, mark_xp, spend_ammo) with undo support; gear slot changes emit equip/unequip bundles.
+- Virtualize long gear/spell/hold lists with `@tanstack/react-virtual`; memoize Folio selectors and Chronicle provider values to stay under the 100 ms interaction target.
+- Chronicle composer highlights the matching Folio tab (stats/gear/spells/notes) when entity mentions or keyword cues appear; PlayTab flashes transient highlights on successful note/equipment actions.
+- Update Playwright snapshots and widget unit tests (InlineCounters, SlotGrid, QuickNotePopover) to cover the Folio interactions.
+
+Phase 1 (Opt-in): Enable apply with confirmation for GM accounts; Automation Log unlocks Undo + Dismiss and emits telemetry for rollback success/fail.
 
 Phase 2 (Default): Auto‑apply “safe” ops (XP on miss, inventory adds, ammo/hold) while keeping Automation Log + Undo for every bundle.
 
@@ -556,15 +565,25 @@ One tool schema registry for DeltaOps; unit tests validate strict JSON Schema.
 
 Phase 1 - Chronicle Surface Polish (PRD Sec 11.2–11.5)
 
-- Finish composer checklist UI, reuse in audit drawers.
-- Resolve Chronicle overlay warnings, add DW move citations.
-- Validate story entry -> apply -> undo in PlayTab and overlay.
+**2025-10-05 update:**
+\n**2025-10-06 update:** Overlay + automation log layout adjustments ensure footer-safe scrolling; ChronicleProvider now guards Tauri listeners so web shell stays error-free; automation cards respect viewport height.
+ Phase 1 UI polish is landed. Composer checklist now mirrors the audit drawers, overlay prompts surface Dungeon World move citations alongside proposed deltas, and the automation log exposes the promised "Clear Automation Log" action. PlayTab + overlay undo flows were exercised against the richer delta descriptions to confirm entry → apply → undo parity.
+
+Remaining verification before sign-off:
+- Regenerate Playwright visual baselines for the refreshed checklist + automation log styles.
+- Add an integration spec covering the new composer checklist narrative + undo assertions (planned in Phase 5).
 
 Phase 2 - Delta Pipeline Extensions (PRD Sec 8, TODOs #5–6, Sec 17.2)
 
 - Implement entity linking + mention updates.
 - Complete equip/unequip, XP/bond/hold undo logging.
 - Harden idempotency checks for bundles.
+**2025-10-05 design snapshot:** Entity mentions now capture context and inferred type metadata, resource ledgers track HP and coin alongside XP/Bonds/Hold, and bundle idempotency falls back to the entry id when the LLM omits an explicit key. Chronicle store exposes retrieval helpers for the new ledgers so overlay + audit drawers can surface the data in Phase 2 UI work.
+
+
+**2025-10-07 update:** Chronicle store now tracks pending delta bundles and an audit log; apply/undo flows log entries with actors, and HP/Coin ledgers participate in undo cleanup.
+
+**2025-10-07 late update:** Chronicle panel/entity drawers now consume the shared highlight utilities (actor badges, mention chips) and wiki timeline surfaces actor labels + mention context. Delta executor regression suite covers XP/Bond/Hold logging, hold bundles, equip undo, and idempotent bundle replay.
 
 Phase 3 - Store Hardening & Settings (PRD Sec 6, Sec 12)
 
@@ -582,6 +601,7 @@ Phase 5 - Test & Visual Pass (PRD Sec 15)
 
 - Add executor/tool-schema unit specs and PlayTab integration tests.
 - Refresh Playwright snapshots after UI work.
+- Maintain zero ESLint warning baseline (verified 2025-10-05); rerun npm run lint on each pass.
 - Re-run npm run test, npm run screenshot:analyze, npm run lint:fix.
 
 Phase 6 - Release Packaging (PRD Sec 20, Appendices)
@@ -592,9 +612,10 @@ Phase 6 - Release Packaging (PRD Sec 20, Appendices)
 
 Status Snapshot
 
-- Phase 1: UI checklist and audit polish still pending.
-- Phase 2: Entity linking + advanced equip behavior not started.
-- Phases 3–6: Planned; begin once Phase 2 lands.
+- Phase 0.1: Complete (Matsu Folio split pane, inline counters, virtualized gear/spell lists live as of 2025-10-05).
+- Phase 1: Complete (composer checklist + overlay citations landed 2025-10-05; Playwright baseline + integration spec follow-ups tracked in Phase 5).
+- Phase 2: Entity linking + advanced equip behavior queued next.
+- Phases 3-6: Planned; begin once Phase 2 lands.
 
 Appendix A — Minimal Tool Schema Set (starter)
 
@@ -619,3 +640,4 @@ add_item({ characterId:'Thorne', item:{ name:'Fallen’s Blade' } })
 add_item_tag({ itemId:'<ref: Fallen’s Blade>', tag:'close' })
 
 add_item_tag({ itemId:'<ref: Fallen’s Blade>', tag:'messy' })
+

@@ -5,6 +5,7 @@
 import type { Entity, EntityType, WikiPage } from '../../../types/chronicle'
 import { motion } from 'framer-motion'
 import {
+  AtSign,
   Bookmark,
   BookmarkCheck,
   BookOpen,
@@ -24,7 +25,7 @@ import {
   Users,
 } from 'lucide-react'
 import React from 'react'
-import { logger } from '@/utils/logger'
+import { buildMentionContext, formatActorLabel } from '@/components/chronicle/highlightUtils'
 import { useChronicleStore } from '../../../stores'
 import {
   Badge,
@@ -39,6 +40,7 @@ interface WikiViewProps {
   entity: Entity
   wikiPage?: WikiPage
   onClose: () => void
+  onNavigateToEntry?: (entryId: string, entityName?: string) => void
 }
 
 // Icon mapping for entity types
@@ -97,12 +99,15 @@ export const WikiView: React.FC<WikiViewProps> = ({
   entity,
   wikiPage,
   onClose,
+  onNavigateToEntry,
 }) => {
   const {
     generateWikiPage,
     getWikiPage,
     incrementWikiView,
     updateWikiPage,
+    getEntry,
+    getDeltaLog,
   } = useChronicleStore()
 
   // Get or generate wiki page
@@ -118,6 +123,11 @@ export const WikiView: React.FC<WikiViewProps> = ({
 
   // Get fresh wiki page after generation
   const displayWikiPage = currentWikiPage || getWikiPage(entity.id)
+
+  const mentionHistory = React.useMemo(
+    () => (Array.isArray(entity.mentionHistory) ? entity.mentionHistory : []),
+    [entity.mentionHistory],
+  )
 
   const mysteriesWithIds = React.useMemo(() => {
     if (!displayWikiPage) {
@@ -170,7 +180,7 @@ export const WikiView: React.FC<WikiViewProps> = ({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className='fixed inset-0 z-50 flex items-center justify-center p-4'
+        className='fixed inset-0 z-[var(--layer-overlay-content)] flex items-center justify-center p-4'
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         onClick={onClose}
       >
@@ -197,7 +207,7 @@ export const WikiView: React.FC<WikiViewProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className='fixed inset-0 z-50 flex items-center justify-center p-4'
+      className='fixed inset-0 z-[var(--layer-overlay-content)] flex items-center justify-center p-4'
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
       onClick={onClose}
     >
@@ -328,8 +338,10 @@ export const WikiView: React.FC<WikiViewProps> = ({
                             variant='ghost'
                             size='sm'
                             onClick={() => {
-                              // Navigate to source entry (placeholder)
-                              logger.info('Navigate to entry', fact.sourceEntryId)
+                              if (onNavigateToEntry) {
+                                onNavigateToEntry(fact.chronicleEntryId, entity.name)
+                              }
+                              onClose()
                             }}
                           >
                             <ExternalLink size={12} />
@@ -350,62 +362,108 @@ export const WikiView: React.FC<WikiViewProps> = ({
                   Timeline
                 </h3>
                 <div className='space-y-3'>
-                  {displayWikiPage.timeline.map((timelineEntry, index) => (
-                    <motion.div
-                      key={timelineEntry.entryId}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className='flex gap-4'
-                    >
-                      {/* Timeline connector */}
-                      <div className='flex flex-col items-center'>
-                        <div
-                          className='w-3 h-3 rounded-full border-2'
-                          style={{
-                            backgroundColor:
-                              timelineEntry.importance === 'high'
-                                ? 'var(--primary)'
-                                : 'var(--card)',
-                            borderColor: 'var(--primary)',
-                          }}
-                        />
-                        {index < displayWikiPage.timeline.length - 1 && (
-                          <div className='w-0.5 h-8 mt-2 bg-[color:var(--border)]' />
-                        )}
-                      </div>
+                  {displayWikiPage.timeline.map((timelineEntry, index) => {
+                    const entry = getEntry(timelineEntry.entryId)
+                    const mentionRecord = mentionHistory.find(
+                      (record) => record.entryId === timelineEntry.entryId,
+                    )
+                    const mentionContext = mentionRecord
+                      ? buildMentionContext(
+                          mentionRecord,
+                          entry?.rawText ?? timelineEntry.context ?? '',
+                        )
+                      : null
+                    const deltaLog = getDeltaLog(timelineEntry.entryId)
+                    const actorLabel = deltaLog?.actor
+                      ? formatActorLabel(deltaLog.actor)
+                      : null
 
-                      {/* Timeline content */}
-                      <div className='flex-1 pb-4'>
-                        <div className='flex items-start justify-between gap-2 mb-2'>
-                          <div className='text-sm font-medium'>
-                            {formatTimestamp(timelineEntry.timestamp)}
-                          </div>
-                          <div className='flex items-center gap-1'>
-                            <Badge
-                              variant='secondary'
-                              className={`text-xs ${getTimelineImportanceColor(timelineEntry.importance)}`}
-                            >
-                              {timelineEntry.importance}
-                            </Badge>
-                            {timelineEntry.emotionalTone && (
-                              <Badge variant='outline' className='text-xs'>
-                                {timelineEntry.emotionalTone}
+                    return (
+                      <motion.div
+                        key={timelineEntry.entryId}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className='flex gap-4'
+                      >
+                        {/* Timeline connector */}
+                        <div className='flex flex-col items-center'>
+                          <div
+                            className='w-3 h-3 rounded-full border-2'
+                            style={{
+                              backgroundColor:
+                                timelineEntry.importance === 'high'
+                                  ? 'var(--primary)'
+                                  : 'var(--card)',
+                              borderColor: 'var(--primary)',
+                            }}
+                          />
+                          {index < displayWikiPage.timeline.length - 1 && (
+                            <div className='w-0.5 h-8 mt-2 bg-[color:var(--border)]' />
+                          )}
+                        </div>
+
+                        {/* Timeline content */}
+                        <div className='flex-1 pb-4'>
+                          <div className='flex items-start justify-between gap-2 mb-2'>
+                            <div className='text-sm font-medium'>
+                              {formatTimestamp(timelineEntry.timestamp)}
+                            </div>
+                            <div className='flex items-center gap-1'>
+                              <Badge
+                                variant='secondary'
+                                className={`text-xs ${getTimelineImportanceColor(timelineEntry.importance)}`}
+                              >
+                                {timelineEntry.importance}
                               </Badge>
-                            )}
+                              {actorLabel && (
+                                <Badge variant='outline' className='text-[10px] uppercase tracking-wide'>
+                                  {actorLabel}
+                                </Badge>
+                              )}
+                              {timelineEntry.emotionalTone && (
+                                <Badge variant='outline' className='text-xs'>
+                                  {timelineEntry.emotionalTone}
+                                </Badge>
+                              )}
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                className='h-7 w-7 p-0 text-muted-foreground hover:text-foreground'
+                                onClick={() => {
+                                  if (onNavigateToEntry) {
+                                    onNavigateToEntry(timelineEntry.entryId, entity.name)
+                                  }
+                                  onClose()
+                                }}
+                              >
+                                <ExternalLink size={12} />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
 
-                        <p className='text-sm leading-relaxed mb-2'>
-                          {timelineEntry.event}
-                        </p>
+                          <p className='text-sm leading-relaxed mb-2'>
+                            {timelineEntry.event}
+                          </p>
 
-                        <div className='text-xs text-muted-foreground'>
-                          Context: {timelineEntry.context}
+                          {mentionContext ? (
+                            <div className='mt-2 space-y-1 rounded-md border border-border/40 bg-muted/10 px-3 py-2'>
+                              <div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                                <AtSign size={12} /> Mention context
+                              </div>
+                              <div className='text-sm leading-snug text-muted-foreground'>
+                                {mentionContext}
+                              </div>
+                            </div>
+                          ) : timelineEntry.context ? (
+                            <div className='text-xs text-muted-foreground'>
+                              Context: {timelineEntry.context}
+                            </div>
+                          ) : null}
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    )
+                  })}
                 </div>
               </div>
             )}
