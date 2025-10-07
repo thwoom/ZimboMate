@@ -127,8 +127,19 @@ describe('folio highlight behaviour', () => {
 
   it('invokes onNoteCreated callback when FolioNotesPage requests save', () => {
     const onNoteCreated = vi.fn()
-    renderWithCallbacks({ onNoteCreated })
-    fireEvent.click(screen.getByText('save-note'))
+    render(
+      <Folio
+        defaultPage='notes'
+        highlight={null}
+        onNoteCreated={onNoteCreated}
+        onEquipmentChange={vi.fn()}
+      />,
+    )
+    const notesCall = mocks.notes.mock.calls.at(-1)?.[0] as {
+      onNoteCreated?: (title?: string) => void
+    }
+    expect(notesCall?.onNoteCreated).toBeDefined()
+    notesCall?.onNoteCreated?.('Journal Entry')
     expect(onNoteCreated).toHaveBeenCalledWith('Journal Entry')
   })
 

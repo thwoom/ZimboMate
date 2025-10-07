@@ -1,10 +1,34 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import React from 'react'
+import { vi } from 'vitest'
 import { ChronicleProvider, useChronicleLLM } from '../ChronicleProvider'
+import { useChronicleStore } from '@/stores/chronicleStore'
 
 const getMockControls = () => (globalThis as any).__LLM_MOCK__
 
 describe('chronicle provider GPT-5 integration', () => {
+  let originalTauri: unknown
+
+  beforeEach(() => {
+    originalTauri = (globalThis as any).__TAURI__
+    ;(globalThis as any).__TAURI__ = { invoke: vi.fn() }
+    ;(globalThis as any).__TAURI_IPC__ = {}
+    useChronicleStore.setState({
+      auditLog: [],
+      deltaHistory: [],
+      pendingDeltaBundle: null,
+    })
+  })
+
+  afterEach(() => {
+    if (originalTauri === undefined) {
+      delete (globalThis as any).__TAURI__
+    } else {
+      ;(globalThis as any).__TAURI__ = originalTauri
+    }
+    delete (globalThis as any).__TAURI_IPC__
+  })
+
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <ChronicleProvider>{children}</ChronicleProvider>
   )
@@ -78,3 +102,5 @@ describe('chronicle provider GPT-5 integration', () => {
     expect(result.current.lastTelemetryEvent?.usage?.totalTokens).toBe(15)
   })
 })
+
+

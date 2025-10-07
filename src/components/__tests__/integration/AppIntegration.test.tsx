@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App.Complete'
+import { useChronicleStore } from '@/stores/chronicleStore'
 import {
   renderWithProviders,
   setupTestEnvironment,
@@ -45,6 +46,11 @@ describe('app Integration Tests', () => {
 
   beforeEach(() => {
     testEnv = setupTestEnvironment()
+    useChronicleStore.setState({
+      auditLog: [],
+      deltaHistory: [],
+      pendingDeltaBundle: null,
+    })
   })
 
   afterEach(() => {
@@ -70,7 +76,7 @@ describe('app Integration Tests', () => {
     await screen.findByRole('button', { name: /character/i })
 
     await user.click(screen.getByRole('button', { name: /character/i }))
-    await screen.findByText(/ability scores/i)
+    await screen.findByText(/attributes/i)
 
     await user.click(screen.getByRole('button', { name: /dice/i }))
     await screen.findByText(/unified dice roller/i)
@@ -89,3 +95,5 @@ describe('app Integration Tests', () => {
     await screen.findByPlaceholderText(/search commands/i)
   })
 })
+
+
