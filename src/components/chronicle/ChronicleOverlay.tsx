@@ -20,6 +20,7 @@ import {
   Feather,
   Loader2,
   RefreshCcw,
+  ShieldAlert,
   Target,
   X,
   Zap,
@@ -51,6 +52,7 @@ import {
   describeResourceChange,
   EMPTY_RESOURCE_HISTORY,
   formatActorLabel,
+  formatRelativeTimeFromNow,
 } from './highlightUtils'
 interface ChronicleOverlayProps {
   isEnabled?: boolean
@@ -79,6 +81,8 @@ const arePromptsEqual = (
 
   return current.every((prompt, index) => prompt.id === next[index]?.id)
 }
+
+
 
 const promptOverlayReducer = (
   state: PromptOverlayState,
@@ -454,11 +458,44 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   const incrementWikiView = useChronicleStore((state) => state.incrementWikiView)
   const getCharacter = useCharacterStore((state) => state.getCharacter)
   const [undoingBundleId, setUndoingBundleId] = useState<string | null>(null)
+  const [tauriGuardDismissed, setTauriGuardDismissed] = useState(false)
+  const [isAuditExpanded, setIsAuditExpanded] = useState(false)
   const [promptState, dispatchPromptState] = useReducer(promptOverlayReducer, {
     prompts: [],
     isVisible: false,
   })
   const { prompts: activePrompts, isVisible } = promptState
+
+  const tauriBridge = (
+    typeof window !== 'undefined'
+      ? (window as typeof window & { __TAURI__?: unknown })
+      : undefined
+  )
+
+  const isTauriRuntime = Boolean(tauriBridge?.__TAURI__)
+
+  const showTauriGuard = !isTauriRuntime && !tauriGuardDismissed
+
+  const visibleAuditEntries = useMemo(() => {
+    const limit = isAuditExpanded ? Math.min(12, auditLog.length) : Math.min(5, auditLog.length)
+    return auditLog.slice(0, limit)
+  }, [auditLog, isAuditExpanded])
+
+  const hasMoreAuditEntries = auditLog.length > visibleAuditEntries.length
+  const canToggleAuditEntries = auditLog.length > 5 || isAuditExpanded
+
+  const pendingRequestedAt = useMemo(() => {
+    if (!pendingBundle?.requestedAt) {
+      return undefined
+    }
+    const date = new Date(pendingBundle.requestedAt)
+    return Number.isNaN(date.getTime()) ? undefined : date
+  }, [pendingBundle?.requestedAt])
+
+  const pendingRelative = useMemo(
+    () => (pendingRequestedAt ? formatRelativeTimeFromNow(pendingRequestedAt) : undefined),
+    [pendingRequestedAt],
+  )
 
   const latestAutomation = deltaHistory.length > 0 ? deltaHistory[0] : null
   const latestEntry = useMemo(
@@ -520,9 +557,6 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
 
     [latestEntry],
   )
-
-  const auditPreview = useMemo(() => auditLog.slice(0, 5), [auditLog])
-
   const automationStatus = useMemo(() => {
     if (isApplyingBundle) {
       return {
@@ -693,15 +727,78 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
       className={`fixed ${getPositionClasses()} z-[var(--layer-popover)] pointer-events-none ${className}`}
     >
       <div className='flex flex-col gap-3 pointer-events-auto'>
-        {pendingBundle && (
-          <Alert variant='outline' className='border-primary/40 bg-primary/5'>
-            <AlertTitle className='text-sm font-semibold text-primary'>
-              Pending bundle
+        {showTauriGuard && (
+          <Alert variant='destructive' className='border-destructive/40 bg-destructive/10'>
+            <ShieldAlert className='h-4 w-4 text-destructive' />
+            <AlertTitle className='text-sm font-semibold text-destructive'>
+              Desktop bridge unavailable
             </AlertTitle>
-            <AlertDescription className='text-xs text-muted-foreground'>
-              Entry {pendingBundle.entryId} -{' '}
-              {pendingBundle.autoApply ? 'Auto-applies when ready' : 'Awaiting confirmation'} at{' '}
-              {new Date(pendingBundle.requestedAt ?? new Date().toISOString()).toLocaleTimeString()}
+            <AlertDescription className='space-y-2 text-xs text-destructive/90'>
+              <p>
+                Chronicle automations need the Tauri desktop bridge. Launch the desktop shell to enable live Chronicle updates.
+              </p>
+              <div className='flex flex-wrap items-center gap-2 text-[11px] text-destructive'>
+                <span className='rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide'>
+                  npm run dev:tauri
+                </span>
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  className='h-7 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10'
+                  onClick={() => setTauriGuardDismissed(true)}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        {pendingBundle && (
+          <Alert className='border-primary/50 bg-primary/5 shadow-sm'>
+            <Loader2 className='h-4 w-4 animate-spin text-primary' />
+            <AlertTitle className='flex items-center gap-2 text-sm font-semibold text-primary'>
+              Chronicle bundle pending
+              {isApplyingBundle && (
+                <Badge variant='outline' className='text-[9px] uppercase tracking-wide text-primary'>
+                  applying
+                </Badge>
+              )}
+            </AlertTitle>
+            <AlertDescription className='space-y-2 text-xs text-muted-foreground'>
+              <div className='flex flex-wrap items-center gap-2 text-[11px] font-medium text-foreground'>
+                <span>Entry {pendingBundle.entryId ?? '\u2014'}</span>
+                {pendingBundle.bundleId && (
+                  <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                    #{pendingBundle.bundleId.slice(-6)}
+                  </Badge>
+                )}
+              </div>
+              <p>
+                {pendingBundle.autoApply
+                  ? 'Auto-apply is enabled. The bundle will commit as soon as GPT-5 finishes.'
+                  : 'Review the proposed changes in Chronicle to continue.'}
+              </p>
+              <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground'>
+                <Clock size={11} />
+                <span>{pendingRequestedAt ? pendingRequestedAt.toLocaleTimeString() : 'Awaiting timestamp'}</span>
+                {pendingRelative && (
+                  <>
+                    <span aria-hidden='true'>&bull;</span>
+                    <span>{pendingRelative}</span>
+                  </>
+                )}
+              </div>
+              {isApplyingBundle && (
+                <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                  <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />
+                  <span>
+                    {lastProgressEvent?.message ??
+                      (typeof lastProgressEvent?.progress === 'number'
+                        ? `Applying bundle (${Math.round(lastProgressEvent.progress)}%)`
+                        : 'Applying bundle...')}
+                  </span>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -812,7 +909,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                 )}
               </div>
               {latestAutomation.skippedOps.length > 0 && (
-                <Alert variant='outline'>
+                <Alert className='border-border/50 bg-muted/20'>
                   <AlertTitle className='text-xs font-semibold'>
                     Skipped
                   </AlertTitle>
@@ -865,16 +962,29 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
             </div>
           </motion.div>
         )}
-        {auditPreview.length > 0 && (
+        {visibleAuditEntries.length > 0 && (
           <div className='rounded-lg border border-border/60 bg-muted/20 p-3 space-y-3'>
-            <div className='flex items-center justify-between gap-2'>
-              <div className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+            <div className='flex flex-wrap items-center justify-between gap-2'>
+              <div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                <BookOpen size={12} />
                 Audit history
               </div>
-              <div className='flex items-center gap-2'>
+              <div className='flex flex-wrap items-center gap-2'>
                 <span className='text-[10px] uppercase tracking-wide text-muted-foreground'>
-                  Showing {auditPreview.length} of {auditLog.length}
+                  Showing {visibleAuditEntries.length} of {auditLog.length}
                 </span>
+                {(canToggleAuditEntries || hasMoreAuditEntries) && (
+                  <Button
+                    size='sm'
+                    variant='ghost'
+                    onClick={() => setIsAuditExpanded((prev) => !prev)}
+                    className='h-7 px-2 text-xs text-muted-foreground hover:text-foreground transition-colors'
+                  >
+                    {isAuditExpanded
+                      ? 'Show less'
+                      : `Show more (+${Math.max(auditLog.length - visibleAuditEntries.length, 0)})`}
+                  </Button>
+                )}
                 <Button
                   size='sm'
                   variant='ghost'
@@ -887,20 +997,35 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
               </div>
             </div>
             <div className='space-y-2 max-h-[40vh] overflow-y-auto pr-1'>
-              {auditPreview.map((entry) => {
+              {visibleAuditEntries.map((entry) => {
                 const timestamp = new Date(entry.timestamp)
+                const relativeLabel = formatRelativeTimeFromNow(timestamp)
+                const bundleLabel = entry.bundleId
+                  ? `#${entry.bundleId.slice(-6)}`
+                  : undefined
                 return (
                   <div
                     key={entry.id}
                     className='flex items-start justify-between gap-3 rounded-md border border-border/40 bg-card/70 px-2.5 py-2 text-xs'
                   >
                     <div className='space-y-1'>
-                      <div className='font-semibold text-foreground'>
-                        {entry.action === 'applied' ? 'Applied' : 'Undone'} bundle
+                      <div className='flex flex-wrap items-center gap-2 font-semibold text-foreground'>
+                        <span>{entry.action === 'applied' ? 'Bundle applied' : 'Bundle undone'}</span>
+                        {bundleLabel && (
+                          <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                            {bundleLabel}
+                          </Badge>
+                        )}
                       </div>
-                      <div className='text-muted-foreground'>
-                        Entry {entry.entryId} - {timestamp.toLocaleTimeString()}
+                      <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground'>
+                        <Clock size={11} />
+                        <span>{timestamp.toLocaleTimeString()}</span>
+                        <span aria-hidden='true'>&bull;</span>
+                        <span>{relativeLabel}</span>
                       </div>
+                      {entry.reason && (
+                        <p className='text-[11px] text-muted-foreground/90'>{entry.reason}</p>
+                      )}
                     </div>
                     <div className='flex flex-col items-end gap-1'>
                       <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>

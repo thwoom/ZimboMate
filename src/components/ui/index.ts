@@ -1,6 +1,12 @@
-export { Badge, type BadgeProps, badgeVariants } from './Badge'
+export { useAuth } from './AuthContext'
+export type { AuthContextValue, User } from './AuthContext'
+// Auth Components
+export { AuthProvider } from './AuthProvider'
+export { Badge, type BadgeProps } from './Badge'
+export { badgeVariants } from './badge-variants'
 // shadcn/ui Base Components (aligned with actual filenames)
-export { Button, type ButtonProps, buttonVariants } from './Button'
+export { Button, type ButtonProps } from './Button'
+export { buttonVariants } from './button-variants'
 // Layout Components
 export {
   Card,
@@ -10,21 +16,22 @@ export {
   CardHeader,
   type CardProps,
   CardTitle,
-  cardVariants,
 } from './Card'
+
+export { cardVariants } from './card-variants'
+
 export { ColorPalette } from './ColorSwatch'
+
 export { HelpSystem } from './HelpSystem'
-
 export { Input, type InputProps } from './Input'
-
 export { Label } from './label'
-
 export {
   Progress,
   progressFillVariants,
   type ProgressProps,
   progressVariants,
 } from './Progress'
+
 // Form Components
 export {
   Select,
@@ -39,9 +46,12 @@ export {
   SelectValue,
 } from './select'
 // Text inputs
-export { Textarea, type TextareaProps, textareaVariants } from './Textarea'
-
+export { Textarea, type TextareaProps } from './Textarea'
+export { textareaVariants } from './textarea-variants'
 export { ThemeComponentShowcase } from './ThemeComponentShowcase'
+export { ThemeContext, useTheme } from './ThemeContext'
+
+export type { ThemeContextValue } from './ThemeContext'
 // Theme Components
 export { ThemeProvider } from './ThemeProvider'
 export { ThemeStatusBadge } from './ThemeStatusBadge'

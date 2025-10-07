@@ -1,33 +1,16 @@
 import type { VariantProps } from 'class-variance-authority'
-import { cva } from 'class-variance-authority'
 import * as React from 'react'
+
 import { cn } from '@/lib/utils'
 
-const cardVariants = cva(
-  'rounded-xl border bg-card text-card-foreground shadow-sm transition-shadow',
-  {
-    variants: {
-      variant: {
-        default: 'border-border bg-card',
-        surface: 'border-border bg-popover',
-        elevated: 'border-transparent bg-popover shadow-lg shadow-primary/10',
-        muted: 'border-border bg-muted text-muted-foreground',
-        magical: 'card-magical',
-        parchment: 'card-parchment',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-    },
-  },
-)
+import { cardVariants } from './card-variants'
 
 /**
  * Props for the Matsu-themed Card component.
  *
  * @remarks
  * Supported variants: `default`, `surface`, `elevated`, `muted`, `magical`, and `parchment`.
- * The component does not expose a `padding` prop—apply spacing with `<CardHeader>`,
+ * The component does not expose a `padding` prop-apply spacing with `<CardHeader>`,
  * `<CardContent>`, `<CardFooter>`, or Tailwind utility classes on child elements instead.
  */
 export interface CardProps
@@ -139,5 +122,4 @@ export {
   CardFooter,
   CardHeader,
   CardTitle,
-  cardVariants,
 }

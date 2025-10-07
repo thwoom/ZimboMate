@@ -1,8 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import React from 'react'
 import { vi } from 'vitest'
-import { ChronicleProvider, useChronicleLLM } from '../ChronicleProvider'
 import { useChronicleStore } from '@/stores/chronicleStore'
+import { ChronicleProvider, useChronicleLLM } from '../ChronicleProvider'
 
 const getMockControls = () => (globalThis as any).__LLM_MOCK__
 
@@ -101,6 +101,70 @@ describe('chronicle provider GPT-5 integration', () => {
     expect(result.current.lastTelemetryEvent?.latencyMs).toBe(123)
     expect(result.current.lastTelemetryEvent?.usage?.totalTokens).toBe(15)
   })
+
+  it('tracks pending bundle lifecycle and audit log when applying', async () => {
+    const controls = getMockControls()
+    const { result } = renderHook(() => useChronicleLLM(), { wrapper })
+
+    const payload = {
+      bundle: {
+        entryId: 'entry-apply',
+        narrative: 'Narrative',
+        ops: [{ type: 'mark_xp', characterId: 'hero', amount: 1 }],
+        usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+        reasoning: 'Test',
+        idempotencyKey: 'idempotency-1',
+        model: 'gpt-5-test',
+        createdAt: '2025-10-07T12:00:00.000Z',
+      },
+      autoApply: false,
+    }
+
+    let resolveApply: ((value: any) => void) | undefined
+    const deferredApply = new Promise((resolve) => {
+      resolveApply = resolve
+    })
+
+    controls.setNextApplyResult(() => deferredApply)
+
+    let applyResultPromise: Promise<unknown> | undefined
+    act(() => {
+      applyResultPromise = result.current.applyDeltaBundle(payload as any)
+    })
+
+    expect(useChronicleStore.getState().pendingDeltaBundle).toMatchObject({
+      entryId: 'entry-apply',
+      autoApply: false,
+    })
+
+    resolveApply?.({
+      bundleId: 'bundle-applied',
+      appliedOps: payload.bundle.ops,
+      skippedOps: [],
+      undoHandle: { bundleId: 'bundle-applied', issuedAt: '2025-10-07T12:00:01.000Z' },
+    })
+
+    expect(applyResultPromise).toBeDefined()
+
+    await act(async () => {
+      await applyResultPromise!
+    })
+
+    const store = useChronicleStore.getState()
+    const expectedBundleId = payload.bundle.idempotencyKey
+
+    expect(store.pendingDeltaBundle).toBeNull()
+    expect(store.deltaHistory[0]).toMatchObject({
+      bundleId: expectedBundleId,
+      entryId: 'entry-apply',
+      actor: 'manual',
+    })
+
+    expect(store.auditLog[0]).toMatchObject({
+      bundleId: expectedBundleId,
+      entryId: 'entry-apply',
+      action: 'applied',
+      actor: 'manual',
+    })
+  })
 })
-
-

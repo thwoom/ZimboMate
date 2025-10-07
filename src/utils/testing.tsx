@@ -4,6 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
 import { vi } from 'vitest'
+import { AuthProvider } from '../components/ui/AuthProvider'
 import { ErrorBoundary } from '../components/ui/ErrorBoundary'
 import { ThemeProvider } from '../components/ui/ThemeProvider'
 import { TooltipProvider } from '../components/ui/tooltip'
@@ -12,6 +13,7 @@ import { TooltipProvider } from '../components/ui/tooltip'
 // Enhanced render function with custom wrapper
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   theme?: 'matsu'
+  withAuth?: boolean
   withErrorBoundary?: boolean
   withQueryClient?: boolean
   withTooltips?: boolean
@@ -23,6 +25,7 @@ export function renderWithProviders(
 ) {
   const {
     theme = 'matsu',
+    withAuth = true,
     withErrorBoundary = true,
     withQueryClient = true,
     withTooltips = true,
@@ -56,6 +59,10 @@ export function renderWithProviders(
     }
 
     content = <ThemeProvider defaultTheme={theme}>{content}</ThemeProvider>
+
+    if (withAuth) {
+      content = <AuthProvider>{content}</AuthProvider>
+    }
 
     if (withErrorBoundary) {
       content = <ErrorBoundary>{content}</ErrorBoundary>
@@ -406,3 +413,5 @@ export const testingUtils = {
   mockImplementations,
   setupTestEnvironment,
 }
+
+

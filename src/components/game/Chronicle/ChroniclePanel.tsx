@@ -10,15 +10,20 @@ import {
   ArrowRight,
   AtSign,
   BookOpen,
+  Clock,
   Eye,
   Hash,
+  Loader2,
   Plus,
   Scroll,
+  ShieldAlert,
   Sparkles,
   Users,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { buildMentionContext } from '@/components/chronicle/highlightUtils'
+import { useChronicleLLM } from '@/components/chronicle/ChronicleProvider'
+import { buildMentionContext, formatActorLabel, formatRelativeTimeFromNow } from '@/components/chronicle/highlightUtils'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
 import { createChronicleParser } from '@/utils/chronicleParser'
@@ -44,6 +49,9 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
     resourceHistory,
     getEntry,
     getDeltaLog,
+    auditLog,
+    clearAuditLog,
+    pendingDeltaBundle,
   } = useChronicleStore()
 
   // Local state
@@ -83,6 +91,41 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
     'write' | 'timeline' | 'entities'
   >('write')
   const [searchQuery, setSearchQuery] = useState('')
+  const { isApplyingBundle, lastProgressEvent } = useChronicleLLM()
+  const [isTimelineAuditExpanded, setIsTimelineAuditExpanded] = useState(false)
+  const [isTimelineGuardDismissed, setIsTimelineGuardDismissed] = useState(false)
+
+  const tauriBridge = (
+    typeof window !== 'undefined'
+      ? (window as typeof window & { __TAURI__?: unknown })
+      : undefined
+  )
+  const isTauriRuntime = Boolean(tauriBridge?.__TAURI__)
+  const showTauriGuard = !isTauriRuntime && !isTimelineGuardDismissed
+
+  const pendingRequestedAt = useMemo(() => {
+    if (!pendingDeltaBundle?.requestedAt) {
+      return undefined
+    }
+
+    const date = new Date(pendingDeltaBundle.requestedAt)
+    return Number.isNaN(date.getTime()) ? undefined : date
+  }, [pendingDeltaBundle?.requestedAt])
+
+  const pendingRelative = useMemo(() => {
+    return pendingRequestedAt
+      ? formatRelativeTimeFromNow(pendingRequestedAt)
+      : undefined
+  }, [pendingRequestedAt])
+
+  const visibleAuditEntries = useMemo(() => {
+    const limit = isTimelineAuditExpanded
+      ? Math.min(12, auditLog.length)
+      : Math.min(4, auditLog.length)
+    return auditLog.slice(0, limit)
+  }, [auditLog, isTimelineAuditExpanded])
+
+  const hasMoreAuditEntries = auditLog.length > visibleAuditEntries.length
 
   const handleNavigateToEntry = useCallback(
     (entryId: string, entityName?: string) => {
@@ -559,15 +602,192 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <ChronicleTimeline
-              entries={entries}
-              entities={entities}
-              resourceHistory={resourceHistory}
-              getDeltaLog={getDeltaLog}
-              resolveCharacterName={resolveCharacterName}
-              searchQuery={searchQuery}
-              onEntitySelect={handleSelectEntity}
-            />
+            <div className='space-y-4'>
+              {showTauriGuard && (
+                <Alert variant='destructive' className='border-destructive/40 bg-destructive/10'>
+                  <ShieldAlert className='h-4 w-4 text-destructive' />
+                  <AlertTitle className='text-sm font-semibold text-destructive'>
+                    Desktop bridge unavailable
+                  </AlertTitle>
+                  <AlertDescription className='space-y-2 text-xs text-destructive/90'>
+                    <p>
+                      Chronicle automations need the Tauri desktop bridge. Launch the desktop shell to enable live Chronicle updates.
+                    </p>
+                    <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide'>
+                      <span className='rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] text-destructive'>
+                        npm run dev:tauri
+                      </span>
+                      <Button
+                        size='sm'
+                        variant='ghost'
+                        className='h-7 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10'
+                        onClick={() => setIsTimelineGuardDismissed(true)}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {pendingDeltaBundle && (
+                <Alert className='border-primary/40 bg-primary/5 shadow-sm'>
+                  <Loader2
+                    className={`h-4 w-4 text-primary ${isApplyingBundle ? 'animate-spin' : 'animate-pulse'}`}
+                  />
+                  <AlertTitle className='flex items-center gap-2 text-sm font-semibold text-primary'>
+                    Chronicle bundle pending
+                    {isApplyingBundle && (
+                      <Badge variant='outline' className='text-[9px] uppercase tracking-wide text-primary'>
+                        applying
+                      </Badge>
+                    )}
+                  </AlertTitle>
+                  <AlertDescription className='space-y-2 text-xs text-muted-foreground'>
+                    <div className='flex flex-wrap items-center gap-2 text-sm font-medium text-foreground'>
+                      <span>Entry {pendingDeltaBundle.entryId ?? '\u2014'}</span>
+                      {pendingDeltaBundle.bundleId && (
+                        <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                          #{pendingDeltaBundle.bundleId.slice(-6)}
+                        </Badge>
+                      )}
+                    </div>
+                    <p>
+                      {pendingDeltaBundle.autoApply
+                        ? 'Auto-apply is enabled. The bundle will commit as soon as GPT-5 finishes.'
+                        : 'Review the proposed changes in Chronicle to continue.'}
+                    </p>
+                    <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground'>
+                      <Clock size={11} />
+                      <span>
+                        {pendingRequestedAt
+                          ? pendingRequestedAt.toLocaleTimeString()
+                          : 'Awaiting timestamp'}
+                      </span>
+                      {pendingRelative && (
+                        <>
+                          <span aria-hidden='true'>&bull;</span>
+                          <span>{pendingRelative}</span>
+                        </>
+                      )}
+                    </div>
+                    {isApplyingBundle && (
+                      <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                        <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />
+                        <span>
+                          {lastProgressEvent?.message ??
+                            (typeof lastProgressEvent?.progress === 'number'
+                              ? `Applying bundle (${Math.round(lastProgressEvent.progress)}%)`
+                              : 'Applying bundle...')}
+                        </span>
+                      </div>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {visibleAuditEntries.length > 0 && (
+                <div className='rounded-lg border border-border bg-card/70 p-4 shadow-sm space-y-3'>
+                  <div className='flex flex-wrap items-center justify-between gap-2'>
+                    <div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                      <BookOpen size={12} />
+                      Audit history
+                    </div>
+                    <div className='flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground'>
+                      <span>
+                        Showing {visibleAuditEntries.length} of {auditLog.length}
+                      </span>
+                      {hasMoreAuditEntries && (
+                        <Button
+                          size='sm'
+                          variant='ghost'
+                          onClick={() => setIsTimelineAuditExpanded((prev) => !prev)}
+                          className='h-7 px-2 text-xs text-muted-foreground hover:text-foreground'
+                        >
+                          {isTimelineAuditExpanded
+                            ? 'Show less'
+                            : `Show more (+${Math.max(auditLog.length - visibleAuditEntries.length, 0)})`}
+                        </Button>
+                      )}
+                      <Button
+                        size='sm'
+                        variant='ghost'
+                        onClick={() => clearAuditLog()}
+                        className='h-7 px-2 text-xs text-muted-foreground hover:text-foreground'
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                  <div className='space-y-2'>
+                    {visibleAuditEntries.map((entry) => {
+                      const timestamp = new Date(entry.timestamp)
+                      const timestampLabel = Number.isNaN(timestamp.getTime())
+                        ? 'Unknown time'
+                        : timestamp.toLocaleTimeString()
+                      const relativeLabel = Number.isNaN(timestamp.getTime())
+                        ? undefined
+                        : formatRelativeTimeFromNow(timestamp)
+                      const bundleLabel = entry.bundleId
+                        ? `#${entry.bundleId.slice(-6)}`
+                        : undefined
+
+                      return (
+                        <div
+                          key={entry.id}
+                          className='flex items-start justify-between gap-3 rounded-md border border-border/40 bg-background/80 px-3 py-2 text-xs'
+                        >
+                          <div className='space-y-1'>
+                            <div className='flex flex-wrap items-center gap-2 font-semibold text-foreground'>
+                              <span>
+                                {entry.action === 'applied'
+                                  ? 'Bundle applied'
+                                  : 'Bundle undone'}
+                              </span>
+                              {bundleLabel && (
+                                <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                                  {bundleLabel}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground'>
+                              <Clock size={11} />
+                              <span>{timestampLabel}</span>
+                              {relativeLabel && (
+                                <>
+                                  <span aria-hidden='true'>&bull;</span>
+                                  <span>{relativeLabel}</span>
+                                </>
+                              )}
+                              <span aria-hidden='true'>&bull;</span>
+                              <span>Entry {entry.entryId}</span>
+                            </div>
+                            {entry.reason && (
+                              <p className='text-[11px] text-muted-foreground/90'>{entry.reason}</p>
+                            )}
+                          </div>
+                          <div className='flex flex-col items-end gap-1 text-[10px] uppercase tracking-wide text-muted-foreground'>
+                            <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                              {formatActorLabel(entry.actor)}
+                            </Badge>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <ChronicleTimeline
+                entries={entries}
+                entities={entities}
+                resourceHistory={resourceHistory}
+                getDeltaLog={getDeltaLog}
+                resolveCharacterName={resolveCharacterName}
+                searchQuery={searchQuery}
+                onEntitySelect={handleSelectEntity}
+              />
+            </div>
           </motion.div>
         )}
 
@@ -736,4 +956,19 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

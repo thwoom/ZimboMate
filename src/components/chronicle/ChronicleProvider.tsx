@@ -36,6 +36,19 @@ import { gpt5Client } from '../../services/llm'
 import { useChronicleStore } from '../../stores/chronicleStore'
 import { ChronicleOverlay } from './ChronicleOverlay'
 
+const createAuditEventId = () => {
+  const cryptoRef = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto
+  if (cryptoRef?.randomUUID) {
+    try {
+      return cryptoRef.randomUUID()
+    } catch {
+      // Fallback below
+    }
+  }
+
+  return `audit-${Math.random().toString(36).slice(2, 10)}`
+}
+
 interface ChronicleContextValue {
   emitAction: (context: ActionContext) => void
   isOverlayEnabled: boolean
@@ -273,6 +286,16 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
   const applyDeltaBundle = useCallback(
     async (payload: ApplyDeltaBundleRequest) => {
       setIsApplyingBundle(true)
+      const applyRequestedAt = new Date()
+
+      chronicleStore.setPendingDeltaBundle({
+        entryId: payload.bundle.entryId,
+        requestedAt: applyRequestedAt.toISOString(),
+        autoApply: Boolean(payload.autoApply),
+      })
+
+      const bundleActor: 'auto' | 'manual' | 'system' | 'user' =
+        payload.autoApply ? 'auto' : 'manual'
       const start =
         typeof performance !== 'undefined' &&
         typeof performance.now === 'function'
@@ -310,13 +333,35 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           },
         })
 
+        const resolvedBundleId =
+          result.bundleId ?? payload.bundle.idempotencyKey ?? payload.bundle.entryId
+
+        chronicleStore.setPendingDeltaBundle({
+          entryId: payload.bundle.entryId,
+          requestedAt: applyRequestedAt.toISOString(),
+          autoApply: Boolean(payload.autoApply),
+          bundleId: resolvedBundleId,
+        })
+
         chronicleStore.logDeltaResult({
-          bundleId: result.bundleId,
+          bundleId: resolvedBundleId,
           entryId: payload.bundle.entryId,
           appliedOps: result.appliedOps,
           skippedOps: result.skippedOps,
           createdAt: new Date().toISOString(),
           undoHandle: result.undoHandle,
+          actor: bundleActor,
+        })
+
+        chronicleStore.recordAuditEvent({
+          id: createAuditEventId(),
+          bundleId: resolvedBundleId,
+          entryId: payload.bundle.entryId,
+          action: 'applied',
+          actor: bundleActor,
+          timestamp: new Date().toISOString(),
+          appliedOps: result.appliedOps,
+          skippedOps: result.skippedOps,
         })
 
         return result
@@ -329,6 +374,7 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         })
         throw error
       } finally {
+        chronicleStore.setPendingDeltaBundle(null)
         setIsApplyingBundle(false)
       }
     },
@@ -472,3 +518,5 @@ export function useChroniclePrompt() {
 }
 
 /* eslint-enable react-refresh/only-export-components */
+
+

@@ -17,6 +17,33 @@ import {
 } from 'lucide-react'
 import React from 'react'
 
+const relativeTimeFormatter =
+  typeof Intl !== 'undefined' && 'RelativeTimeFormat' in Intl
+    ? new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' })
+    : null
+
+export function formatRelativeTimeFromNow(date: Date): string {
+  if (!relativeTimeFormatter) {
+    return date.toLocaleTimeString()
+  }
+
+  const diffMs = date.getTime() - Date.now()
+  const absMs = Math.abs(diffMs)
+
+  if (absMs < 60_000) {
+    return relativeTimeFormatter.format(Math.round(diffMs / 1_000), 'second')
+  }
+
+  if (absMs < 3_600_000) {
+    return relativeTimeFormatter.format(Math.round(diffMs / 60_000), 'minute')
+  }
+
+  if (absMs < 86_400_000) {
+    return relativeTimeFormatter.format(Math.round(diffMs / 3_600_000), 'hour')
+  }
+
+  return relativeTimeFormatter.format(Math.round(diffMs / 86_400_000), 'day')
+}
 export interface MentionHighlight {
   entityId: string
   entityName: string
@@ -250,3 +277,4 @@ export function buildMentionContext(
     return <React.Fragment key={key}>{segment}</React.Fragment>
   })
 }
+

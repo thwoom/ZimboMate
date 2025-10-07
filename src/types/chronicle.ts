@@ -205,6 +205,28 @@ export interface ChronicleDeltaLog {
   skippedOps: DeltaOperation[]
   createdAt: string
   undoHandle?: UndoHandle
+  actor?: 'auto' | 'manual' | 'system' | 'user'
+}
+
+export type ChronicleAuditAction = 'applied' | 'undone'
+
+export interface ChronicleAuditEntry {
+  id: string
+  bundleId?: string
+  entryId: string
+  action: ChronicleAuditAction
+  actor?: 'auto' | 'manual' | 'system' | 'user'
+  reason?: string
+  timestamp: string
+  appliedOps?: DeltaOperation[]
+  skippedOps?: DeltaOperation[]
+}
+
+export interface PendingChronicleBundle {
+  bundleId?: string
+  entryId?: string
+  requestedAt: string
+  autoApply: boolean
 }
 
 export type ResourceLogType = 'xp' | 'bond' | 'hold' | 'debility'
@@ -224,6 +246,21 @@ export interface XpLogEntry extends BaseResourceLogEntry {
   next: number
   reason?: string
   note?: string
+}
+
+export interface HpLogEntry extends BaseResourceLogEntry {
+  type: 'hp'
+  delta: number
+  previous: number
+  next: number
+  reason?: string
+}
+
+export interface CoinLogEntry extends BaseResourceLogEntry {
+  type: 'coin'
+  amount: number
+  previous: number
+  next: number
 }
 
 export interface BondLogEntry extends BaseResourceLogEntry {
@@ -252,6 +289,8 @@ export interface DebilityLogEntry extends BaseResourceLogEntry {
 
 export type ResourceLogEntry =
   | XpLogEntry
+  | HpLogEntry
+  | CoinLogEntry
   | BondLogEntry
   | HoldLogEntry
   | DebilityLogEntry
@@ -261,6 +300,8 @@ export interface ResourceHistoryState {
   bonds: Record<string, BondLogEntry[]>
   hold: Record<string, HoldLogEntry[]>
   debilities: Record<string, DebilityLogEntry[]>
+  hp: Record<string, HpLogEntry[]>
+  coin: Record<string, CoinLogEntry[]>
 }
 
 export interface ChronicleSettings {
@@ -277,3 +318,4 @@ export interface ChronicleSettings {
   costCapCents?: number
   autoEquipWeapons: boolean
 }
+

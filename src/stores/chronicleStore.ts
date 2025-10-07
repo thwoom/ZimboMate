@@ -5,6 +5,7 @@
 
 import type {
   BondLogEntry,
+  ChronicleAuditEntry,
   ChronicleDeltaLog,
   ChronicleEntry,
   ChronicleSearchResult,
@@ -14,6 +15,7 @@ import type {
   EntityType,
   HoldLogEntry,
   NarrativeThread,
+  PendingChronicleBundle,
   Relationship,
   ResourceHistoryState,
   ResourceLogEntry,
@@ -50,6 +52,11 @@ interface ChronicleState {
   logDeltaResult: (log: ChronicleDeltaLog) => void
   clearDeltaLog: (bundleId?: string) => void
   getDeltaLog: (bundleId: string) => ChronicleDeltaLog | undefined
+  pendingDeltaBundle: PendingChronicleBundle | null
+  setPendingDeltaBundle: (pending: PendingChronicleBundle | null) => void
+  auditLog: ChronicleAuditEntry[]
+  recordAuditEvent: (entry: ChronicleAuditEntry) => void
+  clearAuditLog: (bundleId?: string) => void
   resourceHistory: ResourceHistoryState
   logResourceChange: (entry: ResourceLogEntry) => void
   removeResourceHistoryForBundle: (bundleId: string) => void
@@ -110,6 +117,7 @@ interface ChronicleState {
 // Default settings
 export const MAX_DELTA_HISTORY = 50
 export const MAX_RESOURCE_HISTORY = 100
+export const MAX_AUDIT_LOG_ENTRIES = 40
 
 function createResourceHistory(): ResourceHistoryState {
   return {
@@ -117,6 +125,8 @@ function createResourceHistory(): ResourceHistoryState {
     bonds: {},
     hold: {},
     debilities: {},
+    hp: {},
+    coin: {},
   }
 }
 
@@ -343,6 +353,8 @@ export const useChronicleStore = create<ChronicleState>()(
       searchQuery: '',
       isWriting: false,
       deltaHistory: [],
+      pendingDeltaBundle: null,
+      auditLog: [],
       resourceHistory: createResourceHistory(),
 
       logDeltaResult: (log: ChronicleDeltaLog) => {
@@ -366,6 +378,28 @@ export const useChronicleStore = create<ChronicleState>()(
       getDeltaLog: (bundleId: string) =>
         get().deltaHistory.find((entry) => entry.bundleId === bundleId),
 
+      setPendingDeltaBundle: (pending) => {
+        set(() => ({ pendingDeltaBundle: pending }))
+      },
+
+      recordAuditEvent: (entry) => {
+        set((state) => {
+          const next = [
+            entry,
+            ...state.auditLog.filter((item) => item.id !== entry.id),
+          ]
+          return { auditLog: next.slice(0, MAX_AUDIT_LOG_ENTRIES) }
+        })
+      },
+
+      clearAuditLog: (bundleId) => {
+        set((state) => ({
+          auditLog: bundleId
+            ? state.auditLog.filter((entry) => entry.bundleId !== bundleId)
+            : [],
+        }))
+      },
+
       logResourceChange: (entry) => {
         set((state) => {
           const history = state.resourceHistory
@@ -378,6 +412,20 @@ export const useChronicleStore = create<ChronicleState>()(
                     ...history.xp,
                     [entry.characterId]: prependEntry(
                       history.xp[entry.characterId] ?? [],
+                      entry,
+                    ),
+                  },
+                },
+              }
+            }
+            case 'hp': {
+              return {
+                resourceHistory: {
+                  ...history,
+                  hp: {
+                    ...history.hp,
+                    [entry.characterId]: prependEntry(
+                      history.hp[entry.characterId] ?? [],
                       entry,
                     ),
                   },
@@ -412,6 +460,20 @@ export const useChronicleStore = create<ChronicleState>()(
                 },
               }
             }
+            case 'coin': {
+              return {
+                resourceHistory: {
+                  ...history,
+                  coin: {
+                    ...history.coin,
+                    [entry.characterId]: prependEntry(
+                      history.coin[entry.characterId] ?? [],
+                      entry,
+                    ),
+                  },
+                },
+              }
+            }
             case 'debility': {
               return {
                 resourceHistory: {
@@ -439,6 +501,8 @@ export const useChronicleStore = create<ChronicleState>()(
             bonds: pruneRecord(state.resourceHistory.bonds, bundleId),
             hold: pruneRecord(state.resourceHistory.hold, bundleId),
             debilities: pruneRecord(state.resourceHistory.debilities, bundleId),
+            hp: pruneRecord(state.resourceHistory.hp, bundleId),
+            coin: pruneRecord(state.resourceHistory.coin, bundleId),
           },
         }))
       },
@@ -957,6 +1021,8 @@ export const useChronicleStore = create<ChronicleState>()(
           currentCampaignId: null,
           selectedEntity: null,
           searchQuery: '',
+          pendingDeltaBundle: null,
+          auditLog: [],
           resourceHistory: createResourceHistory(),
         }))
       },
@@ -1007,7 +1073,40 @@ export const useChronicleStore = create<ChronicleState>()(
     }),
     {
       name: 'chronicle-store',
-      version: 1,
+      version: 2,
+      migrate: (persistedState, version) => {
+        if (!persistedState) {
+          return persistedState
+        }
+
+        const resourceHistory = persistedState.resourceHistory ?? {}
+
+        const hydratedState = {
+          ...persistedState,
+          pendingDeltaBundle: persistedState.pendingDeltaBundle ?? null,
+          auditLog: persistedState.auditLog ?? [],
+          resourceHistory: {
+            xp: resourceHistory.xp ?? {},
+            bonds: resourceHistory.bonds ?? {},
+            hold: resourceHistory.hold ?? {},
+            debilities: resourceHistory.debilities ?? {},
+            hp: resourceHistory.hp ?? {},
+            coin: resourceHistory.coin ?? {},
+          },
+        }
+
+        if (version < 2) {
+          return hydratedState
+        }
+
+        return hydratedState
+      },
     },
   ),
 )
+
+
+
+
+
+
