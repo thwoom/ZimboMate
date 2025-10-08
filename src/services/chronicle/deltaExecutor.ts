@@ -17,6 +17,8 @@ import { useInventoryStore } from '../../stores/inventoryStore'
 import { logger } from '../../utils/logger'
 import { characterStateService } from '../CharacterStateService'
 import { validateDeltaOperations } from '../llm/toolSchemas'
+import { computeSha256Hex } from '../llm/hash'
+import { stableStringify } from '@/utils/stableStringify'
 
 type UndoAction = () => void | Promise<void>
 
@@ -36,6 +38,64 @@ const appliedBundles = new Map<string, AppliedBundleRecord>()
 interface BundleOperationMeta {
   explicitEquipTargets: Set<string>
   explicitUnequipTargets: Set<string>
+}
+
+async function deriveBundleId(
+  bundle: ApplyDeltaBundleRequest['bundle'],
+  operations: DeltaOperation[],
+  selectedOpIndices?: number[],
+): Promise<string> {
+  if (bundle.idempotencyKey && bundle.idempotencyKey.trim().length > 0) {
+    return bundle.idempotencyKey
+  }
+
+  const payload = {
+    entryId: bundle.entryId,
+    operations: operations.map(normalizeOperationForFingerprint),
+    selection: Array.isArray(selectedOpIndices)
+      ? [...selectedOpIndices].sort((a, b) => a - b)
+      : null,
+  }
+
+  const fingerprint = await computeSha256Hex(stableStringify(payload))
+  return `${bundle.entryId}:${fingerprint}`
+}
+
+function normalizeOperationForFingerprint(
+  operation: DeltaOperation,
+): unknown {
+  try {
+    const clone = JSON.parse(JSON.stringify(operation)) as Record<
+      string,
+      unknown
+    >
+
+    if (clone && typeof clone === 'object') {
+      delete clone.metadata
+
+      if (clone.item && typeof clone.item === 'object') {
+        const item = clone.item as Record<string, unknown>
+        delete item.id
+        delete item.createdAt
+        delete item.updatedAt
+      }
+
+      if (clone.entity && typeof clone.entity === 'object') {
+        const entity = clone.entity as Record<string, unknown>
+        delete entity.id
+        delete entity.createdAt
+        delete entity.lastUpdated
+      }
+    }
+
+    return clone
+  } catch (error) {
+    logger.warn(
+      '[chronicle][executor] Failed to normalize operation for fingerprint',
+      error,
+    )
+    return operation
+  }
 }
 
 function buildBundleOperationMeta(ops: DeltaOperation[]): BundleOperationMeta {
@@ -259,6 +319,18 @@ function ensureInventoryInitialized(): Inventory {
   return useInventoryStore.getState().inventory!
 }
 
+function determineEquipSlotHint(
+  item: Item,
+  requestedSlot?: InventoryEquipSlot,
+  fallbackSlot?: InventoryEquipSlot,
+): InventoryEquipSlot | undefined {
+  if (requestedSlot) return requestedSlot
+  if (fallbackSlot) return fallbackSlot
+  if (hasTwoHandedTag(item)) return 'two_handed'
+  if (isWeapon(item)) return 'main_hand'
+  return undefined
+}
+
 function convertEntityType(value: string | undefined): EntityType {
   const allowed: EntityType[] = [
     'character',
@@ -291,6 +363,32 @@ function convertRelationshipType(value: string | undefined): RelationshipType {
     : 'ally'
 }
 
+function normalizeRelationshipStrength(value: number | undefined): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) return 1
+  const rounded = Math.round(value)
+  return Math.max(-10, Math.min(10, rounded))
+}
+
+function normalizeRelationshipConfidence(value: number | undefined): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) return 1
+  if (value < 0) return 0
+  if (value > 1) return 1
+  return value
+}
+
+function normalizeRelationshipStatus(status: string | undefined): string {
+  const normalized = status?.toLowerCase()
+  switch (normalized) {
+    case 'active':
+    case 'dormant':
+    case 'resolved':
+    case 'unknown':
+      return normalized
+    default:
+      return 'active'
+  }
+}
+
 function recordEntityMention(
   entityId: string | undefined,
   entryId: string,
@@ -314,7 +412,8 @@ export async function applyChronicleDeltaBundle(
   request: ApplyDeltaBundleRequest,
 ): Promise<ApplyDeltaBundleResult> {
   const { bundle, selectedOpIndices } = request
-  const bundleId = bundle.idempotencyKey || bundle.entryId
+  const validatedOps = validateDeltaOperations(bundle.ops)
+  const bundleId = await deriveBundleId(bundle, validatedOps, selectedOpIndices)
 
   const existing = appliedBundles.get(bundleId)
   if (existing) {
@@ -331,7 +430,6 @@ export async function applyChronicleDeltaBundle(
 
   ensureInventoryInitialized()
 
-  const validatedOps = validateDeltaOperations(bundle.ops)
   const selection = selectedOpIndices
     ? new Set(selectedOpIndices)
     : new Set(validatedOps.map((_, index) => index))
@@ -344,6 +442,83 @@ export async function applyChronicleDeltaBundle(
   const idMap = new Map<string, string>()
   const chronicleStore = useChronicleStore.getState()
   const chronicleSettings = chronicleStore.settings
+
+  const withMetadata = <T extends DeltaOperation>(
+    op: T,
+    metadata: Record<string, unknown>,
+  ): T => {
+    const existing =
+      (op as { metadata?: Record<string, unknown> }).metadata ?? {}
+    return {
+      ...op,
+      metadata: { ...existing, ...metadata },
+    } as T
+  }
+
+  const skipOperation = (op: DeltaOperation, reason: string) => {
+    logger.warn('[chronicle][executor] Skipping operation %s: %s', op.type, reason)
+    skippedOps.push(withMetadata(op, { skipReason: reason }))
+  }
+
+  const detectEquipConflicts = (
+    inventory: Inventory,
+    item: Item,
+    itemId: string,
+    targetSlot: InventoryEquipSlot | undefined,
+  ): Item[] => {
+    const equippedContainer = inventory.containers.find(
+      (container) => container.category === 'equipped',
+    )
+    if (!equippedContainer) return []
+
+    const equippedIds = equippedContainer.items.filter((id) => id !== itemId)
+    const candidates = equippedIds
+      .map((id) => inventory.items[id])
+      .filter((candidate): candidate is Item => Boolean(candidate))
+
+    if (candidates.length === 0) {
+      return []
+    }
+
+    const conflicts = new Set<Item>()
+    const isTwoHanded = hasTwoHandedTag(item)
+
+    for (const candidate of candidates) {
+      if (bundleMeta.explicitUnequipTargets.has(candidate.id)) {
+        continue
+      }
+
+      if (isTwoHanded) {
+        conflicts.add(candidate)
+        continue
+      }
+
+      if (hasTwoHandedTag(candidate)) {
+        conflicts.add(candidate)
+        continue
+      }
+
+      if (targetSlot) {
+        const slot = getEquippedSlot(inventory, candidate.id)
+        if (slot && slot.toLowerCase() === targetSlot.toLowerCase()) {
+          conflicts.add(candidate)
+        }
+      }
+    }
+
+    return Array.from(conflicts)
+  }
+
+  const formatConflictReason = (items: Item[]): string => {
+    if (items.length === 0) return ''
+    const names = items.map((conflict) => conflict.name ?? conflict.id)
+    if (names.length === 1) {
+      return `${names[0]} is already equipped`
+    }
+    const head = names.slice(0, -1).join(', ')
+    const tail = names[names.length - 1]
+    return `${head}, and ${tail} are already equipped`
+  }
 
   const resolveMappedId = (rawId: string | undefined): string | undefined => {
     if (!rawId) return undefined
@@ -649,24 +824,46 @@ case 'add_debility': {
             item,
           )
           if (autoSlot) {
-            const equippedSnapshot = recordInventorySnapshot()
-            store.setItemEquipped(actualId, true, autoSlot)
-            autoEquipUndo = () => restoreInventorySnapshot(equippedSnapshot)
+            const conflicts = detectEquipConflicts(
+              inventory,
+              item,
+              actualId,
+              autoSlot,
+            )
+            if (conflicts.length > 0) {
+              const autoOp = {
+                type: 'equip_item',
+                characterId: op.characterId,
+                itemId: actualId,
+                slot: autoSlot,
+                reason: 'auto_equip_weapon',
+              } as DeltaOperation
+              skipOperation(
+                autoOp,
+                `${formatConflictReason(conflicts)}. Add unequip operations first.`,
+              )
+            } else {
+              const equippedSnapshot = recordInventorySnapshot()
+              store.setItemEquipped(actualId, true, autoSlot)
+              autoEquipUndo = () => restoreInventorySnapshot(equippedSnapshot)
 
-            const updatedInventory = ensureInventoryInitialized()
-            const resolvedSlot =
-              getEquippedSlot(updatedInventory, actualId) ?? autoSlot
-            autoEquipOp = {
-              type: 'equip_item',
-              characterId: op.characterId,
-              itemId: actualId,
-              slot: resolvedSlot,
-              reason: 'auto_equip_weapon',
-              metadata: {
-                autoAssigned: true,
-                previousSlot: null,
-                requestedSlot: resolvedSlot ?? autoSlot ?? null,
-              },
+              const updatedInventory = ensureInventoryInitialized()
+              const resolvedSlot =
+                getEquippedSlot(updatedInventory, actualId) ?? autoSlot
+              autoEquipOp = withMetadata(
+                {
+                  type: 'equip_item',
+                  characterId: op.characterId,
+                  itemId: actualId,
+                  slot: resolvedSlot,
+                  reason: 'auto_equip_weapon',
+                } as DeltaOperation,
+                {
+                  autoAssigned: true,
+                  previousSlot: null,
+                  requestedSlot: resolvedSlot ?? autoSlot ?? null,
+                },
+              )
             }
           }
         }
@@ -755,54 +952,73 @@ case 'add_debility': {
         const resolvedId = resolveMappedId(op.itemId)
         const inventory = store.inventory
         if (!resolvedId || !inventory) {
-          skippedOps.push(op)
+          skipOperation(op, 'Unable to resolve item for equip/unequip.')
           break
         }
 
         const item = inventory.items[resolvedId]
         if (!item) {
-          skippedOps.push(op)
+          skipOperation(op, `Item ${op.itemId} is not present in inventory.`)
           break
         }
 
         const shouldEquip = op.type === 'equip_item'
         const slotBefore = getEquippedSlot(inventory, resolvedId)
-        const buildMetadata = (targetSlot: string | undefined) => ({
-          ...op.metadata,
+        const targetSlotHint = determineEquipSlotHint(item, op.slot, slotBefore)
+        const opMetadata =
+          (op as { metadata?: Record<string, unknown> }).metadata ?? {}
+        const buildMetadata = (targetSlot: InventoryEquipSlot | undefined) => ({
+          ...opMetadata,
           previousSlot: slotBefore ?? null,
           autoAssigned:
-            op.metadata?.autoAssigned ?? op.reason === 'auto_equip_weapon',
+            opMetadata.autoAssigned ?? op.reason === 'auto_equip_weapon',
           requestedSlot:
-            op.metadata?.requestedSlot ??
+            opMetadata.requestedSlot ??
             op.slot ??
             (shouldEquip ? targetSlot ?? null : slotBefore ?? null),
         })
 
         if (shouldEquip) {
-          if (item.equipped && (!op.slot || op.slot === slotBefore)) {
-            const slotValue = slotBefore ?? op.slot
-            const opWithSlot: DeltaOperation = {
-              ...op,
-              slot: slotValue,
-              metadata: buildMetadata(slotValue ?? undefined),
-            }
-            appliedOps.push(opWithSlot)
+          if (
+            item.equipped &&
+            (!targetSlotHint || targetSlotHint === slotBefore)
+          ) {
+            const slotValue = slotBefore ?? targetSlotHint ?? op.slot
+            appliedOps.push(
+              withMetadata(
+                { ...op, slot: slotValue } as DeltaOperation,
+                buildMetadata(slotValue ?? undefined),
+              ),
+            )
+            break
+          }
+
+          const conflicts = detectEquipConflicts(
+            inventory,
+            item,
+            resolvedId,
+            targetSlotHint,
+          )
+
+          if (conflicts.length > 0) {
+            const message = `${formatConflictReason(conflicts)}. Add unequip operations first.`
+            skipOperation(op, message)
             break
           }
         } else if (!item.equipped) {
-          const slotValue = slotBefore ?? op.slot
-          const opWithSlot: DeltaOperation = {
-            ...op,
-            slot: slotValue,
-            metadata: buildMetadata(slotValue ?? undefined),
-          }
-          appliedOps.push(opWithSlot)
+          const slotValue = slotBefore ?? targetSlotHint ?? op.slot
+          appliedOps.push(
+            withMetadata(
+              { ...op, slot: slotValue } as DeltaOperation,
+              buildMetadata(slotValue ?? undefined),
+            ),
+          )
           break
         }
 
         const snapshot = recordInventorySnapshot()
         if (shouldEquip) {
-          store.setItemEquipped(resolvedId, true, op.slot ?? slotBefore)
+          store.setItemEquipped(resolvedId, true, targetSlotHint ?? slotBefore)
         } else {
           store.setItemEquipped(resolvedId, false)
         }
@@ -811,23 +1027,23 @@ case 'add_debility': {
         const currentInventory = useInventoryStore.getState().inventory
         const resolvedSlot = shouldEquip
           ? currentInventory
-            ? (getEquippedSlot(currentInventory, resolvedId) ??
-              op.slot ??
-              slotBefore)
-            : (op.slot ?? slotBefore)
-          : (slotBefore ?? op.slot)
+            ? getEquippedSlot(currentInventory, resolvedId) ??
+              targetSlotHint ??
+              slotBefore
+            : targetSlotHint ?? slotBefore
+          : slotBefore ?? targetSlotHint ?? op.slot
 
-        const opWithSlot: DeltaOperation = {
-          ...op,
-          slot: resolvedSlot,
-          metadata: buildMetadata(resolvedSlot),
-        }
-        appliedOps.push(opWithSlot)
+        appliedOps.push(
+          withMetadata(
+            { ...op, slot: resolvedSlot } as DeltaOperation,
+            buildMetadata(resolvedSlot ?? undefined),
+          ),
+        )
         break
       }
 
       
-case 'spend_ammo': {
+      case 'spend_ammo': {
         const characterId = resolveCharacterId(op.characterId)
         if (!characterId) {
           skippedOps.push(op)
@@ -1245,35 +1461,59 @@ case 'spend_ammo': {
         const chronicle = useChronicleStore.getState()
         const fromId = resolveMappedId(op.fromId)
         const toId = resolveMappedId(op.toId)
-        if (!fromId || !toId) {
-          skippedOps.push(op)
+        if (!fromId) {
+          skipOperation(op, 'fromId could not be resolved to an entity.')
           break
         }
+        if (!toId) {
+          skipOperation(op, 'toId could not be resolved to an entity.')
+          break
+        }
+        if (fromId === toId) {
+          skipOperation(op, 'fromId and toId must reference different entities.')
+          break
+        }
+
+        const relationshipType = convertRelationshipType(op.relationship.type)
+        const strength = normalizeRelationshipStrength(op.relationship.strength)
+        const confidence = normalizeRelationshipConfidence(
+          op.relationship.confidence,
+        )
+        const status = normalizeRelationshipStatus(op.relationship.status)
+        const description = op.relationship.description ?? op.context ?? ''
 
         const relationshipId = chronicle.addRelationship({
           fromEntityId: fromId,
           toEntityId: toId,
-          type: convertRelationshipType(op.relationship),
-          strength: 1,
-          description: op.context ?? '',
-          history: [],
-          currentStatus: 'active',
-          confidence: 1,
+          type: relationshipType,
+          strength,
+          description,
+          currentStatus: status,
+          confidence,
         })
 
         recordEntityMention(fromId, bundle.entryId, {
-          context: op.context ?? undefined,
+          context: description || undefined,
           createdAt: bundle.createdAt,
           source: 'automation',
         })
         recordEntityMention(toId, bundle.entryId, {
-          context: op.context ?? undefined,
+          context: description || undefined,
           createdAt: bundle.createdAt,
           source: 'automation',
         })
 
         undoActions.push(() => chronicle.deleteRelationship(relationshipId))
-        appliedOps.push(op)
+        appliedOps.push({
+          ...op,
+          relationship: {
+            ...op.relationship,
+            type: relationshipType,
+            strength,
+            confidence,
+            status,
+          },
+        })
         break
       }
 
@@ -1281,13 +1521,13 @@ case 'spend_ammo': {
         const chronicle = useChronicleStore.getState()
         const entityId = resolveMappedId(op.entityId)
         if (!entityId) {
-          skippedOps.push(op)
+          skipOperation(op, 'Entity ID could not be resolved for note attachment.')
           break
         }
 
         const entity = chronicle.getEntity(entityId)
         if (!entity) {
-          skippedOps.push(op)
+          skipOperation(op, `Entity ${entityId} was not found in the Chronicle store.`)
           break
         }
 

@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { AlertTriangle, Brain, Eye, Target, Users, Zap } from 'lucide-react'
 import React, { useMemo } from 'react'
 import { Badge, Card, CardContent } from '../ui'
+import { resolveAttributeScore } from '../../models/Character'
 
 interface GameContext {
   inCombat: boolean
@@ -36,8 +37,8 @@ interface MoveContextAnalyzerProps {
   className?: string
 }
 
-function getStatScore(value: number | undefined): number {
-  return typeof value === 'number' ? value : 0
+function getStatScore(value: unknown): number {
+  return resolveAttributeScore(value, 0)
 }
 
 function analyzeContext(

@@ -6,6 +6,7 @@
  */
 
 import type { Character } from '../../../models/Character'
+import { resolveAttributeScore } from '../../../models/Character'
 import type { GameMode, PlayTabTheme } from '../PlayTab'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -129,7 +130,7 @@ const CombatMode: React.FC<{
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {combatActions.map((action, index) => {
           const Icon = action.icon
-          const statValue = character.attributes?.[action.stat] || 10
+          const statValue = resolveAttributeScore(character.attributes?.[action.stat], 10)
           const modifier = Math.floor((statValue - 10) / 2)
 
           return (
@@ -201,12 +202,12 @@ const ExplorationMode: React.FC<{
       <StatRoller
         characterName={character.name}
         statModifiers={{
-          STR: Math.floor(((character.attributes?.STR || 10) - 10) / 2),
-          DEX: Math.floor(((character.attributes?.DEX || 10) - 10) / 2),
-          CON: Math.floor(((character.attributes?.CON || 10) - 10) / 2),
-          INT: Math.floor(((character.attributes?.INT || 10) - 10) / 2),
-          WIS: Math.floor(((character.attributes?.WIS || 10) - 10) / 2),
-          CHA: Math.floor(((character.attributes?.CHA || 10) - 10) / 2),
+          STR: Math.floor((resolveAttributeScore(character.attributes?.STR, 10) - 10) / 2),
+          DEX: Math.floor((resolveAttributeScore(character.attributes?.DEX, 10) - 10) / 2),
+          CON: Math.floor((resolveAttributeScore(character.attributes?.CON, 10) - 10) / 2),
+          INT: Math.floor((resolveAttributeScore(character.attributes?.INT, 10) - 10) / 2),
+          WIS: Math.floor((resolveAttributeScore(character.attributes?.WIS, 10) - 10) / 2),
+          CHA: Math.floor((resolveAttributeScore(character.attributes?.CHA, 10) - 10) / 2),
         }}
       />
 
@@ -214,7 +215,7 @@ const ExplorationMode: React.FC<{
       <div className="grid grid-cols-1 gap-3">
         {explorationActions.map((action, index) => {
           const Icon = action.icon
-          const statValue = character.attributes?.[action.stat] || 10
+          const statValue = resolveAttributeScore(character.attributes?.[action.stat], 10)
           const modifier = Math.floor((statValue - 10) / 2)
 
           return (
@@ -269,8 +270,8 @@ const SocialMode: React.FC<{
   character: Character
   onAction: (actionId: string) => void
 }> = ({ character: _character, onAction }) => {
-  const chaModifier = Math.floor(((character.attributes?.CHA || 10) - 10) / 2)
-  const wisModifier = Math.floor(((character.attributes?.WIS || 10) - 10) / 2)
+  const chaModifier = Math.floor((resolveAttributeScore(character.attributes?.CHA, 10) - 10) / 2)
+  const wisModifier = Math.floor((resolveAttributeScore(character.attributes?.WIS, 10) - 10) / 2)
 
   return (
     <div className="space-y-6">

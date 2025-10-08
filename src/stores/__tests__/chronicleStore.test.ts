@@ -1,4 +1,8 @@
-import type { ChronicleDeltaLog } from '../../types/chronicle'
+import type {
+  ChronicleDeltaLog,
+  Entity,
+  Relationship,
+} from '../../types/chronicle'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   MAX_AUDIT_LOG_ENTRIES,
@@ -20,6 +24,55 @@ function makeLog(
   }
 }
 
+function makeEntity(
+  id: string,
+  overrides: Partial<Entity> = {},
+): Entity {
+  const timestamp = new Date('2025-10-08T00:00:00.000Z')
+  return {
+    id,
+    name: `Entity ${id}`,
+    type: 'character',
+    description: '',
+    firstMention: 'entry-0',
+    lastMention: 'entry-0',
+    appearances: [],
+    relationships: [],
+    aliases: [],
+    status: 'active',
+    tags: [],
+    importance: 0,
+    createdAt: timestamp,
+    lastUpdated: timestamp,
+    userNotes: '',
+    ...overrides,
+  }
+}
+
+function makeRelationship(
+  id: string,
+  fromEntityId: string,
+  toEntityId: string,
+  type: Relationship['type'],
+  overrides: Partial<Relationship> = {},
+): Relationship {
+  const timestamp = new Date('2025-10-08T00:00:00.000Z')
+  return {
+    id,
+    fromEntityId,
+    toEntityId,
+    type,
+    strength: 1,
+    description: '',
+    history: [],
+    currentStatus: 'active',
+    confidence: 1,
+    createdAt: timestamp,
+    lastUpdated: timestamp,
+    ...overrides,
+  }
+}
+
 beforeEach(() => {
   useChronicleStore.setState({
     deltaHistory: [],
@@ -33,6 +86,8 @@ beforeEach(() => {
       hp: {},
       coin: {},
     },
+    entities: [],
+    relationships: [],
   })
 })
 
@@ -334,5 +389,89 @@ describe('chronicleStore pending bundle and audit log', () => {
 
     store.clearAuditLog()
     expect(useChronicleStore.getState().auditLog).toHaveLength(0)
+  })
+
+  it('keeps actor information on audit entries', () => {
+    const { recordAuditEvent } = useChronicleStore.getState()
+
+    recordAuditEvent({
+      id: 'audit-actor',
+      bundleId: 'bundle-actor',
+      entryId: 'entry-actor',
+      action: 'applied',
+      actor: 'manual',
+      timestamp: '2025-10-07T12:30:00.000Z',
+    })
+
+    const [event] = useChronicleStore.getState().auditLog
+    expect(event.actor).toBe('manual')
+  })
+})
+
+describe('chronicleStore entity link selectors', () => {
+  it('returns linked entity edges with metadata', () => {
+    useChronicleStore.setState((state) => ({
+      ...state,
+      entities: [
+        makeEntity('entity-a'),
+        makeEntity('entity-b'),
+        makeEntity('entity-c'),
+      ],
+      relationships: [
+        makeRelationship('rel-1', 'entity-a', 'entity-b', 'ally', {
+          lastUpdated: new Date('2025-10-08T01:00:00.000Z'),
+        }),
+        makeRelationship('rel-2', 'entity-c', 'entity-a', 'enemy', {
+          lastUpdated: new Date('2025-10-08T02:00:00.000Z'),
+        }),
+      ],
+    }))
+
+    const edges = useChronicleStore.getState().getLinkedEntities('entity-a')
+    expect(edges).toHaveLength(2)
+    expect(edges.map((edge) => edge.otherEntityId).sort()).toEqual([
+      'entity-b',
+      'entity-c',
+    ])
+
+    const enemyEdge = edges.find(
+      (edge) => edge.otherEntityId === 'entity-c',
+    )
+    expect(enemyEdge?.relationship.type).toBe('enemy')
+    expect(enemyEdge?.entity?.id).toBe('entity-c')
+  })
+
+  it('returns the most recently updated relationship between entities', () => {
+    useChronicleStore.setState((state) => ({
+      ...state,
+      entities: [makeEntity('entity-a'), makeEntity('entity-b')],
+      relationships: [
+        makeRelationship('rel-old', 'entity-a', 'entity-b', 'ally', {
+          lastUpdated: new Date('2025-10-08T00:00:00.000Z'),
+        }),
+        makeRelationship('rel-new', 'entity-b', 'entity-a', 'enemy', {
+          lastUpdated: new Date('2025-10-08T03:00:00.000Z'),
+        }),
+      ],
+    }))
+
+    const latest = useChronicleStore
+      .getState()
+      .getRelationshipBetweenEntities('entity-a', 'entity-b')
+    expect(latest?.id).toBe('rel-new')
+    expect(latest?.type).toBe('enemy')
+  })
+
+  it('returns undefined when entities are not linked', () => {
+    useChronicleStore.setState((state) => ({
+      ...state,
+      entities: [makeEntity('entity-a'), makeEntity('entity-b')],
+      relationships: [],
+    }))
+
+    const result = useChronicleStore
+      .getState()
+      .getRelationshipBetweenEntities('entity-a', 'entity-b')
+    expect(result).toBeUndefined()
   })
 })

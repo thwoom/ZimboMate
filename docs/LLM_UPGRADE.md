@@ -508,6 +508,7 @@ OpenAI Help Center
 **2025-10-07 update:** Chronicle store tracks pending delta bundles and audit history with undo metadata. Overlay and panel surface Tauri guard messaging, pending bundle progress, and expandable audit log status chips so GMs know when automations are queued or applied. Added unit coverage for the new store state and the provider lifecycle.
 
 **2025-10-07 PlayTab polish:** PlayTab automation log adopts shared badge/button variants for status chips and actions, mirrors the Tauri guard messaging used in the overlay/panel, and ships targeted tests for undo, dismiss, and guard dismissal flows.
+**2025-10-08 composer integration:** Added a PlayTab composer integration spec that exercises GPT-5 narrative summaries against the shared DeltaChecklist descriptions, verifies manual apply -> automation log undo parity, and reconfirmed the Matsu visual baselines (no diffs).
 
 Compute idempotencyKey = sha256(entryId + stableSerialize(ops)).
 
@@ -592,6 +593,16 @@ Phase 2 - Delta Pipeline Extensions (PRD Sec 8, TODOs #5–6, Sec 17.2)
 **2025-10-07 update:** Chronicle store now tracks pending delta bundles and an audit log; apply/undo flows log entries with actors, and HP/Coin ledgers participate in undo cleanup.
 
 **2025-10-07 late update:** Chronicle panel/entity drawers now consume the shared highlight utilities (actor badges, mention chips) and wiki timeline surfaces actor labels + mention context. Delta executor regression suite covers XP/Bond/Hold logging, hold bundles, equip undo, and idempotent bundle replay.
+
+**2025-10-08 plan:** Break Phase 2 into delivery-ready slices:
+- Delta Schema & Registry: finalize `link_entity` argument typing, extend the tool schema registry with relation metadata, and backfill JSON Schema tests under `src/services/llm/__tests__/toolSchemas.test.ts`.
+- Chronicle Store Wiring: introduce dedicated selectors for entity link lookups, persist audit log actor metadata, and ensure undo flows reconcile HP/Coin ledgers after parallel operations.
+- Delta Executor: harden idempotency filters by hashing normalized ops + entity ids, cover equip/unequip conflict resolution, and surface descriptive errors back to the Automation Log.
+- UI Touchpoints: wire the entity chip hover states in `ChronicleOverlay` and `WikiTimeline`, and gate new automation cards behind `LLM_UNIFIED` until the bundle smoke tests pass.
+- QA & Verification: add regression fixtures for entity linking scenarios, extend the PlayTab integration spec to assert mention chips, and run `npm run test` + `npm run screenshot:analyze` before merging.
+- Rollout Prep: draft the dark-launch checklist, document the entity-linking toggle in `docs/rollout.md`, and capture cost telemetry acceptance criteria for Phase 4.
+
+**2025-10-08 progress:** Chronicle overlay and wiki views now surface linked entity metadata via `getLinkedEntities`, the accessibility/performance Playwright suites run through dedicated configs (`playwright.a11y.config.ts`, `playwright.perf.config.ts`) with smoke tests in place, and the `link_entity` tool schema plus delta executor fingerprinting/equip conflict handling have been hardened for Phase 2.
 
 Phase 3 - Store Hardening & Settings (PRD Sec 6, Sec 12)
 

@@ -17,6 +17,7 @@ import {
   ChevronUp,
   Clock,
   Coins,
+  Link2,
   Feather,
   Loader2,
   RefreshCcw,
@@ -35,6 +36,12 @@ import React, {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card'
+import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
 import {
   describeDeltaOperation as formatDeltaOperation,
   undoChronicleBundle,
@@ -444,6 +451,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     lastProgressEvent,
     lastTelemetryEvent,
   } = useChronicleLLM()
+  const llmUnifiedEnabled = useMemo(() => isLlmUnifiedEnabled(), [])
   const deltaHistory = useChronicleStore((state) => state.deltaHistory)
   const clearDeltaLog = useChronicleStore((state) => state.clearDeltaLog)
   const auditLog = useChronicleStore((state) => state.auditLog)
@@ -456,6 +464,12 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   const getEntry = useChronicleStore((state) => state.getEntry)
   const setSelectedEntity = useChronicleStore((state) => state.setSelectedEntity)
   const incrementWikiView = useChronicleStore((state) => state.incrementWikiView)
+  const getLinkedEntities = useChronicleStore((state) => state.getLinkedEntities)
+  const relationshipsVersion = useChronicleStore((state) =>
+    state.relationships
+      .map((relationship) => `${relationship.id}:${relationship.lastUpdated ?? ''}`)
+      .join('|'),
+  )
   const getCharacter = useCharacterStore((state) => state.getCharacter)
   const [undoingBundleId, setUndoingBundleId] = useState<string | null>(null)
   const [tauriGuardDismissed, setTauriGuardDismissed] = useState(false)
@@ -513,6 +527,36 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     return collectMentionHighlights(latestAutomation, entities).slice(0, 3)
 
   }, [entities, latestAutomation])
+
+  const linkedMentionEdges = useMemo(() => {
+    if (mentionHighlights.length === 0) {
+      return new Map<string, ReturnType<typeof getLinkedEntities>>()
+    }
+
+    const toTimestamp = (value: Date | string | undefined) => {
+      if (!value) return 0
+      const date = value instanceof Date ? value : new Date(value)
+      return Number.isNaN(date.getTime()) ? 0 : date.getTime()
+    }
+
+    const map = new Map<string, ReturnType<typeof getLinkedEntities>>()
+
+    mentionHighlights.forEach((highlight) => {
+      const edges = getLinkedEntities(highlight.entityId).filter(
+        (edge) => edge.entity && edge.otherEntityId !== highlight.entityId,
+      )
+      if (edges.length === 0) return
+
+      const sorted = [...edges].sort(
+        (a, b) =>
+          toTimestamp(b.relationship.lastUpdated) -
+          toTimestamp(a.relationship.lastUpdated),
+      )
+      map.set(highlight.entityId, sorted)
+    })
+
+    return map
+  }, [getLinkedEntities, mentionHighlights, relationshipsVersion])
 
   const resolveCharacterName = useCallback(
     (characterId?: string | null) => {
@@ -802,8 +846,8 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
             </AlertDescription>
           </Alert>
         )}
-        {statusChip}
-        {latestAutomation && (
+        {llmUnifiedEnabled ? statusChip : null}
+        {llmUnifiedEnabled && latestAutomation && (
           <motion.div
             layout
             initial={{ opacity: 0, y: 12 }}
@@ -853,30 +897,155 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                       <AtSign size={12} /> Latest mentions
                     </div>
                     <div className='space-y-2'>
-                      {mentionHighlights.map((highlight) => (
-                        <button
-                          type='button'
-                          key={`${highlight.entityId}-${highlight.record.entryId}-${highlight.record.createdAt}`}
-                          onClick={() => handleEntityNavigate(highlight.entityId)}
-                          className='w-full rounded-md border border-border/40 bg-muted/20 p-2 text-left text-xs leading-snug transition-colors hover:border-primary/40 hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/30'
-                        >
-                          <div className='flex items-center gap-2 font-semibold text-foreground'>
-                            <span>{highlight.entityName}</span>
-                            <Badge
-                              variant='outline'
-                              className='text-[10px] uppercase tracking-wide'
-                            >
-                              {highlight.entityType}
-                            </Badge>
-                          </div>
-                          <div className='mt-1 text-muted-foreground'>
-                            {buildMentionContext(
-                              highlight.record,
-                              mentionContextFallback,
+                      {mentionHighlights.map((highlight) => {
+                        const linkedEdges =
+                          linkedMentionEdges.get(highlight.entityId) ?? []
+                        const visibleLinkedEdges = linkedEdges.slice(0, 3)
+                        const hiddenLinkCount =
+                          linkedEdges.length - visibleLinkedEdges.length
+
+                        return (
+                          <div
+                            role='button'
+                            tabIndex={0}
+                            key={`${highlight.entityId}-${highlight.record.entryId}-${highlight.record.createdAt}`}
+                            onClick={() => handleEntityNavigate(highlight.entityId)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault()
+                                handleEntityNavigate(highlight.entityId)
+                              }
+                            }}
+                            className='w-full cursor-pointer rounded-md border border-border/40 bg-muted/20 p-2 text-left text-xs leading-snug transition-colors hover:border-primary/40 hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                          >
+                            <div className='flex items-center gap-2 font-semibold text-foreground'>
+                              <span>{highlight.entityName}</span>
+                              <Badge
+                                variant='outline'
+                                className='text-[10px] uppercase tracking-wide'
+                              >
+                                {highlight.entityType}
+                              </Badge>
+                            </div>
+                            <div className='mt-1 text-muted-foreground'>
+                              {buildMentionContext(
+                                highlight.record,
+                                mentionContextFallback,
+                              )}
+                            </div>
+                            {linkedEdges.length > 0 && (
+                              <div className='mt-2 space-y-1'>
+                                <div className='flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground'>
+                                  <Link2 size={11} /> Linked entities
+                                </div>
+                                <div className='flex flex-wrap items-center gap-1'>
+                                  {visibleLinkedEdges.map((edge) => {
+                                    const linkedEntityName =
+                                      edge.entity?.name ?? edge.otherEntityId
+                                    const relationship = edge.relationship
+                                    const updatedAt =
+                                      relationship.lastUpdated instanceof Date
+                                        ? relationship.lastUpdated
+                                        : relationship.lastUpdated
+                                        ? new Date(relationship.lastUpdated)
+                                        : null
+                                    const relativeUpdated =
+                                      updatedAt && !Number.isNaN(updatedAt.getTime())
+                                        ? formatRelativeTimeFromNow(updatedAt)
+                                        : null
+                                    const confidence =
+                                      typeof relationship.confidence === 'number'
+                                        ? `${Math.round(relationship.confidence * 100)}%`
+                                        : undefined
+                                    const relationshipStatus =
+                                      (relationship as { status?: string }).status ??
+                                      relationship.currentStatus
+
+                                    return (
+                                      <HoverCard
+                                        key={`${highlight.entityId}-${edge.relationship.id}`}
+                                      >
+                                        <HoverCardTrigger asChild>
+                                          <button
+                                            type='button'
+                                            onClick={(event) => {
+                                              event.stopPropagation()
+                                              handleEntityNavigate(edge.otherEntityId)
+                                            }}
+                                            className='inline-flex items-center gap-1 rounded-full border border-border/40 bg-card/80 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                                            aria-label={`Open ${linkedEntityName}`}
+                                          >
+                                            <span className='font-medium text-foreground'>
+                                              {linkedEntityName}
+                                            </span>
+                                            <Badge
+                                              variant='outline'
+                                              className='text-[9px] uppercase tracking-wide'
+                                            >
+                                              {relationship.type}
+                                            </Badge>
+                                          </button>
+                                        </HoverCardTrigger>
+                                        <HoverCardContent className='w-72 space-y-2 text-left'>
+                                          <div className='flex items-center justify-between gap-2'>
+                                            <span className='text-sm font-semibold text-foreground'>
+                                              {linkedEntityName}
+                                            </span>
+                                            <Badge
+                                              variant='outline'
+                                              className='text-[10px] uppercase tracking-wide'
+                                            >
+                                              {relationship.type}
+                                            </Badge>
+                                          </div>
+                                          <div className='grid gap-1 text-[11px] text-muted-foreground'>
+                                            {relationshipStatus && (
+                                              <div className='flex items-center justify-between'>
+                                                <span>Status</span>
+                                                <span className='uppercase tracking-wide'>
+                                                  {relationshipStatus}
+                                                </span>
+                                              </div>
+                                            )}
+                                            {typeof relationship.strength === 'number' && (
+                                              <div className='flex items-center justify-between'>
+                                                <span>Strength</span>
+                                                <span>{relationship.strength}</span>
+                                              </div>
+                                            )}
+                                            {confidence && (
+                                              <div className='flex items-center justify-between'>
+                                                <span>Confidence</span>
+                                                <span>{confidence}</span>
+                                              </div>
+                                            )}
+                                            {relativeUpdated && (
+                                              <div className='flex items-center justify-between'>
+                                                <span>Last updated</span>
+                                                <span>{relativeUpdated}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                          {relationship.description && (
+                                            <p className='text-xs leading-snug text-foreground'>
+                                              {relationship.description}
+                                            </p>
+                                          )}
+                                        </HoverCardContent>
+                                      </HoverCard>
+                                    )
+                                  })}
+                                  {hiddenLinkCount > 0 && (
+                                    <span className='text-[10px] text-muted-foreground/80'>
+                                      +{hiddenLinkCount} more
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             )}
                           </div>
-                        </button>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 )}

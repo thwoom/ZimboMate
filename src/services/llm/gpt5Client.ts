@@ -16,6 +16,7 @@ import {
   deltaSchemasForResponses,
   validateDeltaOperations,
 } from './toolSchemas'
+import { stableStringify } from '@/utils/stableStringify'
 
 interface ChronicleProposeResponse {
   narrative: string
@@ -155,21 +156,6 @@ class Gpt5Client {
       console.error('[gpt5Client] Failed to register telemetry listener', error)
     }
   }
-}
-
-function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== 'object') {
-    return JSON.stringify(value)
-  }
-
-  if (Array.isArray(value)) {
-    return `[${value.map(stableStringify).join(',')}]`
-  }
-
-  const entries = Object.entries(value as Record<string, unknown>).sort(
-    ([a], [b]) => a.localeCompare(b),
-  )
-  return `{${entries.map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`).join(',')}}`
 }
 
 export const gpt5Client = new Gpt5Client()

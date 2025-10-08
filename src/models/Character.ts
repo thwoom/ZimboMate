@@ -202,10 +202,47 @@ export interface CharacterCreationData {
 
 // Utility functions for character calculations
 
+export function resolveAttributeScore(
+  input: unknown,
+  fallback = 10,
+): number {
+  if (typeof input === 'number' && Number.isFinite(input)) {
+    return input
+  }
+
+  if (typeof input === 'string') {
+    const parsed = Number.parseInt(input, 10)
+    if (!Number.isNaN(parsed)) {
+      return parsed
+    }
+  }
+
+  if (input && typeof input === 'object') {
+    const record = input as Record<string, unknown>
+    const candidateKeys = ['value', 'score', 'base', 'total']
+
+    for (const key of candidateKeys) {
+      const candidate = record[key]
+      if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+        return candidate
+      }
+      if (typeof candidate === 'string') {
+        const parsed = Number.parseInt(candidate, 10)
+        if (!Number.isNaN(parsed)) {
+          return parsed
+        }
+      }
+    }
+  }
+
+  return fallback
+}
+
 /**
  * Calculate modifier from attribute score * 3: -3, 4-5: -2, 6-8: -1, 9-12: 0, 13-15: +1, 16-17: +2, 18: +3
  */
-export function getAttributeModifier(score: number): number {
+export function getAttributeModifier(scoreInput: unknown): number {
+  const score = resolveAttributeScore(scoreInput)
   if (score <= 3) return -3
   if (score <= 5) return -2
   if (score <= 8) return -1
@@ -223,7 +260,8 @@ export function getEffectiveModifier(
   attributes: Attributes,
   debilities: Debilities,
 ): number {
-  let modifier = getAttributeModifier(attributes[attribute])
+  const baseScore = resolveAttributeScore(attributes[attribute])
+  let modifier = getAttributeModifier(baseScore)
 
   // Apply debility penalties
   if (attribute === 'STR' && debilities.weak) modifier -= 1
@@ -344,7 +382,7 @@ export function getClassDamageDie(characterClass: CharacterClass): DamageDie {
  */
 export function calculateMaxHP(character: Character): number {
   const baseHP = getClassBaseHP(character.class)
-  const conScore = character.attributes.CON // Use full CON score, not modifier
+  const conScore = resolveAttributeScore(character.attributes.CON)
   return Math.max(1, baseHP + conScore)
 }
 

@@ -1,4 +1,16 @@
-import type { ChronicleEntry } from '../../types/chronicle'
+import type { ChronicleEntry, RelationshipType } from '../../types/chronicle'
+
+export interface OperationMetadata {
+  skipReason?: string
+  autoAssigned?: boolean
+  previousSlot?: string | null
+  requestedSlot?: string | null
+  [key: string]: unknown
+}
+
+interface BaseDeltaOperation {
+  metadata?: OperationMetadata
+}
 
 export type DeltaOperation =
   | ApplyDamageOp
@@ -22,8 +34,9 @@ export type DeltaOperation =
   | LinkEntityOp
   | AddNoteOp
   | AddCoinOp
+  | SpendCoinOp
 
-export interface ApplyDamageOp {
+export interface ApplyDamageOp extends BaseDeltaOperation {
   type: 'apply_damage'
 
   characterId: string
@@ -33,7 +46,7 @@ export interface ApplyDamageOp {
   source?: string
 }
 
-export interface HealOp {
+export interface HealOp extends BaseDeltaOperation {
   type: 'heal'
 
   characterId: string
@@ -43,7 +56,7 @@ export interface HealOp {
   source?: string
 }
 
-export interface MarkXpOp {
+export interface MarkXpOp extends BaseDeltaOperation {
   type: 'mark_xp'
 
   characterId: string
@@ -53,7 +66,7 @@ export interface MarkXpOp {
   reason?: string
 }
 
-export interface AddItemOp {
+export interface AddItemOp extends BaseDeltaOperation {
   type: 'add_item'
 
   characterId: string
@@ -61,7 +74,7 @@ export interface AddItemOp {
   item: InventoryItemInput
 }
 
-export interface RemoveItemOp {
+export interface RemoveItemOp extends BaseDeltaOperation {
   type: 'remove_item'
 
   characterId: string
@@ -69,7 +82,7 @@ export interface RemoveItemOp {
   itemId: string
 }
 
-export interface AddItemTagOp {
+export interface AddItemTagOp extends BaseDeltaOperation {
   type: 'add_item_tag'
 
   itemId: string
@@ -77,7 +90,7 @@ export interface AddItemTagOp {
   tag: string
 }
 
-export interface EquipItemOp {
+export interface EquipItemOp extends BaseDeltaOperation {
   type: 'equip_item'
 
   characterId: string
@@ -89,7 +102,7 @@ export interface EquipItemOp {
   reason?: string
 }
 
-export interface UnequipItemOp {
+export interface UnequipItemOp extends BaseDeltaOperation {
   type: 'unequip_item'
 
   characterId: string
@@ -101,7 +114,7 @@ export interface UnequipItemOp {
   reason?: string
 }
 
-export interface LevelUpOp {
+export interface LevelUpOp extends BaseDeltaOperation {
   type: 'level_up'
 
   characterId: string
@@ -117,7 +130,7 @@ export interface LevelUpMovePick {
   description?: string
 }
 
-export interface SpendAmmoOp {
+export interface SpendAmmoOp extends BaseDeltaOperation {
   type: 'spend_ammo'
 
   characterId: string
@@ -127,7 +140,7 @@ export interface SpendAmmoOp {
   move?: string
 }
 
-export interface MarkHoldOp {
+export interface MarkHoldOp extends BaseDeltaOperation {
   type: 'mark_hold'
 
   characterId: string
@@ -137,7 +150,7 @@ export interface MarkHoldOp {
   amount: number
 }
 
-export interface SpendHoldOp {
+export interface SpendHoldOp extends BaseDeltaOperation {
   type: 'spend_hold'
 
   characterId: string
@@ -147,7 +160,7 @@ export interface SpendHoldOp {
   amount: number
 }
 
-export interface AddDebilityOp {
+export interface AddDebilityOp extends BaseDeltaOperation {
   type: 'add_debility'
 
   characterId: string
@@ -157,7 +170,7 @@ export interface AddDebilityOp {
   reason?: string
 }
 
-export interface RemoveDebilityOp {
+export interface RemoveDebilityOp extends BaseDeltaOperation {
   type: 'remove_debility'
 
   characterId: string
@@ -165,7 +178,7 @@ export interface RemoveDebilityOp {
   debility: string
 }
 
-export interface AddBondOp {
+export interface AddBondOp extends BaseDeltaOperation {
   type: 'add_bond'
 
   characterId: string
@@ -175,7 +188,7 @@ export interface AddBondOp {
   text: string
 }
 
-export interface ResolveBondOp {
+export interface ResolveBondOp extends BaseDeltaOperation {
   type: 'resolve_bond'
 
   characterId: string
@@ -185,7 +198,7 @@ export interface ResolveBondOp {
   resolution: string
 }
 
-export interface AddFlagOp {
+export interface AddFlagOp extends BaseDeltaOperation {
   type: 'add_flag'
 
   characterId: string
@@ -195,25 +208,35 @@ export interface AddFlagOp {
   description?: string
 }
 
-export interface CreateEntityOp {
+export interface CreateEntityOp extends BaseDeltaOperation {
   type: 'create_entity'
 
   entity: EntityInput
 }
 
-export interface LinkEntityOp {
+export type RelationshipStatus = 'active' | 'dormant' | 'resolved' | 'unknown'
+
+export interface LinkEntityRelationship {
+  type: RelationshipType
+  strength?: number
+  confidence?: number
+  status?: RelationshipStatus
+  description?: string
+}
+
+export interface LinkEntityOp extends BaseDeltaOperation {
   type: 'link_entity'
 
   fromId: string
 
   toId: string
 
-  relationship: string
+  relationship: LinkEntityRelationship
 
   context?: string
 }
 
-export interface AddNoteOp {
+export interface AddNoteOp extends BaseDeltaOperation {
   type: 'add_note'
 
   entityId: string
@@ -221,7 +244,7 @@ export interface AddNoteOp {
   note: string
 }
 
-export interface AddCoinOp {
+export interface AddCoinOp extends BaseDeltaOperation {
   type: 'add_coin'
 
   characterId: string
@@ -229,6 +252,16 @@ export interface AddCoinOp {
   amount: number
 
   denomination?: string
+}
+
+export interface SpendCoinOp extends BaseDeltaOperation {
+  type: 'spend_coin'
+
+  characterId: string
+
+  amount: number
+
+  reason?: string
 }
 
 export interface InventoryItemInput {

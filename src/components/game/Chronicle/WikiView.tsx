@@ -18,6 +18,7 @@ import {
   Hash,
   HelpCircle,
   Lightbulb,
+  Link2,
   MapPin,
   Package,
   Search,
@@ -25,7 +26,7 @@ import {
   Users,
 } from 'lucide-react'
 import React from 'react'
-import { buildMentionContext, formatActorLabel } from '@/components/chronicle/highlightUtils'
+import { buildMentionContext, formatActorLabel, formatRelativeTimeFromNow } from '@/components/chronicle/highlightUtils'
 import { useChronicleStore } from '../../../stores'
 import {
   Badge,
@@ -35,6 +36,11 @@ import {
   CardHeader,
   CardTitle,
 } from '../../ui'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '../../ui/hover-card'
 
 interface WikiViewProps {
   entity: Entity
@@ -108,6 +114,8 @@ export const WikiView: React.FC<WikiViewProps> = ({
     updateWikiPage,
     getEntry,
     getDeltaLog,
+    setSelectedEntity,
+    getLinkedEntities,
   } = useChronicleStore()
 
   // Get or generate wiki page
@@ -153,6 +161,36 @@ export const WikiView: React.FC<WikiViewProps> = ({
 
   const IconComponent = getEntityIcon(entity.type)
 
+  const linkedEntityEdges = React.useMemo(() => {
+    const toTimestamp = (value: Date | string | undefined) => {
+      if (!value) return 0
+      const date = value instanceof Date ? value : new Date(value)
+      return Number.isNaN(date.getTime()) ? 0 : date.getTime()
+    }
+
+    const edges = getLinkedEntities(entity.id).filter(
+      (edge) => edge.entity && edge.otherEntityId !== entity.id,
+    )
+
+    return edges
+      .slice()
+      .sort(
+        (a, b) =>
+          toTimestamp(b.relationship.lastUpdated) -
+          toTimestamp(a.relationship.lastUpdated),
+      )
+  }, [entity.id, getLinkedEntities])
+
+  const maxLinkedEntitiesToDisplay = 6
+  const visibleLinkedEntities = React.useMemo(
+    () => linkedEntityEdges.slice(0, maxLinkedEntitiesToDisplay),
+    [linkedEntityEdges],
+  )
+  const hiddenLinkedEntityCount = Math.max(
+    linkedEntityEdges.length - visibleLinkedEntities.length,
+    0,
+  )
+
   const formatTimestamp = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -174,6 +212,14 @@ export const WikiView: React.FC<WikiViewProps> = ({
   const handleRegenerateWiki = () => {
     generateWikiPage(entity.id)
   }
+
+  const handleLinkedEntityNavigate = React.useCallback(
+    (linkedEntityId: string) => {
+      setSelectedEntity(linkedEntityId)
+      incrementWikiView(linkedEntityId)
+    },
+    [incrementWikiView, setSelectedEntity],
+  )
 
   if (!displayWikiPage) {
     return (
@@ -469,23 +515,161 @@ export const WikiView: React.FC<WikiViewProps> = ({
             )}
 
             {/* Relationships */}
-            {displayWikiPage.relationshipSummary && (
+            {(displayWikiPage.relationshipSummary ||
+              visibleLinkedEntities.length > 0) && (
               <div>
                 <h3 className='font-medium mb-3 flex items-center gap-2'>
                   <Users size={16} />
                   Relationships
                 </h3>
-                <div
-                  className='p-4 rounded-lg border'
-                  style={{
-                    backgroundColor: 'var(--card)',
-                    borderColor: 'var(--border)',
-                  }}
-                >
-                  <p className='text-sm leading-relaxed'>
-                    {displayWikiPage.relationshipSummary}
-                  </p>
-                </div>
+                {displayWikiPage.relationshipSummary && (
+                  <div
+                    className='p-4 rounded-lg border'
+                    style={{
+                      backgroundColor: 'var(--card)',
+                      borderColor: 'var(--border)',
+                    }}
+                  >
+                    <p className='text-sm leading-relaxed'>
+                      {displayWikiPage.relationshipSummary}
+                    </p>
+                  </div>
+                )}
+                {visibleLinkedEntities.length > 0 && (
+                  <div className='mt-3 space-y-2'>
+                    <div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                      <Link2 size={12} /> Linked entities
+                    </div>
+                    <div className='space-y-2'>
+                      {visibleLinkedEntities.map((edge) => {
+                        const linkedEntityName =
+                          edge.entity?.name ?? edge.otherEntityId
+                        const relationship = edge.relationship
+                        const updatedAt =
+                          relationship.lastUpdated instanceof Date
+                            ? relationship.lastUpdated
+                            : relationship.lastUpdated
+                            ? new Date(relationship.lastUpdated)
+                            : null
+                        const updatedLabel =
+                          updatedAt && !Number.isNaN(updatedAt.getTime())
+                            ? formatRelativeTimeFromNow(updatedAt)
+                            : null
+                        const confidence =
+                          typeof relationship.confidence === 'number'
+                            ? `${Math.round(relationship.confidence * 100)}%`
+                            : undefined
+
+                        return (
+                          <HoverCard key={relationship.id}>
+                            <HoverCardTrigger asChild>
+                              <button
+                                type='button'
+                                onClick={() =>
+                                  handleLinkedEntityNavigate(edge.otherEntityId)
+                                }
+                                className='w-full rounded-md border border-border/40 bg-muted/15 px-3 py-2 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/30'
+                              >
+                                <div className='flex flex-wrap items-start justify-between gap-2'>
+                                  <div className='space-y-1'>
+                                    <div className='text-sm font-semibold text-foreground'>
+                                      {linkedEntityName}
+                                    </div>
+                                    {relationship.description && (
+                                      <p className='text-xs leading-snug text-muted-foreground'>
+                                        {relationship.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className='flex flex-wrap items-center gap-2'>
+                                    {edge.entity?.type && (
+                                      <Badge
+                                        variant='outline'
+                                        className='text-[10px] uppercase tracking-wide'
+                                      >
+                                        {edge.entity.type}
+                                      </Badge>
+                                    )}
+                                    <Badge
+                                      variant='outline'
+                                      className='text-[10px] uppercase tracking-wide'
+                                    >
+                                      {relationship.type}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                {(relationship.strength !== undefined ||
+                                  updatedLabel) && (
+                                  <div className='mt-2 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-wide text-muted-foreground'>
+                                    {relationship.strength !== undefined && (
+                                      <span>
+                                        Strength {relationship.strength}
+                                      </span>
+                                    )}
+                                    {updatedLabel && (
+                                      <span>Updated {updatedLabel}</span>
+                                    )}
+                                  </div>
+                                )}
+                              </button>
+                            </HoverCardTrigger>
+                            <HoverCardContent className='w-72 space-y-2 text-left'>
+                              <div className='flex items-center justify-between gap-2'>
+                                <span className='text-sm font-semibold text-foreground'>
+                                  {linkedEntityName}
+                                </span>
+                                <Badge
+                                  variant='outline'
+                                  className='text-[10px] uppercase tracking-wide'
+                                >
+                                  {relationship.type}
+                                </Badge>
+                              </div>
+                              <div className='grid gap-1 text-[11px] text-muted-foreground'>
+                                {relationship.currentStatus && (
+                                  <div className='flex items-center justify-between'>
+                                    <span>Status</span>
+                                    <span className='uppercase tracking-wide'>
+                                      {relationship.currentStatus}
+                                    </span>
+                                  </div>
+                                )}
+                                {relationship.strength !== undefined && (
+                                  <div className='flex items-center justify-between'>
+                                    <span>Strength</span>
+                                    <span>{relationship.strength}</span>
+                                  </div>
+                                )}
+                                {confidence && (
+                                  <div className='flex items-center justify-between'>
+                                    <span>Confidence</span>
+                                    <span>{confidence}</span>
+                                  </div>
+                                )}
+                                {updatedLabel && (
+                                  <div className='flex items-center justify-between'>
+                                    <span>Last updated</span>
+                                    <span>{updatedLabel}</span>
+                                  </div>
+                                )}
+                              </div>
+                              {relationship.history.length > 0 && (
+                                <p className='text-[11px] text-muted-foreground'>
+                                  {relationship.history.length} recorded events
+                                </p>
+                              )}
+                            </HoverCardContent>
+                          </HoverCard>
+                        )
+                      })}
+                   </div>
+                    {hiddenLinkedEntityCount > 0 && (
+                      <div className='text-xs text-muted-foreground'>
+                        +{hiddenLinkedEntityCount} more linked entities in Chronicle
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

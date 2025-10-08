@@ -90,6 +90,11 @@ interface ChronicleState {
   deleteRelationship: (id: string) => void
   getRelationship: (id: string) => Relationship | undefined
   getEntityRelationships: (entityId: string) => Relationship[]
+  getLinkedEntities: (entityId: string) => EntityLinkEdge[]
+  getRelationshipBetweenEntities: (
+    entityA: string,
+    entityB: string,
+  ) => Relationship | undefined
 
   // Actions - Wiki Pages
   generateWikiPage: (entityId: string) => void
@@ -118,6 +123,15 @@ interface ChronicleState {
 export const MAX_DELTA_HISTORY = 50
 export const MAX_RESOURCE_HISTORY = 100
 export const MAX_AUDIT_LOG_ENTRIES = 40
+
+function getTimestamp(value: Date | string | undefined): number {
+  if (value instanceof Date) return value.getTime()
+  if (typeof value === 'string') {
+    const parsed = Date.parse(value)
+    return Number.isNaN(parsed) ? 0 : parsed
+  }
+  return 0
+}
 
 function createResourceHistory(): ResourceHistoryState {
   return {
@@ -197,6 +211,12 @@ function calculateEntityImportance(
   )
 
   return Math.round(importance)
+}
+
+export interface EntityLinkEdge {
+  relationship: Relationship
+  otherEntityId: string
+  entity?: Entity
 }
 
 // Helper function to extract key facts from chronicle entries
@@ -821,6 +841,44 @@ export const useChronicleStore = create<ChronicleState>()(
         )
       },
 
+      getLinkedEntities: (entityId) => {
+        if (!entityId) return []
+        const { relationships, entities } = get()
+        return relationships
+          .filter(
+            (rel) =>
+              rel.fromEntityId === entityId || rel.toEntityId === entityId,
+          )
+          .map((rel) => {
+            const otherEntityId =
+              rel.fromEntityId === entityId ? rel.toEntityId : rel.fromEntityId
+            const entity = entities.find((item) => item.id === otherEntityId)
+            return {
+              relationship: rel,
+              otherEntityId,
+              entity,
+            }
+          })
+      },
+
+      getRelationshipBetweenEntities: (entityA, entityB) => {
+        if (!entityA || !entityB) return undefined
+        const candidates = get().relationships.filter(
+          (rel) =>
+            (rel.fromEntityId === entityA && rel.toEntityId === entityB) ||
+            (rel.fromEntityId === entityB && rel.toEntityId === entityA),
+        )
+        if (candidates.length === 0) return undefined
+        return candidates.slice(1).reduce<Relationship>(
+          (latest, rel) => {
+            const current = getTimestamp(rel.lastUpdated)
+            const previous = getTimestamp(latest.lastUpdated)
+            return current > previous ? rel : latest
+          },
+          candidates[0],
+        )
+      },
+
       // Wiki Actions
       generateWikiPage: (entityId) => {
         const { entities, entries, relationships, wikiPages } = get()
@@ -1073,18 +1131,44 @@ export const useChronicleStore = create<ChronicleState>()(
     }),
     {
       name: 'chronicle-store',
-      version: 2,
+      version: 3,
       migrate: (persistedState, version) => {
         if (!persistedState) {
           return persistedState
         }
 
         const resourceHistory = persistedState.resourceHistory ?? {}
+        const deltaHistory = Array.isArray(persistedState.deltaHistory)
+          ? persistedState.deltaHistory
+          : []
+        const deltaActorByBundle = new Map<
+          string,
+          ChronicleDeltaLog['actor']
+        >(
+          deltaHistory
+            .filter(
+              (entry): entry is ChronicleDeltaLog & { bundleId: string } =>
+                Boolean(entry?.bundleId),
+            )
+            .map((entry) => [entry.bundleId, entry.actor])
+            .filter(([, actor]) => actor !== undefined),
+        )
+
+        const hydratedAuditLog = (persistedState.auditLog ?? []).map(
+          (entry: ChronicleAuditEntry) => ({
+            ...entry,
+            actor:
+              entry.actor ??
+              (entry.bundleId
+                ? deltaActorByBundle.get(entry.bundleId)
+                : undefined),
+          }),
+        )
 
         const hydratedState = {
           ...persistedState,
           pendingDeltaBundle: persistedState.pendingDeltaBundle ?? null,
-          auditLog: persistedState.auditLog ?? [],
+          auditLog: hydratedAuditLog,
           resourceHistory: {
             xp: resourceHistory.xp ?? {},
             bonds: resourceHistory.bonds ?? {},
@@ -1093,10 +1177,6 @@ export const useChronicleStore = create<ChronicleState>()(
             hp: resourceHistory.hp ?? {},
             coin: resourceHistory.coin ?? {},
           },
-        }
-
-        if (version < 2) {
-          return hydratedState
         }
 
         return hydratedState

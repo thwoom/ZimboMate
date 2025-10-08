@@ -2,6 +2,7 @@ import React from 'react'
 
 import { Card, CardContent } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { resolveAttributeScore } from '@/models/Character'
 import { useCharacterStore } from '@/stores/characterStore'
 
 import MoveChips from './widgets/MoveChips'
@@ -24,7 +25,9 @@ export default function FolioStatsPage({ highlighted = false }: FolioStatsPagePr
             {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const).map((k) => (
               <div key={k} className='bg-muted/30 border-border rounded-md border p-2 text-center'>
                 <div className='text-muted-foreground text-xs'>{k}</div>
-                <div className='text-foreground text-lg font-semibold'>{(attrs as any)[k] ?? 10}</div>
+                <div className='text-foreground text-lg font-semibold'>
+                  {resolveAttributeScore((attrs as Record<string, unknown>)[k], 10)}
+                </div>
               </div>
             ))}
           </div>

@@ -57,6 +57,10 @@ test.describe('Visual Regression - Matsu Theme', () => {
     test(`${label} tab matches baseline`, async ({ page }) => {
       await clickTopNav(page, label)
       await page.waitForTimeout(300)
+      if (label === 'Settings') {
+        await page.waitForTimeout(800)
+        await page.evaluate(() => window.scrollTo(0, 0))
+      }
       await expect(page).toHaveScreenshot(file, screenshotOptions)
     })
   }

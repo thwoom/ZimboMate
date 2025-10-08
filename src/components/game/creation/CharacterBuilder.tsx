@@ -15,6 +15,7 @@ import {
   getClassBaseLoad,
   getClassDamageDie,
   getStandardArray,
+  resolveAttributeScore,
 } from '../../../models/Character'
 import { dwClericSpells, dwWizardSpells } from '../../../spellBookMockData'
 import { useCharacterStore } from '../../../stores/characterStore'
@@ -1333,12 +1334,12 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({
     const [assignments, setAssignments] = useState<
       Record<keyof Attributes, number>
     >({
-      STR: draft.attributes.STR,
-      DEX: draft.attributes.DEX,
-      CON: draft.attributes.CON,
-      INT: draft.attributes.INT,
-      WIS: draft.attributes.WIS,
-      CHA: draft.attributes.CHA,
+      STR: resolveAttributeScore(draft.attributes.STR, 10),
+      DEX: resolveAttributeScore(draft.attributes.DEX, 10),
+      CON: resolveAttributeScore(draft.attributes.CON, 10),
+      INT: resolveAttributeScore(draft.attributes.INT, 10),
+      WIS: resolveAttributeScore(draft.attributes.WIS, 10),
+      CHA: resolveAttributeScore(draft.attributes.CHA, 10),
     })
 
     const used = new Set(Object.values(assignments))
@@ -1990,10 +1991,12 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({
                 <b>Alignment</b>: {draft.alignment || '-'}
               </li>
               <li>
-                <b>Attributes</b>: STR {draft.attributes.STR}, DEX{' '}
-                {draft.attributes.DEX}, CON {draft.attributes.CON}, INT{' '}
-                {draft.attributes.INT}, WIS {draft.attributes.WIS}, CHA{' '}
-                {draft.attributes.CHA}
+                <b>Attributes</b>: STR {resolveAttributeScore(draft.attributes.STR, 10)}, DEX{' '}
+                {resolveAttributeScore(draft.attributes.DEX, 10)}, CON{' '}
+                {resolveAttributeScore(draft.attributes.CON, 10)}, INT{' '}
+                {resolveAttributeScore(draft.attributes.INT, 10)}, WIS{' '}
+                {resolveAttributeScore(draft.attributes.WIS, 10)}, CHA{' '}
+                {resolveAttributeScore(draft.attributes.CHA, 10)}
               </li>
               <li>
                 <b>HP</b>: {derivedPreview?.maxHp ?? '-'}, <b>Load</b>:{' '}

@@ -34,6 +34,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Folio from '@/components/game/CharacterSheet/Folio'
 import { RightRail, SplitPane } from '@/components/layout'
 import { cn } from '@/lib/utils'
+import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
 import {
   describeDeltaOperation as formatDeltaOperation,
   undoChronicleBundle,
@@ -590,6 +591,7 @@ function createMonster(input: string): CreatedMonster {
 }
 
 export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
+  const llmUnifiedEnabled = useMemo(() => isLlmUnifiedEnabled(), [])
   const { getActiveCharacter } = useCharacterStore()
   const activeCharacter = getActiveCharacter()
   const deltaHistory = useChronicleStore((state) => state.deltaHistory)
@@ -1518,8 +1520,9 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                         </Card>
 
                         {/* Automation Log */}
-                        <Card variant='surface'>
-                          <CardContent className='p-4'>
+                        {llmUnifiedEnabled && (
+                          <Card variant='surface'>
+                            <CardContent className='p-4'>
                             <div className='flex items-center justify-between mb-3'>
                               <h3 className='font-semibold flex items-center gap-2'>
                                 <Sparkles size={16} />
@@ -1684,6 +1687,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                             )}
                           </CardContent>
                         </Card>
+                        )}
                       </div>
 
                       <div className='space-y-6'>
