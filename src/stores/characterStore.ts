@@ -4,11 +4,76 @@
  * Integrates with CharacterStateService and AdvancementService
  */
 
-import type { Character } from '../models/Character'
+import type { Attributes, Character } from '../models/Character'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { advancementService } from '../services/AdvancementService'
 import { characterStateService } from '../services/CharacterStateService'
+
+const ATTRIBUTE_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const
+
+const DEFAULT_ATTRIBUTES: Attributes = {
+  STR: 10,
+  DEX: 10,
+  CON: 10,
+  INT: 10,
+  WIS: 10,
+  CHA: 10,
+}
+
+function coerceAttributeScore(value: unknown, fallback: number): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10)
+    if (!Number.isNaN(parsed)) {
+      return parsed
+    }
+  }
+
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+
+    const candidateKeys = ['value', 'score', 'base']
+    for (const key of candidateKeys) {
+      const candidate = record[key]
+      if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+        return candidate
+      }
+
+      if (typeof candidate === 'string') {
+        const parsed = Number.parseInt(candidate, 10)
+        if (!Number.isNaN(parsed)) {
+          return parsed
+        }
+      }
+    }
+  }
+
+  return fallback
+}
+
+function normalizeAttributesInput(
+  incoming: unknown,
+  fallback: Attributes = DEFAULT_ATTRIBUTES,
+): Attributes {
+  const source =
+    incoming && typeof incoming === 'object'
+      ? (incoming as Record<string, unknown>)
+      : {}
+
+  const normalized = { ...fallback }
+
+  for (const key of ATTRIBUTE_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      normalized[key] = coerceAttributeScore(source[key], fallback[key])
+    }
+  }
+
+  return normalized
+}
 
 interface CharacterState {
   // Character data
@@ -66,8 +131,13 @@ export const useCharacterStore = create<CharacterState>()(
       // Character CRUD operations
       createCharacter: (characterData) => {
         try {
+          const normalizedAttributes = normalizeAttributesInput(
+            (characterData as { attributes?: unknown }).attributes,
+          )
+
           const character: Character = {
             ...characterData,
+            attributes: normalizedAttributes,
             id: `char-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -90,10 +160,25 @@ export const useCharacterStore = create<CharacterState>()(
 
       updateCharacter: (id, updates) => {
         try {
+          const hasAttributeUpdate = Object.prototype.hasOwnProperty.call(
+            updates,
+            'attributes',
+          )
+
           set((state) => ({
             characters: state.characters.map((char) =>
               char.id === id
-                ? { ...char, ...updates, updatedAt: new Date() }
+                ? {
+                    ...char,
+                    ...updates,
+                    attributes: hasAttributeUpdate
+                      ? normalizeAttributesInput(
+                          (updates as { attributes?: unknown }).attributes,
+                          char.attributes,
+                        )
+                      : char.attributes,
+                    updatedAt: new Date(),
+                  }
                 : char,
             ),
             error: null,
@@ -347,6 +432,40 @@ export const useCharacterStore = create<CharacterState>()(
     }),
     {
       name: 'zimbomate-character-storage',
+      version: 2,
+      migrate: (persistedState, version) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return persistedState as CharacterState
+        }
+
+        if (version < 2) {
+          const state = persistedState as {
+            characters?: Character[]
+          } & Record<string, unknown>
+
+          const migratedCharacters = Array.isArray(state.characters)
+            ? state.characters.map((char) => {
+                if (!char || typeof char !== 'object') {
+                  return char
+                }
+
+                return {
+                  ...char,
+                  attributes: normalizeAttributesInput(
+                    (char as { attributes?: unknown }).attributes,
+                  ),
+                }
+              })
+            : []
+
+          return {
+            ...state,
+            characters: migratedCharacters,
+          } as CharacterState
+        }
+
+        return persistedState as CharacterState
+      },
       partialize: (state) => ({
         characters: state.characters,
         activeCharacterId: state.activeCharacterId,
