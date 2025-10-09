@@ -111,8 +111,19 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   const [showConsole, setShowConsole] = React.useState(false)
 
   // Get the latest error info which includes console warnings
-  const latestErrorInfo = React.useMemo(() => {
+  const latestErrorInfo = React.useMemo<ErrorInfo>(() => {
     const errors = ErrorLogger.getErrors()
+    if (errors.length === 0) {
+      return {
+        error,
+        errorInfo: { componentStack: '' },
+        timestamp: new Date(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        consoleWarnings: [],
+        consoleErrors: [],
+      }
+    }
     return errors[errors.length - 1]
   }, [error])
 
@@ -275,9 +286,9 @@ URL: ${window.location.href}
                           Console Errors:
                         </h3>
                         <div className='bg-destructive/12 rounded p-3 max-h-40 overflow-auto'>
-                          {latestErrorInfo.consoleErrors.map((error, idx) => (
+                          {latestErrorInfo.consoleErrors.map((error) => (
                             <pre
-                              key={idx}
+                              key={error}
                               className='text-xs text-destructive whitespace-pre-wrap mb-1'
                             >
                               {error}
@@ -293,10 +304,9 @@ URL: ${window.location.href}
                           Console Warnings:
                         </h3>
                         <div className='bg-chart-4/12 rounded p-3 max-h-40 overflow-auto'>
-                          {latestErrorInfo.consoleWarnings.map(
-                            (warning, idx) => (
+                          {latestErrorInfo.consoleWarnings.map((warning) => (
                               <pre
-                                key={idx}
+                                key={warning}
                                 className='text-xs text-chart-4 whitespace-pre-wrap mb-1'
                               >
                                 {warning}
@@ -389,36 +399,51 @@ export const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
 }
 
 // Hook for accessing error boundary functionality
+// eslint-disable-next-line react-refresh/only-export-components
 export function useErrorHandler() {
-  const [errors, setErrors] = React.useState<ErrorInfo[]>([])
+  const [errors, dispatchErrors] = React.useReducer(
+    (state: ErrorInfo[], action: { type: "set"; payload: ErrorInfo[] } | { type: "clear" }) => {
+      switch (action.type) {
+        case "set":
+          return action.payload
+        case "clear":
+          return []
+        default:
+          return state
+      }
+    },
+    [],
+  )
+
+  const updateErrors = React.useCallback(() => {
+    dispatchErrors({ type: "set", payload: ErrorLogger.getErrors() })
+  }, [])
 
   React.useEffect(() => {
-    const updateErrors = () => setErrors(ErrorLogger.getErrors())
-
-    // Update errors periodically
     const interval = setInterval(updateErrors, 5000)
     updateErrors()
 
     return () => clearInterval(interval)
-  }, [])
+  }, [updateErrors])
 
   return {
     errors,
     clearErrors: () => {
       ErrorLogger.clearErrors()
-      setErrors([])
+      dispatchErrors({ type: "clear" })
     },
     reportError: (error: Error, context?: string) => {
       const errorInfo: React.ErrorInfo = {
         componentStack: context || 'Manual error report',
       }
       ErrorLogger.logError(error, errorInfo)
-      setErrors(ErrorLogger.getErrors())
+      updateErrors()
     },
   }
 }
 
 // Async error boundary for handling promise rejections
+// eslint-disable-next-line react-refresh/only-export-components
 export function setupGlobalErrorHandling() {
   const restoreConsole = ErrorLogger.captureConsoleWarnings()
 

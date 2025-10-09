@@ -11,7 +11,7 @@ import {
   Sparkles,
   Zap,
 } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Badge, Button, Card, CardContent } from './'
 
 interface PremiumProgressBarProps {
@@ -46,26 +46,17 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
   onRetry,
   className = '',
 }) => {
-  const [particles, setParticles] = useState<FloatingParticle[]>([])
+  const particles = React.useMemo<FloatingParticle[]>(() => {
+    if (stage !== 'loading' && stage !== 'downloading') return []
 
-  // Generate floating particles for magical effect
-  useEffect(() => {
-    if (stage === 'loading' || stage === 'downloading') {
-      const newParticles: FloatingParticle[] = []
-      for (let i = 0; i < 8; i++) {
-        newParticles.push({
-          id: `particle-${i}`,
-          x: Math.random() * 300,
-          y: Math.random() * 100,
-          delay: Math.random() * 2,
-          size: Math.random() * 4 + 2,
-          color: stage === 'downloading' ? '#3b82f6' : '#8b5cf6',
-        })
-      }
-      setParticles(newParticles)
-    } else {
-      setParticles([])
-    }
+    return Array.from({ length: 8 }, (_, i) => ({
+      id: `particle-${i}`,
+      x: Math.random() * 300,
+      y: Math.random() * 100,
+      delay: Math.random() * 2,
+      size: Math.random() * 4 + 2,
+      color: stage === 'downloading' ? '#3b82f6' : '#8b5cf6',
+    }))
   }, [stage])
 
   const getStageIcon = () => {

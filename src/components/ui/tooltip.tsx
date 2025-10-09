@@ -7,14 +7,18 @@ import { cn } from '@/lib/utils'
 
 function TooltipProvider({
   delayDuration = 0,
+  children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
   return (
+    // eslint-disable-next-line react/no-context-provider -- Radix exposes a component on `.Provider`; using the module object causes runtime failures.
     <TooltipPrimitive.Provider
       data-slot='tooltip-provider'
       delayDuration={delayDuration}
       {...props}
-    />
+    >
+      {children}
+    </TooltipPrimitive.Provider>
   )
 }
 

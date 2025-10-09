@@ -173,7 +173,7 @@ export function useCharacterStats(
     const percentage = max > 0 ? (current / max) * 100 : 0
 
     return { current, max, percentage }
-  }, [character?.hp])
+  }, [character])
 
   const load = useMemo(() => {
     if (!character) {
@@ -191,7 +191,7 @@ export function useCharacterStats(
     else status = 'overloaded'
 
     return { current, max, percentage, status }
-  }, [character?.load])
+  }, [character])
 
   // Stat operations
   const updateBaseStat = useCallback(
@@ -327,7 +327,7 @@ export function useStatModifiers(characterId?: string) {
       wisdom: Math.floor((character.attributes.wisdom - 10) / 2),
       charisma: Math.floor((character.attributes.charisma - 10) / 2),
     }
-  }, [character?.attributes])
+  }, [character])
 
   return modifiers
 }

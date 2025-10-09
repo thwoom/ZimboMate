@@ -54,7 +54,6 @@ export interface UseCharacterReturn {
  */
 export function useCharacter(characterId?: string): UseCharacterReturn {
   const {
-    characters,
     activeCharacterId,
     isLoading,
     error,
@@ -77,7 +76,7 @@ export function useCharacter(characterId?: string): UseCharacterReturn {
   const character = useMemo(() => {
     if (!targetCharacterId) return undefined
     return getCharacter(targetCharacterId)
-  }, [targetCharacterId, getCharacter, characters])
+  }, [targetCharacterId, getCharacter])
 
   // Character operations
   const updateCharacter = useCallback(

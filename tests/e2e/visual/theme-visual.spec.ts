@@ -46,6 +46,13 @@ const tabs = [
 
 test.describe('Visual Regression - Matsu Theme', () => {
   test.beforeEach(async ({ page }) => {
+    page.on('console', (message) => {
+      console.warn(`[browser:${message.type()}] ${message.text()}`)
+    })
+    page.on('pageerror', (error) => {
+      console.error(`[pageerror] ${error?.message ?? error}`)
+    })
+
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/')
     await disableAnimations(page)

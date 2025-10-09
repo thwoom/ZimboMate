@@ -108,7 +108,7 @@ export function useLazyHover({
 
 // Hook for managing multiple lazy hover elements efficiently
 export function useLazyHoverManager(options: LazyHoverOptions = {}) {
-  const [elements, setElements] = useState<Map<string, HoverState>>(new Map())
+  const [elements, setElements] = useState<Map<string, HoverState>>(() => new Map())
   const observerRef = useRef<IntersectionObserver | null>(null)
   const elementsRef = useRef<Map<string, HTMLElement>>(new Map())
 
@@ -253,12 +253,12 @@ export function useLazyHoverManager(options: LazyHoverOptions = {}) {
 
 // Performance monitoring hook
 export function useHoverPerformanceMonitor() {
-  const [metrics, setMetrics] = useState({
+  const [metrics, setMetrics] = useState(() => ({
     totalHoverElements: 0,
     activeHoverElements: 0,
     averageHoverEnableTime: 0,
     performanceScore: 100,
-  })
+  }))
 
   const startTime = useRef<number>(0)
 

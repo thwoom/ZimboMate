@@ -81,7 +81,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
   const { environment } = useGameStateStore()
 
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(
-    new Set(),
+    () => new Set(),
   )
   const [expandedSuggestion, setExpandedSuggestion] = useState<string | null>(
     null,

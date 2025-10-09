@@ -37,7 +37,9 @@ export const HoldManager: React.FC<HoldManagerProps> = ({
 }) => {
   const { getHoldsForCharacter, spendHold } = useHoldStore()
   const holds = getHoldsForCharacter(characterId)
-  const [expandedHolds, setExpandedHolds] = useState<Set<string>>(new Set())
+  const [expandedHolds, setExpandedHolds] = useState<Set<string>>(
+    () => new Set(),
+  )
 
   const toggleHoldExpansion = (holdId: string) => {
     setExpandedHolds((prev) => {

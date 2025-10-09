@@ -73,6 +73,9 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
     }
   }
 
+  const dieCountByValue: Record<string, number> = {}
+  let dieRenderIndex = 0
+
   return (
     <AnimatePresence>
       {result && (
@@ -116,6 +119,7 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                     </div>
                   </div>
                   <button
+                    type='button'
                     onClick={onClose}
                     className='text-xs opacity-50 hover:opacity-100 transition-opacity'
                   >
@@ -126,22 +130,31 @@ export const RollResultsToast: React.FC<RollResultsToastProps> = ({
                 {/* Dice Display */}
                 <div className='flex items-center gap-3'>
                   <div className='flex gap-1'>
-                    {result.dice.map((die, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className='w-8 h-8 rounded border-2 flex items-center justify-center font-bold text-sm'
-                        style={{
-                          borderColor: 'var(--primary)',
-                          backgroundColor: 'var(--popover)',
-                          color: 'var(--foreground)',
-                        }}
-                      >
-                        {die}
-                      </motion.div>
-                    ))}
+                    {result.dice.map((die) => {
+                      dieRenderIndex += 1
+                      const order = dieRenderIndex
+                      const keyBase = String(die)
+                      const occurrence = (dieCountByValue[keyBase] ?? 0) + 1
+                      dieCountByValue[keyBase] = occurrence
+                      const dieKey = `${keyBase}-${occurrence}-${order}`
+
+                      return (
+                        <motion.div
+                          key={dieKey}
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ delay: (order - 1) * 0.1 }}
+                          className='w-8 h-8 rounded border-2 flex items-center justify-center font-bold text-sm'
+                          style={{
+                            borderColor: 'var(--primary)',
+                            backgroundColor: 'var(--popover)',
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          {die}
+                        </motion.div>
+                      )
+                    })}
                   </div>
 
                   {result.modifier !== 0 && (

@@ -11,7 +11,7 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react'
-import React, { useState } from 'react'
+import React from 'react'
 import { Badge } from './Badge'
 import { Button } from './Button'
 import { Card, CardContent } from './Card'
@@ -23,11 +23,67 @@ interface EnhancedRollResultsToastProps {
   duration?: number
 }
 
+interface ConsequenceState {
+  selected: string[]
+  showPanel: boolean
+}
+
+type ConsequenceAction =
+  | { type: 'reset'; payload: ConsequenceState }
+  | { type: 'toggle'; id: string }
+  | { type: 'hide' }
+  | { type: 'show' }
+
+const deriveConsequenceState = (
+  result: EnhancedRollResult | null,
+): ConsequenceState => {
+  const pending = result?.consequences.filter((c) => !c.applied) ?? []
+  const selected = pending
+    .filter((c) => c.automatic)
+    .map((c) => c.id)
+  const showPanel = pending.some((c) => !c.automatic)
+
+  return {
+    selected,
+    showPanel,
+  }
+}
+
+const consequenceReducer = (
+  state: ConsequenceState,
+  action: ConsequenceAction,
+): ConsequenceState => {
+  switch (action.type) {
+    case 'reset':
+      return action.payload
+    case 'toggle': {
+      const exists = state.selected.includes(action.id)
+      return {
+        ...state,
+        selected: exists
+          ? state.selected.filter((id) => id !== action.id)
+          : [...state.selected, action.id],
+      }
+    }
+    case 'hide':
+      return { ...state, showPanel: false }
+    case 'show':
+      return { ...state, showPanel: true }
+    default:
+      return state
+  }
+}
+
 export const EnhancedRollResultsToast: React.FC<
   EnhancedRollResultsToastProps
 > = ({ result, onClose, onApplyConsequences, duration = 6000 }) => {
-  const [showConsequences, setShowConsequences] = useState(false)
-  const [selectedConsequences, setSelectedConsequences] = useState<string[]>([])
+  const [consequenceState, dispatch] = React.useReducer(
+    consequenceReducer,
+    result,
+    deriveConsequenceState,
+  )
+  const { selected: selectedConsequences, showPanel: showConsequences } =
+    consequenceState
 
   React.useEffect(() => {
     if (result && result.consequences.length === 0) {
@@ -37,21 +93,10 @@ export const EnhancedRollResultsToast: React.FC<
   }, [result, onClose, duration])
 
   React.useEffect(() => {
-    if (result && result.consequences.length > 0) {
-      // Auto-select automatic consequences
-      const autoConsequences = result.consequences
-        .filter((c) => c.automatic && !c.applied)
-        .map((c) => c.id)
-      setSelectedConsequences(autoConsequences)
-
-      // Show consequences panel if there are manual consequences
-      const hasManualConsequences = result.consequences.some(
-        (c) => !c.automatic && !c.applied,
-      )
-      if (hasManualConsequences) {
-        setShowConsequences(true)
-      }
-    }
+    dispatch({
+      type: 'reset',
+      payload: deriveConsequenceState(result),
+    })
   }, [result])
 
   const getOutcomeColor = (outcome?: string) => {
@@ -128,17 +173,13 @@ export const EnhancedRollResultsToast: React.FC<
   }
 
   const handleConsequenceToggle = (consequenceId: string) => {
-    setSelectedConsequences((prev) =>
-      prev.includes(consequenceId)
-        ? prev.filter((id) => id !== consequenceId)
-        : [...prev, consequenceId],
-    )
+    dispatch({ type: 'toggle', id: consequenceId })
   }
 
   const handleApplyConsequences = () => {
     if (result) {
       onApplyConsequences(result.id, selectedConsequences)
-      setShowConsequences(false)
+      dispatch({ type: 'hide' })
 
       // Close toast after applying consequences
       setTimeout(onClose, 1500)
@@ -148,6 +189,9 @@ export const EnhancedRollResultsToast: React.FC<
   const pendingConsequences =
     result?.consequences.filter((c) => !c.applied) || []
   const manualConsequences = pendingConsequences.filter((c) => !c.automatic)
+
+  const dieCountByValue: Record<string, number> = {}
+  let dieRenderIndex = 0
 
   return (
     <AnimatePresence>
@@ -192,6 +236,7 @@ export const EnhancedRollResultsToast: React.FC<
                     </div>
                   </div>
                   <button
+                    type='button'
                     onClick={onClose}
                     className='text-xs opacity-50 hover:opacity-100 transition-opacity'
                   >
@@ -202,22 +247,31 @@ export const EnhancedRollResultsToast: React.FC<
                 {/* Dice Display */}
                 <div className='flex items-center gap-3'>
                   <div className='flex gap-1'>
-                    {result.dice.map((die, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className='w-8 h-8 rounded border-2 flex items-center justify-center font-bold text-sm'
-                        style={{
-                          borderColor: 'var(--primary)',
-                          backgroundColor: 'var(--popover)',
-                          color: 'var(--foreground)',
-                        }}
-                      >
-                        {die}
-                      </motion.div>
-                    ))}
+                    {result.dice.map((die) => {
+                      dieRenderIndex += 1
+                      const order = dieRenderIndex
+                      const keyBase = String(die)
+                      const occurrence = (dieCountByValue[keyBase] ?? 0) + 1
+                      dieCountByValue[keyBase] = occurrence
+                      const dieKey = `${keyBase}-${occurrence}-${order}`
+
+                      return (
+                        <motion.div
+                          key={dieKey}
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ delay: (order - 1) * 0.1 }}
+                          className='w-8 h-8 rounded border-2 flex items-center justify-center font-bold text-sm'
+                          style={{
+                            borderColor: 'var(--primary)',
+                            backgroundColor: 'var(--popover)',
+                            color: 'var(--foreground)',
+                          }}
+                        >
+                          {die}
+                        </motion.div>
+                      )
+                    })}
                   </div>
 
                   {result.modifier !== 0 && (
@@ -324,7 +378,7 @@ export const EnhancedRollResultsToast: React.FC<
                       <Button
                         variant='ghost'
                         size='sm'
-                        onClick={() => setShowConsequences(!showConsequences)}
+                        onClick={() => dispatch({ type: showConsequences ? 'hide' : 'show' })}
                         className='text-xs'
                       >
                         {showConsequences ? 'Hide' : 'Show'}
@@ -388,7 +442,7 @@ export const EnhancedRollResultsToast: React.FC<
                               variant='ghost'
                               size='sm'
                               onClick={() => {
-                                setShowConsequences(false)
+                                dispatch({ type: 'hide' })
                                 setTimeout(onClose, 500)
                               }}
                               className='text-xs'

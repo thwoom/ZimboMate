@@ -278,4 +278,16 @@ describe('playTab composer integration', () => {
 
     process.env.LLM_UNIFIED = 'true'
   })
+
+  it('surface mention highlight when composer text includes entity mentions', async () => {
+    const { user } = renderPlayTab()
+
+    const chronicleInput = await screen.findByPlaceholderText(
+      /what happens in your adventure/i,
+    )
+    await user.type(chronicleInput, '@Lysa rallies the scouts.')
+
+    const mentionHighlight = await screen.findByText(/mention detected/i)
+    expect(mentionHighlight).toBeInTheDocument()
+  })
 })

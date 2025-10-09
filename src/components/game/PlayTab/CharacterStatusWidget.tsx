@@ -320,9 +320,9 @@ export const CharacterStatusWidget: React.FC<CharacterStatusWidgetProps> = ({
               Status Effects
             </div>
             <div className='flex flex-wrap gap-1'>
-              {statusEffects.map((effect, index) => (
+              {statusEffects.map((effect) => (
                 <StatusEffect
-                  key={index}
+                  key={`${effect.type}-${effect.name}`}
                   type={effect.type as any}
                   name={effect.name}
                   icon={effect.icon}

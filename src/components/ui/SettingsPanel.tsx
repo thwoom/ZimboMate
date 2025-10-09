@@ -19,7 +19,8 @@ import {
   Sparkles,
   Wrench,
 } from 'lucide-react'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
+import { useChronicleStore } from '../../stores/chronicleStore'
 import { useChronicle, useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { FileManagementPanel } from '../game/FileManagementPanel'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
@@ -183,6 +184,23 @@ const GameplaySettingsContent: React.FC = () => {
     setMaxPrompts,
   } = useChronicle()
   const { settings, updateSettings } = useChronicleLLM()
+  const {
+    clearDeltaLog,
+    clearBundleSnapshots,
+    clearAuditLog,
+    endBundleApply,
+    deltaHistoryCount,
+    auditLogCount,
+    snapshotCount,
+  } = useChronicleStore((state) => ({
+    clearDeltaLog: state.clearDeltaLog,
+    clearBundleSnapshots: state.clearBundleSnapshots,
+    clearAuditLog: state.clearAuditLog,
+    endBundleApply: state.endBundleApply,
+    deltaHistoryCount: state.deltaHistory.length,
+    auditLogCount: state.auditLog.length,
+    snapshotCount: state.bundleSnapshots.length,
+  }))
 
   const autoApplyPolicy = useMemo(
     () => settings.autoApplyPolicy ?? {},
@@ -224,6 +242,48 @@ const GameplaySettingsContent: React.FC = () => {
   const [autoSave, setAutoSave] = useState(true)
   const [diceSound, setDiceSound] = useState(true)
   const [quickRolls, setQuickRolls] = useState(true)
+  const [costCapInput, setCostCapInputState] = useReducer(
+    (_: string, next: string) => next,
+    settings.costCapCents != null ? (settings.costCapCents / 100).toFixed(2) : '',
+  )
+
+  const syncCostCapInput = useCallback(() => {
+    setCostCapInputState(
+      settings.costCapCents != null
+        ? (settings.costCapCents / 100).toFixed(2)
+        : '',
+    )
+  }, [settings.costCapCents])
+
+  useEffect(() => {
+    syncCostCapInput()
+  }, [syncCostCapInput])
+
+  const hasAutomationHistory =
+    deltaHistoryCount > 0 || auditLogCount > 0 || snapshotCount > 0
+
+  const handleClearAutomationLog = useCallback(() => {
+    clearDeltaLog()
+    clearBundleSnapshots()
+    clearAuditLog()
+    endBundleApply()
+  }, [clearAuditLog, clearBundleSnapshots, clearDeltaLog, endBundleApply])
+
+  const commitCostCap = useCallback(
+    (value: string) => {
+      const trimmed = value.trim()
+      if (trimmed === '') {
+        updateSettings({ costCapCents: undefined })
+        return
+      }
+      const parsed = Number.parseFloat(trimmed)
+      if (Number.isNaN(parsed) || parsed < 0) {
+        return
+      }
+      updateSettings({ costCapCents: Math.round(parsed * 100) })
+    },
+    [updateSettings],
+  )
 
   return (
     <div className='space-y-6'>
@@ -417,6 +477,67 @@ const GameplaySettingsContent: React.FC = () => {
                 )
               })}
             </div>
+          </div>
+
+          <div className='flex items-start justify-between'>
+            <div>
+              <label className='text-sm font-medium'>Cost Guardrail</label>
+              <p className='text-xs text-muted-foreground '>
+                Set a GPT-5 spend limit per session (USD). Chronicle falls back
+                to templates when the cap is reached.
+              </p>
+            </div>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm text-muted-foreground'>$</span>
+              <input
+                type='number'
+                min='0'
+                step='0.50'
+                value={costCapInput}
+                onChange={(event) => setCostCapInputState(event.target.value)}
+                onBlur={() => commitCostCap(costCapInput)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.currentTarget.blur()
+                  }
+                }}
+                placeholder='0.00'
+                className='w-24 rounded border px-2 py-1 text-sm'
+                style={{
+                  backgroundColor: 'var(--card)',
+                  borderColor: 'var(--border)',
+                  color: 'var(--foreground)',
+                }}
+              />
+              <Button
+                size='sm'
+                variant='ghost'
+                onClick={() => {
+                  setCostCapInputState('')
+                  updateSettings({ costCapCents: undefined })
+                }}
+                disabled={!costCapInput}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+
+          <div className='flex items-center justify-between'>
+            <div>
+              <label className='text-sm font-medium'>Automation Log</label>
+              <p className='text-xs text-muted-foreground '>
+                Stored bundles: {deltaHistoryCount} | Snapshots: {snapshotCount} | Audit entries: {auditLogCount}
+              </p>
+            </div>
+            <Button
+              size='sm'
+              variant='destructive'
+              onClick={handleClearAutomationLog}
+              disabled={!hasAutomationHistory}
+            >
+              Clear Log
+            </Button>
           </div>
         </div>
       </div>

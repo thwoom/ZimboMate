@@ -148,9 +148,10 @@ export function useDWSpells(): UseDWSpellsReturn {
 
   const preparedCount = preparedSpellIds.length
   // CORRECTED: Check if we can prepare more based on spell LEVELS not spell COUNT
-  const canPrepareSpell = (spellLevel: number) => {
-    return preparedSpellLevels + spellLevel <= maxPreparedSpellLevels
-  }
+  const canPrepareSpell = useCallback(
+    (spellLevel: number) => preparedSpellLevels + spellLevel <= maxPreparedSpellLevels,
+    [preparedSpellLevels, maxPreparedSpellLevels],
+  )
 
   // Spell actions - CORRECTED to use spell level validation
   const prepareSpell = useCallback(

@@ -371,9 +371,9 @@ export const AccessibilityChecker: React.FC = () => {
               {report.issues.length > 0 && (
                 <div className='space-y-2'>
                   <h4 className='font-medium text-foreground'>Issues Found</h4>
-                  {report.issues.map((issue, index) => (
+                  {report.issues.map((issue) => (
                     <div
-                      key={index}
+                      key={`${issue.type}-${issue.category}-${issue.message}-${issue.suggestion}`}
                       className='border rounded-lg p-3'
                       style={{
                         backgroundColor: 'var(--card)',
@@ -425,9 +425,9 @@ export const AccessibilityChecker: React.FC = () => {
                     Passed Checks
                   </h4>
                   <div className='space-y-1'>
-                    {report.passedChecks.map((check, index) => (
+                    {report.passedChecks.map((check) => (
                       <div
-                        key={index}
+                        key={`passed-${check}`}
                         className='flex items-center gap-2 text-sm text-chart-2'
                       >
                         <CheckCircle className='w-3 h-3' />

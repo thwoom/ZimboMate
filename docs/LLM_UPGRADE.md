@@ -503,7 +503,7 @@ OpenAI Platform
 JSON‑mode helper for non‑tool structured replies (summaries, bullets).
 OpenAI Help Center
 
-17.2 Idempotency & Atomicity\n\n**2025-10-02 update:** Chronicle delta executor now applies Dungeon World core ops in-app (damage, healing, XP, coin, inventory, debilities, hold, ammo, bonds) with idempotent undo. Remaining work: entity linking history + advanced inventory slotting. PlayTab now surfaces an automation log with per-bundle undo controls for GMs.
+17.2 Idempotency & Atomicity\n\n**2025-10-02 update:** Chronicle delta executor now applies Dungeon World core ops in-app (damage, healing, XP, coin, inventory, debilities, hold, ammo, bonds) with idempotent undo. Entity linking history and advanced inventory slotting now capture relationship timelines and slot-hint-aware inventory placement. PlayTab now surfaces an automation log with per-bundle undo controls for GMs.
 
 **2025-10-07 update:** Chronicle store tracks pending delta bundles and audit history with undo metadata. Overlay and panel surface Tauri guard messaging, pending bundle progress, and expandable audit log status chips so GMs know when automations are queued or applied. Added unit coverage for the new store state and the provider lifecycle.
 
@@ -579,8 +579,7 @@ Phase 1 - Chronicle Surface Polish (PRD Sec 11.2–11.5)
  Phase 1 UI polish is landed. Composer checklist now mirrors the audit drawers, overlay prompts surface Dungeon World move citations alongside proposed deltas, and the automation log exposes the promised "Clear Automation Log" action. PlayTab + overlay undo flows were exercised against the richer delta descriptions to confirm entry → apply → undo parity.
 
 Remaining verification before sign-off:
-- Regenerate Playwright visual baselines for the refreshed checklist + automation log styles.
-- Add an integration spec covering the new composer checklist narrative + undo assertions (planned in Phase 5).
+- Regenerate Playwright visual baselines for the refreshed checklist + automation log styles. ✅ `npm run screenshot` + `npm run screenshot:analyze` succeeded on 2025-10-09.
 
 Phase 2 - Delta Pipeline Extensions (PRD Sec 8, TODOs #5–6, Sec 17.2)
 
@@ -604,17 +603,20 @@ Phase 2 - Delta Pipeline Extensions (PRD Sec 8, TODOs #5–6, Sec 17.2)
 
 **2025-10-08 progress:** Chronicle overlay and wiki views now surface linked entity metadata via `getLinkedEntities`, the accessibility/performance Playwright suites run through dedicated configs (`playwright.a11y.config.ts`, `playwright.perf.config.ts`) with smoke tests in place, and the `link_entity` tool schema plus delta executor fingerprinting/equip conflict handling have been hardened for Phase 2.
 
+**2025-10-09 update:** Link_entity automation now writes relationship history events and entity mentions record slot-aware inventory placement via slot hints; add_item honours container/equip hints for Folio so bundle replays stay idempotent.
+
 Phase 3 - Store Hardening & Settings (PRD Sec 6, Sec 12)
 
 - Expand stores with apply/undo helpers and history logging.
 - Wire settings for log clear, auto-equip defaults, cost guardrails.
 - Snapshot state before/after bundle apply for QA.
 
-Phase 4 - Telemetry, Cost & Rollout Rails (PRD Sec 12, Sec 14, Sec 17.2, Sec 19–20)
+Phase 4 - Telemetry, Cost & Rollout Rails (PRD Sec 12, Sec 14, Sec 17.2, Sec 19-20)
 
 - Emit success/failure telemetry for apply/undo with latency + cost.
 - Enforce session budgets and dark-launch -> opt-in -> default flags.
 - Document toggles and deployment steps in scripts + PRD.
+**2025-10-08 progress:** Telemetry now covers propose/apply/undo paths with rollout stage tags, session cost guardrails block GPT-5 calls when budgets are exhausted (returning a template fallback narrative), and the new `LLM_ROLLOUT_STAGE` flag coordinates dark/opt-in/default automation behaviour across the UI and executor.
 
 Phase 5 - Test & Visual Pass (PRD Sec 15)
 
@@ -622,6 +624,7 @@ Phase 5 - Test & Visual Pass (PRD Sec 15)
 - Refresh Playwright snapshots after UI work.
 - Maintain zero ESLint warning baseline (verified 2025-10-05); rerun npm run lint on each pass.
 - Re-run npm run test, npm run screenshot:analyze, npm run lint:fix.
+**2025-10-09 QA update:** Added slot-hint-aware tool schema assertions, extended the PlayTab composer integration spec to cover mention highlights, and reran `npm run lint:fix`, `npm run test`, `npm run screenshot`, and `npm run screenshot:analyze`. TooltipProvider now renders correctly in Vitest, Playwright visual runs complete without timing out on the theme banner, and the project lints clean with zero outstanding warnings.
 
 Phase 6 - Release Packaging (PRD Sec 20, Appendices)
 
@@ -633,7 +636,7 @@ Status Snapshot
 
 - Phase 0.1: Complete (Matsu Folio split pane, inline counters, virtualized gear/spell lists live as of 2025-10-05).
 - Phase 1: Complete (composer checklist + overlay citations landed 2025-10-05; Playwright baseline + integration spec follow-ups tracked in Phase 5).
-- Phase 2: Entity linking + advanced equip behavior queued next.
+- Phase 2: Complete (entity linking history + slot-hint inventory placement landed 2025-10-09).
 - Phases 3-6: Planned; begin once Phase 2 lands.
 
 Appendix A — Minimal Tool Schema Set (starter)

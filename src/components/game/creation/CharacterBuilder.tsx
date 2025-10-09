@@ -1333,29 +1333,25 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({
     const pool = getStandardArray()
     const [assignments, setAssignments] = useState<
       Record<keyof Attributes, number>
-    >({
+    >(() => ({
       STR: resolveAttributeScore(draft.attributes.STR, 10),
       DEX: resolveAttributeScore(draft.attributes.DEX, 10),
       CON: resolveAttributeScore(draft.attributes.CON, 10),
       INT: resolveAttributeScore(draft.attributes.INT, 10),
       WIS: resolveAttributeScore(draft.attributes.WIS, 10),
       CHA: resolveAttributeScore(draft.attributes.CHA, 10),
-    })
+    }))
 
     const used = new Set(Object.values(assignments))
     const remaining = pool.filter((v) => !used.has(v))
 
     const setVal = (attr: keyof Attributes, value: number) => {
-      setAssignments((a) => {
-        const prev = { ...a }
-        prev[attr] = value
-        return prev
+      setAssignments((current) => {
+        const next = { ...current, [attr]: value }
+        setDraft((d) => ({ ...d, attributes: next as Attributes }))
+        return next
       })
     }
-
-    useEffect(() => {
-      setDraft((d) => ({ ...d, attributes: assignments as Attributes }))
-    }, [assignments])
 
     return (
       <div className='space-y-4'>

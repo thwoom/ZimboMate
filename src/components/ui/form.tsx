@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import type * as LabelPrimitive from '@radix-ui/react-label'
 import type { ControllerProps, FieldPath, FieldValues } from 'react-hook-form'
 import { Slot } from '@radix-ui/react-slot'
@@ -13,7 +14,6 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
 const Form = FormProvider
-
 interface FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -36,10 +36,15 @@ const FormItemContext = React.createContext<FormItemContextValue>(
 function FormField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({ ...props }: ControllerProps<TFieldValues, TName>) {
+>({ name, ...props }: ControllerProps<TFieldValues, TName>) {
+  const contextValue = React.useMemo<FormFieldContextValue>(
+    () => ({ name }),
+    [name],
+  )
+
   return (
-    <FormFieldContext value={{ name: props.name }}>
-      <Controller {...props} />
+    <FormFieldContext value={contextValue}>
+      <Controller name={name} {...props} />
     </FormFieldContext>
   )
 }
@@ -69,9 +74,10 @@ function useFormField() {
 
 function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
   const id = React.useId()
+  const contextValue = React.useMemo<FormItemContextValue>(() => ({ id }), [id])
 
   return (
-    <FormItemContext value={{ id }}>
+    <FormItemContext value={contextValue}>
       <div
         data-slot='form-item'
         className={cn('grid gap-2', className)}

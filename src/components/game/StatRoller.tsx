@@ -111,6 +111,8 @@ const STAT_INFO: Record<Stat, StatInfo> = {
   },
 }
 
+const EMPTY_STAT_MODIFIERS: Partial<Record<Stat, number>> = Object.freeze({})
+
 interface StatRollerProps {
   characterName?: string
   statModifiers?: Partial<Record<Stat, number>>
@@ -190,8 +192,11 @@ const StatExamples: React.FC<{ stat: Stat }> = ({ stat }) => {
         </span>
       </div>
       <div className='grid grid-cols-2 gap-1 text-xs text-muted-foreground '>
-        {info.examples.map((example, index) => (
-          <div key={index} className='flex items-center gap-1'>
+        {info.examples.map((example) => (
+          <div
+            key={`${info.name}-${example}`}
+            className='flex items-center gap-1'
+          >
             <span className='w-1 h-1 bg-gray-400 rounded-full' />
             <span>{example}</span>
           </div>
@@ -203,7 +208,7 @@ const StatExamples: React.FC<{ stat: Stat }> = ({ stat }) => {
 
 export const StatRoller: React.FC<StatRollerProps> = ({
   characterName,
-  statModifiers = {},
+  statModifiers = EMPTY_STAT_MODIFIERS,
   onStatRoll,
   disabled = false,
   showExamples = true,
@@ -336,3 +341,8 @@ export const QuickStatRoll: React.FC<{
     />
   )
 }
+
+
+
+
+

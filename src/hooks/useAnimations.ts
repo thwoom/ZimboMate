@@ -508,9 +508,10 @@ export function useAnimations(): UseAnimationsReturn {
   useEffect(() => {
     return () => {
       // Cleanup all particle systems
-      const cleanupFns = Array.from(particleSystemsRef.current.values())
-      particleSystemsRef.current.clear()
-      cleanupFns.forEach((cleanup) => cleanup())
+      const systems = particleSystemsRef.current
+      particleSystemsRef.current = new Map()
+      systems.forEach((cleanup) => cleanup())
+      systems.clear()
     }
   }, [])
 

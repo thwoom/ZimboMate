@@ -72,9 +72,9 @@ const NotificationItem: React.FC<{
           {/* Actions */}
           {notification.actions && notification.actions.length > 0 && (
             <div className='flex gap-2'>
-              {notification.actions.map((action, actionIndex) => (
+              {notification.actions.map((action) => (
                 <Button
-                  key={actionIndex}
+                  key={`${notification.id}-${action.label}`}
                   variant={action.style === 'primary' ? 'default' : 'outline'}
                   size='sm'
                   onClick={() => {

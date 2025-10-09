@@ -67,4 +67,5 @@ function Progress({
 }
 Progress.displayName = ProgressPrimitive.Root.displayName
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Progress, progressFillVariants, progressVariants }

@@ -13,6 +13,7 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 import React, { useMemo, useState } from 'react'
+import { stableStringify } from '@/utils/stableStringify'
 import { keyboardShortcutsContent } from '../help/KeyboardShortcutsContent'
 
 // Import documentation content
@@ -42,36 +43,39 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [copiedText, setCopiedText] = useState<string | null>(null)
 
-  const helpSections: HelpSection[] = [
-    {
-      id: 'quick-start',
-      title: 'Quick Start',
-      icon: Rocket,
-      content: quickStartContent,
-      searchable: true,
-    },
-    {
-      id: 'user-guide',
-      title: 'User Guide',
-      icon: BookOpen,
-      content: userGuideContent,
-      searchable: true,
-    },
-    {
-      id: 'shortcuts',
-      title: 'Keyboard Shortcuts',
-      icon: Keyboard,
-      content: keyboardShortcutsContent,
-      searchable: true,
-    },
-    {
-      id: 'troubleshooting',
-      title: 'Troubleshooting',
-      icon: TriangleAlert,
-      content: troubleshootingContent,
-      searchable: true,
-    },
-  ]
+  const helpSections = useMemo<HelpSection[]>(
+    () => [
+      {
+        id: 'quick-start',
+        title: 'Quick Start',
+        icon: Rocket,
+        content: quickStartContent,
+        searchable: true,
+      },
+      {
+        id: 'user-guide',
+        title: 'User Guide',
+        icon: BookOpen,
+        content: userGuideContent,
+        searchable: true,
+      },
+      {
+        id: 'shortcuts',
+        title: 'Keyboard Shortcuts',
+        icon: Keyboard,
+        content: keyboardShortcutsContent,
+        searchable: true,
+      },
+      {
+        id: 'troubleshooting',
+        title: 'Troubleshooting',
+        icon: TriangleAlert,
+        content: troubleshootingContent,
+        searchable: true,
+      },
+    ],
+    [],
+  )
 
   const filteredContent = useMemo(() => {
     if (!searchQuery.trim()) return null
@@ -96,6 +100,24 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
     return results
   }, [searchQuery, helpSections])
 
+  const getContentItemKey = (item: any): string => {
+    if (!item) return 'content-null'
+    if (typeof item.id === 'string') return item.id
+    if (typeof item.title === 'string') return `${item.type}-${item.title}`
+    if (typeof item.content === 'string')
+      return `${item.type}-${item.content}`
+    if (Array.isArray(item.items))
+      return `${item.type}-${item.items.join('|')}`
+    if (Array.isArray(item.headers))
+      return `${item.type}-${item.headers.join('|')}`
+    if (Array.isArray(item.rows)) {
+      return `${item.type}-${item.rows
+        .map((row: string[]) => row.join('|'))
+        .join('~')}`
+    }
+    return `${item.type ?? 'item'}-${stableStringify(item)}`
+  }
+
   const handleCopyText = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text)
@@ -106,14 +128,17 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
     }
   }
 
-  const renderContent = (content: any[]) => {
-    return content.map((item, index) => (
-      <motion.div
-        key={index}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05 }}
-      >
+  const renderContent = (content: any[]) =>
+    content.map((item, index) => {
+      const containerKey = getContentItemKey(item)
+
+      return (
+        <motion.div
+          key={containerKey}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.05 }}
+        >
         {item.type === 'heading' && (
           <h3 className='text-display-sm mb-4 mt-8 first:mt-0 text-primary'>
             {item.content}
@@ -134,8 +159,11 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
 
         {item.type === 'list' && (
           <ul className='list-disc list-inside mb-4 space-y-2'>
-            {item.items.map((listItem: string, i: number) => (
-              <li key={i} className='text-body-regular text-muted-foreground'>
+            {item.items.map((listItem: string) => (
+              <li
+                key={`${item.type}-${listItem}`}
+                className='text-body-regular text-muted-foreground'
+              >
                 {listItem}
               </li>
             ))}
@@ -147,9 +175,9 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
             <table className='w-full border-collapse'>
               <thead>
                 <tr className='border-b-2 border-border'>
-                  {item.headers.map((header: string, i: number) => (
+                  {item.headers.map((header: string) => (
                     <th
-                      key={i}
+                      key={`${item.type}-${header}`}
                       className='text-left p-3 font-semibold text-foreground'
                     >
                       {header}
@@ -158,41 +186,53 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {item.rows.map((row: string[], i: number) => (
-                  <tr key={i} className='border-b border-border'>
-                    {row.map((cell, j) => (
-                      <td
-                        key={j}
-                        className='p-3 text-body-regular text-muted-foreground'
-                      >
-                        {cell.includes('**') ? (
-                          <code
-                            className='px-2 py-1 rounded text-sm font-mono cursor-pointer hover:bg-opacity-80 transition-colors'
-                            style={{
-                              backgroundColor: 'var(--popover)',
-                              color: 'var(--primary)',
-                            }}
-                            onClick={() =>
-                              handleCopyText(cell.replace(/\*\*/g, ''))
-                            }
+                {item.rows.map((row: string[]) => {
+                  const rowKey = `${item.type}-${row.join('|')}`
+
+                  return (
+                    <tr key={rowKey} className='border-b border-border'>
+                      {row.map((cell, columnIndex) => {
+                        const headerKey = Array.isArray(item.headers)
+                          ? item.headers[columnIndex]
+                          : undefined
+                        const cellToken =
+                          headerKey ?? cell ?? stableStringify({ cell })
+
+                        return (
+                          <td
+                            key={`${rowKey}-${cellToken}`}
+                            className='p-3 text-body-regular text-muted-foreground'
                           >
-                            {cell.replace(/\*\*/g, '')}
-                            {copiedText === cell.replace(/\*\*/g, '') ? (
-                              <Check size={12} className='inline ml-1' />
+                            {cell.includes('**') ? (
+                              <code
+                                className='px-2 py-1 rounded text-sm font-mono cursor-pointer hover:bg-opacity-80 transition-colors'
+                                style={{
+                                  backgroundColor: 'var(--popover)',
+                                  color: 'var(--primary)',
+                                }}
+                                onClick={() =>
+                                  handleCopyText(cell.replace(/\*\*/g, ''))
+                                }
+                              >
+                                {cell.replace(/\*\*/g, '')}
+                                {copiedText === cell.replace(/\*\*/g, '') ? (
+                                  <Check size={12} className='inline ml-1' />
+                                ) : (
+                                  <Copy
+                                    size={12}
+                                    className='inline ml-1 opacity-50'
+                                  />
+                                )}
+                              </code>
                             ) : (
-                              <Copy
-                                size={12}
-                                className='inline ml-1 opacity-50'
-                              />
+                              cell
                             )}
-                          </code>
-                        ) : (
-                          cell
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -239,9 +279,9 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
             </p>
           </div>
         )}
-      </motion.div>
-    ))
-  }
+        </motion.div>
+      )
+    })
 
   const renderSearchResults = () => {
     if (!filteredContent || filteredContent.length === 0) {
@@ -262,11 +302,12 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
 
     return (
       <div className='space-y-4'>
-        {filteredContent.map((item, index) => {
+        {filteredContent.map((item) => {
           const SectionIcon = item.sectionIcon
+          const cardKey = `${item.sectionId}-${item.title ?? stableStringify(item)}`
           return (
             <Card
-              key={index}
+              key={cardKey}
               variant='default'
               className='hover:shadow-md transition-shadow'
             >
