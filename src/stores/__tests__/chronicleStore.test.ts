@@ -274,9 +274,49 @@ describe('chronicleStore delta history', () => {
     })
 
     expect(useChronicleStore.getState().bundleSnapshots).not.toHaveLength(0)
+    store.recordAuditEvent({
+      id: 'audit-bundle-clear',
+      bundleId: 'bundle-clear',
+      entryId: 'entry-clear',
+      action: 'applied',
+      actor: 'manual',
+      timestamp: '2025-10-09T11:00:01.000Z',
+      appliedOps: [],
+      skippedOps: [],
+    })
+
+    store.logResourceChange({
+      type: 'xp',
+      id: 'xp-log-clear',
+      bundleId: 'bundle-clear',
+      entryId: 'entry-clear',
+      createdAt: '2025-10-09T11:00:01.000Z',
+      characterId: 'char-clear',
+      amount: 1,
+      previous: 0,
+      next: 1,
+      reason: 'test-clear',
+    })
+
+    expect(
+      useChronicleStore
+        .getState()
+        .resourceHistory.xp['char-clear'],
+    ).toHaveLength(1)
+    expect(useChronicleStore.getState().auditLog[0]?.bundleId).toBe(
+      'bundle-clear',
+    )
 
     store.clearDeltaLog('bundle-clear')
     expect(useChronicleStore.getState().bundleSnapshots).toHaveLength(0)
+    expect(
+      useChronicleStore.getState().resourceHistory.xp['char-clear'],
+    ).toBeUndefined()
+    expect(
+      useChronicleStore
+        .getState()
+        .auditLog.some((entry) => entry.bundleId === 'bundle-clear'),
+    ).toBe(false)
   })
 
   it('endBundleApply removes pending snapshots when no bundle is applied', () => {
@@ -294,5 +334,76 @@ describe('chronicleStore delta history', () => {
     store.endBundleApply()
 
     expect(useChronicleStore.getState().bundleSnapshots).toHaveLength(0)
+  })
+
+  it('clearAutomationHistory wipes all automation artifacts', () => {
+    const store = useChronicleStore.getState()
+
+    store.logDeltaResult(
+      makeLog({
+        bundleId: 'bundle-all',
+        entryId: 'entry-all',
+      }),
+    )
+    store.recordAuditEvent({
+      id: 'audit-all',
+      bundleId: 'bundle-all',
+      entryId: 'entry-all',
+      action: 'applied',
+      actor: 'system',
+      timestamp: '2025-10-09T12:00:00.000Z',
+      appliedOps: [],
+      skippedOps: [],
+    })
+    store.logResourceChange({
+      type: 'coin',
+      id: 'coin-log-all',
+      bundleId: 'bundle-all',
+      entryId: 'entry-all',
+      createdAt: '2025-10-09T12:00:00.000Z',
+      characterId: 'char-all',
+      amount: 5,
+      previous: 10,
+      next: 15,
+      reason: 'test',
+    })
+    store.recordBundleSnapshot({
+      id: 'before-bundle-all',
+      bundleId: 'bundle-all',
+      entryId: 'entry-all',
+      stage: 'before',
+      capturedAt: '2025-10-09T11:59:59.000Z',
+      actor: 'manual',
+      autoApply: false,
+      metrics: {
+        totalCharacters: 0,
+        characters: [],
+        inventory: {
+          totalItems: 0,
+          totalEquipped: 0,
+          totalQuickSlots: 0,
+          equippedItemIds: [],
+          quickSlotIds: [],
+        },
+        holds: [],
+        totalHoldEntries: 0,
+      },
+    })
+
+    expect(useChronicleStore.getState().deltaHistory).toHaveLength(1)
+    expect(useChronicleStore.getState().auditLog).toHaveLength(1)
+    expect(
+      Object.keys(useChronicleStore.getState().resourceHistory.coin),
+    ).toHaveLength(1)
+    expect(useChronicleStore.getState().bundleSnapshots).toHaveLength(1)
+
+    store.clearAutomationHistory()
+
+    const state = useChronicleStore.getState()
+    expect(state.deltaHistory).toHaveLength(0)
+    expect(state.auditLog).toHaveLength(0)
+    expect(Object.keys(state.resourceHistory.coin)).toHaveLength(0)
+    expect(state.bundleSnapshots).toHaveLength(0)
+    expect(state.pendingDeltaBundle).toBeNull()
   })
 })

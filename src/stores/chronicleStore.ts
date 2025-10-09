@@ -87,6 +87,7 @@ interface ChronicleState {
   // Automation Logs
   deltaHistory: ChronicleDeltaLog[]
   logDeltaResult: (log: ChronicleDeltaLog) => void
+  clearAutomationHistory: (bundleId?: string) => void
   clearDeltaLog: (bundleId?: string) => void
   getDeltaLog: (bundleId: string) => ChronicleDeltaLog | undefined
   pendingDeltaBundle: PendingChronicleBundle | null
@@ -565,17 +566,45 @@ export const useChronicleStore = create<ChronicleState>()(
         })
       },
 
-      clearDeltaLog: (bundleId?: string) => {
-        set((state) => ({
-          deltaHistory: bundleId
-            ? state.deltaHistory.filter((entry) => entry.bundleId !== bundleId)
-            : [],
-          bundleSnapshots: bundleId
-            ? state.bundleSnapshots.filter(
-                (snapshot) => snapshot.bundleId !== bundleId,
-              )
-            : [],
+      clearAutomationHistory: (bundleId) => {
+        if (bundleId) {
+          set((state) => ({
+            deltaHistory: state.deltaHistory.filter(
+              (entry) => entry.bundleId !== bundleId,
+            ),
+            auditLog: state.auditLog.filter(
+              (entry) => entry.bundleId !== bundleId,
+            ),
+            bundleSnapshots: state.bundleSnapshots.filter(
+              (snapshot) => snapshot.bundleId !== bundleId,
+            ),
+            resourceHistory: {
+              xp: pruneRecord(state.resourceHistory.xp, bundleId),
+              bonds: pruneRecord(state.resourceHistory.bonds, bundleId),
+              hold: pruneRecord(state.resourceHistory.hold, bundleId),
+              debilities: pruneRecord(state.resourceHistory.debilities, bundleId),
+              hp: pruneRecord(state.resourceHistory.hp, bundleId),
+              coin: pruneRecord(state.resourceHistory.coin, bundleId),
+            },
+            pendingDeltaBundle:
+              state.pendingDeltaBundle?.bundleId === bundleId
+                ? null
+                : state.pendingDeltaBundle,
+          }))
+          return
+        }
+
+        set(() => ({
+          deltaHistory: [],
+          auditLog: [],
+          bundleSnapshots: [],
+          resourceHistory: createResourceHistory(),
+          pendingDeltaBundle: null,
         }))
+      },
+
+      clearDeltaLog: (bundleId?: string) => {
+        get().clearAutomationHistory(bundleId)
       },
 
       getDeltaLog: (bundleId: string) =>

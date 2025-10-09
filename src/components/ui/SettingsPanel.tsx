@@ -185,17 +185,13 @@ const GameplaySettingsContent: React.FC = () => {
   } = useChronicle()
   const { settings, updateSettings } = useChronicleLLM()
   const {
-    clearDeltaLog,
-    clearBundleSnapshots,
-    clearAuditLog,
+    clearAutomationHistory,
     endBundleApply,
     deltaHistoryCount,
     auditLogCount,
     snapshotCount,
   } = useChronicleStore((state) => ({
-    clearDeltaLog: state.clearDeltaLog,
-    clearBundleSnapshots: state.clearBundleSnapshots,
-    clearAuditLog: state.clearAuditLog,
+    clearAutomationHistory: state.clearAutomationHistory,
     endBundleApply: state.endBundleApply,
     deltaHistoryCount: state.deltaHistory.length,
     auditLogCount: state.auditLog.length,
@@ -268,11 +264,9 @@ const GameplaySettingsContent: React.FC = () => {
     deltaHistoryCount > 0 || auditLogCount > 0 || snapshotCount > 0
 
   const handleClearAutomationLog = useCallback(() => {
-    clearDeltaLog()
-    clearBundleSnapshots()
-    clearAuditLog()
+    clearAutomationHistory()
     endBundleApply()
-  }, [clearAuditLog, clearBundleSnapshots, clearDeltaLog, endBundleApply])
+  }, [clearAutomationHistory, endBundleApply])
 
   const commitCostCap = useCallback(
     (value: string) => {
