@@ -183,19 +183,31 @@ const GameplaySettingsContent: React.FC = () => {
     maxPrompts,
     setMaxPrompts,
   } = useChronicle()
-  const { settings, updateSettings } = useChronicleLLM()
+  const {
+    settings,
+    updateSettings,
+    sessionCostCents,
+    costCapCents,
+    remainingCostBudgetCents,
+    isCostGuardrailActive,
+    resetSessionCost,
+  } = useChronicleLLM()
   const {
     clearAutomationHistory,
     endBundleApply,
     deltaHistoryCount,
     auditLogCount,
     snapshotCount,
+    exportBundleSnapshots,
+    latestBundleId,
   } = useChronicleStore((state) => ({
     clearAutomationHistory: state.clearAutomationHistory,
     endBundleApply: state.endBundleApply,
     deltaHistoryCount: state.deltaHistory.length,
     auditLogCount: state.auditLog.length,
     snapshotCount: state.bundleSnapshots.length,
+    exportBundleSnapshots: state.exportBundleSnapshots,
+    latestBundleId: state.deltaHistory[0]?.bundleId ?? null,
   }))
 
   const autoApplyPolicy = useMemo(
@@ -260,6 +272,34 @@ const GameplaySettingsContent: React.FC = () => {
     return (settings.costCapCents / 100).toFixed(2)
   }, [settings.costCapCents])
 
+  const sessionSpendDisplay = useMemo(
+    () => (sessionCostCents / 100).toFixed(2),
+    [sessionCostCents],
+  )
+
+  const remainingBudgetDisplay = useMemo(() => {
+    if (remainingCostBudgetCents == null) return null
+    return (remainingCostBudgetCents / 100).toFixed(2)
+  }, [remainingCostBudgetCents])
+
+  const guardrailBadgeVariant = isCostGuardrailActive
+    ? 'destructive'
+    : costCapDisplay
+      ? 'primary'
+      : 'outline'
+
+  const [snapshotCopyState, setSnapshotCopyState] = useState<
+    'idle' | 'copied' | 'error'
+  >('idle')
+
+  useEffect(() => {
+    if (snapshotCopyState === 'copied') {
+      const timeout = setTimeout(() => setSnapshotCopyState('idle'), 2000)
+      return () => clearTimeout(timeout)
+    }
+    return undefined
+  }, [snapshotCopyState])
+
   const hasAutomationHistory =
     deltaHistoryCount > 0 || auditLogCount > 0 || snapshotCount > 0
 
@@ -267,6 +307,31 @@ const GameplaySettingsContent: React.FC = () => {
     clearAutomationHistory()
     endBundleApply()
   }, [clearAutomationHistory, endBundleApply])
+
+  const handleResetSessionCost = useCallback(() => {
+    resetSessionCost()
+  }, [resetSessionCost])
+
+  const handleExportLatestSnapshot = useCallback(async () => {
+    if (!latestBundleId) {
+      setSnapshotCopyState('error')
+      return
+    }
+
+    const payload = exportBundleSnapshots(latestBundleId)
+    if (!payload) {
+      setSnapshotCopyState('error')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(payload)
+      setSnapshotCopyState('copied')
+    } catch (error) {
+      console.error('[settings] Failed to copy snapshot payload', error)
+      setSnapshotCopyState('error')
+    }
+  }, [exportBundleSnapshots, latestBundleId])
 
   const commitCostCap = useCallback(
     (value: string) => {
@@ -478,55 +543,75 @@ const GameplaySettingsContent: React.FC = () => {
             </div>
           </div>
 
-          <div className='flex items-start justify-between'>
-            <div>
+          <div className='flex items-start justify-between gap-6'>
+            <div className='space-y-2'>
               <div className='flex items-center gap-2'>
                 <label className='text-sm font-medium'>Cost Guardrail</label>
-                <Badge
-                  variant={costCapDisplay ? 'primary' : 'outline'}
-                  className='text-xs'
-                >
-                  {costCapDisplay ? `$${costCapDisplay}` : 'Off'}
+                <Badge variant={guardrailBadgeVariant} className='text-xs'>
+                  {costCapDisplay
+                    ? isCostGuardrailActive
+                      ? `Cap $${costCapDisplay} (Hit)`
+                      : `Cap $${costCapDisplay} / Spent $${sessionSpendDisplay}`
+                    : `Off / Spent $${sessionSpendDisplay}`}
                 </Badge>
               </div>
               <p className='text-xs text-muted-foreground '>
                 Set a GPT-5 spend limit per session (USD). Chronicle falls back
                 to templates when the cap is reached.
               </p>
+              {costCapDisplay && (
+                <p className='text-xs text-muted-foreground '>
+                  {isCostGuardrailActive
+                    ? 'Guardrail engaged — GPT-5 calls now return template responses.'
+                    : `Remaining budget $${remainingBudgetDisplay ?? '0.00'}`}
+                </p>
+              )}
             </div>
-            <div className='flex items-center gap-2'>
-              <span className='text-sm text-muted-foreground'>$</span>
-              <input
-                type='number'
-                min='0'
-                step='0.50'
-                value={costCapInput}
-                onChange={(event) => setCostCapInputState(event.target.value)}
-                onBlur={() => commitCostCap(costCapInput)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.currentTarget.blur()
-                  }
-                }}
-                placeholder='0.00'
-                className='w-24 rounded border px-2 py-1 text-sm'
-                style={{
-                  backgroundColor: 'var(--card)',
-                  borderColor: 'var(--border)',
-                  color: 'var(--foreground)',
-                }}
-              />
-              <Button
-                size='sm'
-                variant='ghost'
-                onClick={() => {
-                  setCostCapInputState('')
-                  updateSettings({ costCapCents: undefined })
-                }}
-                disabled={!costCapInput}
-              >
-                Clear
-              </Button>
+            <div className='flex flex-col items-end gap-2'>
+              <div className='flex items-center gap-2'>
+                <span className='text-sm text-muted-foreground'>$</span>
+                <input
+                  type='number'
+                  min='0'
+                  step='0.50'
+                  value={costCapInput}
+                  onChange={(event) => setCostCapInputState(event.target.value)}
+                  onBlur={() => commitCostCap(costCapInput)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.currentTarget.blur()
+                    }
+                  }}
+                  placeholder='0.00'
+                  className='w-24 rounded border px-2 py-1 text-sm'
+                  style={{
+                    backgroundColor: 'var(--card)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--foreground)',
+                  }}
+                />
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  onClick={() => {
+                    setCostCapInputState('')
+                    updateSettings({ costCapCents: undefined })
+                  }}
+                  disabled={!costCapInput}
+                >
+                  Clear
+                </Button>
+              </div>
+              <div className='flex items-center gap-2'>
+                <Button
+                  size='sm'
+                  variant='outline'
+                  onClick={handleResetSessionCost}
+                  disabled={sessionCostCents === 0}
+                >
+                  Reset Spend
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -550,21 +635,39 @@ const GameplaySettingsContent: React.FC = () => {
                   Auto-equip {settings.autoEquipWeapons ? 'On' : 'Off'}
                 </Badge>
                 <Badge
-                  variant={costCapDisplay ? 'primary' : 'outline'}
+                  variant={guardrailBadgeVariant}
                   className='font-normal'
                 >
-                  Guardrail {costCapDisplay ? `$${costCapDisplay}` : 'Off'}
+                  {costCapDisplay
+                    ? isCostGuardrailActive
+                      ? `Guardrail hit (Spent $${sessionSpendDisplay})`
+                      : `Guardrail $${costCapDisplay} / Spent $${sessionSpendDisplay}`
+                    : `Guardrail off / Spent $${sessionSpendDisplay}`}
                 </Badge>
               </div>
             </div>
-            <Button
-              size='sm'
-              variant='destructive'
-              onClick={handleClearAutomationLog}
-              disabled={!hasAutomationHistory}
-            >
-              Clear Log
-            </Button>
+            <div className='flex items-center gap-2'>
+              <Button
+                size='sm'
+                variant='outline'
+                onClick={handleExportLatestSnapshot}
+                disabled={!latestBundleId || snapshotCount === 0}
+              >
+                {snapshotCopyState === 'copied'
+                  ? 'Snapshot Copied'
+                  : snapshotCopyState === 'error'
+                    ? 'Snapshot Unavailable'
+                    : 'Copy Latest Snapshot'}
+              </Button>
+              <Button
+                size='sm'
+                variant='destructive'
+                onClick={handleClearAutomationLog}
+                disabled={!hasAutomationHistory}
+              >
+                Clear Log
+              </Button>
+            </div>
           </div>
         </div>
       </div>

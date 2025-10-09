@@ -90,6 +90,7 @@ interface ChronicleState {
   clearAutomationHistory: (bundleId?: string) => void
   clearDeltaLog: (bundleId?: string) => void
   getDeltaLog: (bundleId: string) => ChronicleDeltaLog | undefined
+  getAutomationHistory: (limit?: number) => ChronicleDeltaLog[]
   pendingDeltaBundle: PendingChronicleBundle | null
   setPendingDeltaBundle: (pending: PendingChronicleBundle | null) => void
   beginBundleApply: (payload: BeginBundleApplyPayload) => void
@@ -104,6 +105,10 @@ interface ChronicleState {
     snapshot: ChronicleBundleSnapshot,
     previousBundleId?: string | null,
   ) => void
+  getBundleSnapshots: (
+    bundleId: string,
+  ) => { before: ChronicleBundleSnapshot | null; after: ChronicleBundleSnapshot | null }
+  exportBundleSnapshots: (bundleId: string) => string | null
   clearBundleSnapshots: (bundleId?: string) => void
   resourceHistory: ResourceHistoryState
   logResourceChange: (entry: ResourceLogEntry) => void
@@ -165,6 +170,10 @@ interface ChronicleState {
   exportData: () => string
   importData: (data: string) => void
   updateSettings: (settings: Partial<ChronicleSettings>) => void
+  sessionCostCents: number
+  lastCostEventAt: string | null
+  recordSessionCost: (costCents: number, timestamp?: string) => void
+  resetSessionCost: () => void
 }
 
 // Default settings
@@ -545,6 +554,8 @@ export const useChronicleStore = create<ChronicleState>()(
       auditLog: [],
       bundleSnapshots: [],
       resourceHistory: createResourceHistory(),
+      sessionCostCents: 0,
+      lastCostEventAt: null,
 
       logDeltaResult: (log: ChronicleDeltaLog) => {
         const createdAt =
@@ -605,6 +616,14 @@ export const useChronicleStore = create<ChronicleState>()(
 
       clearDeltaLog: (bundleId?: string) => {
         get().clearAutomationHistory(bundleId)
+      },
+
+      getAutomationHistory: (limit) => {
+        const history = get().deltaHistory
+        if (typeof limit === 'number' && Number.isFinite(limit) && limit >= 0) {
+          return history.slice(0, Math.floor(limit))
+        }
+        return history
       },
 
       getDeltaLog: (bundleId: string) =>
@@ -850,6 +869,36 @@ export const useChronicleStore = create<ChronicleState>()(
 
           return { bundleSnapshots: nextSnapshots }
         })
+      },
+
+      getBundleSnapshots: (bundleId) => {
+        if (!bundleId) return { before: null, after: null }
+        const snapshots = get().bundleSnapshots.filter(
+          (snapshot) => snapshot.bundleId === bundleId,
+        )
+        const before =
+          snapshots.find((snapshot) => snapshot.stage === 'before') ?? null
+        const after =
+          snapshots.find((snapshot) => snapshot.stage === 'after') ?? null
+        return { before, after }
+      },
+
+      exportBundleSnapshots: (bundleId) => {
+        const { before, after } = get().getBundleSnapshots(bundleId)
+        if (!before && !after) {
+          return null
+        }
+
+        return JSON.stringify(
+          {
+            bundleId,
+            exportedAt: new Date().toISOString(),
+            before,
+            after,
+          },
+          null,
+          2,
+        )
       },
 
       clearBundleSnapshots: (bundleId) => {
@@ -1529,6 +1578,8 @@ export const useChronicleStore = create<ChronicleState>()(
           auditLog: [],
           bundleSnapshots: [],
           resourceHistory: createResourceHistory(),
+          sessionCostCents: 0,
+          lastCostEventAt: null,
         }))
       },
 
@@ -1573,6 +1624,28 @@ export const useChronicleStore = create<ChronicleState>()(
       updateSettings: (newSettings) => {
         set((state) => ({
           settings: { ...state.settings, ...newSettings },
+        }))
+      },
+
+      recordSessionCost: (costCents, timestamp) => {
+        if (
+          typeof costCents !== 'number' ||
+          Number.isNaN(costCents) ||
+          costCents <= 0
+        ) {
+          return
+        }
+
+        set((state) => ({
+          sessionCostCents: state.sessionCostCents + Math.round(costCents),
+          lastCostEventAt: timestamp ?? new Date().toISOString(),
+        }))
+      },
+
+      resetSessionCost: () => {
+        set(() => ({
+          sessionCostCents: 0,
+          lastCostEventAt: null,
         }))
       },
     }),
@@ -1641,6 +1714,14 @@ export const useChronicleStore = create<ChronicleState>()(
             hp: resourceHistory.hp ?? {},
             coin: resourceHistory.coin ?? {},
           },
+          sessionCostCents:
+            typeof persistedState.sessionCostCents === 'number'
+              ? persistedState.sessionCostCents
+              : 0,
+          lastCostEventAt:
+            typeof persistedState.lastCostEventAt === 'string'
+              ? persistedState.lastCostEventAt
+              : null,
         }
 
         return hydratedState

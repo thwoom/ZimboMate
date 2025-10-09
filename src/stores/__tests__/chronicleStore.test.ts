@@ -1,4 +1,5 @@
 import type {
+  ChronicleBundleSnapshot,
   ChronicleDeltaLog,
   Entity,
   Relationship,
@@ -92,6 +93,8 @@ beforeEach(() => {
     },
     entities: [],
     relationships: [],
+    sessionCostCents: 0,
+    lastCostEventAt: null,
   })
 
   useCharacterStore.setState({
@@ -405,5 +408,94 @@ describe('chronicleStore delta history', () => {
     expect(Object.keys(state.resourceHistory.coin)).toHaveLength(0)
     expect(state.bundleSnapshots).toHaveLength(0)
     expect(state.pendingDeltaBundle).toBeNull()
+  })
+
+  it('getBundleSnapshots returns before and after snapshots for a bundle', () => {
+    const store = useChronicleStore.getState()
+
+    const beforeSnapshot: ChronicleBundleSnapshot = {
+      id: 'before-bundle-test',
+      bundleId: 'bundle-test',
+      entryId: 'entry-test',
+      stage: 'before',
+      capturedAt: '2025-10-09T09:00:00.000Z',
+      actor: 'auto',
+      autoApply: true,
+      metrics: {
+        totalCharacters: 0,
+        characters: [],
+        inventory: {
+          totalItems: 0,
+          totalEquipped: 0,
+          totalQuickSlots: 0,
+          equippedItemIds: [],
+          quickSlotIds: [],
+        },
+        holds: [],
+        totalHoldEntries: 0,
+      },
+    }
+
+    const afterSnapshot: ChronicleBundleSnapshot = {
+      ...beforeSnapshot,
+      id: 'after-bundle-test',
+      stage: 'after',
+      capturedAt: '2025-10-09T09:00:01.000Z',
+    }
+
+    store.recordBundleSnapshot(beforeSnapshot)
+    store.recordBundleSnapshot(afterSnapshot)
+
+    const snapshots = useChronicleStore.getState().getBundleSnapshots('bundle-test')
+    expect(snapshots.before?.id).toBe('before-bundle-test')
+    expect(snapshots.after?.id).toBe('after-bundle-test')
+
+    const exportPayload =
+      useChronicleStore.getState().exportBundleSnapshots('bundle-test')
+    expect(exportPayload).not.toBeNull()
+    const parsed = JSON.parse(exportPayload as string)
+    expect(parsed.bundleId).toBe('bundle-test')
+    expect(parsed.before.id).toBe('before-bundle-test')
+    expect(parsed.after.id).toBe('after-bundle-test')
+  })
+
+  it('getAutomationHistory supports limiting results', () => {
+    const store = useChronicleStore.getState()
+    for (let index = 0; index < 3; index += 1) {
+      store.logDeltaResult(
+        makeLog({
+          bundleId: `bundle-hist-${index}`,
+          entryId: `entry-hist-${index}`,
+          createdAt: new Date(Date.UTC(2025, 9, 9, 10, 0, index)).toISOString(),
+        }),
+      )
+    }
+
+    const history = useChronicleStore.getState().getAutomationHistory(2)
+    expect(history).toHaveLength(2)
+    expect(history[0].bundleId).toBe('bundle-hist-2')
+    expect(history[1].bundleId).toBe('bundle-hist-1')
+  })
+
+  it('tracks and resets session cost', () => {
+    const {
+      recordSessionCost,
+      resetSessionCost,
+      sessionCostCents: initialCost,
+    } = useChronicleStore.getState()
+
+    expect(initialCost).toBe(0)
+    recordSessionCost(25, '2025-10-09T10:00:00.000Z')
+    recordSessionCost(15.5)
+
+    const afterRecord = useChronicleStore.getState()
+    expect(afterRecord.sessionCostCents).toBe(41)
+    expect(afterRecord.lastCostEventAt).not.toBeNull()
+
+    resetSessionCost()
+
+    const afterReset = useChronicleStore.getState()
+    expect(afterReset.sessionCostCents).toBe(0)
+    expect(afterReset.lastCostEventAt).toBeNull()
   })
 })

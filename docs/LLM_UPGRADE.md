@@ -611,6 +611,8 @@ Phase 3 - Store Hardening & Settings (PRD Sec 6, Sec 12)
 - Wire settings for log clear, auto-equip defaults, cost guardrails.
 - Snapshot state before/after bundle apply for QA.
 
+**2025-10-09 Phase 3 update:** Chronicle store now records session LLM spend with exportable automation history helpers (bundle snapshot pair selectors + JSON export), and the Settings panel exposes guardrail controls: cost caps trigger template fallbacks with overlay messaging, session spend can be reset, and QA can copy the latest before/after snapshot directly.
+
 Phase 4 - Telemetry, Cost & Rollout Rails (PRD Sec 12, Sec 14, Sec 17.2, Sec 19-20)
 
 - Emit success/failure telemetry for apply/undo with latency + cost.

@@ -28,6 +28,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import { applyChronicleDeltaBundle } from '../../services/chronicle'
@@ -35,6 +36,7 @@ import { chronicleActionListener } from '../../services/ChronicleActionListenerS
 import { gpt5Client } from '../../services/llm'
 import { useChronicleStore } from '../../stores/chronicleStore'
 import { ChronicleOverlay } from './ChronicleOverlay'
+import { computeSha256Hex } from '../../services/llm/hash'
 
 interface ChronicleContextValue {
   emitAction: (context: ActionContext) => void
@@ -86,6 +88,11 @@ interface ChronicleContextValue {
   isApplyingBundle: boolean
   lastProgressEvent: LlmProgressEvent | null
   lastTelemetryEvent: LlmTelemetryEvent | null
+  sessionCostCents: number
+  costCapCents?: number
+  remainingCostBudgetCents: number | null
+  isCostGuardrailActive: boolean
+  resetSessionCost: () => void
 }
 
 const ChronicleContext = createContext<ChronicleContextValue | null>(null)
@@ -114,6 +121,12 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
     useState<LlmTelemetryEvent | null>(null)
 
   const chronicleStore = useChronicleStore()
+  const sessionCostCents = useChronicleStore((state) => state.sessionCostCents)
+  const recordSessionCost = useChronicleStore(
+    (state) => state.recordSessionCost,
+  )
+  const resetSessionCost = useChronicleStore((state) => state.resetSessionCost)
+  const currentSessionId = useChronicleStore((state) => state.currentSessionId)
 
   useEffect(() => {
     chronicleActionListener.setEnabled(isOverlayEnabled)
@@ -121,13 +134,41 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
 
   useEffect(() => {
     const offProgress = gpt5Client.onProgress(setLastProgressEvent)
-    const offTelemetry = gpt5Client.onTelemetry(setLastTelemetryEvent)
+    const offTelemetry = gpt5Client.onTelemetry((event) => {
+      if (
+        typeof event.costCents === 'number' &&
+        Number.isFinite(event.costCents) &&
+        event.costCents > 0
+      ) {
+        recordSessionCost(event.costCents, new Date().toISOString())
+      }
+      setLastTelemetryEvent(event)
+    })
 
     return () => {
       offProgress()
       offTelemetry()
     }
-  }, [])
+  }, [recordSessionCost])
+
+  const previousSessionIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    const normalized = currentSessionId ?? null
+    if (previousSessionIdRef.current !== normalized) {
+      resetSessionCost()
+      previousSessionIdRef.current = normalized
+    }
+  }, [currentSessionId, resetSessionCost])
+
+  const costCapCents = chronicleStore.settings.costCapCents
+  const isCostGuardrailActive =
+    typeof costCapCents === 'number' &&
+    costCapCents >= 0 &&
+    sessionCostCents >= costCapCents
+  const remainingCostBudgetCents =
+    typeof costCapCents === 'number' && costCapCents >= 0
+      ? Math.max(0, costCapCents - sessionCostCents)
+      : null
 
   const emitAction = useCallback(
     (context: ActionContext) => {
@@ -253,10 +294,63 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
     [chronicleStore],
   )
 
+  const buildGuardrailResponse = useCallback(
+    async (
+      input: Omit<ProposeDeltasRequest, 'settings'>,
+    ): Promise<ProposeDeltasResponse> => {
+      const createdAt = new Date().toISOString()
+      const summary = input.rawText.trim()
+      const truncatedSummary =
+        summary.length > 240 ? `${summary.slice(0, 240)}...` : summary
+      const capLine =
+        typeof costCapCents === 'number'
+          ? `Cost cap $${(costCapCents / 100).toFixed(
+              2,
+            )} / Session spend $${(sessionCostCents / 100).toFixed(2)}`
+          : null
+      const narrativeParts = [
+        'Automation guardrail active: GPT-5 call skipped to respect the configured cost budget.',
+        capLine,
+        truncatedSummary ? `Captured note: ${truncatedSummary}` : undefined,
+      ].filter(Boolean)
+      const idempotencyKey = await computeSha256Hex(
+        `${input.entryId}:guardrail:${createdAt}`,
+      )
+
+      return {
+        bundle: {
+          entryId: input.entryId,
+          narrative: narrativeParts.join(' '),
+          ops: [],
+          usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+          reasoning: 'cost_guardrail_triggered',
+          idempotencyKey,
+          model: 'guardrail-template',
+          createdAt,
+        },
+        warnings: [
+          'Session cost guardrail reached. GPT-5 call skipped; template narrative returned.',
+        ],
+      }
+    },
+    [costCapCents, sessionCostCents],
+  )
+
   const proposeEntryDeltas = useCallback(
     async (input: Omit<ProposeDeltasRequest, 'settings'>) => {
       setIsProposing(true)
       try {
+        if (isCostGuardrailActive) {
+          const fallback = await buildGuardrailResponse(input)
+          setLastProgressEvent({
+            progress: 100,
+            stage: 'cost_guardrail',
+            message:
+              'Cost guardrail reached; returning template narrative without contacting GPT-5.',
+          })
+          return fallback
+        }
+
         const request: ProposeDeltasRequest = {
           ...input,
           settings: buildNarrativeSettings(),
@@ -267,11 +361,60 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         setIsProposing(false)
       }
     },
-    [buildNarrativeSettings],
+    [buildGuardrailResponse, buildNarrativeSettings, isCostGuardrailActive],
   )
 
   const applyDeltaBundle = useCallback(
     async (payload: ApplyDeltaBundleRequest) => {
+      if (isCostGuardrailActive) {
+        const guardrailBundleId =
+          payload.bundle.idempotencyKey ??
+          payload.bundle.entryId ??
+          `guardrail-${Date.now()}`
+        const timestamp = new Date().toISOString()
+        const skippedOps = payload.bundle.ops ?? []
+
+        setLastProgressEvent({
+          progress: 100,
+          stage: 'cost_guardrail',
+          message: 'Cost guardrail reached; automation bundle skipped.',
+        })
+
+        chronicleStore.logDeltaResult({
+          bundleId: guardrailBundleId,
+          entryId: payload.bundle.entryId,
+          appliedOps: [],
+          skippedOps,
+          createdAt: timestamp,
+          actor: payload.autoApply ? 'auto' : 'manual',
+          status: 'applied',
+          requestedAt: timestamp,
+          autoApply: Boolean(payload.autoApply),
+        })
+
+        chronicleStore.recordAuditEvent({
+          id: `audit-${guardrailBundleId}`,
+          bundleId: guardrailBundleId,
+          entryId: payload.bundle.entryId,
+          action: 'applied',
+          actor: 'system',
+          reason: 'cost_guardrail',
+          timestamp,
+          appliedOps: [],
+          skippedOps,
+        })
+
+        return {
+          bundleId: guardrailBundleId,
+          appliedOps: [],
+          skippedOps,
+          undoHandle: {
+            bundleId: guardrailBundleId,
+            issuedAt: timestamp,
+          },
+        }
+      }
+
       setIsApplyingBundle(true)
       const applyRequestedAt = new Date()
       const bundleActor: 'auto' | 'manual' | 'system' | 'user' =
@@ -328,7 +471,9 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         })
 
         const resolvedBundleId =
-          result.bundleId ?? payload.bundle.idempotencyKey ?? payload.bundle.entryId
+          result.bundleId ??
+          payload.bundle.idempotencyKey ??
+          payload.bundle.entryId
 
         chronicleStore.finishBundleApply({
           bundleId: resolvedBundleId,
@@ -357,7 +502,12 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         setIsApplyingBundle(false)
       }
     },
-    [chronicleStore, setLastProgressEvent, setLastTelemetryEvent],
+    [
+      chronicleStore,
+      isCostGuardrailActive,
+      setLastProgressEvent,
+      setLastTelemetryEvent,
+    ],
   )
 
   const contextValue = useMemo<ChronicleContextValue>(
@@ -380,6 +530,11 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
       isApplyingBundle,
       lastProgressEvent,
       lastTelemetryEvent,
+      sessionCostCents,
+      costCapCents,
+      remainingCostBudgetCents,
+      isCostGuardrailActive,
+      resetSessionCost,
     }),
     [
       applyDeltaBundle,
@@ -390,6 +545,7 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
       emitEquipmentAction,
       isApplyingBundle,
       isOverlayEnabled,
+      isCostGuardrailActive,
       isProposing,
       lastProgressEvent,
       lastTelemetryEvent,
@@ -398,8 +554,12 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
       proposeEntryDeltas,
       setMaxPrompts,
       setOverlayPosition,
+      sessionCostCents,
       toggleOverlay,
       updateSettings,
+      costCapCents,
+      remainingCostBudgetCents,
+      resetSessionCost,
     ],
   )
 
@@ -433,6 +593,11 @@ export function useChronicleLLM() {
     lastTelemetryEvent,
     settings,
     updateSettings,
+    sessionCostCents,
+    costCapCents,
+    remainingCostBudgetCents,
+    isCostGuardrailActive,
+    resetSessionCost,
   } = useChronicle()
 
   return {
@@ -444,6 +609,11 @@ export function useChronicleLLM() {
     lastTelemetryEvent,
     settings,
     updateSettings,
+    sessionCostCents,
+    costCapCents,
+    remainingCostBudgetCents,
+    isCostGuardrailActive,
+    resetSessionCost,
   }
 }
 
