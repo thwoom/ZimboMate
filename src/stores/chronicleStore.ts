@@ -10,6 +10,7 @@ import type {
   ChronicleEntry,
   ChronicleSearchResult,
   ChronicleSettings,
+  ChronicleBundleSnapshot,
   DebilityLogEntry,
   Entity,
   EntityType,
@@ -26,6 +27,42 @@ import type {
 } from '../types/chronicle'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useCharacterStore } from './characterStore'
+import { useHoldStore } from './holdStore'
+import { useInventoryStore } from './inventoryStore'
+
+type BundleActor = NonNullable<ChronicleDeltaLog['actor']>
+
+interface BeginBundleApplyPayload {
+  entryId: string
+  requestedAt: string
+  autoApply: boolean
+  actor: BundleActor
+  bundleId?: string
+  startedAt?: string
+}
+
+interface FinishBundleApplyPayload {
+  bundleId: string
+  entryId: string
+  appliedOps: ChronicleDeltaLog['appliedOps']
+  skippedOps: ChronicleDeltaLog['skippedOps']
+  actor: BundleActor
+  undoHandle?: ChronicleDeltaLog['undoHandle']
+  completedAt?: string
+  requestedAt?: string
+  autoApply?: boolean
+  durationMs?: number
+}
+
+interface BundleUndoPayload {
+  bundleId: string
+  entryId: string
+  actor: BundleActor
+  timestamp?: string
+  appliedOps: ChronicleDeltaLog['appliedOps']
+  skippedOps: ChronicleDeltaLog['skippedOps']
+}
 
 interface ChronicleState {
   // Core data
@@ -54,9 +91,19 @@ interface ChronicleState {
   getDeltaLog: (bundleId: string) => ChronicleDeltaLog | undefined
   pendingDeltaBundle: PendingChronicleBundle | null
   setPendingDeltaBundle: (pending: PendingChronicleBundle | null) => void
+  beginBundleApply: (payload: BeginBundleApplyPayload) => void
+  finishBundleApply: (payload: FinishBundleApplyPayload) => void
+  endBundleApply: () => void
+  markBundleUndo: (payload: BundleUndoPayload) => void
   auditLog: ChronicleAuditEntry[]
   recordAuditEvent: (entry: ChronicleAuditEntry) => void
   clearAuditLog: (bundleId?: string) => void
+  bundleSnapshots: ChronicleBundleSnapshot[]
+  recordBundleSnapshot: (
+    snapshot: ChronicleBundleSnapshot,
+    previousBundleId?: string | null,
+  ) => void
+  clearBundleSnapshots: (bundleId?: string) => void
   resourceHistory: ResourceHistoryState
   logResourceChange: (entry: ResourceLogEntry) => void
   removeResourceHistoryForBundle: (bundleId: string) => void
@@ -123,6 +170,19 @@ interface ChronicleState {
 export const MAX_DELTA_HISTORY = 50
 export const MAX_RESOURCE_HISTORY = 100
 export const MAX_AUDIT_LOG_ENTRIES = 40
+export const MAX_BUNDLE_SNAPSHOTS = 20
+const MAX_SNAPSHOT_CHARACTERS = 10
+const MAX_SNAPSHOT_ITEM_IDS = 12
+const MAX_SNAPSHOT_HOLD_ENTRIES = 20
+
+interface SnapshotMetricsCache {
+  charactersRef: ReturnType<typeof useCharacterStore.getState>['characters']
+  inventoryRef: ReturnType<typeof useInventoryStore.getState>['inventory']
+  holdsRef: ReturnType<typeof useHoldStore.getState>['characterHolds']
+  metrics: ChronicleBundleSnapshot['metrics']
+}
+
+let lastSnapshotCache: SnapshotMetricsCache | null = null
 
 function getTimestamp(value: Date | string | undefined): number {
   if (value instanceof Date) return value.getTime()
@@ -158,6 +218,113 @@ function pruneRecord<T extends { bundleId: string }>(
     if (filtered.length > 0) next[key] = filtered
   }
   return next
+}
+
+function collectSnapshotMetrics(): ChronicleBundleSnapshot['metrics'] {
+  const characterState = useCharacterStore.getState()
+  const inventoryState = useInventoryStore.getState()
+  const holdState = useHoldStore.getState()
+
+  const charactersRef = characterState.characters
+  const inventoryRef = inventoryState.inventory
+  const holdsRef = holdState.characterHolds
+
+  if (
+    lastSnapshotCache &&
+    lastSnapshotCache.charactersRef === charactersRef &&
+    lastSnapshotCache.inventoryRef === inventoryRef &&
+    lastSnapshotCache.holdsRef === holdsRef
+  ) {
+    return lastSnapshotCache.metrics
+  }
+
+  const sortedCharacters = [...charactersRef].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  )
+  const characterSummaries = sortedCharacters.slice(0, MAX_SNAPSHOT_CHARACTERS).map(
+    (character) => ({
+      id: character.id,
+      name: character.name,
+      hp: {
+        current: character.hp?.current ?? 0,
+        max: character.hp?.max ?? 0,
+      },
+      xp: character.xp ?? 0,
+      coin: character.coin ?? 0,
+    }),
+  )
+
+  const totalItems = inventoryRef ? Object.keys(inventoryRef.items ?? {}).length : 0
+  const equippedContainer = inventoryRef?.containers.find(
+    (container) => container.id === 'equipped',
+  )
+  const equippedItemIds = equippedContainer ? [...equippedContainer.items] : []
+  const quickSlotIds = inventoryRef?.quickSlots ?? []
+
+  const holdEntries = Object.entries(holdsRef ?? {}).flatMap(
+    ([characterId, holds]) =>
+      holds.map((hold) => ({
+        characterId,
+        holdId: hold.id,
+        moveId: hold.moveId,
+        moveName: hold.moveName,
+        amount: hold.amount,
+        maxAmount: hold.maxAmount,
+      })),
+  )
+
+  holdEntries.sort((a, b) => {
+    const characterCompare = a.characterId.localeCompare(b.characterId)
+    if (characterCompare !== 0) return characterCompare
+    return a.moveName.localeCompare(b.moveName)
+  })
+
+  const truncatedHoldEntries = holdEntries.slice(0, MAX_SNAPSHOT_HOLD_ENTRIES)
+
+  const metrics: ChronicleBundleSnapshot['metrics'] = {
+    totalCharacters: charactersRef.length,
+    characters: characterSummaries,
+    inventory: {
+      totalItems,
+      equippedItemIds: equippedItemIds.slice(0, MAX_SNAPSHOT_ITEM_IDS),
+      quickSlotIds: quickSlotIds.slice(0, MAX_SNAPSHOT_ITEM_IDS),
+      totalEquipped: equippedItemIds.length,
+      totalQuickSlots: quickSlotIds.length,
+    },
+    holds: truncatedHoldEntries,
+    totalHoldEntries: holdEntries.length,
+  }
+
+  lastSnapshotCache = {
+    charactersRef,
+    inventoryRef,
+    holdsRef,
+    metrics,
+  }
+
+  return metrics
+}
+
+function createBundleSnapshot(
+  stage: 'before' | 'after',
+  payload: {
+    bundleId: string
+    entryId: string
+    actor: BundleActor
+    autoApply: boolean
+  },
+): ChronicleBundleSnapshot {
+  const capturedAt = new Date().toISOString()
+  return {
+    id: `${stage}-${payload.bundleId}-${capturedAt}`,
+    bundleId: payload.bundleId,
+    entryId: payload.entryId,
+    stage,
+    capturedAt,
+    actor: payload.actor,
+    autoApply: payload.autoApply,
+    metrics: collectSnapshotMetrics(),
+  }
 }
 
 const defaultSettings: ChronicleSettings = {
@@ -375,14 +542,25 @@ export const useChronicleStore = create<ChronicleState>()(
       deltaHistory: [],
       pendingDeltaBundle: null,
       auditLog: [],
+      bundleSnapshots: [],
       resourceHistory: createResourceHistory(),
 
       logDeltaResult: (log: ChronicleDeltaLog) => {
+        const createdAt =
+          log.createdAt ?? new Date().toISOString()
+        const normalized: ChronicleDeltaLog = {
+          ...log,
+          createdAt,
+          status: log.status ?? 'applied',
+        }
         set((state) => {
           const filtered = state.deltaHistory.filter(
-            (entry) => entry.bundleId !== log.bundleId,
+            (entry) => entry.bundleId !== normalized.bundleId,
           )
-          const nextHistory = [log, ...filtered].slice(0, MAX_DELTA_HISTORY)
+          const nextHistory = [normalized, ...filtered].slice(
+            0,
+            MAX_DELTA_HISTORY,
+          )
           return { deltaHistory: nextHistory }
         })
       },
@@ -392,6 +570,11 @@ export const useChronicleStore = create<ChronicleState>()(
           deltaHistory: bundleId
             ? state.deltaHistory.filter((entry) => entry.bundleId !== bundleId)
             : [],
+          bundleSnapshots: bundleId
+            ? state.bundleSnapshots.filter(
+                (snapshot) => snapshot.bundleId !== bundleId,
+              )
+            : [],
         }))
       },
 
@@ -399,7 +582,199 @@ export const useChronicleStore = create<ChronicleState>()(
         get().deltaHistory.find((entry) => entry.bundleId === bundleId),
 
       setPendingDeltaBundle: (pending) => {
-        set(() => ({ pendingDeltaBundle: pending }))
+        if (!pending) {
+          set(() => ({ pendingDeltaBundle: null }))
+          return
+        }
+        const startedAt =
+          pending.startedAt ?? pending.requestedAt ?? new Date().toISOString()
+        set(() => ({
+          pendingDeltaBundle: {
+            ...pending,
+            startedAt,
+            status: pending.status ?? 'applying',
+          },
+        }))
+      },
+
+      beginBundleApply: ({
+        entryId,
+        requestedAt,
+        autoApply,
+        actor,
+        bundleId,
+        startedAt,
+      }) => {
+        const when = startedAt ?? requestedAt ?? new Date().toISOString()
+        const normalizedBundleId =
+          bundleId ?? `${entryId}:pending:${when}`
+        const snapshot = createBundleSnapshot('before', {
+          bundleId: normalizedBundleId,
+          entryId,
+          actor,
+          autoApply: Boolean(autoApply),
+        })
+
+        set(() => ({
+          pendingDeltaBundle: {
+            bundleId: normalizedBundleId,
+            entryId,
+            requestedAt,
+            autoApply,
+            actor,
+            startedAt: when,
+            status: 'applying',
+          },
+        }))
+
+        get().recordBundleSnapshot(snapshot)
+      },
+
+      finishBundleApply: ({
+        bundleId,
+        entryId,
+        appliedOps,
+        skippedOps,
+        actor,
+        undoHandle,
+        completedAt,
+        requestedAt,
+        autoApply,
+        durationMs,
+      }) => {
+        const timestamp = completedAt ?? new Date().toISOString()
+        const normalizedAutoApply = Boolean(autoApply)
+        const previousBundleId = get().pendingDeltaBundle?.bundleId ?? null
+        const afterSnapshot = createBundleSnapshot('after', {
+          bundleId,
+          entryId,
+          actor,
+          autoApply: normalizedAutoApply,
+        })
+
+        const logEntry: ChronicleDeltaLog = {
+          bundleId,
+          entryId,
+          appliedOps,
+          skippedOps,
+          createdAt: timestamp,
+          undoHandle,
+          actor,
+          status: 'applied',
+          requestedAt,
+          autoApply: normalizedAutoApply,
+          durationMs,
+        }
+
+        const auditEntry: ChronicleAuditEntry = {
+          id: generateId('audit-'),
+          bundleId,
+          entryId,
+          action: 'applied',
+          actor,
+          timestamp,
+          appliedOps,
+          skippedOps,
+        }
+
+        set((state) => {
+          const nextDeltaHistory = [
+            logEntry,
+            ...state.deltaHistory.filter(
+              (entry) => entry.bundleId !== bundleId,
+            ),
+          ].slice(0, MAX_DELTA_HISTORY)
+
+          const filteredAudit = state.auditLog.filter(
+            (entry) => entry.id !== auditEntry.id,
+          )
+          const nextAuditLog = [auditEntry, ...filteredAudit].slice(
+            0,
+            MAX_AUDIT_LOG_ENTRIES,
+          )
+
+          return {
+            pendingDeltaBundle: null,
+            deltaHistory: nextDeltaHistory,
+            auditLog: nextAuditLog,
+          }
+        })
+
+        get().recordBundleSnapshot(afterSnapshot, previousBundleId)
+      },
+
+      endBundleApply: () => {
+        const pending = get().pendingDeltaBundle
+        set(() => ({ pendingDeltaBundle: null }))
+        if (pending?.bundleId) {
+          get().clearBundleSnapshots(pending.bundleId)
+        }
+      },
+
+      markBundleUndo: ({
+        bundleId,
+        entryId,
+        actor,
+        timestamp,
+        appliedOps,
+        skippedOps,
+      }) => {
+        const undoneAt = timestamp ?? new Date().toISOString()
+
+        set((state) => {
+          const existingIndex = state.deltaHistory.findIndex(
+            (entry) => entry.bundleId === bundleId,
+          )
+
+          let nextDeltaHistory: ChronicleDeltaLog[]
+          if (existingIndex >= 0) {
+            const existing = state.deltaHistory[existingIndex]
+            const updated: ChronicleDeltaLog = {
+              ...existing,
+              status: 'undone',
+              undoneAt,
+              undoActor: actor,
+            }
+            nextDeltaHistory = [
+              updated,
+              ...state.deltaHistory.filter(
+                (_entry, index) => index !== existingIndex,
+              ),
+            ]
+          } else {
+            nextDeltaHistory = [
+              {
+                bundleId,
+                entryId,
+                appliedOps,
+                skippedOps,
+                createdAt: undoneAt,
+                actor,
+                status: 'undone',
+              },
+              ...state.deltaHistory,
+            ]
+          }
+
+          const auditEntry: ChronicleAuditEntry = {
+            id: generateId('audit-'),
+            bundleId,
+            entryId,
+            action: 'undone',
+            actor,
+            timestamp: undoneAt,
+            appliedOps,
+            skippedOps,
+          }
+
+          return {
+            deltaHistory: nextDeltaHistory.slice(0, MAX_DELTA_HISTORY),
+            auditLog: [auditEntry, ...state.auditLog].slice(
+              0,
+              MAX_AUDIT_LOG_ENTRIES,
+            ),
+          }
+        })
       },
 
       recordAuditEvent: (entry) => {
@@ -418,6 +793,47 @@ export const useChronicleStore = create<ChronicleState>()(
             ? state.auditLog.filter((entry) => entry.bundleId !== bundleId)
             : [],
         }))
+      },
+
+      recordBundleSnapshot: (snapshot, previousBundleId = null) => {
+        set((state) => {
+          let snapshots = state.bundleSnapshots
+          if (previousBundleId && previousBundleId !== snapshot.bundleId) {
+            snapshots = snapshots.map((entry) =>
+              entry.bundleId === previousBundleId
+                ? { ...entry, bundleId: snapshot.bundleId }
+                : entry,
+            )
+          }
+
+          const filtered = snapshots.filter(
+            (entry) =>
+              !(
+                entry.bundleId === snapshot.bundleId &&
+                entry.stage === snapshot.stage
+              ),
+          )
+
+          const nextSnapshots = [snapshot, ...filtered].slice(
+            0,
+            MAX_BUNDLE_SNAPSHOTS,
+          )
+
+          return { bundleSnapshots: nextSnapshots }
+        })
+      },
+
+      clearBundleSnapshots: (bundleId) => {
+        if (bundleId) {
+          set((state) => ({
+            bundleSnapshots: state.bundleSnapshots.filter(
+              (snapshot) => snapshot.bundleId !== bundleId,
+            ),
+          }))
+          return
+        }
+
+        set(() => ({ bundleSnapshots: [] }))
       },
 
       logResourceChange: (entry) => {
@@ -1080,7 +1496,9 @@ export const useChronicleStore = create<ChronicleState>()(
           selectedEntity: null,
           searchQuery: '',
           pendingDeltaBundle: null,
+          deltaHistory: [],
           auditLog: [],
+          bundleSnapshots: [],
           resourceHistory: createResourceHistory(),
         }))
       },
@@ -1165,9 +1583,26 @@ export const useChronicleStore = create<ChronicleState>()(
           }),
         )
 
+        const hydratedPending = persistedState.pendingDeltaBundle
+          ? {
+              ...persistedState.pendingDeltaBundle,
+              status:
+                persistedState.pendingDeltaBundle.status ?? 'applying',
+            }
+          : null
+
+        const hydratedDeltaHistory = deltaHistory.map((entry) => ({
+          ...entry,
+          status: entry.status ?? 'applied',
+        }))
+
         const hydratedState = {
           ...persistedState,
-          pendingDeltaBundle: persistedState.pendingDeltaBundle ?? null,
+          pendingDeltaBundle: hydratedPending,
+          deltaHistory: hydratedDeltaHistory,
+          bundleSnapshots: Array.isArray(persistedState.bundleSnapshots)
+            ? persistedState.bundleSnapshots
+            : [],
           auditLog: hydratedAuditLog,
           resourceHistory: {
             xp: resourceHistory.xp ?? {},

@@ -135,6 +135,9 @@ describe('chronicle provider GPT-5 integration', () => {
     expect(useChronicleStore.getState().pendingDeltaBundle).toMatchObject({
       entryId: 'entry-apply',
       autoApply: false,
+      actor: 'manual',
+      status: 'applying',
+      bundleId: 'idempotency-1',
     })
 
     resolveApply?.({
@@ -151,14 +154,17 @@ describe('chronicle provider GPT-5 integration', () => {
     })
 
     const store = useChronicleStore.getState()
-    const expectedBundleId = payload.bundle.idempotencyKey
+    const expectedBundleId = 'bundle-applied'
 
     expect(store.pendingDeltaBundle).toBeNull()
     expect(store.deltaHistory[0]).toMatchObject({
       bundleId: expectedBundleId,
       entryId: 'entry-apply',
       actor: 'manual',
+      status: 'applied',
     })
+    expect(typeof store.deltaHistory[0].durationMs).toBe('number')
+    expect(store.deltaHistory[0].undoHandle?.bundleId).toBe(expectedBundleId)
 
     expect(store.auditLog[0]).toMatchObject({
       bundleId: expectedBundleId,

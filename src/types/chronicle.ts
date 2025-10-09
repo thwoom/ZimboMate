@@ -206,6 +206,12 @@ export interface ChronicleDeltaLog {
   createdAt: string
   undoHandle?: UndoHandle
   actor?: 'auto' | 'manual' | 'system' | 'user'
+  status?: 'applied' | 'undone'
+  requestedAt?: string
+  autoApply?: boolean
+  durationMs?: number
+  undoneAt?: string
+  undoActor?: 'auto' | 'manual' | 'system' | 'user'
 }
 
 export type ChronicleAuditAction = 'applied' | 'undone'
@@ -227,6 +233,45 @@ export interface PendingChronicleBundle {
   entryId?: string
   requestedAt: string
   autoApply: boolean
+  startedAt?: string
+  status?: 'pending' | 'applying'
+  actor?: 'auto' | 'manual' | 'system' | 'user'
+}
+
+export interface ChronicleBundleSnapshot {
+  id: string
+  bundleId: string
+  entryId: string
+  stage: 'before' | 'after'
+  capturedAt: string
+  actor: 'auto' | 'manual' | 'system' | 'user'
+  autoApply: boolean
+  metrics: {
+    totalCharacters: number
+    characters: Array<{
+      id: string
+      name: string
+      hp: { current: number; max: number }
+      xp: number
+      coin: number
+    }>
+    inventory: {
+      totalItems: number
+      totalEquipped: number
+      totalQuickSlots: number
+      equippedItemIds: string[]
+      quickSlotIds: string[]
+    }
+    holds: Array<{
+      characterId: string
+      holdId: string
+      moveId: string
+      moveName: string
+      amount: number
+      maxAmount: number
+    }>
+    totalHoldEntries: number
+  }
 }
 
 export type ResourceLogType = 'xp' | 'bond' | 'hold' | 'debility'

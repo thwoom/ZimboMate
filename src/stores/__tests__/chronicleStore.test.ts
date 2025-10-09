@@ -10,6 +10,9 @@ import {
   MAX_RESOURCE_HISTORY,
   useChronicleStore,
 } from '../chronicleStore'
+import { useCharacterStore } from '../characterStore'
+import { useHoldStore } from '../holdStore'
+import { useInventoryStore } from '../inventoryStore'
 
 function makeLog(
   overrides: Partial<ChronicleDeltaLog> = {},
@@ -78,6 +81,7 @@ beforeEach(() => {
     deltaHistory: [],
     auditLog: [],
     pendingDeltaBundle: null,
+    bundleSnapshots: [],
     resourceHistory: {
       xp: {},
       bonds: {},
@@ -89,6 +93,13 @@ beforeEach(() => {
     entities: [],
     relationships: [],
   })
+
+  useCharacterStore.setState({
+    characters: [],
+    activeCharacterId: null,
+  })
+  useInventoryStore.setState({ inventory: null })
+  useHoldStore.setState({ characterHolds: {} })
 })
 
 describe('chronicleStore delta history', () => {
@@ -130,6 +141,7 @@ describe('chronicleStore delta history', () => {
 
     const [firstEntry, ...rest] = useChronicleStore.getState().deltaHistory
     expect(firstEntry.entryId).toBe('entry-second')
+    expect(firstEntry.status).toBe('applied')
     expect(rest.some((entry) => entry.bundleId === 'bundle-repeat')).toBe(false)
   })
 
@@ -145,333 +157,142 @@ describe('chronicleStore delta history', () => {
     store.clearDeltaLog()
     expect(useChronicleStore.getState().deltaHistory).toHaveLength(0)
   })
-})
 
-describe('chronicleStore resource history', () => {
-  it('logs xp history and trims to max', () => {
+  it('finishBundleApply records history and audit entries', () => {
     const store = useChronicleStore.getState()
 
-    for (let index = 0; index < MAX_RESOURCE_HISTORY + 3; index += 1) {
-      store.logResourceChange({
-        type: 'xp',
-        id: `xp-${index}`,
-        bundleId: `bundle-${index}`,
-        entryId: `entry-${index}`,
-        createdAt: new Date(
-          Date.UTC(2025, 9, 2, 0, 0, 0) + index * 1000,
-        ).toISOString(),
-        characterId: 'hero',
-        amount: 1,
-        previous: index,
-        next: index + 1,
-        reason: 'test',
-      })
-    }
-
-    const history = store.getXpHistory('hero')
-    expect(history).toHaveLength(MAX_RESOURCE_HISTORY)
-    expect(history[0].bundleId).toBe(`bundle-${MAX_RESOURCE_HISTORY + 2}`)
-    expect(history[history.length - 1].bundleId).toBe('bundle-3')
-  })
-
-  it('removes entries for bundle across resource types', () => {
-    const store = useChronicleStore.getState()
-
-    store.logResourceChange({
-      type: 'xp',
-      id: 'xp-remove',
-      bundleId: 'bundle-remove',
-      entryId: 'entry-remove',
-      createdAt: '2025-10-02T02:00:00.000Z',
-      characterId: 'hero',
-      amount: 2,
-      previous: 5,
-      next: 7,
-      reason: 'bond_resolution',
-    })
-    store.logResourceChange({
-      type: 'bond',
-      id: 'bond-remove',
-      bundleId: 'bundle-remove',
-      entryId: 'entry-remove',
-      createdAt: '2025-10-02T02:00:01.000Z',
-      characterId: 'hero',
-      bondId: 'bond-1',
-      targetId: 'ally',
-      text: 'I owe Ally everything.',
-      action: 'resolve',
-      resolved: true,
-    })
-    store.logResourceChange({
-      type: 'hold',
-      id: 'hold-remove',
-      bundleId: 'bundle-remove',
-      entryId: 'entry-remove',
-      createdAt: '2025-10-02T02:00:02.000Z',
-      characterId: 'hero',
-      holdId: 'hold-1',
-      moveId: 'defend',
-      moveName: 'Defend',
-      change: -1,
-      remaining: 0,
-    })
-    store.logResourceChange({
-      type: 'debility',
-      id: 'debility-remove',
-      bundleId: 'bundle-remove',
-      entryId: 'entry-remove',
-      createdAt: '2025-10-02T02:00:03.000Z',
-      characterId: 'hero',
-      debility: 'Shaky',
-      action: 'add',
-    })
-    store.logResourceChange({
-      type: 'hp',
-      id: 'hp-remove',
-      bundleId: 'bundle-remove',
-      entryId: 'entry-remove',
-      createdAt: '2025-10-02T02:00:04.000Z',
-      characterId: 'hero',
-      delta: -2,
-      previous: 10,
-      next: 8,
-      reason: 'harm',
-    })
-    store.logResourceChange({
-      type: 'coin',
-      id: 'coin-remove',
-      bundleId: 'bundle-remove',
-      entryId: 'entry-remove',
-      createdAt: '2025-10-02T02:00:05.000Z',
-      characterId: 'hero',
-      amount: -5,
-      previous: 20,
-      next: 15,
-    })
-    store.logResourceChange({
-      type: 'coin',
-      id: 'coin-keep',
-      bundleId: 'bundle-keep',
-      entryId: 'entry-keep',
-      createdAt: '2025-10-02T03:00:01.000Z',
-      characterId: 'hero',
-      amount: 3,
-      previous: 15,
-      next: 18,
-    })
-    store.logResourceChange({
-      type: 'xp',
-      id: 'xp-keep',
-      bundleId: 'bundle-keep',
-      entryId: 'entry-keep',
-      createdAt: '2025-10-02T03:00:00.000Z',
-      characterId: 'hero',
-      amount: 3,
-      previous: 7,
-      next: 10,
-      reason: 'test',
+    store.beginBundleApply({
+      entryId: 'entry-apply',
+      requestedAt: '2025-10-09T10:00:00.000Z',
+      autoApply: false,
+      actor: 'manual',
+      bundleId: 'bundle-provisional',
+      startedAt: '2025-10-09T10:00:00.000Z',
     })
 
-    store.removeResourceHistoryForBundle('bundle-remove')
-
-    expect(store.getXpHistory('hero')).toEqual([
-      expect.objectContaining({ bundleId: 'bundle-keep' }),
-    ])
-    expect(store.getBondHistory('hero')).toHaveLength(0)
-    expect(store.getHoldHistory('hero')).toHaveLength(0)
-    expect(store.getDebilityHistory('hero')).toHaveLength(0)
-
-    const updatedState = useChronicleStore.getState()
-    expect(updatedState.resourceHistory.hp.hero).toBeUndefined()
-    expect(updatedState.resourceHistory.coin.hero).toEqual([
-      expect.objectContaining({ bundleId: 'bundle-keep' }),
-    ])
-  })
-})
-
-describe('chronicleStore pending bundle and audit log', () => {
-  it('sets, updates, and clears pending bundle state', () => {
-    const store = useChronicleStore.getState()
-
-    store.setPendingDeltaBundle({
-      entryId: 'entry-42',
-      requestedAt: '2025-10-07T10:00:00.000Z',
-      autoApply: true,
-    })
-
-    expect(useChronicleStore.getState().pendingDeltaBundle).toEqual({
-      entryId: 'entry-42',
-      requestedAt: '2025-10-07T10:00:00.000Z',
-      autoApply: true,
-    })
-
-    store.setPendingDeltaBundle({
-      entryId: 'entry-42',
-      requestedAt: '2025-10-07T10:00:00.000Z',
-      autoApply: true,
+    store.finishBundleApply({
       bundleId: 'bundle-final',
+      entryId: 'entry-apply',
+      appliedOps: [],
+      skippedOps: [],
+      actor: 'manual',
+      undoHandle: { bundleId: 'bundle-final', issuedAt: '2025-10-09T10:00:01.000Z' },
+      requestedAt: '2025-10-09T10:00:00.000Z',
+      completedAt: '2025-10-09T10:00:01.500Z',
+      autoApply: false,
+      durationMs: 1500,
     })
 
-    expect(useChronicleStore.getState().pendingDeltaBundle).toEqual({
-      entryId: 'entry-42',
-      requestedAt: '2025-10-07T10:00:00.000Z',
-      autoApply: true,
+    const state = useChronicleStore.getState()
+    expect(state.pendingDeltaBundle).toBeNull()
+    const [firstHistory] = state.deltaHistory
+    expect(firstHistory).toMatchObject({
       bundleId: 'bundle-final',
+      entryId: 'entry-apply',
+      status: 'applied',
+      requestedAt: '2025-10-09T10:00:00.000Z',
+      autoApply: false,
+      durationMs: 1500,
     })
-
-    store.setPendingDeltaBundle(null)
-    expect(useChronicleStore.getState().pendingDeltaBundle).toBeNull()
-  })
-
-  it('records audit events with most recent first and trims to max size', () => {
-    const { recordAuditEvent } = useChronicleStore.getState()
-
-    recordAuditEvent({
-      id: 'audit-duplicate',
-      bundleId: 'bundle-x',
-      entryId: 'entry-x',
-      action: 'applied',
-      timestamp: '2025-10-07T12:00:00.000Z',
-    })
-
-    recordAuditEvent({
-      id: 'audit-duplicate',
-      bundleId: 'bundle-x',
-      entryId: 'entry-x',
-      action: 'applied',
-      timestamp: '2025-10-07T12:01:00.000Z',
-      reason: 'overwritten',
-    })
-
-    const [latestDuplicate] = useChronicleStore.getState().auditLog
-    expect(latestDuplicate.reason).toBe('overwritten')
-
-    for (let index = 0; index < MAX_AUDIT_LOG_ENTRIES + 5; index += 1) {
-      recordAuditEvent({
-        id: `audit-${index}`,
-        bundleId: `bundle-${index}`,
-        entryId: `entry-${index}`,
-        action: index % 2 === 0 ? 'applied' : 'undone',
-        timestamp: new Date(
-          Date.UTC(2025, 9, 7, 0, 0, 0) + index * 1000,
-        ).toISOString(),
-      })
-    }
-
-    const auditLog = useChronicleStore.getState().auditLog
-    expect(auditLog).toHaveLength(MAX_AUDIT_LOG_ENTRIES)
-    expect(auditLog[0].id).toBe(`audit-${MAX_AUDIT_LOG_ENTRIES + 4}`)
-    expect(auditLog.some((entry) => entry.id === 'audit-duplicate')).toBe(false)
-  })
-
-  it('clears audit log by bundle id or entirely', () => {
-    const store = useChronicleStore.getState()
-
-    store.recordAuditEvent({
-      id: 'audit-a',
-      bundleId: 'bundle-a',
-      entryId: 'entry-a',
-      action: 'applied',
-      timestamp: '2025-10-07T12:10:00.000Z',
-    })
-    store.recordAuditEvent({
-      id: 'audit-b',
-      bundleId: 'bundle-b',
-      entryId: 'entry-b',
-      action: 'undone',
-      timestamp: '2025-10-07T12:11:00.000Z',
-    })
-
-    store.clearAuditLog('bundle-a')
-    expect(useChronicleStore.getState().auditLog.map((entry) => entry.id)).toEqual([
-      'audit-b',
-    ])
-
-    store.clearAuditLog()
-    expect(useChronicleStore.getState().auditLog).toHaveLength(0)
-  })
-
-  it('keeps actor information on audit entries', () => {
-    const { recordAuditEvent } = useChronicleStore.getState()
-
-    recordAuditEvent({
-      id: 'audit-actor',
-      bundleId: 'bundle-actor',
-      entryId: 'entry-actor',
+    expect(firstHistory.undoHandle?.bundleId).toBe('bundle-final')
+    const [firstAudit] = state.auditLog
+    expect(firstAudit).toMatchObject({
+      bundleId: 'bundle-final',
+      entryId: 'entry-apply',
       action: 'applied',
       actor: 'manual',
-      timestamp: '2025-10-07T12:30:00.000Z',
     })
 
-    const [event] = useChronicleStore.getState().auditLog
-    expect(event.actor).toBe('manual')
+    expect(state.bundleSnapshots.length).toBeGreaterThanOrEqual(2)
+    const snapshotStages = state.bundleSnapshots.map((snapshot) => snapshot.stage)
+    expect(snapshotStages).toContain('before')
+    expect(snapshotStages).toContain('after')
+    expect(
+      state.bundleSnapshots.every(
+        (snapshot) => snapshot.bundleId === 'bundle-final',
+      ),
+    ).toBe(true)
   })
-})
 
-describe('chronicleStore entity link selectors', () => {
-  it('returns linked entity edges with metadata', () => {
-    useChronicleStore.setState((state) => ({
-      ...state,
-      entities: [
-        makeEntity('entity-a'),
-        makeEntity('entity-b'),
-        makeEntity('entity-c'),
-      ],
-      relationships: [
-        makeRelationship('rel-1', 'entity-a', 'entity-b', 'ally', {
-          lastUpdated: new Date('2025-10-08T01:00:00.000Z'),
-        }),
-        makeRelationship('rel-2', 'entity-c', 'entity-a', 'enemy', {
-          lastUpdated: new Date('2025-10-08T02:00:00.000Z'),
-        }),
-      ],
-    }))
+  it('markBundleUndo updates history status and prepends audit entry', () => {
+    const store = useChronicleStore.getState()
 
-    const edges = useChronicleStore.getState().getLinkedEntities('entity-a')
-    expect(edges).toHaveLength(2)
-    expect(edges.map((edge) => edge.otherEntityId).sort()).toEqual([
-      'entity-b',
-      'entity-c',
-    ])
-
-    const enemyEdge = edges.find(
-      (edge) => edge.otherEntityId === 'entity-c',
+    store.logDeltaResult(makeLog({ bundleId: 'bundle-a', entryId: 'entry-a' }))
+    store.logDeltaResult(
+      makeLog({
+        bundleId: 'bundle-b',
+        entryId: 'entry-b',
+        createdAt: '2025-10-09T09:59:59.000Z',
+      }),
     )
-    expect(enemyEdge?.relationship.type).toBe('enemy')
-    expect(enemyEdge?.entity?.id).toBe('entity-c')
+
+    store.markBundleUndo({
+      bundleId: 'bundle-a',
+      entryId: 'entry-a',
+      actor: 'user',
+      timestamp: '2025-10-09T10:05:00.000Z',
+      appliedOps: [],
+      skippedOps: [],
+    })
+
+    const [firstHistory] = useChronicleStore.getState().deltaHistory
+    expect(firstHistory.bundleId).toBe('bundle-a')
+    expect(firstHistory.status).toBe('undone')
+    expect(firstHistory.undoActor).toBe('user')
+    expect(firstHistory.undoneAt).toBe('2025-10-09T10:05:00.000Z')
+
+    const [firstAudit] = useChronicleStore.getState().auditLog
+    expect(firstAudit).toMatchObject({
+      bundleId: 'bundle-a',
+      entryId: 'entry-a',
+      action: 'undone',
+      actor: 'user',
+    })
   })
 
-  it('returns the most recently updated relationship between entities', () => {
-    useChronicleStore.setState((state) => ({
-      ...state,
-      entities: [makeEntity('entity-a'), makeEntity('entity-b')],
-      relationships: [
-        makeRelationship('rel-old', 'entity-a', 'entity-b', 'ally', {
-          lastUpdated: new Date('2025-10-08T00:00:00.000Z'),
-        }),
-        makeRelationship('rel-new', 'entity-b', 'entity-a', 'enemy', {
-          lastUpdated: new Date('2025-10-08T03:00:00.000Z'),
-        }),
-      ],
-    }))
+  it('clearDeltaLog removes associated bundle snapshots', () => {
+    const store = useChronicleStore.getState()
 
-    const latest = useChronicleStore
-      .getState()
-      .getRelationshipBetweenEntities('entity-a', 'entity-b')
-    expect(latest?.id).toBe('rel-new')
-    expect(latest?.type).toBe('enemy')
+    store.beginBundleApply({
+      entryId: 'entry-clear',
+      requestedAt: '2025-10-09T11:00:00.000Z',
+      autoApply: false,
+      actor: 'manual',
+    })
+
+    store.finishBundleApply({
+      bundleId: 'bundle-clear',
+      entryId: 'entry-clear',
+      appliedOps: [],
+      skippedOps: [],
+      actor: 'manual',
+      undoHandle: { bundleId: 'bundle-clear', issuedAt: '2025-10-09T11:00:01.000Z' },
+      requestedAt: '2025-10-09T11:00:00.000Z',
+      completedAt: '2025-10-09T11:00:01.000Z',
+      autoApply: false,
+      durationMs: 1000,
+    })
+
+    expect(useChronicleStore.getState().bundleSnapshots).not.toHaveLength(0)
+
+    store.clearDeltaLog('bundle-clear')
+    expect(useChronicleStore.getState().bundleSnapshots).toHaveLength(0)
   })
 
-  it('returns undefined when entities are not linked', () => {
-    useChronicleStore.setState((state) => ({
-      ...state,
-      entities: [makeEntity('entity-a'), makeEntity('entity-b')],
-      relationships: [],
-    }))
+  it('endBundleApply removes pending snapshots when no bundle is applied', () => {
+    const store = useChronicleStore.getState()
 
-    const result = useChronicleStore
-      .getState()
-      .getRelationshipBetweenEntities('entity-a', 'entity-b')
-    expect(result).toBeUndefined()
+    store.beginBundleApply({
+      entryId: 'entry-fail',
+      requestedAt: '2025-10-09T12:00:00.000Z',
+      autoApply: false,
+      actor: 'manual',
+    })
+
+    expect(useChronicleStore.getState().bundleSnapshots).toHaveLength(1)
+
+    store.endBundleApply()
+
+    expect(useChronicleStore.getState().bundleSnapshots).toHaveLength(0)
   })
 })

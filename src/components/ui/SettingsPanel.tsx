@@ -259,6 +259,11 @@ const GameplaySettingsContent: React.FC = () => {
     syncCostCapInput()
   }, [syncCostCapInput])
 
+  const costCapDisplay = useMemo(() => {
+    if (settings.costCapCents == null) return null
+    return (settings.costCapCents / 100).toFixed(2)
+  }, [settings.costCapCents])
+
   const hasAutomationHistory =
     deltaHistoryCount > 0 || auditLogCount > 0 || snapshotCount > 0
 
@@ -481,7 +486,15 @@ const GameplaySettingsContent: React.FC = () => {
 
           <div className='flex items-start justify-between'>
             <div>
-              <label className='text-sm font-medium'>Cost Guardrail</label>
+              <div className='flex items-center gap-2'>
+                <label className='text-sm font-medium'>Cost Guardrail</label>
+                <Badge
+                  variant={costCapDisplay ? 'primary' : 'outline'}
+                  className='text-xs'
+                >
+                  {costCapDisplay ? `$${costCapDisplay}` : 'Off'}
+                </Badge>
+              </div>
               <p className='text-xs text-muted-foreground '>
                 Set a GPT-5 spend limit per session (USD). Chronicle falls back
                 to templates when the cap is reached.
@@ -523,12 +536,32 @@ const GameplaySettingsContent: React.FC = () => {
             </div>
           </div>
 
-          <div className='flex items-center justify-between'>
+          <div className='flex items-start justify-between'>
             <div>
               <label className='text-sm font-medium'>Automation Log</label>
-              <p className='text-xs text-muted-foreground '>
-                Stored bundles: {deltaHistoryCount} | Snapshots: {snapshotCount} | Audit entries: {auditLogCount}
-              </p>
+              <div className='mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+                <Badge variant='outline' className='font-normal'>
+                  Bundles {deltaHistoryCount}
+                </Badge>
+                <Badge variant='outline' className='font-normal'>
+                  Snapshots {snapshotCount}
+                </Badge>
+                <Badge variant='outline' className='font-normal'>
+                  Audit {auditLogCount}
+                </Badge>
+                <Badge
+                  variant={settings.autoEquipWeapons ? 'primary' : 'outline'}
+                  className='font-normal'
+                >
+                  Auto-equip {settings.autoEquipWeapons ? 'On' : 'Off'}
+                </Badge>
+                <Badge
+                  variant={costCapDisplay ? 'primary' : 'outline'}
+                  className='font-normal'
+                >
+                  Guardrail {costCapDisplay ? `$${costCapDisplay}` : 'Off'}
+                </Badge>
+              </div>
             </div>
             <Button
               size='sm'

@@ -1600,11 +1600,9 @@ export async function undoChronicleBundle(
 
   chronicleStore.removeResourceHistoryForBundle(bundleId)
 
-  chronicleStore.recordAuditEvent({
-    id: generateId('audit-'),
+  chronicleStore.markBundleUndo({
     bundleId,
     entryId: record.entryId,
-    action: 'undone',
     actor,
     timestamp: nowIso(),
     appliedOps: record.appliedOps,
