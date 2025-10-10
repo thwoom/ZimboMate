@@ -20,6 +20,7 @@ import type {
   NarrativeSettings,
   ProposeDeltasRequest,
   ProposeDeltasResponse,
+  TokenUsage,
 } from '../../services/llm'
 import type { ChronicleSettings } from '../../types/chronicle'
 import React, {
@@ -37,6 +38,7 @@ import { gpt5Client } from '../../services/llm'
 import { useChronicleStore } from '../../stores/chronicleStore'
 import { ChronicleOverlay } from './ChronicleOverlay'
 import { computeSha256Hex } from '../../services/llm/hash'
+import { getLlmRolloutStage, type LlmRolloutStage } from '@/utils/featureFlags'
 
 interface ChronicleContextValue {
   emitAction: (context: ActionContext) => void
@@ -93,9 +95,20 @@ interface ChronicleContextValue {
   remainingCostBudgetCents: number | null
   isCostGuardrailActive: boolean
   resetSessionCost: () => void
+  rolloutStage: LlmRolloutStage
+  canApplyAutomation: boolean
+  canUndoAutomation: boolean
+  canAutoApply: boolean
+  recordTelemetry: (event: Partial<LlmTelemetryEvent>) => void
 }
 
 const ChronicleContext = createContext<ChronicleContextValue | null>(null)
+
+const ZERO_USAGE: TokenUsage = {
+  inputTokens: 0,
+  outputTokens: 0,
+  totalTokens: 0,
+}
 
 interface ChronicleProviderProps {
   children: React.ReactNode
@@ -128,6 +141,30 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
   const resetSessionCost = useChronicleStore((state) => state.resetSessionCost)
   const currentSessionId = useChronicleStore((state) => state.currentSessionId)
 
+  const rolloutStage = useMemo(() => getLlmRolloutStage(), [])
+  const isRolloutDark = rolloutStage === 'dark'
+  const canApplyAutomation = !isRolloutDark
+  const canUndoAutomation = !isRolloutDark
+  const canAutoApply = rolloutStage === 'default'
+
+  const recordTelemetry = useCallback(
+    (event: Partial<LlmTelemetryEvent>) => {
+      const usage = event.usage ?? ZERO_USAGE
+      setLastTelemetryEvent({
+        model: event.model ?? 'chronicle-delta-executor',
+        latencyMs: event.latencyMs ?? 0,
+        usage,
+        costCents: event.costCents,
+        stage: event.stage,
+        outcome: event.outcome,
+        bundleId: event.bundleId,
+        entryId: event.entryId,
+        error: event.error,
+      })
+    },
+    [],
+  )
+
   useEffect(() => {
     chronicleActionListener.setEnabled(isOverlayEnabled)
   }, [isOverlayEnabled])
@@ -142,14 +179,14 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
       ) {
         recordSessionCost(event.costCents, new Date().toISOString())
       }
-      setLastTelemetryEvent(event)
+      recordTelemetry(event)
     })
 
     return () => {
       offProgress()
       offTelemetry()
     }
-  }, [recordSessionCost])
+  }, [recordSessionCost, recordTelemetry])
 
   const previousSessionIdRef = useRef<string | null>(null)
   useEffect(() => {
@@ -366,6 +403,25 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
 
   const applyDeltaBundle = useCallback(
     async (payload: ApplyDeltaBundleRequest) => {
+      if (!canApplyAutomation) {
+        const blockedBundleId =
+          payload.bundle.idempotencyKey ??
+          payload.bundle.entryId ??
+          `blocked-${Date.now()}`
+        recordTelemetry({
+          stage: 'apply',
+          outcome: 'failure',
+          bundleId: blockedBundleId,
+          entryId: payload.bundle.entryId,
+          usage: payload.bundle.usage ?? ZERO_USAGE,
+          costCents: 0,
+          error: 'Automation is read-only in the current rollout stage.',
+        })
+        throw new Error(
+          'Automation is read-only in the current rollout stage.',
+        )
+      }
+
       if (isCostGuardrailActive) {
         const guardrailBundleId =
           payload.bundle.idempotencyKey ??
@@ -402,6 +458,15 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           timestamp,
           appliedOps: [],
           skippedOps,
+        })
+
+        recordTelemetry({
+          stage: 'apply',
+          outcome: 'skipped',
+          bundleId: guardrailBundleId,
+          entryId: payload.bundle.entryId,
+          usage: ZERO_USAGE,
+          costCents: 0,
         })
 
         return {
@@ -459,21 +524,21 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
 
         const durationMs = Math.max(0, Math.round(end - start))
         const completedAt = new Date()
-
-        setLastTelemetryEvent({
-          model: 'chronicle-delta-executor',
-          latencyMs: durationMs,
-          usage: payload.bundle.usage ?? {
-            inputTokens: 0,
-            outputTokens: 0,
-            totalTokens: 0,
-          },
-        })
-
         const resolvedBundleId =
           result.bundleId ??
           payload.bundle.idempotencyKey ??
           payload.bundle.entryId
+        const usage = payload.bundle.usage ?? ZERO_USAGE
+
+        recordTelemetry({
+          latencyMs: durationMs,
+          usage,
+          stage: 'apply',
+          outcome: 'success',
+          bundleId: resolvedBundleId,
+          entryId: payload.bundle.entryId,
+          costCents: 0,
+        })
 
         chronicleStore.finishBundleApply({
           bundleId: resolvedBundleId,
@@ -496,6 +561,16 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           message:
             error instanceof Error ? error.message : 'Failed to apply bundle.',
         })
+        recordTelemetry({
+          usage: payload.bundle.usage ?? ZERO_USAGE,
+          stage: 'apply',
+          outcome: 'failure',
+          bundleId:
+            payload.bundle.idempotencyKey ?? payload.bundle.entryId ?? undefined,
+          entryId: payload.bundle.entryId,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          costCents: 0,
+        })
         throw error
       } finally {
         chronicleStore.endBundleApply()
@@ -503,10 +578,11 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
       }
     },
     [
+      canApplyAutomation,
       chronicleStore,
       isCostGuardrailActive,
       setLastProgressEvent,
-      setLastTelemetryEvent,
+      recordTelemetry,
     ],
   )
 
@@ -535,6 +611,11 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
       remainingCostBudgetCents,
       isCostGuardrailActive,
       resetSessionCost,
+      rolloutStage,
+      canApplyAutomation,
+      canUndoAutomation,
+      canAutoApply,
+      recordTelemetry,
     }),
     [
       applyDeltaBundle,
@@ -552,6 +633,7 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
       maxPrompts,
       overlayPosition,
       proposeEntryDeltas,
+      recordTelemetry,
       setMaxPrompts,
       setOverlayPosition,
       sessionCostCents,
@@ -560,6 +642,10 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
       costCapCents,
       remainingCostBudgetCents,
       resetSessionCost,
+      rolloutStage,
+      canApplyAutomation,
+      canUndoAutomation,
+      canAutoApply,
     ],
   )
 
@@ -598,6 +684,11 @@ export function useChronicleLLM() {
     remainingCostBudgetCents,
     isCostGuardrailActive,
     resetSessionCost,
+    rolloutStage,
+    canApplyAutomation,
+    canUndoAutomation,
+    canAutoApply,
+    recordTelemetry,
   } = useChronicle()
 
   return {
@@ -614,6 +705,11 @@ export function useChronicleLLM() {
     remainingCostBudgetCents,
     isCostGuardrailActive,
     resetSessionCost,
+    rolloutStage,
+    canApplyAutomation,
+    canUndoAutomation,
+    canAutoApply,
+    recordTelemetry,
   }
 }
 

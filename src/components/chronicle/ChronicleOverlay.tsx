@@ -61,6 +61,12 @@ import {
   formatActorLabel,
   formatRelativeTimeFromNow,
 } from './highlightUtils'
+
+const ZERO_USAGE = {
+  inputTokens: 0,
+  outputTokens: 0,
+  totalTokens: 0,
+}
 interface ChronicleOverlayProps {
   isEnabled?: boolean
   maxPrompts?: number
@@ -450,6 +456,8 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     isApplyingBundle,
     lastProgressEvent,
     lastTelemetryEvent,
+    canUndoAutomation,
+    recordTelemetry,
   } = useChronicleLLM()
   const llmUnifiedEnabled = useMemo(() => isLlmUnifiedEnabled(), [])
   const deltaHistory = useChronicleStore((state) => state.deltaHistory)
@@ -721,21 +729,74 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
 
   const handleUndoAutomation = useCallback(
     async (bundleId: string) => {
+      if (!canUndoAutomation) return
+      const targetAutomation = deltaHistory.find(
+        (entry) => entry.bundleId === bundleId,
+      )
+      const entryId = targetAutomation?.entryId
+      const undoStart =
+        typeof performance !== 'undefined' &&
+        typeof performance.now === 'function'
+          ? performance.now()
+          : Date.now()
+
       setUndoingBundleId(bundleId)
       try {
         const success = await undoChronicleBundle(bundleId, { actor: 'user' })
+        const undoEnd =
+          typeof performance !== 'undefined' &&
+          typeof performance.now === 'function'
+            ? performance.now()
+            : Date.now()
+        const latencyMs = Math.max(0, Math.round(undoEnd - undoStart))
+
         if (!success) {
           console.warn(`[chronicle] Unable to undo bundle ${bundleId}`)
+          recordTelemetry({
+            stage: 'undo',
+            outcome: 'failure',
+            bundleId,
+            entryId,
+            latencyMs,
+            usage: ZERO_USAGE,
+            costCents: 0,
+            error: 'Undo rejected by executor',
+          })
           return
         }
         clearDeltaLog(bundleId)
+        recordTelemetry({
+          stage: 'undo',
+          outcome: 'success',
+          bundleId,
+          entryId,
+          latencyMs,
+          usage: ZERO_USAGE,
+          costCents: 0,
+        })
       } catch (error) {
         console.error('[chronicle] Undo bundle failed', error)
+        const undoEnd =
+          typeof performance !== 'undefined' &&
+          typeof performance.now === 'function'
+            ? performance.now()
+            : Date.now()
+        const latencyMs = Math.max(0, Math.round(undoEnd - undoStart))
+        recordTelemetry({
+          stage: 'undo',
+          outcome: 'failure',
+          bundleId,
+          entryId,
+          latencyMs,
+          usage: ZERO_USAGE,
+          costCents: 0,
+          error: error instanceof Error ? error.message : 'Unknown undo error',
+        })
       } finally {
         setUndoingBundleId(null)
       }
     },
-    [clearDeltaLog],
+    [canUndoAutomation, clearDeltaLog, deltaHistory, recordTelemetry],
   )
 
   const handleDismissAutomation = useCallback(
@@ -1097,27 +1158,29 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
               )}
             </div>
             <div className='mt-3 flex flex-wrap items-center gap-2'>
-              <Button
-                size='sm'
-                variant='outline'
-                onClick={() =>
-                  void handleUndoAutomation(latestAutomation.bundleId)
-                }
-                disabled={undoingBundleId === latestAutomation.bundleId}
-                className='gap-1'
-              >
-                {undoingBundleId === latestAutomation.bundleId ? (
-                  <>
-                    <Loader2 className='h-3.5 w-3.5 animate-spin' />
-                    Undoing
-                  </>
-                ) : (
-                  <>
-                    <RefreshCcw className='h-3.5 w-3.5' />
-                    Undo
-                  </>
-                )}
-              </Button>
+              {canUndoAutomation && (
+                <Button
+                  size='sm'
+                  variant='outline'
+                  onClick={() =>
+                    void handleUndoAutomation(latestAutomation.bundleId)
+                  }
+                  disabled={undoingBundleId === latestAutomation.bundleId}
+                  className='gap-1'
+                >
+                  {undoingBundleId === latestAutomation.bundleId ? (
+                    <>
+                      <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                      Undoing
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCcw className='h-3.5 w-3.5' />
+                      Undo
+                    </>
+                  )}
+                </Button>
+              )}
               <Button
                 size='sm'
                 variant='ghost'

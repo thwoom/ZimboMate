@@ -35,7 +35,8 @@ export default function FolioGearPage({
 }: FolioGearPageProps): JSX.Element {
   const inventory = useInventoryStore((state) => state.inventory)
   const activeCharacter = useCharacterStore((state) => state.getActiveCharacter())
-  const { applyDeltaBundle } = useChronicleLLM()
+  const { applyDeltaBundle, canApplyAutomation, canAutoApply } =
+    useChronicleLLM()
 
   const characterId = activeCharacter?.id ?? null
   const items = useMemo<Item[]>(() => {
@@ -83,12 +84,18 @@ export default function FolioGearPage({
   const handleBundle = useCallback(
     async (ops, slotId) => {
       if (ops.length === 0) return true
+      if (!canApplyAutomation) {
+        logger.warn(
+          '[folio] Equipment change ignored: automation is read-only in this rollout stage.',
+        )
+        return false
+      }
       try {
         setPendingSlot(slotId ?? null)
         const bundle = createManualBundle(ops)
         await applyDeltaBundle({
           bundle,
-          autoApply: true,
+          autoApply: canAutoApply,
           selectedOpIndices: ops.map((_, index) => index),
         })
         return true
@@ -99,7 +106,7 @@ export default function FolioGearPage({
         setPendingSlot(null)
       }
     },
-    [applyDeltaBundle],
+    [applyDeltaBundle, canApplyAutomation, canAutoApply],
   )
 
   const handleEquip = useCallback(

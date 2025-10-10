@@ -619,7 +619,9 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     lastProgressEvent,
     lastTelemetryEvent,
     settings,
-    _updateSettings,
+    updateSettings: _updateSettings,
+    canApplyAutomation,
+    canAutoApply,
   } = useChronicleLLM()
 
   const handleUndoBundle = useCallback(
@@ -729,12 +731,16 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       const selection: Record<number, boolean> = {}
       const hasWarnings = warnings.length > 0
       ops.forEach((op, index) => {
+        if (!canAutoApply || hasWarnings) {
+          selection[index] = false
+          return
+        }
         const policy = settings?.autoApplyPolicy?.[op.type] ?? 'confirm'
-        selection[index] = policy === 'auto' && !hasWarnings
+        selection[index] = policy === 'auto'
       })
       return selection
     },
-    [settings?.autoApplyPolicy],
+    [canAutoApply, settings?.autoApplyPolicy],
   )
 
   const flashFolioHighlight = useCallback(
@@ -809,11 +815,12 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       selection: Record<number, boolean>,
       warnings: string[],
     ) => {
+      if (!canAutoApply) return false
       if (warnings.length > 0) return false
       if (bundle.ops.length === 0) return false
       return bundle.ops.every((_, index) => selection[index])
     },
-    [],
+    [canAutoApply],
   )
 
   const toggleOperationSelection = useCallback(
@@ -856,6 +863,16 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
         return
       }
 
+      if (!canApplyAutomation) {
+        updateEntry(entryId, (entry) => ({
+          ...entry,
+          status: 'error',
+          errorMessage:
+            'Automation is currently in read-only mode. Review updates in Chronicle before applying.',
+        }))
+        return
+      }
+
       updateEntry(entryId, (entry) => ({
         ...entry,
         status: 'applying',
@@ -865,7 +882,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       try {
         const result = await applyDeltaBundle({
           bundle: entrySnapshot.bundle,
-          autoApply: Boolean(auto),
+          autoApply: Boolean(auto && canAutoApply),
           selectedOpIndices: selectedIndices,
         })
 
@@ -885,7 +902,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
         }))
       }
     },
-    [applyDeltaBundle, updateEntry],
+    [applyDeltaBundle, canApplyAutomation, canAutoApply, updateEntry],
   )
 
   const addChronicleEntry = useCallback(
@@ -943,11 +960,11 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
           bundle,
           warnings,
           selection,
-          status: auto ? 'applying' : 'ready',
+          status: auto && canApplyAutomation ? 'applying' : 'ready',
           errorMessage: undefined,
         }))
 
-        if (auto) {
+        if (auto && canApplyAutomation) {
           await applyBundleForEntry(entryId, { auto: true })
         }
       } catch (error) {
@@ -975,6 +992,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       applyBundleForEntry,
       buildSelectionMap,
       campaignVibe,
+      canApplyAutomation,
       proposeEntryDeltas,
       shouldAutoApplyBundle,
       updateEntry,
@@ -1011,6 +1029,18 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       lastProgressEvent?.message ??
       (lastProgressEvent as { text?: string } | null)?.text ??
       ''
+
+    if (!canApplyAutomation) {
+      return {
+        label: 'Automation read-only',
+        message:
+          'Chronicle automations are in dark-launch review mode. Apply and undo actions are disabled.',
+        badgeVariant: 'warning',
+        alertVariant: 'default',
+        icon: ShieldAlert,
+        spinning: false,
+      }
+    }
 
     if (progressStage === 'error') {
       return {
@@ -1065,7 +1095,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
       const tokens = `${lastTelemetryEvent.usage.totalTokens} tokens`
       return {
         label: 'Automation ready',
-        message: `${latency} · ${tokens}`,
+        message: `${latency} / ${tokens}`,
         badgeVariant: 'success',
         alertVariant: 'default',
         icon: CheckCircle2,
@@ -1074,7 +1104,13 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     }
 
     return null
-  }, [isApplyingBundle, isProposing, lastProgressEvent, lastTelemetryEvent])
+  }, [
+    canApplyAutomation,
+    isApplyingBundle,
+    isProposing,
+    lastProgressEvent,
+    lastTelemetryEvent,
+  ])
 
   const automationBanner = useMemo(() => {
     if (!automationStatus) return null
@@ -1427,7 +1463,8 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                               }
                                               disabled={
                                                 entry.status === 'applied' ||
-                                                entry.status === 'applying'
+                                                entry.status === 'applying' ||
+                                                !canApplyAutomation
                                               }
                                               renderDescription={
                                                 describeDeltaOperation
@@ -1449,7 +1486,8 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                                 }
                                                 disabled={
                                                   entry.status === 'applying' ||
-                                                  isApplyingBundle
+                                                  isApplyingBundle ||
+                                                  !canApplyAutomation
                                                 }
                                                 className='gap-2'
                                               >
@@ -1480,7 +1518,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                                   applied
                                                   {entry.result.skippedOps
                                                     .length > 0
-                                                    ? ` · ${entry.result.skippedOps.length} skipped`
+                                                    ? ` / ${entry.result.skippedOps.length} skipped`
                                                     : ''}
                                                 </span>
                                               )}

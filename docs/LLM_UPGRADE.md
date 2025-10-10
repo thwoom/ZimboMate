@@ -1,11 +1,12 @@
 Product Requirements Document (PRD)
 
-Project: Chronicle v2 — Dungeon World + GPT‑5 Unified
+Project: Chronicle v2 - Dungeon World + GPT-5 Unified
 Owner: Zimbo
 Author: (Assistant)
 Status: Draft -> Review -> Build
 Target Release: Next minor (vX.Y) with phased rollout
 Companion Spec: See `docs/DW_ASSISTANT_APP.md` for the full assistant feature set that builds on this automation effort.
+Next Steps After LLM Upgrade: Transition to the level-up workflow roadmap (`docs/level-up-roadmap.md`).
 
 1. Vision & Problem Statement
 

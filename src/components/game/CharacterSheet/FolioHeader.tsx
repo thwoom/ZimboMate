@@ -4,7 +4,6 @@ import type { DeltaOperation } from '@/services/llm'
 import React, { useCallback } from 'react'
 
 import { useChronicleLLM } from '@/components/chronicle/ChronicleProvider'
-import { Badge } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useCharacterStore } from '@/stores/characterStore'
 import { logger } from '@/utils/logger'
@@ -23,7 +22,8 @@ export default function FolioHeader({
 }: FolioHeaderProps): JSX.Element {
   const { getActiveCharacter } = useCharacterStore()
   const activeCharacter = getActiveCharacter()
-  const { applyDeltaBundle } = useChronicleLLM()
+  const { applyDeltaBundle, canApplyAutomation, canAutoApply } =
+    useChronicleLLM()
 
   const characterId = activeCharacter?.id ?? null
   const name = activeCharacter?.name ?? 'Adventurer'
@@ -40,6 +40,12 @@ export default function FolioHeader({
     async (change: CounterAdjust) => {
       if (!characterId) {
         logger.warn('[folio] Inline counter adjustment ignored: no active character')
+        return
+      }
+      if (!canApplyAutomation) {
+        logger.warn(
+          '[folio] Inline counter adjustment ignored: automation is read-only in this rollout stage.',
+        )
         return
       }
 
@@ -104,14 +110,14 @@ export default function FolioHeader({
         const bundle = createManualBundle(ops)
         await applyDeltaBundle({
           bundle,
-          autoApply: true,
+          autoApply: canAutoApply,
           selectedOpIndices: ops.map((_, index) => index),
         })
       } catch (error) {
         logger.error('[folio] Failed to apply manual bundle', error)
       }
     },
-    [applyDeltaBundle, characterId],
+    [applyDeltaBundle, canApplyAutomation, canAutoApply, characterId],
   )
 
   return (
@@ -125,11 +131,11 @@ export default function FolioHeader({
     >
       <div className='min-w-0 space-y-1'>
         <h2 className='text-foreground truncate text-base font-semibold'>{name}</h2>
-        <p className='text-muted-foreground text-sm'>Level {level} · {klass}</p>
+        <p className='text-muted-foreground text-sm'>Level {level} / {klass}</p>
         {focusLabel && (
-          <Badge variant='outline' className='text-[10px] uppercase tracking-wide text-primary'>
+          <div className='max-w-full break-words rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary whitespace-normal'>
             {focusLabel}
-          </Badge>
+          </div>
         )}
       </div>
       <InlineCounters

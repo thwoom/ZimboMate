@@ -6,6 +6,11 @@ import { customMatchers } from '../utils/testing'
 
 import '@testing-library/jest-dom'
 
+if (typeof process !== 'undefined') {
+  process.env.LLM_ROLLOUT_STAGE =
+    process.env.LLM_ROLLOUT_STAGE ?? 'default'
+}
+
 vi.mock('@/services/llm', async () => {
   const actual =
     await vi.importActual<typeof import('@/services/llm')>('@/services/llm')

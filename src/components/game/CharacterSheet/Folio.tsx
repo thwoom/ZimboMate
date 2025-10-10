@@ -71,7 +71,7 @@ export default function Folio({
     >
       <FolioHeader highlighted={highlight?.page === 'stats'} focusLabel={highlight?.page === 'stats' ? highlightLabel : undefined} />
       {highlight && highlight.page !== 'stats' && (
-        <div className='rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary'>
+        <div className='rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary whitespace-normal break-words'>
           {highlightLabel}
         </div>
       )}

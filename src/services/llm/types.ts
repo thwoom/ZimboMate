@@ -415,4 +415,9 @@ export interface LlmTelemetryEvent {
   usage: TokenUsage
 
   costCents?: number
+  stage?: 'propose' | 'apply' | 'undo' | 'guardrail'
+  outcome?: 'success' | 'failure' | 'skipped'
+  bundleId?: string
+  entryId?: string
+  error?: string
 }
