@@ -173,6 +173,12 @@ describe('chronicleStore delta history', () => {
       startedAt: '2025-10-09T10:00:00.000Z',
     })
 
+    expect(useChronicleStore.getState().deltaHistory[0]).toMatchObject({
+      bundleId: 'bundle-provisional',
+      status: 'pending',
+      autoApply: false,
+    })
+
     store.finishBundleApply({
       bundleId: 'bundle-final',
       entryId: 'entry-apply',
@@ -196,6 +202,7 @@ describe('chronicleStore delta history', () => {
       requestedAt: '2025-10-09T10:00:00.000Z',
       autoApply: false,
       durationMs: 1500,
+      error: undefined,
     })
     expect(firstHistory.undoHandle?.bundleId).toBe('bundle-final')
     const [firstAudit] = state.auditLog
@@ -250,6 +257,42 @@ describe('chronicleStore delta history', () => {
       entryId: 'entry-a',
       action: 'undone',
       actor: 'user',
+    })
+  })
+
+  it('recordBundleFailure converts pending entry to failed log with audit trail', () => {
+    const store = useChronicleStore.getState()
+    store.beginBundleApply({
+      entryId: 'entry-failure',
+      autoApply: false,
+      actor: 'auto',
+      requestedAt: '2025-10-09T14:00:00.000Z',
+      bundleId: 'bundle-failure-temp',
+    })
+
+    store.recordBundleFailure({
+      bundleId: 'bundle-failure-temp',
+      entryId: 'entry-failure',
+      actor: 'auto',
+      reason: 'Executor rejected operations',
+      error: 'Test failure',
+      occurredAt: '2025-10-09T14:00:01.000Z',
+    })
+
+    const [history] = useChronicleStore.getState().deltaHistory
+    expect(history).toMatchObject({
+      bundleId: 'bundle-failure-temp',
+      entryId: 'entry-failure',
+      status: 'failed',
+      error: 'Test failure',
+    })
+    expect(useChronicleStore.getState().pendingDeltaBundle).toBeNull()
+    const [audit] = useChronicleStore.getState().auditLog
+    expect(audit).toMatchObject({
+      bundleId: 'bundle-failure-temp',
+      entryId: 'entry-failure',
+      action: 'failed',
+      reason: 'Executor rejected operations',
     })
   })
 
@@ -333,10 +376,15 @@ describe('chronicleStore delta history', () => {
     })
 
     expect(useChronicleStore.getState().bundleSnapshots).toHaveLength(1)
+    expect(useChronicleStore.getState().deltaHistory[0]).toMatchObject({
+      entryId: 'entry-fail',
+      status: 'pending',
+    })
 
     store.endBundleApply()
 
     expect(useChronicleStore.getState().bundleSnapshots).toHaveLength(0)
+    expect(useChronicleStore.getState().deltaHistory).toHaveLength(0)
   })
 
   it('clearAutomationHistory wipes all automation artifacts', () => {

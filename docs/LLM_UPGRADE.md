@@ -614,6 +614,8 @@ Phase 3 - Store Hardening & Settings (PRD Sec 6, Sec 12)
 
 **2025-10-09 Phase 3 update:** Chronicle store now records session LLM spend with exportable automation history helpers (bundle snapshot pair selectors + JSON export), and the Settings panel exposes guardrail controls: cost caps trigger template fallbacks with overlay messaging, session spend can be reset, and QA can copy the latest before/after snapshot directly.
 
+**2025-10-10 completion:** Store lifecycle helpers now emit pending and failure records (including `recordBundleFailure`) so automation history, audit trails, and undo wiring stay in sync; Chronicle overlay/panel surface status badges and failure messaging; undo is scoped to applied bundles; and QA can retain before/after snapshots for failed bundles without manual cleanup.
+
 Phase 4 - Telemetry, Cost & Rollout Rails (PRD Sec 12, Sec 14, Sec 17.2, Sec 19-20)
 
 - Emit success/failure telemetry for apply/undo with latency + cost.
@@ -640,7 +642,8 @@ Status Snapshot
 - Phase 0.1: Complete (Matsu Folio split pane, inline counters, virtualized gear/spell lists live as of 2025-10-05).
 - Phase 1: Complete (composer checklist + overlay citations landed 2025-10-05; Playwright baseline + integration spec follow-ups tracked in Phase 5).
 - Phase 2: Complete (entity linking history + slot-hint inventory placement landed 2025-10-09).
-- Phases 3-6: Planned; begin once Phase 2 lands.
+- Phase 3: Complete (pending/failure logging + status-aware overlays landed 2025-10-10).
+- Phases 4-6: Planned; kickoff follows Phase 3 stabilization.
 
 Appendix A — Minimal Tool Schema Set (starter)
 

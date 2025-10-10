@@ -739,11 +739,22 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                         >
                           <div className='space-y-1'>
                             <div className='flex flex-wrap items-center gap-2 font-semibold text-foreground'>
-                              <span>
+                              <Badge
+                                variant={
+                                  entry.action === 'failed'
+                                    ? 'destructive'
+                                    : entry.action === 'applied'
+                                      ? 'success'
+                                      : 'outline'
+                                }
+                                className='text-[9px] uppercase tracking-wide'
+                              >
                                 {entry.action === 'applied'
                                   ? 'Bundle applied'
-                                  : 'Bundle undone'}
-                              </span>
+                                  : entry.action === 'undone'
+                                    ? 'Bundle undone'
+                                    : 'Bundle failed'}
+                              </Badge>
                               {bundleLabel && (
                                 <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
                                   {bundleLabel}

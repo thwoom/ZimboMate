@@ -206,15 +206,16 @@ export interface ChronicleDeltaLog {
   createdAt: string
   undoHandle?: UndoHandle
   actor?: 'auto' | 'manual' | 'system' | 'user'
-  status?: 'applied' | 'undone'
+  status?: 'pending' | 'applied' | 'undone' | 'failed'
   requestedAt?: string
   autoApply?: boolean
   durationMs?: number
   undoneAt?: string
   undoActor?: 'auto' | 'manual' | 'system' | 'user'
+  error?: string
 }
 
-export type ChronicleAuditAction = 'applied' | 'undone'
+export type ChronicleAuditAction = 'applied' | 'undone' | 'failed'
 
 export interface ChronicleAuditEntry {
   id: string

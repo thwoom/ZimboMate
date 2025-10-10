@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import React from 'react'
 import { vi } from 'vitest'
 import { useChronicleStore } from '@/stores/chronicleStore'
+import * as chronicleService from '@/services/chronicle'
 import { ChronicleProvider, useChronicleLLM } from '../ChronicleProvider'
 
 const getMockControls = () => (globalThis as any).__LLM_MOCK__
@@ -21,6 +22,7 @@ describe('chronicle provider GPT-5 integration', () => {
   })
 
   afterEach(() => {
+    vi.restoreAllMocks()
     if (originalTauri === undefined) {
       delete (globalThis as any).__TAURI__
     } else {
@@ -140,6 +142,11 @@ describe('chronicle provider GPT-5 integration', () => {
       bundleId: 'idempotency-1',
     })
 
+    expect(useChronicleStore.getState().deltaHistory[0]).toMatchObject({
+      bundleId: 'idempotency-1',
+      status: 'pending',
+    })
+
     resolveApply?.({
       bundleId: 'bundle-applied',
       appliedOps: payload.bundle.ops,
@@ -154,7 +161,8 @@ describe('chronicle provider GPT-5 integration', () => {
     })
 
     const store = useChronicleStore.getState()
-    const expectedBundleId = 'bundle-applied'
+    const expectedBundleId =
+      payload.bundle.idempotencyKey ?? payload.bundle.entryId
 
     expect(store.pendingDeltaBundle).toBeNull()
     expect(store.deltaHistory[0]).toMatchObject({
@@ -162,6 +170,7 @@ describe('chronicle provider GPT-5 integration', () => {
       entryId: 'entry-apply',
       actor: 'manual',
       status: 'applied',
+      error: undefined,
     })
     expect(typeof store.deltaHistory[0].durationMs).toBe('number')
     expect(store.deltaHistory[0].undoHandle?.bundleId).toBe(expectedBundleId)
@@ -172,5 +181,55 @@ describe('chronicle provider GPT-5 integration', () => {
       action: 'applied',
       actor: 'manual',
     })
+  })
+
+  it('records bundle failure when executor rejects apply', async () => {
+    const applySpy = vi
+      .spyOn(chronicleService, 'applyChronicleDeltaBundle')
+      .mockRejectedValue(new Error('executor failure'))
+
+    const { result } = renderHook(() => useChronicleLLM(), { wrapper })
+
+    const payload = {
+      bundle: {
+        entryId: 'entry-failure',
+        narrative: 'Narrative',
+        ops: [{ type: 'mark_xp', characterId: 'hero', amount: 1 }],
+        usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
+        reasoning: 'Test',
+        idempotencyKey: 'idempotency-failure',
+        model: 'gpt-5-test',
+        createdAt: '2025-10-07T13:00:00.000Z',
+      },
+      autoApply: false,
+    }
+
+    let thrown: unknown
+    await act(async () => {
+      await result.current
+        .applyDeltaBundle(payload as any)
+        .catch((error: unknown) => {
+          thrown = error
+        })
+    })
+
+    expect(thrown).toBeInstanceOf(Error)
+    expect((thrown as Error).message).toBe('executor failure')
+
+    const store = useChronicleStore.getState()
+    expect(store.pendingDeltaBundle).toBeNull()
+    expect(store.deltaHistory[0]).toMatchObject({
+      bundleId: 'idempotency-failure',
+      entryId: 'entry-failure',
+      status: 'failed',
+      error: 'executor failure',
+    })
+    expect(store.auditLog[0]).toMatchObject({
+      bundleId: 'idempotency-failure',
+      entryId: 'entry-failure',
+      action: 'failed',
+    })
+
+    expect(applySpy).toHaveBeenCalled()
   })
 })

@@ -652,6 +652,27 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     [latestAutomation],
   )
 
+  const latestAutomationStatusBadge = useMemo(() => {
+    if (!latestAutomation?.status) return null
+    type StatusKey = 'pending' | 'applied' | 'undone' | 'failed'
+    const status = latestAutomation.status as StatusKey
+    const statusConfig: Record<
+      StatusKey,
+      { label: string; variant: 'success' | 'warning' | 'outline' | 'destructive' | 'secondary' }
+    > = {
+      pending: { label: 'Pending', variant: 'warning' },
+      applied: { label: 'Applied', variant: 'success' },
+      undone: { label: 'Undone', variant: 'outline' },
+      failed: { label: 'Failed', variant: 'destructive' },
+    }
+    const config = statusConfig[status] ?? { label: status, variant: 'secondary' }
+    return (
+      <Badge variant={config.variant} className='text-[9px] uppercase tracking-wide'>
+        {config.label}
+      </Badge>
+    )
+  }, [latestAutomation?.status])
+
   const statusChip = useMemo(() => {
     if (!automationStatus) return null
 
@@ -928,7 +949,8 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                 </p>
               </div>
               <div className='flex flex-col items-end gap-1 text-[10px] uppercase tracking-wide text-muted-foreground'>
-                <span>
+                {latestAutomationStatusBadge}
+                <span className='text-muted-foreground'>
                   {latestAutomation.appliedOps.length} applied
                   {latestAutomation.skippedOps.length > 0
                     ? ` - ${latestAutomation.skippedOps.length} skipped`
@@ -943,15 +965,31 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
             </div>
             <div className='mt-3 flex-1 overflow-y-auto space-y-3 pr-1 pb-3 min-h-0'>
               <div className='space-y-2'>
-                <DeltaChecklist
-                  operations={latestAutomation.appliedOps}
-                  renderDescription={describeDeltaOperation}
-                  variant='readOnly'
-                  size='compact'
-                  showRuleReference
-                  className='space-y-1'
-                  itemClassName='bg-transparent border-border/40'
-                />
+                {latestAutomation.appliedOps.length > 0 ? (
+                  <DeltaChecklist
+                    operations={latestAutomation.appliedOps}
+                    renderDescription={describeDeltaOperation}
+                    variant='readOnly'
+                    size='compact'
+                    showRuleReference
+                    className='space-y-1'
+                    itemClassName='bg-transparent border-border/40'
+                  />
+                ) : latestAutomation.status === 'pending' ? (
+                  <div className='rounded-md border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground'>
+                    Applying bundle&hellip; updates will appear once the executor responds.
+                  </div>
+                ) : null}
+                {latestAutomation.status === 'failed' && latestAutomation.error && (
+                  <Alert variant='destructive' className='border-border/50 bg-destructive/10'>
+                    <AlertTitle className='text-xs font-semibold'>
+                      Automation failed
+                    </AlertTitle>
+                    <AlertDescription className='text-xs leading-relaxed'>
+                      {latestAutomation.error}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 {mentionHighlights.length > 0 && (
                   <div className='space-y-2'>
                     <div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
@@ -1158,7 +1196,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
               )}
             </div>
             <div className='mt-3 flex flex-wrap items-center gap-2'>
-              {canUndoAutomation && (
+              {canUndoAutomation && latestAutomation.status === 'applied' && (
                 <Button
                   size='sm'
                   variant='outline'
@@ -1242,7 +1280,22 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                   >
                     <div className='space-y-1'>
                       <div className='flex flex-wrap items-center gap-2 font-semibold text-foreground'>
-                        <span>{entry.action === 'applied' ? 'Bundle applied' : 'Bundle undone'}</span>
+                        <Badge
+                          variant={
+                            entry.action === 'failed'
+                              ? 'destructive'
+                              : entry.action === 'applied'
+                                ? 'success'
+                                : 'outline'
+                          }
+                          className='text-[9px] uppercase tracking-wide'
+                        >
+                          {entry.action === 'applied'
+                            ? 'Bundle applied'
+                            : entry.action === 'undone'
+                              ? 'Bundle undone'
+                              : 'Bundle failed'}
+                        </Badge>
                         {bundleLabel && (
                           <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
                             {bundleLabel}

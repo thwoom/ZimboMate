@@ -561,6 +561,24 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           message:
             error instanceof Error ? error.message : 'Failed to apply bundle.',
         })
+
+        const failureBundleId =
+          useChronicleStore.getState().pendingDeltaBundle?.bundleId ??
+          payload.bundle.idempotencyKey ??
+          payload.bundle.entryId ??
+          `bundle-${applyRequestedAt.getTime()}`
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error'
+
+        chronicleStore.recordBundleFailure({
+          bundleId: failureBundleId,
+          entryId: payload.bundle.entryId,
+          actor: bundleActor,
+          reason: 'Chronicle automation failed to apply.',
+          error: errorMessage,
+          occurredAt: new Date().toISOString(),
+        })
+
         recordTelemetry({
           usage: payload.bundle.usage ?? ZERO_USAGE,
           stage: 'apply',
@@ -568,7 +586,7 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           bundleId:
             payload.bundle.idempotencyKey ?? payload.bundle.entryId ?? undefined,
           entryId: payload.bundle.entryId,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage,
           costCents: 0,
         })
         throw error

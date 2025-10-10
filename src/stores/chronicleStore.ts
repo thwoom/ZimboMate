@@ -64,6 +64,15 @@ interface BundleUndoPayload {
   skippedOps: ChronicleDeltaLog['skippedOps']
 }
 
+interface BundleFailurePayload {
+  bundleId: string
+  entryId: string
+  actor: BundleActor
+  reason?: string
+  error?: string
+  occurredAt?: string
+}
+
 interface ChronicleState {
   // Core data
   entries: ChronicleEntry[]
@@ -95,8 +104,9 @@ interface ChronicleState {
   setPendingDeltaBundle: (pending: PendingChronicleBundle | null) => void
   beginBundleApply: (payload: BeginBundleApplyPayload) => void
   finishBundleApply: (payload: FinishBundleApplyPayload) => void
-  endBundleApply: () => void
+  endBundleApply: (options?: { preserveSnapshots?: boolean }) => void
   markBundleUndo: (payload: BundleUndoPayload) => void
+  recordBundleFailure: (payload: BundleFailurePayload) => void
   auditLog: ChronicleAuditEntry[]
   recordAuditEvent: (entry: ChronicleAuditEntry) => void
   clearAuditLog: (bundleId?: string) => void
@@ -663,17 +673,39 @@ export const useChronicleStore = create<ChronicleState>()(
           autoApply: Boolean(autoApply),
         })
 
-        set(() => ({
-          pendingDeltaBundle: {
+        set((state) => {
+          const pendingEntry: ChronicleDeltaLog = {
             bundleId: normalizedBundleId,
             entryId,
-            requestedAt,
-            autoApply,
+            appliedOps: [],
+            skippedOps: [],
+            createdAt: when,
             actor,
-            startedAt: when,
-            status: 'applying',
-          },
-        }))
+            status: 'pending',
+            requestedAt,
+            autoApply: Boolean(autoApply),
+          }
+
+          const filteredHistory = state.deltaHistory.filter(
+            (entry) => entry.bundleId !== normalizedBundleId,
+          )
+
+          return {
+            pendingDeltaBundle: {
+              bundleId: normalizedBundleId,
+              entryId,
+              requestedAt,
+              autoApply,
+              actor,
+              startedAt: when,
+              status: 'applying',
+            },
+            deltaHistory: [pendingEntry, ...filteredHistory].slice(
+              0,
+              MAX_DELTA_HISTORY,
+            ),
+          }
+        })
 
         get().recordBundleSnapshot(snapshot)
       },
@@ -726,11 +758,36 @@ export const useChronicleStore = create<ChronicleState>()(
         }
 
         set((state) => {
+          const candidateBundleIds = [bundleId, previousBundleId].filter(
+            (value): value is string => Boolean(value),
+          )
+          const existingIndex = state.deltaHistory.findIndex((entry) =>
+            candidateBundleIds.includes(entry.bundleId),
+          )
+          const existing =
+            existingIndex >= 0 ? state.deltaHistory[existingIndex] : undefined
+
+          const normalizedHistoryEntry: ChronicleDeltaLog = {
+            ...existing,
+            ...logEntry,
+            createdAt: existing?.createdAt ?? timestamp,
+            requestedAt: existing?.requestedAt ?? requestedAt ?? timestamp,
+            status: 'applied',
+            actor: logEntry.actor ?? existing?.actor,
+            autoApply:
+              logEntry.autoApply ?? existing?.autoApply ?? normalizedAutoApply,
+            error: undefined,
+          }
+
+          const remainingHistory = state.deltaHistory.filter(
+            (_entry, index) =>
+              index !== existingIndex &&
+              !candidateBundleIds.includes(_entry.bundleId),
+          )
+
           const nextDeltaHistory = [
-            logEntry,
-            ...state.deltaHistory.filter(
-              (entry) => entry.bundleId !== bundleId,
-            ),
+            normalizedHistoryEntry,
+            ...remainingHistory,
           ].slice(0, MAX_DELTA_HISTORY)
 
           const filteredAudit = state.auditLog.filter(
@@ -751,10 +808,26 @@ export const useChronicleStore = create<ChronicleState>()(
         get().recordBundleSnapshot(afterSnapshot, previousBundleId)
       },
 
-      endBundleApply: () => {
+      endBundleApply: (options) => {
         const pending = get().pendingDeltaBundle
-        set(() => ({ pendingDeltaBundle: null }))
-        if (pending?.bundleId) {
+        set((state) => {
+          const nextHistory =
+            pending?.bundleId
+              ? state.deltaHistory.filter(
+                  (entry) =>
+                    !(
+                      entry.bundleId === pending.bundleId &&
+                      entry.status === 'pending'
+                    ),
+                )
+              : state.deltaHistory
+
+          return {
+            pendingDeltaBundle: null,
+            deltaHistory: nextHistory,
+          }
+        })
+        if (pending?.bundleId && !options?.preserveSnapshots) {
           get().clearBundleSnapshots(pending.bundleId)
         }
       },
@@ -821,6 +894,76 @@ export const useChronicleStore = create<ChronicleState>()(
               0,
               MAX_AUDIT_LOG_ENTRIES,
             ),
+          }
+        })
+      },
+
+      recordBundleFailure: ({
+        bundleId,
+        entryId,
+        actor,
+        reason,
+        error,
+        occurredAt,
+      }) => {
+        const failedAt = occurredAt ?? new Date().toISOString()
+
+        set((state) => {
+          const existingIndex = state.deltaHistory.findIndex(
+            (entry) => entry.bundleId === bundleId,
+          )
+          const existing =
+            existingIndex >= 0 ? state.deltaHistory[existingIndex] : undefined
+
+          const normalizedHistoryEntry: ChronicleDeltaLog = {
+            bundleId,
+            entryId,
+            appliedOps: existing?.appliedOps ?? [],
+            skippedOps: existing?.skippedOps ?? [],
+            createdAt: existing?.createdAt ?? failedAt,
+            actor: actor ?? existing?.actor,
+            status: 'failed',
+            requestedAt: existing?.requestedAt ?? failedAt,
+            autoApply: existing?.autoApply ?? false,
+            undoHandle: existing?.undoHandle,
+            durationMs: existing?.durationMs,
+            error,
+          }
+
+          const remainingHistory = state.deltaHistory.filter(
+            (_entry, index) =>
+              index !== existingIndex && _entry.bundleId !== bundleId,
+          )
+
+          const nextDeltaHistory = [
+            normalizedHistoryEntry,
+            ...remainingHistory,
+          ].slice(0, MAX_DELTA_HISTORY)
+
+          const auditEntry: ChronicleAuditEntry = {
+            id: generateId('audit-'),
+            bundleId,
+            entryId,
+            action: 'failed',
+            actor,
+            reason,
+            timestamp: failedAt,
+            appliedOps: normalizedHistoryEntry.appliedOps,
+            skippedOps: normalizedHistoryEntry.skippedOps,
+          }
+
+          const nextAuditLog = [auditEntry, ...state.auditLog].slice(
+            0,
+            MAX_AUDIT_LOG_ENTRIES,
+          )
+
+          return {
+            deltaHistory: nextDeltaHistory,
+            auditLog: nextAuditLog,
+            pendingDeltaBundle:
+              state.pendingDeltaBundle?.bundleId === bundleId
+                ? null
+                : state.pendingDeltaBundle,
           }
         })
       },
