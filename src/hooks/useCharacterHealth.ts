@@ -208,7 +208,10 @@ export function useCharacterHealth(
 
   // Reset death saves when character is healed above 0
   useEffect(() => {
-    if (health.current > 0 && (deathSaveSuccesses > 0 || deathSaveFailures > 0)) {
+    if (
+      health.current > 0 &&
+      (deathSaveSuccesses > 0 || deathSaveFailures > 0)
+    ) {
       dispatchDeathSave({ type: 'reset' })
     }
   }, [deathSaveFailures, deathSaveSuccesses, health])
@@ -445,5 +448,3 @@ export function useSimpleHealth(characterId?: string) {
     updateHP,
   }
 }
-
-

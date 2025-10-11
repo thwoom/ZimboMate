@@ -1987,7 +1987,8 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({
                 <b>Alignment</b>: {draft.alignment || '-'}
               </li>
               <li>
-                <b>Attributes</b>: STR {resolveAttributeScore(draft.attributes.STR, 10)}, DEX{' '}
+                <b>Attributes</b>: STR{' '}
+                {resolveAttributeScore(draft.attributes.STR, 10)}, DEX{' '}
                 {resolveAttributeScore(draft.attributes.DEX, 10)}, CON{' '}
                 {resolveAttributeScore(draft.attributes.CON, 10)}, INT{' '}
                 {resolveAttributeScore(draft.attributes.INT, 10)}, WIS{' '}

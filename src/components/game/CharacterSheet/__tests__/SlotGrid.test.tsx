@@ -15,22 +15,19 @@ describe('slot grid', () => {
       />,
     )
 
-    expect(screen.getByRole('button', { name: 'Main Hand: empty' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Main Hand: empty' }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Off Hand: Iron Shield' }).className,
     ).toContain('bg-card')
   })
 
   it('applies error styling when requested', () => {
-    render(
-      <SlotGrid
-        state='error'
-        slots={[{ id: 'armor', label: 'Armor' }]}
-      />,
-    )
+    render(<SlotGrid state='error' slots={[{ id: 'armor', label: 'Armor' }]} />)
 
-    expect(screen.getByRole('button', { name: 'Armor: empty' }).className).toContain(
-      'bg-destructive/10',
-    )
+    expect(
+      screen.getByRole('button', { name: 'Armor: empty' }).className,
+    ).toContain('bg-destructive/10')
   })
 })

@@ -27,12 +27,18 @@ export default function SplitPane({
   return (
     <section
       data-slot='split-pane'
-      className={cn('grid w-full items-start gap-4 md:gap-0', gridClass, className)}
+      className={cn(
+        'grid w-full items-start gap-4 md:gap-0',
+        gridClass,
+        className,
+      )}
       style={{ '--folio-width': `${leftMinWidth}px` } as React.CSSProperties}
       role='group'
       aria-label='Two pane workspace'
     >
-      <div className='bg-card border-border rounded-lg border shadow-sm md:h-full'>{left}</div>
+      <div className='bg-card border-border rounded-lg border shadow-sm md:h-full'>
+        {left}
+      </div>
       {showGutter ? (
         <div
           data-slot='split-pane-gutter'

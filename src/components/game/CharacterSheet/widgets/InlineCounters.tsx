@@ -69,7 +69,10 @@ export default function InlineCounters({
   }
 
   return (
-    <div data-slot='inline-counters' className={cn('flex flex-wrap items-center gap-2', className)}>
+    <div
+      data-slot='inline-counters'
+      className={cn('flex flex-wrap items-center gap-2', className)}
+    >
       <Counter
         label='HP'
         value={`${hp.current}/${hp.max}`}

@@ -388,7 +388,8 @@ describe('delta executor undo', () => {
     expect(holdHistory[0]).toMatchObject({ change: 2, remaining: 2 })
 
     await undoChronicleBundle(result.bundleId)
-    const holdsAfter = useHoldStore.getState().characterHolds[character.id] ?? []
+    const holdsAfter =
+      useHoldStore.getState().characterHolds[character.id] ?? []
     expect(holdsAfter).toHaveLength(0)
     const holdHistoryAfter =
       useChronicleStore.getState().resourceHistory.hold[character.id] ?? []
@@ -453,7 +454,8 @@ describe('delta executor undo', () => {
     expect(holdHistory[0]).toMatchObject({ change: -2, remaining: 1 })
 
     await undoChronicleBundle(result.bundleId)
-    const holdsAfter = useHoldStore.getState().characterHolds[character.id] ?? []
+    const holdsAfter =
+      useHoldStore.getState().characterHolds[character.id] ?? []
     expect(holdsAfter[0].amount).toBe(3)
     const holdHistoryAfter =
       useChronicleStore.getState().resourceHistory.hold[character.id] ?? []
@@ -647,4 +649,3 @@ describe('delta executor undo', () => {
     expect(inventory?.items['axe-1'].equipped).toBe(true)
   })
 })
-

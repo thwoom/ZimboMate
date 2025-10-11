@@ -22,10 +22,13 @@ export default function RightRail({
       className={cn('flex min-w-0 flex-col gap-3', className)}
       {...rest}
     >
-      {header ? <div className='sticky top-0 z-10 bg-background/80 pb-2 backdrop-blur'>{header}</div> : null}
+      {header ? (
+        <div className='sticky top-0 z-10 bg-background/80 pb-2 backdrop-blur'>
+          {header}
+        </div>
+      ) : null}
       <div className='min-w-0'>{children}</div>
       {footer ? <div className='pt-2'>{footer}</div> : null}
     </aside>
   )
 }
-

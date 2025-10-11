@@ -79,7 +79,6 @@ function getEntityColor(type: EntityType) {
   }
 }
 
-
 export const EntityPreview: React.FC<EntityPreviewProps> = ({
   entity,
   entries,
@@ -103,7 +102,8 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
       ? entity.mentionHistory
       : []
     return [...history].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
   }, [entity.mentionHistory])
 
@@ -248,11 +248,7 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
                   </h4>
                   <div className='flex flex-wrap gap-2'>
                     {entity.tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant='secondary'
-                        className='text-xs'
-                      >
+                      <Badge key={tag} variant='secondary' className='text-xs'>
                         #{tag}
                       </Badge>
                     ))}
@@ -313,11 +309,17 @@ export const EntityPreview: React.FC<EntityPreviewProps> = ({
                             )}
                           </div>
                           <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground'>
-                            <Badge variant='outline' className='text-[10px] uppercase tracking-wide'>
+                            <Badge
+                              variant='outline'
+                              className='text-[10px] uppercase tracking-wide'
+                            >
                               {mention.entityType ?? entity.type}
                             </Badge>
                             {mention.source && (
-                              <Badge variant='outline' className='text-[10px] uppercase tracking-wide'>
+                              <Badge
+                                variant='outline'
+                                className='text-[10px] uppercase tracking-wide'
+                              >
                                 {mention.source}
                               </Badge>
                             )}

@@ -176,7 +176,9 @@ describe('playTab automation log polish', () => {
 
     await renderPlayTab()
 
-    const dismissButton = await screen.findByRole('button', { name: /^dismiss$/i })
+    const dismissButton = await screen.findByRole('button', {
+      name: /^dismiss$/i,
+    })
     fireEvent.click(dismissButton)
 
     expect(clearDeltaLog).toHaveBeenCalledWith('bundle-2')
@@ -203,4 +205,3 @@ describe('playTab automation log polish', () => {
     })
   })
 })
-

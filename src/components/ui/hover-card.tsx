@@ -11,10 +11,15 @@ function HoverCard({
   return <HoverCardPrimitive.Root data-slot='hover-card' {...props} />
 }
 
-const HoverCardTrigger = React.forwardRef<
-  React.ElementRef<typeof HoverCardPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Trigger>
->(function HoverCardTrigger({ className, ...props }, ref) {
+const HoverCardTrigger = function HoverCardTrigger({
+  ref,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Trigger> & {
+  ref?: React.RefObject<React.ElementRef<
+    typeof HoverCardPrimitive.Trigger
+  > | null>
+}) {
   return (
     <HoverCardPrimitive.Trigger
       ref={ref}
@@ -23,7 +28,7 @@ const HoverCardTrigger = React.forwardRef<
       {...props}
     />
   )
-})
+}
 
 function HoverCardContent({
   className,

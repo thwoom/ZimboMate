@@ -22,7 +22,11 @@ import {
 } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useChronicleLLM } from '@/components/chronicle/ChronicleProvider'
-import { buildMentionContext, formatActorLabel, formatRelativeTimeFromNow } from '@/components/chronicle/highlightUtils'
+import {
+  buildMentionContext,
+  formatActorLabel,
+  formatRelativeTimeFromNow,
+} from '@/components/chronicle/highlightUtils'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
@@ -68,15 +72,20 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
     string | null
   >(null)
   const selectedEntityId = useChronicleStore((state) => state.selectedEntity)
-  const setSelectedEntityId = useChronicleStore((state) => state.setSelectedEntity)
+  const setSelectedEntityId = useChronicleStore(
+    (state) => state.setSelectedEntity,
+  )
   const getEntityById = useChronicleStore((state) => state.getEntity)
   const selectedEntity = useMemo(() => {
     if (!selectedEntityId) return null
     return getEntityById(selectedEntityId) ?? null
   }, [getEntityById, selectedEntityId])
-  const handleSelectEntity = useCallback((entity: Entity) => {
-    setSelectedEntityId(entity.id)
-  }, [setSelectedEntityId])
+  const handleSelectEntity = useCallback(
+    (entity: Entity) => {
+      setSelectedEntityId(entity.id)
+    },
+    [setSelectedEntityId],
+  )
   const getCharacter = useCharacterStore((state) => state.getCharacter)
 
   const resolveCharacterName = useCallback(
@@ -93,13 +102,13 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('')
   const { isApplyingBundle, lastProgressEvent } = useChronicleLLM()
   const [isTimelineAuditExpanded, setIsTimelineAuditExpanded] = useState(false)
-  const [isTimelineGuardDismissed, setIsTimelineGuardDismissed] = useState(false)
+  const [isTimelineGuardDismissed, setIsTimelineGuardDismissed] =
+    useState(false)
 
-  const tauriBridge = (
+  const tauriBridge =
     typeof window !== 'undefined'
       ? (window as typeof window & { __TAURI__?: unknown })
       : undefined
-  )
   const isTauriRuntime = Boolean(tauriBridge?.__TAURI__)
   const showTauriGuard = !isTauriRuntime && !isTimelineGuardDismissed
 
@@ -185,7 +194,9 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
           debounceTimerRef.current = setTimeout(() => {
             logger.info(`🔍 @mention detected: query="${query}", processing...`)
             const suggestions = parser.current.getEntitySuggestions(query, 8)
-            logger.info(`✅ Found ${suggestions.length} suggestions for "${query}"`)
+            logger.info(
+              `✅ Found ${suggestions.length} suggestions for "${query}"`,
+            )
 
             setCurrentAtMention({
               query,
@@ -604,14 +615,18 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
           >
             <div className='space-y-4'>
               {showTauriGuard && (
-                <Alert variant='destructive' className='border-destructive/40 bg-destructive/10'>
+                <Alert
+                  variant='destructive'
+                  className='border-destructive/40 bg-destructive/10'
+                >
                   <ShieldAlert className='h-4 w-4 text-destructive' />
                   <AlertTitle className='text-sm font-semibold text-destructive'>
                     Desktop bridge unavailable
                   </AlertTitle>
                   <AlertDescription className='space-y-2 text-xs text-destructive/90'>
                     <p>
-                      Chronicle automations need the Tauri desktop bridge. Launch the desktop shell to enable live Chronicle updates.
+                      Chronicle automations need the Tauri desktop bridge.
+                      Launch the desktop shell to enable live Chronicle updates.
                     </p>
                     <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide'>
                       <span className='rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] text-destructive'>
@@ -638,16 +653,24 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                   <AlertTitle className='flex items-center gap-2 text-sm font-semibold text-primary'>
                     Chronicle bundle pending
                     {isApplyingBundle && (
-                      <Badge variant='outline' className='text-[9px] uppercase tracking-wide text-primary'>
+                      <Badge
+                        variant='outline'
+                        className='text-[9px] uppercase tracking-wide text-primary'
+                      >
                         applying
                       </Badge>
                     )}
                   </AlertTitle>
                   <AlertDescription className='space-y-2 text-xs text-muted-foreground'>
                     <div className='flex flex-wrap items-center gap-2 text-sm font-medium text-foreground'>
-                      <span>Entry {pendingDeltaBundle.entryId ?? '\u2014'}</span>
+                      <span>
+                        Entry {pendingDeltaBundle.entryId ?? '\u2014'}
+                      </span>
                       {pendingDeltaBundle.bundleId && (
-                        <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                        <Badge
+                          variant='outline'
+                          className='text-[9px] uppercase tracking-wide'
+                        >
                           #{pendingDeltaBundle.bundleId.slice(-6)}
                         </Badge>
                       )}
@@ -695,13 +718,16 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                     </div>
                     <div className='flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground'>
                       <span>
-                        Showing {visibleAuditEntries.length} of {auditLog.length}
+                        Showing {visibleAuditEntries.length} of{' '}
+                        {auditLog.length}
                       </span>
                       {hasMoreAuditEntries && (
                         <Button
                           size='sm'
                           variant='ghost'
-                          onClick={() => setIsTimelineAuditExpanded((prev) => !prev)}
+                          onClick={() =>
+                            setIsTimelineAuditExpanded((prev) => !prev)
+                          }
                           className='h-7 px-2 text-xs text-muted-foreground hover:text-foreground'
                         >
                           {isTimelineAuditExpanded
@@ -756,7 +782,10 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                                     : 'Bundle failed'}
                               </Badge>
                               {bundleLabel && (
-                                <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                                <Badge
+                                  variant='outline'
+                                  className='text-[9px] uppercase tracking-wide'
+                                >
                                   {bundleLabel}
                                 </Badge>
                               )}
@@ -774,11 +803,16 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                               <span>Entry {entry.entryId}</span>
                             </div>
                             {entry.reason && (
-                              <p className='text-[11px] text-muted-foreground/90'>{entry.reason}</p>
+                              <p className='text-[11px] text-muted-foreground/90'>
+                                {entry.reason}
+                              </p>
                             )}
                           </div>
                           <div className='flex flex-col items-end gap-1 text-[10px] uppercase tracking-wide text-muted-foreground'>
-                            <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                            <Badge
+                              variant='outline'
+                              className='text-[9px] uppercase tracking-wide'
+                            >
                               {formatActorLabel(entry.actor)}
                             </Badge>
                           </div>
@@ -832,13 +866,12 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                     latestMention && latestMention.entryId
                       ? getEntry(latestMention.entryId)
                       : undefined
-                  const mentionSnippet =
-                    latestMention
-                      ? buildMentionContext(
-                          latestMention,
-                          entryForMention?.rawText ?? entity.description ?? '',
-                        )
-                      : null
+                  const mentionSnippet = latestMention
+                    ? buildMentionContext(
+                        latestMention,
+                        entryForMention?.rawText ?? entity.description ?? '',
+                      )
+                    : null
                   const mentionDateRaw =
                     latestMention && latestMention.createdAt
                       ? new Date(latestMention.createdAt)
@@ -886,7 +919,9 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                           )}
                           <div className='flex items-center justify-between text-xs text-muted-foreground'>
                             <span>
-                              {entity.mentionHistory?.length ?? entity.appearances.length} mentions
+                              {entity.mentionHistory?.length ??
+                                entity.appearances.length}{' '}
+                              mentions
                             </span>
                             <div className='flex items-center gap-2'>
                               <div className='flex items-center gap-1'>
@@ -967,19 +1002,3 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

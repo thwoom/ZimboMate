@@ -1,4 +1,8 @@
-import type { DeltaOperation, UndoHandle } from '../services/llm/types'
+import type {
+  DeltaOperation,
+  TokenUsage,
+  UndoHandle,
+} from '../services/llm/types'
 
 /**
  * Chronicle System Types - Core data structures for narrative note-taking
@@ -198,6 +202,21 @@ export interface InferredRelationship {
 }
 
 // Settings for chronicle behavior
+export interface ChronicleTelemetryEventLog {
+  id: string
+  recordedAt: string
+  stage: 'propose' | 'apply' | 'undo' | 'guardrail'
+  outcome: 'success' | 'failure' | 'skipped'
+  model: string
+  latencyMs: number
+  usage: TokenUsage
+  costCents?: number
+  bundleId?: string
+  entryId?: string
+  error?: string
+  source: 'tauri' | 'client'
+}
+
 export interface ChronicleDeltaLog {
   bundleId: string
   entryId: string
@@ -364,4 +383,3 @@ export interface ChronicleSettings {
   costCapCents?: number
   autoEquipWeapons: boolean
 }
-

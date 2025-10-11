@@ -43,8 +43,12 @@ export const XPNotification: React.FC<XPNotificationProps> = ({
 
           <div className='flex-1'>
             <div className='font-semibold text-sm'>XP Gained!</div>
-            <div className='text-xs text-chart-4'>Failed roll grants experience</div>
-            <div className='text-[11px] text-primary-foreground/80'>Total XP: {currentXP}</div>
+            <div className='text-xs text-chart-4'>
+              Failed roll grants experience
+            </div>
+            <div className='text-[11px] text-primary-foreground/80'>
+              Total XP: {currentXP}
+            </div>
           </div>
 
           <div className='text-right'>
@@ -63,11 +67,7 @@ export const XPProgressBar: React.FC<{
   className?: string
   compact?: boolean
 }> = ({ characterId, className = '', compact = false }) => {
-  const {
-    characterXP,
-    characterLevel,
-    getXPForNextLevel,
-  } = useXPStore()
+  const { characterXP, characterLevel, getXPForNextLevel } = useXPStore()
 
   const totalXP = characterXP[characterId] || 0
   const currentLevel = characterLevel[characterId] || 1

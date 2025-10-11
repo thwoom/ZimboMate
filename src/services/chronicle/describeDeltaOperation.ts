@@ -68,7 +68,9 @@ export function describeDeltaOperation(
           detailBits.push(`strength ${relation.strength}`)
         }
         if (typeof relation.confidence === 'number') {
-          detailBits.push(`confidence ${Math.round(relation.confidence * 100)}%`)
+          detailBits.push(
+            `confidence ${Math.round(relation.confidence * 100)}%`,
+          )
         }
         if (relation.status) {
           detailBits.push(`status ${relation.status}`)

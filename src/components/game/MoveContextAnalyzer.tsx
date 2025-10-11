@@ -7,8 +7,8 @@ import type { Character } from '../../models/Character'
 import { motion } from 'framer-motion'
 import { AlertTriangle, Brain, Eye, Target, Users, Zap } from 'lucide-react'
 import React, { useMemo } from 'react'
-import { Badge, Card, CardContent } from '../ui'
 import { resolveAttributeScore } from '../../models/Character'
+import { Badge, Card, CardContent } from '../ui'
 
 interface GameContext {
   inCombat: boolean

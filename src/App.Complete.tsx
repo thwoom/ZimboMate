@@ -632,191 +632,190 @@ const App: React.FC = () => {
             <TooltipProvider delayDuration={200} skipDelayDuration={300}>
               <div className='texture' aria-hidden='true' />
 
-            <div className='relative isolate min-h-screen transition-colors duration-300 bg-background text-foreground'>
-              {/* Header */}
-              <header className='sticky top-0 z-50 border-b border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm'>
-                <div className='container mx-auto px-6 py-4'>
-                  <div className='flex items-center justify-between'>
-                    <motion.div
-                      className='flex items-center gap-3'
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5 }}
-                    >
+              <div className='relative isolate min-h-screen transition-colors duration-300 bg-background text-foreground'>
+                {/* Header */}
+                <header className='sticky top-0 z-50 border-b border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm'>
+                  <div className='container mx-auto px-6 py-4'>
+                    <div className='flex items-center justify-between'>
                       <motion.div
-                        className='w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20 text-primary'
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        whileTap={{ scale: 0.95 }}
+                        className='flex items-center gap-3'
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
                       >
-                        <Sparkles className='w-6 h-6 text-primary' />
-                      </motion.div>
-                      <div>
-                        <h1 className='font-display text-xl'>ZimboMate V2</h1>
-                        <p className='text-sm text-muted-foreground'>
-                          Dungeon World Companion
-                        </p>
-                      </div>
-                    </motion.div>
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.2 }}
-                    >
-                      <ThemeStatusBadge />
-                    </motion.div>
-                  </div>
-                </div>
-              </header>
-
-              {/* Navigation Tabs */}
-              <nav
-                role='navigation'
-                aria-label='Primary'
-                className='sticky top-[73px] z-40 border-b border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80'
-              >
-                <div className='container mx-auto px-6'>
-                  <div className='flex gap-1 py-2 overflow-x-auto'>
-                    {tabs.map((tab, index) => {
-                      const Icon = tab.icon
-                      const isActive = activeTab === tab.id
-
-                      return (
                         <motion.div
-                          key={tab.id}
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                          className='w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20 text-primary'
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          whileTap={{ scale: 0.95 }}
                         >
-                          <Button
-                            variant={isActive ? 'primary' : 'ghost'}
-                            size='sm'
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`relative whitespace-nowrap ${
-                              tab.featured ? 'ring-2 ring-primary/30 ' : ''
-                            }`}
-                            title={tab.description || tab.label}
-                          >
-                            <Icon size={16} />
-                            {tab.label}
-                            {tab.featured && !isActive && (
-                              <Badge
-                                variant='secondary'
-                                className='ml-1 text-xs'
-                              >
-                                ★
-                              </Badge>
-                            )}
-                            {tab.enhanced && !isActive && (
-                              <Badge variant='default' className='ml-1 text-xs'>
-                                ✨
-                              </Badge>
-                            )}
-                            {isActive && (
-                              <motion.div
-                                className='absolute bottom-0 left-0 right-0 h-0.5 bg-primary'
-                                layoutId='activeTab'
-                                transition={{
-                                  type: 'spring',
-                                  stiffness: 300,
-                                  damping: 30,
-                                }}
-                              />
-                            )}
-                          </Button>
+                          <Sparkles className='w-6 h-6 text-primary' />
                         </motion.div>
-                      )
-                    })}
+                        <div>
+                          <h1 className='font-display text-xl'>ZimboMate V2</h1>
+                          <p className='text-sm text-muted-foreground'>
+                            Dungeon World Companion
+                          </p>
+                        </div>
+                      </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                      >
+                        <ThemeStatusBadge />
+                      </motion.div>
+                    </div>
                   </div>
-                </div>
-              </nav>
+                </header>
 
-              {/* Main Content */}
-              <div className='flex min-h-[calc(100vh-12rem)] min-w-0'>
-                <main role='main' className='flex-1 min-h-0 overflow-y-auto'>
-                  <div className='container mx-auto px-6 py-8 pb-12'>
-                    <AnimatePresence mode='wait'>
-                      {renderContent()}
-                    </AnimatePresence>
+                {/* Navigation Tabs */}
+                <nav
+                  role='navigation'
+                  aria-label='Primary'
+                  className='sticky top-[73px] z-40 border-b border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80'
+                >
+                  <div className='container mx-auto px-6'>
+                    <div className='flex gap-1 py-2 overflow-x-auto'>
+                      {tabs.map((tab, index) => {
+                        const Icon = tab.icon
+                        const isActive = activeTab === tab.id
+
+                        return (
+                          <motion.div
+                            key={tab.id}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                          >
+                            <Button
+                              variant={isActive ? 'primary' : 'ghost'}
+                              size='sm'
+                              onClick={() => setActiveTab(tab.id)}
+                              className={`relative whitespace-nowrap ${
+                                tab.featured ? 'ring-2 ring-primary/30 ' : ''
+                              }`}
+                              title={tab.description || tab.label}
+                            >
+                              <Icon size={16} />
+                              {tab.label}
+                              {tab.featured && !isActive && (
+                                <Badge
+                                  variant='secondary'
+                                  className='ml-1 text-xs'
+                                >
+                                  ★
+                                </Badge>
+                              )}
+                              {tab.enhanced && !isActive && (
+                                <Badge
+                                  variant='default'
+                                  className='ml-1 text-xs'
+                                >
+                                  ✨
+                                </Badge>
+                              )}
+                              {isActive && (
+                                <motion.div
+                                  className='absolute bottom-0 left-0 right-0 h-0.5 bg-primary'
+                                  layoutId='activeTab'
+                                  transition={{
+                                    type: 'spring',
+                                    stiffness: 300,
+                                    damping: 30,
+                                  }}
+                                />
+                              )}
+                            </Button>
+                          </motion.div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </main>
+                </nav>
+
+                {/* Main Content */}
+                <div className='flex min-h-[calc(100vh-12rem)] min-w-0'>
+                  <main role='main' className='flex-1 min-h-0 overflow-y-auto'>
+                    <div className='container mx-auto px-6 py-8 pb-12'>
+                      <AnimatePresence mode='wait'>
+                        {renderContent()}
+                      </AnimatePresence>
+                    </div>
+                  </main>
+                </div>
+
+                {/* Footer */}
+                <footer className='mt-16 border-t border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85'>
+                  <div className='container mx-auto px-6 py-8'>
+                    <div className='flex items-center justify-between'>
+                      <motion.div
+                        className='flex items-center gap-3'
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.5 }}
+                      >
+                        <User className='w-5 h-5 text-muted-foreground' />
+                        <span className='text-sm text-muted-foreground'>
+                          ZimboMate V2 • Built with React 19 & Tailwind v4
+                        </span>
+                      </motion.div>
+                      <motion.div
+                        className='text-sm text-muted-foreground'
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.7 }}
+                      >
+                        Phase 4D: Advanced File Management System Complete ✨
+                      </motion.div>
+                    </div>
+                  </div>
+                </footer>
+
+                {/* Theme Component Showcase */}
+                <ThemeComponentShowcase
+                  isOpen={themeShowcaseOpen}
+                  onClose={() => setThemeShowcaseOpen(false)}
+                />
+
+                {/* Command Palette */}
+                <CommandPalette
+                  isOpen={commandPaletteOpen}
+                  onClose={() => setCommandPaletteOpen(false)}
+                  onNavigate={(tabId) => {
+                    setActiveTab(tabId as ActiveTab)
+                    setCommandPaletteOpen(false)
+                  }}
+                  onAction={(actionId) => {
+                    logger.info('Command palette action:', actionId)
+                    // Handle various actions here
+                    switch (actionId) {
+                      case 'quick-roll-2d6':
+                        // Trigger dice roll
+                        break
+                      case 'heal-character':
+                        // Heal character
+                        break
+                      case 'new-note':
+                        // Create new note
+                        break
+                      // Add more actions as needed
+                    }
+                  }}
+                />
+
+                {/* Session Manager Modal */}
+                <SessionManager
+                  isVisible={showSessionManager}
+                  onClose={() => setShowSessionManager(false)}
+                  onSessionJoined={handleSessionJoined}
+                />
               </div>
-
-              {/* Footer */}
-              <footer className='mt-16 border-t border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85'>
-                <div className='container mx-auto px-6 py-8'>
-                  <div className='flex items-center justify-between'>
-                    <motion.div
-                      className='flex items-center gap-3'
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.5 }}
-                    >
-                      <User className='w-5 h-5 text-muted-foreground' />
-                      <span className='text-sm text-muted-foreground'>
-                        ZimboMate V2 • Built with React 19 & Tailwind v4
-                      </span>
-                    </motion.div>
-                    <motion.div
-                      className='text-sm text-muted-foreground'
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.7 }}
-                    >
-                      Phase 4D: Advanced File Management System Complete ✨
-                    </motion.div>
-                  </div>
-                </div>
-              </footer>
-
-              {/* Theme Component Showcase */}
-              <ThemeComponentShowcase
-                isOpen={themeShowcaseOpen}
-                onClose={() => setThemeShowcaseOpen(false)}
-              />
-
-              {/* Command Palette */}
-              <CommandPalette
-                isOpen={commandPaletteOpen}
-                onClose={() => setCommandPaletteOpen(false)}
-                onNavigate={(tabId) => {
-                  setActiveTab(tabId as ActiveTab)
-                  setCommandPaletteOpen(false)
-                }}
-                onAction={(actionId) => {
-                  logger.info('Command palette action:', actionId)
-                  // Handle various actions here
-                  switch (actionId) {
-                    case 'quick-roll-2d6':
-                      // Trigger dice roll
-                      break
-                    case 'heal-character':
-                      // Heal character
-                      break
-                    case 'new-note':
-                      // Create new note
-                      break
-                    // Add more actions as needed
-                  }
-                }}
-              />
-
-              {/* Session Manager Modal */}
-              <SessionManager
-                isVisible={showSessionManager}
-                onClose={() => setShowSessionManager(false)}
-                onSessionJoined={handleSessionJoined}
-              />
-            </div>
-          </TooltipProvider>
-        </ChronicleProvider>
-      </ThemeProvider>
-    </AuthProvider>
-  </ErrorBoundary>
+            </TooltipProvider>
+          </ChronicleProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
 
 export default App
-
-
-
-

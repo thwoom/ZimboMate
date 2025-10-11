@@ -32,6 +32,7 @@ Execute `npm run test --watch=false` before promoting builds. For manual QA, wal
   - ≥95 % of applied bundles include telemetry events within 5 minutes.
   - Cost per session stays < the budget defined in `LLM_UPGRADE.md` Phase 4.
   - Automation skips must include `metadata.skipReason` for downstream analytics.
+- Visualization: the Chronicle overlay’s “Latest Chronicle Update” card now includes a Telemetry panel summarising propose/apply/undo events (latency, spend, model, source) for the active bundle. For dashboards, consume `useChronicleLLM().telemetryEvents` or `useChronicleStore.getState().getTelemetryEvents()` to feed rollout reporting.
 
 ## 5. Promotion Steps
 

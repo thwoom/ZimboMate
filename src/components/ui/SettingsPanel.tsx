@@ -19,7 +19,13 @@ import {
   Sparkles,
   Wrench,
 } from 'lucide-react'
-import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from 'react'
 import { useChronicleStore } from '../../stores/chronicleStore'
 import { useChronicle, useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { FileManagementPanel } from '../game/FileManagementPanel'
@@ -187,7 +193,6 @@ const GameplaySettingsContent: React.FC = () => {
     settings,
     updateSettings,
     sessionCostCents,
-    costCapCents,
     remainingCostBudgetCents,
     isCostGuardrailActive,
     resetSessionCost,
@@ -252,7 +257,9 @@ const GameplaySettingsContent: React.FC = () => {
   const [quickRolls, setQuickRolls] = useState(true)
   const [costCapInput, setCostCapInputState] = useReducer(
     (_: string, next: string) => next,
-    settings.costCapCents != null ? (settings.costCapCents / 100).toFixed(2) : '',
+    settings.costCapCents != null
+      ? (settings.costCapCents / 100).toFixed(2)
+      : '',
   )
 
   const syncCostCapInput = useCallback(() => {
@@ -634,10 +641,7 @@ const GameplaySettingsContent: React.FC = () => {
                 >
                   Auto-equip {settings.autoEquipWeapons ? 'On' : 'Off'}
                 </Badge>
-                <Badge
-                  variant={guardrailBadgeVariant}
-                  className='font-normal'
-                >
+                <Badge variant={guardrailBadgeVariant} className='font-normal'>
                   {costCapDisplay
                     ? isCostGuardrailActive
                       ? `Guardrail hit (Spent $${sessionSpendDisplay})`

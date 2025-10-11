@@ -38,9 +38,7 @@ const deriveConsequenceState = (
   result: EnhancedRollResult | null,
 ): ConsequenceState => {
   const pending = result?.consequences.filter((c) => !c.applied) ?? []
-  const selected = pending
-    .filter((c) => c.automatic)
-    .map((c) => c.id)
+  const selected = pending.filter((c) => c.automatic).map((c) => c.id)
   const showPanel = pending.some((c) => !c.automatic)
 
   return {
@@ -378,7 +376,9 @@ export const EnhancedRollResultsToast: React.FC<
                       <Button
                         variant='ghost'
                         size='sm'
-                        onClick={() => dispatch({ type: showConsequences ? 'hide' : 'show' })}
+                        onClick={() =>
+                          dispatch({ type: showConsequences ? 'hide' : 'show' })
+                        }
                         className='text-xs'
                       >
                         {showConsequences ? 'Hide' : 'Show'}

@@ -1,23 +1,33 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import React from 'react'
 import { vi } from 'vitest'
-import { useChronicleStore } from '@/stores/chronicleStore'
 import * as chronicleService from '@/services/chronicle'
+import { useChronicleStore } from '@/stores/chronicleStore'
 import { ChronicleProvider, useChronicleLLM } from '../ChronicleProvider'
 
 const getMockControls = () => (globalThis as any).__LLM_MOCK__
+const PRICING_KEY = '__LLM_PRICING__'
 
 describe('chronicle provider GPT-5 integration', () => {
   let originalTauri: unknown
+  let originalPricing: unknown
 
   beforeEach(() => {
     originalTauri = (globalThis as any).__TAURI__
+    originalPricing = (globalThis as any)[PRICING_KEY]
+    ;(globalThis as any)[PRICING_KEY] = {
+      'gpt-5-mock': { inputPer1KUsd: 0.5, outputPer1KUsd: 0.5 },
+      'gpt-5-chat-latest': { inputPer1KUsd: 0.5, outputPer1KUsd: 0.5 },
+    }
     ;(globalThis as any).__TAURI__ = { invoke: vi.fn() }
     ;(globalThis as any).__TAURI_IPC__ = {}
     useChronicleStore.setState({
       auditLog: [],
       deltaHistory: [],
       pendingDeltaBundle: null,
+      telemetryEvents: [],
+      sessionCostCents: 0,
+      lastCostEventAt: null,
     })
   })
 
@@ -29,6 +39,11 @@ describe('chronicle provider GPT-5 integration', () => {
       ;(globalThis as any).__TAURI__ = originalTauri
     }
     delete (globalThis as any).__TAURI_IPC__
+    if (originalPricing === undefined) {
+      delete (globalThis as any)[PRICING_KEY]
+    } else {
+      ;(globalThis as any)[PRICING_KEY] = originalPricing
+    }
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -102,6 +117,19 @@ describe('chronicle provider GPT-5 integration', () => {
 
     expect(result.current.lastTelemetryEvent?.latencyMs).toBe(123)
     expect(result.current.lastTelemetryEvent?.usage?.totalTokens).toBe(15)
+    expect(result.current.lastTelemetryEvent?.stage).toBe('propose')
+    expect(result.current.lastTelemetryEvent?.outcome).toBe('success')
+    expect(result.current.lastTelemetryEvent?.costCents).toBe(1)
+
+    const storeState = useChronicleStore.getState()
+    expect(storeState.telemetryEvents).toHaveLength(1)
+    expect(storeState.telemetryEvents[0]).toMatchObject({
+      stage: 'propose',
+      outcome: 'success',
+      source: 'tauri',
+      costCents: 1,
+    })
+    expect(storeState.sessionCostCents).toBe(1)
   })
 
   it('tracks pending bundle lifecycle and audit log when applying', async () => {
@@ -151,7 +179,10 @@ describe('chronicle provider GPT-5 integration', () => {
       bundleId: 'bundle-applied',
       appliedOps: payload.bundle.ops,
       skippedOps: [],
-      undoHandle: { bundleId: 'bundle-applied', issuedAt: '2025-10-07T12:00:01.000Z' },
+      undoHandle: {
+        bundleId: 'bundle-applied',
+        issuedAt: '2025-10-07T12:00:01.000Z',
+      },
     })
 
     expect(applyResultPromise).toBeDefined()

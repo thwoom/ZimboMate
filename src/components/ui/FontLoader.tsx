@@ -32,7 +32,9 @@ export function FontLoader({ onFontsLoaded }: FontLoaderProps) {
 
         onFontsLoaded?.(loadedFonts.length >= 3) // Consider loaded if most fonts are available
       } catch (error) {
-        logger.warn('font_loader_failed', { message: (error as Error)?.message ?? String(error) })
+        logger.warn('font_loader_failed', {
+          message: (error as Error)?.message ?? String(error),
+        })
         onFontsLoaded?.(true) // Assume loaded to continue
       }
     }

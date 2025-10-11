@@ -35,11 +35,19 @@ interface XPTrackerState {
 }
 
 type XPTrackerAction =
-  | { type: 'initialize'; entries: XPEntry[]; notifications: XPNotification[]; analytics: XPAnalytics | null }
+  | {
+      type: 'initialize'
+      entries: XPEntry[]
+      notifications: XPNotification[]
+      analytics: XPAnalytics | null
+    }
   | { type: 'pushNotification'; notification: XPNotification }
   | { type: 'dismissNotification'; notificationId: string }
 
-const xpTrackerReducer = (state: XPTrackerState, action: XPTrackerAction): XPTrackerState => {
+const xpTrackerReducer = (
+  state: XPTrackerState,
+  action: XPTrackerAction,
+): XPTrackerState => {
   switch (action.type) {
     case 'initialize':
       return {
@@ -50,7 +58,10 @@ const xpTrackerReducer = (state: XPTrackerState, action: XPTrackerAction): XPTra
     case 'pushNotification':
       return {
         ...state,
-        notifications: [action.notification, ...state.notifications].slice(0, 5),
+        notifications: [action.notification, ...state.notifications].slice(
+          0,
+          5,
+        ),
       }
     case 'dismissNotification':
       return {
@@ -87,10 +98,13 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
     }
 
     const entries = xpIntegrationService.getXPEntries(effectiveCharacterId, 20)
-    const analyticsData = xpIntegrationService.getAnalytics(effectiveCharacterId)
+    const analyticsData =
+      xpIntegrationService.getAnalytics(effectiveCharacterId)
     const existingNotifications = xpIntegrationService
       .getNotifications()
-      .filter((notification) => notification.characterId === effectiveCharacterId)
+      .filter(
+        (notification) => notification.characterId === effectiveCharacterId,
+      )
 
     dispatch({
       type: 'initialize',
@@ -478,5 +492,3 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
     </div>
   )
 }
-
-

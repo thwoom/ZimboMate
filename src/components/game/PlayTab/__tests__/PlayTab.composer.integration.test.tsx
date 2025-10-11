@@ -87,7 +87,6 @@ describe('playTab composer integration', () => {
         activeCharacterId: baseCharacter.id,
       })
     })
-
     ;(globalThis as any).__TAURI__ = {}
     ;(globalThis as any).__TAURI_IPC__ = {}
   })
@@ -147,13 +146,19 @@ describe('playTab composer integration', () => {
     )
     await user.type(chronicleInput, 'We hold the bridge while Kara rallies.')
 
-    const submitButton = screen.getByRole('button', { name: /add to chronicle/i })
+    const submitButton = screen.getByRole('button', {
+      name: /add to chronicle/i,
+    })
     await user.click(submitButton)
 
-    await screen.findByText('The hero presses the attack and steadies the line.')
+    await screen.findByText(
+      'The hero presses the attack and steadies the line.',
+    )
 
     expect(screen.getByText('Test Hero marks 1 XP')).toBeInTheDocument()
-    expect(screen.getByText('Test Hero gains Ancient Sword')).toBeInTheDocument()
+    expect(
+      screen.getByText('Test Hero gains Ancient Sword'),
+    ).toBeInTheDocument()
     expect(
       screen.getByText(/links entity-aria to entity-lysa \(ally\)/i),
     ).toBeInTheDocument()
@@ -216,12 +221,15 @@ describe('playTab composer integration', () => {
     )
     await user.type(chronicleInput, 'We rally the line and seize the moment.')
 
-    const submitButton = screen.getByRole('button', { name: /add to chronicle/i })
+    const submitButton = screen.getByRole('button', {
+      name: /add to chronicle/i,
+    })
     await user.click(submitButton)
 
     const checklistHeader = await screen.findByText('Proposed updates')
     const checklistSection =
-      checklistHeader.parentElement?.parentElement ?? checklistHeader.parentElement
+      checklistHeader.parentElement?.parentElement ??
+      checklistHeader.parentElement
 
     expect(checklistSection).toBeTruthy()
 
@@ -245,10 +253,9 @@ describe('playTab composer integration', () => {
     const automationSection = automationHeading.parentElement?.parentElement
     expect(automationSection).toBeTruthy()
 
-    const undoButton = await within(automationSection as HTMLElement).findByRole(
-      'button',
-      { name: /^undo$/i },
-    )
+    const undoButton = await within(
+      automationSection as HTMLElement,
+    ).findByRole('button', { name: /^undo$/i })
 
     await user.click(undoButton)
 
@@ -271,7 +278,9 @@ describe('playTab composer integration', () => {
     )
     await user.type(chronicleInput, 'We scout the ridge quietly.')
 
-    const submitButton = screen.getByRole('button', { name: /add to chronicle/i })
+    const submitButton = screen.getByRole('button', {
+      name: /add to chronicle/i,
+    })
     await user.click(submitButton)
 
     expect(screen.queryByText(/automation log/i)).not.toBeInTheDocument()

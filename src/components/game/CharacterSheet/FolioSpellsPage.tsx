@@ -10,23 +10,33 @@ export interface FolioSpellsPageProps {
   highlighted?: boolean
 }
 
-export default function FolioSpellsPage({ highlighted = false }: FolioSpellsPageProps): JSX.Element {
-  const activeCharacter = useCharacterStore((state) => state.getActiveCharacter())
+export default function FolioSpellsPage({
+  highlighted = false,
+}: FolioSpellsPageProps): JSX.Element {
+  const activeCharacter = useCharacterStore((state) =>
+    state.getActiveCharacter(),
+  )
   const characterId = activeCharacter?.id ?? null
 
   const knownSpells = useMemo(
-    () => (activeCharacter?.knownSpells ?? []).filter((spell) => typeof spell === 'string'),
+    () =>
+      (activeCharacter?.knownSpells ?? []).filter(
+        (spell) => typeof spell === 'string',
+      ),
     [activeCharacter?.knownSpells],
   )
 
   const preparedSpells = useMemo(
-    () => (activeCharacter?.preparedSpells ?? []).filter((spell) => typeof spell === 'string'),
+    () =>
+      (activeCharacter?.preparedSpells ?? []).filter(
+        (spell) => typeof spell === 'string',
+      ),
     [activeCharacter?.preparedSpells],
   )
 
   const holdSelector = useCallback(
     (state: ReturnType<typeof useHoldStore.getState>) =>
-      characterId ? state.characterHolds[characterId] ?? [] : [],
+      characterId ? (state.characterHolds[characterId] ?? []) : [],
     [characterId],
   )
 
@@ -68,7 +78,9 @@ export default function FolioSpellsPage({ highlighted = false }: FolioSpellsPage
         <CardContent className='p-3 space-y-4'>
           <div>
             <h3 className='text-foreground text-sm font-medium'>Spellbook</h3>
-            <p className='text-muted-foreground text-sm'>Track known and prepared spells without leaving the sheet.</p>
+            <p className='text-muted-foreground text-sm'>
+              Track known and prepared spells without leaving the sheet.
+            </p>
           </div>
 
           <section>
@@ -77,7 +89,9 @@ export default function FolioSpellsPage({ highlighted = false }: FolioSpellsPage
               <span>{knownSpells.length}</span>
             </header>
             {knownSpells.length === 0 ? (
-              <p className='text-muted-foreground mt-2 text-sm'>No spells known yet. Add spells from the spellbook manager.</p>
+              <p className='text-muted-foreground mt-2 text-sm'>
+                No spells known yet. Add spells from the spellbook manager.
+              </p>
             ) : (
               <div
                 ref={knownListRef}
@@ -98,10 +112,16 @@ export default function FolioSpellsPage({ highlighted = false }: FolioSpellsPage
                         key={`${spell}-${virtualRow.index}`}
                         data-index={virtualRow.index}
                         className='bg-card/80 hover:bg-muted/40 absolute inset-x-0 mx-2 my-1 rounded-md border border-border px-3 py-2 text-sm shadow-sm transition-colors'
-                        style={{ transform: `translateY(${virtualRow.start}px)` }}
+                        style={{
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
                       >
-                        <p className='text-foreground truncate font-medium'>{spell}</p>
-                        <p className='text-muted-foreground text-[11px]'>Known spell</p>
+                        <p className='text-foreground truncate font-medium'>
+                          {spell}
+                        </p>
+                        <p className='text-muted-foreground text-[11px]'>
+                          Known spell
+                        </p>
                       </div>
                     )
                   })}
@@ -116,7 +136,9 @@ export default function FolioSpellsPage({ highlighted = false }: FolioSpellsPage
               <span>{preparedSpells.length}</span>
             </header>
             {preparedSpells.length === 0 ? (
-              <p className='text-muted-foreground mt-2 text-sm'>Nothing prepared. Prepare spells to quick-cast during play.</p>
+              <p className='text-muted-foreground mt-2 text-sm'>
+                Nothing prepared. Prepare spells to quick-cast during play.
+              </p>
             ) : (
               <div
                 ref={preparedListRef}
@@ -137,10 +159,16 @@ export default function FolioSpellsPage({ highlighted = false }: FolioSpellsPage
                         key={`${spell}-${virtualRow.index}`}
                         data-index={virtualRow.index}
                         className='bg-muted/30 absolute inset-x-0 mx-2 my-1 rounded-md border border-border px-3 py-2 text-sm'
-                        style={{ transform: `translateY(${virtualRow.start}px)` }}
+                        style={{
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
                       >
-                        <p className='text-foreground truncate font-medium'>{spell}</p>
-                        <p className='text-muted-foreground text-[11px]'>Ready to cast</p>
+                        <p className='text-foreground truncate font-medium'>
+                          {spell}
+                        </p>
+                        <p className='text-muted-foreground text-[11px]'>
+                          Ready to cast
+                        </p>
                       </div>
                     )
                   })}
@@ -159,7 +187,10 @@ export default function FolioSpellsPage({ highlighted = false }: FolioSpellsPage
             </span>
           </div>
           {holdEntries.length === 0 ? (
-            <p className='text-muted-foreground text-sm'>Spendable hold from moves like Defend or Trap Expert will appear here.</p>
+            <p className='text-muted-foreground text-sm'>
+              Spendable hold from moves like Defend or Trap Expert will appear
+              here.
+            </p>
           ) : (
             <div
               ref={holdListRef}
@@ -184,15 +215,21 @@ export default function FolioSpellsPage({ highlighted = false }: FolioSpellsPage
                     >
                       <div className='flex items-start justify-between gap-3'>
                         <div className='min-w-0'>
-                          <p className='text-foreground truncate font-medium'>{entry.moveName}</p>
-                          <p className='text-muted-foreground text-[11px]'>{entry.description}</p>
+                          <p className='text-foreground truncate font-medium'>
+                            {entry.moveName}
+                          </p>
+                          <p className='text-muted-foreground text-[11px]'>
+                            {entry.description}
+                          </p>
                         </div>
                         <span className='bg-primary/10 text-primary rounded-full px-2 py-1 text-[11px] font-semibold'>
                           {entry.amount}
                         </span>
                       </div>
                       {entry.rollId ? (
-                        <p className='text-muted-foreground mt-1 text-[11px]'>Roll {entry.rollId}</p>
+                        <p className='text-muted-foreground mt-1 text-[11px]'>
+                          Roll {entry.rollId}
+                        </p>
                       ) : null}
                     </div>
                   )

@@ -202,10 +202,7 @@ export interface CharacterCreationData {
 
 // Utility functions for character calculations
 
-export function resolveAttributeScore(
-  input: unknown,
-  fallback = 10,
-): number {
+export function resolveAttributeScore(input: unknown, fallback = 10): number {
   if (typeof input === 'number' && Number.isFinite(input)) {
     return input
   }

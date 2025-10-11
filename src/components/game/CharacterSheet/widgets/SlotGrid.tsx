@@ -30,7 +30,11 @@ export interface SlotGridProps extends VariantProps<typeof cell> {
   onDrop?: (slotId: string, itemId: string) => void
 }
 
-export default function SlotGrid({ className, slots, state }: SlotGridProps): JSX.Element {
+export default function SlotGrid({
+  className,
+  slots,
+  state,
+}: SlotGridProps): JSX.Element {
   return (
     <div className={cn('grid grid-cols-2 gap-2 md:grid-cols-3', className)}>
       {slots.map((s) => (
@@ -38,7 +42,9 @@ export default function SlotGrid({ className, slots, state }: SlotGridProps): JS
           type='button'
           key={s.id}
           className={cell({ state: s.itemName ? 'filled' : state })}
-          aria-label={s.itemName ? `${s.label}: ${s.itemName}` : `${s.label}: empty`}
+          aria-label={
+            s.itemName ? `${s.label}: ${s.itemName}` : `${s.label}: empty`
+          }
         >
           <span className='truncate'>{s.itemName ?? s.label}</span>
         </button>

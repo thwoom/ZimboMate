@@ -181,7 +181,9 @@ export const useNotificationStore = create<NotificationState>()(
             100,
           ) // Keep last 100
 
-          logger.info(`[Notifications] Added: ${notification.title} (${notification.type})`)
+          logger.info(
+            `[Notifications] Added: ${notification.title} (${notification.type})`,
+          )
 
           return {
             activeNotifications: newActive,

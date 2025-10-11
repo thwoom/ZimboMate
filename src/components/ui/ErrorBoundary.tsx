@@ -305,14 +305,13 @@ URL: ${window.location.href}
                         </h3>
                         <div className='bg-chart-4/12 rounded p-3 max-h-40 overflow-auto'>
                           {latestErrorInfo.consoleWarnings.map((warning) => (
-                              <pre
-                                key={warning}
-                                className='text-xs text-chart-4 whitespace-pre-wrap mb-1'
-                              >
-                                {warning}
-                              </pre>
-                            ),
-                          )}
+                            <pre
+                              key={warning}
+                              className='text-xs text-chart-4 whitespace-pre-wrap mb-1'
+                            >
+                              {warning}
+                            </pre>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -402,11 +401,14 @@ export const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({
 // eslint-disable-next-line react-refresh/only-export-components
 export function useErrorHandler() {
   const [errors, dispatchErrors] = React.useReducer(
-    (state: ErrorInfo[], action: { type: "set"; payload: ErrorInfo[] } | { type: "clear" }) => {
+    (
+      state: ErrorInfo[],
+      action: { type: 'set'; payload: ErrorInfo[] } | { type: 'clear' },
+    ) => {
       switch (action.type) {
-        case "set":
+        case 'set':
           return action.payload
-        case "clear":
+        case 'clear':
           return []
         default:
           return state
@@ -416,7 +418,7 @@ export function useErrorHandler() {
   )
 
   const updateErrors = React.useCallback(() => {
-    dispatchErrors({ type: "set", payload: ErrorLogger.getErrors() })
+    dispatchErrors({ type: 'set', payload: ErrorLogger.getErrors() })
   }, [])
 
   React.useEffect(() => {
@@ -430,7 +432,7 @@ export function useErrorHandler() {
     errors,
     clearErrors: () => {
       ErrorLogger.clearErrors()
-      dispatchErrors({ type: "clear" })
+      dispatchErrors({ type: 'clear' })
     },
     reportError: (error: Error, context?: string) => {
       const errorInfo: React.ErrorInfo = {

@@ -26,7 +26,11 @@ import {
   Users,
 } from 'lucide-react'
 import React from 'react'
-import { buildMentionContext, formatActorLabel, formatRelativeTimeFromNow } from '@/components/chronicle/highlightUtils'
+import {
+  buildMentionContext,
+  formatActorLabel,
+  formatRelativeTimeFromNow,
+} from '@/components/chronicle/highlightUtils'
 import { useChronicleStore } from '../../../stores'
 import {
   Badge,
@@ -385,7 +389,10 @@ export const WikiView: React.FC<WikiViewProps> = ({
                             size='sm'
                             onClick={() => {
                               if (onNavigateToEntry) {
-                                onNavigateToEntry(fact.chronicleEntryId, entity.name)
+                                onNavigateToEntry(
+                                  fact.chronicleEntryId,
+                                  entity.name,
+                                )
                               }
                               onClose()
                             }}
@@ -463,7 +470,10 @@ export const WikiView: React.FC<WikiViewProps> = ({
                                 {timelineEntry.importance}
                               </Badge>
                               {actorLabel && (
-                                <Badge variant='outline' className='text-[10px] uppercase tracking-wide'>
+                                <Badge
+                                  variant='outline'
+                                  className='text-[10px] uppercase tracking-wide'
+                                >
                                   {actorLabel}
                                 </Badge>
                               )}
@@ -478,7 +488,10 @@ export const WikiView: React.FC<WikiViewProps> = ({
                                 className='h-7 w-7 p-0 text-muted-foreground hover:text-foreground'
                                 onClick={() => {
                                   if (onNavigateToEntry) {
-                                    onNavigateToEntry(timelineEntry.entryId, entity.name)
+                                    onNavigateToEntry(
+                                      timelineEntry.entryId,
+                                      entity.name,
+                                    )
                                   }
                                   onClose()
                                 }}
@@ -549,8 +562,8 @@ export const WikiView: React.FC<WikiViewProps> = ({
                           relationship.lastUpdated instanceof Date
                             ? relationship.lastUpdated
                             : relationship.lastUpdated
-                            ? new Date(relationship.lastUpdated)
-                            : null
+                              ? new Date(relationship.lastUpdated)
+                              : null
                         const updatedLabel =
                           updatedAt && !Number.isNaN(updatedAt.getTime())
                             ? formatRelativeTimeFromNow(updatedAt)
@@ -662,10 +675,11 @@ export const WikiView: React.FC<WikiViewProps> = ({
                           </HoverCard>
                         )
                       })}
-                   </div>
+                    </div>
                     {hiddenLinkedEntityCount > 0 && (
                       <div className='text-xs text-muted-foreground'>
-                        +{hiddenLinkedEntityCount} more linked entities in Chronicle
+                        +{hiddenLinkedEntityCount} more linked entities in
+                        Chronicle
                       </div>
                     )}
                   </div>

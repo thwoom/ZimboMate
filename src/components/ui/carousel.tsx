@@ -56,7 +56,10 @@ function Carousel({
     plugins,
   )
   const [scrollState, dispatchScrollState] = React.useReducer(
-    (state: { canPrev: boolean; canNext: boolean }, action: { canPrev: boolean; canNext: boolean } | null) => {
+    (
+      state: { canPrev: boolean; canNext: boolean },
+      action: { canPrev: boolean; canNext: boolean } | null,
+    ) => {
       if (!action) return { canPrev: false, canNext: false }
       return action
     },

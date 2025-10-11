@@ -6,7 +6,9 @@ import { expect, test } from '@playwright/test'
 const distPath = join(process.cwd(), 'dist')
 
 test.describe('Performance Baselines', () => {
-  test('navigation timing stays within baseline thresholds', async ({ page }) => {
+  test('navigation timing stays within baseline thresholds', async ({
+    page,
+  }) => {
     await page.goto('/')
     await page.waitForLoadState('load')
 

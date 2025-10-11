@@ -1,6 +1,6 @@
+import type { DeltaOperation } from './types'
 import { z } from 'zod'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import type { DeltaOperation } from './types'
 
 const idSchema = z.string().min(1)
 
@@ -109,7 +109,9 @@ const linkRelationshipDetailsSchema = z
       .min(-10)
       .max(10)
       .optional()
-      .describe('Narrative strength score between -10 (hostile) and +10 (allied).'),
+      .describe(
+        'Narrative strength score between -10 (hostile) and +10 (allied).',
+      ),
     confidence: z
       .number()
       .min(0)

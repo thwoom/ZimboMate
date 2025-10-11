@@ -1,11 +1,14 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { applyChronicleDeltaBundle, resetChronicleExecutorForTesting } from '../deltaExecutor'
 import type { ApplyDeltaBundleRequest, DeltaOperation } from '@/services/llm'
-import { useChronicleStore } from '@/stores/chronicleStore'
-import { useCharacterStore } from '@/stores/characterStore'
-import { useInventoryStore } from '@/stores/inventoryStore'
-import { createEmptyInventory } from '@/models/Inventory'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { createDummyCharacter } from '@/models/Character'
+import { createEmptyInventory } from '@/models/Inventory'
+import { useCharacterStore } from '@/stores/characterStore'
+import { useChronicleStore } from '@/stores/chronicleStore'
+import { useInventoryStore } from '@/stores/inventoryStore'
+import {
+  applyChronicleDeltaBundle,
+  resetChronicleExecutorForTesting,
+} from '../deltaExecutor'
 
 let activeCharacterId: string
 
@@ -76,7 +79,9 @@ describe('applyChronicleDeltaBundle idempotency', () => {
       { type: 'mark_xp', characterId: activeCharacterId, amount: 1 },
     ]
 
-    const firstResult = await applyChronicleDeltaBundle(createRequest(operations))
+    const firstResult = await applyChronicleDeltaBundle(
+      createRequest(operations),
+    )
     expect(firstResult.appliedOps).toHaveLength(1)
     expect(
       useCharacterStore.getState().getCharacter(activeCharacterId)?.xp,
@@ -112,9 +117,9 @@ describe('applyChronicleDeltaBundle idempotency', () => {
     )
     expect(coinOnly.appliedOps).toHaveLength(1)
     expect(coinOnly.appliedOps[0].type).toBe('add_coin')
-    const character = useCharacterStore.getState().getCharacter(
-      activeCharacterId,
-    )
+    const character = useCharacterStore
+      .getState()
+      .getCharacter(activeCharacterId)
     expect(character?.xp).toBe(1)
     expect(character?.coin).toBe(5)
   })

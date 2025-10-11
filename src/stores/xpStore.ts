@@ -141,14 +141,20 @@ export const useXPStore = create<XPState>()(
             moveId,
           }
 
-          logger.info(`[XP] Added ${amount} XP to ${characterId}: ${reason} (Total: ${newXP})`)
+          logger.info(
+            `[XP] Added ${amount} XP to ${characterId}: ${reason} (Total: ${newXP})`,
+          )
 
           // Check for level up
           if (newLevel > oldLevel) {
-            logger.info(`🎉 [LEVEL UP] ${characterId} reached level ${newLevel}! (Was ${oldLevel})`)
+            logger.info(
+              `🎉 [LEVEL UP] ${characterId} reached level ${newLevel}! (Was ${oldLevel})`,
+            )
             // Trigger level up notification
             setTimeout(() => {
-              logger.warn(`🎉 LEVEL UP! You've reached level ${newLevel}! Visit the character sheet to choose an advancement.`)
+              logger.warn(
+                `🎉 LEVEL UP! You've reached level ${newLevel}! Visit the character sheet to choose an advancement.`,
+              )
             }, 500)
           }
 

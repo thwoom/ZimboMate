@@ -52,7 +52,6 @@ interface Suggestion {
   }
 }
 
-
 type SuggestionAction =
   | { type: 'reset'; suggestions: Suggestion[] }
   | { type: 'dismiss'; id: string }
@@ -237,7 +236,10 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
         priority: 'high',
         action: {
           label: 'Find Healing',
-          onClick: () => logger.info('smart_context_heal_suggestion', { characterId: character.id }),
+          onClick: () =>
+            logger.info('smart_context_heal_suggestion', {
+              characterId: character.id,
+            }),
         },
       })
     }
@@ -303,7 +305,10 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
         priority: 'low',
         action: {
           label: 'Add to Chronicle',
-          onClick: () => logger.info('smart_context_open_chronicle', { characterId: character.id }),
+          onClick: () =>
+            logger.info('smart_context_open_chronicle', {
+              characterId: character.id,
+            }),
         },
       })
     }
@@ -330,7 +335,8 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
     }
 
     const hpPercentage =
-      ((character.hitPoints?.current || 0) / (character.hitPoints?.max || 1)) * 100
+      ((character.hitPoints?.current || 0) / (character.hitPoints?.max || 1)) *
+      100
     const baseConfidence = hpPercentage > 50 ? 80 : 60
 
     return {
@@ -432,4 +438,3 @@ export const SmartContextPanel: React.FC<SmartContextPanelProps> = ({
 }
 
 export default SmartContextPanel
-

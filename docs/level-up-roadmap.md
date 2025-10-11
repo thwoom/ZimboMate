@@ -112,4 +112,4 @@ Players currently press “Level Up” and only see their level integer advance.
 
 ---
 
-_Keep this roadmap updated as tasks land. Add assignees, PR links, and notes beneath each checkbox when progress is made._ 
+_Keep this roadmap updated as tasks land. Add assignees, PR links, and notes beneath each checkbox when progress is made._

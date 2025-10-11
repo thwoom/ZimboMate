@@ -110,7 +110,10 @@ export function useEquipment(characterId?: string): UseEquipmentReturn {
   } = useInventoryStore()
 
   const itemsSignature = useMemo(
-    () => items.map((item) => `${item.id}:${item.quantity}:${item.equipped ? 1 : 0}`).join('|'),
+    () =>
+      items
+        .map((item) => `${item.id}:${item.quantity}:${item.equipped ? 1 : 0}`)
+        .join('|'),
     [items],
   )
 

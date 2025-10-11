@@ -25,7 +25,14 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { logger } from '@/utils/logger'
 import { useChronicle } from '../../chronicle/ChronicleProvider'
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../../ui'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '../../ui'
 
 interface LiveChronicleStreamProps {
   character: Character
@@ -55,15 +62,15 @@ interface QuickSuggestion {
 const EntryTypeIcon: React.FC<{ type: string }> = ({ type }) => {
   switch (type) {
     case 'action':
-      return <Zap size={12} className="text-chart-4" />
+      return <Zap size={12} className='text-chart-4' />
     case 'dialogue':
-      return <Quote size={12} className="text-primary" />
+      return <Quote size={12} className='text-primary' />
     case 'discovery':
-      return <Sparkles size={12} className="text-chart-4" />
+      return <Sparkles size={12} className='text-chart-4' />
     case 'reaction':
-      return <User size={12} className="text-chart-2" />
+      return <User size={12} className='text-chart-2' />
     default:
-      return <BookOpen size={12} className="text-muted-foreground" />
+      return <BookOpen size={12} className='text-muted-foreground' />
   }
 }
 
@@ -78,8 +85,7 @@ const ChronicleEntryCard: React.FC<{
     const minutes = Math.floor(diff / 60000)
     const seconds = Math.floor((diff % 60000) / 1000)
 
-    if (minutes > 0)
-      return `${minutes}m ago`
+    if (minutes > 0) return `${minutes}m ago`
     return `${seconds}s ago`
   }, [entry.timestamp])
 
@@ -92,55 +98,54 @@ const ChronicleEntryCard: React.FC<{
         entry.isAutoSuggested ? 'bg-primary/10' : 'bg-card'
       }`}
     >
-      <div className="flex items-start gap-2">
+      <div className='flex items-start gap-2'>
         <EntryTypeIcon type={entry.type} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="font-medium">{entry.author}</span>
+        <div className='flex-1 min-w-0'>
+          <div className='flex items-center justify-between mb-1'>
+            <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+              <span className='font-medium'>{entry.author}</span>
               <Clock size={10} />
               <span>{timeAgo}</span>
             </div>
             {entry.isAutoSuggested && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant='secondary' className='text-xs'>
                 Suggested
               </Badge>
             )}
           </div>
 
-          <p className="text-sm text-foreground  leading-relaxed">
+          <p className='text-sm text-foreground  leading-relaxed'>
             {entry.content}
           </p>
 
           {entry.tags && entry.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {entry.tags.map(tag => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  #
-                  {tag}
+            <div className='flex flex-wrap gap-1 mt-2'>
+              {entry.tags.map((tag) => (
+                <Badge key={tag} variant='outline' className='text-xs'>
+                  #{tag}
                 </Badge>
               ))}
             </div>
           )}
         </div>
 
-        <div className="flex gap-1">
+        <div className='flex gap-1'>
           {onEdit && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={() => onEdit(entry.id)}
-              className="w-6 h-6 p-0"
+              className='w-6 h-6 p-0'
             >
               <Edit3 size={10} />
             </Button>
           )}
           {onDelete && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={() => onDelete(entry.id)}
-              className="w-6 h-6 p-0 text-destructive hover:text-destructive"
+              className='w-6 h-6 p-0 text-destructive hover:text-destructive'
             >
               <X size={10} />
             </Button>
@@ -156,7 +161,9 @@ const QuickAddForm: React.FC<{
   suggestions: QuickSuggestion[]
 }> = ({ onAdd, suggestions }) => {
   const [content, setContent] = useState('')
-  const [selectedType, setSelectedType] = useState<'action' | 'dialogue' | 'discovery' | 'reaction'>('action')
+  const [selectedType, setSelectedType] = useState<
+    'action' | 'dialogue' | 'discovery' | 'reaction'
+  >('action')
   const [isListening, setIsListening] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -186,36 +193,45 @@ const QuickAddForm: React.FC<{
   const typeButtons = [
     { id: 'action', label: 'Action', icon: Zap, color: 'text-chart-4' },
     { id: 'dialogue', label: 'Dialogue', icon: Quote, color: 'text-primary' },
-    { id: 'discovery', label: 'Discovery', icon: Sparkles, color: 'text-chart-4' },
+    {
+      id: 'discovery',
+      label: 'Discovery',
+      icon: Sparkles,
+      color: 'text-chart-4',
+    },
     { id: 'reaction', label: 'Reaction', icon: User, color: 'text-chart-2' },
   ]
 
   return (
-    <div className="space-y-3">
+    <div className='space-y-3'>
       {/* Quick Suggestions */}
       {suggestions.length > 0 && (
-        <div className="space-y-2">
-          <div className="text-xs text-muted-foreground ">Quick suggestions:</div>
-          <div className="flex flex-wrap gap-1">
-            {suggestions.slice(0, 3).map(suggestion => (
+        <div className='space-y-2'>
+          <div className='text-xs text-muted-foreground '>
+            Quick suggestions:
+          </div>
+          <div className='flex flex-wrap gap-1'>
+            {suggestions.slice(0, 3).map((suggestion) => (
               <Button
                 key={suggestion.id}
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={() => handleSuggestionClick(suggestion)}
-                className="text-xs px-2 py-1 h-auto bg-primary/10 hover:bg-primary/10"
+                className='text-xs px-2 py-1 h-auto bg-primary/10 hover:bg-primary/10'
               >
                 <EntryTypeIcon type={suggestion.type} />
-                <span className="ml-1 truncate max-w-32">{suggestion.text}</span>
+                <span className='ml-1 truncate max-w-32'>
+                  {suggestion.text}
+                </span>
               </Button>
             ))}
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-2">
+      <form onSubmit={handleSubmit} className='space-y-2'>
         {/* Type Selector */}
-        <div className="flex gap-1">
+        <div className='flex gap-1'>
           {typeButtons.map((type) => {
             const Icon = type.icon
             const isSelected = selectedType === type.id
@@ -223,27 +239,27 @@ const QuickAddForm: React.FC<{
             return (
               <Button
                 key={type.id}
-                type="button"
+                type='button'
                 variant={isSelected ? 'primary' : 'ghost'}
-                size="sm"
+                size='sm'
                 onClick={() => setSelectedType(type.id as any)}
-                className="flex-1 gap-1"
+                className='flex-1 gap-1'
               >
                 <Icon size={12} className={isSelected ? '' : type.color} />
-                <span className="text-xs">{type.label}</span>
+                <span className='text-xs'>{type.label}</span>
               </Button>
             )
           })}
         </div>
 
         {/* Text Input */}
-        <div className="relative">
+        <div className='relative'>
           <textarea
             ref={textareaRef}
             value={content}
-            onChange={e => setContent(e.target.value)}
+            onChange={(e) => setContent(e.target.value)}
             placeholder={`Add a ${selectedType} to your chronicle...`}
-            className="w-full p-2 text-sm border border-border rounded-lg bg-card resize-none"
+            className='w-full p-2 text-sm border border-border rounded-lg bg-card resize-none'
             rows={2}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -255,9 +271,9 @@ const QuickAddForm: React.FC<{
 
           {/* Voice Input Button */}
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
+            type='button'
+            variant='ghost'
+            size='sm'
             onClick={toggleVoiceInput}
             className={`absolute top-2 right-2 w-6 h-6 p-0 ${isListening ? 'text-destructive animate-pulse' : 'text-muted-foreground'}`}
           >
@@ -266,12 +282,12 @@ const QuickAddForm: React.FC<{
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-end">
+        <div className='flex justify-end'>
           <Button
-            type="submit"
-            size="sm"
+            type='submit'
+            size='sm'
             disabled={!content.trim()}
-            className="gap-1"
+            className='gap-1'
           >
             <Send size={12} />
             Add to Chronicle
@@ -296,33 +312,93 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
     switch (gameMode) {
       case 'combat':
         baseSuggestions.push(
-          { id: '1', text: `${character.name} strikes with fierce determination`, type: 'action', confidence: 0.8 },
-          { id: '2', text: `"This ends now!" ${character.name} shouts`, type: 'dialogue', confidence: 0.7 },
-          { id: '3', text: 'The enemy reveals a weakness in their defense', type: 'discovery', confidence: 0.6 },
+          {
+            id: '1',
+            text: `${character.name} strikes with fierce determination`,
+            type: 'action',
+            confidence: 0.8,
+          },
+          {
+            id: '2',
+            text: `"This ends now!" ${character.name} shouts`,
+            type: 'dialogue',
+            confidence: 0.7,
+          },
+          {
+            id: '3',
+            text: 'The enemy reveals a weakness in their defense',
+            type: 'discovery',
+            confidence: 0.6,
+          },
         )
         break
 
       case 'exploration':
         baseSuggestions.push(
-          { id: '1', text: `${character.name} carefully examines the area`, type: 'action', confidence: 0.8 },
-          { id: '2', text: 'Something glints in the shadows', type: 'discovery', confidence: 0.7 },
-          { id: '3', text: `${character.name} feels a sense of unease`, type: 'reaction', confidence: 0.6 },
+          {
+            id: '1',
+            text: `${character.name} carefully examines the area`,
+            type: 'action',
+            confidence: 0.8,
+          },
+          {
+            id: '2',
+            text: 'Something glints in the shadows',
+            type: 'discovery',
+            confidence: 0.7,
+          },
+          {
+            id: '3',
+            text: `${character.name} feels a sense of unease`,
+            type: 'reaction',
+            confidence: 0.6,
+          },
         )
         break
 
       case 'social':
         baseSuggestions.push(
-          { id: '1', text: `${character.name} chooses their words carefully`, type: 'action', confidence: 0.8 },
-          { id: '2', text: '"Perhaps we can help each other," they offer', type: 'dialogue', confidence: 0.7 },
-          { id: '3', text: 'The NPC seems to be hiding something', type: 'discovery', confidence: 0.6 },
+          {
+            id: '1',
+            text: `${character.name} chooses their words carefully`,
+            type: 'action',
+            confidence: 0.8,
+          },
+          {
+            id: '2',
+            text: '"Perhaps we can help each other," they offer',
+            type: 'dialogue',
+            confidence: 0.7,
+          },
+          {
+            id: '3',
+            text: 'The NPC seems to be hiding something',
+            type: 'discovery',
+            confidence: 0.6,
+          },
         )
         break
 
       case 'rest':
         baseSuggestions.push(
-          { id: '1', text: `${character.name} reflects on recent events`, type: 'reaction', confidence: 0.8 },
-          { id: '2', text: 'The peaceful moment allows for deeper thoughts', type: 'discovery', confidence: 0.7 },
-          { id: '3', text: `${character.name} tends to their equipment`, type: 'action', confidence: 0.6 },
+          {
+            id: '1',
+            text: `${character.name} reflects on recent events`,
+            type: 'reaction',
+            confidence: 0.8,
+          },
+          {
+            id: '2',
+            text: 'The peaceful moment allows for deeper thoughts',
+            type: 'discovery',
+            confidence: 0.7,
+          },
+          {
+            id: '3',
+            text: `${character.name} tends to their equipment`,
+            type: 'action',
+            confidence: 0.6,
+          },
         )
         break
     }
@@ -332,14 +408,14 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
   const [isExpanded, setIsExpanded] = useState(false)
   const [autoScroll, setAutoScroll] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const { promptForChronicle: _promptForChronicle, isOverlayEnabled } = useChronicle()
+  const { promptForChronicle: _promptForChronicle, isOverlayEnabled } =
+    useChronicle()
 
   const extractTags = useCallback((content: string): string[] => {
     const hashtagRegex = /#(\\w+)/g
     const matches = content.match(hashtagRegex)
-    return matches ? matches.map(match => match.substring(1)) : []
+    return matches ? matches.map((match) => match.substring(1)) : []
   }, [])
-
 
   // Auto-scroll to bottom when new entries are added
   useEffect(() => {
@@ -348,19 +424,22 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
     }
   }, [entries, autoScroll])
 
-  const addEntry = useCallback((content: string, type: string) => {
-    const newEntry: ChronicleEntry = {
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      author: character.name,
-      content,
-      type: type as any,
-      tags: extractTags(content),
-      isAutoSuggested: false,
-    }
+  const addEntry = useCallback(
+    (content: string, type: string) => {
+      const newEntry: ChronicleEntry = {
+        id: Date.now().toString(),
+        timestamp: new Date(),
+        author: character.name,
+        content,
+        type: type as any,
+        tags: extractTags(content),
+        isAutoSuggested: false,
+      }
 
-    setEntries(prev => [...prev, newEntry])
-  }, [character.name, extractTags])
+      setEntries((prev) => [...prev, newEntry])
+    },
+    [character.name, extractTags],
+  )
 
   const editEntry = useCallback((id: string) => {
     logger.info('chronicle_edit_entry', { entryId: id })
@@ -368,12 +447,11 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
   }, [])
 
   const deleteEntry = useCallback((id: string) => {
-    setEntries(prev => prev.filter(entry => entry.id !== id))
+    setEntries((prev) => prev.filter((entry) => entry.id !== id))
   }, [])
 
-
-  const cardVariant
-    = theme === 'combat'
+  const cardVariant =
+    theme === 'combat'
       ? 'elevated'
       : theme === 'dungeon'
         ? 'parchment'
@@ -382,35 +460,30 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
           : 'glass'
 
   return (
-    <Card
-      variant={cardVariant}
-      className={`h-full flex flex-col ${className}`}
-    >
-      <CardHeader className="pb-2 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <BookOpen size={16} className="text-primary" />
+    <Card variant={cardVariant} className={`h-full flex flex-col ${className}`}>
+      <CardHeader className='pb-2 flex-shrink-0'>
+        <div className='flex items-center justify-between'>
+          <CardTitle className='flex items-center gap-2 text-sm'>
+            <BookOpen size={16} className='text-primary' />
             Live Chronicle
             {entries.length > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {entries.length}
-                {' '}
-                entries
+              <Badge variant='secondary' className='ml-2'>
+                {entries.length} entries
               </Badge>
             )}
           </CardTitle>
 
-          <div className="flex items-center gap-2">
+          <div className='flex items-center gap-2'>
             {!isOverlayEnabled && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant='outline' className='text-xs'>
                 Chronicle Disabled
               </Badge>
             )}
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs"
+              className='text-xs'
             >
               {isExpanded ? 'Collapse' : 'Expand'}
             </Button>
@@ -418,7 +491,7 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col min-h-0">
+      <CardContent className='flex-1 flex flex-col min-h-0'>
         {/* Entries Stream */}
         <div
           ref={scrollRef}
@@ -427,33 +500,32 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
           }`}
           onScroll={(e) => {
             const element = e.target as HTMLElement
-            const isAtBottom = element.scrollHeight - element.scrollTop === element.clientHeight
+            const isAtBottom =
+              element.scrollHeight - element.scrollTop === element.clientHeight
             setAutoScroll(isAtBottom)
           }}
         >
           <AnimatePresence>
-            {entries.length === 0
-              ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    <BookOpen size={24} className="mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Your chronicle begins here</p>
-                    <p className="text-xs">Document your adventure as it unfolds</p>
-                  </motion.div>
-                )
-              : (
-                  entries.map(entry => (
-                    <ChronicleEntryCard
-                      key={entry.id}
-                      entry={entry}
-                      onEdit={editEntry}
-                      onDelete={deleteEntry}
-                    />
-                  ))
-                )}
+            {entries.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className='text-center text-muted-foreground py-8'
+              >
+                <BookOpen size={24} className='mx-auto mb-2 opacity-50' />
+                <p className='text-sm'>Your chronicle begins here</p>
+                <p className='text-xs'>Document your adventure as it unfolds</p>
+              </motion.div>
+            ) : (
+              entries.map((entry) => (
+                <ChronicleEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onEdit={editEntry}
+                  onDelete={deleteEntry}
+                />
+              ))
+            )}
           </AnimatePresence>
 
           {/* Scroll to Bottom Indicator */}
@@ -461,16 +533,19 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="sticky bottom-0 left-0 right-0 flex justify-center"
+              className='sticky bottom-0 left-0 right-0 flex justify-center'
             >
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 onClick={() => {
-                  scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+                  scrollRef.current?.scrollTo({
+                    top: scrollRef.current.scrollHeight,
+                    behavior: 'smooth',
+                  })
                   setAutoScroll(true)
                 }}
-                className="bg-card shadow-lg gap-1"
+                className='bg-card shadow-lg gap-1'
               >
                 <ArrowDown size={12} />
                 New entries
@@ -480,11 +555,8 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
         </div>
 
         {/* Quick Add Form */}
-        <div className="mt-3 pt-3 border-t border-border flex-shrink-0">
-          <QuickAddForm
-            onAdd={addEntry}
-            suggestions={suggestions}
-          />
+        <div className='mt-3 pt-3 border-t border-border flex-shrink-0'>
+          <QuickAddForm onAdd={addEntry} suggestions={suggestions} />
         </div>
       </CardContent>
     </Card>
@@ -492,4 +564,3 @@ export const LiveChronicleStream: React.FC<LiveChronicleStreamProps> = ({
 }
 
 export default LiveChronicleStream
-

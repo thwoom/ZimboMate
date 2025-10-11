@@ -116,7 +116,13 @@ type CampaignVibe =
 interface AutomationSummary {
   label: string
   message: string
-  badgeVariant: 'default' | 'destructive' | 'outline' | 'success' | 'warning' | 'secondary'
+  badgeVariant:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'success'
+    | 'warning'
+    | 'secondary'
   alertVariant: 'default' | 'destructive'
   icon: React.ComponentType<{ className?: string }>
   spinning?: boolean
@@ -1561,112 +1567,96 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                         {llmUnifiedEnabled && (
                           <Card variant='surface'>
                             <CardContent className='p-4'>
-                            <div className='flex items-center justify-between mb-3'>
-                              <h3 className='font-semibold flex items-center gap-2'>
-                                <Sparkles size={16} />
-                                Automation Log
-                              </h3>
-                              <span className='text-xs text-muted-foreground'>
-                                Last
-                                {Math.min(recentDeltaHistory.length, 5)} bundles
-                              </span>
-                            </div>
-                            {showAutomationGuard && (
-                              <Alert
-                                variant='destructive'
-                                className='mb-3 border-destructive/40 bg-destructive/10'
-                              >
-                                <ShieldAlert className='h-4 w-4 text-destructive' />
-                                <AlertTitle className='text-sm font-semibold text-destructive'>
-                                  Desktop bridge unavailable
-                                </AlertTitle>
-                                <AlertDescription className='space-y-2 text-xs text-destructive/90'>
-                                  <p>
-                                    Chronicle automations need the Tauri desktop bridge. Launch the desktop shell to enable live Chronicle updates.
-                                  </p>
-                                  <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide'>
-                                    <span className='rounded bg-destructive/10 px-2 py-0.5 font-mono text-[10px] text-destructive'>
-                                      npm run dev:tauri
-                                    </span>
-                                    <Button
-                                      size='sm'
-                                      variant='ghost'
-                                      className='h-7 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10'
-                                      onClick={() => setIsAutomationGuardDismissed(true)}
-                                    >
-                                      Dismiss
-                                    </Button>
-                                  </div>
-                                </AlertDescription>
-                              </Alert>
-                            )}
-                            {recentDeltaHistory.length === 0 ? (
-                              <div className='text-sm text-muted-foreground'>
-                                Run a Dungeon World move or jot a note to see
-                                Chronicle's updates.
+                              <div className='flex items-center justify-between mb-3'>
+                                <h3 className='font-semibold flex items-center gap-2'>
+                                  <Sparkles size={16} />
+                                  Automation Log
+                                </h3>
+                                <span className='text-xs text-muted-foreground'>
+                                  Last
+                                  {Math.min(recentDeltaHistory.length, 5)}{' '}
+                                  bundles
+                                </span>
                               </div>
-                            ) : (
-                              <div className='space-y-3 max-h-72 overflow-y-auto'>
-                                {recentDeltaHistory.map((log) => {
-                                  const createdAt = new Date(log.createdAt)
-                                  const appliedCount = log.appliedOps.length
-                                  const skippedCount = log.skippedOps.length
-                                  const statusVariant: BadgeProps['variant'] =
-                                    skippedCount > 0
-                                      ? 'warning'
-                                      : appliedCount > 0
-                                        ? 'success'
-                                        : 'secondary'
-                                  return (
-                                    <div
-                                      key={log.bundleId}
-                                      className='rounded-md border border-border/60 bg-card p-3'
-                                    >
-                                      <div className='flex flex-wrap items-center justify-between gap-2'>
-                                        <div className='space-y-0.5'>
-                                          <div className='text-xs text-muted-foreground'>
-                                            {createdAt.toLocaleTimeString()}
+                              {showAutomationGuard && (
+                                <Alert
+                                  variant='destructive'
+                                  className='mb-3 border-destructive/40 bg-destructive/10'
+                                >
+                                  <ShieldAlert className='h-4 w-4 text-destructive' />
+                                  <AlertTitle className='text-sm font-semibold text-destructive'>
+                                    Desktop bridge unavailable
+                                  </AlertTitle>
+                                  <AlertDescription className='space-y-2 text-xs text-destructive/90'>
+                                    <p>
+                                      Chronicle automations need the Tauri
+                                      desktop bridge. Launch the desktop shell
+                                      to enable live Chronicle updates.
+                                    </p>
+                                    <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide'>
+                                      <span className='rounded bg-destructive/10 px-2 py-0.5 font-mono text-[10px] text-destructive'>
+                                        npm run dev:tauri
+                                      </span>
+                                      <Button
+                                        size='sm'
+                                        variant='ghost'
+                                        className='h-7 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10'
+                                        onClick={() =>
+                                          setIsAutomationGuardDismissed(true)
+                                        }
+                                      >
+                                        Dismiss
+                                      </Button>
+                                    </div>
+                                  </AlertDescription>
+                                </Alert>
+                              )}
+                              {recentDeltaHistory.length === 0 ? (
+                                <div className='text-sm text-muted-foreground'>
+                                  Run a Dungeon World move or jot a note to see
+                                  Chronicle's updates.
+                                </div>
+                              ) : (
+                                <div className='space-y-3 max-h-72 overflow-y-auto'>
+                                  {recentDeltaHistory.map((log) => {
+                                    const createdAt = new Date(log.createdAt)
+                                    const appliedCount = log.appliedOps.length
+                                    const skippedCount = log.skippedOps.length
+                                    const statusVariant: BadgeProps['variant'] =
+                                      skippedCount > 0
+                                        ? 'warning'
+                                        : appliedCount > 0
+                                          ? 'success'
+                                          : 'secondary'
+                                    return (
+                                      <div
+                                        key={log.bundleId}
+                                        className='rounded-md border border-border/60 bg-card p-3'
+                                      >
+                                        <div className='flex flex-wrap items-center justify-between gap-2'>
+                                          <div className='space-y-0.5'>
+                                            <div className='text-xs text-muted-foreground'>
+                                              {createdAt.toLocaleTimeString()}
+                                            </div>
+                                            <div className='text-sm font-medium leading-tight'>
+                                              Entry
+                                              {log.entryId}
+                                            </div>
                                           </div>
-                                          <div className='text-sm font-medium leading-tight'>
-                                            Entry
-                                            {log.entryId}
-                                          </div>
+                                          <Badge
+                                            variant={statusVariant}
+                                            className='text-[10px] uppercase tracking-wide'
+                                          >
+                                            {appliedCount} applied
+                                            {skippedCount > 0
+                                              ? ` / ${skippedCount} skipped`
+                                              : ''}
+                                          </Badge>
                                         </div>
-                                        <Badge
-                                          variant={statusVariant}
-                                          className='text-[10px] uppercase tracking-wide'
-                                        >
-                                          {appliedCount} applied
-                                          {skippedCount > 0
-                                            ? ` / ${skippedCount} skipped`
-                                            : ''}
-                                        </Badge>
-                                      </div>
-                                      {log.appliedOps.length > 0 && (
-                                        <div className='mt-2'>
-                                          <DeltaChecklist
-                                            operations={log.appliedOps}
-                                            renderDescription={
-                                              describeDeltaOperation
-                                            }
-                                            variant='readOnly'
-                                            size='compact'
-                                            showRuleReference
-                                            className='space-y-1'
-                                            itemClassName='bg-transparent border-border/40'
-                                          />
-                                        </div>
-                                      )}
-                                      {skippedCount > 0 && (
-                                        <Alert
-                                          className='mt-3 border-border/60 bg-muted/30'
-                                        >
-                                          <AlertTitle className='text-xs font-semibold'>
-                                            Skipped
-                                          </AlertTitle>
-                                          <AlertDescription className='text-xs space-y-0.5'>
+                                        {log.appliedOps.length > 0 && (
+                                          <div className='mt-2'>
                                             <DeltaChecklist
-                                              operations={log.skippedOps}
+                                              operations={log.appliedOps}
                                               renderDescription={
                                                 describeDeltaOperation
                                               }
@@ -1674,57 +1664,79 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                               size='compact'
                                               showRuleReference
                                               className='space-y-1'
-                                              itemClassName='bg-transparent border-none p-0'
+                                              itemClassName='bg-transparent border-border/40'
                                             />
-                                          </AlertDescription>
-                                        </Alert>
-                                      )}
-                                      <div className='mt-3 flex flex-wrap items-center gap-2'>
-                                        <Button
-                                          size='sm'
-                                          variant='outline'
-                                          disabled={
-                                            !log.undoHandle ||
-                                            undoingBundleId === log.bundleId
-                                          }
-                                          onClick={() =>
-                                            void handleUndoBundle(log.bundleId)
-                                          }
-                                          className='h-8 gap-2 px-3 text-xs'
-                                        >
-                                          {undoingBundleId === log.bundleId ? (
-                                            <>
-                                              <Loader2 className='h-3.5 w-3.5 animate-spin' />
-                                              Undoing
-                                            </>
-                                          ) : (
-                                            <>
-                                              <RefreshCcw className='h-3.5 w-3.5' />
-                                              Undo
-                                            </>
-                                          )}
-                                        </Button>
-                                        <Button
-                                          size='sm'
-                                          variant='ghost'
-                                          disabled={
-                                            undoingBundleId === log.bundleId
-                                          }
-                                          onClick={() =>
-                                            clearDeltaLog(log.bundleId)
-                                          }
-                                          className='h-8 px-2 text-xs text-muted-foreground hover:text-foreground'
-                                        >
-                                          Dismiss
-                                        </Button>
+                                          </div>
+                                        )}
+                                        {skippedCount > 0 && (
+                                          <Alert className='mt-3 border-border/60 bg-muted/30'>
+                                            <AlertTitle className='text-xs font-semibold'>
+                                              Skipped
+                                            </AlertTitle>
+                                            <AlertDescription className='text-xs space-y-0.5'>
+                                              <DeltaChecklist
+                                                operations={log.skippedOps}
+                                                renderDescription={
+                                                  describeDeltaOperation
+                                                }
+                                                variant='readOnly'
+                                                size='compact'
+                                                showRuleReference
+                                                className='space-y-1'
+                                                itemClassName='bg-transparent border-none p-0'
+                                              />
+                                            </AlertDescription>
+                                          </Alert>
+                                        )}
+                                        <div className='mt-3 flex flex-wrap items-center gap-2'>
+                                          <Button
+                                            size='sm'
+                                            variant='outline'
+                                            disabled={
+                                              !log.undoHandle ||
+                                              undoingBundleId === log.bundleId
+                                            }
+                                            onClick={() =>
+                                              void handleUndoBundle(
+                                                log.bundleId,
+                                              )
+                                            }
+                                            className='h-8 gap-2 px-3 text-xs'
+                                          >
+                                            {undoingBundleId ===
+                                            log.bundleId ? (
+                                              <>
+                                                <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                                                Undoing
+                                              </>
+                                            ) : (
+                                              <>
+                                                <RefreshCcw className='h-3.5 w-3.5' />
+                                                Undo
+                                              </>
+                                            )}
+                                          </Button>
+                                          <Button
+                                            size='sm'
+                                            variant='ghost'
+                                            disabled={
+                                              undoingBundleId === log.bundleId
+                                            }
+                                            onClick={() =>
+                                              clearDeltaLog(log.bundleId)
+                                            }
+                                            className='h-8 px-2 text-xs text-muted-foreground hover:text-foreground'
+                                          >
+                                            Dismiss
+                                          </Button>
+                                        </div>
                                       </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
+                                    )
+                                  })}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
                         )}
                       </div>
 
@@ -1907,4 +1919,3 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
 }
 
 export default PlayTab
-

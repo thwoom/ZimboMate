@@ -86,7 +86,11 @@ describe('audio & Memory Testing for Gaming', () => {
         }
 
         return (
-          <button type='button' onClick={handleMultipleSounds} data-testid='multi-audio'>
+          <button
+            type='button'
+            onClick={handleMultipleSounds}
+            data-testid='multi-audio'
+          >
             Play Multiple
           </button>
         )
@@ -117,7 +121,11 @@ describe('audio & Memory Testing for Gaming', () => {
 
         return (
           <div>
-            <button type='button' onClick={handleToggleAudio} data-testid='audio-toggle'>
+            <button
+              type='button'
+              onClick={handleToggleAudio}
+              data-testid='audio-toggle'
+            >
               {audioEnabled ? 'Disable' : 'Enable'} Audio
             </button>
             <button type='button' onClick={handlePlay} data-testid='play-sound'>
@@ -152,7 +160,11 @@ describe('audio & Memory Testing for Gaming', () => {
         }
 
         return (
-          <button type='button' onClick={handlePlayWithError} data-testid='error-audio'>
+          <button
+            type='button'
+            onClick={handlePlayWithError}
+            data-testid='error-audio'
+          >
             Play Broken Audio
           </button>
         )

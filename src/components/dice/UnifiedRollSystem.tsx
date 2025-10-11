@@ -3,7 +3,10 @@ import type { RollResult } from '../../stores/diceStore'
 import { BookOpen, Copy, Dices, Shuffle, Sparkles } from 'lucide-react'
 import React, { useMemo, useState } from 'react'
 import { cn } from '../../lib/utils'
-import { getAttributeModifier, resolveAttributeScore } from '../../models/Character'
+import {
+  getAttributeModifier,
+  resolveAttributeScore,
+} from '../../models/Character'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useDiceStore } from '../../stores/diceStore'
 import { formatRollSummary } from '../../utils/diceFormatting'

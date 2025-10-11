@@ -146,7 +146,10 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
 
   const handleUseItem = useCallback(
     (item: Inventory) => {
-      logger.info('inventory_use_item', { itemId: item.id, itemName: item.name })
+      logger.info('inventory_use_item', {
+        itemId: item.id,
+        itemName: item.name,
+      })
 
       emitEquipmentAction({
         characterName: character.name,
@@ -161,7 +164,10 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
   )
 
   const swapEquipment = useCallback((item: Inventory) => {
-    logger.info('swap_equipment_requested', { itemId: item.id, itemName: item.name })
+    logger.info('swap_equipment_requested', {
+      itemId: item.id,
+      itemName: item.name,
+    })
 
     // TODO: Implement equipment swapping logic
   }, [])

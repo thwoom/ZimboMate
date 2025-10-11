@@ -6,11 +6,12 @@
 import type {
   BondLogEntry,
   ChronicleAuditEntry,
+  ChronicleBundleSnapshot,
   ChronicleDeltaLog,
   ChronicleEntry,
   ChronicleSearchResult,
   ChronicleSettings,
-  ChronicleBundleSnapshot,
+  ChronicleTelemetryEventLog,
   DebilityLogEntry,
   Entity,
   EntityType,
@@ -115,9 +116,10 @@ interface ChronicleState {
     snapshot: ChronicleBundleSnapshot,
     previousBundleId?: string | null,
   ) => void
-  getBundleSnapshots: (
-    bundleId: string,
-  ) => { before: ChronicleBundleSnapshot | null; after: ChronicleBundleSnapshot | null }
+  getBundleSnapshots: (bundleId: string) => {
+    before: ChronicleBundleSnapshot | null
+    after: ChronicleBundleSnapshot | null
+  }
   exportBundleSnapshots: (bundleId: string) => string | null
   clearBundleSnapshots: (bundleId?: string) => void
   resourceHistory: ResourceHistoryState
@@ -127,6 +129,10 @@ interface ChronicleState {
   getBondHistory: (characterId: string) => BondLogEntry[]
   getHoldHistory: (characterId: string) => HoldLogEntry[]
   getDebilityHistory: (characterId: string) => DebilityLogEntry[]
+  telemetryEvents: ChronicleTelemetryEventLog[]
+  logTelemetryEvent: (entry: ChronicleTelemetryEventLog) => void
+  clearTelemetryEvents: (bundleId?: string) => void
+  getTelemetryEvents: (limit?: number) => ChronicleTelemetryEventLog[]
 
   // Actions - Chronicle Entries
   addEntry: (entry: Omit<ChronicleEntry, 'id'>) => string
@@ -191,6 +197,7 @@ export const MAX_DELTA_HISTORY = 50
 export const MAX_RESOURCE_HISTORY = 100
 export const MAX_AUDIT_LOG_ENTRIES = 40
 export const MAX_BUNDLE_SNAPSHOTS = 20
+export const MAX_TELEMETRY_EVENTS = 200
 const MAX_SNAPSHOT_CHARACTERS = 10
 const MAX_SNAPSHOT_ITEM_IDS = 12
 const MAX_SNAPSHOT_HOLD_ENTRIES = 20
@@ -261,8 +268,9 @@ function collectSnapshotMetrics(): ChronicleBundleSnapshot['metrics'] {
   const sortedCharacters = [...charactersRef].sort((a, b) =>
     a.name.localeCompare(b.name),
   )
-  const characterSummaries = sortedCharacters.slice(0, MAX_SNAPSHOT_CHARACTERS).map(
-    (character) => ({
+  const characterSummaries = sortedCharacters
+    .slice(0, MAX_SNAPSHOT_CHARACTERS)
+    .map((character) => ({
       id: character.id,
       name: character.name,
       hp: {
@@ -271,10 +279,11 @@ function collectSnapshotMetrics(): ChronicleBundleSnapshot['metrics'] {
       },
       xp: character.xp ?? 0,
       coin: character.coin ?? 0,
-    }),
-  )
+    }))
 
-  const totalItems = inventoryRef ? Object.keys(inventoryRef.items ?? {}).length : 0
+  const totalItems = inventoryRef
+    ? Object.keys(inventoryRef.items ?? {}).length
+    : 0
   const equippedContainer = inventoryRef?.containers.find(
     (container) => container.id === 'equipped',
   )
@@ -564,12 +573,12 @@ export const useChronicleStore = create<ChronicleState>()(
       auditLog: [],
       bundleSnapshots: [],
       resourceHistory: createResourceHistory(),
+      telemetryEvents: [],
       sessionCostCents: 0,
       lastCostEventAt: null,
 
       logDeltaResult: (log: ChronicleDeltaLog) => {
-        const createdAt =
-          log.createdAt ?? new Date().toISOString()
+        const createdAt = log.createdAt ?? new Date().toISOString()
         const normalized: ChronicleDeltaLog = {
           ...log,
           createdAt,
@@ -603,7 +612,10 @@ export const useChronicleStore = create<ChronicleState>()(
               xp: pruneRecord(state.resourceHistory.xp, bundleId),
               bonds: pruneRecord(state.resourceHistory.bonds, bundleId),
               hold: pruneRecord(state.resourceHistory.hold, bundleId),
-              debilities: pruneRecord(state.resourceHistory.debilities, bundleId),
+              debilities: pruneRecord(
+                state.resourceHistory.debilities,
+                bundleId,
+              ),
               hp: pruneRecord(state.resourceHistory.hp, bundleId),
               coin: pruneRecord(state.resourceHistory.coin, bundleId),
             },
@@ -636,8 +648,46 @@ export const useChronicleStore = create<ChronicleState>()(
         return history
       },
 
+      getTelemetryEvents: (limit) => {
+        const events = get().telemetryEvents
+        if (typeof limit === 'number' && Number.isFinite(limit) && limit >= 0) {
+          return events.slice(0, Math.floor(limit))
+        }
+        return events
+      },
+
       getDeltaLog: (bundleId: string) =>
         get().deltaHistory.find((entry) => entry.bundleId === bundleId),
+
+      logTelemetryEvent: (entry) => {
+        const normalized = {
+          ...entry,
+          recordedAt: entry.recordedAt ?? new Date().toISOString(),
+        }
+        set((state) => {
+          const filtered = state.telemetryEvents.filter(
+            (existing) => existing.id !== normalized.id,
+          )
+          return {
+            telemetryEvents: [normalized, ...filtered].slice(
+              0,
+              MAX_TELEMETRY_EVENTS,
+            ),
+          }
+        })
+      },
+
+      clearTelemetryEvents: (bundleId) => {
+        if (!bundleId) {
+          set(() => ({ telemetryEvents: [] }))
+          return
+        }
+        set((state) => ({
+          telemetryEvents: state.telemetryEvents.filter(
+            (event) => event.bundleId !== bundleId,
+          ),
+        }))
+      },
 
       setPendingDeltaBundle: (pending) => {
         if (!pending) {
@@ -664,8 +714,7 @@ export const useChronicleStore = create<ChronicleState>()(
         startedAt,
       }) => {
         const when = startedAt ?? requestedAt ?? new Date().toISOString()
-        const normalizedBundleId =
-          bundleId ?? `${entryId}:pending:${when}`
+        const normalizedBundleId = bundleId ?? `${entryId}:pending:${when}`
         const snapshot = createBundleSnapshot('before', {
           bundleId: normalizedBundleId,
           entryId,
@@ -811,16 +860,15 @@ export const useChronicleStore = create<ChronicleState>()(
       endBundleApply: (options) => {
         const pending = get().pendingDeltaBundle
         set((state) => {
-          const nextHistory =
-            pending?.bundleId
-              ? state.deltaHistory.filter(
-                  (entry) =>
-                    !(
-                      entry.bundleId === pending.bundleId &&
-                      entry.status === 'pending'
-                    ),
-                )
-              : state.deltaHistory
+          const nextHistory = pending?.bundleId
+            ? state.deltaHistory.filter(
+                (entry) =>
+                  !(
+                    entry.bundleId === pending.bundleId &&
+                    entry.status === 'pending'
+                  ),
+              )
+            : state.deltaHistory
 
           return {
             pendingDeltaBundle: null,
@@ -1506,14 +1554,11 @@ export const useChronicleStore = create<ChronicleState>()(
             (rel.fromEntityId === entityB && rel.toEntityId === entityA),
         )
         if (candidates.length === 0) return undefined
-        return candidates.slice(1).reduce<Relationship>(
-          (latest, rel) => {
-            const current = getTimestamp(rel.lastUpdated)
-            const previous = getTimestamp(latest.lastUpdated)
-            return current > previous ? rel : latest
-          },
-          candidates[0],
-        )
+        return candidates.slice(1).reduce<Relationship>((latest, rel) => {
+          const current = getTimestamp(rel.lastUpdated)
+          const previous = getTimestamp(latest.lastUpdated)
+          return current > previous ? rel : latest
+        }, candidates[0])
       },
 
       // Wiki Actions
@@ -1721,6 +1766,7 @@ export const useChronicleStore = create<ChronicleState>()(
           auditLog: [],
           bundleSnapshots: [],
           resourceHistory: createResourceHistory(),
+          telemetryEvents: [],
           sessionCostCents: 0,
           lastCostEventAt: null,
         }))
@@ -1795,7 +1841,7 @@ export const useChronicleStore = create<ChronicleState>()(
     {
       name: 'chronicle-store',
       version: 3,
-      migrate: (persistedState, version) => {
+      migrate: (persistedState, _version) => {
         if (!persistedState) {
           return persistedState
         }
@@ -1804,10 +1850,7 @@ export const useChronicleStore = create<ChronicleState>()(
         const deltaHistory = Array.isArray(persistedState.deltaHistory)
           ? persistedState.deltaHistory
           : []
-        const deltaActorByBundle = new Map<
-          string,
-          ChronicleDeltaLog['actor']
-        >(
+        const deltaActorByBundle = new Map<string, ChronicleDeltaLog['actor']>(
           deltaHistory
             .filter(
               (entry): entry is ChronicleDeltaLog & { bundleId: string } =>
@@ -1831,8 +1874,7 @@ export const useChronicleStore = create<ChronicleState>()(
         const hydratedPending = persistedState.pendingDeltaBundle
           ? {
               ...persistedState.pendingDeltaBundle,
-              status:
-                persistedState.pendingDeltaBundle.status ?? 'applying',
+              status: persistedState.pendingDeltaBundle.status ?? 'applying',
             }
           : null
 
@@ -1857,6 +1899,9 @@ export const useChronicleStore = create<ChronicleState>()(
             hp: resourceHistory.hp ?? {},
             coin: resourceHistory.coin ?? {},
           },
+          telemetryEvents: Array.isArray(persistedState.telemetryEvents)
+            ? persistedState.telemetryEvents
+            : [],
           sessionCostCents:
             typeof persistedState.sessionCostCents === 'number'
               ? persistedState.sessionCostCents
@@ -1872,9 +1917,3 @@ export const useChronicleStore = create<ChronicleState>()(
     },
   ),
 )
-
-
-
-
-
-

@@ -1,16 +1,24 @@
+/* eslint-disable react-hooks-extra/no-unnecessary-use-prefix */
 import { act, screen } from '@testing-library/react'
 import React from 'react'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { renderWithProviders } from '@/utils/testing'
-import { ChronicleOverlay } from '../ChronicleOverlay'
-import { useChronicleStore } from '@/stores/chronicleStore'
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 import { useCharacterStore } from '@/stores/characterStore'
+import { useChronicleStore } from '@/stores/chronicleStore'
+import { renderWithProviders } from '@/utils/testing'
 import { buildEntityLinkFixture } from '../../../../tests/fixtures/chronicle/entityLinkFixtures'
+import { ChronicleOverlay } from '../ChronicleOverlay'
 
 vi.mock('framer-motion', async () => {
-  const actual = await vi.importActual<typeof import('framer-motion')>(
-    'framer-motion',
-  )
+  const actual =
+    await vi.importActual<typeof import('framer-motion')>('framer-motion')
   return {
     ...actual,
     AnimatePresence: ({ children }: { children: React.ReactNode }) => (
@@ -19,7 +27,8 @@ vi.mock('framer-motion', async () => {
     motion: new Proxy(
       {},
       {
-        get: () =>
+        get:
+          () =>
           ({
             children,
             layout: _layout,
@@ -35,7 +44,8 @@ vi.mock('framer-motion', async () => {
             animate?: unknown
             exit?: unknown
             transition?: unknown
-          }) => React.createElement('div', rest, children),
+          }) =>
+            React.createElement('div', rest, children),
       },
     ),
   }
@@ -64,7 +74,7 @@ vi.mock('@/services/ChronicleContextIntelligence', () => ({
   },
 }))
 
-describe('ChronicleOverlay entity link highlights', () => {
+describe('chronicleOverlay entity link highlights', () => {
   const chronicleStore = useChronicleStore
   const characterStore = useCharacterStore
 
@@ -130,7 +140,9 @@ describe('ChronicleOverlay entity link highlights', () => {
       withTooltips: false,
     })
 
-    expect(screen.queryByText(/latest chronicle update/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/latest chronicle update/i),
+    ).not.toBeInTheDocument()
 
     process.env.LLM_UNIFIED = 'true'
   })

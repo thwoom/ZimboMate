@@ -16,7 +16,11 @@ const DEFAULT_MOVES: Required<MoveChipsProps>['moves'] = [
   { id: 'spout-lore', name: 'Spout Lore', stat: 'INT' },
 ]
 
-export default function MoveChips({ className, onSelect, moves = DEFAULT_MOVES }: MoveChipsProps): JSX.Element {
+export default function MoveChips({
+  className,
+  onSelect,
+  moves = DEFAULT_MOVES,
+}: MoveChipsProps): JSX.Element {
   return (
     <div className={cn('flex flex-wrap gap-2', className)}>
       {moves.map((m) => (
@@ -28,10 +32,11 @@ export default function MoveChips({ className, onSelect, moves = DEFAULT_MOVES }
           aria-label={`Use move ${m.name}`}
         >
           <span>{m.name}</span>
-          {m.stat ? <span className='text-muted-foreground text-xs'>· {m.stat}</span> : null}
+          {m.stat ? (
+            <span className='text-muted-foreground text-xs'>· {m.stat}</span>
+          ) : null}
         </button>
       ))}
     </div>
   )
 }
-

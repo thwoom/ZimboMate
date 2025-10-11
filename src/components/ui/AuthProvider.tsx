@@ -106,26 +106,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return undefined
   }, [user])
 
-  const login = useCallback(async (credentials: { name: string; email?: string }) => {
-    dispatch({ type: 'setLoading', isLoading: true })
+  const login = useCallback(
+    async (credentials: { name: string; email?: string }) => {
+      dispatch({ type: 'setLoading', isLoading: true })
 
-    await new Promise((resolve) => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-    const newUser: User = {
-      id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-      name: credentials.name,
-      email: credentials.email,
-      preferences: {
-        theme: 'fantasy',
-        language: 'en',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      },
-      createdAt: new Date(),
-      lastActive: new Date(),
-    }
+      const newUser: User = {
+        id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+        name: credentials.name,
+        email: credentials.email,
+        preferences: {
+          theme: 'fantasy',
+          language: 'en',
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        createdAt: new Date(),
+        lastActive: new Date(),
+      }
 
-    dispatch({ type: 'login', user: newUser })
-  }, [])
+      dispatch({ type: 'login', user: newUser })
+    },
+    [],
+  )
 
   const logout = useCallback(() => {
     dispatch({ type: 'logout' })

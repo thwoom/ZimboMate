@@ -21,8 +21,12 @@ export default function FolioNotesPage({
 
   const addEntry = useChronicleStore((state) => state.addEntry)
   const currentSessionId = useChronicleStore((state) => state.currentSessionId)
-  const currentCampaignId = useChronicleStore((state) => state.currentCampaignId)
-  const getActiveCharacter = useCharacterStore((state) => state.getActiveCharacter)
+  const currentCampaignId = useChronicleStore(
+    (state) => state.currentCampaignId,
+  )
+  const getActiveCharacter = useCharacterStore(
+    (state) => state.getActiveCharacter,
+  )
 
   const handleNoteSubmit = useCallback(
     async ({ body }: { title?: string; body: string }) => {
@@ -31,9 +35,11 @@ export default function FolioNotesPage({
       if (!trimmedBody) return
 
       const activeCharacter = getActiveCharacter()
-      const rawText = trimmedTitle ? `${trimmedTitle}
+      const rawText = trimmedTitle
+        ? `${trimmedTitle}
 
-${trimmedBody}` : trimmedBody
+${trimmedBody}`
+        : trimmedBody
 
       try {
         addEntry({
@@ -43,7 +49,9 @@ ${trimmedBody}` : trimmedBody
           parsedEntities: [],
           tags: ['folio-note'],
           isSceneBreak: false,
-          userNotes: activeCharacter ? `Linked to ${activeCharacter.name}` : undefined,
+          userNotes: activeCharacter
+            ? `Linked to ${activeCharacter.name}`
+            : undefined,
         })
         onNoteCreated?.(trimmedTitle || undefined)
         setTitle('')
@@ -51,7 +59,14 @@ ${trimmedBody}` : trimmedBody
         logger.error('[folio] Failed to add quick note', error)
       }
     },
-    [addEntry, currentCampaignId, currentSessionId, getActiveCharacter, onNoteCreated, title],
+    [
+      addEntry,
+      currentCampaignId,
+      currentSessionId,
+      getActiveCharacter,
+      onNoteCreated,
+      title,
+    ],
   )
 
   return (
@@ -59,7 +74,9 @@ ${trimmedBody}` : trimmedBody
       <Card className={cn(highlighted && 'ring-2 ring-primary/60')}>
         <CardContent className='p-3'>
           <h3 className='text-foreground mb-2 text-sm font-medium'>Notes</h3>
-          <div className='text-muted-foreground mb-3 text-sm'>Attach quick notes to the chronicle without leaving your sheet.</div>
+          <div className='text-muted-foreground mb-3 text-sm'>
+            Attach quick notes to the chronicle without leaving your sheet.
+          </div>
           <div className='flex items-center gap-2'>
             <Input
               aria-label='Note title'

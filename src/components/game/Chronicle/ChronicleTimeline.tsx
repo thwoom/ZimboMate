@@ -10,7 +10,10 @@ import type {
   EntityType,
   ResourceHistoryState,
 } from '../../../types/chronicle'
-import type { MentionHighlight, ResourceChangeDisplay } from '@/components/chronicle/highlightUtils'
+import type {
+  MentionHighlight,
+  ResourceChangeDisplay,
+} from '@/components/chronicle/highlightUtils'
 import { motion } from 'framer-motion'
 import {
   AtSign,
@@ -36,7 +39,8 @@ import { badgeVariants } from '@/components/ui/badge-variants'
 import { cn } from '@/lib/utils'
 import { Badge, Card, CardContent } from '../../ui'
 
-const escapeRegExp = (value: string) => value.replace(/[\^$.*+?()[\]{}|]/g, '\$&')
+const escapeRegExp = (value: string) =>
+  value.replace(/[\^$.*+?()[\]{}|]/g, '\$&')
 
 interface ChronicleTimelineProps {
   entries: ChronicleEntry[]
@@ -150,7 +154,9 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
           entry.rawText.toLowerCase().includes(query) ||
           entry.tags.some((tag) => tag.toLowerCase().includes(query)) ||
           entry.parsedEntities.some((mention) => {
-            const entity = entities.find((candidate) => candidate.id === mention.entityId)
+            const entity = entities.find(
+              (candidate) => candidate.id === mention.entityId,
+            )
             return entity?.name.toLowerCase().includes(query)
           })
         )
@@ -158,7 +164,8 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
   }, [entries, entities, searchQuery])
 
-  const resourceHistoryState = (resourceHistory ?? EMPTY_RESOURCE_HISTORY) as ResourceHistoryState
+  const resourceHistoryState = (resourceHistory ??
+    EMPTY_RESOURCE_HISTORY) as ResourceHistoryState
 
   const timelineItems = useMemo<TimelineItem[]>(() => {
     return filteredEntries.map((entry) => {
@@ -166,36 +173,46 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
 
       const directMentions = entry.parsedEntities
         .map((mention) => {
-          const entity = entities.find((candidate) => candidate.id === mention.entityId)
+          const entity = entities.find(
+            (candidate) => candidate.id === mention.entityId,
+          )
           if (!entity) return null
           return { mention, entity }
         })
-        .filter((value): value is { mention: EntityMention; entity: Entity } => value !== null)
+        .filter(
+          (value): value is { mention: EntityMention; entity: Entity } =>
+            value !== null,
+        )
 
       const bundleHighlights = collectMentionHighlights(deltaLog, entities)
 
-      const fallbackHighlights: MentionHighlight[] = directMentions.map(({ mention, entity }) => ({
-        entityId: entity.id,
-        entityName: entity.name,
-        entityType: entity.type,
-        record: {
-          entryId: entry.id,
-          mentionText: mention.mentionText,
-          context: mention.context,
-          startIndex: mention.startIndex,
-          endIndex: mention.endIndex,
-          confidence: mention.confidence,
-          entityType: mention.entityType ?? entity.type,
-          createdAt: entry.timestamp.toISOString(),
-          source: 'parsed',
-        },
-      }))
+      const fallbackHighlights: MentionHighlight[] = directMentions.map(
+        ({ mention, entity }) => ({
+          entityId: entity.id,
+          entityName: entity.name,
+          entityType: entity.type,
+          record: {
+            entryId: entry.id,
+            mentionText: mention.mentionText,
+            context: mention.context,
+            startIndex: mention.startIndex,
+            endIndex: mention.endIndex,
+            confidence: mention.confidence,
+            entityType: mention.entityType ?? entity.type,
+            createdAt: entry.timestamp.toISOString(),
+            source: 'parsed',
+          },
+        }),
+      )
 
-      const mentionHighlights = (bundleHighlights.length > 0
-        ? bundleHighlights
-        : fallbackHighlights).slice(0, 4)
+      const mentionHighlights = (
+        bundleHighlights.length > 0 ? bundleHighlights : fallbackHighlights
+      ).slice(0, 4)
 
-      const resourceDisplay = collectResourceChanges(deltaLog, resourceHistoryState)
+      const resourceDisplay = collectResourceChanges(
+        deltaLog,
+        resourceHistoryState,
+      )
         .map((context) => describeResourceChange(context, resolveCharacterName))
         .filter((change): change is ResourceChangeDisplay => change !== null)
         .slice(0, 5)
@@ -250,15 +267,18 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
 
       <div className='space-y-4'>
         {timelineItems.map(
-          ({
-            entry,
-            deltaLog,
-            directMentions,
-            mentionHighlights,
-            resourceDisplay,
-            mentionContextFallback,
-            timestampLabel,
-          }, index) => {
+          (
+            {
+              entry,
+              deltaLog,
+              directMentions,
+              mentionHighlights,
+              resourceDisplay,
+              mentionContextFallback,
+              timestampLabel,
+            },
+            index,
+          ) => {
             const hasAutomation = Boolean(deltaLog)
             const actorLabel = formatActorLabel(deltaLog?.actor)
 
@@ -284,21 +304,35 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                           <Hash size={14} className='text-muted-foreground' />
                           Entry {entry.id}
                         </div>
-                        <p className='text-xs text-muted-foreground'>{timestampLabel}</p>
+                        <p className='text-xs text-muted-foreground'>
+                          {timestampLabel}
+                        </p>
                       </div>
                       <div className='flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground'>
                         {hasAutomation && deltaLog?.appliedOps && (
-                          <Badge variant='outline' className='gap-1 text-[11px]'>
-                            <Sparkles size={12} /> {deltaLog.appliedOps.length} automation updates
+                          <Badge
+                            variant='outline'
+                            className='gap-1 text-[11px]'
+                          >
+                            <Sparkles size={12} /> {deltaLog.appliedOps.length}{' '}
+                            automation updates
                           </Badge>
                         )}
                         {hasAutomation && actorLabel && (
-                          <Badge variant='outline' className='text-[10px] uppercase tracking-wide'>
+                          <Badge
+                            variant='outline'
+                            className='text-[10px] uppercase tracking-wide'
+                          >
                             {actorLabel}
                           </Badge>
                         )}
                         {entry.emotionalTone && (
-                          <span className={cn('rounded-full px-3 py-1 text-[11px] font-medium', getToneColor(entry.emotionalTone))}>
+                          <span
+                            className={cn(
+                              'rounded-full px-3 py-1 text-[11px] font-medium',
+                              getToneColor(entry.emotionalTone),
+                            )}
+                          >
                             {entry.emotionalTone}
                           </span>
                         )}
@@ -308,7 +342,10 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                           </Badge>
                         )}
                         {entry.isSceneBreak && (
-                          <Badge variant='magical' className='gap-1 text-[11px]'>
+                          <Badge
+                            variant='magical'
+                            className='gap-1 text-[11px]'
+                          >
                             <Sparkles size={12} /> Scene Break
                           </Badge>
                         )}
@@ -321,7 +358,8 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                       </div>
                     </div>
 
-                    {(directMentions.length > 0 || mentionHighlights.length > 0) && (
+                    {(directMentions.length > 0 ||
+                      mentionHighlights.length > 0) && (
                       <div className='space-y-2'>
                         <div className='flex items-center gap-2 text-sm font-medium text-foreground'>
                           <AtSign size={14} /> Entities Mentioned
@@ -334,7 +372,9 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                                 <button
                                   key={`${entry.id}-${entity.id}-${mention.startIndex}`}
                                   type='button'
-                                  onClick={() => handleEntityNavigate(entity.id)}
+                                  onClick={() =>
+                                    handleEntityNavigate(entity.id)
+                                  }
                                   className={cn(
                                     badgeVariants({ variant: 'outline' }),
                                     'gap-1 border-border/60 bg-card/40 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/30',
@@ -353,17 +393,25 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                               <button
                                 key={`${entry.id}-highlight-${highlight.entityId}-${highlight.record.createdAt}`}
                                 type='button'
-                                onClick={() => handleEntityNavigate(highlight.entityId)}
+                                onClick={() =>
+                                  handleEntityNavigate(highlight.entityId)
+                                }
                                 className='w-full rounded-md border border-transparent bg-muted/10 px-3 py-2 text-left leading-snug transition-colors hover:border-primary/40 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/30'
                               >
                                 <div className='flex items-center gap-2 font-semibold text-foreground'>
                                   <span>{highlight.entityName}</span>
-                                  <Badge variant='outline' className='text-[10px] uppercase tracking-wide'>
+                                  <Badge
+                                    variant='outline'
+                                    className='text-[10px] uppercase tracking-wide'
+                                  >
                                     {highlight.entityType}
                                   </Badge>
                                 </div>
                                 <div className='mt-1 text-muted-foreground'>
-                                  {buildMentionContext(highlight.record, mentionContextFallback)}
+                                  {buildMentionContext(
+                                    highlight.record,
+                                    mentionContextFallback,
+                                  )}
                                 </div>
                               </button>
                             ))}
@@ -378,18 +426,26 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                           <Coins size={12} /> Resource updates
                         </div>
                         <div className='space-y-1'>
-                          {resourceDisplay.map(({ key, Icon, colorClass, message, detail }) => (
-                            <div
-                              key={`${entry.id}-resource-${key}`}
-                              className='flex items-center justify-between gap-3 rounded-md border border-border/40 bg-muted/10 px-2.5 py-1.5 text-xs'
-                            >
-                              <div className='flex items-center gap-2 text-foreground'>
-                                <Icon className={cn('h-3.5 w-3.5', colorClass)} />
-                                <span>{message}</span>
+                          {resourceDisplay.map(
+                            ({ key, Icon, colorClass, message, detail }) => (
+                              <div
+                                key={`${entry.id}-resource-${key}`}
+                                className='flex items-center justify-between gap-3 rounded-md border border-border/40 bg-muted/10 px-2.5 py-1.5 text-xs'
+                              >
+                                <div className='flex items-center gap-2 text-foreground'>
+                                  <Icon
+                                    className={cn('h-3.5 w-3.5', colorClass)}
+                                  />
+                                  <span>{message}</span>
+                                </div>
+                                {detail && (
+                                  <span className='text-muted-foreground'>
+                                    {detail}
+                                  </span>
+                                )}
                               </div>
-                              {detail && <span className='text-muted-foreground'>{detail}</span>}
-                            </div>
-                          ))}
+                            ),
+                          )}
                         </div>
                       </div>
                     )}
@@ -401,7 +457,11 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
                         </div>
                         <div className='flex flex-wrap gap-2'>
                           {entry.tags.map((tag) => (
-                            <Badge key={tag} variant='outline' className='text-xs'>
+                            <Badge
+                              key={tag}
+                              variant='outline'
+                              className='text-xs'
+                            >
                               #{tag}
                             </Badge>
                           ))}

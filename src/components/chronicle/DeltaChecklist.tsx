@@ -49,7 +49,9 @@ const buildOperationKey = (operation: DeltaOperation): string => {
   }
 
   if ('characterId' in operation && 'move' in operation) {
-    return [operation.type, operation.characterId, operation.move ?? ''].join(':')
+    return [operation.type, operation.characterId, operation.move ?? ''].join(
+      ':',
+    )
   }
 
   if ('characterId' in operation) {
@@ -69,7 +71,11 @@ const buildOperationKey = (operation: DeltaOperation): string => {
   }
 
   if ('flag' in operation) {
-    return [operation.type, operation.characterId ?? 'global', operation.flag].join(':')
+    return [
+      operation.type,
+      operation.characterId ?? 'global',
+      operation.flag,
+    ].join(':')
   }
 
   return `${operation.type}:${JSON.stringify(operation)}`

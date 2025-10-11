@@ -77,4 +77,3 @@ function Calendar({
 }
 
 export { Calendar }
-

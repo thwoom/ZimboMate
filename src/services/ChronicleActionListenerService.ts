@@ -102,7 +102,9 @@ export type ActionListener = (context: ActionContext) => void
 // Prompt generation strategies for different action types
 type MaybePromise<T> = T | Promise<T>
 interface PromptStrategy {
-  generatePrompt: (context: ActionContext) => MaybePromise<ChroniclePrompt | null>
+  generatePrompt: (
+    context: ActionContext,
+  ) => MaybePromise<ChroniclePrompt | null>
   shouldPrompt: (context: ActionContext) => boolean
 }
 
@@ -374,7 +376,9 @@ export class ChronicleActionListenerService {
 // Prompt strategy implementations
 
 class DiceRollPromptStrategy implements PromptStrategy {
-  async generatePrompt(context: ActionContext): Promise<ChroniclePrompt | null> {
+  async generatePrompt(
+    context: ActionContext,
+  ): Promise<ChroniclePrompt | null> {
     if (!context.diceRoll) return null
 
     const { result, total } = context.diceRoll

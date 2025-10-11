@@ -1,3 +1,5 @@
+import process from 'node:process'
+
 const FALSE_VALUES = new Set(['false', '0', 'off', 'no', ''])
 
 function normalizeFlagValue(value: unknown): boolean | undefined {
@@ -20,8 +22,9 @@ function normalizeFlagValue(value: unknown): boolean | undefined {
 
 export function isLlmUnifiedEnabled(): boolean {
   try {
-    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> })
-      ?.env
+    const metaEnv = (
+      import.meta as unknown as { env?: Record<string, unknown> }
+    )?.env
     if (metaEnv && 'VITE_LLM_UNIFIED' in metaEnv) {
       const normalized = normalizeFlagValue(metaEnv.VITE_LLM_UNIFIED)
       if (typeof normalized === 'boolean') {
@@ -72,8 +75,9 @@ function normalizeRolloutStage(value: unknown): LlmRolloutStage | undefined {
 
 export function getLlmRolloutStage(): LlmRolloutStage {
   try {
-    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> })
-      ?.env
+    const metaEnv = (
+      import.meta as unknown as { env?: Record<string, unknown> }
+    )?.env
     if (metaEnv && 'VITE_LLM_ROLLOUT_STAGE' in metaEnv) {
       const normalized = normalizeRolloutStage(metaEnv.VITE_LLM_ROLLOUT_STAGE)
       if (normalized) return normalized

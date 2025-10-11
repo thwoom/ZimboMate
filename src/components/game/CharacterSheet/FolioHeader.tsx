@@ -39,7 +39,9 @@ export default function FolioHeader({
   const handleCounterAdjust = useCallback(
     async (change: CounterAdjust) => {
       if (!characterId) {
-        logger.warn('[folio] Inline counter adjustment ignored: no active character')
+        logger.warn(
+          '[folio] Inline counter adjustment ignored: no active character',
+        )
         return
       }
       if (!canApplyAutomation) {
@@ -76,7 +78,9 @@ export default function FolioHeader({
           if (change.delta > 0) {
             ops.push({ type: 'mark_xp', characterId, amount: change.delta })
           } else if (change.delta < 0) {
-            logger.warn('[folio] XP reductions are not supported via manual counters yet')
+            logger.warn(
+              '[folio] XP reductions are not supported via manual counters yet',
+            )
           }
           break
         }
@@ -88,16 +92,22 @@ export default function FolioHeader({
               amount: Math.abs(change.delta),
             })
           } else if (change.delta > 0) {
-            logger.warn('[folio] Ammo increases require inventory edits; skipping inline add')
+            logger.warn(
+              '[folio] Ammo increases require inventory edits; skipping inline add',
+            )
           }
           break
         }
         case 'hold': {
-          logger.warn('[folio] Hold adjustments need a move context; skipping inline change')
+          logger.warn(
+            '[folio] Hold adjustments need a move context; skipping inline change',
+          )
           break
         }
         case 'armor': {
-          logger.warn('[folio] Armor adjustments are derived from gear; edit equipment instead')
+          logger.warn(
+            '[folio] Armor adjustments are derived from gear; edit equipment instead',
+          )
           break
         }
         default:
@@ -130,8 +140,12 @@ export default function FolioHeader({
       )}
     >
       <div className='min-w-0 space-y-1'>
-        <h2 className='text-foreground truncate text-base font-semibold'>{name}</h2>
-        <p className='text-muted-foreground text-sm'>Level {level} / {klass}</p>
+        <h2 className='text-foreground truncate text-base font-semibold'>
+          {name}
+        </h2>
+        <p className='text-muted-foreground text-sm'>
+          Level {level} / {klass}
+        </p>
         {focusLabel && (
           <div className='max-w-full break-words rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary whitespace-normal'>
             {focusLabel}

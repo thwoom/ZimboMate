@@ -18,7 +18,9 @@ describe('quick note popover', () => {
 
     await user.click(screen.getByRole('button', { name: 'Add note' }))
 
-    const textarea = await screen.findByPlaceholderText('Keep it short and actionable.')
+    const textarea = await screen.findByPlaceholderText(
+      'Keep it short and actionable.',
+    )
     await user.type(textarea, '  Found the hidden vault.  ')
 
     await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -29,7 +31,9 @@ describe('quick note popover', () => {
     })
 
     await waitFor(() => {
-      expect(screen.queryByPlaceholderText('Keep it short and actionable.')).toBeNull()
+      expect(
+        screen.queryByPlaceholderText('Keep it short and actionable.'),
+      ).toBeNull()
     })
   })
 
@@ -50,7 +54,9 @@ describe('quick note popover', () => {
     )
 
     await user.click(screen.getByRole('button', { name: 'Add note' }))
-    const textarea = await screen.findByPlaceholderText('Keep it short and actionable.')
+    const textarea = await screen.findByPlaceholderText(
+      'Keep it short and actionable.',
+    )
     await user.type(textarea, 'Delayed save')
 
     await user.click(screen.getByRole('button', { name: 'Save' }))

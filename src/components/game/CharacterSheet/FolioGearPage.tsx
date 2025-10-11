@@ -4,7 +4,13 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { useChronicleLLM } from '@/components/chronicle/ChronicleProvider'
 import { Button, Card, CardContent } from '@/components/ui'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { getEquippedSlot } from '@/models/Inventory'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useInventoryStore } from '@/stores/inventoryStore'
@@ -13,7 +19,11 @@ import { logger } from '@/utils/logger'
 import { createManualBundle } from './utils/manualBundle'
 
 const EQUIP_SLOTS = [
-  { id: 'main_hand', label: 'Main Hand', description: 'Primary weapon or tool' },
+  {
+    id: 'main_hand',
+    label: 'Main Hand',
+    description: 'Primary weapon or tool',
+  },
   { id: 'off_hand', label: 'Off Hand', description: 'Shield or off-hand item' },
   { id: 'armor', label: 'Armor', description: 'Worn armor or robes' },
 ] as const
@@ -34,7 +44,9 @@ export default function FolioGearPage({
   onEquipmentChange,
 }: FolioGearPageProps): JSX.Element {
   const inventory = useInventoryStore((state) => state.inventory)
-  const activeCharacter = useCharacterStore((state) => state.getActiveCharacter())
+  const activeCharacter = useCharacterStore((state) =>
+    state.getActiveCharacter(),
+  )
   const { applyDeltaBundle, canApplyAutomation, canAutoApply } =
     useChronicleLLM()
 
@@ -114,14 +126,20 @@ export default function FolioGearPage({
       if (!characterId || !inventory) return
       const target = inventory.items[itemId]
       if (!target) {
-        logger.warn('[folio] Equip request ignored: missing inventory item', { slotId, itemId })
+        logger.warn('[folio] Equip request ignored: missing inventory item', {
+          slotId,
+          itemId,
+        })
         return
       }
 
       const currentInSlot = items.find(
-        (item) => item.equipped && getEquippedSlot(inventory, item.id) === slotId,
+        (item) =>
+          item.equipped && getEquippedSlot(inventory, item.id) === slotId,
       )
-      const currentSlotOfItem = target.equipped ? getEquippedSlot(inventory, target.id) : undefined
+      const currentSlotOfItem = target.equipped
+        ? getEquippedSlot(inventory, target.id)
+        : undefined
 
       const ops = []
       if (currentSlotOfItem) {
@@ -150,7 +168,11 @@ export default function FolioGearPage({
 
       const success = await handleBundle(ops, slotId)
       if (success) {
-        onEquipmentChange?.({ slot: slotId, action: 'equip', itemName: target.name })
+        onEquipmentChange?.({
+          slot: slotId,
+          action: 'equip',
+          itemName: target.name,
+        })
       }
     },
     [characterId, handleBundle, inventory, items, onEquipmentChange],
@@ -171,7 +193,11 @@ export default function FolioGearPage({
         slotId,
       )
       if (success) {
-        onEquipmentChange?.({ slot: slotId, action: 'unequip', itemName: item.name })
+        onEquipmentChange?.({
+          slot: slotId,
+          action: 'unequip',
+          itemName: item.name,
+        })
       }
     },
     [characterId, handleBundle, onEquipmentChange],
@@ -181,8 +207,13 @@ export default function FolioGearPage({
     return (
       <Card>
         <CardContent className='p-3'>
-          <h3 className='text-foreground mb-2 text-sm font-medium'>Equipment</h3>
-          <p className='text-muted-foreground text-sm'>Inventory data is unavailable. Open a character or session to manage gear.</p>
+          <h3 className='text-foreground mb-2 text-sm font-medium'>
+            Equipment
+          </h3>
+          <p className='text-muted-foreground text-sm'>
+            Inventory data is unavailable. Open a character or session to manage
+            gear.
+          </p>
         </CardContent>
       </Card>
     )
@@ -192,7 +223,9 @@ export default function FolioGearPage({
     <div className='grid gap-3 md:grid-cols-2'>
       <Card className={highlighted ? 'ring-2 ring-primary/60' : undefined}>
         <CardContent className='p-3'>
-          <h3 className='text-foreground mb-2 text-sm font-medium'>Equipped slots</h3>
+          <h3 className='text-foreground mb-2 text-sm font-medium'>
+            Equipped slots
+          </h3>
           <div className='space-y-3'>
             {EQUIP_SLOTS.map((slot) => {
               const currentItem = slotAssignments.get(slot.id)
@@ -205,11 +238,18 @@ export default function FolioGearPage({
               const selectDisabled = pendingSlot === slot.id
 
               return (
-                <div key={slot.id} className='border-border rounded-md border p-3 shadow-sm'>
+                <div
+                  key={slot.id}
+                  className='border-border rounded-md border p-3 shadow-sm'
+                >
                   <div className='flex items-center justify-between gap-3'>
                     <div>
-                      <p className='text-sm font-medium text-foreground'>{slot.label}</p>
-                      <p className='text-xs text-muted-foreground'>{slot.description}</p>
+                      <p className='text-sm font-medium text-foreground'>
+                        {slot.label}
+                      </p>
+                      <p className='text-xs text-muted-foreground'>
+                        {slot.description}
+                      </p>
                     </div>
                     {currentItem ? (
                       <Button
@@ -226,11 +266,19 @@ export default function FolioGearPage({
                   <div className='mt-3 flex flex-col gap-2'>
                     <Select
                       value={currentItem?.id}
-                      onValueChange={(value) => void handleEquip(slot.id, value)}
+                      onValueChange={(value) =>
+                        void handleEquip(slot.id, value)
+                      }
                       disabled={selectDisabled}
                     >
-                      <SelectTrigger aria-label={`Equip item for ${slot.label}`}>
-                        <SelectValue placeholder={currentItem ? currentItem.name : 'Select item'} />
+                      <SelectTrigger
+                        aria-label={`Equip item for ${slot.label}`}
+                      >
+                        <SelectValue
+                          placeholder={
+                            currentItem ? currentItem.name : 'Select item'
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {eligibleItems.length === 0 ? (
@@ -247,7 +295,9 @@ export default function FolioGearPage({
                       </SelectContent>
                     </Select>
                     <p className='text-xs text-muted-foreground'>
-                      {currentItem ? currentItem.description ?? 'Equipped' : 'No item equipped'}
+                      {currentItem
+                        ? (currentItem.description ?? 'Equipped')
+                        : 'No item equipped'}
                     </p>
                   </div>
                 </div>
@@ -259,7 +309,9 @@ export default function FolioGearPage({
       <Card className={highlighted ? 'ring-2 ring-primary/60' : undefined}>
         <CardContent className='p-3'>
           <div className='flex items-center justify-between gap-2'>
-            <h3 className='text-foreground text-sm font-medium'>Inventory overview</h3>
+            <h3 className='text-foreground text-sm font-medium'>
+              Inventory overview
+            </h3>
             {activeCharacter?.load ? (
               <span className='text-muted-foreground text-[11px] uppercase tracking-wide'>
                 Load {activeCharacter.load.current}/{activeCharacter.load.max}
@@ -267,12 +319,16 @@ export default function FolioGearPage({
             ) : null}
           </div>
           {items.length === 0 ? (
-            <p className='text-muted-foreground mt-2 text-sm'>Your packs are empty. Add gear from the Inventory tab to see it here.</p>
+            <p className='text-muted-foreground mt-2 text-sm'>
+              Your packs are empty. Add gear from the Inventory tab to see it
+              here.
+            </p>
           ) : (
             <div className='mt-3 space-y-3'>
               <div className='text-muted-foreground flex items-center justify-between text-xs'>
                 <span>
-                  {items.length} item{items.length === 1 ? '' : 's'} • {equippedCount} equipped
+                  {items.length} item{items.length === 1 ? '' : 's'} •{' '}
+                  {equippedCount} equipped
                 </span>
                 <span>
                   {totalWeight.toLocaleString(undefined, {
@@ -299,7 +355,9 @@ export default function FolioGearPage({
                     const tags = item.tags
                       .slice(0, 4)
                       .map((tag) =>
-                        typeof tag.value !== 'undefined' && tag.value !== null && tag.value !== ''
+                        typeof tag.value !== 'undefined' &&
+                        tag.value !== null &&
+                        tag.value !== ''
                           ? `${tag.name} ${tag.value}`
                           : tag.name,
                       )
@@ -316,21 +374,34 @@ export default function FolioGearPage({
                       >
                         <div className='flex items-start justify-between gap-3'>
                           <div className='min-w-0'>
-                            <p className='text-foreground truncate font-medium'>{item.name}</p>
-                            <p className='text-muted-foreground text-xs capitalize'>{item.category}</p>
+                            <p className='text-foreground truncate font-medium'>
+                              {item.name}
+                            </p>
+                            <p className='text-muted-foreground text-xs capitalize'>
+                              {item.category}
+                            </p>
                           </div>
                           <div className='text-right text-[11px] text-muted-foreground'>
+                            <div>Qty {Math.max(1, item.quantity ?? 1)}</div>
                             <div>
-                              Qty {Math.max(1, item.quantity ?? 1)}
+                              {(
+                                item.weight * Math.max(1, item.quantity ?? 1)
+                              ).toLocaleString(undefined, {
+                                maximumFractionDigits: 1,
+                              })}{' '}
+                              wt
                             </div>
-                            <div>{(item.weight * Math.max(1, item.quantity ?? 1)).toLocaleString(undefined, { maximumFractionDigits: 1 })} wt</div>
                           </div>
                         </div>
                         {tags ? (
-                          <p className='text-muted-foreground mt-1 truncate text-[11px]'>{tags}</p>
+                          <p className='text-muted-foreground mt-1 truncate text-[11px]'>
+                            {tags}
+                          </p>
                         ) : null}
                         {item.equipped ? (
-                          <span className='text-primary mt-2 inline-block text-[11px] font-semibold uppercase'>Equipped</span>
+                          <span className='text-primary mt-2 inline-block text-[11px] font-semibold uppercase'>
+                            Equipped
+                          </span>
                         ) : null}
                       </div>
                     )

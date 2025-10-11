@@ -1,14 +1,7 @@
 import type { Container, Inventory } from '../../models/Inventory'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { motion } from 'framer-motion'
-import {
-  Backpack,
-  ChevronRight,
-  Gem,
-  Package,
-  Plus,
-  Wine,
-} from 'lucide-react'
+import { Backpack, ChevronRight, Gem, Package, Plus, Wine } from 'lucide-react'
 import React, { useState } from 'react'
 import { logger } from '@/utils/logger'
 import { getContainerItems } from '../../models/Inventory'
@@ -110,9 +103,11 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
 
   // Apply search filter
   if (searchQuery) {
-    filteredItems = filteredItems.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      || (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase())),
+    filteredItems = filteredItems.filter(
+      (item) =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.description &&
+          item.description.toLowerCase().includes(searchQuery.toLowerCase())),
     )
   }
 
@@ -129,7 +124,7 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
         case 'treasure':
           return item.category === 'treasure'
         case 'magical':
-          return item.tags.some(tag => tag.name === 'magical')
+          return item.tags.some((tag) => tag.name === 'magical')
         case 'equipped':
           return item.equipped
         default:
@@ -144,7 +139,7 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
       case 'name':
         return a.name.localeCompare(b.name)
       case 'weight':
-        return (b.weight * b.quantity) - (a.weight * a.quantity)
+        return b.weight * b.quantity - a.weight * a.quantity
       case 'value':
         return (b.value || 0) - (a.value || 0)
       case 'category':
@@ -166,33 +161,24 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
   }
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <Card variant="surface">
+    <motion.div variants={containerVariants} initial='hidden' animate='visible'>
+      <Card variant='surface'>
         <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
           <Collapsible.Trigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-(--parchment-100) transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CategoryIcon size={20} className="text-(--parchment-800)" />
+            <CardHeader className='cursor-pointer hover:bg-(--parchment-100) transition-colors'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <CategoryIcon size={20} className='text-(--parchment-800)' />
                   <div>
-                    <CardTitle className="text-lg font-display text-(--parchment-900)">
+                    <CardTitle className='text-lg font-display text-(--parchment-900)'>
                       {container.name}
                     </CardTitle>
-                    <p className="text-sm text-(--parchment-600) font-ui">
-                      {filteredItems.length}
-                      {' '}
+                    <p className='text-sm text-(--parchment-600) font-ui'>
+                      {filteredItems.length}{' '}
                       {filteredItems.length === 1 ? 'item' : 'items'}
                       {container.maxWeight && (
-                        <span className="ml-2">
-                          • Max:
-                          {' '}
-                          {container.maxWeight}
-                          {' '}
-                          lbs
+                        <span className='ml-2'>
+                          • Max: {container.maxWeight} lbs
                         </span>
                       )}
                     </p>
@@ -203,7 +189,7 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
                   animate={{ rotate: isOpen ? 90 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <ChevronRight size={16} className="text-(--parchment-600)" />
+                  <ChevronRight size={16} className='text-(--parchment-600)' />
                 </motion.div>
               </div>
             </CardHeader>
@@ -212,22 +198,19 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
           <Collapsible.Content asChild>
             <motion.div
               variants={contentVariants}
-              initial="closed"
+              initial='closed'
               animate={isOpen ? 'open' : 'closed'}
             >
-              <CardContent className="pt-0">
+              <CardContent className='pt-0'>
                 {filteredItems.length > 0 ? (
                   <motion.div
                     className={getGridClass()}
                     variants={itemsGridVariants}
-                    initial="hidden"
-                    animate="visible"
+                    initial='hidden'
+                    animate='visible'
                   >
-                    {filteredItems.map(item => (
-                      <motion.div
-                        key={item.id}
-                        variants={itemVariants}
-                      >
+                    {filteredItems.map((item) => (
+                      <motion.div key={item.id} variants={itemVariants}>
                         <ItemCard
                           item={item}
                           isEquipped={item.equipped}
@@ -246,27 +229,34 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
                   </motion.div>
                 ) : (
                   <motion.div
-                    className="text-center py-8"
+                    className='text-center py-8'
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <CategoryIcon size={48} className="text-(--parchment-400) mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-(--parchment-700) mb-2 font-display">
-                      {searchQuery || filterBy !== 'all' ? 'No matching items' : `No ${container.name.toLowerCase()}`}
+                    <CategoryIcon
+                      size={48}
+                      className='text-(--parchment-400) mx-auto mb-4'
+                    />
+                    <h3 className='text-lg font-semibold text-(--parchment-700) mb-2 font-display'>
+                      {searchQuery || filterBy !== 'all'
+                        ? 'No matching items'
+                        : `No ${container.name.toLowerCase()}`}
                     </h3>
-                    <p className="text-(--parchment-600) font-body mb-4">
+                    <p className='text-(--parchment-600) font-body mb-4'>
                       {searchQuery || filterBy !== 'all'
                         ? 'Try adjusting your search or filter criteria.'
                         : `Add items to your ${container.name.toLowerCase()} to see them here.`}
                     </p>
 
-                    {container.category === 'carried' && !searchQuery && filterBy === 'all' && (
-                      <Button variant="outline" size="sm">
-                        <Plus size={16} />
-                        Add Item
-                      </Button>
-                    )}
+                    {container.category === 'carried' &&
+                      !searchQuery &&
+                      filterBy === 'all' && (
+                        <Button variant='outline' size='sm'>
+                          <Plus size={16} />
+                          Add Item
+                        </Button>
+                      )}
                   </motion.div>
                 )}
               </CardContent>
@@ -277,4 +267,3 @@ export const InventoryContainer: React.FC<InventoryContainerProps> = ({
     </motion.div>
   )
 }
-

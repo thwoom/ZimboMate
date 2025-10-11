@@ -69,7 +69,10 @@ export default function Folio({
       data-slot='folio'
       className={cn('flex min-w-[320px] flex-col gap-3', className)}
     >
-      <FolioHeader highlighted={highlight?.page === 'stats'} focusLabel={highlight?.page === 'stats' ? highlightLabel : undefined} />
+      <FolioHeader
+        highlighted={highlight?.page === 'stats'}
+        focusLabel={highlight?.page === 'stats' ? highlightLabel : undefined}
+      />
       {highlight && highlight.page !== 'stats' && (
         <div className='rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary whitespace-normal break-words'>
           {highlightLabel}
@@ -103,7 +106,10 @@ export default function Folio({
           <FolioBondsDebilitiesPage highlighted={highlight?.page === 'bonds'} />
         </TabsContent>
         <TabsContent value='notes'>
-          <FolioNotesPage highlighted={highlight?.page === 'notes'} onNoteCreated={onNoteCreated} />
+          <FolioNotesPage
+            highlighted={highlight?.page === 'notes'}
+            onNoteCreated={onNoteCreated}
+          />
         </TabsContent>
       </Tabs>
     </div>

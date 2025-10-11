@@ -15,13 +15,19 @@ export default function FolioBondsDebilitiesPage({
       <Card className={cn(highlighted && 'ring-2 ring-primary/60')}>
         <CardContent className='p-3'>
           <h3 className='text-foreground mb-2 text-sm font-medium'>Bonds</h3>
-          <div className='text-muted-foreground text-sm'>Manage and resolve bonds.</div>
+          <div className='text-muted-foreground text-sm'>
+            Manage and resolve bonds.
+          </div>
         </CardContent>
       </Card>
       <Card className={cn(highlighted && 'ring-2 ring-primary/60')}>
         <CardContent className='p-3'>
-          <h3 className='text-foreground mb-2 text-sm font-medium'>Debilities</h3>
-          <div className='text-muted-foreground text-sm'>Toggle Dungeon World debilities.</div>
+          <h3 className='text-foreground mb-2 text-sm font-medium'>
+            Debilities
+          </h3>
+          <div className='text-muted-foreground text-sm'>
+            Toggle Dungeon World debilities.
+          </div>
         </CardContent>
       </Card>
     </div>

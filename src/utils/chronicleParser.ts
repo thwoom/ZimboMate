@@ -131,7 +131,11 @@ const NARRATIVE_CONTEXT_KEYWORDS = {
 // Entity type detection patterns
 const ENTITY_TYPE_PATTERNS = {
   character: {
-    patterns: [/\b(?:he|she|they|him|her|them)\b/i, /\bsays?\b/i, /\btalks?\b/i],
+    patterns: [
+      /\b(?:he|she|they|him|her|them)\b/i,
+      /\bsays?\b/i,
+      /\btalks?\b/i,
+    ],
     keywords: ['person', 'character', 'npc', 'player', 'hero', 'villain'],
   },
   location: {
@@ -370,7 +374,8 @@ export class ChronicleParser {
 
     return (
       SCENE_BREAK_PATTERNS.some((pattern) => pattern.test(trimmed)) ||
-      (trimmed.length < 20 && /^(?:later|meanwhile|then|next)\.?$/i.test(trimmed))
+      (trimmed.length < 20 &&
+        /^(?:later|meanwhile|then|next)\.?$/i.test(trimmed))
     )
   }
 

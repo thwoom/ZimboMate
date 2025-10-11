@@ -7,7 +7,9 @@ test.describe('Accessibility Smoke', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('home view has no critical accessibility violations', async ({ page }) => {
+  test('home view has no critical accessibility violations', async ({
+    page,
+  }) => {
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
       .disableRules(['color-contrast'])

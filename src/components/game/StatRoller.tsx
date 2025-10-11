@@ -341,8 +341,3 @@ export const QuickStatRoll: React.FC<{
     />
   )
 }
-
-
-
-
-

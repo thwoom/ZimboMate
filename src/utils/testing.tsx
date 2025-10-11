@@ -48,14 +48,14 @@ export function renderWithProviders(
 
     if (withQueryClient && queryClient) {
       content = (
-        <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {content}
+        </QueryClientProvider>
       )
     }
 
     if (withTooltips) {
-      content = (
-        <TooltipProvider delayDuration={0}>{content}</TooltipProvider>
-      )
+      content = <TooltipProvider delayDuration={0}>{content}</TooltipProvider>
     }
 
     content = <ThemeProvider defaultTheme={theme}>{content}</ThemeProvider>
@@ -413,5 +413,3 @@ export const testingUtils = {
   mockImplementations,
   setupTestEnvironment,
 }
-
-

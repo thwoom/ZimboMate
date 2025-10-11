@@ -232,7 +232,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             className='bg-card border border-(--parchment-300) rounded-lg p-3 shadow-lg z-50'
             sideOffset={5}
           >
-            <ItemTooltipContent item={item} isEquipped={isEquipped} ItemIcon={ItemIcon} />
+            <ItemTooltipContent
+              item={item}
+              isEquipped={isEquipped}
+              ItemIcon={ItemIcon}
+            />
             <Tooltip.Arrow className='fill-card' />
           </Tooltip.Content>
         </Tooltip.Portal>
@@ -370,7 +374,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           className='bg-card border border-(--parchment-300) rounded-lg p-3 shadow-lg z-50'
           sideOffset={5}
         >
-          <ItemTooltipContent item={item} isEquipped={isEquipped} ItemIcon={ItemIcon} />
+          <ItemTooltipContent
+            item={item}
+            isEquipped={isEquipped}
+            ItemIcon={ItemIcon}
+          />
           <Tooltip.Arrow className='fill-card' />
         </Tooltip.Content>
       </Tooltip.Portal>

@@ -40,7 +40,9 @@ export const ChronicleEnabledEquipmentPanel: React.FC<
   // Get item details from inventory
   const getItemDetails = useCallback(
     (itemId: string) => {
-      const item = character.inventory?.find((inventoryItem) => inventoryItem.id === itemId)
+      const item = character.inventory?.find(
+        (inventoryItem) => inventoryItem.id === itemId,
+      )
       return item
         ? {
             name: item.name,

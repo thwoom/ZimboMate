@@ -1,6 +1,10 @@
 import type { Item, ItemCategory, Tag } from '../../models/Equipment'
 import type { Inventory, InventoryEquipSlot } from '../../models/Inventory'
-import type { EntityMentionRecord, EntityType, RelationshipType } from '../../types/chronicle'
+import type {
+  EntityMentionRecord,
+  EntityType,
+  RelationshipType,
+} from '../../types/chronicle'
 import type { Condition } from '../CharacterStateService'
 import type {
   ApplyDeltaBundleRequest,
@@ -8,6 +12,7 @@ import type {
   DeltaOperation,
   InventoryItemInput,
 } from '../llm'
+import { stableStringify } from '@/utils/stableStringify'
 import { getXPThreshold } from '../../models/Character'
 import { createEmptyInventory, getEquippedSlot } from '../../models/Inventory'
 import { useCharacterStore } from '../../stores/characterStore'
@@ -16,9 +21,8 @@ import { useHoldStore } from '../../stores/holdStore'
 import { useInventoryStore } from '../../stores/inventoryStore'
 import { logger } from '../../utils/logger'
 import { characterStateService } from '../CharacterStateService'
-import { validateDeltaOperations } from '../llm/toolSchemas'
 import { computeSha256Hex } from '../llm/hash'
-import { stableStringify } from '@/utils/stableStringify'
+import { validateDeltaOperations } from '../llm/toolSchemas'
 
 type UndoAction = () => void | Promise<void>
 
@@ -61,9 +65,7 @@ async function deriveBundleId(
   return `${bundle.entryId}:${fingerprint}`
 }
 
-function normalizeOperationForFingerprint(
-  operation: DeltaOperation,
-): unknown {
+function normalizeOperationForFingerprint(operation: DeltaOperation): unknown {
   try {
     const clone = JSON.parse(JSON.stringify(operation)) as Record<
       string,
@@ -456,7 +458,11 @@ export async function applyChronicleDeltaBundle(
   }
 
   const skipOperation = (op: DeltaOperation, reason: string) => {
-    logger.warn('[chronicle][executor] Skipping operation %s: %s', op.type, reason)
+    logger.warn(
+      '[chronicle][executor] Skipping operation %s: %s',
+      op.type,
+      reason,
+    )
     skippedOps.push(withMetadata(op, { skipReason: reason }))
   }
 
@@ -669,7 +675,7 @@ export async function applyChronicleDeltaBundle(
         break
       }
 
-            case 'spend_coin': {
+      case 'spend_coin': {
         const response = withCharacter(
           op.characterId,
           ({ characterId, characterState, character }) => {
@@ -717,7 +723,7 @@ export async function applyChronicleDeltaBundle(
         if (!response.ok) skippedOps.push(op)
         break
       }
-case 'add_debility': {
+      case 'add_debility': {
         const response = withCharacter(
           op.characterId,
           ({ characterId, characterState, character }) => {
@@ -975,7 +981,7 @@ case 'add_debility': {
           requestedSlot:
             opMetadata.requestedSlot ??
             op.slot ??
-            (shouldEquip ? targetSlot ?? null : slotBefore ?? null),
+            (shouldEquip ? (targetSlot ?? null) : (slotBefore ?? null)),
         })
 
         if (shouldEquip) {
@@ -1027,11 +1033,11 @@ case 'add_debility': {
         const currentInventory = useInventoryStore.getState().inventory
         const resolvedSlot = shouldEquip
           ? currentInventory
-            ? getEquippedSlot(currentInventory, resolvedId) ??
+            ? (getEquippedSlot(currentInventory, resolvedId) ??
               targetSlotHint ??
-              slotBefore
-            : targetSlotHint ?? slotBefore
-          : slotBefore ?? targetSlotHint ?? op.slot
+              slotBefore)
+            : (targetSlotHint ?? slotBefore)
+          : (slotBefore ?? targetSlotHint ?? op.slot)
 
         appliedOps.push(
           withMetadata(
@@ -1042,7 +1048,6 @@ case 'add_debility': {
         break
       }
 
-      
       case 'spend_ammo': {
         const characterId = resolveCharacterId(op.characterId)
         if (!characterId) {
@@ -1470,7 +1475,10 @@ case 'add_debility': {
           break
         }
         if (fromId === toId) {
-          skipOperation(op, 'fromId and toId must reference different entities.')
+          skipOperation(
+            op,
+            'fromId and toId must reference different entities.',
+          )
           break
         }
 
@@ -1521,13 +1529,19 @@ case 'add_debility': {
         const chronicle = useChronicleStore.getState()
         const entityId = resolveMappedId(op.entityId)
         if (!entityId) {
-          skipOperation(op, 'Entity ID could not be resolved for note attachment.')
+          skipOperation(
+            op,
+            'Entity ID could not be resolved for note attachment.',
+          )
           break
         }
 
         const entity = chronicle.getEntity(entityId)
         if (!entity) {
-          skipOperation(op, `Entity ${entityId} was not found in the Chronicle store.`)
+          skipOperation(
+            op,
+            `Entity ${entityId} was not found in the Chronicle store.`,
+          )
           break
         }
 
@@ -1557,8 +1571,9 @@ case 'add_debility': {
   })
 
   const issuedAt = nowIso()
-  const actor: 'auto' | 'manual' | 'system' | 'user' =
-    request.autoApply ? 'auto' : 'manual'
+  const actor: 'auto' | 'manual' | 'system' | 'user' = request.autoApply
+    ? 'auto'
+    : 'manual'
 
   appliedBundles.set(bundleId, {
     undoActions,
@@ -1622,6 +1637,3 @@ export function getAppliedBundle(
 export function resetChronicleExecutorForTesting(): void {
   appliedBundles.clear()
 }
-
-
-

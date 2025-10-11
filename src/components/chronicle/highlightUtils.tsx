@@ -107,7 +107,9 @@ export function collectResourceChanges(
   const { bundleId } = bundle
   const collected: ResourceChangeContext[] = []
 
-  const collectLedger = <T extends ResourceLogEntry>(ledger: Record<string, T[]>) => {
+  const collectLedger = <T extends ResourceLogEntry>(
+    ledger: Record<string, T[]>,
+  ) => {
     Object.entries(ledger).forEach(([characterId, logs]) => {
       logs.forEach((log) => {
         if (log.bundleId === bundleId) {
@@ -277,4 +279,3 @@ export function buildMentionContext(
     return <React.Fragment key={key}>{segment}</React.Fragment>
   })
 }
-

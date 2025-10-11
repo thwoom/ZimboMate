@@ -148,7 +148,11 @@ const createMilestone = (
 
 type SessionFlowAction =
   | { type: 'removeSuggestion'; suggestion: string }
-  | { type: 'autoAdvance'; eventType: 'roll' | 'combat_start' | 'combat_end' | 'scene_change'; rollHistory: Array<{ moveName?: string }> }
+  | {
+      type: 'autoAdvance'
+      eventType: 'roll' | 'combat_start' | 'combat_end' | 'scene_change'
+      rollHistory: Array<{ moveName?: string }>
+    }
   | { type: 'manualAdvance'; phase: SessionPhase }
   | { type: 'startOpening' }
 
@@ -175,7 +179,10 @@ const sessionFlowReducer = (
         if (state.phase === 'setup') {
           next.phase = 'opening'
           next.lastAction = 'Session started with first roll'
-          next.suggestedNextActions = ['Continue opening scene', 'Introduce characters']
+          next.suggestedNextActions = [
+            'Continue opening scene',
+            'Introduce characters',
+          ]
           next.milestones.push(
             createMilestone('opening', 'Session began with first dice roll'),
           )
@@ -541,7 +548,7 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
               onClick={() => {
                 const characterIds = characters.map((c) => c.id)
                 startSession('New Session', characterIds)
-    dispatchSessionFlow({ type: 'startOpening' })
+                dispatchSessionFlow({ type: 'startOpening' })
               }}
             >
               Start Session
@@ -647,16 +654,13 @@ export const SessionFlowManager: React.FC<SessionFlowManagerProps> = ({
                         </h4>
                         <div className='space-y-1'>
                           {suggestionItems.map((item) => (
-                              <div
-                                key={item.id}
-                                className='flex items-center gap-2 text-sm p-2 rounded bg-card'
-                              >
-                                <CheckCircle
-                                  className='text-chart-2'
-                                  size={14}
-                                />
-                                {item.label}
-                              </div>
+                            <div
+                              key={item.id}
+                              className='flex items-center gap-2 text-sm p-2 rounded bg-card'
+                            >
+                              <CheckCircle className='text-chart-2' size={14} />
+                              {item.label}
+                            </div>
                           ))}
                         </div>
                       </div>

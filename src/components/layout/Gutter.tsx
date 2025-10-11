@@ -30,11 +30,12 @@ export default function Gutter({
       <div
         className={cn(
           'absolute inset-0',
-          isVertical ? 'w-3 -translate-x-1/2 left-1/2' : 'h-3 -translate-y-1/2 top-1/2',
+          isVertical
+            ? 'w-3 -translate-x-1/2 left-1/2'
+            : 'h-3 -translate-y-1/2 top-1/2',
         )}
         aria-hidden='true'
       />
     </div>
   )
 }
-

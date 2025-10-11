@@ -11,14 +11,15 @@ import type { MentionHighlight, ResourceChangeDisplay } from './highlightUtils'
 import type { DeltaOperation } from '@/services/llm'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  Activity,
   AtSign,
   BookOpen,
   ChevronDown,
   ChevronUp,
   Clock,
   Coins,
-  Link2,
   Feather,
+  Link2,
   Loader2,
   RefreshCcw,
   ShieldAlert,
@@ -41,13 +42,13 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card'
-import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
 import {
   describeDeltaOperation as formatDeltaOperation,
   undoChronicleBundle,
 } from '@/services/chronicle'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
+import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
 import { chronicleActionListener } from '../../services/ChronicleActionListenerService'
 import { contextIntelligence } from '../../services/ChronicleContextIntelligence'
 import { useChronicleLLM } from './ChronicleProvider'
@@ -94,8 +95,6 @@ const arePromptsEqual = (
 
   return current.every((prompt, index) => prompt.id === next[index]?.id)
 }
-
-
 
 const promptOverlayReducer = (
   state: PromptOverlayState,
@@ -445,6 +444,89 @@ const ChroniclePromptCard: React.FC<{
 }
 
 // Main Chronicle Overlay component
+const TELEMETRY_STAGE_LABELS: Record<
+  'propose' | 'apply' | 'undo' | 'guardrail',
+  string
+> = {
+  propose: 'Propose',
+  apply: 'Apply',
+  undo: 'Undo',
+  guardrail: 'Guardrail',
+}
+
+const TELEMETRY_OUTCOME_LABELS: Record<
+  'success' | 'failure' | 'skipped',
+  string
+> = {
+  success: 'Success',
+  failure: 'Failure',
+  skipped: 'Skipped',
+}
+
+const TELEMETRY_OUTCOME_TONES: Record<
+  'success' | 'failure' | 'skipped',
+  string
+> = {
+  success: 'text-primary',
+  failure: 'text-destructive',
+  skipped: 'text-muted-foreground',
+}
+
+type TelemetryStageKey = keyof typeof TELEMETRY_STAGE_LABELS
+type TelemetryOutcomeKey = keyof typeof TELEMETRY_OUTCOME_LABELS
+
+const TELEMETRY_STAGE_KEYS: TelemetryStageKey[] = [
+  'propose',
+  'apply',
+  'undo',
+  'guardrail',
+]
+const TELEMETRY_OUTCOME_KEYS: TelemetryOutcomeKey[] = [
+  'success',
+  'failure',
+  'skipped',
+]
+
+interface TelemetryEntryDisplay {
+  id: string
+  stageKey: TelemetryStageKey
+  stageLabel: string
+  outcomeKey: TelemetryOutcomeKey
+  outcomeLabel: string
+  outcomeTone: string
+  latencyLabel: string
+  costCents?: number
+  costLabel: string | null
+  relativeLabel: string | null
+  timestampLabel: string | null
+  model?: string
+  source?: string
+}
+
+function formatUsd(cents: number): string {
+  const dollars = cents / 100
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(dollars)
+}
+
+function formatLatency(latencyMs: number | undefined | null): string {
+  if (
+    typeof latencyMs !== 'number' ||
+    Number.isNaN(latencyMs) ||
+    latencyMs < 0
+  ) {
+    return '—'
+  }
+  if (latencyMs >= 2000) {
+    return `${(latencyMs / 1000).toFixed(2)} s`
+  }
+  return `${Math.round(latencyMs)} ms`
+}
+
 export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   isEnabled = true,
   maxPrompts = 2,
@@ -465,17 +547,29 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   const auditLog = useChronicleStore((state) => state.auditLog)
   const clearAuditLog = useChronicleStore((state) => state.clearAuditLog)
   const pendingBundle = useChronicleStore((state) => state.pendingDeltaBundle)
+  const telemetryEvents = useChronicleStore((state) =>
+    state.getTelemetryEvents(50),
+  )
   const entities = useChronicleStore((state) => state.entities)
   const resourceHistory = useChronicleStore(
     (state) => state.resourceHistory ?? EMPTY_RESOURCE_HISTORY,
   )
   const getEntry = useChronicleStore((state) => state.getEntry)
-  const setSelectedEntity = useChronicleStore((state) => state.setSelectedEntity)
-  const incrementWikiView = useChronicleStore((state) => state.incrementWikiView)
-  const getLinkedEntities = useChronicleStore((state) => state.getLinkedEntities)
+  const setSelectedEntity = useChronicleStore(
+    (state) => state.setSelectedEntity,
+  )
+  const incrementWikiView = useChronicleStore(
+    (state) => state.incrementWikiView,
+  )
+  const getLinkedEntities = useChronicleStore(
+    (state) => state.getLinkedEntities,
+  )
   const relationshipsVersion = useChronicleStore((state) =>
     state.relationships
-      .map((relationship) => `${relationship.id}:${relationship.lastUpdated ?? ''}`)
+      .map(
+        (relationship) =>
+          `${relationship.id}:${relationship.lastUpdated ?? ''}`,
+      )
       .join('|'),
   )
   const getCharacter = useCharacterStore((state) => state.getCharacter)
@@ -488,18 +582,19 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   })
   const { prompts: activePrompts, isVisible } = promptState
 
-  const tauriBridge = (
+  const tauriBridge =
     typeof window !== 'undefined'
       ? (window as typeof window & { __TAURI__?: unknown })
       : undefined
-  )
 
   const isTauriRuntime = Boolean(tauriBridge?.__TAURI__)
 
   const showTauriGuard = !isTauriRuntime && !tauriGuardDismissed
 
   const visibleAuditEntries = useMemo(() => {
-    const limit = isAuditExpanded ? Math.min(12, auditLog.length) : Math.min(5, auditLog.length)
+    const limit = isAuditExpanded
+      ? Math.min(12, auditLog.length)
+      : Math.min(5, auditLog.length)
     return auditLog.slice(0, limit)
   }, [auditLog, isAuditExpanded])
 
@@ -515,7 +610,10 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   }, [pendingBundle?.requestedAt])
 
   const pendingRelative = useMemo(
-    () => (pendingRequestedAt ? formatRelativeTimeFromNow(pendingRequestedAt) : undefined),
+    () =>
+      pendingRequestedAt
+        ? formatRelativeTimeFromNow(pendingRequestedAt)
+        : undefined,
     [pendingRequestedAt],
   )
 
@@ -529,14 +627,15 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   }, [])
 
   const mentionHighlights = useMemo<MentionHighlight[]>(() => {
-
     if (!latestAutomation) return []
 
     return collectMentionHighlights(latestAutomation, entities).slice(0, 3)
-
   }, [entities, latestAutomation])
 
   const linkedMentionEdges = useMemo(() => {
+    if (relationshipsVersion) {
+      // re-run when relationship graph changes even if mentions stay stable
+    }
     if (mentionHighlights.length === 0) {
       return new Map<string, ReturnType<typeof getLinkedEntities>>()
     }
@@ -604,6 +703,87 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
       .filter((change): change is ResourceChangeDisplay => change !== null)
   }, [bundleResourceChanges, latestAutomation, resolveCharacterName])
 
+  const telemetryDigest = useMemo(() => {
+    if (!latestAutomation) {
+      return { entries: [] as TelemetryEntryDisplay[], totalCostCents: 0 }
+    }
+
+    const { bundleId, entryId } = latestAutomation
+
+    const relevantEvents = telemetryEvents.filter((event) => {
+      if (bundleId && event.bundleId) {
+        return event.bundleId === bundleId
+      }
+      if (entryId && event.entryId) {
+        return event.entryId === entryId
+      }
+      return false
+    })
+
+    const entries = relevantEvents
+      .slice(0, 5)
+      .map<TelemetryEntryDisplay>((event) => {
+        const stageKey: TelemetryStageKey = TELEMETRY_STAGE_KEYS.includes(
+          event.stage as TelemetryStageKey,
+        )
+          ? (event.stage as TelemetryStageKey)
+          : 'propose'
+        const outcomeKey: TelemetryOutcomeKey = TELEMETRY_OUTCOME_KEYS.includes(
+          event.outcome as TelemetryOutcomeKey,
+        )
+          ? (event.outcome as TelemetryOutcomeKey)
+          : 'success'
+
+        const recordedAt =
+          typeof event.recordedAt === 'string' &&
+          !Number.isNaN(Date.parse(event.recordedAt))
+            ? new Date(event.recordedAt)
+            : null
+        const relativeLabel =
+          recordedAt && !Number.isNaN(recordedAt.getTime())
+            ? formatRelativeTimeFromNow(recordedAt)
+            : null
+        const timestampLabel =
+          recordedAt && !Number.isNaN(recordedAt.getTime())
+            ? recordedAt.toLocaleTimeString()
+            : null
+        const normalizedCost =
+          typeof event.costCents === 'number' &&
+          Number.isFinite(event.costCents) &&
+          event.costCents > 0
+            ? Math.round(event.costCents)
+            : undefined
+
+        return {
+          id: event.id,
+          stageKey,
+          stageLabel: TELEMETRY_STAGE_LABELS[stageKey],
+          outcomeKey,
+          outcomeLabel: TELEMETRY_OUTCOME_LABELS[outcomeKey],
+          outcomeTone: TELEMETRY_OUTCOME_TONES[outcomeKey],
+          latencyLabel: formatLatency(event.latencyMs),
+          costCents: normalizedCost,
+          costLabel: normalizedCost ? formatUsd(normalizedCost) : null,
+          relativeLabel,
+          timestampLabel,
+          model: event.model,
+          source: event.source,
+        }
+      })
+
+    const totalCostCents = entries.reduce(
+      (sum, entry) => sum + (entry.costCents ?? 0),
+      0,
+    )
+
+    return { entries, totalCostCents }
+  }, [latestAutomation, telemetryEvents])
+
+  const telemetryEntries = telemetryDigest.entries
+  const telemetryTotalCostCents = telemetryDigest.totalCostCents
+  const telemetryTotalCostLabel =
+    telemetryTotalCostCents > 0 ? formatUsd(telemetryTotalCostCents) : null
+
   const mentionContextFallback = useMemo(
     () => latestEntry?.rawText ?? '',
 
@@ -646,7 +826,6 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     return null
   }, [isApplyingBundle, isProposing, lastProgressEvent, lastTelemetryEvent])
 
-
   const latestActorLabel = useMemo(
     () => (latestAutomation ? formatActorLabel(latestAutomation.actor) : ''),
     [latestAutomation],
@@ -658,16 +837,25 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     const status = latestAutomation.status as StatusKey
     const statusConfig: Record<
       StatusKey,
-      { label: string; variant: 'success' | 'warning' | 'outline' | 'destructive' | 'secondary' }
+      {
+        label: string
+        variant: 'success' | 'warning' | 'outline' | 'destructive' | 'secondary'
+      }
     > = {
       pending: { label: 'Pending', variant: 'warning' },
       applied: { label: 'Applied', variant: 'success' },
       undone: { label: 'Undone', variant: 'outline' },
       failed: { label: 'Failed', variant: 'destructive' },
     }
-    const config = statusConfig[status] ?? { label: status, variant: 'secondary' }
+    const config = statusConfig[status] ?? {
+      label: status,
+      variant: 'secondary',
+    }
     return (
-      <Badge variant={config.variant} className='text-[9px] uppercase tracking-wide'>
+      <Badge
+        variant={config.variant}
+        className='text-[9px] uppercase tracking-wide'
+      >
         {config.label}
       </Badge>
     )
@@ -780,6 +968,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
             entryId,
             latencyMs,
             usage: ZERO_USAGE,
+            model: 'chronicle-delta-executor',
             costCents: 0,
             error: 'Undo rejected by executor',
           })
@@ -793,6 +982,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
           entryId,
           latencyMs,
           usage: ZERO_USAGE,
+          model: 'chronicle-delta-executor',
           costCents: 0,
         })
       } catch (error) {
@@ -810,6 +1000,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
           entryId,
           latencyMs,
           usage: ZERO_USAGE,
+          model: 'chronicle-delta-executor',
           costCents: 0,
           error: error instanceof Error ? error.message : 'Unknown undo error',
         })
@@ -854,14 +1045,18 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     >
       <div className='flex flex-col gap-3 pointer-events-auto'>
         {showTauriGuard && (
-          <Alert variant='destructive' className='border-destructive/40 bg-destructive/10'>
+          <Alert
+            variant='destructive'
+            className='border-destructive/40 bg-destructive/10'
+          >
             <ShieldAlert className='h-4 w-4 text-destructive' />
             <AlertTitle className='text-sm font-semibold text-destructive'>
               Desktop bridge unavailable
             </AlertTitle>
             <AlertDescription className='space-y-2 text-xs text-destructive/90'>
               <p>
-                Chronicle automations need the Tauri desktop bridge. Launch the desktop shell to enable live Chronicle updates.
+                Chronicle automations need the Tauri desktop bridge. Launch the
+                desktop shell to enable live Chronicle updates.
               </p>
               <div className='flex flex-wrap items-center gap-2 text-[11px] text-destructive'>
                 <span className='rounded bg-destructive/20 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide'>
@@ -885,7 +1080,10 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
             <AlertTitle className='flex items-center gap-2 text-sm font-semibold text-primary'>
               Chronicle bundle pending
               {isApplyingBundle && (
-                <Badge variant='outline' className='text-[9px] uppercase tracking-wide text-primary'>
+                <Badge
+                  variant='outline'
+                  className='text-[9px] uppercase tracking-wide text-primary'
+                >
                   applying
                 </Badge>
               )}
@@ -894,7 +1092,10 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
               <div className='flex flex-wrap items-center gap-2 text-[11px] font-medium text-foreground'>
                 <span>Entry {pendingBundle.entryId ?? '\u2014'}</span>
                 {pendingBundle.bundleId && (
-                  <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                  <Badge
+                    variant='outline'
+                    className='text-[9px] uppercase tracking-wide'
+                  >
                     #{pendingBundle.bundleId.slice(-6)}
                   </Badge>
                 )}
@@ -906,7 +1107,11 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
               </p>
               <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground'>
                 <Clock size={11} />
-                <span>{pendingRequestedAt ? pendingRequestedAt.toLocaleTimeString() : 'Awaiting timestamp'}</span>
+                <span>
+                  {pendingRequestedAt
+                    ? pendingRequestedAt.toLocaleTimeString()
+                    : 'Awaiting timestamp'}
+                </span>
                 {pendingRelative && (
                   <>
                     <span aria-hidden='true'>&bull;</span>
@@ -957,7 +1162,10 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                     : ''}
                 </span>
                 {latestActorLabel && (
-                  <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                  <Badge
+                    variant='outline'
+                    className='text-[9px] uppercase tracking-wide'
+                  >
                     {latestActorLabel}
                   </Badge>
                 )}
@@ -977,19 +1185,93 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                   />
                 ) : latestAutomation.status === 'pending' ? (
                   <div className='rounded-md border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground'>
-                    Applying bundle&hellip; updates will appear once the executor responds.
+                    Applying bundle&hellip; updates will appear once the
+                    executor responds.
                   </div>
                 ) : null}
-                {latestAutomation.status === 'failed' && latestAutomation.error && (
-                  <Alert variant='destructive' className='border-border/50 bg-destructive/10'>
-                    <AlertTitle className='text-xs font-semibold'>
-                      Automation failed
-                    </AlertTitle>
-                    <AlertDescription className='text-xs leading-relaxed'>
-                      {latestAutomation.error}
-                    </AlertDescription>
-                  </Alert>
+                {telemetryEntries.length > 0 && (
+                  <div className='rounded-md border border-border/40 bg-muted/10 px-3 py-3 space-y-2'>
+                    <div className='flex items-center justify-between text-[10px] uppercase tracking-wide text-muted-foreground'>
+                      <span className='flex items-center gap-1'>
+                        <Activity size={11} />
+                        Telemetry
+                      </span>
+                      {telemetryTotalCostLabel ? (
+                        <span className='font-semibold text-foreground'>
+                          {telemetryTotalCostLabel}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className='space-y-2'>
+                      {telemetryEntries.map((entry) => (
+                        <div
+                          key={entry.id}
+                          className='rounded-md border border-border/30 bg-card/60 px-3 py-2'
+                        >
+                          <div className='flex items-center justify-between gap-2'>
+                            <div className='flex flex-wrap items-center gap-2'>
+                              <Badge
+                                variant='outline'
+                                className='text-[9px] uppercase tracking-wide'
+                              >
+                                {entry.stageLabel}
+                              </Badge>
+                              <span
+                                className={`text-[11px] font-medium uppercase tracking-wide ${entry.outcomeTone}`}
+                              >
+                                {entry.outcomeLabel}
+                              </span>
+                              {entry.relativeLabel && (
+                                <span className='text-[10px] text-muted-foreground'>
+                                  {entry.relativeLabel}
+                                </span>
+                              )}
+                            </div>
+                            <div className='flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[10px] text-muted-foreground'>
+                              <span>{entry.latencyLabel}</span>
+                              {entry.costLabel && (
+                                <span className='font-semibold text-foreground'>
+                                  {entry.costLabel}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className='mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground'>
+                            {entry.timestampLabel && (
+                              <span>{entry.timestampLabel}</span>
+                            )}
+                            {entry.model && (
+                              <span className='truncate max-w-[140px]'>
+                                {entry.model}
+                              </span>
+                            )}
+                            {entry.source && (
+                              <span className='capitalize'>
+                                {entry.source === 'tauri'
+                                  ? 'Tauri bridge'
+                                  : entry.source}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
+                {latestAutomation.status === 'failed' &&
+                  latestAutomation.error && (
+                    <Alert
+                      variant='destructive'
+                      className='border-border/50 bg-destructive/10'
+                    >
+                      <AlertTitle className='text-xs font-semibold'>
+                        Automation failed
+                      </AlertTitle>
+                      <AlertDescription className='text-xs leading-relaxed'>
+                        {latestAutomation.error}
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 {mentionHighlights.length > 0 && (
                   <div className='space-y-2'>
                     <div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
@@ -1008,7 +1290,9 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                             role='button'
                             tabIndex={0}
                             key={`${highlight.entityId}-${highlight.record.entryId}-${highlight.record.createdAt}`}
-                            onClick={() => handleEntityNavigate(highlight.entityId)}
+                            onClick={() =>
+                              handleEntityNavigate(highlight.entityId)
+                            }
                             onKeyDown={(event) => {
                               if (event.key === 'Enter' || event.key === ' ') {
                                 event.preventDefault()
@@ -1046,19 +1330,21 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                                       relationship.lastUpdated instanceof Date
                                         ? relationship.lastUpdated
                                         : relationship.lastUpdated
-                                        ? new Date(relationship.lastUpdated)
-                                        : null
+                                          ? new Date(relationship.lastUpdated)
+                                          : null
                                     const relativeUpdated =
-                                      updatedAt && !Number.isNaN(updatedAt.getTime())
+                                      updatedAt &&
+                                      !Number.isNaN(updatedAt.getTime())
                                         ? formatRelativeTimeFromNow(updatedAt)
                                         : null
                                     const confidence =
-                                      typeof relationship.confidence === 'number'
+                                      typeof relationship.confidence ===
+                                      'number'
                                         ? `${Math.round(relationship.confidence * 100)}%`
                                         : undefined
                                     const relationshipStatus =
-                                      (relationship as { status?: string }).status ??
-                                      relationship.currentStatus
+                                      (relationship as { status?: string })
+                                        .status ?? relationship.currentStatus
 
                                     return (
                                       <HoverCard
@@ -1069,7 +1355,9 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                                             type='button'
                                             onClick={(event) => {
                                               event.stopPropagation()
-                                              handleEntityNavigate(edge.otherEntityId)
+                                              handleEntityNavigate(
+                                                edge.otherEntityId,
+                                              )
                                             }}
                                             className='inline-flex items-center gap-1 rounded-full border border-border/40 bg-card/80 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/30'
                                             aria-label={`Open ${linkedEntityName}`}
@@ -1106,10 +1394,13 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                                                 </span>
                                               </div>
                                             )}
-                                            {typeof relationship.strength === 'number' && (
+                                            {typeof relationship.strength ===
+                                              'number' && (
                                               <div className='flex items-center justify-between'>
                                                 <span>Strength</span>
-                                                <span>{relationship.strength}</span>
+                                                <span>
+                                                  {relationship.strength}
+                                                </span>
                                               </div>
                                             )}
                                             {confidence && (
@@ -1297,7 +1588,10 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                               : 'Bundle failed'}
                         </Badge>
                         {bundleLabel && (
-                          <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                          <Badge
+                            variant='outline'
+                            className='text-[9px] uppercase tracking-wide'
+                          >
                             {bundleLabel}
                           </Badge>
                         )}
@@ -1309,15 +1603,21 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
                         <span>{relativeLabel}</span>
                       </div>
                       {entry.reason && (
-                        <p className='text-[11px] text-muted-foreground/90'>{entry.reason}</p>
+                        <p className='text-[11px] text-muted-foreground/90'>
+                          {entry.reason}
+                        </p>
                       )}
                     </div>
                     <div className='flex flex-col items-end gap-1'>
-                      <Badge variant='outline' className='text-[9px] uppercase tracking-wide'>
+                      <Badge
+                        variant='outline'
+                        className='text-[9px] uppercase tracking-wide'
+                      >
                         {formatActorLabel(entry.actor)}
                       </Badge>
                       <span className='text-[10px] text-muted-foreground'>
-                        {entry.appliedOps.length} applied / {entry.skippedOps.length} skipped
+                        {entry.appliedOps.length} applied /{' '}
+                        {entry.skippedOps.length} skipped
                       </span>
                     </div>
                   </div>

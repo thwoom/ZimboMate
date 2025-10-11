@@ -1,21 +1,21 @@
-import { describe, expect, it } from 'vitest'
-import {
-  RELATIONSHIP_METADATA,
-  RELATIONSHIP_STATUS_METADATA,
-  RELATIONSHIP_STATUS_VALUES,
-  RELATIONSHIP_TYPE_VALUES,
-  deltaSchemasForResponses,
-} from '../toolSchemas'
-import type { RelationshipType } from '@/types/chronicle'
 import type {
   RelationshipStatusValue,
   RelationshipTypeValue,
 } from '../toolSchemas'
+import type { RelationshipType } from '@/types/chronicle'
+import { describe, expect, it } from 'vitest'
+import {
+  deltaSchemasForResponses,
+  RELATIONSHIP_METADATA,
+  RELATIONSHIP_STATUS_METADATA,
+  RELATIONSHIP_STATUS_VALUES,
+  RELATIONSHIP_TYPE_VALUES,
+} from '../toolSchemas'
 
 type Assert<T extends true> = T
 type Equal<A, B> =
-  (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2)
-    ? (<T>() => T extends B ? 1 : 2) extends (<T>() => T extends A ? 1 : 2)
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
+    ? (<T>() => T extends B ? 1 : 2) extends <T>() => T extends A ? 1 : 2
       ? true
       : false
     : false

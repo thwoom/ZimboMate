@@ -5,13 +5,12 @@ import type {
   Relationship,
 } from '../../types/chronicle'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { useCharacterStore } from '../characterStore'
 import {
-  MAX_AUDIT_LOG_ENTRIES,
   MAX_DELTA_HISTORY,
-  MAX_RESOURCE_HISTORY,
+  MAX_TELEMETRY_EVENTS,
   useChronicleStore,
 } from '../chronicleStore'
-import { useCharacterStore } from '../characterStore'
 import { useHoldStore } from '../holdStore'
 import { useInventoryStore } from '../inventoryStore'
 
@@ -28,10 +27,7 @@ function makeLog(
   }
 }
 
-function makeEntity(
-  id: string,
-  overrides: Partial<Entity> = {},
-): Entity {
+function _makeEntity(id: string, overrides: Partial<Entity> = {}): Entity {
   const timestamp = new Date('2025-10-08T00:00:00.000Z')
   return {
     id,
@@ -53,7 +49,7 @@ function makeEntity(
   }
 }
 
-function makeRelationship(
+function _makeRelationship(
   id: string,
   fromEntityId: string,
   toEntityId: string,
@@ -185,7 +181,10 @@ describe('chronicleStore delta history', () => {
       appliedOps: [],
       skippedOps: [],
       actor: 'manual',
-      undoHandle: { bundleId: 'bundle-final', issuedAt: '2025-10-09T10:00:01.000Z' },
+      undoHandle: {
+        bundleId: 'bundle-final',
+        issuedAt: '2025-10-09T10:00:01.000Z',
+      },
       requestedAt: '2025-10-09T10:00:00.000Z',
       completedAt: '2025-10-09T10:00:01.500Z',
       autoApply: false,
@@ -214,7 +213,9 @@ describe('chronicleStore delta history', () => {
     })
 
     expect(state.bundleSnapshots.length).toBeGreaterThanOrEqual(2)
-    const snapshotStages = state.bundleSnapshots.map((snapshot) => snapshot.stage)
+    const snapshotStages = state.bundleSnapshots.map(
+      (snapshot) => snapshot.stage,
+    )
     expect(snapshotStages).toContain('before')
     expect(snapshotStages).toContain('after')
     expect(
@@ -312,7 +313,10 @@ describe('chronicleStore delta history', () => {
       appliedOps: [],
       skippedOps: [],
       actor: 'manual',
-      undoHandle: { bundleId: 'bundle-clear', issuedAt: '2025-10-09T11:00:01.000Z' },
+      undoHandle: {
+        bundleId: 'bundle-clear',
+        issuedAt: '2025-10-09T11:00:01.000Z',
+      },
       requestedAt: '2025-10-09T11:00:00.000Z',
       completedAt: '2025-10-09T11:00:01.000Z',
       autoApply: false,
@@ -345,9 +349,7 @@ describe('chronicleStore delta history', () => {
     })
 
     expect(
-      useChronicleStore
-        .getState()
-        .resourceHistory.xp['char-clear'],
+      useChronicleStore.getState().resourceHistory.xp['char-clear'],
     ).toHaveLength(1)
     expect(useChronicleStore.getState().auditLog[0]?.bundleId).toBe(
       'bundle-clear',
@@ -494,12 +496,15 @@ describe('chronicleStore delta history', () => {
     store.recordBundleSnapshot(beforeSnapshot)
     store.recordBundleSnapshot(afterSnapshot)
 
-    const snapshots = useChronicleStore.getState().getBundleSnapshots('bundle-test')
+    const snapshots = useChronicleStore
+      .getState()
+      .getBundleSnapshots('bundle-test')
     expect(snapshots.before?.id).toBe('before-bundle-test')
     expect(snapshots.after?.id).toBe('after-bundle-test')
 
-    const exportPayload =
-      useChronicleStore.getState().exportBundleSnapshots('bundle-test')
+    const exportPayload = useChronicleStore
+      .getState()
+      .exportBundleSnapshots('bundle-test')
     expect(exportPayload).not.toBeNull()
     const parsed = JSON.parse(exportPayload as string)
     expect(parsed.bundleId).toBe('bundle-test')
@@ -545,5 +550,60 @@ describe('chronicleStore delta history', () => {
     const afterReset = useChronicleStore.getState()
     expect(afterReset.sessionCostCents).toBe(0)
     expect(afterReset.lastCostEventAt).toBeNull()
+  })
+
+  it('logs telemetry events with capping and bundle clearing', () => {
+    const store = useChronicleStore.getState()
+    store.clearTelemetryEvents()
+
+    for (let index = 0; index < MAX_TELEMETRY_EVENTS + 5; index += 1) {
+      store.logTelemetryEvent({
+        id: `event-${index}`,
+        recordedAt: new Date(Date.UTC(2025, 9, 10, 12, 0, index)).toISOString(),
+        stage: 'propose',
+        outcome: 'success',
+        model: 'gpt-5-test',
+        latencyMs: index,
+        usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+        costCents: index,
+        bundleId: `bundle-${index}`,
+        entryId: `entry-${index}`,
+        source: 'client',
+      })
+    }
+
+    const telemetry = useChronicleStore.getState().telemetryEvents
+    expect(telemetry).toHaveLength(MAX_TELEMETRY_EVENTS)
+    expect(telemetry[0].id).toBe(`event-${MAX_TELEMETRY_EVENTS + 4}`)
+    expect(telemetry[telemetry.length - 1]?.id).toBe('event-5')
+
+    store.logTelemetryEvent({
+      id: 'event-target',
+      recordedAt: new Date('2025-10-11T12:00:00.000Z').toISOString(),
+      stage: 'apply',
+      outcome: 'failure',
+      model: 'gpt-5-test',
+      latencyMs: 42,
+      usage: { inputTokens: 2, outputTokens: 3, totalTokens: 5 },
+      costCents: 7,
+      bundleId: 'bundle-target',
+      entryId: 'entry-target',
+      source: 'client',
+      error: 'simulated',
+    })
+
+    expect(
+      useChronicleStore
+        .getState()
+        .telemetryEvents.some((event) => event.bundleId === 'bundle-target'),
+    ).toBe(true)
+
+    store.clearTelemetryEvents('bundle-target')
+
+    expect(
+      useChronicleStore
+        .getState()
+        .telemetryEvents.some((event) => event.bundleId === 'bundle-target'),
+    ).toBe(false)
   })
 })

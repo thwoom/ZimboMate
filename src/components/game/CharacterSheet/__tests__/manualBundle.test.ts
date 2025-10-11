@@ -8,7 +8,10 @@ describe('createManualBundle', () => {
     { type: 'mark_xp', characterId: 'char-1', amount: 1 },
   ]
 
-  const originalCryptoDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'crypto')
+  const originalCryptoDescriptor = Object.getOwnPropertyDescriptor(
+    globalThis,
+    'crypto',
+  )
 
   afterEach(() => {
     if (originalCryptoDescriptor) {
@@ -22,14 +25,21 @@ describe('createManualBundle', () => {
     const bundle = createManualBundle(sampleOps)
 
     expect(bundle.ops).toEqual(sampleOps)
-    expect(bundle.usage).toEqual({ inputTokens: 0, outputTokens: 0, totalTokens: 0 })
+    expect(bundle.usage).toEqual({
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+    })
     expect(bundle.model).toBe('manual/folio')
     expect(bundle.idempotencyKey).toMatch(/^folio-inline-/)
     expect(bundle.entryId).toMatch(/^folio-inline-/)
   })
 
   it('falls back when crypto.randomUUID is unavailable', () => {
-    Object.defineProperty(globalThis, 'crypto', { value: undefined, configurable: true })
+    Object.defineProperty(globalThis, 'crypto', {
+      value: undefined,
+      configurable: true,
+    })
 
     const bundle = createManualBundle(sampleOps)
 

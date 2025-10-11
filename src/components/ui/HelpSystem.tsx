@@ -104,10 +104,8 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
     if (!item) return 'content-null'
     if (typeof item.id === 'string') return item.id
     if (typeof item.title === 'string') return `${item.type}-${item.title}`
-    if (typeof item.content === 'string')
-      return `${item.type}-${item.content}`
-    if (Array.isArray(item.items))
-      return `${item.type}-${item.items.join('|')}`
+    if (typeof item.content === 'string') return `${item.type}-${item.content}`
+    if (Array.isArray(item.items)) return `${item.type}-${item.items.join('|')}`
     if (Array.isArray(item.headers))
       return `${item.type}-${item.headers.join('|')}`
     if (Array.isArray(item.rows)) {
@@ -139,146 +137,149 @@ export const HelpSystem: React.FC<HelpSystemProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.05 }}
         >
-        {item.type === 'heading' && (
-          <h3 className='text-display-sm mb-4 mt-8 first:mt-0 text-primary'>
-            {item.content}
-          </h3>
-        )}
-
-        {item.type === 'subheading' && (
-          <h4 className='text-body-lg font-semibold mb-3 mt-6 text-foreground'>
-            {item.content}
-          </h4>
-        )}
-
-        {item.type === 'paragraph' && (
-          <p className='text-body-regular mb-4 leading-relaxed text-muted-foreground'>
-            {item.content}
-          </p>
-        )}
-
-        {item.type === 'list' && (
-          <ul className='list-disc list-inside mb-4 space-y-2'>
-            {item.items.map((listItem: string) => (
-              <li
-                key={`${item.type}-${listItem}`}
-                className='text-body-regular text-muted-foreground'
-              >
-                {listItem}
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {item.type === 'table' && (
-          <div className='overflow-x-auto mb-6'>
-            <table className='w-full border-collapse'>
-              <thead>
-                <tr className='border-b-2 border-border'>
-                  {item.headers.map((header: string) => (
-                    <th
-                      key={`${item.type}-${header}`}
-                      className='text-left p-3 font-semibold text-foreground'
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {item.rows.map((row: string[]) => {
-                  const rowKey = `${item.type}-${row.join('|')}`
-
-                  return (
-                    <tr key={rowKey} className='border-b border-border'>
-                      {row.map((cell, columnIndex) => {
-                        const headerKey = Array.isArray(item.headers)
-                          ? item.headers[columnIndex]
-                          : undefined
-                        const cellToken =
-                          headerKey ?? cell ?? stableStringify({ cell })
-
-                        return (
-                          <td
-                            key={`${rowKey}-${cellToken}`}
-                            className='p-3 text-body-regular text-muted-foreground'
-                          >
-                            {cell.includes('**') ? (
-                              <code
-                                className='px-2 py-1 rounded text-sm font-mono cursor-pointer hover:bg-opacity-80 transition-colors'
-                                style={{
-                                  backgroundColor: 'var(--popover)',
-                                  color: 'var(--primary)',
-                                }}
-                                onClick={() =>
-                                  handleCopyText(cell.replace(/\*\*/g, ''))
-                                }
-                              >
-                                {cell.replace(/\*\*/g, '')}
-                                {copiedText === cell.replace(/\*\*/g, '') ? (
-                                  <Check size={12} className='inline ml-1' />
-                                ) : (
-                                  <Copy
-                                    size={12}
-                                    className='inline ml-1 opacity-50'
-                                  />
-                                )}
-                              </code>
-                            ) : (
-                              cell
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {item.type === 'code' && (
-          <pre
-            className='p-4 rounded-lg mb-4 overflow-x-auto cursor-pointer hover:bg-opacity-80 transition-colors'
-            style={{
-              backgroundColor: 'var(--popover)',
-              border: '1px solid var(--border)',
-            }}
-            onClick={() => handleCopyText(item.content)}
-          >
-            <code className='text-sm font-mono text-primary'>
+          {item.type === 'heading' && (
+            <h3 className='text-display-sm mb-4 mt-8 first:mt-0 text-primary'>
               {item.content}
-            </code>
-            <div className='float-right mt-1'>
-              {copiedText === item.content ? (
-                <Check className='text-accent' size={16} />
-              ) : (
-                <Copy size={16} className='opacity-50 text-muted-foreground' />
-              )}
-            </div>
-          </pre>
-        )}
+            </h3>
+          )}
 
-        {item.type === 'callout' && (
-          <div
-            className='p-4 rounded-lg mb-4 border-l-4'
-            style={{
-              backgroundColor:
-                item.variant === 'warning'
-                  ? 'var(--chart-4)'
-                  : 'var(--primary)',
-              borderLeftColor:
-                item.variant === 'warning'
-                  ? 'var(--chart-4)'
-                  : 'var(--primary)',
-            }}
-          >
-            <p className='text-body-regular font-medium text-foreground'>
+          {item.type === 'subheading' && (
+            <h4 className='text-body-lg font-semibold mb-3 mt-6 text-foreground'>
+              {item.content}
+            </h4>
+          )}
+
+          {item.type === 'paragraph' && (
+            <p className='text-body-regular mb-4 leading-relaxed text-muted-foreground'>
               {item.content}
             </p>
-          </div>
-        )}
+          )}
+
+          {item.type === 'list' && (
+            <ul className='list-disc list-inside mb-4 space-y-2'>
+              {item.items.map((listItem: string) => (
+                <li
+                  key={`${item.type}-${listItem}`}
+                  className='text-body-regular text-muted-foreground'
+                >
+                  {listItem}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {item.type === 'table' && (
+            <div className='overflow-x-auto mb-6'>
+              <table className='w-full border-collapse'>
+                <thead>
+                  <tr className='border-b-2 border-border'>
+                    {item.headers.map((header: string) => (
+                      <th
+                        key={`${item.type}-${header}`}
+                        className='text-left p-3 font-semibold text-foreground'
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {item.rows.map((row: string[]) => {
+                    const rowKey = `${item.type}-${row.join('|')}`
+
+                    return (
+                      <tr key={rowKey} className='border-b border-border'>
+                        {row.map((cell, columnIndex) => {
+                          const headerKey = Array.isArray(item.headers)
+                            ? item.headers[columnIndex]
+                            : undefined
+                          const cellToken =
+                            headerKey ?? cell ?? stableStringify({ cell })
+
+                          return (
+                            <td
+                              key={`${rowKey}-${cellToken}`}
+                              className='p-3 text-body-regular text-muted-foreground'
+                            >
+                              {cell.includes('**') ? (
+                                <code
+                                  className='px-2 py-1 rounded text-sm font-mono cursor-pointer hover:bg-opacity-80 transition-colors'
+                                  style={{
+                                    backgroundColor: 'var(--popover)',
+                                    color: 'var(--primary)',
+                                  }}
+                                  onClick={() =>
+                                    handleCopyText(cell.replace(/\*\*/g, ''))
+                                  }
+                                >
+                                  {cell.replace(/\*\*/g, '')}
+                                  {copiedText === cell.replace(/\*\*/g, '') ? (
+                                    <Check size={12} className='inline ml-1' />
+                                  ) : (
+                                    <Copy
+                                      size={12}
+                                      className='inline ml-1 opacity-50'
+                                    />
+                                  )}
+                                </code>
+                              ) : (
+                                cell
+                              )}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {item.type === 'code' && (
+            <pre
+              className='p-4 rounded-lg mb-4 overflow-x-auto cursor-pointer hover:bg-opacity-80 transition-colors'
+              style={{
+                backgroundColor: 'var(--popover)',
+                border: '1px solid var(--border)',
+              }}
+              onClick={() => handleCopyText(item.content)}
+            >
+              <code className='text-sm font-mono text-primary'>
+                {item.content}
+              </code>
+              <div className='float-right mt-1'>
+                {copiedText === item.content ? (
+                  <Check className='text-accent' size={16} />
+                ) : (
+                  <Copy
+                    size={16}
+                    className='opacity-50 text-muted-foreground'
+                  />
+                )}
+              </div>
+            </pre>
+          )}
+
+          {item.type === 'callout' && (
+            <div
+              className='p-4 rounded-lg mb-4 border-l-4'
+              style={{
+                backgroundColor:
+                  item.variant === 'warning'
+                    ? 'var(--chart-4)'
+                    : 'var(--primary)',
+                borderLeftColor:
+                  item.variant === 'warning'
+                    ? 'var(--chart-4)'
+                    : 'var(--primary)',
+              }}
+            >
+              <p className='text-body-regular font-medium text-foreground'>
+                {item.content}
+              </p>
+            </div>
+          )}
         </motion.div>
       )
     })

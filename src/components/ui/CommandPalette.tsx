@@ -45,7 +45,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onAction,
 }) => {
   const [query, setQuery] = useState('')
-  const [selectedCommandId, setSelectedCommandId] = useState<string | null>(null)
+  const [selectedCommandId, setSelectedCommandId] = useState<string | null>(
+    null,
+  )
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Access dice store for rolling
@@ -315,7 +317,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         },
       },
     ],
-    [onNavigate, onAction, onClose, rollStat, rollMove, rollCustom, clearAllHistory],
+    [
+      onNavigate,
+      onAction,
+      onClose,
+      rollStat,
+      rollMove,
+      rollCustom,
+      clearAllHistory,
+    ],
   )
 
   // Filter commands based on query
@@ -351,7 +361,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       return -1
     }
 
-    return filteredCommands.findIndex((command) => command.id === highlightedCommandId)
+    return filteredCommands.findIndex(
+      (command) => command.id === highlightedCommandId,
+    )
   }, [filteredCommands, highlightedCommandId])
 
   // Handle keyboard navigation
@@ -621,9 +633,3 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     </Dialog.Root>
   )
 }
-
-
-
-
-
-

@@ -47,7 +47,10 @@ interface ParticleAction {
   particles?: Particle[]
 }
 
-const particleReducer = (state: Particle[], action: ParticleAction): Particle[] => {
+const particleReducer = (
+  state: Particle[],
+  action: ParticleAction,
+): Particle[] => {
   switch (action.type) {
     case 'set':
       return action.particles ?? state

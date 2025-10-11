@@ -61,23 +61,13 @@ describe('inline counters', () => {
     const onAdjust = vi.fn()
 
     const { rerender } = render(
-      <InlineCounters
-        {...baseProps}
-        xp={2}
-        onAdjust={onAdjust}
-      />,
+      <InlineCounters {...baseProps} xp={2} onAdjust={onAdjust} />,
     )
 
     await user.click(screen.getByRole('button', { name: /decrease xp/i }))
     expect(onAdjust).toHaveBeenCalledWith({ kind: 'xp', delta: -1 })
 
-    rerender(
-      <InlineCounters
-        {...baseProps}
-        xp={0}
-        onAdjust={onAdjust}
-      />,
-    )
+    rerender(<InlineCounters {...baseProps} xp={0} onAdjust={onAdjust} />)
 
     await user.click(screen.getByRole('button', { name: /decrease xp/i }))
     expect(onAdjust).toHaveBeenCalledTimes(1)
@@ -88,24 +78,14 @@ describe('inline counters', () => {
     const onAdjust = vi.fn()
 
     const { rerender } = render(
-      <InlineCounters
-        {...baseProps}
-        ammo={1}
-        hold={0}
-        onAdjust={onAdjust}
-      />,
+      <InlineCounters {...baseProps} ammo={1} hold={0} onAdjust={onAdjust} />,
     )
 
     await user.click(screen.getByRole('button', { name: /decrease ammo/i }))
     expect(onAdjust).toHaveBeenCalledWith({ kind: 'ammo', delta: -1 })
 
     rerender(
-      <InlineCounters
-        {...baseProps}
-        ammo={0}
-        hold={0}
-        onAdjust={onAdjust}
-      />,
+      <InlineCounters {...baseProps} ammo={0} hold={0} onAdjust={onAdjust} />,
     )
 
     await user.click(screen.getByRole('button', { name: /decrease ammo/i }))
