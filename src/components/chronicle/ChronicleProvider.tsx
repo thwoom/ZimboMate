@@ -478,7 +478,47 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           settings: buildNarrativeSettings(),
         }
 
-        return await gpt5Client.proposeDeltas(request)
+        try {
+          return await gpt5Client.proposeDeltas(request)
+        } catch (error) {
+          const failureReason =
+            error instanceof Error ? error.message : String(error ?? 'unknown error')
+
+          recordTelemetry(
+            {
+              stage: 'propose',
+              outcome: 'failure',
+              entryId: input.entryId,
+              model: 'chronicle-fallback',
+              usage: ZERO_USAGE,
+              latencyMs: 0,
+              error: failureReason,
+            },
+            'client',
+          )
+
+          const createdAt = new Date().toISOString()
+          const idempotencyKey = await computeSha256Hex(
+            `${input.entryId}:fallback:${createdAt}`,
+          )
+
+          return {
+            bundle: {
+              entryId: input.entryId,
+              narrative: input.rawText,
+              ops: [],
+              usage: ZERO_USAGE,
+              reasoning: 'fallback_due_to_error',
+              idempotencyKey,
+              model: 'chronicle-fallback',
+              createdAt,
+            },
+            warnings: [
+              'Automation skipped: Chronicle could not reach GPT-5 for this note.',
+              failureReason,
+            ],
+          }
+        }
       } finally {
         setIsProposing(false)
       }

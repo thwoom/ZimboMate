@@ -175,6 +175,45 @@ describe('chronicle provider GPT-5 integration', () => {
     expect(useChronicleStore.getState().sessionCostCents).toBe(1)
   })
 
+  it('falls back to narrative-only when GPT-5 delta parsing fails', async () => {
+    const controls = getMockControls()
+    controls.setNextProposeResult(() => {
+      throw new Error('mock delta parsing failure')
+    })
+
+    const { result } = renderHook(() => useChronicleLLM(), { wrapper })
+
+    let fallbackResponse:
+      | Awaited<ReturnType<typeof result.current.proposeEntryDeltas>>
+      | undefined
+
+    await act(async () => {
+      fallbackResponse = await result.current.proposeEntryDeltas({
+        entryId: 'entry-fallback',
+        rawText: 'typo sword',
+      })
+    })
+
+    expect(fallbackResponse?.bundle.model).toBe('chronicle-fallback')
+    expect(fallbackResponse?.bundle.ops).toHaveLength(0)
+    expect(fallbackResponse?.bundle.narrative).toBe('typo sword')
+    expect(fallbackResponse?.warnings?.[0]).toMatch(/Automation skipped/)
+    expect(fallbackResponse?.warnings?.[1]).toContain(
+      'mock delta parsing failure',
+    )
+
+    const telemetry = useChronicleStore.getState().telemetryEvents
+    expect(telemetry).not.toHaveLength(0)
+    expect(telemetry[0]).toMatchObject({
+      stage: 'propose',
+      outcome: 'failure',
+      entryId: 'entry-fallback',
+      source: 'client',
+    })
+
+    controls.setNextProposeResult(undefined)
+  })
+
   it('tracks pending bundle lifecycle and audit log when applying', async () => {
     const controls = getMockControls()
     const { result } = renderHook(() => useChronicleLLM(), { wrapper })
