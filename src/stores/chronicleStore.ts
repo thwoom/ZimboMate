@@ -28,10 +28,10 @@ import type {
 } from '../types/chronicle'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { publishRolloutTelemetry } from '@/utils/rolloutTelemetry'
 import { useCharacterStore } from './characterStore'
 import { useHoldStore } from './holdStore'
 import { useInventoryStore } from './inventoryStore'
-import { publishRolloutTelemetry } from '@/utils/rolloutTelemetry'
 
 type BundleActor = NonNullable<ChronicleDeltaLog['actor']>
 

@@ -1,5 +1,4 @@
 import type { TokenUsage } from './types'
-import process from 'node:process'
 
 export interface ModelPricing {
   /**
@@ -81,11 +80,9 @@ function resolvePricingRegistry(): PricingRegistry {
 }
 
 function resolveEnvPricing(): PricingRegistry | undefined {
-  if (typeof process === 'undefined' || !process.env) return undefined
-
   const candidates = [
-    process.env.LLM_PRICING_JSON,
-    process.env.VITE_LLM_PRICING_JSON,
+    readEnvVar('LLM_PRICING_JSON'),
+    readEnvVar('VITE_LLM_PRICING_JSON'),
   ]
 
   for (const candidate of candidates) {
@@ -144,4 +141,30 @@ export function estimateUsageCostCents(
 
   const cents = Math.round(totalUsd * 100)
   return cents > 0 ? cents : null
+}
+
+type EnvRecord = Record<string, string | undefined>
+
+function readEnvVar(key: string): string | undefined {
+  const metaEnv =
+    typeof import.meta !== 'undefined' &&
+    (import.meta as unknown as { env?: EnvRecord }).env
+  if (metaEnv && typeof metaEnv[key] === 'string' && metaEnv[key]) {
+    return metaEnv[key]
+  }
+
+  const processEnv = getProcessEnv()
+  if (processEnv && typeof processEnv[key] === 'string' && processEnv[key]) {
+    return processEnv[key]
+  }
+
+  return undefined
+}
+
+function getProcessEnv(): EnvRecord | undefined {
+  if (typeof globalThis === 'undefined') return undefined
+  const value = Reflect.get(globalThis as object, 'process') as
+    | { env?: EnvRecord }
+    | undefined
+  return value?.env
 }

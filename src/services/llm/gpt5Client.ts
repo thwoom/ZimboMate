@@ -11,13 +11,13 @@ import type {
 } from './types'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { ZodError } from 'zod'
 import { stableStringify } from '@/utils/stableStringify'
 import { computeSha256Hex } from './hash'
 import {
   deltaSchemasForResponses,
   validateDeltaOperations,
 } from './toolSchemas'
-import { ZodError } from 'zod'
 
 interface ChronicleProposeResponse {
   narrative: string

@@ -28,3 +28,36 @@ export default antfu({
     'src-tauri/**',
   ],
 })
+  .append({
+    files: ['src/**/*.{ts,tsx,js,jsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['node:*'],
+              message:
+                'Node built-ins are not available in the WebView. Use browser-safe utilities or Tauri commands.',
+            },
+          ],
+          paths: [
+            {
+              name: 'process',
+              message:
+                'Access environment variables via import.meta.env or a browser-safe helper.',
+            },
+          ],
+        },
+      ],
+    },
+  })
+  .append({
+    files: [
+      'src/test/**/*.{ts,tsx,js,jsx}',
+      '**/__tests__/**/*.{ts,tsx,js,jsx}',
+    ],
+    rules: {
+      'no-restricted-imports': 'off',
+    },
+  })

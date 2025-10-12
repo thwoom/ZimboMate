@@ -35,6 +35,7 @@ import Folio from '@/components/game/CharacterSheet/Folio'
 import { RightRail, SplitPane } from '@/components/layout'
 import { cn } from '@/lib/utils'
 import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
+import { useIsTauriRuntime } from '@/utils/tauriRuntime'
 import {
   describeDeltaOperation as formatDeltaOperation,
   undoChronicleBundle,
@@ -45,7 +46,6 @@ import { useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { DeltaChecklist } from '../chronicle/DeltaChecklist'
 import { Badge, Button, Card, CardContent, Input, Textarea } from '../ui'
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
-import { useIsTauriRuntime } from '@/utils/tauriRuntime'
 
 interface DiceRollContext {
   id: string

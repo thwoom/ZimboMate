@@ -7,7 +7,10 @@ function getProcessEnv(): ProcessEnv | undefined {
     return undefined
   }
 
-  const maybeProcess = (globalThis as { process?: { env?: ProcessEnv } }).process
+  // eslint-disable-next-line node/prefer-global/process
+  const maybeProcess = (globalThis as {
+    process?: { env?: ProcessEnv }
+  }).process
   return maybeProcess?.env
 }
 

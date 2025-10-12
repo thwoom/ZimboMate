@@ -1,12 +1,12 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-
 import type { ChronicleTelemetryEventLog } from '@/types/chronicle'
+
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  __resetRolloutTelemetryForTests,
   getRolloutTelemetryEventName,
   getRolloutTelemetryHistory,
   publishRolloutTelemetry,
   subscribeRolloutTelemetry,
-  __resetRolloutTelemetryForTests,
 } from '../rolloutTelemetry'
 
 const baseEvent: ChronicleTelemetryEventLog = {

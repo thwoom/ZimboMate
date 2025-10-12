@@ -1,3 +1,5 @@
+import type { ChronicleTelemetryEventLog } from '@/types/chronicle'
+
 import React, {
   useCallback,
   useEffect,
@@ -5,21 +7,12 @@ import React, {
   useState,
   useTransition,
 } from 'react'
-
-import type { ChronicleTelemetryEventLog } from '@/types/chronicle'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Badge,
-  Button,
-} from '@/components/ui'
-import { formatRelativeTimeFromNow } from './highlightUtils'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import {
   getRolloutTelemetryHistory,
   subscribeRolloutTelemetry,
 } from '@/utils/rolloutTelemetry'
+import { formatRelativeTimeFromNow } from './highlightUtils'
 
 type TelemetryStage = ChronicleTelemetryEventLog['stage']
 type TelemetryOutcome = ChronicleTelemetryEventLog['outcome']

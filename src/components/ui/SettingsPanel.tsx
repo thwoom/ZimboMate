@@ -28,6 +28,7 @@ import React, {
 } from 'react'
 import { useChronicleStore } from '../../stores/chronicleStore'
 import { useChronicle, useChronicleLLM } from '../chronicle/ChronicleProvider'
+import { RolloutDashboardPanel } from '../chronicle/RolloutDashboardPanel'
 import { FileManagementPanel } from '../game/FileManagementPanel'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
 import { AccessibilityChecker } from './AccessibilityChecker'
@@ -35,7 +36,6 @@ import { HelpSystem } from './HelpSystem'
 import { KeyboardShortcutsPanel } from './KeyboardShortcutsPanel'
 import { PerformanceMonitor } from './PerformanceMonitor'
 import { ThemeComponentShowcase } from './ThemeComponentShowcase'
-import { RolloutDashboardPanel } from '../chronicle/RolloutDashboardPanel'
 
 interface SettingsPanelProps {
   className?: string

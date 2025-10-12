@@ -21,14 +21,22 @@ export async function computeSha256Hex(input: string): Promise<string> {
     return webCryptoResult
   }
 
-  const nodeCrypto = await import('node:crypto')
-  const hash = nodeCrypto.createHash('sha256')
-  hash.update(input)
-  return hash.digest('hex')
+  return fallbackHash(input)
 }
 
 function bufferToHex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer))
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('')
+}
+
+function fallbackHash(input: string): string {
+  let hash = 0x811C9DC5
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index)
+    hash = Math.imul(hash, 0x01000193)
+    hash >>>= 0
+  }
+
+  return hash.toString(16).padStart(8, '0')
 }

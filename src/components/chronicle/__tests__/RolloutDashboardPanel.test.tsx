@@ -1,8 +1,8 @@
-import { render, screen, act } from '@testing-library/react'
-import React from 'react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-
 import type { ChronicleTelemetryEventLog } from '@/types/chronicle'
+
+import { act, render, screen } from '@testing-library/react'
+import React from 'react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const listeners: Array<(event: ChronicleTelemetryEventLog) => void> = []
 const history: ChronicleTelemetryEventLog[] = [
@@ -44,7 +44,7 @@ vi.mock('@/components/chronicle/highlightUtils', async (importOriginal) => {
   }
 })
 
-describe('RolloutDashboardPanel', () => {
+describe('rollout dashboard panel', () => {
   beforeEach(() => {
     listeners.splice(0, listeners.length)
   })
