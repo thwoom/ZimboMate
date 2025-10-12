@@ -66,13 +66,17 @@ class Gpt5Client {
       },
     )
 
-    let validatedOps = []
-    let validationSource = stableStringify(response.operations)
+    let validatedOps: DeltaOperation[] = []
+    let validationSource =
+      stableStringify(response.operations ?? []) ?? '[]'
     const warnings = [...(response.warnings ?? [])]
 
     try {
       validatedOps = validateDeltaOperations(response.operations)
       validationSource = stableStringify(validatedOps)
+      if (!validationSource) {
+        validationSource = '[]'
+      }
     } catch (error) {
       const details =
         error instanceof ZodError
@@ -97,6 +101,7 @@ class Gpt5Client {
         `Automation skipped: Chronicle could not validate GPT-5's delta payload (${details}). The narrative was saved without state updates.`,
       )
       validatedOps = []
+      validationSource = '[]'
     }
 
     const createdAt = response.createdAt ?? new Date().toISOString()
