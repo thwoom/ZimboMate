@@ -35,6 +35,7 @@ import { HelpSystem } from './HelpSystem'
 import { KeyboardShortcutsPanel } from './KeyboardShortcutsPanel'
 import { PerformanceMonitor } from './PerformanceMonitor'
 import { ThemeComponentShowcase } from './ThemeComponentShowcase'
+import { RolloutDashboardPanel } from '../chronicle/RolloutDashboardPanel'
 
 interface SettingsPanelProps {
   className?: string
@@ -805,6 +806,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       case 'system':
         return (
           <div className='space-y-4'>
+            <RolloutDashboardPanel />
             <PerformanceMonitor />
           </div>
         )

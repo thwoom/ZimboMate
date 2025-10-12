@@ -51,7 +51,7 @@ Execute `npm run test --watch=false` before promoting builds. For manual QA, wal
      - Propose path returns the template fallback narrative.
      - Telemetry logs a `guardrail`/`skipped` event with `entryId`.
      - `sessionCostCents` stops incrementing once the guardrail engages.
-  4. External dashboards can listen for the `chronicle-telemetry` custom event on `window`; every telemetry payload is dispatched there via `publishRolloutTelemetry`. Consumers may also subscribe through `subscribeRolloutTelemetry` for direct callbacks or replay the recent history (see `src/utils/rolloutTelemetry.ts`).
+  4. The in-app rollout dashboard now lives under Settings → System & Performance. It consumes `publishRolloutTelemetry`, surfaces stage/outcome counts, latency averages, spend, and a live feed. External dashboards can still listen for the `chronicle-telemetry` custom event on `window` or subscribe to `subscribeRolloutTelemetry` for callbacks and history replay (see `src/utils/rolloutTelemetry.ts`).
   **2025-10-12 QA log:** Guardrail checklist executed in desktop shell; the overlay updated live with `guardrail` stage telemetry after the cap was hit, and unit suite `npm run test -- src/components/chronicle/__tests__/ChronicleProvider.llm.test.tsx` passed locally.
 
 ## 5. Promotion Steps
