@@ -49,6 +49,7 @@ import {
 import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
 import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
+import { useIsTauriRuntime } from '@/utils/tauriRuntime'
 import { chronicleActionListener } from '../../services/ChronicleActionListenerService'
 import { contextIntelligence } from '../../services/ChronicleContextIntelligence'
 import { useChronicleLLM } from './ChronicleProvider'
@@ -582,12 +583,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   })
   const { prompts: activePrompts, isVisible } = promptState
 
-  const tauriBridge =
-    typeof window !== 'undefined'
-      ? (window as typeof window & { __TAURI__?: unknown })
-      : undefined
-
-  const isTauriRuntime = Boolean(tauriBridge?.__TAURI__)
+  const isTauriRuntime = useIsTauriRuntime()
 
   const showTauriGuard = !isTauriRuntime && !tauriGuardDismissed
 

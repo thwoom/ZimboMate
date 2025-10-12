@@ -32,6 +32,7 @@ import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
 import { createChronicleParser } from '@/utils/chronicleParser'
 import { logger } from '@/utils/logger'
+import { useIsTauriRuntime } from '@/utils/tauriRuntime'
 import { Badge, Button, Card, CardContent } from '../../ui'
 
 interface ChroniclePanelProps {
@@ -105,11 +106,7 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
   const [isTimelineGuardDismissed, setIsTimelineGuardDismissed] =
     useState(false)
 
-  const tauriBridge =
-    typeof window !== 'undefined'
-      ? (window as typeof window & { __TAURI__?: unknown })
-      : undefined
-  const isTauriRuntime = Boolean(tauriBridge?.__TAURI__)
+  const isTauriRuntime = useIsTauriRuntime()
   const showTauriGuard = !isTauriRuntime && !isTimelineGuardDismissed
 
   const pendingRequestedAt = useMemo(() => {

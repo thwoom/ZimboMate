@@ -1,6 +1,15 @@
-import process from 'node:process'
-
 const FALSE_VALUES = new Set(['false', '0', 'off', 'no', ''])
+
+type ProcessEnv = Record<string, unknown>
+
+function getProcessEnv(): ProcessEnv | undefined {
+  if (typeof globalThis === 'undefined') {
+    return undefined
+  }
+
+  const maybeProcess = (globalThis as { process?: { env?: ProcessEnv } }).process
+  return maybeProcess?.env
+}
 
 function normalizeFlagValue(value: unknown): boolean | undefined {
   if (typeof value === 'boolean') {
@@ -43,17 +52,17 @@ export function isLlmUnifiedEnabled(): boolean {
     }
   }
 
-  if (typeof process !== 'undefined' && process.env) {
-    const envValue = process.env.LLM_UNIFIED
+  const processEnv = getProcessEnv()
+  if (processEnv) {
+    const envValue = processEnv.LLM_UNIFIED
     const normalized = normalizeFlagValue(envValue)
     if (typeof normalized === 'boolean') {
       return normalized
     }
   }
 
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
-    return true
-  }
+  const nodeEnv = processEnv?.NODE_ENV
+  if (typeof nodeEnv === 'string' && nodeEnv === 'test') return true
 
   return false
 }
@@ -93,15 +102,15 @@ export function getLlmRolloutStage(): LlmRolloutStage {
     if (normalized) return normalized
   }
 
-  if (typeof process !== 'undefined' && process.env) {
-    const envValue = process.env.LLM_ROLLOUT_STAGE
+  const processEnv = getProcessEnv()
+  if (processEnv) {
+    const envValue = processEnv.LLM_ROLLOUT_STAGE
     const normalized = normalizeRolloutStage(envValue)
     if (normalized) return normalized
   }
 
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
-    return 'default'
-  }
+  const nodeEnv = processEnv?.NODE_ENV
+  if (typeof nodeEnv === 'string' && nodeEnv === 'test') return 'default'
 
   return 'default'
 }

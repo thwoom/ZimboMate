@@ -45,6 +45,7 @@ import { useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { DeltaChecklist } from '../chronicle/DeltaChecklist'
 import { Badge, Button, Card, CardContent, Input, Textarea } from '../ui'
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
+import { useIsTauriRuntime } from '@/utils/tauriRuntime'
 
 interface DiceRollContext {
   id: string
@@ -609,11 +610,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
   const [undoingBundleId, setUndoingBundleId] = useState<string | null>(null)
   const [isAutomationGuardDismissed, setIsAutomationGuardDismissed] =
     useState(false)
-  const tauriBridge =
-    typeof window !== 'undefined'
-      ? (window as typeof window & { __TAURI__?: unknown })
-      : undefined
-  const isTauriRuntime = Boolean(tauriBridge?.__TAURI__)
+  const isTauriRuntime = useIsTauriRuntime()
   const showAutomationGuard = !isTauriRuntime && !isAutomationGuardDismissed
   const chronicleTextareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -1200,23 +1197,23 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
   return (
     <div
       className={cn(
-        'flex h-screen flex-col overflow-hidden bg-background',
+        'flex min-h-screen flex-col overflow-x-hidden bg-background',
         className,
       )}
     >
       <SplitPane
-        className='flex-1 gap-4 overflow-hidden p-4 md:p-6'
+        className='flex-1 min-h-0 gap-4 overflow-hidden p-4 md:p-6'
         left={
           <Folio
             highlight={folioHighlight}
             onNoteCreated={handleNoteCreated}
             onEquipmentChange={handleFolioEquipmentChange}
-            className='h-full'
+            className='h-full min-h-0'
           />
         }
         right={
           <RightRail
-            className='h-full'
+            className='h-full min-h-0'
             header={
               <div className='space-y-4'>
                 <div className='flex flex-wrap items-center gap-2'>
@@ -1268,7 +1265,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
               </div>
             }
           >
-            <div className='flex h-full flex-col overflow-hidden'>
+            <div className='flex h-full min-h-0 flex-col overflow-hidden'>
               <AnimatePresence mode='wait'>
                 {activeTab === 'chronicle' && (
                   <motion.div
@@ -1276,12 +1273,12 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className='h-full flex flex-col p-6'
+                    className='flex h-full min-h-0 flex-col overflow-y-auto p-6'
                   >
                     {/* Chronicle Canvas - 60% of available space */}
                     <div className='flex-1 mb-6'>
                       <Card variant='parchment' className='h-full'>
-                        <CardContent className='p-6 h-full flex flex-col'>
+                        <CardContent className='flex h-full flex-col p-6'>
                           <div className='flex items-center justify-between mb-4'>
                             <h2 className='text-xl font-display flex items-center gap-2'>
                               <Scroll size={20} className='text-primary' />
