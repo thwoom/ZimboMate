@@ -498,9 +498,11 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           )
 
           const createdAt = new Date().toISOString()
-          const idempotencyKey = await computeSha256Hex(
-            `${input.entryId}:fallback:${createdAt}`,
-          )
+          const idempotencyKey =
+            typeof globalThis.crypto !== 'undefined' &&
+            typeof globalThis.crypto.randomUUID === 'function'
+              ? globalThis.crypto.randomUUID()
+              : `fallback-${Date.now()}-${Math.random().toString(36).slice(2)}`
 
           return {
             bundle: {

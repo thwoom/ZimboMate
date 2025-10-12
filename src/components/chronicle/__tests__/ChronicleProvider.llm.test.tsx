@@ -195,6 +195,10 @@ describe('chronicle provider GPT-5 integration', () => {
     })
 
     expect(fallbackResponse?.bundle.model).toBe('chronicle-fallback')
+    expect(typeof fallbackResponse?.bundle.idempotencyKey).toBe('string')
+    expect(
+      (fallbackResponse?.bundle.idempotencyKey ?? '').length,
+    ).toBeGreaterThan(0)
     expect(fallbackResponse?.bundle.ops).toHaveLength(0)
     expect(fallbackResponse?.bundle.narrative).toBe('typo sword')
     expect(fallbackResponse?.warnings?.[0]).toMatch(/Automation skipped/)
