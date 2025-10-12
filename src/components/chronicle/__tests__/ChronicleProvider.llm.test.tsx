@@ -112,6 +112,9 @@ describe('chronicle provider GPT-5 integration', () => {
         model: 'gpt-5-mock',
         latencyMs: 123,
         usage: { inputTokens: 5, outputTokens: 10, totalTokens: 15 },
+        stage: 'propose',
+        outcome: 'success',
+        entryId: 'entry-telemetry',
       })
     })
 
@@ -127,9 +130,49 @@ describe('chronicle provider GPT-5 integration', () => {
       stage: 'propose',
       outcome: 'success',
       source: 'tauri',
+      entryId: 'entry-telemetry',
       costCents: 1,
     })
     expect(storeState.sessionCostCents).toBe(1)
+  })
+
+  it('emits guardrail telemetry when the session cost cap is reached', async () => {
+    const { result } = renderHook(() => useChronicleLLM(), { wrapper })
+
+    act(() => {
+      useChronicleStore.setState((state) => ({
+        ...state,
+        settings: { ...state.settings, costCapCents: 1 },
+        sessionCostCents: 1,
+      }))
+    })
+
+    let guardrailResponse:
+      | Awaited<ReturnType<typeof result.current.proposeEntryDeltas>>
+      | undefined
+
+    await act(async () => {
+      guardrailResponse = await result.current.proposeEntryDeltas({
+        entryId: 'entry-guardrail',
+        rawText: 'Budget exhausted, queue fallback.',
+      })
+    })
+
+    expect(guardrailResponse?.bundle.ops).toHaveLength(0)
+    expect(guardrailResponse?.warnings).toContain(
+      'Session cost guardrail reached. GPT-5 call skipped; template narrative returned.',
+    )
+
+    const telemetry = useChronicleStore.getState().telemetryEvents
+    expect(telemetry).not.toHaveLength(0)
+    expect(telemetry[0]).toMatchObject({
+      stage: 'guardrail',
+      outcome: 'skipped',
+      entryId: 'entry-guardrail',
+      source: 'client',
+    })
+    expect(typeof telemetry[0].bundleId).toBe('string')
+    expect(useChronicleStore.getState().sessionCostCents).toBe(1)
   })
 
   it('tracks pending bundle lifecycle and audit log when applying', async () => {

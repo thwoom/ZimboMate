@@ -44,8 +44,6 @@ pub struct EnhancementResult {
     pub actions: Vec<CharacterAction>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct TokenUsage {
     #[serde(default)]
@@ -77,6 +75,8 @@ pub struct ChronicleProposeResponse {
     pub model: String,
     pub created_at: Option<String>,
 }
+
+#[derive(Debug, Serialize, Clone)]
 pub struct AIProgress {
     pub progress: f64, // 0.0 - 100.0
     pub text: String,
@@ -623,6 +623,7 @@ Return JSON that matches the provided schema exactly. Never omit required fields
     }
 }
 
+impl LlmService {
     pub async fn propose_deltas(
         &self,
         request: ChronicleProposeRequest,
@@ -669,28 +670,61 @@ Return JSON that matches the provided schema exactly. Never omit required fields
 
         let start = Instant::now();
 
-        let response = self
+        let request_entry_id = request.entry_id.clone();
+
+        let response_result = self
             .client
             .post(format!("{}/responses", self.base_url))
             .bearer_auth(api_key)
             .json(&payload)
             .send()
-            .await
-            .map_err(|e| format!("OpenAI request failed: {}", e))?;
+            .await;
+
+        let emit_failure_telemetry = |error_message: &str| {
+            let latency_ms = start.elapsed().as_secs_f64() * 1000.0;
+            let payload = json!({
+                "model": model_name.clone(),
+                "latencyMs": latency_ms,
+                "usage": {
+                    "inputTokens": 0,
+                    "outputTokens": 0,
+                    "totalTokens": 0
+                },
+                "stage": "propose",
+                "outcome": "failure",
+                "entryId": request_entry_id.clone(),
+                "error": error_message
+            });
+            let _ = app_handle.emit("llm_telemetry", payload);
+        };
+
+        let response = response_result.map_err(|e| {
+            let message = format!("OpenAI request failed: {}", e);
+            emit_failure_telemetry(&message);
+            message
+        })?;
 
         let status = response.status();
         let raw_body = response.text().await.unwrap_or_default();
+        let latency_ms = start.elapsed().as_secs_f64() * 1000.0;
 
         if !status.is_success() {
-            return Err(format!("OpenAI API error ({}): {}", status, raw_body));
+            let error_message = format!("OpenAI API error ({}): {}", status, raw_body);
+            emit_failure_telemetry(&error_message);
+            return Err(error_message);
         }
 
-        let value: Value = serde_json::from_str(&raw_body)
-            .map_err(|e| format!("Failed to parse OpenAI response JSON: {}", e))?;
+        let value: Value = serde_json::from_str(&raw_body).map_err(|e| {
+            let message = format!("Failed to parse OpenAI response JSON: {}", e);
+            emit_failure_telemetry(&message);
+            message
+        })?;
 
         if let Some(error) = value.get("error") {
             let serialized = serde_json::to_string(error).unwrap_or_else(|_| "unknown error".to_string());
-            return Err(format!("OpenAI returned an error payload: {}", serialized));
+            let message = format!("OpenAI returned an error payload: {}", serialized);
+            emit_failure_telemetry(&message);
+            return Err(message);
         }
 
         let usage = extract_token_usage(&value);
@@ -715,7 +749,6 @@ Return JSON that matches the provided schema exactly. Never omit required fields
             created_at,
         };
 
-        let latency_ms = start.elapsed().as_secs_f64() * 1000.0;
         let telemetry_payload = json!({
             "model": model,
             "latencyMs": latency_ms,
@@ -723,12 +756,16 @@ Return JSON that matches the provided schema exactly. Never omit required fields
                 "inputTokens": usage.input_tokens,
                 "outputTokens": usage.output_tokens,
                 "totalTokens": usage.total_tokens
-            }
+            },
+            "stage": "propose",
+            "outcome": "success",
+            "entryId": request_entry_id
         });
         let _ = app_handle.emit("llm_telemetry", telemetry_payload);
 
         Ok(response)
     }
+}
 
 impl Default for LlmService {
     fn default() -> Self {

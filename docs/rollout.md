@@ -8,6 +8,11 @@ This playbook tracks the rollout of the Chronicle v2 entity-linking and automati
   - **Purpose:** gates the new automation log surfaces, Chronicle overlay details, and executor plumbing for Phase 2.
   - **Configuration:** set `VITE_LLM_UNIFIED=true` in the web shell or `LLM_UNIFIED=true` in desktop/CI environments. Tests default to enabled when the flag is unset.
   - **Fallback:** when disabled we defer to existing prompt/overlay behaviour without automation summaries.
+- `LLM_ROLLOUT_STAGE` (default: `dark`)
+  - **Purpose:** coordinates automation behaviour across the overlay, delta executor, and undo tooling for the phased launch.
+  - **Values:** `dark` (read-only automation, no apply/undo), `opt_in` (manual apply/undo available, auto-apply disabled), `default` (auto-apply enabled wherever policies allow).
+  - **Configuration:** set `VITE_LLM_ROLLOUT_STAGE` in the web shell or `LLM_ROLLOUT_STAGE` for desktop/CI. The Chronicle provider reads the flag on startup; restart the shell after changing it.
+  - **Guardrails:** the overlay surfaces an “Automation disabled” warning whenever `dark` is active, and `recordTelemetry` logs an `apply` failure telemetry event if apply is attempted while read-only.
 
 ## 2. Dark Launch Checklist
 
@@ -27,12 +32,25 @@ Execute `npm run test --watch=false` before promoting builds. For manual QA, wal
 
 ## 4. Cost & Telemetry Acceptance
 
-- Record Requests: ensure each applied bundle emits telemetry with latency, usage, and cost (see Phase 4 plan in `docs/LLM_UPGRADE.md`).
+- Record Requests: ensure each GPT-5 propose/apply/undo path emits telemetry with latency, usage, stage, outcome, entry/bundle identifiers, and cost (see Phase 4 plan in `docs/LLM_UPGRADE.md`).
+- Telemetry payload (from the `llm_telemetry` channel) now includes:
+  - `model`, `latencyMs`, and `usage` (input/output/total tokens)
+  - `stage` ∈ {`propose`, `apply`, `undo`, `guardrail`}
+  - `outcome` ∈ {`success`, `failure`, `skipped`}
+  - `entryId` and, when available, `bundleId`
+  - `costCents` (computed client-side) and optional `error`
+  - `source` (`tauri` events originate from the bridge; `client` events are emitted by Chronicle UI flows)
 - Acceptance criteria:
-  - ≥95 % of applied bundles include telemetry events within 5 minutes.
-  - Cost per session stays < the budget defined in `LLM_UPGRADE.md` Phase 4.
-  - Automation skips must include `metadata.skipReason` for downstream analytics.
-- Visualization: the Chronicle overlay’s “Latest Chronicle Update” card now includes a Telemetry panel summarising propose/apply/undo events (latency, spend, model, source) for the active bundle. For dashboards, consume `useChronicleLLM().telemetryEvents` or `useChronicleStore.getState().getTelemetryEvents()` to feed rollout reporting.
+  - ≥95 % of propose/apply/undo operations record telemetry within 5 minutes of completion.
+  - Sessions stay under the `settings.costCapCents` budget defined in `LLM_UPGRADE.md` Phase 4. When the cap is reached, telemetry must include a `stage: guardrail` event and the overlay should surface the budget warning.
+  - Guardrail skips add `metadata.skipReason` through the delta executor and log `outcome: skipped` telemetry entries for downstream analytics.
+- Visualization & QA steps:
+  1. Chronicle overlay’s “Latest Chronicle Update” card surfaces per-bundle telemetry (stage, outcome, latency, spend, model, source). Confirm the panel shows the `guardrail` stage after forcing a budget hit.
+  2. Use `useChronicleLLM().telemetryEvents` or `useChronicleStore.getState().getTelemetryEvents()` to feed rollout dashboards; verify the feed includes the stage/outcome updates above.
+  3. To exercise the cost guardrail, set a temporary cap (e.g., 1¢) via Settings → Automation Guardrails, submit a note, and confirm:
+     - Propose path returns the template fallback narrative.
+     - Telemetry logs a `guardrail`/`skipped` event with `entryId`.
+     - `sessionCostCents` stops incrementing once the guardrail engages.
 
 ## 5. Promotion Steps
 
