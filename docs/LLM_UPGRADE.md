@@ -626,6 +626,7 @@ Phase 4 - Telemetry, Cost & Rollout Rails (PRD Sec 12, Sec 14, Sec 17.2, Sec 19-
   **2025-10-11 kickoff:** Phase 4 officially in motion. Verifying the apply/undo telemetry payloads now persist bundle latency, stage, outcome, and cost across both the Tauri emitter and ChronicleProvider state, backfilling unit coverage around `recordTelemetry`. Drafting the dark-launch playbook: documenting how `LLM_ROLLOUT_STAGE` gates auto-apply/undo in `docs/rollout.md`, and outlining the session budget guardrail QA checklist before we flip `opt_in` on.
   **2025-10-11 telemetry UI:** Chronicle overlay surfaces per-entry telemetry (stage, latency, and spend) from the new store log, and `useChronicleLLM().telemetryEvents` exposes the same feed so rollout dashboards can chart automation health alongside session budgets.
   **2025-10-11 bridge sync:** The Tauri `llm_telemetry` channel now emits structured payloads with `stage`, `outcome`, `entryId`, and usage so ChronicleProvider logs cost and latency consistently. Guardrail skips emit `stage: guardrail` + `outcome: skipped`, `recordTelemetry` tags their source, and `docs/rollout.md` captures the flag/QA matrix for `LLM_ROLLOUT_STAGE` and cost caps.
+  **2025-10-12 guardrail QA:** Verified guardrail telemetry end-to-end. Unit suite (`src/components/chronicle/__tests__/ChronicleProvider.llm.test.tsx`) covers the skip/failure path, and manual checklist confirms the desktop shell clears the bridge warning and surfaces the new telemetry fields.
 
 Phase 5 - Test & Visual Pass (PRD Sec 15)
 

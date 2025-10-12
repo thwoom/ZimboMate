@@ -51,6 +51,7 @@ Execute `npm run test --watch=false` before promoting builds. For manual QA, wal
      - Propose path returns the template fallback narrative.
      - Telemetry logs a `guardrail`/`skipped` event with `entryId`.
      - `sessionCostCents` stops incrementing once the guardrail engages.
+  **2025-10-12 QA log:** Guardrail checklist executed in desktop shell; the overlay updated live with `guardrail` stage telemetry after the cap was hit, and unit suite `npm run test -- src/components/chronicle/__tests__/ChronicleProvider.llm.test.tsx` passed locally.
 
 ## 5. Promotion Steps
 
