@@ -31,6 +31,7 @@ import { persist } from 'zustand/middleware'
 import { useCharacterStore } from './characterStore'
 import { useHoldStore } from './holdStore'
 import { useInventoryStore } from './inventoryStore'
+import { publishRolloutTelemetry } from '@/utils/rolloutTelemetry'
 
 type BundleActor = NonNullable<ChronicleDeltaLog['actor']>
 
@@ -675,6 +676,7 @@ export const useChronicleStore = create<ChronicleState>()(
             ),
           }
         })
+        publishRolloutTelemetry(normalized)
       },
 
       clearTelemetryEvents: (bundleId) => {
