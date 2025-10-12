@@ -17,6 +17,7 @@ import {
   deltaSchemasForResponses,
   validateDeltaOperations,
 } from './toolSchemas'
+import { ZodError } from 'zod'
 
 interface ChronicleProposeResponse {
   narrative: string
@@ -65,10 +66,42 @@ class Gpt5Client {
       },
     )
 
-    const validatedOps = validateDeltaOperations(response.operations)
+    let validatedOps = []
+    let validationSource = stableStringify(response.operations)
+    const warnings = [...(response.warnings ?? [])]
+
+    try {
+      validatedOps = validateDeltaOperations(response.operations)
+      validationSource = stableStringify(validatedOps)
+    } catch (error) {
+      const details =
+        error instanceof ZodError
+          ? error.issues
+              .slice(0, 2)
+              .map((issue) => {
+                const path = issue.path.join('.') || 'operation'
+                return `${path}: ${issue.message}`
+              })
+              .join('; ')
+          : error instanceof Error
+            ? error.message
+            : 'unknown validation error'
+
+      console.error(
+        '[gpt5Client] Invalid delta operations from GPT-5',
+        details,
+        response.operations,
+      )
+
+      warnings.push(
+        `Automation skipped: Chronicle could not validate GPT-5's delta payload (${details}). The narrative was saved without state updates.`,
+      )
+      validatedOps = []
+    }
+
     const createdAt = response.createdAt ?? new Date().toISOString()
     const idempotencyKey = await computeSha256Hex(
-      `${request.entryId}:${stableStringify(validatedOps)}`,
+      `${request.entryId}:${validationSource}`,
     )
 
     return {
@@ -82,7 +115,7 @@ class Gpt5Client {
         model: response.model,
         createdAt,
       },
-      warnings: response.warnings ?? [],
+      warnings,
     }
   }
 
