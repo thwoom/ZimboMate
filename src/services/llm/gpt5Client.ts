@@ -60,8 +60,12 @@ class Gpt5Client {
       'chronicle_propose_deltas',
       {
         request: {
-          ...request,
-          toolSchemas: deltaSchemasForResponses(),
+          entry_id: request.entryId,
+          raw_text: request.rawText,
+          summary: request.summary,
+          context: request.context,
+          settings: request.settings,
+          tool_schemas: deltaSchemasForResponses(),
         },
       },
     )
