@@ -448,9 +448,59 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
   const proposeEntryDeltas = useCallback(
     async (input: Omit<ProposeDeltasRequest, 'settings'>) => {
       setIsProposing(true)
-      try {
+
+      const buildFallback = async (
+        failureReason: string,
+        additionalWarnings: string[] = [],
+      ): Promise<ProposeDeltasResponse> => {
+        const createdAt = new Date().toISOString()
+        const idempotencyKey =
+          typeof globalThis.crypto !== 'undefined' &&
+          typeof globalThis.crypto.randomUUID === 'function'
+            ? globalThis.crypto.randomUUID()
+            : await computeSha256Hex(
+                `${input.entryId}:fallback:${createdAt}:${Math.random()}`,
+              )
+
+        recordTelemetry(
+          {
+            stage: 'propose',
+            outcome: 'failure',
+            entryId: input.entryId,
+            usage: ZERO_USAGE,
+            model: 'chronicle-fallback',
+            latencyMs: 0,
+            costCents: 0,
+            error: failureReason,
+          },
+          'client',
+        )
+
+        return {
+          bundle: {
+            entryId: input.entryId,
+            narrative: input.rawText,
+            ops: [],
+            usage: ZERO_USAGE,
+            reasoning: 'fallback_due_to_error',
+            idempotencyKey,
+            model: 'chronicle-fallback',
+            createdAt,
+          },
+          warnings: [
+            'Automation skipped: Chronicle could not reach GPT-5 for this note.',
+            failureReason,
+            ...additionalWarnings,
+          ].filter(Boolean),
+        }
+      }
+
+      const attemptPropose = async (
+        attemptInput: Omit<ProposeDeltasRequest, 'settings'>,
+        hasRetried: boolean,
+      ): Promise<ProposeDeltasResponse> => {
         if (isCostGuardrailActive) {
-          const fallback = await buildGuardrailResponse(input)
+          const fallback = await buildGuardrailResponse(attemptInput)
           setLastProgressEvent({
             progress: 100,
             stage: 'cost_guardrail',
@@ -474,7 +524,7 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         }
 
         const request: ProposeDeltasRequest = {
-          ...input,
+          ...attemptInput,
           settings: buildNarrativeSettings(),
         }
 
@@ -483,44 +533,36 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
         } catch (error) {
           const failureReason =
             error instanceof Error ? error.message : String(error ?? 'unknown error')
+          const lowerReason = failureReason.toLowerCase()
 
-          recordTelemetry(
-            {
-              stage: 'propose',
-              outcome: 'failure',
-              entryId: input.entryId,
-              model: 'chronicle-fallback',
-              usage: ZERO_USAGE,
-              latencyMs: 0,
-              error: failureReason,
-            },
-            'client',
-          )
-
-          const createdAt = new Date().toISOString()
-          const idempotencyKey =
-            typeof globalThis.crypto !== 'undefined' &&
-            typeof globalThis.crypto.randomUUID === 'function'
-              ? globalThis.crypto.randomUUID()
-              : `fallback-${Date.now()}-${Math.random().toString(36).slice(2)}`
-
-          return {
-            bundle: {
-              entryId: input.entryId,
-              narrative: input.rawText,
-              ops: [],
-              usage: ZERO_USAGE,
-              reasoning: 'fallback_due_to_error',
-              idempotencyKey,
-              model: 'chronicle-fallback',
-              createdAt,
-            },
-            warnings: [
-              'Automation skipped: Chronicle could not reach GPT-5 for this note.',
-              failureReason,
-            ],
+          if (!hasRetried && lowerReason.includes('llm not ready')) {
+            try {
+              await invoke('initialize_llm', { modelName: undefined })
+              return await attemptPropose(attemptInput, true)
+            } catch (initError) {
+              const initMessage =
+                initError instanceof Error
+                  ? initError.message
+                  : String(initError ?? 'initialization failed')
+              return buildFallback(failureReason, [
+                `Initialization attempt failed: ${initMessage}`,
+              ])
+            }
           }
+
+          const extraWarnings =
+            lowerReason.includes('llm not ready') && hasRetried
+              ? [
+                  'Chronicle attempted to initialize GPT-5 automatically. Try again in a few seconds.',
+                ]
+              : []
+
+          return buildFallback(failureReason, extraWarnings)
         }
+      }
+
+      try {
+        return await attemptPropose(input, false)
       } finally {
         setIsProposing(false)
       }

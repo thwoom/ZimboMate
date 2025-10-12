@@ -11,6 +11,10 @@ if (typeof process !== 'undefined') {
   process.env.LLM_ROLLOUT_STAGE = process.env.LLM_ROLLOUT_STAGE ?? 'default'
 }
 
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(async () => undefined),
+}))
+
 vi.mock('@/services/llm', async () => {
   const actual =
     await vi.importActual<typeof import('@/services/llm')>('@/services/llm')
