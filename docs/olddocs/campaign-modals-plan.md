@@ -1,3 +1,5 @@
+> **Reference only:** Phase 1 campaign modal rewrite is already complete; keep for historical context.
+
 # Campaign Modal Rewrite Plan (Phase 1 Spec)
 
 ## Goals
