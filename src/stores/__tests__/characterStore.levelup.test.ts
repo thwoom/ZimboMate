@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCharacterStore } from '../characterStore'
 import { xpIntegrationService } from '../../services/XPIntegrationService'
+import { logLevelUpEvent } from '../../services/LevelUpLogger'
 import type { Character } from '../../models/Character'
+
+vi.mock('../../services/LevelUpLogger', () => ({
+  logLevelUpEvent: vi.fn().mockResolvedValue(undefined),
+}))
 
 function createTestCharacter(overrides: Partial<Character> = {}) {
   const store = useCharacterStore.getState()
@@ -46,6 +51,7 @@ function createTestCharacter(overrides: Partial<Character> = {}) {
 
 describe('characterStore level-up workflow', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     useCharacterStore.setState({
       characters: [],
       pendingAdvancements: {},
@@ -227,5 +233,77 @@ describe('characterStore level-up workflow', () => {
     }
 
     awardSpy.mockRestore()
+  })
+
+  it('adds wizard spell selections and logs chronicle when enabled', () => {
+    const logSpy = logLevelUpEvent as unknown as vi.Mock
+    const store = useCharacterStore.getState()
+    const wizard = createTestCharacter({
+      name: 'Aria the Wise',
+      class: 'Wizard',
+      xp: 9,
+      knownSpells: ['light', 'magic_missile'],
+      attributes: {
+        STR: 8,
+        DEX: 12,
+        CON: 10,
+        INT: 16,
+        WIS: 13,
+        CHA: 11,
+      },
+    })
+
+    const pending = store.startLevelUp(wizard.id)
+    expect(pending).not.toBeNull()
+    const moveOption = pending?.availableOptions.find(
+      (option) => option.type === 'move',
+    )
+    expect(moveOption).toBeDefined()
+
+    store.updateLevelUpDraft(wizard.id, {
+      moveIds: moveOption ? [moveOption.id] : [],
+      spellSelections: ['charm_person'],
+      chronicleEnabled: true,
+    })
+
+    store.applyLevelUpChoices(wizard.id, {})
+
+    const updatedWizard = store.getCharacter(wizard.id)
+    expect(updatedWizard?.knownSpells).toContain('charm_person')
+    expect(updatedWizard?.level).toBe(2)
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        characterId: wizard.id,
+        spellNames: expect.arrayContaining(['Charm Person']),
+      }),
+    )
+  })
+
+  it('does not log a chronicle entry when disabled', () => {
+    const logSpy = logLevelUpEvent as unknown as vi.Mock
+    const store = useCharacterStore.getState()
+    const wizard = createTestCharacter({
+      name: 'Neris of the North',
+      class: 'Wizard',
+      xp: 9,
+      knownSpells: ['light', 'magic_missile'],
+    })
+
+    const pending = store.startLevelUp(wizard.id)
+    expect(pending).not.toBeNull()
+    const moveOption = pending?.availableOptions.find(
+      (option) => option.type === 'move',
+    )
+    expect(moveOption).toBeDefined()
+
+    store.updateLevelUpDraft(wizard.id, {
+      moveIds: moveOption ? [moveOption.id] : [],
+      spellSelections: ['alarm'],
+      chronicleEnabled: false,
+    })
+
+    store.applyLevelUpChoices(wizard.id, {})
+
+    expect(logSpy).not.toHaveBeenCalled()
   })
 })

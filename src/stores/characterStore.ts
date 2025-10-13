@@ -15,6 +15,9 @@ import {
 import { characterStateService } from '../services/CharacterStateService'
 import { xpIntegrationService } from '../services/XPIntegrationService'
 import type { SpellProgression } from '../data/advancement/spellProgression'
+import { spellCastingService } from '../services/SpellCastingService'
+import type { ServiceSpell } from '../services/SpellCastingService'
+import { logLevelUpEvent } from '../services/LevelUpLogger'
 
 const ATTRIBUTE_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const
 
@@ -633,7 +636,15 @@ export const useCharacterStore = create<CharacterState>()(
             load: { ...levelUpResult.character.load },
             knownMoves: [...levelUpResult.character.knownMoves],
             advancements: [...levelUpResult.character.advancements],
+            knownSpells: [...(levelUpResult.character.knownSpells ?? [])],
+            preparedSpells: levelUpResult.character.preparedSpells
+              ? [...levelUpResult.character.preparedSpells]
+              : levelUpResult.character.preparedSpells,
           }
+
+          let statIncreaseName: string | undefined
+          const selectedMoveNames: string[] = []
+          const addedSpellNames: string[] = []
 
           // Apply stat increase if selected
           if (effectiveChoices.statIncreaseId) {
@@ -662,6 +673,7 @@ export const useCharacterStore = create<CharacterState>()(
               leveledCharacter,
               statOption,
             )
+            statIncreaseName = statOption.name
           }
 
           // Apply move choices
@@ -691,10 +703,84 @@ export const useCharacterStore = create<CharacterState>()(
                 leveledCharacter,
                 moveOption,
               )
+
+              selectedMoveNames.push(moveOption.name)
             }
           }
 
-          // TODO: Handle spell selections in a dedicated phase when UI is ready
+          if (effectiveChoices.spellSelections?.length) {
+            const uniqueSelections = Array.from(
+              new Set(effectiveChoices.spellSelections),
+            )
+
+            if (uniqueSelections.length !== effectiveChoices.spellSelections.length) {
+              set({ error: 'Duplicate spell selections are not allowed.' })
+              return
+            }
+
+            if (leveledCharacter.class !== 'Wizard') {
+              set({
+                error:
+                  'Only wizards can add spells during level-up in this version.',
+              })
+              return
+            }
+
+            const requiredSpells =
+              pending.spellProgression?.wizard?.newSpellsKnown ?? 0
+            if (requiredSpells > 0 && uniqueSelections.length !== requiredSpells) {
+              set({
+                error: `Select exactly ${requiredSpells} new spell${requiredSpells === 1 ? '' : 's'}.`,
+              })
+              return
+            }
+
+            const knownSpellSet = new Set(leveledCharacter.knownSpells ?? [])
+            const newSpells: ServiceSpell[] = []
+
+            for (const spellId of uniqueSelections) {
+              const spell = spellCastingService.getSpellById(spellId)
+              if (!spell) {
+                set({ error: `Unknown spell selection: ${spellId}` })
+                return
+              }
+
+              if (
+                spell.requiresClass &&
+                spell.requiresClass !== leveledCharacter.class
+              ) {
+                set({
+                  error: `Spell ${spell.name} is not available to ${leveledCharacter.class}.`,
+                })
+                return
+              }
+
+              if (spell.level > pending.levelAfter) {
+                set({
+                  error: `Spell ${spell.name} is too strong for level ${pending.levelAfter}.`,
+                })
+                return
+              }
+
+              if (knownSpellSet.has(spell.id)) {
+                set({
+                  error: `Spell ${spell.name} is already in ${character.name}'s spellbook.`,
+                })
+                return
+              }
+
+              newSpells.push(spell)
+            }
+
+            if (newSpells.length > 0) {
+              const updatedKnownSpells = [
+                ...knownSpellSet,
+                ...newSpells.map((spell) => spell.id),
+              ]
+              leveledCharacter.knownSpells = updatedKnownSpells
+              addedSpellNames.push(...newSpells.map((spell) => spell.name))
+            }
+          }
 
           leveledCharacter.xp = Math.max(
             0,
@@ -710,6 +796,22 @@ export const useCharacterStore = create<CharacterState>()(
             -pending.xpCost,
             `Spent ${pending.xpCost} XP to reach level ${pending.levelAfter}`,
           )
+
+          if (draft.chronicleEnabled) {
+            void logLevelUpEvent({
+              characterId,
+              characterName: leveledCharacter.name,
+              characterClass: leveledCharacter.class,
+              levelBefore: pending.levelBefore,
+              levelAfter: pending.levelAfter,
+              xpSpent: pending.xpCost,
+              hpIncrease: pending.hpIncrease,
+              loadIncrease: pending.loadIncrease,
+              statIncreaseName,
+              moveNames: selectedMoveNames,
+              spellNames: addedSpellNames,
+            })
+          }
 
           set((state) => {
             const { [characterId]: _removed, ...rest } =
