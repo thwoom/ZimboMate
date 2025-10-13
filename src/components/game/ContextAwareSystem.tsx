@@ -75,8 +75,13 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
   showDismissed = false,
   compact = false,
 }) => {
-  const { getActiveCharacter, getCharacter, healCharacter, levelUpCharacter } =
-    useCharacterStore()
+  const {
+    getActiveCharacter,
+    getCharacter,
+    healCharacter,
+    levelUpCharacter,
+    pendingAdvancements,
+  } = useCharacterStore()
   const { rollHistory, combat, currentSession } = useSessionStore()
   const { environment } = useGameStateStore()
 
@@ -135,16 +140,24 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     }
 
     // Advancement suggestions
-    if (shouldLevelUp(character)) {
+    const pendingAdvancement = pendingAdvancements[character.id]
+
+    if (shouldLevelUp(character) || pendingAdvancement) {
       suggestions.push({
         id: 'level-up-ready',
         type: 'advancement',
         priority: 'high',
-        title: 'Ready to Level Up!',
-        description: `${character.name} has enough XP to advance to level ${character.level + 1}.`,
-        reason: `Has ${character.xp} XP, needs ${character.level + 7}`,
+        title: pendingAdvancement
+          ? 'Level-Up In Progress'
+          : 'Ready to Level Up!',
+        description: pendingAdvancement
+          ? `Finish choosing advancements for ${character.name} to reach level ${pendingAdvancement.levelAfter}.`
+          : `${character.name} has enough XP to advance to level ${character.level + 1}.`,
+        reason: pendingAdvancement
+          ? 'Level-up wizard waiting for confirmation.'
+          : `Has ${character.xp} XP, needs ${character.level + 7}`,
         action: {
-          label: 'Level Up',
+          label: pendingAdvancement ? 'Resume Level-Up' : 'Level Up',
           onClick: () => levelUpCharacter(character.id),
         },
         dismissible: false,

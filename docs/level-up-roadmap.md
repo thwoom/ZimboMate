@@ -1,8 +1,8 @@
 # ZimboMate V2 – Level-Up Roadmap
 
-Last updated: 10 Oct 2025  
+Last updated: 12 Oct 2025  
 Owner: Gameplay / Chronicle Pod  
-Status: Planning (no implementation work started yet)
+Status: Phase 1 kickoff (domain & store groundwork in progress)
 
 ## Why This Exists
 
@@ -31,11 +31,11 @@ Players currently press “Level Up” and only see their level integer advance.
 - [x] Define Dungeon World contract + success criteria.
 - [x] Decide on wizard vs inline drawer (default: modal wizard unless design team objects).
 - [x] Capture requirements in this roadmap.
-- [ ] Spikes: confirm class advancement tables & spell upgrade logic with design (optional placeholder until data source finalised).
+- [x] Spikes: confirm class advancement tables & spell upgrade logic with design (captured in `docs/compendium_data.md` and mirrored in `src/data/advancement` + `src/data/spells`).
 
 **Exit criteria:** Stakeholders sign off on UX approach and scope.
 
-### Phase 1 – Domain & Store Enhancements (in progress)
+### Phase 1 - Domain & Store Enhancements (in progress)
 
 - [ ] Flesh out `AdvancementService.getAdvancementOptions` using real move/spell data (hook into `MoveCompendiumService`, `SpellCastingService`).
 - [ ] Track `pendingAdvancements` in `characterStore` (per-character queue with options, HP/Load deltas, creation timestamp).
@@ -45,6 +45,8 @@ Players currently press “Level Up” and only see their level integer advance.
 - [ ] Add actions: `startLevelUp`, `applyLevelUpChoices`, `cancelLevelUp` (or similar).
 - [ ] Persist pending state via Zustand storage (survives reload).
 - [ ] Emit XP notifications (`xpIntegrationService`) when threshold reached.
+
+  **2025-10-12 kickoff:** Auditing `AdvancementService` and `characterStore` to design pending level-up queue, XP rollover, and new store actions (`startLevelUp`, `applyLevelUpChoices`, `cancelLevelUp`). Implementation should consume the structured datasets under `src/data/advancement` and `src/data/spells`.
 
 **Exit criteria:** Store/state reflects pending level-ups and exposes options; unit tests cover XP rollover, stat caps, move availability.
 

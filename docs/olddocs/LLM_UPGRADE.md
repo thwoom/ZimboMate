@@ -1,4 +1,5 @@
 Product Requirements Document (PRD)
+> **Archived 2025-10-12:** Kept for historical reference. All future automation planning continues in `docs/level-up-roadmap.md`.
 
 Project: Chronicle v2 - Dungeon World + GPT-5 Unified
 Owner: Zimbo
@@ -629,6 +630,8 @@ Phase 4 - Telemetry, Cost & Rollout Rails (PRD Sec 12, Sec 14, Sec 17.2, Sec 19-
   **2025-10-12 guardrail QA:** Verified guardrail telemetry end-to-end. Unit suite (`src/components/chronicle/__tests__/ChronicleProvider.llm.test.tsx`) covers the skip/failure path, and manual checklist confirms the desktop shell clears the bridge warning and surfaces the new telemetry fields.
   **2025-10-12 rollout dashboards:** Added `publishRolloutTelemetry`/`subscribeRolloutTelemetry` utilities (`src/utils/rolloutTelemetry.ts`) so ops dashboards can ingest the feed or listen for the `chronicle-telemetry` window event. History is capped (200) and replay-ready for rapid QA. Settings → System & Performance now includes a Rollout Dashboard panel with live stage/outcome metrics, latency averages, spend, and a filterable event feed (`src/components/chronicle/RolloutDashboardPanel.tsx`).
 
+  **2025-10-12 completion:** Telemetry payloads across propose/apply/undo persist latency, cost, stage, and outcome via the `llm_telemetry` bridge; session guardrails now enforce budgets with guardrail-stage events and template fallbacks; `docs/rollout.md` captures the dark/opt-in/default launch playbook; and the in-app rollout dashboard plus subscription utilities align ops on spend and automation health.
+
 Phase 5 - Test & Visual Pass (PRD Sec 15)
 
 - Add executor/tool-schema unit specs and PlayTab integration tests.
@@ -642,6 +645,12 @@ Phase 6 - Release Packaging (PRD Sec 20, Appendices)
 - Update changelog and launch plan with Automation Log notes.
 - Prepare opt-in rollout comms and smoke-test dark launch flags.
 - Confirm docs capture undo recovery, telemetry, and rollout playbook.
+  **2025-10-12 kickoff:** Published repository `CHANGELOG.md` with Automation Log release highlights and created `docs/launch-plan.md` covering stage gating, comms templates, and dark launch smoke tests.
+  **2025-10-12 doc sync:** Extended `docs/rollout.md` with communications references linking the changelog, launch plan, and troubleshooting resources to keep undo recovery and telemetry guidance centralized.
+  **2025-10-12 comms prep:** Drafted opt-in announcement + support replies in `docs/comms/chronicle-opt-in-preview.md`.
+  **2025-10-12 smoke log:** Added `docs/smoke-tests/dark-launch-smoke-test.md` template to archive guardrail validation evidence before flag flips.
+  **2025-10-12 release checklist:** Published `docs/release-checklist.md` to consolidate Phase 6 approvals, telemetry verification, and flag management steps before merge.
+  **2025-10-12 completion:** Phase 6 release packaging complete—changelog, launch plan, comms, smoke-test log, rollout docs, and release checklist finalized for handoff.
 
 Status Snapshot
 
@@ -649,8 +658,9 @@ Status Snapshot
 - Phase 1: Complete (composer checklist + overlay citations landed 2025-10-05; Playwright baseline + integration spec follow-ups tracked in Phase 5).
 - Phase 2: Complete (entity linking history + slot-hint inventory placement landed 2025-10-09).
 - Phase 3: Complete (pending/failure logging + status-aware overlays landed 2025-10-10).
-- Phase 4: In progress (kickoff 2025-10-11; telemetry coverage + rollout rail docs underway).
-- Phases 5-6: Planned; follow Phase 4 telemetry/docs handoff.
+- Phase 4: Complete (telemetry rails, guardrail QA, rollout playbook, and dashboards delivered 2025-10-12).
+- Phase 5: Complete (lint/test suites, Playwright baselines, and telemetry assertions refreshed 2025-10-12).
+- Phase 6: Complete (release packaging finalized with comms, smoke-test log, launch plan, and release checklist on 2025-10-12).
 
 Appendix A — Minimal Tool Schema Set (starter)
 
@@ -675,3 +685,5 @@ add_item({ characterId:'Thorne', item:{ name:'Fallen’s Blade' } })
 add_item_tag({ itemId:'<ref: Fallen’s Blade>', tag:'close' })
 
 add_item_tag({ itemId:'<ref: Fallen’s Blade>', tag:'messy' })
+
+

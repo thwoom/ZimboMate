@@ -298,6 +298,16 @@ describe('chronicle provider GPT-5 integration', () => {
       action: 'applied',
       actor: 'manual',
     })
+
+    const telemetryEvents = useChronicleStore.getState().telemetryEvents
+    expect(telemetryEvents).not.toHaveLength(0)
+    expect(telemetryEvents[0]).toMatchObject({
+      stage: 'apply',
+      outcome: 'success',
+      entryId: 'entry-apply',
+      source: 'client',
+    })
+    expect(typeof telemetryEvents[0]?.bundleId).toBe('string')
   })
 
   it('records bundle failure when executor rejects apply', async () => {
@@ -348,5 +358,16 @@ describe('chronicle provider GPT-5 integration', () => {
     })
 
     expect(applySpy).toHaveBeenCalled()
+
+    const telemetryEvents = useChronicleStore.getState().telemetryEvents
+    expect(telemetryEvents).not.toHaveLength(0)
+    expect(telemetryEvents[0]).toMatchObject({
+      stage: 'apply',
+      outcome: 'failure',
+      entryId: 'entry-failure',
+      source: 'client',
+      error: 'executor failure',
+    })
+    expect(typeof telemetryEvents[0]?.bundleId).toBe('string')
   })
 })

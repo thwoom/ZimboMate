@@ -5,10 +5,16 @@
  */
 
 import type { Attributes, Character } from '../models/Character'
+import { getXPThreshold } from '../models/Character'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { advancementService } from '../services/AdvancementService'
+import {
+  advancementService,
+  type AdvancementOption,
+} from '../services/AdvancementService'
 import { characterStateService } from '../services/CharacterStateService'
+import { xpIntegrationService } from '../services/XPIntegrationService'
+import type { SpellProgression } from '../data/advancement/spellProgression'
 
 const ATTRIBUTE_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const
 
@@ -75,6 +81,153 @@ function normalizeAttributesInput(
   return normalized
 }
 
+export const LEVEL_UP_WIZARD_STEPS = [
+  'overview',
+  'stat',
+  'move',
+  'spells',
+  'review',
+] as const
+
+export type LevelUpWizardStep = (typeof LEVEL_UP_WIZARD_STEPS)[number]
+
+export function isLevelUpWizardStep(step: unknown): step is LevelUpWizardStep {
+  return (
+    typeof step === 'string' &&
+    (LEVEL_UP_WIZARD_STEPS as readonly string[]).includes(step)
+  )
+}
+
+export interface LevelUpDraft {
+  statIncreaseId?: string
+  moveIds: string[]
+  spellSelections: string[]
+  chronicleEnabled: boolean
+  activeStep: LevelUpWizardStep
+  lastUpdated: string
+}
+
+function createLevelUpDraft(
+  overrides: Partial<LevelUpDraft> = {},
+): LevelUpDraft {
+  const timestamp = new Date().toISOString()
+  const hasStatOverride = Object.prototype.hasOwnProperty.call(
+    overrides,
+    'statIncreaseId',
+  )
+
+  const activeStep = isLevelUpWizardStep(overrides.activeStep)
+    ? overrides.activeStep
+    : 'overview'
+
+  return {
+    statIncreaseId: hasStatOverride ? overrides.statIncreaseId : undefined,
+    moveIds: Array.isArray(overrides.moveIds)
+      ? [...overrides.moveIds]
+      : [],
+    spellSelections: Array.isArray(overrides.spellSelections)
+      ? [...overrides.spellSelections]
+      : [],
+    chronicleEnabled:
+      typeof overrides.chronicleEnabled === 'boolean'
+        ? overrides.chronicleEnabled
+        : true,
+    activeStep,
+    lastUpdated: overrides.lastUpdated ?? timestamp,
+  }
+}
+
+function ensureLevelUpDraft(draft?: LevelUpDraft): LevelUpDraft {
+  if (!draft) {
+    return createLevelUpDraft()
+  }
+
+  const hasValidMoveIds = Array.isArray(draft.moveIds)
+  const hasValidSpellSelections = Array.isArray(draft.spellSelections)
+  const hasValidChronicle = typeof draft.chronicleEnabled === 'boolean'
+  const hasValidStep = isLevelUpWizardStep(draft.activeStep)
+  const hasValidTimestamp = typeof draft.lastUpdated === 'string'
+
+  if (
+    hasValidMoveIds &&
+    hasValidSpellSelections &&
+    hasValidChronicle &&
+    hasValidStep &&
+    hasValidTimestamp
+  ) {
+    return draft
+  }
+
+  return {
+    statIncreaseId: draft.statIncreaseId,
+    moveIds: hasValidMoveIds ? draft.moveIds : [],
+    spellSelections: hasValidSpellSelections ? draft.spellSelections : [],
+    chronicleEnabled: hasValidChronicle ? draft.chronicleEnabled : true,
+    activeStep: hasValidStep ? (draft.activeStep as LevelUpWizardStep) : 'overview',
+    lastUpdated: hasValidTimestamp ? (draft.lastUpdated as string) : new Date().toISOString(),
+  }
+}
+
+function clonePendingAdvancement(
+  pending: PendingAdvancement,
+): PendingAdvancement {
+  return {
+    ...pending,
+    availableOptions: [...pending.availableOptions],
+    spellProgression: pending.spellProgression
+      ? { ...pending.spellProgression }
+      : undefined,
+    draft: {
+      ...pending.draft,
+      moveIds: [...pending.draft.moveIds],
+      spellSelections: [...pending.draft.spellSelections],
+    },
+  }
+}
+
+export interface PendingAdvancement {
+  characterId: string
+  createdAt: string
+  levelBefore: number
+  levelAfter: number
+  hpIncrease: number
+  loadIncrease: number
+  xpBefore: number
+  xpCost: number
+  availableOptions: AdvancementOption[]
+  spellProgression?: SpellProgression
+  draft: LevelUpDraft
+}
+
+type LegacyPendingAdvancement =
+  | PendingAdvancement
+  | (Omit<PendingAdvancement, 'draft'> & { draft?: LevelUpDraft })
+
+function normalizePendingAdvancement(
+  pending: LegacyPendingAdvancement,
+): PendingAdvancement {
+  const hasValidOptions = Array.isArray(pending.availableOptions)
+  const normalizedDraft = ensureLevelUpDraft(pending.draft)
+  const needsOptionsNormalization = !hasValidOptions
+  const needsDraftNormalization = normalizedDraft !== pending.draft
+
+  if (!needsOptionsNormalization && !needsDraftNormalization) {
+    return pending as PendingAdvancement
+  }
+
+  return {
+    ...(pending as PendingAdvancement),
+    availableOptions: hasValidOptions ? pending.availableOptions : [],
+    draft: normalizedDraft,
+  }
+}
+
+export interface LevelUpChoices {
+  statIncreaseId?: string
+  moveIds?: string[]
+  spellSelections?: string[]
+}
+
 interface CharacterState {
   // Character data
   characters: Character[]
@@ -96,6 +249,22 @@ interface CharacterState {
   duplicateCharacter: (id: string) => Character | undefined
   exportCharacter: (id: string) => string | undefined
   importCharacter: (characterData: string) => Character
+
+  // Level-up workflow
+  pendingAdvancements: Record<string, PendingAdvancement>
+  getPendingAdvancement: (
+    characterId: string,
+  ) => PendingAdvancement | undefined
+  startLevelUp: (characterId: string) => PendingAdvancement | null
+  applyLevelUpChoices: (
+    characterId: string,
+    choices: LevelUpChoices,
+  ) => void
+  cancelLevelUp: (characterId: string) => void
+  updateLevelUpDraft: (
+    characterId: string,
+    updates: Partial<LevelUpDraft>,
+  ) => void
 
   // XP and advancement
   addXP: (
@@ -127,6 +296,7 @@ export const useCharacterStore = create<CharacterState>()(
       activeCharacterId: null,
       isLoading: false,
       error: null,
+      pendingAdvancements: {},
 
       // Character CRUD operations
       createCharacter: (characterData) => {
@@ -298,6 +468,367 @@ export const useCharacterStore = create<CharacterState>()(
         }
       },
 
+      getPendingAdvancement: (characterId) => {
+        const { pendingAdvancements } = get()
+        const pending = pendingAdvancements[characterId]
+        if (!pending) {
+          return undefined
+        }
+
+        const normalized = normalizePendingAdvancement(
+          pending as LegacyPendingAdvancement,
+        )
+
+        if (
+          pending.draft !== normalized.draft ||
+          pending.availableOptions !== normalized.availableOptions ||
+          pending.spellProgression !== normalized.spellProgression
+        ) {
+          set((state) => ({
+            pendingAdvancements: {
+              ...state.pendingAdvancements,
+              [characterId]: normalized,
+            },
+          }))
+        }
+
+        return clonePendingAdvancement(normalized)
+      },
+
+      startLevelUp: (characterId) => {
+        try {
+          const { characters, pendingAdvancements } = get()
+          const existing = pendingAdvancements[characterId]
+          if (existing) {
+            const normalizedExisting = normalizePendingAdvancement(
+              existing as LegacyPendingAdvancement,
+            )
+
+            if (
+              existing.draft !== normalizedExisting.draft ||
+              existing.availableOptions !== normalizedExisting.availableOptions ||
+              existing.spellProgression !== normalizedExisting.spellProgression
+            ) {
+              set((state) => ({
+                pendingAdvancements: {
+                  ...state.pendingAdvancements,
+                  [characterId]: normalizedExisting,
+                },
+                error: null,
+              }))
+            }
+
+            return clonePendingAdvancement(normalizedExisting)
+          }
+
+          const character = characters.find((char) => char.id === characterId)
+
+          if (!character) {
+            set({ error: 'Character not found' })
+            return null
+          }
+
+          const xpCost = getXPThreshold(character.level)
+          if (character.xp < xpCost) {
+            set({
+              error: `Level up requires ${xpCost} XP (current: ${character.xp}).`,
+            })
+            return null
+          }
+
+          const levelUpResult = advancementService.levelUp(character)
+
+          const pending: PendingAdvancement = {
+            characterId,
+            createdAt: new Date().toISOString(),
+            levelBefore: character.level,
+            levelAfter: levelUpResult.newLevel,
+            hpIncrease: levelUpResult.hpIncrease,
+            loadIncrease: levelUpResult.loadIncrease,
+            xpBefore: character.xp,
+            xpCost,
+            availableOptions: levelUpResult.availableOptions,
+            spellProgression: levelUpResult.spellProgression,
+            draft: createLevelUpDraft(),
+          }
+
+          set((state) => ({
+            pendingAdvancements: {
+              ...state.pendingAdvancements,
+              [characterId]: pending,
+            },
+            error: null,
+          }))
+
+          return clonePendingAdvancement(pending)
+        } catch (error) {
+          set({
+            error: `Failed to start level up: ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }`,
+          })
+          return null
+        }
+      },
+
+      applyLevelUpChoices: (characterId, choices) => {
+        try {
+          const { characters, updateCharacter, pendingAdvancements } = get()
+          const pendingEntry = pendingAdvancements[characterId]
+          if (!pendingEntry) {
+            set({ error: 'No pending level-up found for this character' })
+            return
+          }
+
+          const pending = normalizePendingAdvancement(
+            pendingEntry as LegacyPendingAdvancement,
+          )
+
+          if (
+            pendingEntry.draft !== pending.draft ||
+            pendingEntry.availableOptions !== pending.availableOptions ||
+            pendingEntry.spellProgression !== pending.spellProgression
+          ) {
+            set((state) => ({
+              pendingAdvancements: {
+                ...state.pendingAdvancements,
+                [characterId]: pending,
+              },
+            }))
+          }
+
+          const character = characters.find((char) => char.id === characterId)
+
+          if (!character) {
+            set({ error: 'Character not found' })
+            return
+          }
+
+          if (character.xp < pending.xpCost) {
+            set({
+              error: 'Character no longer has enough XP to level up.',
+            })
+            return
+          }
+
+          const draft = ensureLevelUpDraft(pending.draft)
+          const effectiveChoices: LevelUpChoices = {
+            statIncreaseId:
+              choices?.statIncreaseId ?? draft.statIncreaseId,
+            moveIds:
+              choices?.moveIds !== undefined
+                ? [...choices.moveIds]
+                : [...draft.moveIds],
+            spellSelections:
+              choices?.spellSelections !== undefined
+                ? [...choices.spellSelections]
+                : [...draft.spellSelections],
+          }
+
+          const levelUpResult = advancementService.levelUp(character)
+          let leveledCharacter: Character = {
+            ...levelUpResult.character,
+            attributes: { ...levelUpResult.character.attributes },
+            hp: { ...levelUpResult.character.hp },
+            load: { ...levelUpResult.character.load },
+            knownMoves: [...levelUpResult.character.knownMoves],
+            advancements: [...levelUpResult.character.advancements],
+          }
+
+          // Apply stat increase if selected
+          if (effectiveChoices.statIncreaseId) {
+            const statOption = levelUpResult.availableOptions.find(
+              (option) =>
+                option.id === effectiveChoices.statIncreaseId &&
+                option.type === 'stat',
+            )
+            if (!statOption) {
+              set({ error: 'Invalid stat increase selection' })
+              return
+            }
+
+            const { canTake, reasons } = advancementService.canTakeAdvancement(
+              leveledCharacter,
+              statOption,
+            )
+            if (!canTake) {
+              set({
+                error: `Cannot take stat increase: ${reasons.join(', ')}`,
+              })
+              return
+            }
+
+            leveledCharacter = advancementService.applyAdvancement(
+              leveledCharacter,
+              statOption,
+            )
+          }
+
+          // Apply move choices
+          if (effectiveChoices.moveIds?.length) {
+            for (const moveId of effectiveChoices.moveIds) {
+              const moveOption = levelUpResult.availableOptions.find(
+                (option) => option.id === moveId && option.type === 'move',
+              )
+              if (!moveOption) {
+                set({ error: `Invalid move selection: ${moveId}` })
+                return
+              }
+
+              const { canTake, reasons } =
+                advancementService.canTakeAdvancement(
+                  leveledCharacter,
+                  moveOption,
+                )
+              if (!canTake) {
+                set({
+                  error: `Cannot take move ${moveOption.name}: ${reasons.join(', ')}`,
+                })
+                return
+              }
+
+              leveledCharacter = advancementService.applyAdvancement(
+                leveledCharacter,
+                moveOption,
+              )
+            }
+          }
+
+          // TODO: Handle spell selections in a dedicated phase when UI is ready
+
+          leveledCharacter.xp = Math.max(
+            0,
+            character.xp - pending.xpCost,
+          )
+          leveledCharacter.updatedAt = new Date()
+
+          updateCharacter(characterId, leveledCharacter)
+
+          xpIntegrationService.awardXP(
+            characterId,
+            'level-up',
+            -pending.xpCost,
+            `Spent ${pending.xpCost} XP to reach level ${pending.levelAfter}`,
+          )
+
+          set((state) => {
+            const { [characterId]: _removed, ...rest } =
+              state.pendingAdvancements
+            return {
+              pendingAdvancements: rest,
+              error: null,
+            }
+          })
+        } catch (error) {
+          set({
+            error: `Failed to apply level up: ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }`,
+          })
+        }
+      },
+
+      cancelLevelUp: (characterId) => {
+        set((state) => {
+          const { [characterId]: _removed, ...rest } =
+            state.pendingAdvancements
+          return {
+            pendingAdvancements: rest,
+            error: null,
+          }
+        })
+      },
+
+      updateLevelUpDraft: (characterId, updates) => {
+        try {
+          set((state) => {
+            const pending = state.pendingAdvancements[characterId]
+
+            if (!pending) {
+              return {
+                ...state,
+                error: `No pending level-up found for character ${characterId}`,
+              }
+            }
+
+            const normalized = normalizePendingAdvancement(
+              pending as LegacyPendingAdvancement,
+            )
+            let draft = ensureLevelUpDraft(normalized.draft)
+
+            if (Object.prototype.hasOwnProperty.call(updates, 'statIncreaseId')) {
+              draft = {
+                ...draft,
+                statIncreaseId: updates.statIncreaseId ?? undefined,
+              }
+            }
+
+            if (Object.prototype.hasOwnProperty.call(updates, 'moveIds')) {
+              draft = {
+                ...draft,
+                moveIds: Array.isArray(updates.moveIds)
+                  ? [...updates.moveIds]
+                  : [],
+              }
+            }
+
+            if (
+              Object.prototype.hasOwnProperty.call(updates, 'spellSelections')
+            ) {
+              draft = {
+                ...draft,
+                spellSelections: Array.isArray(updates.spellSelections)
+                  ? [...updates.spellSelections]
+                  : [],
+              }
+            }
+
+            if (
+              Object.prototype.hasOwnProperty.call(updates, 'chronicleEnabled') &&
+              typeof updates.chronicleEnabled === 'boolean'
+            ) {
+              draft = {
+                ...draft,
+                chronicleEnabled: updates.chronicleEnabled,
+              }
+            }
+
+            if (
+              Object.prototype.hasOwnProperty.call(updates, 'activeStep') &&
+              isLevelUpWizardStep(updates.activeStep)
+            ) {
+              draft = {
+                ...draft,
+                activeStep: updates.activeStep,
+              }
+            }
+
+            draft = {
+              ...draft,
+              lastUpdated: new Date().toISOString(),
+            }
+
+            return {
+              ...state,
+              pendingAdvancements: {
+                ...state.pendingAdvancements,
+                [characterId]: {
+                  ...normalized,
+                  draft,
+                },
+              },
+              error: null,
+            }
+          })
+        } catch (error) {
+          set({
+            error: `Failed to update level up selections: ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }`,
+          })
+        }
+      },
+
       // XP and advancement
       addXP: (characterId, amount, source, description) => {
         try {
@@ -326,23 +857,8 @@ export const useCharacterStore = create<CharacterState>()(
       },
 
       levelUpCharacter: (characterId) => {
-        try {
-          const { characters, updateCharacter } = get()
-          const character = characters.find((char) => char.id === characterId)
-
-          if (!character) {
-            set({ error: 'Character not found' })
-            return
-          }
-
-          // Use advancement service to level up
-          const levelUpResult = advancementService.levelUp(character)
-          updateCharacter(characterId, levelUpResult.character)
-        } catch (error) {
-          set({
-            error: `Failed to level up character: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          })
-        }
+        const { startLevelUp } = get()
+        startLevelUp(characterId)
       },
 
       // Health management
@@ -464,11 +980,32 @@ export const useCharacterStore = create<CharacterState>()(
           } as CharacterState
         }
 
-        return persistedState as CharacterState
+        const stateWithDefaults = persistedState as CharacterState & {
+          pendingAdvancements?: Record<string, PendingAdvancement>
+        }
+
+        const rawPending =
+          stateWithDefaults.pendingAdvancements &&
+          typeof stateWithDefaults.pendingAdvancements === 'object'
+            ? stateWithDefaults.pendingAdvancements
+            : {}
+
+        const normalizedPending: Record<string, PendingAdvancement> = {}
+        for (const [id, pending] of Object.entries(rawPending)) {
+          normalizedPending[id] = normalizePendingAdvancement(
+            pending as LegacyPendingAdvancement,
+          )
+        }
+
+        return {
+          ...stateWithDefaults,
+          pendingAdvancements: normalizedPending,
+        }
       },
       partialize: (state) => ({
         characters: state.characters,
         activeCharacterId: state.activeCharacterId,
+        pendingAdvancements: state.pendingAdvancements,
       }),
     },
   ),

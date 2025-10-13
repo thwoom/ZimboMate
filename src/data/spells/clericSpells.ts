@@ -1,0 +1,369 @@
+/**
+ * Dungeon World Cleric spell list.
+ * Source: docs/dungeon_world_cleric_spells.yaml (Dungeon World SRD, CC-BY 3.0).
+ */
+export interface ClericSpell {
+  id: string
+  name: string
+  level: number
+  tags: string[]
+  effect: string
+  source: string
+}
+
+export const CLERIC_CASTING_RULES = {
+  "preparation_capacity": "On each Commune, choose granted spells with total levels <= level+1; none may exceed your level. Rotes are always granted and do not count.",
+  "learning_model": "You know all Cleric spells of your level or lower; no spellbook. New spells become available automatically when you gain levels.",
+  "ongoing_penalty": "Some ongoing spells impose −1 to cast while maintained (per spell text).",
+  "race_notes": [
+    "Dwarf: When you Commune you are also granted a special version of Words of the Unspeaking as a rote that only works on stone.",
+    "Human: Choose one Wizard spell; you may cast and be granted it as if it were a Cleric spell."
+  ]
+} as const;
+
+export const CLERIC_SPELLS: ClericSpell[] = [
+  {
+    "id": "light",
+    "name": "Light",
+    "level": 0,
+    "tags": [
+      "cantrip"
+    ],
+    "effect": "Touched item shines torch-bright, heatless; you control the color; lasts while in your presence.",
+    "source": "Dungeon World SRD — Cleric Spells (Rotes)"
+  },
+  {
+    "id": "sanctify",
+    "name": "Sanctify",
+    "level": 0,
+    "tags": [
+      "cantrip",
+      "purify"
+    ],
+    "effect": "Food or water you hold is consecrated and cleansed of mundane spoilage.",
+    "source": "Dungeon World SRD — Cleric Spells (Rotes)"
+  },
+  {
+    "id": "guidance",
+    "name": "Guidance",
+    "level": 0,
+    "tags": [
+      "cantrip"
+    ],
+    "effect": "Your deity’s symbol appears and silently indicates a course of action; message is by gesture only.",
+    "source": "Dungeon World SRD — Cleric Spells (Rotes)"
+  },
+  {
+    "id": "bless",
+    "name": "Bless",
+    "level": 1,
+    "tags": [
+      "ongoing",
+      "buff"
+    ],
+    "effect": "One chosen combatant gains +1 ongoing while fighting and standing their ground. While ongoing, you take −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 1)"
+  },
+  {
+    "id": "cure_light_wounds",
+    "name": "Cure Light Wounds",
+    "level": 1,
+    "tags": [
+      "healing"
+    ],
+    "effect": "Heal an ally you touch of 1d8 damage.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 1)"
+  },
+  {
+    "id": "detect_alignment",
+    "name": "Detect Alignment",
+    "level": 1,
+    "tags": [
+      "divination"
+    ],
+    "effect": "Briefly attune one sense to Good, Evil, Lawful, or Chaotic; the GM tells you what here bears that alignment.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 1)"
+  },
+  {
+    "id": "cause_fear",
+    "name": "Cause Fear",
+    "level": 1,
+    "tags": [
+      "ongoing",
+      "fear"
+    ],
+    "effect": "Choose a target and a nearby object; the target is afraid of that object while you maintain the spell. Their reaction varies. While ongoing, −1 to cast. Cannot target less‑than‑animal intelligence.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 1)"
+  },
+  {
+    "id": "magic_weapon",
+    "name": "Magic Weapon",
+    "level": 1,
+    "tags": [
+      "ongoing",
+      "weapon"
+    ],
+    "effect": "Weapon you hold while casting deals +1d4 damage until you dismiss the spell. While ongoing, −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 1)"
+  },
+  {
+    "id": "sanctuary",
+    "name": "Sanctuary",
+    "level": 1,
+    "tags": [
+      "ward"
+    ],
+    "effect": "Consecrate an area as you walk its perimeter. While you remain inside, you’re alerted to malicious acts/entry. Healing done within heals +1d4 HP.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 1)"
+  },
+  {
+    "id": "speak_with_dead",
+    "name": "Speak With Dead",
+    "level": 1,
+    "tags": [
+      "undead",
+      "communication"
+    ],
+    "effect": "A corpse answers three questions to the best of its knowledge in life and death.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 1)"
+  },
+  {
+    "id": "animate_dead",
+    "name": "Animate Dead",
+    "level": 3,
+    "tags": [
+      "ongoing",
+      "necromancy"
+    ],
+    "effect": "A spirit possesses a fresh corpse as your zombie (basic moves only, +1 to all stats, 1 HP). Choose 1d4 traits (talented +2 stat; durable +2 HP/level; functioning brain; not obviously dead briefly). Lasts until destroyed or dismissed. While ongoing, −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 3)"
+  },
+  {
+    "id": "cure_moderate_wounds",
+    "name": "Cure Moderate Wounds",
+    "level": 3,
+    "tags": [
+      "healing"
+    ],
+    "effect": "Heal an ally you touch of 2d8 damage.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 3)"
+  },
+  {
+    "id": "darkness",
+    "name": "Darkness",
+    "level": 3,
+    "tags": [
+      "ongoing",
+      "darkness"
+    ],
+    "effect": "Fill a chosen area you can see with supernatural darkness. While ongoing, −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 3)"
+  },
+  {
+    "id": "resurrection",
+    "name": "Resurrection",
+    "level": 3,
+    "tags": [
+      "resurrection"
+    ],
+    "effect": "You can return a corpse (soul not fully departed) to life. The GM sets concrete conditions (time, aid, treasure, sacrifice). They may allow immediate return with conditions pending or require completion first.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 3)"
+  },
+  {
+    "id": "hold_person",
+    "name": "Hold Person",
+    "level": 3,
+    "tags": [
+      "control"
+    ],
+    "effect": "Choose a person you can see; until you cast a spell or leave their presence, they can only speak. Any damage ends the effect.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 3)"
+  },
+  {
+    "id": "revelation",
+    "name": "Revelation",
+    "level": 5,
+    "tags": [
+      "divination"
+    ],
+    "effect": "Your deity grants clear insight about the present situation; take +1 forward when acting on it.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 5)"
+  },
+  {
+    "id": "cure_critical_wounds",
+    "name": "Cure Critical Wounds",
+    "level": 5,
+    "tags": [
+      "healing"
+    ],
+    "effect": "Heal an ally you touch of 3d8 damage.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 5)"
+  },
+  {
+    "id": "divination",
+    "name": "Divination",
+    "level": 5,
+    "tags": [
+      "divination"
+    ],
+    "effect": "Name a person, place, or thing; your deity shows you visions of it as if you were there.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 5)"
+  },
+  {
+    "id": "contagion",
+    "name": "Contagion",
+    "level": 5,
+    "tags": [
+      "ongoing",
+      "disease"
+    ],
+    "effect": "Choose a creature; they suffer a disease of your choice until you end the spell. While ongoing, −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 5)"
+  },
+  {
+    "id": "words_of_the_unspeaking",
+    "name": "Words of the Unspeaking",
+    "level": 5,
+    "tags": [
+      "communication",
+      "object"
+    ],
+    "effect": "Touch a non‑living object; it answers three questions to the best of its knowledge.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 5)"
+  },
+  {
+    "id": "true_seeing_cleric",
+    "name": "True Seeing",
+    "level": 5,
+    "tags": [
+      "ongoing",
+      "senses"
+    ],
+    "effect": "Perceive things as they truly are, piercing illusions and concealment. GM describes the truth. While ongoing, −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 5)"
+  },
+  {
+    "id": "trap_soul",
+    "name": "Trap Soul",
+    "level": 5,
+    "tags": [
+      "soul"
+    ],
+    "effect": "Imprison the soul of a dying creature in a gem. It is aware and can be influenced; moves against it are +1. You may release it but cannot recapture it.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 5)"
+  },
+  {
+    "id": "word_of_recall",
+    "name": "Word of Recall",
+    "level": 7,
+    "tags": [
+      "teleportation"
+    ],
+    "effect": "Choose a word. The first time you speak it after casting, you (and allies touching you when cast) return to the exact casting spot. Only one location can be maintained; recasting replaces.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 7)"
+  },
+  {
+    "id": "heal",
+    "name": "Heal",
+    "level": 7,
+    "tags": [
+      "healing"
+    ],
+    "effect": "Touch an ally to restore damage up to their maximum HP (no overflow).",
+    "source": "Dungeon World SRD — Cleric Spells (Level 7)"
+  },
+  {
+    "id": "harm",
+    "name": "Harm",
+    "level": 7,
+    "tags": [
+      "damage"
+    ],
+    "effect": "Touch an enemy: deal 2d8 damage to them and 1d6 damage to yourself. This damage ignores armor.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 7)"
+  },
+  {
+    "id": "sever",
+    "name": "Sever",
+    "level": 7,
+    "tags": [
+      "ongoing",
+      "control"
+    ],
+    "effect": "Choose a target’s appendage (arm, wing, etc.); it is magically severed (no damage but painful), removing related function. While ongoing, −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 7)"
+  },
+  {
+    "id": "mark_of_death",
+    "name": "Mark of Death",
+    "level": 7,
+    "tags": [
+      "curse"
+    ],
+    "effect": "Write permanent runes that will kill a creature whose true name you know if they read them.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 7)"
+  },
+  {
+    "id": "control_weather",
+    "name": "Control Weather",
+    "level": 7,
+    "tags": [
+      "weather"
+    ],
+    "effect": "Pray for the weather you desire; within about a day it changes accordingly and lasts several days.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 7)"
+  },
+  {
+    "id": "storm_of_vengeance",
+    "name": "Storm of Vengeance",
+    "level": 9,
+    "tags": [
+      "weather"
+    ],
+    "effect": "Your deity unleashes unnatural weather of your choosing (e.g., blood rain, soul‑clouds, building‑tossing winds).",
+    "source": "Dungeon World SRD — Cleric Spells (Level 9)"
+  },
+  {
+    "id": "repair",
+    "name": "Repair",
+    "level": 9,
+    "tags": [
+      "restoration"
+    ],
+    "effect": "Choose a past event affecting the target; all its consequences end (damage, poisons, diseases, magic).",
+    "source": "Dungeon World SRD — Cleric Spells (Level 9)"
+  },
+  {
+    "id": "divine_presence",
+    "name": "Divine Presence",
+    "level": 9,
+    "tags": [
+      "ongoing",
+      "ward"
+    ],
+    "effect": "All creatures must receive your permission to enter your presence. Without leave, they take +1d10 extra damage whenever they take damage. While ongoing, −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 9)"
+  },
+  {
+    "id": "consume_unlife",
+    "name": "Consume Unlife",
+    "level": 9,
+    "tags": [
+      "undead",
+      "healing"
+    ],
+    "effect": "Destroy a mindless undead by touch and convert its remaining HP into healing for you or the next ally you touch.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 9)"
+  },
+  {
+    "id": "plague",
+    "name": "Plague",
+    "level": 9,
+    "tags": [
+      "ongoing",
+      "disease"
+    ],
+    "effect": "Name a settlement; as long as this spell lasts, it suffers a deity‑appropriate plague. While ongoing, −1 to cast.",
+    "source": "Dungeon World SRD — Cleric Spells (Level 9)"
+  }
+]

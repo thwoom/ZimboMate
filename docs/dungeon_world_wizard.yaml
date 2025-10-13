@@ -1,0 +1,366 @@
+class: wizard
+id_prefix: wizard_
+ability_focus: INT
+tiers:
+  - starting
+  - advanced_2_5
+  - advanced_6_10
+
+race_moves:
+  - id: wizard_race_elf
+    name: Elf
+    tier: starting
+    text: "Magic is second nature to you. You also have Detect Magic as a cantrip."
+    notes: "Adds Detect Magic to your cantrips list."
+    source: "Dungeon World SRD — Wizard (Race Moves)"
+  - id: wizard_race_human
+    name: Human
+    tier: starting
+    text: "Choose one Cleric spell. You may cast it as if it were a Wizard spell."
+    notes: "Casting stat remains INT; treat the chosen Cleric spell as on the Wizard list for you."
+    source: "Dungeon World SRD — Wizard (Race Moves)"
+
+starting_moves:
+  - id: wizard_spellbook
+    name: Spellbook
+    tier: starting
+    text: "You begin with the cantrips and three 1st‑level spells in your spellbook. On each level‑up, add one spell of your level or lower."
+    source: "Dungeon World SRD — Wizard (Spellbook)"
+  - id: wizard_prepare_spells
+    name: Prepare Spells
+    tier: starting
+    text: "Spend about an hour with your spellbook to lose all prepared spells and prepare new ones with total levels ≤ your level+1. Prepare all cantrips; they do not count against the limit."
+    source: "Dungeon World SRD — Wizard (Prepare Spells)"
+  - id: wizard_cast_a_spell
+    name: Cast a Spell (INT)
+    tier: starting
+    text: "When you release a prepared spell, roll+INT. On 10+, it works and you don't forget it. On 7–9, it works but choose: draw unwelcome attention/put yourself in a spot; or −1 ongoing to cast until you next prepare; or forget the spell until you prepare again. Maintaining an ongoing spell may impose −1 to cast as noted by the spell."
+    source: "Dungeon World SRD — Wizard (Cast a Spell)"
+  - id: wizard_spell_defense
+    name: Spell Defense
+    tier: starting
+    text: "End one of your ongoing spells immediately to blunt an incoming attack; reduce the damage by that spell’s level."
+    source: "Dungeon World SRD — Wizard (Spell Defense)"
+  - id: wizard_ritual
+    name: Ritual
+    tier: starting
+    text: "At a place of power you can attempt any magical effect. The GM sets concrete conditions (time, cost, help, risk, lesser version, sacrifice/disenchant, etc.) you must meet."
+    source: "Dungeon World SRD — Wizard (Ritual)"
+
+advanced_moves_2_5:
+  - id: wizard_prodigy
+    name: Prodigy
+    tier: advanced_2_5
+    text: "Choose one spell; you prepare it as if it were one level lower."
+    source: "Dungeon World SRD — Wizard (Prodigy)"
+  - id: wizard_empowered_magic
+    name: Empowered Magic
+    tier: advanced_2_5
+    text: "On a 10+ to cast, you may also take a 7–9 drawback; if you do, choose one: maximize the spell’s effects, or double its targets."
+    source: "Dungeon World SRD — Wizard (Empowered Magic)"
+  - id: wizard_fount_of_knowledge
+    name: Fount of Knowledge
+    tier: advanced_2_5
+    text: "When you Spout Lore on something no one else knows about, take +1."
+    source: "Dungeon World SRD — Wizard (Fount of Knowledge)"
+  - id: wizard_know_it_all
+    name: Know‑It‑All
+    tier: advanced_2_5
+    text: "When a PC follows your advice, they take +1 forward; you mark XP."
+    source: "Dungeon World SRD — Wizard (Know‑It‑All)"
+  - id: wizard_expanded_spellbook
+    name: Expanded Spellbook
+    tier: advanced_2_5
+    text: "Add one spell from any class’s list to your spellbook."
+    source: "Dungeon World SRD — Wizard (Expanded Spellbook)"
+  - id: wizard_enchanter
+    name: Enchanter
+    tier: advanced_2_5
+    text: "With time and safety, you can ask the GM what a magic item does; they answer truthfully."
+    source: "Dungeon World SRD — Wizard (Enchanter)"
+  - id: wizard_logical
+    name: Logical
+    tier: advanced_2_5
+    text: "You may Discern Realities with INT instead of WIS when using strict deduction."
+    source: "Dungeon World SRD — Wizard (Logical)"
+  - id: wizard_arcane_ward
+    name: Arcane Ward
+    tier: advanced_2_5
+    text: "While you have any prepared spell (level 1+), you have +2 Armor."
+    source: "Dungeon World SRD — Wizard (Arcane Ward)"
+  - id: wizard_counterspell
+    name: Counterspell
+    tier: advanced_2_5
+    text: "To block an arcane spell that would affect you, stake a prepared spell and roll+INT. On 10+, it’s countered (no effect on you). On 7–9, it’s countered but you forget the staked spell. Only protects you; other targets (if any) are still affected."
+    source: "Dungeon World SRD — Wizard (Counterspell)"
+  - id: wizard_quick_study
+    name: Quick Study
+    tier: advanced_2_5
+    text: "When you observe an arcane spell’s effects, ask the GM its name and effects; take +1 when acting on that information."
+    source: "Dungeon World SRD — Wizard (Quick Study)"
+
+advanced_moves_6_10:
+  - id: wizard_master
+    name: Master
+    tier: advanced_6_10
+    requires:
+      - wizard_prodigy
+    text: "Choose a second spell; you prepare it as if it were one level lower."
+    source: "Dungeon World SRD — Wizard (Master)"
+  - id: wizard_greater_empowered_magic
+    name: Greater Empowered Magic
+    tier: advanced_6_10
+    replaces:
+      - wizard_empowered_magic
+    text: "On 10–11 to cast, you may also take a 7–9 drawback and choose one: double effects or double targets. On 12+, choose one of those for free."
+    source: "Dungeon World SRD — Wizard (Greater Empowered Magic)"
+  - id: wizard_enchanters_soul
+    name: Enchanter’s Soul
+    tier: advanced_6_10
+    requires:
+      - wizard_enchanter
+    text: "With time/safety at a place of power, you can empower a magic item so its next use is amplified (GM specifies how)."
+    source: "Dungeon World SRD — Wizard (Enchanter’s Soul)"
+  - id: wizard_highly_logical
+    name: Highly Logical
+    tier: advanced_6_10
+    replaces:
+      - wizard_logical
+    text: "Discern Realities with INT; on a 12+, ask any three questions (not limited to the list)."
+    source: "Dungeon World SRD — Wizard (Highly Logical)"
+  - id: wizard_arcane_armor
+    name: Arcane Armor
+    tier: advanced_6_10
+    replaces:
+      - wizard_arcane_ward
+    text: "While you have any prepared spell (level 1+), you have +4 Armor."
+    source: "Dungeon World SRD — Wizard (Arcane Armor)"
+  - id: wizard_protective_counter
+    name: Protective Counter
+    tier: advanced_6_10
+    requires:
+      - wizard_counterspell
+    text: "You may counter an arcane spell affecting an ally in sight as if it targeted you. If it affects multiple allies, counter separately for each."
+    source: "Dungeon World SRD — Wizard (Protective Counter)"
+  - id: wizard_ethereal_tether
+    name: Ethereal Tether
+    tier: advanced_6_10
+    text: "With time and a willing or helpless subject, create a tether: you perceive what they perceive and can Discern Realities about them or their surroundings at any distance. Willing targets can speak to you over the tether."
+    source: "Dungeon World SRD — Wizard (Ethereal Tether)"
+  - id: wizard_mystical_puppet_strings
+    name: Mystical Puppet Strings
+    tier: advanced_6_10
+    text: "When you magically control someone, they retain no memory of your control and feel no ill will toward you for it."
+    source: "Dungeon World SRD — Wizard (Mystical Puppet Strings)"
+  - id: wizard_spell_augmentation
+    name: Spell Augmentation
+    tier: advanced_6_10
+    text: "When you deal damage, you may end one of your ongoing spells to add its level to the damage."
+    source: "Dungeon World SRD — Wizard (Spell Augmentation)"
+  - id: wizard_self_powered
+    name: Self‑Powered
+    tier: advanced_6_10
+    text: "With time, arcane materials, and a safe space, you can create your own place of power. The GM names a type of creature interested in your workings."
+    source: "Dungeon World SRD — Wizard (Self‑Powered)"
+
+casting_rules:
+  preparation_capacity: "Total prepared spell levels ≤ level+1; cannot prepare a spell above your level; cantrips are always prepared and do not count."
+  learning_new_spells: "On each level‑up, add one spell of your level or lower to your spellbook."
+  ongoing_penalty: "Spells tagged ongoing may impose −1 to cast while maintained (per spell text)."
+  ritual_note: "Ritual effects are free‑form at a place of power; GM sets explicit conditions (time, cost, help, risk, lesser version, sacrifice)."
+  human_race_note: "Your chosen Cleric spell is cast as a Wizard spell (INT) for your character only."
+
+spells:
+  # CANTRIPS
+  - id: light
+    name: Light
+    level: 0
+    tags: [cantrip]
+    effect: "Touched item sheds torch‑bright, heatless light under your control (color) while in your presence."
+    source: "Dungeon World SRD — Wizard Spells (Cantrips)"
+  - id: unseen_servant
+    name: Unseen Servant
+    level: 0
+    tags: [cantrip, ongoing]
+    effect: "Conjure an invisible carrier (Load 3) that follows and holds what you hand it; ends if damaged or it leaves your presence."
+    source: "Dungeon World SRD — Wizard Spells (Cantrips)"
+  - id: prestidigitation
+    name: Prestidigitation
+    level: 0
+    tags: [cantrip]
+    effect: "Minor magical tricks: cosmetic changes to a touched item (clean, soil, warm, cool, flavor, recolor) or small obvious illusions no larger than you."
+    source: "Dungeon World SRD — Wizard Spells (Cantrips)"
+
+  # LEVEL 1
+  - id: contact_spirits
+    name: Contact Spirits
+    level: 1
+    tags: [summoning]
+    effect: "Name (or let GM name) a spirit; you draw it near to answer one question truthfully to the best of its ability."
+    source: "Dungeon World SRD — Wizard Spells (Level 1)"
+  - id: detect_magic
+    name: Detect Magic
+    level: 1
+    tags: [divination]
+    effect: "Briefly attune a sense to magic; the GM tells you what here is magical."
+    source: "Dungeon World SRD — Wizard Spells (Level 1)"
+  - id: telepathy
+    name: Telepathy
+    level: 1
+    tags: [divination, ongoing]
+    effect: "Create a telepathic bond with one touched person; only one bond at a time."
+    source: "Dungeon World SRD — Wizard Spells (Level 1)"
+  - id: charm_person
+    name: Charm Person
+    level: 1
+    tags: [enchantment, ongoing]
+    effect: "Touched person (not beast/monster) treats you as a friend until harmed or you prove otherwise."
+    source: "Dungeon World SRD — Wizard Spells (Level 1)"
+  - id: invisibility
+    name: Invisibility
+    level: 1
+    tags: [illusion, ongoing]
+    effect: "Touch an ally; they become invisible until they attack or you dismiss the spell. While ongoing, you cannot cast a spell."
+    source: "Dungeon World SRD — Wizard Spells (Level 1)"
+  - id: magic_missile
+    name: Magic Missile
+    level: 1
+    tags: [evocation]
+    effect: "Loose pure magical bolts that deal 2d4 damage to a single target."
+    source: "Dungeon World SRD — Wizard Spells (Level 1)"
+  - id: alarm
+    name: Alarm
+    level: 1
+    tags: []
+    effect: "Walk a wide circle; until you next prepare, you’re alerted if any creature crosses it (even while sleeping)."
+    source: "Dungeon World SRD — Wizard Spells (Level 1)"
+
+  # LEVEL 3
+  - id: dispel_magic
+    name: Dispel Magic
+    level: 3
+    tags: []
+    effect: "End a chosen spell or magic effect in your presence; lesser magics end entirely, stronger ones are suppressed while you remain nearby."
+    source: "Dungeon World SRD — Wizard Spells (Level 3)"
+  - id: visions_through_time
+    name: Visions Through Time
+    level: 3
+    tags: [divination]
+    effect: "Gaze into a reflective surface to witness a looming grim portent; the GM also tells you something useful about how to interfere with it."
+    source: "Dungeon World SRD — Wizard Spells (Level 3)"
+  - id: fireball
+    name: Fireball
+    level: 3
+    tags: [evocation]
+    effect: "Explosive flame engulfs the target and nearby creatures for 2d6 damage that ignores armor."
+    source: "Dungeon World SRD — Wizard Spells (Level 3)"
+  - id: mimic
+    name: Mimic
+    level: 3
+    tags: [ongoing]
+    effect: "Assume the exact physical form of someone you touch until you take damage or choose to end it; while ongoing you lose access to your wizard moves."
+    source: "Dungeon World SRD — Wizard Spells (Level 3)"
+  - id: mirror_image
+    name: Mirror Image
+    level: 3
+    tags: [illusion]
+    effect: "Create an illusory duplicate; when attacked roll d6 — on 4–6 the attack hits the image instead (then the spell ends)."
+    source: "Dungeon World SRD — Wizard Spells (Level 3)"
+  - id: sleep
+    name: Sleep
+    level: 3
+    tags: [enchantment]
+    effect: "1d4 visible enemies (GM chooses) fall asleep; only sleep‑capable creatures are affected; they wake normally (noise, jolt, pain)."
+    source: "Dungeon World SRD — Wizard Spells (Level 3)"
+
+  # LEVEL 5
+  - id: cage
+    name: Cage
+    level: 5
+    tags: [evocation, ongoing]
+    effect: "Imprison a target in force; nothing in or out. While ongoing you can’t leave sight of the cage; the target hears your thoughts."
+    source: "Dungeon World SRD — Wizard Spells (Level 5)"
+  - id: contact_other_plane
+    name: Contact Other Plane
+    level: 5
+    tags: [divination]
+    effect: "Open two‑way communication with a specified extraplanar entity; either side can end the contact at will."
+    source: "Dungeon World SRD — Wizard Spells (Level 5)"
+  - id: polymorph
+    name: Polymorph
+    level: 5
+    tags: [enchantment]
+    effect: "Touch reshapes a creature as you describe (including stat/trait changes). GM adds one or more constraints (instability, altered mind, unintended twist). Lasts until you cast a spell."
+    source: "Dungeon World SRD — Wizard Spells (Level 5)"
+  - id: summon_monster
+    name: Summon Monster
+    level: 5
+    tags: [summoning, ongoing]
+    effect: "Conjure a monster that acts like a PC with only basic moves; stats: +1 to all, 1 HP, your damage die. Choose 1d6 traits (e.g., +2 to a stat, careful, d8 damage, extra HP per your level, a useful adaptation). Remains until it dies or you dismiss it. While ongoing you take −1 to cast."
+    source: "Dungeon World SRD — Wizard Spells (Level 5)"
+
+  # LEVEL 7
+  - id: dominate
+    name: Dominate
+    level: 7
+    tags: [enchantment, ongoing]
+    effect: "On touch you gain 1d4 hold to command: speak brief words, hand over an item, make a focused attack, or answer truthfully. Lose 1 hold if they take damage; while ongoing you cannot cast."
+    source: "Dungeon World SRD — Wizard Spells (Level 7)"
+  - id: true_seeing_wiz
+    name: True Seeing
+    level: 7
+    tags: [divination, ongoing]
+    effect: "Perceive things as they truly are until you tell a lie or dismiss the spell. While ongoing you take −1 to cast."
+    source: "Dungeon World SRD — Wizard Spells (Level 7)"
+  - id: shadow_walk
+    name: Shadow Walk
+    level: 7
+    tags: [illusion]
+    effect: "Turn a chosen shadow into a one‑use portal for you and allies to a described location (description length ≤ your level)."
+    source: "Dungeon World SRD — Wizard Spells (Level 7)"
+  - id: contingency
+    name: Contingency
+    level: 7
+    tags: [evocation]
+    effect: "Hold one 5th‑level‑or‑lower spell you know with a trigger (≤ your level words). It fires automatically on trigger or when you choose. Only one held spell at a time."
+    source: "Dungeon World SRD — Wizard Spells (Level 7)"
+  - id: cloudkill
+    name: Cloudkill
+    level: 7
+    tags: [summoning, ongoing]
+    effect: "A deathly fog fills the area. Whenever a creature there takes damage, it takes an extra separate 1d6 (ignores armor). Persists while you can see the area or until you dismiss it."
+    source: "Dungeon World SRD — Wizard Spells (Level 7)"
+
+  # LEVEL 9
+  - id: antipathy
+    name: Antipathy
+    level: 9
+    tags: [enchantment, ongoing]
+    effect: "Name a target and a creature type or alignment: such creatures cannot bear to be within sight of the target and flee if they are."
+    source: "Dungeon World SRD — Wizard Spells (Level 9)"
+  - id: alert
+    name: Alert
+    level: 9
+    tags: [divination]
+    effect: "Describe an event; the GM tells you when it happens, anywhere. You may also view the location of the event. Only one Alert at a time."
+    source: "Dungeon World SRD — Wizard Spells (Level 9)"
+  - id: soul_gem
+    name: Soul Gem
+    level: 9
+    tags: []
+    effect: "Trap the soul of a dying creature in a gem. It is aware and can be influenced; moves against it are +1. You can free it (cannot be recaptured)."
+    source: "Dungeon World SRD — Wizard Spells (Level 9)"
+  - id: shelter
+    name: Shelter
+    level: 9
+    tags: [evocation, ongoing]
+    effect: "Conjure a structure of pure magic (hut to castle). Impervious to non‑magical harm. Persists until you leave or end it."
+    source: "Dungeon World SRD — Wizard Spells (Level 9)"
+  - id: perfect_summons
+    name: Perfect Summons
+    level: 9
+    tags: [summoning]
+    effect: "Teleport a creature to you by specific name or by brief type description (exact or an example of that type)."
+    source: "Dungeon World SRD — Wizard Spells (Level 9)"
+
+attribution: "Dungeon World by Sage LaTorra & Adam Koebel — CC BY 3.0. Text summarized/paraphrased from the official SRD."

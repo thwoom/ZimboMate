@@ -80,7 +80,15 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
   compact = false,
   showNotifications = true,
 }) => {
-  const { getActiveCharacter, levelUpCharacter } = useCharacterStore()
+  const {
+    getActiveCharacter,
+    levelUpCharacter,
+    pendingAdvancements,
+  } = useCharacterStore((state) => ({
+    getActiveCharacter: state.getActiveCharacter,
+    levelUpCharacter: state.levelUpCharacter,
+    pendingAdvancements: state.pendingAdvancements,
+  }))
   const [state, dispatch] = useReducer(xpTrackerReducer, {
     xpEntries: [],
     notifications: [],
@@ -91,6 +99,10 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
 
   const activeCharacter = getActiveCharacter()
   const effectiveCharacterId = characterId || activeCharacter?.id
+  const pending = effectiveCharacterId
+    ? pendingAdvancements[effectiveCharacterId]
+    : undefined
+  const hasPendingLevelUp = Boolean(pending)
 
   useEffect(() => {
     if (!effectiveCharacterId) {
@@ -207,7 +219,16 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
   const currentLevel = getCurrentLevel(analytics.totalXP)
   const xpToNext = getXPToNextLevel(analytics.totalXP)
   const progressPercent = getXPProgress(analytics.totalXP)
-  const canLevelUp = xpToNext <= 0 && currentLevel < 11
+  const meetsLevelThreshold = xpToNext <= 0 && currentLevel < 11
+  const canLevelUp = meetsLevelThreshold || hasPendingLevelUp
+  const levelUpStatusLabel = hasPendingLevelUp
+    ? 'Level-Up Pending'
+    : meetsLevelThreshold
+      ? 'Ready!'
+      : `${Math.max(0, xpToNext)} XP needed`
+  const compactStatusLabel = hasPendingLevelUp
+    ? 'Level-Up Pending'
+    : `${Math.max(0, xpToNext)} to next`
 
   if (compact) {
     return (
@@ -226,11 +247,11 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
 
             {canLevelUp ? (
               <Button variant='primary' size='sm' onClick={handleLevelUp}>
-                Level Up!
+                {hasPendingLevelUp ? 'Resume Level-Up' : 'Level Up!'}
               </Button>
             ) : (
               <span className='text-xs text-muted-foreground'>
-                {xpToNext} to next
+                {compactStatusLabel}
               </span>
             )}
           </div>
@@ -364,7 +385,7 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                     Progress to Level
                     {currentLevel + 1}
                   </span>
-                  <span>{canLevelUp ? 'Ready!' : `${xpToNext} XP needed`}</span>
+                  <span>{levelUpStatusLabel}</span>
                 </div>
 
                 <div className='w-full bg-muted rounded-full h-3'>
@@ -391,7 +412,9 @@ export const XPProgressTracker: React.FC<XPProgressTrackerProps> = ({
                     className='gap-2'
                   >
                     <TrendingUp size={20} />
-                    Level Up to {currentLevel + 1}!
+                    {hasPendingLevelUp
+                      ? 'Resume Level-Up'
+                      : `Level Up to ${currentLevel + 1}!`}
                   </Button>
                 </motion.div>
               )}

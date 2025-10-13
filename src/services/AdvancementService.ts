@@ -14,15 +14,25 @@ import {
   calculateMaxLoad,
   getXPThreshold,
 } from '../models/Character'
+import {
+  CLASS_MOVES,
+  type ClassMove,
+} from '../data/advancement/classMoves'
+import {
+  SPELL_PROGRESSION,
+  type SpellProgression,
+} from '../data/advancement/spellProgression'
 
 // Advancement options available when leveling up
 export interface AdvancementOption {
   id: string
-  type: 'move' | 'stat' | 'other'
+  type: 'move' | 'stat' | 'spell' | 'other'
   name: string
   description: string
-  requirements?: string[]
-  mutuallyExclusive?: string[] // Other options that can't be taken with this one
+  tier?: ClassMove['tier']
+  prerequisites?: ClassMove['prerequisites']
+  mutuallyExclusiveIds?: string[]
+  tags?: string[]
 }
 
 // Level up result
@@ -32,6 +42,7 @@ export interface LevelUpResult {
   newLevel: number
   hpIncrease: number
   loadIncrease: number
+  spellProgression?: SpellProgression
 }
 
 // XP sources for tracking
@@ -208,36 +219,132 @@ export class AdvancementService {
       }
     }
 
-    // Class moves (this would be populated from move compendium)
-    // For now, add placeholder options
-    options.push({
-      id: 'class-move-1',
-      type: 'move',
-      name: 'New Class Move',
-      description: 'Learn a new move from your class',
+    const moveOptions: AdvancementOption[] = []
+    const classMoves = CLASS_MOVES[character.class] ?? []
+    const takenMoveIds = this.getTakenMoveIds(character)
+    const tierOrder: Record<ClassMove['tier'], number> = {
+      race: 0,
+      starting: 0,
+      advanced: 1,
+      master: 2,
+    }
+
+    for (const move of classMoves) {
+      // Race & starting moves are granted during character creation
+      if (move.tier === 'race' || move.tier === 'starting') continue
+
+      if (
+        this.canTakeClassMove(
+          character,
+          move,
+          takenMoveIds,
+        )
+      ) {
+        moveOptions.push({
+          id: move.id,
+          type: 'move',
+          name: move.name,
+          description: move.description,
+          tier: move.tier,
+          prerequisites: move.prerequisites,
+          mutuallyExclusiveIds: move.mutuallyExclusiveIds,
+          tags: move.tags,
+        })
+      }
+    }
+
+    moveOptions.sort((a, b) => {
+      const tierA = a.tier ?? 'advanced'
+      const tierB = b.tier ?? 'advanced'
+      const tierDiff = tierOrder[tierA] - tierOrder[tierB]
+      if (tierDiff !== 0) return tierDiff
+      return a.name.localeCompare(b.name)
     })
 
-    // Advanced moves (levels 2-5)
-    if (character.level >= 2 && character.level <= 5) {
-      options.push({
-        id: 'advanced-move',
-        type: 'move',
-        name: 'Advanced Move',
-        description: 'Learn an advanced move from another class',
-      })
-    }
-
-    // Master moves (levels 6-10)
-    if (character.level >= 6) {
-      options.push({
-        id: 'master-move',
-        type: 'move',
-        name: 'Master Move',
-        description: 'Learn a master move',
-      })
-    }
+    options.push(...moveOptions)
 
     return options
+  }
+
+  private getTakenMoveIds(character: Character): Set<string> {
+    const taken = new Set<string>()
+    character.knownMoves?.forEach((moveId) => taken.add(moveId))
+    character.advancements
+      .filter((advancement) => advancement.type === 'move')
+      .forEach((advancement) => taken.add(advancement.choice))
+    if (Array.isArray(character.availableMoves)) {
+      character.availableMoves.forEach((moveId) => taken.add(moveId))
+    }
+    return taken
+  }
+
+  private canTakeClassMove(
+    character: Character,
+    move: ClassMove,
+    takenMoveIds: Set<string>,
+  ): boolean {
+    if (takenMoveIds.has(move.id)) {
+      return false
+    }
+
+    // Enforce tier-based level requirements
+    if (move.tier === 'advanced' && character.level < 2) {
+      return false
+    }
+    if (move.tier === 'master' && character.level < 6) {
+      return false
+    }
+
+    const prereq = move.prerequisites
+    if (prereq) {
+      if (typeof prereq.level === 'number' && character.level < prereq.level) {
+        return false
+      }
+
+      if (
+        prereq.requiresMoveIds &&
+        prereq.requiresMoveIds.some((id) => !takenMoveIds.has(id))
+      ) {
+        return false
+      }
+
+      if (
+        prereq.requiresRace &&
+        !prereq.requiresRace.some(
+          (race) => race.toLowerCase() === character.race.toLowerCase(),
+        )
+      ) {
+        return false
+      }
+
+      if (
+        prereq.requiresAlignment &&
+        !prereq.requiresAlignment.some(
+          (alignment) =>
+            alignment.toLowerCase() === character.alignment.toLowerCase(),
+        )
+      ) {
+        return false
+      }
+
+      if (
+        prereq.requiresStat &&
+        character.attributes[prereq.requiresStat.stat] <
+          prereq.requiresStat.min
+      ) {
+        return false
+      }
+    }
+
+    if (move.mutuallyExclusiveIds) {
+      for (const exclusive of move.mutuallyExclusiveIds) {
+        if (takenMoveIds.has(exclusive)) {
+          return false
+        }
+      }
+    }
+
+    return true
   }
 
   /**
@@ -275,6 +382,9 @@ export class AdvancementService {
     }
 
     const availableOptions = this.getAdvancementOptions(leveledCharacter)
+    const spellProgression = SPELL_PROGRESSION.find(
+      (entry) => entry.level === newLevel,
+    )
 
     return {
       character: leveledCharacter,
@@ -282,6 +392,7 @@ export class AdvancementService {
       newLevel,
       hpIncrease: newMaxHP - oldMaxHP,
       loadIncrease: newMaxLoad - oldMaxLoad,
+      spellProgression,
     }
   }
 
@@ -368,32 +479,82 @@ export class AdvancementService {
     const reasons: string[] = []
     let canTake = true
 
-    // Check requirements
-    if (option.requirements) {
-      for (const _requirement of option.requirements) {
-        // This would check specific requirements
-        // For now, assume all requirements are met
-      }
-    }
-
-    // Check mutually exclusive options
-    if (option.mutuallyExclusive) {
-      const takenChoices = character.advancements.map((a) => a.choice)
-      for (const exclusive of option.mutuallyExclusive) {
-        if (takenChoices.includes(exclusive)) {
-          reasons.push(`Cannot take because you already have ${exclusive}`)
-          canTake = false
-        }
-      }
-    }
-
-    // Check stat limits
     if (option.type === 'stat') {
       const statMatch = option.id.match(/stat-(\w+)/)
       if (statMatch) {
         const stat = statMatch[1].toUpperCase() as Attribute
         if (character.attributes[stat] >= 18) {
           reasons.push(`${stat} is already at maximum (18)`)
+          canTake = false
+        }
+      }
+      return { canTake, reasons }
+    }
+
+    if (option.type === 'move') {
+      const takenMoveIds = this.getTakenMoveIds(character)
+      if (takenMoveIds.has(option.id)) {
+        reasons.push('Move already known')
+        canTake = false
+      }
+
+      if (option.mutuallyExclusiveIds) {
+        for (const exclusive of option.mutuallyExclusiveIds) {
+          if (takenMoveIds.has(exclusive)) {
+            reasons.push(
+              `Cannot take because you already have mutually exclusive move ${exclusive}`,
+            )
+            canTake = false
+          }
+        }
+      }
+
+      const prereq = option.prerequisites
+      if (prereq) {
+        if (typeof prereq.level === 'number' && character.level < prereq.level) {
+          reasons.push(`Requires level ${prereq.level}`)
+          canTake = false
+        }
+
+        if (
+          prereq.requiresMoveIds &&
+          prereq.requiresMoveIds.some((id) => !takenMoveIds.has(id))
+        ) {
+          reasons.push('Missing required move prerequisite')
+          canTake = false
+        }
+
+        if (
+          prereq.requiresRace &&
+          !prereq.requiresRace.some(
+            (race) => race.toLowerCase() === character.race.toLowerCase(),
+          )
+        ) {
+          reasons.push(`Requires race: ${prereq.requiresRace.join(', ')}`)
+          canTake = false
+        }
+
+        if (
+          prereq.requiresAlignment &&
+          !prereq.requiresAlignment.some(
+            (alignment) =>
+              alignment.toLowerCase() === character.alignment.toLowerCase(),
+          )
+        ) {
+          reasons.push(
+            `Requires alignment: ${prereq.requiresAlignment.join(', ')}`,
+          )
+          canTake = false
+        }
+
+        if (
+          prereq.requiresStat &&
+          character.attributes[prereq.requiresStat.stat] <
+            prereq.requiresStat.min
+        ) {
+          reasons.push(
+            `Requires ${prereq.requiresStat.stat} >= ${prereq.requiresStat.min}`,
+          )
           canTake = false
         }
       }

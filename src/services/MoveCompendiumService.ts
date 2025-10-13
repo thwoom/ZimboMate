@@ -7,6 +7,7 @@
 import type { Attribute, CharacterClass } from '../models/Character'
 import type { Move, MoveCategory, MoveTrigger } from '../models/Move'
 import { BASIC_MOVES, SPECIAL_MOVES } from '../models/Move'
+import { CLASS_MOVES } from '../data/advancement/classMoves'
 
 // Move type for better categorization
 export type MoveType =
@@ -30,6 +31,9 @@ export interface CompendiumMove extends Move {
     value: number
   }
   requiresMove?: string[]
+  requiresRace?: string[]
+  requiresAlignment?: string[]
+  mutuallyExclusiveIds?: string[]
   source: string
   page?: number
 }
@@ -93,6 +97,7 @@ export class MoveCompendiumService {
 
   constructor() {
     this.initializeBasicMoves()
+    this.initializeClassMoves()
   }
 
   /**
@@ -134,6 +139,75 @@ export class MoveCompendiumService {
     }))
 
     this.moves = [...basicMoves, ...specialMoves]
+  }
+
+  /**
+   * Hydrate class-specific moves from structured data
+   */
+  private initializeClassMoves(): void {
+    const classMoves: CompendiumMove[] = []
+
+    for (const [className, moves] of Object.entries(CLASS_MOVES)) {
+      const characterClass = className as CharacterClass
+
+      for (const move of moves) {
+        const category: MoveCategory =
+          move.tier === 'advanced'
+            ? 'advanced'
+            : move.tier === 'master'
+              ? 'master'
+              : 'class'
+
+        const requiredLevel =
+          move.prerequisites?.level ??
+          (move.tier === 'advanced'
+            ? 2
+            : move.tier === 'master'
+              ? 6
+              : 1)
+
+        const tags = new Set<string>()
+        tags.add(move.tier)
+        if (move.tier === 'race') {
+          tags.add('race')
+        }
+
+        const compendiumMove: CompendiumMove = {
+          id: move.id,
+          name: move.name,
+          category,
+          description: move.description,
+          trigger: '',
+          triggerType: 'special',
+          type: 'utility',
+          source: 'Dungeon World SRD',
+          requiresClass: characterClass,
+          level: requiredLevel,
+          tags: Array.from(tags),
+        }
+
+        if (move.prerequisites?.requiresMoveIds) {
+          compendiumMove.requiresMove = move.prerequisites.requiresMoveIds
+        }
+
+        if (move.prerequisites?.requiresRace) {
+          compendiumMove.requiresRace = move.prerequisites.requiresRace
+        }
+
+        if (move.prerequisites?.requiresAlignment) {
+          compendiumMove.requiresAlignment =
+            move.prerequisites.requiresAlignment
+        }
+
+        if (move.mutuallyExclusiveIds?.length) {
+          compendiumMove.mutuallyExclusiveIds = move.mutuallyExclusiveIds
+        }
+
+        classMoves.push(compendiumMove)
+      }
+    }
+
+    this.moves = [...this.moves, ...classMoves]
   }
 
   /**

@@ -8,6 +8,12 @@ import type { Attribute, Character, CharacterClass } from '../models/Character'
 import type { DiceRoll, RollModifiers, RollOptions } from './DiceRollingService'
 import { getAttributeModifier } from '../models/Character'
 import { diceRollingService } from './DiceRollingService'
+import { SPELL_PROGRESSION } from '../data/advancement/spellProgression'
+import { WIZARD_SPELLS } from '../data/spells/wizardSpells'
+import {
+  CLERIC_CASTING_RULES,
+  CLERIC_SPELLS,
+} from '../data/spells/clericSpells'
 
 // Spell interface for the service
 export interface ServiceSpell {
@@ -19,6 +25,41 @@ export interface ServiceSpell {
   range?: string
   duration?: string
   requiresClass?: CharacterClass
+}
+
+const CLASS_SPELLS: Partial<Record<CharacterClass, ServiceSpell[]>> = {
+  Wizard: WIZARD_SPELLS.map((spell) => ({
+    id: spell.id,
+    name: spell.name,
+    level: spell.level,
+    description: spell.effect,
+    tags: [...spell.tags],
+    requiresClass: 'Wizard',
+  })),
+  Cleric: CLERIC_SPELLS.map((spell) => ({
+    id: spell.id,
+    name: spell.name,
+    level: spell.level,
+    description: spell.effect,
+    tags: [...spell.tags],
+    requiresClass: 'Cleric',
+  })),
+}
+
+const CLASS_CASTING_RULES: Partial<
+  Record<CharacterClass, typeof CLERIC_CASTING_RULES>
+> = {
+  Cleric: CLERIC_CASTING_RULES,
+}
+
+const SPELLS_BY_ID = new Map<string, ServiceSpell>()
+for (const spells of Object.values(CLASS_SPELLS)) {
+  if (!spells) continue
+  for (const spell of spells) {
+    if (!SPELLS_BY_ID.has(spell.id)) {
+      SPELLS_BY_ID.set(spell.id, spell)
+    }
+  }
 }
 
 // Spell classes that can cast spells
@@ -60,6 +101,13 @@ export class SpellCastingService {
    */
   canCastSpells(character: Character): boolean {
     return this.getSpellcastingStat(character) !== undefined
+  }
+
+  /**
+   * Lookup spell progression data for a given level
+   */
+  getSpellProgression(level: number) {
+    return SPELL_PROGRESSION.find((entry) => entry.level === level)
   }
 
   /**
@@ -246,21 +294,18 @@ export class SpellCastingService {
    * Get available spells for a character class and level
    */
   getAvailableSpells(
-    _characterClass: CharacterClass,
-    _level: number,
+    characterClass: CharacterClass,
+    level: number,
   ): ServiceSpell[] {
-    // This would typically load from a spell compendium
-    // For now, return empty array as we don't have spell data loaded
-    return []
+    const spells = CLASS_SPELLS[characterClass] ?? []
+    return spells.filter((spell) => spell.level === 0 || spell.level <= level)
   }
 
   /**
    * Get spell by ID
    */
-  getSpellById(_spellId: string): ServiceSpell | undefined {
-    // This would typically load from a spell compendium
-    // For now, return undefined as we don't have spell data loaded
-    return undefined
+  getSpellById(spellId: string): ServiceSpell | undefined {
+    return SPELLS_BY_ID.get(spellId)
   }
 
   /**
@@ -311,6 +356,11 @@ export class SpellCastingService {
     preparedLevels: number
     hasStrain: boolean
     availableCantrips: number
+    progression?: {
+      newSpellsKnown?: number
+      notes?: string
+    }
+    castingRules?: unknown
   } {
     const canCastSpells = this.canCastSpells(character)
     const spellcastingStat = this.getSpellcastingStat(character)
@@ -318,8 +368,35 @@ export class SpellCastingService {
     const preparedSpells = (character.preparedSpells || []).length
     const hasStrain = character.conditions.includes('spellcasting-strain')
 
-    // Calculate prepared levels (would need actual spell data)
-    const preparedLevels = 0 // This would calculate from actual prepared spells
+    const preparedLevels = (character.preparedSpells || []).reduce(
+      (sum, spellId) => {
+        const spell = this.getSpellById(spellId)
+        if (!spell) return sum
+        return sum + (this.isCantrip(spell) ? 0 : spell.level)
+      },
+      0,
+    )
+
+    const availableClassSpells = CLASS_SPELLS[character.class] ?? []
+    const availableCantrips = availableClassSpells.filter(
+      (spell) => spell.level === 0,
+    ).length
+
+    const progressionEntry = this.getSpellProgression(character.level)
+    let progressionSummary:
+      | {
+          newSpellsKnown?: number
+          notes?: string
+        }
+      | undefined
+
+    if (progressionEntry) {
+      if (character.class === 'Wizard') {
+        progressionSummary = progressionEntry.wizard
+      } else if (character.class === 'Cleric') {
+        progressionSummary = progressionEntry.cleric
+      }
+    }
 
     return {
       canCastSpells,
@@ -328,7 +405,9 @@ export class SpellCastingService {
       preparedSpells,
       preparedLevels,
       hasStrain,
-      availableCantrips: 0, // This would count available cantrips
+      availableCantrips,
+      progression: progressionSummary,
+       castingRules: CLASS_CASTING_RULES[character.class],
     }
   }
 

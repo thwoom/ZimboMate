@@ -19,6 +19,7 @@ import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
 import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
 import Folio from './components/game/CharacterSheet/Folio'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
+import { LevelUpWizard } from './components/game/LevelUpWizard'
 import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
 import { GameManagementTab } from './components/game/GameManagementTab'
 import { PlayTab } from './components/game/PlayTab'
@@ -809,6 +810,7 @@ const App: React.FC = () => {
                   onClose={() => setShowSessionManager(false)}
                   onSessionJoined={handleSessionJoined}
                 />
+                <LevelUpWizard />
               </div>
             </TooltipProvider>
           </ChronicleProvider>
