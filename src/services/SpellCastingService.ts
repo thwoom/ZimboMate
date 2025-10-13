@@ -6,14 +6,14 @@
 
 import type { Attribute, Character, CharacterClass } from '../models/Character'
 import type { DiceRoll, RollModifiers, RollOptions } from './DiceRollingService'
-import { getAttributeModifier } from '../models/Character'
-import { diceRollingService } from './DiceRollingService'
 import { SPELL_PROGRESSION } from '../data/advancement/spellProgression'
-import { WIZARD_SPELLS } from '../data/spells/wizardSpells'
 import {
   CLERIC_CASTING_RULES,
   CLERIC_SPELLS,
 } from '../data/spells/clericSpells'
+import { WIZARD_SPELLS } from '../data/spells/wizardSpells'
+import { getAttributeModifier } from '../models/Character'
+import { diceRollingService } from './DiceRollingService'
 
 // Spell interface for the service
 export interface ServiceSpell {

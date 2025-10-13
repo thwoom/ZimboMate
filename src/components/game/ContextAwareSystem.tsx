@@ -406,6 +406,7 @@ export const ContextAwareSystem: React.FC<ContextAwareSystemProps> = ({
     maxSuggestions,
     healCharacter,
     levelUpCharacter,
+    pendingAdvancements,
   ])
 
   const handleDismiss = (suggestionId: string) => {

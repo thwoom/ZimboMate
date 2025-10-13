@@ -1,15 +1,26 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import type { Character } from '@/models/Character'
+import type { ServiceSpell } from '@/services/SpellCastingService'
+import type { LevelUpWizardStep } from '@/stores/characterStore'
+
+import { ArrowRight, BookOpen, CheckCircle2, Info, Shield, Sparkles, Wand2 } from 'lucide-react'
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { shallow } from 'zustand/shallow'
+
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from '@/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
@@ -19,6 +30,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/Card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -32,32 +44,18 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
+import { spellCastingService } from '@/services/SpellCastingService'
 import {
   LEVEL_UP_WIZARD_STEPS,
-  type LevelUpWizardStep,
   useCharacterStore,
 } from '@/stores/characterStore'
-import { spellCastingService } from '@/services/SpellCastingService'
-import type { ServiceSpell } from '@/services/SpellCastingService'
-import type { Character } from '@/models/Character'
-import {
-  ArrowRight,
-  BookOpen,
-  CheckCircle2,
-  Info,
-  Shield,
-  Sparkles,
-  Wand2,
-} from 'lucide-react'
-import { shallow } from 'zustand/shallow'
 
 interface LevelUpWizardProps {
   characterId?: string
 }
 
-type StepMetadata = {
+interface StepMetadata {
   title: string
   description: string
   icon: React.ReactNode
@@ -91,7 +89,7 @@ const STEP_METADATA: Record<LevelUpWizardStep, StepMetadata> = {
   },
 }
 
-type StoreSlice = {
+interface StoreSlice {
   activeCharacterId: string | null
   pendingAdvancements: ReturnType<typeof useCharacterStore.getState>['pendingAdvancements']
   updateLevelUpDraft: ReturnType<typeof useCharacterStore.getState>['updateLevelUpDraft']
@@ -153,23 +151,35 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
     return characters.find((entry) => entry.id === effectiveCharacterId)
   }, [characters, effectiveCharacterId])
 
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useReducer(
+    (_previous: boolean, next: boolean) => next,
+    false,
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const pendingKeyRef = useRef<string | null>(null)
 
   const pendingKey = pending
     ? `${pending.characterId}-${pending.createdAt}`
     : null
 
+  const openWizard = useCallback(() => {
+    setIsOpen(true)
+  }, [])
+
+  const closeWizard = useCallback(() => {
+    setIsOpen(false)
+  }, [])
+
   useEffect(() => {
     if (pendingKey && pendingKey !== pendingKeyRef.current) {
-      setIsOpen(true)
+      openWizard()
       pendingKeyRef.current = pendingKey
     } else if (!pendingKey) {
-      setIsOpen(false)
+      closeWizard()
       pendingKeyRef.current = null
     }
-  }, [pendingKey])
+  }, [closeWizard, openWizard, pendingKey])
 
   useEffect(() => {
     if (!pending || !effectiveCharacterId) {
@@ -183,12 +193,15 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
-      setIsOpen(open)
-      if (!open) {
+      if (open) {
+        openWizard()
+      } else {
+        closeWizard()
         clearError()
+        setCancelDialogOpen(false)
       }
     },
-    [clearError],
+    [clearError, closeWizard, openWizard, setCancelDialogOpen],
   )
 
   const statOptions = useMemo(
@@ -257,7 +270,10 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
   const draft = pending?.draft
   const selectedStat = draft?.statIncreaseId ?? ''
   const selectedMoveId = draft?.moveIds?.[0] ?? ''
-  const selectedSpells = draft?.spellSelections ?? []
+  const selectedSpells = useMemo(
+    () => draft?.spellSelections ?? [],
+    [draft?.spellSelections],
+  )
   const chronicleEnabled =
     typeof draft?.chronicleEnabled === 'boolean'
       ? draft.chronicleEnabled
@@ -419,12 +435,26 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
 
   const handleCancelLevelUp = useCallback(() => {
     if (!effectiveCharacterId) return
-    const confirmed = window.confirm(
-      'Cancel pending level-up? Your selections will be discarded.',
-    )
-    if (!confirmed) return
+    setCancelDialogOpen(true)
+  }, [effectiveCharacterId])
+
+  const confirmCancelLevelUp = useCallback(() => {
+    if (!effectiveCharacterId) return
     cancelLevelUp(effectiveCharacterId)
-  }, [effectiveCharacterId, cancelLevelUp])
+    clearError()
+    closeWizard()
+    setCancelDialogOpen(false)
+  }, [
+    cancelLevelUp,
+    clearError,
+    closeWizard,
+    effectiveCharacterId,
+    setCancelDialogOpen,
+  ])
+
+  const dismissCancelDialog = useCallback(() => {
+    setCancelDialogOpen(false)
+  }, [setCancelDialogOpen])
 
   if (!pending || !character) {
     return null
@@ -526,6 +556,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
         onValueChange={handleStatChange}
       >
         <Card
+          data-testid='stat-option-none'
           className={cn(
             'border-dashed',
             !selectedStat && 'border-primary/50 bg-primary/5',
@@ -544,6 +575,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
         {statOptions.map((option) => (
           <Card
             key={option.id}
+            data-testid={`stat-option-${option.id}`}
             className={cn(
               'transition-colors',
               selectedStat === option.id
@@ -579,6 +611,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
               key={option.id}
               type='button'
               onClick={() => handleMoveSelect(option.id)}
+              data-testid={`move-option-${option.id}`}
               className={cn(
                 'rounded-md border border-border p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                 selected
@@ -667,6 +700,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
                     return (
                       <label
                         key={spell.id}
+                        data-testid={`spell-option-${spell.id}`}
                         className={cn(
                           'flex items-start gap-3 rounded-md border border-border p-3 transition-colors',
                           checked
@@ -825,6 +859,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
+        data-testid='level-up-wizard'
         className='max-w-4xl border-border/80 bg-background/95 p-0 shadow-lg sm:rounded-xl'
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
@@ -903,17 +938,26 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
             resume later.
           </div>
           <div className='flex items-center gap-2'>
-            <Button variant='ghost' onClick={handleCancelLevelUp}>
+            <Button
+              data-testid='wizard-cancel'
+              variant='ghost'
+              onClick={handleCancelLevelUp}
+            >
               Cancel Level-Up
             </Button>
             <div className='flex items-center gap-2'>
               {stepIndex > 0 && (
-                <Button variant='outline' onClick={handleBack}>
+                <Button
+                  data-testid='wizard-back'
+                  variant='outline'
+                  onClick={handleBack}
+                >
                   Back
                 </Button>
               )}
               {!isLastStep && (
                 <Button
+                  data-testid='wizard-next'
                   variant='primary'
                   onClick={handleNext}
                   disabled={!canAdvance}
@@ -923,6 +967,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
               )}
               {isLastStep && (
                 <Button
+                  data-testid='wizard-confirm'
                   variant='primary'
                   onClick={handleConfirm}
                   disabled={!readyToConfirm || isSubmitting}
@@ -933,6 +978,25 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
             </div>
           </div>
         </DialogFooter>
+
+        <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel level-up?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Leaving now will discard any unconfirmed choices for this character&apos;s advancement.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={dismissCancelDialog}>
+                Keep editing
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={confirmCancelLevelUp}>
+                Discard level-up
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   )

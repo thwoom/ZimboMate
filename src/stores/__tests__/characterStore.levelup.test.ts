@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useCharacterStore } from '../characterStore'
-import { xpIntegrationService } from '../../services/XPIntegrationService'
-import { logLevelUpEvent } from '../../services/LevelUpLogger'
 import type { Character } from '../../models/Character'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { logLevelUpEvent } from '../../services/LevelUpLogger'
+import { xpIntegrationService } from '../../services/XPIntegrationService'
+import { useCharacterStore } from '../characterStore'
 
 vi.mock('../../services/LevelUpLogger', () => ({
   logLevelUpEvent: vi.fn().mockResolvedValue(undefined),

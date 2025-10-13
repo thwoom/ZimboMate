@@ -4,24 +4,16 @@
  * New service for V2 to handle character progression
  */
 
-import type {
-  AdvancementChoice,
-  Attribute,
-  Character,
-} from '../models/Character'
+import type { ClassMove } from '../data/advancement/classMoves'
+import type { SpellProgression } from '../data/advancement/spellProgression'
+import type { AdvancementChoice, Attribute, Character } from '../models/Character'
+import { CLASS_MOVES } from '../data/advancement/classMoves'
+import { SPELL_PROGRESSION } from '../data/advancement/spellProgression'
 import {
   calculateMaxHP,
   calculateMaxLoad,
   getXPThreshold,
 } from '../models/Character'
-import {
-  CLASS_MOVES,
-  type ClassMove,
-} from '../data/advancement/classMoves'
-import {
-  SPELL_PROGRESSION,
-  type SpellProgression,
-} from '../data/advancement/spellProgression'
 
 // Advancement options available when leveling up
 export interface AdvancementOption {

@@ -4,20 +4,18 @@
  * Integrates with CharacterStateService and AdvancementService
  */
 
+import type { SpellProgression } from '../data/advancement/spellProgression'
 import type { Attributes, Character } from '../models/Character'
-import { getXPThreshold } from '../models/Character'
+import type { AdvancementOption } from '../services/AdvancementService'
+import type { ServiceSpell } from '../services/SpellCastingService'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import {
-  advancementService,
-  type AdvancementOption,
-} from '../services/AdvancementService'
+import { getXPThreshold } from '../models/Character'
+import { advancementService } from '../services/AdvancementService'
 import { characterStateService } from '../services/CharacterStateService'
-import { xpIntegrationService } from '../services/XPIntegrationService'
-import type { SpellProgression } from '../data/advancement/spellProgression'
-import { spellCastingService } from '../services/SpellCastingService'
-import type { ServiceSpell } from '../services/SpellCastingService'
 import { logLevelUpEvent } from '../services/LevelUpLogger'
+import { spellCastingService } from '../services/SpellCastingService'
+import { xpIntegrationService } from '../services/XPIntegrationService'
 
 const ATTRIBUTE_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const
 

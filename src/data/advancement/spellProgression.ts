@@ -1,5 +1,3 @@
-import type { CharacterClass } from '../../models/Character'
-
 export interface SpellProgression {
   level: number
   cleric?: {

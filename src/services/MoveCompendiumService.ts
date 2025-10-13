@@ -6,8 +6,8 @@
 
 import type { Attribute, CharacterClass } from '../models/Character'
 import type { Move, MoveCategory, MoveTrigger } from '../models/Move'
-import { BASIC_MOVES, SPECIAL_MOVES } from '../models/Move'
 import { CLASS_MOVES } from '../data/advancement/classMoves'
+import { BASIC_MOVES, SPECIAL_MOVES } from '../models/Move'
 
 // Move type for better categorization
 export type MoveType =

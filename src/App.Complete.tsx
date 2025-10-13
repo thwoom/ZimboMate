@@ -19,9 +19,9 @@ import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
 import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
 import Folio from './components/game/CharacterSheet/Folio'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
-import { LevelUpWizard } from './components/game/LevelUpWizard'
 import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
 import { GameManagementTab } from './components/game/GameManagementTab'
+import { LevelUpWizard } from './components/game/LevelUpWizard'
 import { PlayTab } from './components/game/PlayTab'
 import { SessionManager } from './components/game/SessionManager'
 import { StatRoller } from './components/game/StatRoller'
@@ -57,6 +57,7 @@ import {
 } from './utils/buttonUtils'
 import { logger } from './utils/logger'
 import './utils/initializeMockData' // Initialize mock data for development
+import './utils/exposeStoresForTesting'
 
 type ActiveTab =
   | 'play'

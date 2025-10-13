@@ -95,6 +95,7 @@ export default function FolioSpellsPage({
             ) : (
               <div
                 ref={knownListRef}
+                data-testid='known-spells-list'
                 className='border-border mt-2 max-h-60 overflow-y-auto rounded-md border'
               >
                 <div
@@ -107,15 +108,16 @@ export default function FolioSpellsPage({
                     const spell = knownSpells[virtualRow.index]
                     if (!spell) return null
 
-                    return (
-                      <div
-                        key={`${spell}-${virtualRow.index}`}
-                        data-index={virtualRow.index}
-                        className='bg-card/80 hover:bg-muted/40 absolute inset-x-0 mx-2 my-1 rounded-md border border-border px-3 py-2 text-sm shadow-sm transition-colors'
-                        style={{
-                          transform: `translateY(${virtualRow.start}px)`,
-                        }}
-                      >
+                      return (
+                        <div
+                          key={`${spell}-${virtualRow.index}`}
+                          data-index={virtualRow.index}
+                          data-testid={`known-spell-${spell}`}
+                          className='bg-card/80 hover:bg-muted/40 absolute inset-x-0 mx-2 my-1 rounded-md border border-border px-3 py-2 text-sm shadow-sm transition-colors'
+                          style={{
+                            transform: `translateY(${virtualRow.start}px)`,
+                          }}
+                        >
                         <p className='text-foreground truncate font-medium'>
                           {spell}
                         </p>
