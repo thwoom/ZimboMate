@@ -12,6 +12,7 @@ import {
   Coins,
   Handshake,
   Heart,
+  Package,
   Sparkles,
   Target,
 } from 'lucide-react'
@@ -58,6 +59,7 @@ export const EMPTY_RESOURCE_HISTORY: ResourceHistoryState = {
   debilities: {},
   hp: {},
   coin: {},
+  load: {},
 }
 
 export function collectMentionHighlights(
@@ -101,10 +103,12 @@ export interface ResourceChangeContext {
 export function collectResourceChanges(
   bundle: ChronicleDeltaLog | null,
   history: ResourceHistoryState,
+  entryIdFallback?: string,
 ): ResourceChangeContext[] {
-  if (!bundle) return []
+  if (!bundle && !entryIdFallback) return []
 
-  const { bundleId } = bundle
+  const targetBundleId = bundle?.bundleId ?? null
+  const targetEntryId = bundle?.entryId ?? entryIdFallback ?? null
   const collected: ResourceChangeContext[] = []
 
   const collectLedger = <T extends ResourceLogEntry>(
@@ -112,7 +116,12 @@ export function collectResourceChanges(
   ) => {
     Object.entries(ledger).forEach(([characterId, logs]) => {
       logs.forEach((log) => {
-        if (log.bundleId === bundleId) {
+        const matchesBundle =
+          targetBundleId !== null && log.bundleId === targetBundleId
+        const matchesEntry =
+          targetEntryId !== null && log.entryId === targetEntryId
+
+        if (matchesBundle || matchesEntry) {
           collected.push({ log, characterId })
         }
       })
@@ -125,6 +134,7 @@ export function collectResourceChanges(
   collectLedger(history.bonds)
   collectLedger(history.hold)
   collectLedger(history.debilities)
+  collectLedger(history.load)
 
   return collected.sort(
     (a, b) =>
@@ -150,6 +160,7 @@ export const resourceIconMeta: Record<
   bond: { Icon: Handshake, colorClass: 'text-accent' },
   hold: { Icon: Target, colorClass: 'text-chart-2' },
   debility: { Icon: AlertTriangle, colorClass: 'text-amber-500' },
+  load: { Icon: Package, colorClass: 'text-chart-3' },
 }
 
 export function describeResourceChange(
@@ -202,6 +213,18 @@ export function describeResourceChange(
         colorClass: meta.colorClass,
         message: `${characterName} ${action}`,
         detail: log.text,
+      }
+    }
+    case 'load': {
+      const delta = log.delta
+      const verb = delta < 0 ? 'reduced load capacity by' : 'raised load capacity by'
+      const amount = Math.abs(delta)
+      return {
+        key: `${log.id}-load`,
+        Icon: meta.Icon,
+        colorClass: meta.colorClass,
+        message: `${characterName} ${verb} ${amount}`,
+        detail: `${log.previous}  ${log.next}`,
       }
     }
     case 'hold': {

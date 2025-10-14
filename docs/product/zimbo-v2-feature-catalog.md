@@ -1,6 +1,6 @@
 # ZimboMate V2 Feature Catalog
 
-This document captures every user-facing surface in the current ZimboMate V2 build (as of 10 Oct 2025). Use it to understand what appears on screen, how to interact with each feature, and any caveats or prerequisites to expect during hands-on sessions.
+This document captures every user-facing surface in the current ZimboMate V2 build (as of 14 Oct 2025). Use it to understand what appears on screen, how to interact with each feature, and any caveats or prerequisites to expect during hands-on sessions.
 
 ---
 
@@ -72,14 +72,20 @@ This document captures every user-facing surface in the current ZimboMate V2 bui
 ### Chronicle Utilities
 
 - **Campaign Vibe** picker (Fantasy, Sci-Fi, Cyberpunk, Horror, Western, Modern) influences narrative phrasing for fallbacks and rewrites.
-- Scroll-synced highlight: typing `@` mentions or keywords like “gear”, “stats”, “spells” auto-focus the matching folio tab.
-- Dice integration: when a roll is pending, the folio flashes the Stats tab (“Dice roll in progress”).
-- Quick actions card (“Edit in Builder”, “Jump to Play”) provides one-click navigation; textual helper notes remind GPT-powered inline counters update instantly.
+- Scroll-synced highlight: typing `@` mentions or keywords like "gear", "stats", "spells" auto-focus the matching folio tab.
+- Dice integration: when a roll is pending, the folio flashes the Stats tab ("Dice roll in progress").
+- Quick actions card ("Edit in Builder", "Jump to Play") provides one-click navigation; textual helper notes remind GPT-powered inline counters update instantly.
+
+### Chronicle Timeline & Advancements
+
+- The **Timeline** view lists every chronicle entry with automation badges, resource chips (XP/HP/Load), entity highlights, and optional tag filters. A new Level Ups filter toggles those milestones inline.
+- The **Advancements** tab is a pre-filtered timeline that surfaces only level-up entries. A summary card tracks total advancements, number of characters who leveled, and the most recent milestone.
+- Level-up entries now link directly to the advancing character, include stat/move/spell notes, and log resource deltas so the timeline chips stay accurate whether or not automation bundles were used.
 
 ### Tools Subtab (AI Generators)
 
-- Three subcategories—**Items**, **Monsters**, **NPCs**—persist across visits.
-- Enter a short prompt and click **Create with AI** to seed mock data (name, stats, description). Generated entries list under “Your Items/Monsters/NPCs”.
+- Three subcategories-**Items**, **Monsters**, **NPCs**-persist across visits.
+- Enter a short prompt and click **Create with AI** to seed mock data (name, stats, description). Generated entries list under "Your Items/Monsters/NPCs".
 - Items show tags & stats; monsters include HP, Armor, Instinct, Moves; NPCs include appearance, drive, quirk, knowledge.
 
 ### Folio Highlights & Notes

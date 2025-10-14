@@ -179,6 +179,13 @@ test('martial and caster characters level up via the wizard', async ({ page }) =
   await expect(wizard).toContainText(fighterMoveName)
   await clickWizardConfirm()
 
+  const bondsReminder = page.getByRole('dialog', {
+    name: /revisit bonds/i,
+  })
+  await expect(bondsReminder).toBeVisible({ timeout: 5000 })
+  await bondsReminder.getByRole('button', { name: 'Later' }).click()
+  await expect(bondsReminder).toBeHidden({ timeout: 5000 })
+
   await expect(wizard).toBeVisible({ timeout: 15000 })
   await expect(wizard).toContainText('Eldara Moonwhisper')
 
@@ -207,6 +214,12 @@ test('martial and caster characters level up via the wizard', async ({ page }) =
   await expect(wizard).toContainText(wizardMoveName)
   await expect(wizard).toContainText(wizardSpellName)
   await clickWizardConfirm()
+  const secondBondsReminder = page.getByRole('dialog', {
+    name: /revisit bonds/i,
+  })
+  await expect(secondBondsReminder).toBeVisible({ timeout: 5000 })
+  await secondBondsReminder.getByRole('button', { name: 'Later' }).click()
+  await expect(secondBondsReminder).toBeHidden({ timeout: 5000 })
   await expect(wizard).toBeHidden({ timeout: 15000 })
 
   await page.evaluate(() => {

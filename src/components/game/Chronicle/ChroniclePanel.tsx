@@ -98,13 +98,14 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
     [getCharacter],
   )
   const [activeView, setActiveView] = useState<
-    'write' | 'timeline' | 'entities'
+    'write' | 'timeline' | 'advancements' | 'entities'
   >('write')
   const [searchQuery, setSearchQuery] = useState('')
   const { isApplyingBundle, lastProgressEvent } = useChronicleLLM()
   const [isTimelineAuditExpanded, setIsTimelineAuditExpanded] = useState(false)
   const [isTimelineGuardDismissed, setIsTimelineGuardDismissed] =
     useState(false)
+  const [showLevelUpOnly, setShowLevelUpOnly] = useState(false)
 
   const isTauriRuntime = useIsTauriRuntime()
   const showTauriGuard = !isTauriRuntime && !isTimelineGuardDismissed
@@ -132,6 +133,34 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
   }, [auditLog, isTimelineAuditExpanded])
 
   const hasMoreAuditEntries = auditLog.length > visibleAuditEntries.length
+
+  const levelUpEntries = useMemo(
+    () => entries.filter((entry) => entry.tags.includes('level-up')),
+    [entries],
+  )
+  const hasLevelUpEntries = levelUpEntries.length > 0
+  const levelUpCharacterCount = useMemo(() => {
+    const ids = new Set<string>()
+    levelUpEntries.forEach((entry) => {
+      entry.tags
+        .filter((tag) => tag.startsWith('character:'))
+        .forEach((tag) => ids.add(tag.slice('character:'.length)))
+    })
+    return ids.size
+  }, [levelUpEntries])
+
+  const sortedLevelUpEntries = useMemo(() => {
+    return [...levelUpEntries].sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+    )
+  }, [levelUpEntries])
+
+  const latestLevelUp = sortedLevelUpEntries[0] ?? null
+
+  const timelineTagFilters = useMemo(
+    () => (showLevelUpOnly ? ['level-up'] : []),
+    [showLevelUpOnly],
+  )
 
   const handleNavigateToEntry = useCallback(
     (entryId: string, entityName?: string) => {
@@ -353,6 +382,19 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
               >
                 <Scroll size={16} />
                 Timeline
+              </Button>
+              <Button
+                variant={activeView === 'advancements' ? 'primary' : 'ghost'}
+                size='sm'
+                onClick={() => {
+                  setActiveView('advancements')
+                  setShowLevelUpOnly(false)
+                }}
+                className='gap-2'
+                disabled={!hasLevelUpEntries}
+              >
+                <Sparkles size={16} />
+                Advancements ({levelUpEntries.length})
               </Button>
               <Button
                 variant={activeView === 'entities' ? 'primary' : 'ghost'}
@@ -820,6 +862,26 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                 </div>
               )}
 
+              {activeView === 'timeline' && hasLevelUpEntries && (
+                <div className='flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/40 bg-background/70 px-3 py-2 text-xs'>
+                  <span className='font-semibold uppercase tracking-wide text-muted-foreground'>
+                    Filters
+                  </span>
+                  <div className='flex items-center gap-2'>
+                    <Button
+                      size='sm'
+                      variant={showLevelUpOnly ? 'primary' : 'outline'}
+                      className='h-7 text-xs'
+                      onClick={() => setShowLevelUpOnly((prev) => !prev)}
+                      aria-pressed={showLevelUpOnly}
+                    >
+                      <Sparkles size={12} className='mr-1' />
+                      Level Ups
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <ChronicleTimeline
                 entries={entries}
                 entities={entities}
@@ -827,15 +889,91 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
                 getDeltaLog={getDeltaLog}
                 resolveCharacterName={resolveCharacterName}
                 searchQuery={searchQuery}
+                tagFilters={timelineTagFilters}
                 onEntitySelect={handleSelectEntity}
               />
             </div>
-          </motion.div>
-        )}
+      </motion.div>
+    )}
 
-        {activeView === 'entities' && (
-          <motion.div
-            key='entities'
+    {activeView === 'advancements' && (
+      <motion.div
+        key='advancements'
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className='space-y-4'>
+          <Card variant='surface' className='border-border/60 shadow-sm'>
+            <CardContent className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+              <div className='space-y-1'>
+                <h3 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
+                  Advancement Summary
+                </h3>
+                <p className='text-sm text-muted-foreground'>
+                  Track every level-up captured in the chronicle timeline.
+                </p>
+              </div>
+              <div className='flex flex-wrap gap-6 text-sm'>
+                <div className='min-w-[120px]'>
+                  <div className='text-xs uppercase tracking-wide text-muted-foreground'>
+                    Total Level-Ups
+                  </div>
+                  <div className='text-lg font-semibold text-foreground'>
+                    {levelUpEntries.length}
+                  </div>
+                </div>
+                <div className='min-w-[120px]'>
+                  <div className='text-xs uppercase tracking-wide text-muted-foreground'>
+                    Characters Advanced
+                  </div>
+                  <div className='text-lg font-semibold text-foreground'>
+                    {levelUpCharacterCount}
+                  </div>
+                </div>
+                <div className='min-w-[160px]'>
+                  <div className='text-xs uppercase tracking-wide text-muted-foreground'>
+                    Most Recent
+                  </div>
+                  <div className='text-sm font-medium text-foreground'>
+                    {latestLevelUp
+                      ? `${latestLevelUp.timestamp.toLocaleDateString()} · ${formatRelativeTimeFromNow(
+                          latestLevelUp.timestamp,
+                        )}`
+                      : '—'}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {hasLevelUpEntries ? (
+            <ChronicleTimeline
+              entries={entries}
+              entities={entities}
+              resourceHistory={resourceHistory}
+              getDeltaLog={getDeltaLog}
+              resolveCharacterName={resolveCharacterName}
+              searchQuery={searchQuery}
+              tagFilters={['level-up']}
+              onEntitySelect={handleSelectEntity}
+            />
+          ) : (
+            <Card variant='surface' className='border-border/60 shadow-sm'>
+              <CardContent className='py-12 text-center text-sm text-muted-foreground'>
+                No level-ups recorded yet. Once adventurers advance, their
+                milestones will appear here.
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </motion.div>
+    )}
+
+    {activeView === 'entities' && (
+      <motion.div
+        key='entities'
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}

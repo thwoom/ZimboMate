@@ -1,6 +1,6 @@
 # ZimboMate V2 - Level-Up Roadmap
 
-Last updated: 13 Oct 2025
+Last updated: 14 Oct 2025
 Owner: Gameplay / Chronicle Pod
 Status: Phases 0–3 complete (wizard live) – Phase 4 polish outstanding
 
@@ -69,16 +69,16 @@ Dungeon World advancement is more than incrementing a level counter – players 
 - [x] Optional Playwright scenario (earn XP → level up → verify move/spell).
 - [x] Refresh in-app Help + `docs/zimbo-v2-feature-catalog.md` + README with final screenshots/copy.
 - [x] Publish regression checklist covering casters vs martials, multiple level gains, stat-cap edge cases, cancel/resume.
-- [ ] Telemetry hooks (if analytics required later). _Deferred until analytics requirements are finalized._
+- [x] Telemetry hooks emit `level_up.confirmed` events (character id, class, new level, applied choices). _Added 2025-10-14._
 
 **Exit criteria:** QA sign-off; documentation merged; telemetry notes logged. _(Store + component unit tests landed with Phases 1–3.)_
 
 ## Future Enhancements (Backlog)
 
 - Class-specific move metadata via SRD import (including prerequisites / multi-class restrictions).
-- GM approval workflow before applying advancements.
-- Auto-prompt to rewrite Bonds on level-up (Dungeon World canon).
-- Chronicle timeline integration ("Eldara reached Level 4; gained Merciless").
+- GM approval workflow before applying advancements _(blocked until shared-session networking/support for remote tables is in place; requires cross-client coordination)_.
+- ~~Auto-prompt to rewrite Bonds on level-up (Dungeon World canon).~~ ✅ Minimal reminder modal now appears after confirmation (2025-10-14); expand to a full rewrite workflow later.
+- ~~Chronicle timeline integration ("Eldara reached Level 4; gained Merciless").~~ ✅ Timeline entries now record every level-up with optional detailed narrative (2025-10-14).
 - Batch level-ups when players bank XP for multiple levels.
 
 ## Open Questions

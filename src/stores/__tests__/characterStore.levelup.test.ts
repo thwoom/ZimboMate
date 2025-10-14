@@ -276,6 +276,9 @@ describe('characterStore level-up workflow', () => {
         characterId: wizard.id,
         spellNames: expect.arrayContaining(['Charm Person']),
       }),
+      expect.objectContaining({
+        includeNarrative: true,
+      }),
     )
   })
 
@@ -304,6 +307,14 @@ describe('characterStore level-up workflow', () => {
 
     store.applyLevelUpChoices(wizard.id, {})
 
-    expect(logSpy).not.toHaveBeenCalled()
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        characterId: wizard.id,
+        spellNames: expect.arrayContaining(['Alarm']),
+      }),
+      expect.objectContaining({
+        includeNarrative: false,
+      }),
+    )
   })
 })

@@ -16,6 +16,7 @@ import { characterStateService } from '../services/CharacterStateService'
 import { logLevelUpEvent } from '../services/LevelUpLogger'
 import { spellCastingService } from '../services/SpellCastingService'
 import { xpIntegrationService } from '../services/XPIntegrationService'
+import { publishLevelUpTelemetry } from '../utils/levelUpTelemetry'
 
 const ATTRIBUTE_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const
 
@@ -229,6 +230,19 @@ export interface LevelUpChoices {
   spellSelections?: string[]
 }
 
+interface BondReminder {
+  id: string
+  characterId: string
+  characterName: string
+  level: number
+  triggeredAt: string
+  applied: {
+    stat: boolean
+    move: boolean
+    spells: boolean
+  }
+}
+
 interface CharacterState {
   // Character data
   characters: Character[]
@@ -266,6 +280,8 @@ interface CharacterState {
     characterId: string,
     updates: Partial<LevelUpDraft>,
   ) => void
+  bondReminders: BondReminder[]
+  dismissBondReminder: (reminderId: string) => void
 
   // XP and advancement
   addXP: (
@@ -298,6 +314,7 @@ export const useCharacterStore = create<CharacterState>()(
       isLoading: false,
       error: null,
       pendingAdvancements: {},
+      bondReminders: [],
 
       // Character CRUD operations
       createCharacter: (characterData) => {
@@ -613,6 +630,8 @@ export const useCharacterStore = create<CharacterState>()(
           }
 
           const draft = ensureLevelUpDraft(pending.draft)
+          const hpBefore = character.hp.max
+          const loadBefore = character.load.max
           const effectiveChoices: LevelUpChoices = {
             statIncreaseId:
               choices?.statIncreaseId ?? draft.statIncreaseId,
@@ -785,6 +804,8 @@ export const useCharacterStore = create<CharacterState>()(
             character.xp - pending.xpCost,
           )
           leveledCharacter.updatedAt = new Date()
+          const hpAfter = leveledCharacter.hp.max
+          const loadAfter = leveledCharacter.load.max
 
           updateCharacter(characterId, leveledCharacter)
 
@@ -795,20 +816,55 @@ export const useCharacterStore = create<CharacterState>()(
             `Spent ${pending.xpCost} XP to reach level ${pending.levelAfter}`,
           )
 
-          if (draft.chronicleEnabled) {
-            void logLevelUpEvent({
+          void logLevelUpEvent(
+            {
               characterId,
               characterName: leveledCharacter.name,
               characterClass: leveledCharacter.class,
               levelBefore: pending.levelBefore,
               levelAfter: pending.levelAfter,
               xpSpent: pending.xpCost,
+              xpBefore: pending.xpBefore,
+              xpAfter: leveledCharacter.xp,
               hpIncrease: pending.hpIncrease,
+              hpBefore,
+              hpAfter,
               loadIncrease: pending.loadIncrease,
+              loadBefore,
+              loadAfter,
               statIncreaseName,
               moveNames: selectedMoveNames,
               spellNames: addedSpellNames,
-            })
+            },
+            { includeNarrative: Boolean(draft.chronicleEnabled) },
+          )
+
+          const statApplied = Boolean(statIncreaseName)
+          const moveApplied = selectedMoveNames.length > 0
+          const spellsApplied = addedSpellNames.length > 0
+
+          publishLevelUpTelemetry({
+            characterId,
+            characterClass: leveledCharacter.class,
+            newLevel: pending.levelAfter,
+            applied: {
+              stat: statApplied,
+              move: moveApplied,
+              spells: spellsApplied,
+            },
+          })
+
+          const reminder: BondReminder = {
+            id: `bond-reminder-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            characterId,
+            characterName: leveledCharacter.name,
+            level: pending.levelAfter,
+            triggeredAt: new Date().toISOString(),
+            applied: {
+              stat: statApplied,
+              move: moveApplied,
+              spells: spellsApplied,
+            },
           }
 
           set((state) => {
@@ -817,6 +873,7 @@ export const useCharacterStore = create<CharacterState>()(
             return {
               pendingAdvancements: rest,
               error: null,
+              bondReminders: [reminder, ...state.bondReminders].slice(0, 5),
             }
           })
         } catch (error) {
@@ -837,6 +894,14 @@ export const useCharacterStore = create<CharacterState>()(
             error: null,
           }
         })
+      },
+
+      dismissBondReminder: (reminderId) => {
+        set((state) => ({
+          bondReminders: state.bondReminders.filter(
+            (reminder) => reminder.id !== reminderId,
+          ),
+        }))
       },
 
       updateLevelUpDraft: (characterId, updates) => {
@@ -1097,15 +1162,24 @@ export const useCharacterStore = create<CharacterState>()(
           )
         }
 
+        const rawReminders = (
+          stateWithDefaults as { bondReminders?: unknown }
+        ).bondReminders
+        const normalizedReminders = Array.isArray(rawReminders)
+          ? (rawReminders as BondReminder[])
+          : []
+
         return {
           ...stateWithDefaults,
           pendingAdvancements: normalizedPending,
+          bondReminders: normalizedReminders,
         }
       },
       partialize: (state) => ({
         characters: state.characters,
         activeCharacterId: state.activeCharacterId,
         pendingAdvancements: state.pendingAdvancements,
+        bondReminders: state.bondReminders,
       }),
     },
   ),

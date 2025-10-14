@@ -229,6 +229,7 @@ function createResourceHistory(): ResourceHistoryState {
     debilities: {},
     hp: {},
     coin: {},
+    load: {},
   }
 }
 
@@ -1139,6 +1140,21 @@ export const useChronicleStore = create<ChronicleState>()(
                 },
               }
             }
+            case 'load': {
+              const loadLedger = history.load ?? {}
+              return {
+                resourceHistory: {
+                  ...history,
+                  load: {
+                    ...loadLedger,
+                    [entry.characterId]: prependEntry(
+                      loadLedger[entry.characterId] ?? [],
+                      entry,
+                    ),
+                  },
+                },
+              }
+            }
             case 'bond': {
               return {
                 resourceHistory: {
@@ -1204,12 +1220,16 @@ export const useChronicleStore = create<ChronicleState>()(
       removeResourceHistoryForBundle: (bundleId: string) => {
         set((state) => ({
           resourceHistory: {
-            xp: pruneRecord(state.resourceHistory.xp, bundleId),
-            bonds: pruneRecord(state.resourceHistory.bonds, bundleId),
-            hold: pruneRecord(state.resourceHistory.hold, bundleId),
-            debilities: pruneRecord(state.resourceHistory.debilities, bundleId),
-            hp: pruneRecord(state.resourceHistory.hp, bundleId),
-            coin: pruneRecord(state.resourceHistory.coin, bundleId),
+            xp: pruneRecord(state.resourceHistory.xp ?? {}, bundleId),
+            bonds: pruneRecord(state.resourceHistory.bonds ?? {}, bundleId),
+            hold: pruneRecord(state.resourceHistory.hold ?? {}, bundleId),
+            debilities: pruneRecord(
+              state.resourceHistory.debilities ?? {},
+              bundleId,
+            ),
+            hp: pruneRecord(state.resourceHistory.hp ?? {}, bundleId),
+            coin: pruneRecord(state.resourceHistory.coin ?? {}, bundleId),
+            load: pruneRecord(state.resourceHistory.load ?? {}, bundleId),
           },
         }))
       },
@@ -1900,6 +1920,7 @@ export const useChronicleStore = create<ChronicleState>()(
             debilities: resourceHistory.debilities ?? {},
             hp: resourceHistory.hp ?? {},
             coin: resourceHistory.coin ?? {},
+            load: resourceHistory.load ?? {},
           },
           telemetryEvents: Array.isArray(persistedState.telemetryEvents)
             ? persistedState.telemetryEvents

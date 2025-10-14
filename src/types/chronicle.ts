@@ -294,7 +294,14 @@ export interface ChronicleBundleSnapshot {
   }
 }
 
-export type ResourceLogType = 'xp' | 'bond' | 'hold' | 'debility'
+export type ResourceLogType =
+  | 'xp'
+  | 'bond'
+  | 'hold'
+  | 'debility'
+  | 'hp'
+  | 'coin'
+  | 'load'
 
 export interface BaseResourceLogEntry {
   id: string
@@ -328,6 +335,14 @@ export interface CoinLogEntry extends BaseResourceLogEntry {
   next: number
 }
 
+export interface LoadLogEntry extends BaseResourceLogEntry {
+  type: 'load'
+  delta: number
+  previous: number
+  next: number
+  reason?: string
+}
+
 export interface BondLogEntry extends BaseResourceLogEntry {
   type: 'bond'
   bondId: string
@@ -354,11 +369,12 @@ export interface DebilityLogEntry extends BaseResourceLogEntry {
 
 export type ResourceLogEntry =
   | XpLogEntry
-  | HpLogEntry
-  | CoinLogEntry
-  | BondLogEntry
-  | HoldLogEntry
-  | DebilityLogEntry
+ | HpLogEntry
+ | CoinLogEntry
+ | BondLogEntry
+ | HoldLogEntry
+ | DebilityLogEntry
+ | LoadLogEntry
 
 export interface ResourceHistoryState {
   xp: Record<string, XpLogEntry[]>
@@ -367,6 +383,7 @@ export interface ResourceHistoryState {
   debilities: Record<string, DebilityLogEntry[]>
   hp: Record<string, HpLogEntry[]>
   coin: Record<string, CoinLogEntry[]>
+  load: Record<string, LoadLogEntry[]>
 }
 
 export interface ChronicleSettings {

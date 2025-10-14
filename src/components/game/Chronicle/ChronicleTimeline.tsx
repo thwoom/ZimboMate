@@ -49,6 +49,7 @@ interface ChronicleTimelineProps {
   getDeltaLog: (entryId: string) => ChronicleDeltaLog | undefined
   resolveCharacterName: (characterId?: string | null) => string
   searchQuery?: string
+  tagFilters?: string[]
   onEntitySelect?: (entity: Entity) => void
 }
 
@@ -106,6 +107,7 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
   getDeltaLog,
   resolveCharacterName,
   searchQuery = '',
+  tagFilters,
   onEntitySelect,
 }) => {
   const handleEntityNavigate = useCallback(
@@ -145,6 +147,9 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
 
   const filteredEntries = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
+    const normalizedTagFilters = (tagFilters ?? []).map((tag) =>
+      tag.toLowerCase(),
+    )
 
     return entries
       .filter((entry) => {
@@ -161,8 +166,13 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
           })
         )
       })
+      .filter((entry) => {
+        if (normalizedTagFilters.length === 0) return true
+        const entryTags = entry.tags.map((tag) => tag.toLowerCase())
+        return normalizedTagFilters.every((tag) => entryTags.includes(tag))
+      })
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-  }, [entries, entities, searchQuery])
+  }, [entries, entities, searchQuery, tagFilters])
 
   const resourceHistoryState = (resourceHistory ??
     EMPTY_RESOURCE_HISTORY) as ResourceHistoryState
@@ -212,6 +222,7 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
       const resourceDisplay = collectResourceChanges(
         deltaLog,
         resourceHistoryState,
+        entry.id,
       )
         .map((context) => describeResourceChange(context, resolveCharacterName))
         .filter((change): change is ResourceChangeDisplay => change !== null)
@@ -257,12 +268,19 @@ export const ChronicleTimeline: React.FC<ChronicleTimelineProps> = ({
 
   return (
     <div className='space-y-4'>
-      <div className='flex items-center justify-between'>
+      <div className='flex flex-wrap items-center justify-between gap-3'>
         <h3 className='flex items-center gap-2 font-medium'>
           <Clock size={16} />
           Chronicle Timeline
         </h3>
-        <Badge variant='outline'>{timelineItems.length} entries</Badge>
+        <div className='flex items-center gap-2'>
+          {(tagFilters?.length ?? 0) > 0 && (
+            <Badge variant='magical' className='text-[10px] uppercase'>
+              Filtered
+            </Badge>
+          )}
+          <Badge variant='outline'>{timelineItems.length} entries</Badge>
+        </div>
       </div>
 
       <div className='space-y-4'>

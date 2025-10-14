@@ -14,6 +14,7 @@ import type {
 import type { BadgeProps } from '../ui'
 import type { FolioHighlight } from '@/components/game/CharacterSheet/Folio'
 import type { EquipmentChange } from '@/components/game/CharacterSheet/FolioGearPage'
+import type { BondReminderFocusDetail } from '@/constants/events'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertTriangle,
@@ -33,6 +34,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Folio from '@/components/game/CharacterSheet/Folio'
 import { RightRail, SplitPane } from '@/components/layout'
+import { BOND_REMINDER_FOCUS_EVENT } from '@/constants/events'
 import { cn } from '@/lib/utils'
 import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
 import { useIsTauriRuntime } from '@/utils/tauriRuntime'
@@ -758,6 +760,29 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     },
     [],
   )
+
+  useEffect(() => {
+    const handler: EventListener = (event) => {
+      const customEvent = event as CustomEvent<BondReminderFocusDetail>
+      const levelLabel =
+        typeof customEvent.detail?.level === 'number'
+          ? `Level ${customEvent.detail.level}: revisit bonds`
+          : 'Review bonds after level up'
+      flashFolioHighlight(
+        {
+          page: 'bonds',
+          label: levelLabel,
+          focus: true,
+        },
+        6000,
+      )
+    }
+
+    window.addEventListener(BOND_REMINDER_FOCUS_EVENT, handler)
+    return () => {
+      window.removeEventListener(BOND_REMINDER_FOCUS_EVENT, handler)
+    }
+  }, [flashFolioHighlight])
 
   const composerHighlight = useMemo<FolioHighlight | null>(() => {
     if (pendingDiceContext) {

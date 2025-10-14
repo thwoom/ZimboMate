@@ -825,8 +825,8 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
         <div>
           <p className='text-sm font-semibold'>Chronicle Logging</p>
           <p className='text-xs text-muted-foreground'>
-            Automatically add a chronicle entry when this level-up is
-            applied.
+            Include a detailed chronicle entry. A concise timeline summary is
+            always recorded automatically.
           </p>
         </div>
         <Switch
