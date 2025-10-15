@@ -32,6 +32,7 @@ import { RolloutDashboardPanel } from '../chronicle/RolloutDashboardPanel'
 import { FileManagementPanel } from '../game/FileManagementPanel'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '../ui'
 import { AccessibilityChecker } from './AccessibilityChecker'
+import { AdminOpenAISettings } from './AdminOpenAISettings'
 import { HelpSystem } from './HelpSystem'
 import { KeyboardShortcutsPanel } from './KeyboardShortcutsPanel'
 import { PerformanceMonitor } from './PerformanceMonitor'
@@ -806,6 +807,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       case 'system':
         return (
           <div className='space-y-4'>
+            <AdminOpenAISettings />
             <RolloutDashboardPanel />
             <PerformanceMonitor />
           </div>

@@ -161,11 +161,11 @@ export function useDiceRoll(): UseDiceRollReturn {
   const getParticleColor = useCallback((result: string): string => {
     switch (result) {
       case 'success':
-        return '#10B981' // Green
+        return 'var(--chart-2)'
       case 'partial':
-        return '#F59E0B' // Amber
+        return 'var(--chart-4)'
       default:
-        return '#EF4444' // Red
+        return 'var(--destructive)'
     }
   }, [])
 

@@ -21,6 +21,7 @@ import Folio from './components/game/CharacterSheet/Folio'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
 import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
 import { GameManagementTab } from './components/game/GameManagementTab'
+import LevelUpBondReminder from './components/game/LevelUpBondReminder'
 import { LevelUpWizard } from './components/game/LevelUpWizard'
 import { PlayTab } from './components/game/PlayTab'
 import { SessionManager } from './components/game/SessionManager'
@@ -183,8 +184,8 @@ const App: React.FC = () => {
 
   // New advanced dice keyboard shortcuts
   useDiceKeyboardShortcuts({
-    characterId: 'eldara-moonwhisper', // TODO: Use actual active character ID
-    enabled: true,
+    characterId: activeCharacter?.id ?? '',
+    enabled: activeTab === 'dice' && Boolean(activeCharacter),
     modifierKey: 'none', // Direct key presses for fast gameplay
   })
 
@@ -812,6 +813,7 @@ const App: React.FC = () => {
                   onSessionJoined={handleSessionJoined}
                 />
                 <LevelUpWizard />
+                <LevelUpBondReminder />
               </div>
             </TooltipProvider>
           </ChronicleProvider>

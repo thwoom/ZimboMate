@@ -1,6 +1,7 @@
+// Auth Components
+export { AdminOpenAISettings } from './AdminOpenAISettings'
 export { useAuth } from './AuthContext'
 export type { AuthContextValue, User } from './AuthContext'
-// Auth Components
 export { AuthProvider } from './AuthProvider'
 export { Badge, type BadgeProps } from './Badge'
 export { badgeVariants } from './badge-variants'
@@ -18,8 +19,8 @@ export {
   CardTitle,
 } from './Card'
 
-export { cardVariants } from './card-variants'
 
+export { cardVariants } from './card-variants'
 export { ColorPalette } from './ColorSwatch'
 
 export { HelpSystem } from './HelpSystem'

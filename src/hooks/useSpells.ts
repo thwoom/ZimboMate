@@ -250,7 +250,10 @@ export function useDWSpells(): UseDWSpellsReturn {
           type: result,
           spellLevel: spell.level,
           spellClass: spell.class,
-          particleColor: spell.class === 'wizard' ? '#8B5CF6' : '#F59E0B',
+          particleColor:
+            spell.class === 'wizard'
+              ? 'var(--accent)'
+              : 'var(--chart-4)',
         },
       }
     },

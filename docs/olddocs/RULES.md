@@ -8,7 +8,7 @@ alwaysApply: true
 ### Dev server
 
 - Always run commands from the repository root:
-  - `npm run dev` must show Local: http://localhost:3000/
+  - `npm run dev` must show Local: http://localhost:1420/
 - Kill strays before switching: `taskkill /F /IM node.exe`
 
 ### Entrypoint and HTML
@@ -53,7 +53,7 @@ alwaysApply: true
 ### Ports
 
 - `vite.config.ts` must include:
-  - `server: { port: 3000, strictPort: true, open: false }`
+  - `server: { port: 1420, strictPort: true, open: false }`
 - Never accept auto-fallback ports for the V2 app.
 
 ### HMR/cache recovery
@@ -71,7 +71,7 @@ alwaysApply: true
 ### Pre-commit checklist
 
 - From the repo root:
-  - `npm run dev` shows http://localhost:3000/
+  - `npm run dev` shows http://localhost:1420/
   - Network tab: `main.tsx` and `src/index.css` return 200
   - Terminal: no `vite:import-analysis` or PostCSS errors
   - Page renders `App.Enhanced` with roll results UI and navigation

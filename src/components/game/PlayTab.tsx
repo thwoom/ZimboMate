@@ -34,6 +34,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Folio from '@/components/game/CharacterSheet/Folio'
 import { RightRail, SplitPane } from '@/components/layout'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BOND_REMINDER_FOCUS_EVENT } from '@/constants/events'
 import { cn } from '@/lib/utils'
 import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
@@ -1764,38 +1765,36 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
 
                       <div className='space-y-6'>
                         {/* Tools Sub-navigation */}
-                        <div className='flex gap-2 mb-6'>
-                          <Button
-                            variant={
-                              toolsSubTab === 'items' ? 'primary' : 'outline'
-                            }
-                            onClick={() => setToolsSubTab('items')}
-                            size='sm'
-                          >
-                            <Sword size={16} />
-                            Items
-                          </Button>
-                          <Button
-                            variant={
-                              toolsSubTab === 'monsters' ? 'primary' : 'outline'
-                            }
-                            onClick={() => setToolsSubTab('monsters')}
-                            size='sm'
-                          >
-                            <Crown size={16} />
-                            Monsters
-                          </Button>
-                          <Button
-                            variant={
-                              toolsSubTab === 'npcs' ? 'primary' : 'outline'
-                            }
-                            onClick={() => setToolsSubTab('npcs')}
-                            size='sm'
-                          >
-                            <User size={16} />
-                            NPCs
-                          </Button>
-                        </div>
+                        <Tabs
+                          value={toolsSubTab}
+                          onValueChange={(value) =>
+                            setToolsSubTab(value as ToolsSubTab)
+                          }
+                        >
+                          <TabsList className='mb-6 grid w-full grid-cols-1 gap-2 bg-muted/40 p-1 sm:grid-cols-3'>
+                            <TabsTrigger
+                              value='items'
+                              className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                            >
+                              <Sword className='size-4 shrink-0' aria-hidden='true' />
+                              <span className='truncate'>Items</span>
+                            </TabsTrigger>
+                            <TabsTrigger
+                              value='monsters'
+                              className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                            >
+                              <Crown className='size-4 shrink-0' aria-hidden='true' />
+                              <span className='truncate'>Monsters</span>
+                            </TabsTrigger>
+                            <TabsTrigger
+                              value='npcs'
+                              className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                            >
+                              <User className='size-4 shrink-0' aria-hidden='true' />
+                              <span className='truncate'>NPCs</span>
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
 
                         {/* Tools Content */}
                         <div className='grid grid-cols-2 gap-6'>
@@ -1858,7 +1857,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                   createdItems.map((item) => (
                                     <div
                                       key={item.id}
-                                      className='p-3 bg-card rounded border'
+                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
                                     >
                                       <div className='font-medium'>
                                         {item.name}
@@ -1879,7 +1878,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                   createdMonsters.map((monster) => (
                                     <div
                                       key={monster.id}
-                                      className='p-3 bg-card rounded border'
+                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
                                     >
                                       <div className='font-medium'>
                                         {monster.name}
@@ -1904,7 +1903,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                                   createdNPCs.map((npc) => (
                                     <div
                                       key={npc.id}
-                                      className='p-3 bg-card rounded border'
+                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
                                     >
                                       <div className='font-medium'>
                                         {npc.name}

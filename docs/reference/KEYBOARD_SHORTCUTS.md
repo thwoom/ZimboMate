@@ -1,6 +1,6 @@
 # Keyboard Shortcuts – ZimboMate V2 (Current Implementation)
 
-_Last updated: 2025‑10‑13_
+_Last updated: 2025-10-14_
 
 This guide lists the keyboard shortcuts that actually exist in the current V2 build. Each shortcut is registered through `KeyboardShortcutsService` and/or the dice shortcut hooks, so the tables below reflect the real code rather than the older marketing copy.
 
@@ -13,7 +13,7 @@ This guide lists the keyboard shortcuts that actually exist in the current V2 bu
 | Shortcut          | Action                            | Notes                                                                 |
 |-------------------|-----------------------------------|-----------------------------------------------------------------------|
 | `Ctrl` + `K` / `⌘` + `K` | Open command palette              | Works unless you're typing in an input; closes with `Esc`.            |
-| `Ctrl` + `1` … `Ctrl` + `6` | Switch to primary tabs            | 1: Character, 2: Dice, 3: Moves, 4: Equipment, 5: Session tools, 6: Campaign. |
+| `Ctrl` + `1` … `Ctrl` + `6` | Switch to primary tabs            | 1: Character, 2: Dice, 3: Moves, 4: Equipment, 5: Session tools, 6: Campaign. While the Dice tab is active these combos perform the custom modifier rolls instead of navigation. |
 | `Space`           | Quick dice access                 | Moves you to the Dice tab from anywhere.                              |
 | `Esc`             | Close dialogs / cancel actions    | Standard Radix dialog behaviour.                                      |
 
@@ -51,14 +51,14 @@ Each roll is logged via `useDiceStore.rollStat` with the active character.
 
 These call `useDiceStore.rollMove` with the corresponding move ID.
 
-### Planned / Logging Only
+### Custom Modifier Rolls (Dice tab)
 
-| Shortcut                    | Planned Behaviour                     |
-|-----------------------------|---------------------------------------|
-| `Ctrl` + `1` … `Ctrl` + `6` | Custom roll with positive modifier.   |
-| `Ctrl` + `Shift` + `1` … `6`| Custom roll with negative modifier.   |
+| Shortcut | Result |
+|----------|--------|
+| `Ctrl` + `1` … `Ctrl` + `6` | Roll 2d6 with a +N forward modifier (handled by `useDiceKeyboardShortcuts` via `diceStore.rollCustom`). |
+| `Ctrl` + `Shift` + `1` … `6`| Roll 2d6 with a -N modifier using the same path. |
 
-The hooks currently log a TODO message so we can implement custom modifier rolls later.
+These bindings are only enabled while the Dice tab is active so they do not conflict with global navigation.
 
 ---
 

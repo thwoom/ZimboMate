@@ -1,6 +1,9 @@
+use chrono::{NaiveDate, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
+use std::fs;
+use std::path::PathBuf;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 use tokio::sync::RwLock;
@@ -10,6 +13,20 @@ const DEFAULT_MODEL: &str = "gpt-5-chat-latest";
 const INITIALIZING_STAGE: &str = "initializing";
 const READY_STAGE: &str = "ready";
 const ERROR_STAGE: &str = "error";
+const APP_CONFIG_FOLDER: &str = "ZimboMate";
+const CREDENTIAL_FILE: &str = "openai_credentials.json";
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+struct PersistedCredentials {
+    #[serde(rename = "apiKey")]
+    api_key: Option<String>,
+    #[serde(rename = "baseUrl")]
+    base_url: Option<String>,
+    #[serde(rename = "model")]
+    model: Option<String>,
+    #[serde(rename = "projectId")]
+    project_id: Option<String>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum CampaignVibe {
@@ -95,35 +112,63 @@ pub struct ModelInfo {
 pub struct LlmService {
     client: Client,
     base_url: String,
+    env_base_url: String,
     default_model: String,
+    env_default_model: String,
     prompt_cache_key: Option<String>,
     current_model: RwLock<Option<String>>,
     is_ready: RwLock<bool>,
+    stored_api_key: Option<String>,
+    stored_base_url: Option<String>,
+    stored_model: Option<String>,
+    stored_project_id: Option<String>,
 }
 
 impl LlmService {
     pub fn new() -> Self {
         LlmService::load_env_file();
-        let base_url = LlmService::read_env_var("OPENAI_BASE_URL")
+        let env_base_url = LlmService::read_env_var("OPENAI_BASE_URL")
             .unwrap_or_else(|| DEFAULT_BASE_URL.to_string());
-        let default_model = LlmService::read_env_var("OPENAI_RESPONSES_MODEL")
+        let env_default_model = LlmService::read_env_var("OPENAI_RESPONSES_MODEL")
             .unwrap_or_else(|| DEFAULT_MODEL.to_string());
 
         let prompt_cache_key = LlmService::read_env_var("OPENAI_PROMPT_CACHE_KEY");
+        let persisted = Self::load_persisted_credentials();
 
         let client = Client::builder()
             .timeout(Duration::from_secs(120))
             .build()
             .expect("failed to build HTTP client for OpenAI Responses API");
 
-        Self {
+        let mut instance = Self {
             client,
-            base_url,
-            default_model,
+            base_url: env_base_url.clone(),
+            env_base_url,
+            default_model: env_default_model.clone(),
+            env_default_model,
             prompt_cache_key,
             current_model: RwLock::new(None),
             is_ready: RwLock::new(false),
-        }
+            stored_api_key: persisted
+                .api_key
+                .map(|value| value.trim().to_string())
+                .filter(|value| !value.is_empty()),
+            stored_base_url: persisted
+                .base_url
+                .map(|value| value.trim().to_string())
+                .filter(|value| !value.is_empty()),
+            stored_model: persisted
+                .model
+                .map(|value| value.trim().to_string())
+                .filter(|value| !value.is_empty()),
+            stored_project_id: persisted
+                .project_id
+                .map(|value| value.trim().to_string())
+                .filter(|value| !value.is_empty()),
+        };
+
+        instance.apply_overrides();
+        instance
     }
 
     fn load_env_file() {
@@ -157,13 +202,274 @@ impl LlmService {
             .filter(|value| !value.is_empty())
     }
 
+    fn config_path() -> Option<PathBuf> {
+        dirs::config_dir().map(|dir| dir.join(APP_CONFIG_FOLDER).join(CREDENTIAL_FILE))
+    }
+
+    fn load_persisted_credentials() -> PersistedCredentials {
+        if let Some(path) = Self::config_path() {
+            if let Ok(raw) = fs::read_to_string(&path) {
+                if let Ok(payload) = serde_json::from_str::<PersistedCredentials>(&raw) {
+                    return payload;
+                }
+            }
+        }
+
+        PersistedCredentials::default()
+    }
+
+    fn persist_credentials(&self) -> Result<(), String> {
+        let Some(path) = Self::config_path() else {
+            return Ok(());
+        };
+
+        if let Some(parent) = path.parent() {
+            if let Err(error) = fs::create_dir_all(parent) {
+                return Err(format!("Failed to create credentials directory: {}", error));
+            }
+        }
+
+        let payload = PersistedCredentials {
+            api_key: self.stored_api_key.clone(),
+            base_url: self.stored_base_url.clone(),
+            model: self.stored_model.clone(),
+            project_id: self.stored_project_id.clone(),
+        };
+
+        let contents = serde_json::to_string_pretty(&payload)
+            .map_err(|error| format!("Failed to serialize credentials: {}", error))?;
+
+        fs::write(&path, contents)
+            .map_err(|error| format!("Failed to persist credentials: {}", error))
+    }
+
+    fn apply_overrides(&mut self) {
+        let effective_base = self
+            .stored_base_url
+            .as_ref()
+            .filter(|value| !value.trim().is_empty())
+            .cloned()
+            .unwrap_or_else(|| self.env_base_url.clone());
+
+        self.base_url = effective_base;
+
+        let effective_model = self
+            .stored_model
+            .as_ref()
+            .filter(|value| !value.trim().is_empty())
+            .cloned()
+            .unwrap_or_else(|| self.env_default_model.clone());
+
+        self.default_model = effective_model;
+    }
+
+    fn resolve_api_key(&self) -> Option<(String, &'static str)> {
+        if let Some(value) = self.stored_api_key.clone() {
+            return Some((value, "stored"));
+        }
+
+        LlmService::read_env_var("OPENAI_API_KEY").map(|value| (value, "env"))
+    }
+
     fn require_api_key(&self) -> Result<String, String> {
-        LlmService::read_env_var("OPENAI_API_KEY")
+        self.resolve_api_key()
+            .map(|(value, _)| value)
             .ok_or_else(|| "OPENAI_API_KEY is not configured".to_string())
     }
 
     fn has_api_key(&self) -> bool {
-        LlmService::read_env_var("OPENAI_API_KEY").is_some()
+        self.resolve_api_key().is_some()
+    }
+
+    pub fn effective_api_key(&self) -> Option<(String, &'static str)> {
+        self.resolve_api_key()
+    }
+
+    pub fn effective_base_url(&self) -> (String, &'static str) {
+        let source = if self.stored_base_url.is_some() {
+            "stored"
+        } else {
+            "env"
+        };
+        (self.base_url.clone(), source)
+    }
+
+    pub fn effective_model(&self) -> (String, &'static str) {
+        let source = if self.stored_model.is_some() {
+            "stored"
+        } else {
+            "env"
+        };
+        (self.default_model.clone(), source)
+    }
+
+    pub fn effective_project_id(&self) -> Option<(String, &'static str)> {
+        self.stored_project_id
+            .as_ref()
+            .map(|value| (value.clone(), "stored"))
+    }
+
+    pub fn has_any_override(&self) -> bool {
+        self.stored_api_key.is_some()
+            || self.stored_base_url.is_some()
+            || self.stored_model.is_some()
+            || self.stored_project_id.is_some()
+    }
+
+    pub fn credentials_file_path() -> Option<PathBuf> {
+        Self::config_path()
+    }
+
+    pub fn stored_project_id(&self) -> Option<String> {
+        self.stored_project_id.clone()
+    }
+
+    pub async fn update_overrides(
+        &mut self,
+        api_key: Option<String>,
+        base_url: Option<String>,
+        model: Option<String>,
+        project_id: Option<String>,
+    ) -> Result<(), String> {
+        let mut invalidate_runtime = false;
+        let mut base_changed = false;
+        let mut model_changed = false;
+
+        if let Some(value) = api_key {
+            let normalized = value.trim().to_string();
+            let next = if normalized.is_empty() {
+                None
+            } else {
+                Some(normalized)
+            };
+
+            if self.stored_api_key != next {
+                self.stored_api_key = next;
+                invalidate_runtime = true;
+            }
+        }
+
+        if let Some(value) = base_url {
+            let normalized = value.trim().to_string();
+            let next = if normalized.is_empty() {
+                None
+            } else {
+                Some(normalized)
+            };
+
+            if self.stored_base_url != next {
+                self.stored_base_url = next;
+                base_changed = true;
+                invalidate_runtime = true;
+            }
+        }
+
+        if let Some(value) = model {
+            let normalized = value.trim().to_string();
+            let next = if normalized.is_empty() {
+                None
+            } else {
+                Some(normalized)
+            };
+
+            if self.stored_model != next {
+                self.stored_model = next;
+                model_changed = true;
+                invalidate_runtime = true;
+            }
+        }
+
+        if let Some(value) = project_id {
+            let normalized = value.trim().to_string();
+            let next = if normalized.is_empty() {
+                None
+            } else {
+                Some(normalized)
+            };
+
+            if self.stored_project_id != next {
+                self.stored_project_id = next;
+            }
+        }
+
+        if base_changed || model_changed {
+            self.apply_overrides();
+        }
+
+        self.persist_credentials()?;
+
+        if invalidate_runtime {
+            {
+                let mut ready = self.is_ready.write().await;
+                *ready = false;
+            }
+
+            {
+                let mut model = self.current_model.write().await;
+                *model = None;
+            }
+        }
+
+        Ok(())
+    }
+
+    pub async fn fetch_usage(&self, date: Option<String>) -> Result<Value, String> {
+        let api_key = self.require_api_key()?;
+        let project_id = self.stored_project_id().ok_or_else(|| {
+            "Project ID is not set. Provide one in the admin console before requesting usage."
+                .to_string()
+        })?;
+
+        let target_date = if let Some(raw) = date {
+            let trimmed = raw.trim();
+            if trimmed.is_empty() {
+                return Err("Usage date cannot be empty.".to_string());
+            }
+            NaiveDate::parse_from_str(trimmed, "%Y-%m-%d")
+                .map_err(|_| "Invalid date format. Use YYYY-MM-DD.".to_string())?
+                .format("%Y-%m-%d")
+                .to_string()
+        } else {
+            Utc::now().format("%Y-%m-%d").to_string()
+        };
+
+        let url = format!(
+            "{}/projects/{}/usage",
+            self.normalize_base_url(),
+            project_id
+        );
+
+        let response = self
+            .client
+            .get(url)
+            .bearer_auth(&api_key)
+            .query(&[("date", target_date.clone())])
+            .send()
+            .await
+            .map_err(|error| format!("Failed to call OpenAI usage API: {}", error))?;
+
+        let status = response.status();
+        let text = response
+            .text()
+            .await
+            .map_err(|error| format!("Failed to read usage response: {}", error))?;
+
+        if !status.is_success() {
+            return Err(format!(
+                "OpenAI usage API error ({}): {}",
+                status.as_u16(),
+                text
+            ));
+        }
+
+        let payload: Value = serde_json::from_str(&text)
+            .map_err(|error| format!("Failed to parse usage response: {}", error))?;
+
+        Ok(json!({
+            "date": target_date,
+            "payload": payload,
+            "projectId": project_id,
+        }))
     }
 
     fn normalize_base_url(&self) -> String {
@@ -369,7 +675,7 @@ Return JSON that matches the provided schema exactly. Never omit required fields
                     "role": "system",
                     "content": [
                             {
-                            "type": "text",
+                            "type": "input_text",
                             "text": system_prompt,
                         }
                     ]
@@ -378,7 +684,7 @@ Return JSON that matches the provided schema exactly. Never omit required fields
                     "role": "user",
                     "content": [
                             {
-                            "type": "text",
+                            "type": "input_text",
                             "text": format!(r#"Process this story note: "{}""#, trimmed_note),
                         }
                     ]
@@ -652,11 +958,11 @@ impl LlmService {
             "input": [
                 {
                     "role": "system",
-                    "content": [{ "type": "text", "text": system_prompt }]
+                    "content": [{ "type": "input_text", "text": system_prompt }]
                 },
                 {
                     "role": "user",
-                    "content": [{ "type": "text", "text": user_prompt }]
+                    "content": [{ "type": "input_text", "text": user_prompt }]
                 }
             ],
             "parallel_tool_calls": true,
@@ -721,7 +1027,8 @@ impl LlmService {
         })?;
 
         if let Some(error) = value.get("error") {
-            let serialized = serde_json::to_string(error).unwrap_or_else(|_| "unknown error".to_string());
+            let serialized =
+                serde_json::to_string(error).unwrap_or_else(|_| "unknown error".to_string());
             let message = format!("OpenAI returned an error payload: {}", serialized);
             emit_failure_telemetry(&message);
             return Err(message);
@@ -868,10 +1175,13 @@ fn compose_user_prompt(request: &ChronicleProposeRequest) -> String {
         }
     }
 
-    sections.push("Return:
+    sections.push(
+        "Return:
 1. Narrative text (concise, 1-3 sentences).
 2. Tool calls for every mechanical change detected.
-3. Only call tools that are fully supported by the provided schema.".to_string());
+3. Only call tools that are fully supported by the provided schema."
+            .to_string(),
+    );
 
     sections.join("\n\n")
 }
@@ -884,7 +1194,10 @@ fn prepare_tool_schemas(tool_schemas: Option<Value>) -> Option<Vec<Value>> {
                 .filter_map(|schema| {
                     let name = schema.get("name")?.as_str()?.to_string();
                     let parameters = schema.get("parameters")?.clone();
-                    let strict = schema.get("strict").and_then(Value::as_bool).unwrap_or(true);
+                    let strict = schema
+                        .get("strict")
+                        .and_then(Value::as_bool)
+                        .unwrap_or(true);
                     Some(json!({
                         "type": "function",
                         "function": {
@@ -898,8 +1211,7 @@ fn prepare_tool_schemas(tool_schemas: Option<Value>) -> Option<Vec<Value>> {
 
             if tools.is_empty() {
                 None
-            }
-            else {
+            } else {
                 Some(tools)
             }
         }
@@ -913,7 +1225,10 @@ fn extract_token_usage(value: &Value) -> TokenUsage {
 
     if let Value::Object(map) = usage {
         result.input_tokens = map.get("input_tokens").and_then(Value::as_i64).unwrap_or(0);
-        result.output_tokens = map.get("output_tokens").and_then(Value::as_i64).unwrap_or(0);
+        result.output_tokens = map
+            .get("output_tokens")
+            .and_then(Value::as_i64)
+            .unwrap_or(0);
         result.total_tokens = map
             .get("total_tokens")
             .and_then(Value::as_i64)
@@ -943,8 +1258,13 @@ fn extract_outputs(value: &Value) -> (String, Vec<Value>, Option<String>) {
                             }
                             "tool_call" => {
                                 if let Some(tool_call) = content.get("tool_call") {
-                                    if let Some(name) = tool_call.get("name").and_then(|n| n.as_str()) {
-                                        let args = tool_call.get("arguments").cloned().unwrap_or(Value::Null);
+                                    if let Some(name) =
+                                        tool_call.get("name").and_then(|n| n.as_str())
+                                    {
+                                        let args = tool_call
+                                            .get("arguments")
+                                            .cloned()
+                                            .unwrap_or(Value::Null);
                                         operations.push(build_operation_from_tool(name, args));
                                     }
                                 }
@@ -983,8 +1303,7 @@ fn build_operation_from_tool(name: &str, args: Value) -> Value {
             if let Ok(Value::Object(mut map)) = serde_json::from_str::<Value>(&arg_str) {
                 map.insert("type".to_string(), Value::String(name.to_string()));
                 Value::Object(map)
-            }
-            else {
+            } else {
                 let mut map = Map::new();
                 map.insert("type".to_string(), Value::String(name.to_string()));
                 map.insert("rawArguments".to_string(), Value::String(arg_str));

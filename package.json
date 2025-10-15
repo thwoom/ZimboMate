@@ -7,7 +7,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "node ./scripts/check-dev-port.mjs && vite",
     "dev:tauri": "tauri dev",
     "build": "vite build",
     "build:tauri": "tauri build",

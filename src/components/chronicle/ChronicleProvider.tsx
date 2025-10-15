@@ -27,6 +27,7 @@ import type {
   ChronicleTelemetryEventLog,
 } from '../../types/chronicle'
 import type { LlmRolloutStage } from '@/utils/featureFlags'
+import { invoke } from '@tauri-apps/api/core'
 import React, {
   createContext,
   use,
@@ -37,6 +38,7 @@ import React, {
   useState,
 } from 'react'
 import { getLlmRolloutStage } from '@/utils/featureFlags'
+import { hasTauriBridge } from '@/utils/tauriRuntime'
 import { applyChronicleDeltaBundle } from '../../services/chronicle'
 import { chronicleActionListener } from '../../services/ChronicleActionListenerService'
 import { estimateUsageCostCents, gpt5Client } from '../../services/llm'
@@ -528,6 +530,15 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           settings: buildNarrativeSettings(),
         }
 
+        if (!hasTauriBridge()) {
+          return buildFallback(
+            'Chronicle automation requires the Tauri desktop runtime to reach GPT-5.',
+            [
+              'Launch the desktop shell (`npm run dev:tauri`) so Chronicle can contact GPT-5, or continue with the template note.',
+            ],
+          )
+        }
+
         try {
           return await gpt5Client.proposeDeltas(request)
         } catch (error) {
@@ -536,6 +547,14 @@ export const ChronicleProvider: React.FC<ChronicleProviderProps> = ({
           const lowerReason = failureReason.toLowerCase()
 
           if (!hasRetried && lowerReason.includes('llm not ready')) {
+            if (!hasTauriBridge()) {
+              return buildFallback(
+                'Chronicle automation requires the Tauri desktop runtime to reach GPT-5.',
+                [
+                  'Launch the desktop shell (`npm run dev:tauri`) so Chronicle can contact GPT-5, or continue with the template note.',
+                ],
+              )
+            }
             try {
               await invoke('initialize_llm', { modelName: undefined })
               return await attemptPropose(attemptInput, true)

@@ -24,6 +24,12 @@ pub fn run() {
             commands::chronicle_apply_delta_bundle,
             commands::enhance_note,
             commands::is_llm_ready,
+            commands::get_llm_credentials,
+            commands::set_llm_credentials,
+            commands::fetch_llm_usage,
+            commands::get_admin_paths,
+            commands::diagnose_dev_port,
+            commands::terminate_process,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

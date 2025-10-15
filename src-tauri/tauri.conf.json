@@ -5,7 +5,7 @@
   "identifier": "com.zimbomate.v2",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://127.0.0.1:3000",
+    "devUrl": "http://127.0.0.1:1420",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },

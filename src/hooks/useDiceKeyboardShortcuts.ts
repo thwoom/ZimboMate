@@ -41,7 +41,7 @@ export function useDiceKeyboardShortcuts({
   enabled = true,
   modifierKey = 'none',
 }: DiceKeyboardShortcutsOptions) {
-  const { rollStat, rollMove, isRolling } = useDiceStore()
+  const { rollStat, rollMove, rollCustom, isRolling } = useDiceStore()
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -57,6 +57,43 @@ export function useDiceKeyboardShortcuts({
 
       // Don't trigger if already rolling
       if (isRolling) {
+        return
+      }
+
+      if (!characterId) {
+        return
+      }
+
+      // Handle custom modifier shortcuts early to prevent navigation handlers
+      if (
+        event.ctrlKey &&
+        !event.altKey &&
+        !event.metaKey &&
+        event.key >= '1' &&
+        event.key <= '6'
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+        const baseModifier = Number.parseInt(event.key, 10)
+        const modifier = event.shiftKey ? -baseModifier : baseModifier
+        const label =
+          modifier > 0
+            ? `Custom Modifier +${modifier}`
+            : `Custom Modifier ${modifier}`
+
+        logger.info('dice_shortcut_custom_roll', {
+          modifier,
+          characterId,
+        })
+
+        void rollCustom({
+          modifier,
+          characterId,
+          context: {
+            label,
+            description: 'Keyboard shortcut custom modifier roll',
+          },
+        })
         return
       }
 
@@ -104,61 +141,22 @@ export function useDiceKeyboardShortcuts({
         rollMove(moveId, stat, characterId)
       }
     },
-    [characterId, rollStat, rollMove, isRolling, modifierKey],
-  )
-
-  const handleKeyPress = useCallback(
-    (event: KeyboardEvent) => {
-      // Handle number keys for custom modifiers (1-6 and -1 to -6)
-      const target = event.target as HTMLElement
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.contentEditable === 'true'
-      ) {
-        return
-      }
-
-      if (isRolling) {
-        return
-      }
-
-      // Check for Ctrl + number for custom rolls with modifiers
-      if (event.ctrlKey && event.key >= '1' && event.key <= '6') {
-        event.preventDefault()
-        const modifier = Number.parseInt(event.key)
-        // TODO: Implement custom roll with specific modifier
-        logger.debug('dice_shortcut_custom_roll_pending', { modifier })
-        return
-      }
-
-      // Check for Ctrl + Shift + number for negative modifiers
-      if (
-        event.ctrlKey &&
-        event.shiftKey &&
-        event.key >= '1' &&
-        event.key <= '6'
-      ) {
-        event.preventDefault()
-        const modifier = -Number.parseInt(event.key)
-        // TODO: Implement custom roll with specific modifier
-        logger.debug('dice_shortcut_custom_roll_pending', { modifier })
-      }
-    },
-    [isRolling],
+    [characterId, rollStat, rollMove, rollCustom, isRolling, modifierKey],
   )
 
   useEffect(() => {
     if (!enabled) return
 
-    document.addEventListener('keydown', handleKeyDown, { passive: false })
-    document.addEventListener('keypress', handleKeyPress, { passive: false })
+    const listenerOptions: AddEventListenerOptions = {
+      passive: false,
+      capture: true,
+    }
+    document.addEventListener('keydown', handleKeyDown, listenerOptions)
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.removeEventListener('keypress', handleKeyPress)
+      document.removeEventListener('keydown', handleKeyDown, listenerOptions)
     }
-  }, [enabled, handleKeyDown, handleKeyPress])
+  }, [enabled, handleKeyDown])
 
   // Return shortcut information for display in help/tooltips
   const getShortcutInfo = useCallback(() => {

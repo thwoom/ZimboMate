@@ -5,21 +5,24 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
-import React, { useEffect, useReducer } from 'react'
+import React, { useCallback, useEffect, useMemo, useReducer } from 'react'
 
 const SCHOOL_COLORS: Record<string, string> = {
-  abjuration: '#3b82f6',
-  conjuration: '#10b981',
-  divination: '#f59e0b',
-  enchantment: '#ec4899',
-  evocation: '#ef4444',
-  illusion: '#8b5cf6',
-  necromancy: '#6b7280',
-  transmutation: '#f97316',
+  abjuration: 'var(--primary)',
+  conjuration: 'var(--chart-2)',
+  divination: 'var(--chart-4)',
+  enchantment: 'color-mix(in oklch, var(--accent) 75%, var(--chart-3) 25%)',
+  evocation: 'var(--destructive)',
+  illusion: 'color-mix(in oklch, var(--accent) 65%, var(--primary) 35%)',
+  necromancy: 'color-mix(in oklch, var(--muted) 65%, black 35%)',
+  transmutation: 'color-mix(in oklch, var(--chart-4) 60%, var(--primary) 40%)',
 }
 
 const resolveSchoolColor = (school?: string) =>
-  school ? SCHOOL_COLORS[school.toLowerCase()] || '#d4af37' : '#d4af37'
+  school
+    ? SCHOOL_COLORS[school.toLowerCase()] ||
+      'color-mix(in oklch, var(--chart-4) 55%, var(--accent) 45%)'
+    : 'color-mix(in oklch, var(--chart-4) 55%, var(--accent) 45%)'
 
 const getParticleCount = (intensity: 'low' | 'medium' | 'high') => {
   switch (intensity) {
@@ -75,6 +78,12 @@ export function MagicalEffects({
   className = '',
 }: MagicalEffectsProps) {
   const [particles, dispatchParticles] = useReducer(particleReducer, [])
+  const baseColor = useMemo(() => resolveSchoolColor(spellSchool), [spellSchool])
+  const translucent = useCallback(
+    (amount: number) =>
+      `color-mix(in oklch, ${baseColor} ${amount}%, transparent)`,
+    [baseColor],
+  )
 
   useEffect(() => {
     if (!isActive) {
@@ -85,7 +94,7 @@ export function MagicalEffects({
     const generateParticles = () => {
       const newParticles: Particle[] = []
       const count = getParticleCount(intensity)
-      const color = resolveSchoolColor(spellSchool)
+      const color = baseColor
 
       for (let i = 0; i < count; i++) {
         newParticles.push({
@@ -106,7 +115,7 @@ export function MagicalEffects({
     const interval = window.setInterval(generateParticles, 5000)
 
     return () => window.clearInterval(interval)
-  }, [isActive, intensity, spellSchool])
+  }, [baseColor, isActive, intensity])
 
   if (!isActive) return null
 
@@ -119,9 +128,9 @@ export function MagicalEffects({
         className='absolute inset-0 opacity-30'
         animate={{
           background: [
-            `radial-gradient(circle at 20% 20%, ${resolveSchoolColor(spellSchool)}20 0%, transparent 50%)`,
-            `radial-gradient(circle at 80% 80%, ${resolveSchoolColor(spellSchool)}20 0%, transparent 50%)`,
-            `radial-gradient(circle at 50% 50%, ${resolveSchoolColor(spellSchool)}20 0%, transparent 50%)`,
+            `radial-gradient(circle at 20% 20%, ${translucent(28)} 0%, transparent 50%)`,
+            `radial-gradient(circle at 80% 80%, ${translucent(22)} 0%, transparent 50%)`,
+            `radial-gradient(circle at 50% 50%, ${translucent(26)} 0%, transparent 50%)`,
           ],
         }}
         transition={{
@@ -178,11 +187,7 @@ export function MagicalEffects({
           ease: 'easeInOut',
         }}
       >
-        <Sparkles
-          size={24}
-          style={{ color: resolveSchoolColor(spellSchool) }}
-          className='opacity-60'
-        />
+        <Sparkles size={24} style={{ color: baseColor }} className='opacity-60' />
       </motion.div>
 
       <motion.div
@@ -198,11 +203,7 @@ export function MagicalEffects({
           delay: 1,
         }}
       >
-        <Sparkles
-          size={20}
-          style={{ color: resolveSchoolColor(spellSchool) }}
-          className='opacity-50'
-        />
+        <Sparkles size={20} style={{ color: baseColor }} className='opacity-50' />
       </motion.div>
 
       <motion.div
@@ -218,11 +219,7 @@ export function MagicalEffects({
           delay: 2,
         }}
       >
-        <Sparkles
-          size={18}
-          style={{ color: resolveSchoolColor(spellSchool) }}
-          className='opacity-40'
-        />
+        <Sparkles size={18} style={{ color: baseColor }} className='opacity-40' />
       </motion.div>
 
       <motion.div
@@ -238,17 +235,13 @@ export function MagicalEffects({
           delay: 3,
         }}
       >
-        <Sparkles
-          size={22}
-          style={{ color: resolveSchoolColor(spellSchool) }}
-          className='opacity-70'
-        />
+        <Sparkles size={22} style={{ color: baseColor }} className='opacity-70' />
       </motion.div>
 
       {/* Pulsing magical aura */}
       <motion.div
         className='absolute inset-4 border border-current rounded-lg opacity-20'
-        style={{ color: resolveSchoolColor(spellSchool) }}
+        style={{ color: baseColor }}
         animate={{
           opacity: [0.1, 0.3, 0.1],
           scale: [1, 1.02, 1],

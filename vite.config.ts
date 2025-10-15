@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
+const devPort = Number.parseInt(process.env.VITE_DEV_SERVER_PORT ?? '1420', 10)
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -14,7 +16,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    port: 3000,
+    port: Number.isFinite(devPort) ? devPort : 1420,
     strictPort: true,
     open: false, // Let user handle opening
     host: '127.0.0.1',

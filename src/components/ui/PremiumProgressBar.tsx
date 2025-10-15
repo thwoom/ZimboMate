@@ -46,6 +46,54 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
   onRetry,
   className = '',
 }) => {
+  const stageBaseColor = React.useMemo(() => {
+    switch (stage) {
+      case 'downloading':
+        return 'var(--primary)'
+      case 'loading':
+        return 'var(--accent)'
+      case 'ready':
+        return 'var(--chart-2)'
+      case 'error':
+        return 'var(--destructive)'
+      default:
+        return 'var(--muted)'
+    }
+  }, [stage])
+
+  const tintWithTransparency = React.useCallback(
+    (color: string, amount: number) =>
+      `color-mix(in oklch, ${color} ${amount}%, transparent)`,
+    [],
+  )
+
+  const stageAccentColor = React.useMemo(() => {
+    switch (stage) {
+      case 'downloading':
+        return 'color-mix(in oklch, var(--primary) 65%, var(--accent) 35%)'
+      case 'loading':
+        return 'color-mix(in oklch, var(--accent) 60%, var(--chart-3) 40%)'
+      case 'ready':
+        return 'color-mix(in oklch, var(--chart-2) 70%, black 30%)'
+      case 'error':
+        return 'color-mix(in oklch, var(--destructive) 70%, black 30%)'
+      default:
+        return 'color-mix(in oklch, var(--muted) 60%, black 40%)'
+    }
+  }, [stage])
+
+  const stageLinearGradient = React.useMemo(
+    () =>
+      `linear-gradient(90deg, ${stageBaseColor} 0%, ${stageAccentColor} 100%)`,
+    [stageAccentColor, stageBaseColor],
+  )
+
+  const shimmerGradient = React.useMemo(
+    () =>
+      `linear-gradient(90deg, transparent 0%, ${tintWithTransparency(stageBaseColor, 45)} 50%, transparent 100%)`,
+    [stageBaseColor, tintWithTransparency],
+  )
+
   const particles = React.useMemo<FloatingParticle[]>(() => {
     if (stage !== 'loading' && stage !== 'downloading') return []
 
@@ -55,9 +103,12 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
       y: Math.random() * 100,
       delay: Math.random() * 2,
       size: Math.random() * 4 + 2,
-      color: stage === 'downloading' ? '#3b82f6' : '#8b5cf6',
+      color:
+        stage === 'downloading'
+          ? tintWithTransparency('var(--primary)', 80)
+          : tintWithTransparency('var(--accent)', 80),
     }))
-  }, [stage])
+  }, [stage, tintWithTransparency])
 
   const getStageIcon = () => {
     switch (stage) {
@@ -73,21 +124,6 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
         return (
           <Loader2 className='w-5 h-5 text-muted-foreground animate-spin' />
         )
-    }
-  }
-
-  const getStageColor = () => {
-    switch (stage) {
-      case 'downloading':
-        return 'from-primary to-cyan-600'
-      case 'loading':
-        return 'from-accent to-pink-600'
-      case 'ready':
-        return 'from-green-500 to-emerald-600'
-      case 'error':
-        return 'from-red-500 to-orange-600'
-      default:
-        return 'from-gray-500 to-gray-600'
     }
   }
 
@@ -124,7 +160,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
   return (
     <Card
       variant='magical'
-      className={`relative overflow-hidden backdrop-blur-md bg-gradient-to-br from-white/80 to-white/60 border border-white/20 shadow-2xl ${className}`}
+      className={`relative overflow-hidden backdrop-blur-md ${className}`}
     >
       <CardContent className='p-6'>
         {/* Floating Particles Background */}
@@ -182,7 +218,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                     ease: 'easeInOut',
                   }}
                   style={{
-                    background: `radial-gradient(circle, ${stage === 'downloading' ? '#3b82f6' : '#8b5cf6'}40, transparent 70%)`,
+                    background: `radial-gradient(circle, ${tintWithTransparency(stageBaseColor, 30)} 0%, transparent 70%)`,
                   }}
                 />
               )}
@@ -232,7 +268,8 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
             {stage === 'error' ? (
               // Error state with pulsing red background
               <motion.div
-                className='absolute inset-0 bg-gradient-to-r from-red-400 to-orange-500 rounded-full opacity-60'
+                className='absolute inset-0 rounded-full opacity-60'
+                style={{ background: stageLinearGradient }}
                 animate={{ opacity: [0.6, 0.3, 0.6] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
@@ -243,17 +280,19 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.max(progress, 2)}%` }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getStageColor()} rounded-full shadow-lg`}
+                  className='absolute top-0 left-0 h-full rounded-full shadow-lg'
+                  style={{ background: stageLinearGradient }}
                 >
                   {/* Shimmer effect */}
                   <motion.div
-                    className='absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full'
+                    className='absolute inset-0 rounded-full'
                     animate={{ x: ['-100%', '100%'] }}
                     transition={{
                       duration: 2,
                       repeat: Infinity,
                       ease: 'easeInOut',
                     }}
+                    style={{ background: shimmerGradient }}
                   />
 
                   {/* Highlight effect */}
@@ -265,23 +304,26 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.max(progress, 2)}%` }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className={`absolute top-0 left-0 h-full bg-gradient-to-r ${getStageColor()} rounded-full blur-sm opacity-50`}
+                  className='absolute top-0 left-0 h-full rounded-full blur-sm opacity-50'
+                  style={{ background: stageLinearGradient }}
                 />
               </>
             ) : (
               // Indeterminate progress
               <>
                 <div
-                  className={`absolute inset-0 bg-gradient-to-r ${getStageColor()} rounded-full opacity-60`}
+                  className='absolute inset-0 rounded-full opacity-60'
+                  style={{ background: stageLinearGradient }}
                 />
                 <motion.div
-                  className='absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent rounded-full'
+                  className='absolute inset-0 rounded-full'
                   animate={{ x: ['-100%', '100%'] }}
                   transition={{
                     duration: 1.5,
                     repeat: Infinity,
                     ease: 'easeInOut',
                   }}
+                  style={{ background: shimmerGradient }}
                 />
               </>
             )}
@@ -354,7 +396,12 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
         </div>
 
         {/* Background Gradient Overlay */}
-        <div className='absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-500/5 to-pink-500/5 pointer-events-none rounded-lg' />
+        <div
+          className='absolute inset-0 pointer-events-none rounded-lg'
+          style={{
+            background: `linear-gradient(135deg, ${tintWithTransparency('var(--primary)', 10)} 0%, ${tintWithTransparency('var(--accent)', 8)} 50%, ${tintWithTransparency('var(--chart-3)', 8)} 100%)`,
+          }}
+        />
 
         {/* Magical Border Glow */}
         {(stage === 'loading' || stage === 'downloading') && (
@@ -363,7 +410,7 @@ export const PremiumProgressBar: React.FC<PremiumProgressBarProps> = ({
             animate={{
               background: [
                 'linear-gradient(45deg, transparent, transparent)',
-                'linear-gradient(45deg, #3b82f620, #8b5cf620, #3b82f620)',
+                `linear-gradient(45deg, ${tintWithTransparency(stageBaseColor, 12)}, ${tintWithTransparency(stageAccentColor, 12)}, ${tintWithTransparency(stageBaseColor, 12)})`,
                 'linear-gradient(45deg, transparent, transparent)',
               ],
             }}

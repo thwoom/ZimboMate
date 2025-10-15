@@ -3,10 +3,11 @@
  * Phase 4A: Core Gameplay Features - Essential for actual play
  */
 
-import { motion } from 'framer-motion'
 import { History, NotebookPen, Search, Target, Timer } from 'lucide-react'
 import React, { useState } from 'react'
-import { Badge, Button, Card, CardContent } from '../../ui'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
+import { Badge, Card, CardContent, Input } from '../../ui'
 import { NotesWidget } from './NotesWidget'
 import { RollHistoryWidget } from './RollHistoryWidget'
 import { TimersWidget } from './TimersWidget'
@@ -51,23 +52,12 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
     },
   ]
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'notes':
-        return <NotesWidget searchQuery={searchQuery} />
-      case 'trackers':
-        return <TrackersWidget />
-      case 'timers':
-        return <TimersWidget />
-      case 'history':
-        return <RollHistoryWidget searchQuery={searchQuery} />
-      default:
-        return <NotesWidget searchQuery={searchQuery} />
-    }
-  }
-
   return (
-    <div className={`space-y-6 ${className}`}>
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => setActiveTab(value as SessionToolTab)}
+      className={cn('space-y-6', className)}
+    >
       {/* Header */}
       <div className='flex items-center justify-between'>
         <div>
@@ -83,38 +73,23 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
 
       {/* Tab Navigation */}
       <Card variant='surface'>
-        <CardContent className='p-4'>
-          <div className='flex flex-wrap gap-2'>
+        <CardContent className='p-3 sm:p-4'>
+          <TabsList className='grid w-full grid-cols-2 gap-2 bg-muted/40 p-1 sm:grid-cols-4'>
             {tabs.map((tab) => {
               const Icon = tab.icon
-              const isActive = activeTab === tab.id
-
               return (
-                <Button
+                <TabsTrigger
                   key={tab.id}
-                  variant={isActive ? 'primary' : 'ghost'}
-                  size='sm'
-                  onClick={() => setActiveTab(tab.id)}
-                  className='relative flex-1 min-w-0'
+                  value={tab.id}
+                  className='flex min-w-0 items-center gap-2 rounded-md px-2 py-2 text-sm font-medium data-[state=active]:shadow-primary sm:px-3'
                   title={tab.description}
                 >
-                  <Icon size={16} />
+                  <Icon className='size-4 shrink-0' aria-hidden='true' />
                   <span className='truncate'>{tab.label}</span>
-                  {isActive && (
-                    <motion.div
-                      className='absolute bottom-0 left-0 right-0 h-0.5 bg-primary'
-                      layoutId='sessionToolTab'
-                      transition={{
-                        type: 'spring',
-                        stiffness: 300,
-                        damping: 30,
-                      }}
-                    />
-                  )}
-                </Button>
+                </TabsTrigger>
               )
             })}
-          </div>
+          </TabsList>
         </CardContent>
       </Card>
 
@@ -126,19 +101,13 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
               <Search
                 size={16}
                 className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground'
+                aria-hidden='true'
               />
-              <input
-                type='text'
-                placeholder={`Search ${activeTab}...`}
+              <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className='w-full pl-10 pr-4 py-2 rounded-lg border transition-colors'
-                style={{
-                  backgroundColor: 'var(--card)',
-                  borderColor: 'var(--primary)',
-                  borderOpacity: 0.2,
-                  color: 'var(--foreground)',
-                }}
+                placeholder={`Search ${activeTab}...`}
+                className='pl-9'
               />
             </div>
           </CardContent>
@@ -146,15 +115,18 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
       )}
 
       {/* Content */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-      >
-        {renderContent()}
-      </motion.div>
-    </div>
+      <TabsContent value='notes' className='mt-0'>
+        <NotesWidget searchQuery={searchQuery} />
+      </TabsContent>
+      <TabsContent value='trackers' className='mt-0'>
+        <TrackersWidget />
+      </TabsContent>
+      <TabsContent value='timers' className='mt-0'>
+        <TimersWidget />
+      </TabsContent>
+      <TabsContent value='history' className='mt-0'>
+        <RollHistoryWidget searchQuery={searchQuery} />
+      </TabsContent>
+    </Tabs>
   )
 }

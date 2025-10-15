@@ -157,10 +157,21 @@ export function useAnimations(): UseAnimationsReturn {
         return
 
       const themeColors = getThemeColors()
+      const blendWithBackground = (color: string, amount: number) =>
+        `color-mix(in oklch, ${color} ${amount}%, var(--background) ${
+          100 - amount
+        }%)`
+      const blendWithShadow = (color: string, amount: number) =>
+        `color-mix(in oklch, ${color} ${amount}%, black ${100 - amount}%)`
+
       const defaultConfigs: Record<string, ParticleConfig> = {
         success: {
           count: 20,
-          colors: [themeColors.success, '#10B981', '#34D399'],
+          colors: [
+            themeColors.success,
+            blendWithBackground('var(--chart-2)', 80),
+            blendWithShadow('var(--chart-2)', 70),
+          ],
           size: { min: 2, max: 6 },
           speed: { min: 50, max: 150 },
           lifetime: 1000,
@@ -169,7 +180,11 @@ export function useAnimations(): UseAnimationsReturn {
         },
         failure: {
           count: 15,
-          colors: [themeColors.error, '#EF4444', '#F87171'],
+          colors: [
+            themeColors.error,
+            blendWithShadow('var(--destructive)', 75),
+            blendWithShadow('var(--destructive-border)', 60),
+          ],
           size: { min: 1, max: 4 },
           speed: { min: 30, max: 100 },
           lifetime: 800,
@@ -178,7 +193,11 @@ export function useAnimations(): UseAnimationsReturn {
         },
         damage: {
           count: 25,
-          colors: ['#DC2626', '#B91C1C', '#991B1B'],
+          colors: [
+            blendWithShadow('var(--destructive)', 85),
+            blendWithShadow('var(--destructive)', 70),
+            blendWithShadow('var(--destructive)', 55),
+          ],
           size: { min: 3, max: 8 },
           speed: { min: 100, max: 200 },
           lifetime: 600,
@@ -187,7 +206,11 @@ export function useAnimations(): UseAnimationsReturn {
         },
         healing: {
           count: 30,
-          colors: ['#10B981', '#34D399', '#6EE7B7'],
+          colors: [
+            themeColors.success,
+            blendWithBackground('var(--chart-2)', 65),
+            blendWithBackground('var(--chart-2)', 45),
+          ],
           size: { min: 2, max: 5 },
           speed: { min: 20, max: 80 },
           lifetime: 1500,
@@ -199,8 +222,8 @@ export function useAnimations(): UseAnimationsReturn {
           colors: [
             themeColors.primary,
             themeColors.accent,
-            '#8B5CF6',
-            '#A78BFA',
+            blendWithBackground('var(--accent)', 65),
+            blendWithBackground('var(--chart-3)', 55),
           ],
           size: { min: 1, max: 7 },
           speed: { min: 40, max: 120 },
@@ -210,7 +233,11 @@ export function useAnimations(): UseAnimationsReturn {
         },
         custom: {
           count: 20,
-          colors: [themeColors.primary],
+          colors: [
+            themeColors.primary,
+            blendWithBackground(themeColors.primary, 70),
+            blendWithShadow(themeColors.primary, 60),
+          ],
           size: { min: 2, max: 5 },
           speed: { min: 50, max: 100 },
           lifetime: 1000,

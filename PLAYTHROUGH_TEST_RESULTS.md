@@ -2,7 +2,7 @@
 
 **Test Date**: 2025-09-18
 **Tester**: Claude Code Automated Testing
-**Test Environment**: http://localhost:3000 (fallback from 3001)
+**Test Environment**: http://localhost:1420 (fallback from 3001)
 
 ## Test Character: Level 2 Fighter "Korven"
 
