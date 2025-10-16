@@ -47,13 +47,12 @@ export default defineConfig({
             '@radix-ui/react-select',
             '@radix-ui/react-tabs',
           ],
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
           animation: ['framer-motion', 'lottie-react'],
           utils: ['zustand', '@tanstack/react-query', 'clsx'],
         },
       },
     },
-    // Increase chunk size warning limit for 3D assets
+    // Increase chunk size warning limit for rich UI bundles
     chunkSizeWarningLimit: 1000,
     // Source maps for debugging in production
     sourcemap: process.env.NODE_ENV === 'development',
@@ -64,9 +63,6 @@ export default defineConfig({
       'react',
       'react-dom',
       'framer-motion',
-      'three',
-      '@react-three/fiber',
-      '@react-three/drei',
       'zustand',
       '@tanstack/react-query',
     ],

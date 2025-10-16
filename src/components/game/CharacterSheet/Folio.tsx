@@ -1,8 +1,9 @@
 import type { EquipmentChange } from './FolioGearPage'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { BarChart3, Backpack, Sparkles, Heart, FileText } from 'lucide-react'
 
 import FolioBondsDebilitiesPage from './FolioBondsDebilitiesPage'
 import FolioGearPage from './FolioGearPage'
@@ -67,7 +68,7 @@ export default function Folio({
   return (
     <div
       data-slot='folio'
-      className={cn('flex min-w-[320px] flex-col gap-3', className)}
+      className={cn('flex min-w-[320px] flex-col gap-2', className)}
     >
       <FolioHeader
         highlighted={highlight?.page === 'stats'}
@@ -84,11 +85,26 @@ export default function Folio({
         className='min-w-0'
       >
         <TabsList className='w-full gap-1'>
-          <TabsTrigger value='stats'>Stats & Basic Moves</TabsTrigger>
-          <TabsTrigger value='gear'>Gear & Load</TabsTrigger>
-          <TabsTrigger value='spells'>Spells & Hold</TabsTrigger>
-          <TabsTrigger value='bonds'>Bonds & Debilities</TabsTrigger>
-          <TabsTrigger value='notes'>Notes</TabsTrigger>
+          <TabsTrigger value='stats' className='gap-1.5'>
+            <BarChart3 size={16} />
+            <span>Stats</span>
+          </TabsTrigger>
+          <TabsTrigger value='gear' className='gap-1.5'>
+            <Backpack size={16} />
+            <span>Gear</span>
+          </TabsTrigger>
+          <TabsTrigger value='spells' className='gap-1.5'>
+            <Sparkles size={16} />
+            <span>Spells</span>
+          </TabsTrigger>
+          <TabsTrigger value='bonds' className='gap-1.5'>
+            <Heart size={16} />
+            <span>Bonds</span>
+          </TabsTrigger>
+          <TabsTrigger value='notes' className='gap-1.5'>
+            <FileText size={16} />
+            <span>Notes</span>
+          </TabsTrigger>
         </TabsList>
         <TabsContent value='stats' className='min-w-0'>
           <FolioStatsPage highlighted={highlight?.page === 'stats'} />

@@ -6,7 +6,7 @@ import type {
   Race,
 } from '../../../models/Character'
 import type { Armor, Item, Weapon } from '../../../models/Equipment'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   calculateMaxHP,
   calculateMaxLoad,
@@ -27,6 +27,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Input,
   Progress,
 } from '../../ui'
@@ -245,6 +251,21 @@ function gearSeedToItem(seed: GearSeed, fallbackId: string): Item {
 
 function generateId(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now().toString(36)}`
+}
+
+function pickRandom<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)]
+}
+
+function shuffleArray<T>(items: readonly T[]): T[] {
+  const arr = [...items]
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const temp = arr[i]
+    arr[i] = arr[j]
+    arr[j] = temp
+  }
+  return arr
 }
 
 interface BondDraft {
@@ -1021,6 +1042,271 @@ const CLASS_BOND_TEMPLATES: Record<CharacterClass, string[]> = {
   ],
 }
 
+const CLASS_PRIMARY_ATTRIBUTE: Record<CharacterClass, keyof Attributes> = {
+  Fighter: 'STR',
+  Paladin: 'STR',
+  Ranger: 'DEX',
+  Thief: 'DEX',
+  Bard: 'CHA',
+  Cleric: 'WIS',
+  Druid: 'WIS',
+  Wizard: 'INT',
+  Barbarian: 'STR',
+  Immolator: 'WIS',
+}
+
+const CLASS_NAME_SUGGESTIONS: Partial<Record<CharacterClass, string[]>> = {
+  Fighter: ['Kara Stonewarden', 'Borin Ironhide', 'Lysa Shieldarm'],
+  Paladin: ['Sir Rowan Brightblade', 'Elara Dawnshield', 'Tamsin Vowkeeper'],
+  Ranger: ['Sylvan Quickstep', 'Maera Hawkwind', 'Bran Hollowbrook'],
+  Thief: ['Nix Underleaf', 'Jaro Quickfingers', 'Sil Kestrel'],
+  Bard: ['Virel Lutesong', 'Aria Copperveil', 'Dorian Starcall'],
+  Cleric: ['Sister Elyra Dawnsong', 'Brother Corin Mercy', 'Tal the Lantern'],
+  Druid: ['Fen Willowshade', 'Iris Stormroot', 'Thalen Mossborn'],
+  Wizard: ['Merro the Grey', 'Ilyana Stormspark', 'Tessan Emberglyph'],
+  Barbarian: ['Rurik Boneshatter', 'Kaela Thundercry', 'Vorra Skybreaker'],
+  Immolator: ['Idris Flamewoven', 'Mira Cindersong', 'Ashen Kall'],
+}
+
+const FALLBACK_NAMES = [
+  'Ashen',
+  'Bright',
+  'Calder',
+  'Liora',
+  'Morgan',
+  'Nyx',
+  'Ori',
+  'Pax',
+  'Quill',
+  'Riven',
+  'Seren',
+  'Torin',
+]
+
+const CLASS_LOOK_OPTIONS: Partial<Record<CharacterClass, string[]>> = {
+  Fighter: [
+    'Hard eyes, battered armor, steady stance',
+    'Weathered face, scarred hands, soldier’s gait',
+  ],
+  Paladin: [
+    'Radiant gaze, polished plate, resolute bearing',
+    'Braided hair, sun-etched armor, gentle smile',
+  ],
+  Ranger: [
+    'Sharp eyes, forest cloak, silent tread',
+    'Wind-tangled hair, worn leathers, keen gaze',
+  ],
+  Thief: [
+    'Quick grin, hooded cloak, nimble fingers',
+    'Shadowed eyes, lithe frame, whisper-soft steps',
+  ],
+  Bard: [
+    'Bright eyes, traveling cloak, instrument at hip',
+    'Painted nails, jeweled accents, warm smile',
+  ],
+  Cleric: [
+    'Kind eyes, holy symbol, soot-stained robes',
+    'Shorn hair, steady voice, sun-dappled armor',
+  ],
+  Druid: [
+    'Wild hair, leaf-marked skin, quiet presence',
+    'Moss-trimmed cloak, animal companions, calm gaze',
+  ],
+  Wizard: [
+    'Piercing eyes, star-stitched robes, ink-stained fingers',
+    'Shorn head, ritual tattoos, thoughtful stare',
+  ],
+  Barbarian: [
+    'Tangled braids, ritual scars, booming laugh',
+    'Wolf-hide cloak, feral grin, iron grip',
+  ],
+  Immolator: [
+    'Ash-smeared skin, burning eyes, smoldering brand',
+    'Shaved scalp, ember tattoos, whispering flames',
+  ],
+}
+
+const LOOK_FALLBACKS = [
+  'Steady eyes, travel-worn cloak, quick wit',
+  'Scarred cheeks, quiet voice, restless hands',
+  'Timeless stare, inked arms, confident posture',
+]
+
+interface TemplateDraft {
+  name: string
+  look?: string
+  class: CharacterClass
+  race: Race
+  alignment: Alignment
+  attributes: Attributes
+  bonds: string[]
+  gearChoiceIndex?: number
+  spellbook?: string[]
+  deity?: string
+}
+
+interface CharacterTemplate {
+  id: string
+  label: string
+  summary: string
+  draft: TemplateDraft
+}
+
+const CHARACTER_TEMPLATES: CharacterTemplate[] = [
+  {
+    id: 'kara-stonewarden',
+    label: 'Kara Stonewarden — Fighter',
+    summary: 'Dwarven guardian with shield, javelin, and unwavering resolve.',
+    draft: {
+      name: 'Kara Stonewarden',
+      look: 'Hard eyes, braided beard rings, shield held ready',
+      class: 'Fighter',
+      race: 'Dwarf',
+      alignment: 'Lawful',
+      attributes: {
+        STR: 16,
+        DEX: 13,
+        CON: 15,
+        INT: 8,
+        WIS: 12,
+        CHA: 9,
+      },
+      bonds: [
+        '___ owes me their life, whether they admit it or not.',
+        'I have sworn to protect ___.',
+      ],
+    },
+  },
+  {
+    id: 'elyra-dawnsong',
+    label: 'Sister Elyra Dawnsong — Cleric',
+    summary: 'Merciful healer bearing Pelor’s light into the dark.',
+    draft: {
+      name: 'Sister Elyra Dawnsong',
+      look: 'Warm smile, sunlit tabard, lantern at her belt',
+      class: 'Cleric',
+      race: 'Human',
+      alignment: 'Good',
+      attributes: {
+        STR: 13,
+        DEX: 8,
+        CON: 15,
+        INT: 9,
+        WIS: 16,
+        CHA: 12,
+      },
+      bonds: [
+        '___ is a good and faithful person; I trust them implicitly.',
+        'I have ministered to ___; they have seen me at my most vulnerable.',
+      ],
+      gearChoiceIndex: 0,
+      spellbook: ['cure-light-wounds', 'bless'],
+      deity: 'Pelor the Sun God',
+    },
+  },
+  {
+    id: 'merro-the-grey',
+    label: 'Merro the Grey — Wizard',
+    summary: 'Seasoned spellcaster with answers tucked between dusty tomes.',
+    draft: {
+      name: 'Merro the Grey',
+      look: 'Ink-stained fingers, threadbare robes, calculating gaze',
+      class: 'Wizard',
+      race: 'Human',
+      alignment: 'Neutral',
+      attributes: {
+        STR: 8,
+        DEX: 13,
+        CON: 12,
+        INT: 16,
+        WIS: 15,
+        CHA: 9,
+      },
+      bonds: [
+        '___ will play an important role in the events to come. I have foreseen it!',
+        '___ has been my apprentice. I taught them the basics of magic.',
+      ],
+      gearChoiceIndex: 0,
+      spellbook: ['magic-missile', 'light', 'detect-magic'],
+    },
+  },
+  {
+    id: 'sylvan-quickstep',
+    label: 'Sylvan Quickstep — Ranger',
+    summary: 'Elven scout and archer who knows every rustle of the woods.',
+    draft: {
+      name: 'Sylvan Quickstep',
+      look: 'Leaf-wrapped cloak, hawk feather braid, sharp smile',
+      class: 'Ranger',
+      race: 'Elf',
+      alignment: 'Chaotic',
+      attributes: {
+        STR: 13,
+        DEX: 16,
+        CON: 12,
+        INT: 9,
+        WIS: 15,
+        CHA: 8,
+      },
+      bonds: [
+        '___ is a friend of nature, so I will be their friend as well.',
+        '___ has tasted my blood and I theirs. We are bound by it.',
+      ],
+      gearChoiceIndex: 0,
+    },
+  },
+  {
+    id: 'nix-underleaf',
+    label: 'Nix Underleaf — Thief',
+    summary: 'Halfling infiltrator who never met a lock they couldn’t charm.',
+    draft: {
+      name: 'Nix Underleaf',
+      look: 'Mischievous grin, shadowed cloak, quiet footfalls',
+      class: 'Thief',
+      race: 'Halfling',
+      alignment: 'Chaotic',
+      attributes: {
+        STR: 9,
+        DEX: 16,
+        CON: 12,
+        INT: 13,
+        WIS: 8,
+        CHA: 15,
+      },
+      bonds: [
+        '___ and I pulled off a job together.',
+        '___ has my back when things go wrong.',
+      ],
+      gearChoiceIndex: 0,
+    },
+  },
+  {
+    id: 'idris-flamewoven',
+    label: 'Idris Flamewoven — Immolator',
+    summary: 'Firebrand zealot who lets the flames decide justice.',
+    draft: {
+      name: 'Idris Flamewoven',
+      look: 'Ash-smeared face, smoldering sigils, crackling gaze',
+      class: 'Immolator',
+      race: 'Human',
+      alignment: 'Chaotic',
+      attributes: {
+        STR: 9,
+        DEX: 12,
+        CON: 15,
+        INT: 13,
+        WIS: 16,
+        CHA: 8,
+      },
+      bonds: [
+        '___ has felt the hellish touch of fire, now they know my strength.',
+        'I will teach ___ the true meaning of sacrifice.',
+      ],
+      gearChoiceIndex: 1,
+    },
+  },
+]
+
 interface Draft {
   name: string
   look?: string
@@ -1249,6 +1535,128 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({
     return { maxHp, maxLoad, damageDie: base.damageDie }
   }, [draft])
 
+  const applyTemplate = useCallback(
+    (templateId: string) => {
+      const template = CHARACTER_TEMPLATES.find((item) => item.id === templateId)
+      if (!template) return
+      setDraft(() => {
+        const base = createEmptyDraft()
+        const next: Draft = {
+          ...base,
+          name: template.draft.name,
+          look: template.draft.look,
+          class: template.draft.class,
+          race: template.draft.race,
+          alignment: template.draft.alignment,
+          attributes: { ...template.draft.attributes },
+          bonds: template.draft.bonds.map((bond) => createBondDraft(bond)),
+          gear: [],
+          gearChoiceIndex: template.draft.gearChoiceIndex,
+          spellbook: template.draft.spellbook
+            ? [...template.draft.spellbook]
+            : [],
+          deity: template.draft.deity,
+        }
+        return next
+      })
+      setStep('review')
+    },
+    [setDraft, setStep],
+  )
+
+  const randomizeCharacter = useCallback(() => {
+    const randomClass = pickRandom(ALL_CLASSES)
+    const availableRaces = CLASS_RACIAL_OPTIONS[randomClass]
+    const availableAlignments = CLASS_ALIGNMENTS[randomClass]
+
+    const race = pickRandom(availableRaces)
+    const alignment = pickRandom(availableAlignments)
+
+    const namePool = CLASS_NAME_SUGGESTIONS[randomClass] ?? FALLBACK_NAMES
+    const lookPool = CLASS_LOOK_OPTIONS[randomClass] ?? LOOK_FALLBACKS
+
+    const name = pickRandom(namePool)
+    const look = pickRandom(lookPool)
+
+    const attributeKeys: (keyof Attributes)[] = [
+      'STR',
+      'DEX',
+      'CON',
+      'INT',
+      'WIS',
+      'CHA',
+    ]
+    const shuffledScores = shuffleArray(getStandardArray())
+    const attributes = attributeKeys.reduce((acc, key, index) => {
+      acc[key] = shuffledScores[index]
+      return acc
+    }, {} as Attributes)
+
+    const primaryAttr = CLASS_PRIMARY_ATTRIBUTE[randomClass]
+    const highest = Math.max(...shuffledScores)
+    if (attributes[primaryAttr] !== highest) {
+      const swapKey = attributeKeys.find((key) => attributes[key] === highest)
+      if (swapKey) {
+        const temp = attributes[primaryAttr]
+        attributes[primaryAttr] = attributes[swapKey]
+        attributes[swapKey] = temp
+      } else {
+        attributes[primaryAttr] = highest
+      }
+    }
+
+    if (randomClass === 'Wizard') {
+      attributes.INT = Math.max(attributes.INT, 16)
+    }
+    if (randomClass === 'Cleric') {
+      attributes.WIS = Math.max(attributes.WIS, 16)
+    }
+
+    const bondTemplates = CLASS_BOND_TEMPLATES[randomClass] ?? []
+    const selectedBondTexts =
+      bondTemplates.length > 0 ? shuffleArray(bondTemplates).slice(0, 2) : []
+
+    const bonds = selectedBondTexts.map((bond) => createBondDraft(bond))
+
+    const classGear = CLASS_STARTING_GEAR[randomClass]
+    const gearChoiceIndex =
+      classGear.choice && classGear.choice.options.length > 0
+        ? Math.floor(Math.random() * classGear.choice.options.length)
+        : undefined
+
+    let spellbook: string[] | undefined
+    if (randomClass === 'Wizard') {
+      const wizardSpells = dwWizardSpells
+        .filter((spell) => spell.level === 1)
+        .map((spell) => spell.id)
+      spellbook = shuffleArray(wizardSpells).slice(0, 3)
+    } else if (randomClass === 'Cleric') {
+      const clericSpells = dwClericSpells
+        .filter((spell) => spell.level === 1)
+        .map((spell) => spell.id)
+      spellbook = shuffleArray(clericSpells).slice(0, 2)
+    }
+
+    const deity = requiresDeity(randomClass)
+      ? pickRandom(DUNGEON_WORLD_DEITIES).name
+      : undefined
+
+    setDraft(() => ({
+      name,
+      look,
+      class: randomClass,
+      race,
+      alignment,
+      attributes,
+      bonds,
+      gear: [],
+      gearChoiceIndex,
+      spellbook: spellbook ?? [],
+      deity,
+    }))
+    setStep('review')
+  }, [setDraft, setStep])
+
   const finalize = () => {
     if (!draft.class || !draft.race || !draft.alignment || !draft.name) return
 
@@ -1393,29 +1801,79 @@ export const CharacterBuilder: React.FC<{ onFinished?: () => void }> = ({
     )
   }
 
+  const quickStartControls = (
+    <div className='flex flex-wrap items-center gap-2'>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant='outline' size='sm'>
+            Load Template
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end' className='w-64'>
+          <DropdownMenuLabel>Starter builds</DropdownMenuLabel>
+          {CHARACTER_TEMPLATES.map((template) => (
+            <DropdownMenuItem
+              key={template.id}
+              className='flex flex-col items-start gap-1 py-2 text-left'
+              onSelect={() => applyTemplate(template.id)}
+              data-testid={`character-template-${template.id}`}
+            >
+              <span className='text-sm font-medium leading-tight'>
+                {template.label}
+              </span>
+              <span className='text-xs text-muted-foreground leading-snug'>
+                {template.summary}
+              </span>
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={randomizeCharacter}>
+            Surprise me
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button
+        variant='secondary'
+        size='sm'
+        onClick={randomizeCharacter}
+        aria-label='Randomize character'
+        data-testid='character-randomize'
+      >
+        Randomize
+      </Button>
+    </div>
+  )
+
   return (
     <Card variant='magical'>
-      <CardHeader>
-        <div className='flex items-center justify-between'>
-          <div>
+      <CardHeader className='space-y-4'>
+        <div className='flex flex-wrap items-start justify-between gap-4'>
+          <div className='space-y-1'>
             <CardTitle>Character Builder</CardTitle>
             <CardDescription>
               Create a valid Dungeon World character
             </CardDescription>
           </div>
-          <div className='min-w-[160px]'>
-            <Progress
-              variant='experience'
-              value={stepIndex + 1}
-              max={steps.length}
-              aria-label={`Step ${stepIndex + 1} of ${steps.length}`}
-            />
-            <p className='mt-1 text-xs text-muted-foreground'>
-              Step
-              {stepIndex + 1} of
-              {steps.length}
-            </p>
+          <div className='flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-3'>
+            <div className='min-w-[160px]'>
+              <Progress
+                variant='experience'
+                value={stepIndex + 1}
+                max={steps.length}
+                aria-label={`Step ${stepIndex + 1} of ${steps.length}`}
+              />
+              <p className='mt-1 text-xs text-muted-foreground text-right sm:text-left'>
+                Step {stepIndex + 1} of {steps.length}
+              </p>
+            </div>
+            <div className='hidden sm:block'>{quickStartControls}</div>
           </div>
+        </div>
+        <div className='sm:hidden'>
+          <div className='mb-2 text-xs text-muted-foreground'>
+            Need ideas? Load a premade hero or randomize everything.
+          </div>
+          {quickStartControls}
         </div>
       </CardHeader>
 

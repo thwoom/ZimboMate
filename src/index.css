@@ -293,7 +293,7 @@
     background-image: url(https://matsu-theme.vercel.app/texture.jpg);
     background-size: 100% 100%;
     background-repeat: repeat;
-    opacity: 0.12;
+    opacity: 0.16;
     mix-blend-mode: multiply;
     z-index: 100;
     isolation: isolate;
@@ -309,28 +309,28 @@
 @layer components {
   /* Gaming-specific badge variants for ZimboMate */
   .badge-health {
-    @apply bg-chart-2 text-white hover:bg-chart-2/85;
+    @apply bg-chart-2 text-white hover:bg-chart-2/85 transition-all duration-200;
   }
 
   .badge-mana {
-    @apply bg-primary text-white hover:bg-primary;
+    @apply bg-primary text-white hover:bg-primary/90 transition-all duration-200;
   }
 
   .badge-experience {
-    @apply bg-chart-4/120 text-white hover:bg-chart-4;
+    @apply bg-chart-4/120 text-white hover:bg-chart-4 transition-all duration-200;
   }
 
   /* Gaming-specific progress variants */
   .progress-health .progress-indicator {
-    @apply bg-chart-2;
+    @apply bg-chart-2 transition-all duration-300;
   }
 
   .progress-mana .progress-indicator {
-    @apply bg-primary;
+    @apply bg-primary transition-all duration-300;
   }
 
   .progress-experience .progress-indicator {
-    @apply bg-chart-4/120;
+    @apply bg-chart-4/120 transition-all duration-300;
   }
 
   /* Matsu-themed card variants */
@@ -340,13 +340,18 @@
       var(--card),
       color-mix(in oklch, var(--card) 80%, transparent)
     );
-    border: 1px solid color-mix(in oklch, var(--primary) 20%, transparent);
-    box-shadow: 0 10px 25px color-mix(in oklch, var(--primary) 15%, transparent);
-    transition: box-shadow 0.2s ease;
+    border: 2px solid color-mix(in oklch, var(--primary) 20%, transparent);
+    box-shadow: 
+      0 2px 0 0 var(--primary-border),
+      0 10px 25px color-mix(in oklch, var(--primary) 15%, transparent);
+    transition: all 0.2s ease;
   }
 
   .card-magical:hover {
-    box-shadow: 0 20px 45px color-mix(in oklch, var(--primary) 20%, transparent);
+    transform: translateY(-1px);
+    box-shadow: 
+      0 3px 0 0 var(--primary-border),
+      0 20px 45px color-mix(in oklch, var(--primary) 20%, transparent);
   }
 
   .card-parchment {
@@ -355,8 +360,10 @@
       var(--parchment-100),
       var(--parchment-400)
     );
-    border: 1px solid var(--parchment-500);
-    box-shadow: 0 2px 6px color-mix(in oklch, var(--primary) 12%, transparent);
+    border: 2px solid var(--parchment-500);
+    box-shadow: 
+      0 2px 0 0 var(--border),
+      0 2px 6px color-mix(in oklch, var(--primary) 12%, transparent);
   }
 
   .card-spell {
@@ -368,25 +375,63 @@
     border-left: 4px solid var(--primary);
     position: relative;
     overflow: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .card-spell:hover {
+    border-left-color: color-mix(in oklch, var(--primary) 80%, transparent);
+    transform: translateX(2px);
+  }
+
+  /* Glass morphism utility */
+  .glass-card {
+    background: color-mix(in oklch, var(--card) 85%, transparent);
+    backdrop-filter: blur(12px);
+    border: 2px solid color-mix(in oklch, var(--primary) 15%, transparent);
+  }
+
+  /* Enhanced card elevation */
+  .card-elevated-enhanced {
+    box-shadow: 
+      0 2px 0 0 var(--border),
+      0 8px 24px color-mix(in oklch, var(--primary) 12%, transparent);
+    transition: all 0.2s ease;
+  }
+
+  .card-elevated-enhanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 3px 0 0 var(--border),
+      0 12px 32px color-mix(in oklch, var(--primary) 18%, transparent);
   }
 
   /* Matsu-themed button variants */
   .button-magical {
     color: var(--primary-foreground);
-    background-image: linear-gradient(to right, var(--primary), var(--accent));
-    box-shadow: 0 10px 25px color-mix(in oklch, var(--primary) 15%, transparent);
-    transition:
-      box-shadow 0.2s ease,
-      filter 0.2s ease;
+    background-image: linear-gradient(135deg, var(--primary), var(--accent));
+    box-shadow: 
+      0 2px 0 0 var(--primary-border),
+      0 4px 12px color-mix(in oklch, var(--primary) 25%, transparent);
+    transition: all 0.2s ease;
   }
 
   .button-magical:hover {
+    transform: translateY(-1px);
     background-image: linear-gradient(
-      to right,
-      color-mix(in oklch, var(--primary) 90%, transparent),
-      color-mix(in oklch, var(--accent) 90%, transparent)
+      135deg,
+      color-mix(in oklch, var(--primary) 95%, transparent),
+      color-mix(in oklch, var(--accent) 95%, transparent)
     );
-    box-shadow: 0 15px 30px color-mix(in oklch, var(--primary) 20%, transparent);
+    box-shadow: 
+      0 3px 0 0 var(--primary-border),
+      0 6px 16px color-mix(in oklch, var(--primary) 35%, transparent);
+  }
+
+  .button-magical:active {
+    transform: translateY(0);
+    box-shadow: 
+      0 1px 0 0 var(--primary-border),
+      0 2px 8px color-mix(in oklch, var(--primary) 20%, transparent);
   }
 }
 
@@ -431,9 +476,17 @@
   color: var(--foreground);
 }
 
-/* Focus styles */
+/* Enhanced focus styles for accessibility */
 :focus-visible {
-  outline: 2px solid var(--ring);
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid var(--primary);
   outline-offset: 2px;
 }
 

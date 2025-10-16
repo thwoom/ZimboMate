@@ -99,32 +99,32 @@ export function useDragAndDrop(characterId: string) {
 
         // Execute the appropriate roll based on drag data
         if (data.type === 'stat' && data.stat) {
-          await rollCustom(
-            finalModifier,
-            {
+          await rollCustom({
+            modifier: finalModifier,
+            context: {
               label: rollLabel,
               type: 'stat',
               stat: data.stat,
             },
             characterId,
-          )
+          })
         } else if (data.type === 'move' && data.moveId && data.stat) {
-          await rollCustom(
-            finalModifier,
-            {
+          await rollCustom({
+            modifier: finalModifier,
+            context: {
               label: rollLabel,
               type: 'move',
               moveId: data.moveId,
               stat: data.stat,
             },
             characterId,
-          )
+          })
         } else if (data.type === 'custom') {
-          await rollCustom(
-            finalModifier,
-            { label: rollLabel, type: 'custom' },
+          await rollCustom({
+            modifier: finalModifier,
+            context: { label: rollLabel, type: 'custom' },
             characterId,
-          )
+          })
         }
       } catch (error) {
         logger.error('[DragDrop] Drop failed', error)
@@ -195,11 +195,12 @@ export function useDragAndDrop(characterId: string) {
 
 // Convenience hook for stat dragging
 export function useStatDrag(
+  characterId: string,
   stat: keyof Attributes,
   statValue: number,
   label?: string,
 ) {
-  const { getDraggableProps } = useDragAndDrop('') // Character ID will be provided by parent
+  const { getDraggableProps } = useDragAndDrop(characterId)
 
   return getDraggableProps({
     type: 'stat',
@@ -211,11 +212,12 @@ export function useStatDrag(
 
 // Convenience hook for move dragging
 export function useMoveDrag(
+  characterId: string,
   moveId: string,
   moveName: string,
   stat: keyof Attributes,
 ) {
-  const { getDraggableProps } = useDragAndDrop('') // Character ID will be provided by parent
+  const { getDraggableProps } = useDragAndDrop(characterId)
 
   return getDraggableProps({
     type: 'move',

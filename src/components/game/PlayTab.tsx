@@ -1229,6 +1229,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     >
       <SplitPane
         className='flex-1 min-h-0 gap-4 overflow-hidden p-4 md:p-6'
+        showGutter={false}
         left={
           <Folio
             highlight={folioHighlight}
@@ -1242,26 +1243,27 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
             className='h-full min-h-0'
             header={
               <div className='space-y-4'>
-                <div className='flex flex-wrap items-center gap-2'>
-                  <Button
-                    variant={activeTab === 'chronicle' ? 'primary' : 'ghost'}
-                    onClick={() => setActiveTab('chronicle')}
-                    className='flex items-center gap-2 rounded-md border-b-2 border-transparent data-[active]:border-primary'
-                    data-active={activeTab === 'chronicle'}
-                  >
-                    <BookOpen size={16} />
-                    Chronicle
-                  </Button>
-                  <Button
-                    variant={activeTab === 'tools' ? 'primary' : 'ghost'}
-                    onClick={() => setActiveTab('tools')}
-                    className='flex items-center gap-2 rounded-md border-b-2 border-transparent data-[active]:border-primary'
-                    data-active={activeTab === 'tools'}
-                  >
-                    <Wrench size={16} />
-                    Tools
-                  </Button>
-                </div>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(value) => setActiveTab(value as ActiveTab)}
+                >
+                  <TabsList className='flex w-full flex-wrap items-center justify-start gap-2 bg-muted/40 p-1'>
+                    <TabsTrigger
+                      value='chronicle'
+                      className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                    >
+                      <BookOpen className='size-4 shrink-0' aria-hidden='true' />
+                      <span className='truncate'>Chronicle</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value='tools'
+                      className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                    >
+                      <Wrench className='size-4 shrink-0' aria-hidden='true' />
+                      <span className='truncate'>Tools</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
                 {automationBanner ? <div>{automationBanner}</div> : null}
                 <div className='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
                   <label
@@ -1763,169 +1765,170 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                         )}
                       </div>
 
-                      <div className='space-y-6'>
-                        {/* Tools Sub-navigation */}
-                        <Tabs
-                          value={toolsSubTab}
-                          onValueChange={(value) =>
-                            setToolsSubTab(value as ToolsSubTab)
-                          }
-                        >
-                          <TabsList className='mb-6 grid w-full grid-cols-1 gap-2 bg-muted/40 p-1 sm:grid-cols-3'>
-                            <TabsTrigger
-                              value='items'
-                              className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                            >
-                              <Sword className='size-4 shrink-0' aria-hidden='true' />
-                              <span className='truncate'>Items</span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value='monsters'
-                              className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                            >
-                              <Crown className='size-4 shrink-0' aria-hidden='true' />
-                              <span className='truncate'>Monsters</span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value='npcs'
-                              className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                            >
-                              <User className='size-4 shrink-0' aria-hidden='true' />
-                              <span className='truncate'>NPCs</span>
-                            </TabsTrigger>
-                          </TabsList>
-                        </Tabs>
+                    </div>
+                  </motion.div>
+                )}
+                {activeTab === 'tools' && (
+                  <motion.div
+                    key='tools'
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className='flex h-full min-h-0 flex-col overflow-y-auto p-6'
+                  >
+                    <div className='space-y-6'>
+                      {/* Tools Sub-navigation */}
+                      <Tabs
+                        value={toolsSubTab}
+                        onValueChange={(value) =>
+                          setToolsSubTab(value as ToolsSubTab)
+                        }
+                      >
+                        <TabsList className='grid w-full grid-cols-1 gap-2 bg-muted/40 p-1 sm:grid-cols-3'>
+                          <TabsTrigger
+                            value='items'
+                            className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                          >
+                            <Sword className='size-4 shrink-0' aria-hidden='true' />
+                            <span className='truncate'>Items</span>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value='monsters'
+                            className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                          >
+                            <Crown className='size-4 shrink-0' aria-hidden='true' />
+                            <span className='truncate'>Monsters</span>
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value='npcs'
+                            className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                          >
+                            <User className='size-4 shrink-0' aria-hidden='true' />
+                            <span className='truncate'>NPCs</span>
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
 
-                        {/* Tools Content */}
-                        <div className='grid grid-cols-2 gap-6'>
-                          {/* Creator Panel */}
-                          <Card variant='elevated'>
-                            <CardContent className='p-4'>
-                              <h3 className='font-semibold mb-3'>
-                                Create{' '}
-                                {toolsSubTab === 'items'
-                                  ? 'Item'
-                                  : toolsSubTab === 'monsters'
-                                    ? 'Monster'
-                                    : 'NPC'}
-                              </h3>
-                              <div className='space-y-3'>
-                                <Input
-                                  value={
-                                    toolsSubTab === 'items'
-                                      ? itemInput
-                                      : toolsSubTab === 'monsters'
-                                        ? monsterInput
-                                        : npcInput
-                                  }
-                                  onChange={(e) => {
-                                    if (toolsSubTab === 'items')
-                                      setItemInput(e.target.value)
-                                    else if (toolsSubTab === 'monsters')
-                                      setMonsterInput(e.target.value)
-                                    else setNpcInput(e.target.value)
-                                  }}
-                                  placeholder={`Describe your ${toolsSubTab.slice(0, -1)}...`}
-                                />
-                                <Button
-                                  onClick={
-                                    toolsSubTab === 'items'
-                                      ? handleCreateItem
-                                      : toolsSubTab === 'monsters'
-                                        ? handleCreateMonster
-                                        : handleCreateNPC
-                                  }
-                                  className='w-full gap-2'
-                                >
-                                  <Sparkles size={16} />
-                                  Create with AI
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* Created Items List */}
-                          <Card variant='surface'>
-                            <CardContent className='p-4'>
-                              <h3 className='font-semibold mb-3'>
-                                Your{' '}
-                                {toolsSubTab.charAt(0).toUpperCase() +
-                                  toolsSubTab.slice(1)}
-                              </h3>
-                              <div className='space-y-3 max-h-96 overflow-y-auto'>
-                                {toolsSubTab === 'items' &&
-                                  createdItems.map((item) => (
-                                    <div
-                                      key={item.id}
-                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                    >
-                                      <div className='font-medium'>
-                                        {item.name}
-                                      </div>
-                                      <div className='text-xs text-muted-foreground'>
-                                        {item.tags.join(', ')}
-                                      </div>
-                                      <div className='text-sm mt-1'>
-                                        {item.description}
-                                      </div>
-                                      <div className='text-xs font-mono mt-1'>
-                                        {item.stats}
-                                      </div>
+                      {/* Tools Content */}
+                      <div className='grid gap-6 lg:grid-cols-2'>
+                        <Card variant='elevated'>
+                          <CardContent className='p-4'>
+                            <h3 className='font-semibold mb-3'>
+                              Create{' '}
+                              {toolsSubTab === 'items'
+                                ? 'Item'
+                                : toolsSubTab === 'monsters'
+                                  ? 'Monster'
+                                  : 'NPC'}
+                            </h3>
+                            <div className='space-y-3'>
+                              <Input
+                                value={
+                                  toolsSubTab === 'items'
+                                    ? itemInput
+                                    : toolsSubTab === 'monsters'
+                                      ? monsterInput
+                                      : npcInput
+                                }
+                                onChange={(e) => {
+                                  if (toolsSubTab === 'items')
+                                    setItemInput(e.target.value)
+                                  else if (toolsSubTab === 'monsters')
+                                    setMonsterInput(e.target.value)
+                                  else setNpcInput(e.target.value)
+                                }}
+                                placeholder={`Describe your ${toolsSubTab.slice(0, -1)}...`}
+                              />
+                              <Button
+                                onClick={
+                                  toolsSubTab === 'items'
+                                    ? handleCreateItem
+                                    : toolsSubTab === 'monsters'
+                                      ? handleCreateMonster
+                                      : handleCreateNPC
+                                }
+                                className='w-full gap-2'
+                              >
+                                <Sparkles size={16} />
+                                Create with AI
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card variant='surface'>
+                          <CardContent className='p-4'>
+                            <h3 className='font-semibold mb-3'>
+                              Your{' '}
+                              {toolsSubTab.charAt(0).toUpperCase() +
+                                toolsSubTab.slice(1)}
+                            </h3>
+                            <div className='space-y-3 max-h-96 overflow-y-auto'>
+                              {toolsSubTab === 'items' &&
+                                createdItems.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className='rounded-lg border border-border/60 bg-card/70 p-3'
+                                  >
+                                    <div className='font-medium'>{item.name}</div>
+                                    <div className='text-xs text-muted-foreground'>
+                                      {item.tags.join(', ')}
                                     </div>
-                                  ))}
-
-                                {toolsSubTab === 'monsters' &&
-                                  createdMonsters.map((monster) => (
-                                    <div
-                                      key={monster.id}
-                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                    >
-                                      <div className='font-medium'>
-                                        {monster.name}
-                                      </div>
-                                      <div className='text-xs text-muted-foreground'>
-                                        {monster.hp} HP, {monster.armor} armor
-                                      </div>
-                                      <div className='text-sm mt-1'>
-                                        {monster.instinct}
-                                      </div>
-                                      <ul className='text-xs mt-1 list-disc list-inside'>
-                                        {monster.moves.map((move) => (
-                                          <li key={`${monster.id}-${move}`}>
-                                            {move}
-                                          </li>
-                                        ))}
-                                      </ul>
+                                    <div className='text-sm mt-1'>
+                                      {item.description}
                                     </div>
-                                  ))}
-
-                                {toolsSubTab === 'npcs' &&
-                                  createdNPCs.map((npc) => (
-                                    <div
-                                      key={npc.id}
-                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                    >
-                                      <div className='font-medium'>
-                                        {npc.name}
-                                      </div>
-                                      <div className='text-xs text-muted-foreground'>
-                                        {npc.quirk}
-                                      </div>
-                                      <div className='text-sm mt-1'>
-                                        {npc.appearance}
-                                      </div>
-                                      <div className='text-xs mt-1'>
-                                        <strong>Drive:</strong> {npc.drive}
-                                      </div>
-                                      <div className='text-xs'>
-                                        <strong>Knows:</strong> {npc.knows}
-                                      </div>
+                                    <div className='text-xs font-mono mt-1'>
+                                      {item.stats}
                                     </div>
-                                  ))}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
+                                  </div>
+                                ))}
+
+                              {toolsSubTab === 'monsters' &&
+                                createdMonsters.map((monster) => (
+                                  <div
+                                    key={monster.id}
+                                    className='rounded-lg border border-border/60 bg-card/70 p-3'
+                                  >
+                                    <div className='font-medium'>
+                                      {monster.name}
+                                    </div>
+                                    <div className='text-xs text-muted-foreground'>
+                                      {monster.hp} HP, {monster.armor} armor
+                                    </div>
+                                    <div className='text-sm mt-1'>
+                                      {monster.instinct}
+                                    </div>
+                                    <ul className='text-xs mt-1 list-disc list-inside'>
+                                      {monster.moves.map((move) => (
+                                        <li key={`${monster.id}-${move}`}>{move}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ))}
+
+                              {toolsSubTab === 'npcs' &&
+                                createdNPCs.map((npc) => (
+                                  <div
+                                    key={npc.id}
+                                    className='rounded-lg border border-border/60 bg-card/70 p-3'
+                                  >
+                                    <div className='font-medium'>{npc.name}</div>
+                                    <div className='text-xs text-muted-foreground'>
+                                      {npc.quirk}
+                                    </div>
+                                    <div className='text-sm mt-1'>
+                                      {npc.appearance}
+                                    </div>
+                                    <div className='text-xs mt-1'>
+                                      <strong>Drive:</strong> {npc.drive}
+                                    </div>
+                                    <div className='text-xs'>
+                                      <strong>Knows:</strong> {npc.knows}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </CardContent>
+                        </Card>
                       </div>
                     </div>
                   </motion.div>

@@ -23,12 +23,15 @@ export default function SplitPane({
   const gridClass = showGutter
     ? 'md:grid-cols-[var(--folio-width)_12px_minmax(0,1fr)]'
     : 'md:grid-cols-[var(--folio-width)_minmax(0,1fr)]'
+  
+  const gapClass = showGutter ? 'gap-4 md:gap-0' : 'gap-4'
 
   return (
     <section
       data-slot='split-pane'
       className={cn(
-        'grid w-full items-start gap-4 md:gap-0',
+        'grid w-full items-start',
+        gapClass,
         gridClass,
         className,
       )}
@@ -36,7 +39,7 @@ export default function SplitPane({
       role='group'
       aria-label='Two pane workspace'
     >
-      <div className='bg-card border-border rounded-lg border shadow-sm md:h-full'>
+      <div className='md:h-full'>
         {left}
       </div>
       {showGutter ? (

@@ -32,6 +32,9 @@ import {
   Button,
   Card,
   CardContent,
+  CardHeader,
+  CardDescription,
+  CardTitle,
   ThemeComponentShowcase,
 } from './components/ui'
 import { AuthProvider } from './components/ui/AuthProvider'
@@ -257,7 +260,7 @@ const App: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <div className='flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card/60 px-4 py-3 shadow-sm'>
+                  <div className='flex flex-wrap items-center justify-between gap-3 rounded-lg border-2 border-border bg-card/60 px-6 py-4 shadow-sm transition-all duration-200 hover:shadow-md'>
                     <div className='space-y-1'>
                       <p className='text-xs uppercase tracking-wide text-muted-foreground'>
                         Active Character
@@ -291,6 +294,7 @@ const App: React.FC = () => {
                   </div>
                   <SplitPane
                     className='min-h-[720px] gap-4 md:gap-6'
+                    showGutter={false}
                     left={<Folio className='h-full min-h-0' />}
                     right={
                       <RightRail
@@ -374,12 +378,39 @@ const App: React.FC = () => {
             className='max-w-2xl mx-auto'
           >
             <div className='space-y-6'>
+              {!activeCharacter && (
+                <Card
+                  variant='surface'
+                  className='border-dashed border-primary/40 bg-card/70'
+                >
+                  <CardHeader>
+                    <CardTitle>No character selected</CardTitle>
+                    <CardDescription>
+                      Create or choose a character to unlock stat-based dice
+                      rolls and move tracking.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className='flex flex-wrap gap-3'>
+                    <Button
+                      variant='primary'
+                      onClick={() => {
+                        setActiveTab('character')
+                        setShowCharacterBuilder(true)
+                      }}
+                    >
+                      Start Character Builder
+                    </Button>
+                    <Button
+                      variant='outline'
+                      onClick={() => setActiveTab('character')}
+                    >
+                      Go to Character Tab
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
               <UnifiedRollSystem
-                characterId='eldara-moonwhisper'
-                layout='inline'
-                showHistory={true}
-                showQuickRolls={true}
-                showCustomRolls={true}
+                characterId={activeCharacter?.id ?? ''}
                 className='max-w-full'
               />
 
@@ -397,6 +428,7 @@ const App: React.FC = () => {
                 onStatRoll={(stat, result) => {
                   logger.info(`${stat} roll result:`, result)
                 }}
+                disabled={!activeCharacter}
               />
 
               <ContextAwareSystem context='dice' compact />
@@ -438,7 +470,7 @@ const App: React.FC = () => {
           >
             <div className='max-w-6xl mx-auto space-y-8'>
               {/* Button Debug Control Panel */}
-              <Card variant='magical' padding='lg'>
+              <Card variant='magical' className='p-6'>
                 <CardContent>
                   <div className='space-y-6'>
                     <div>
@@ -637,8 +669,8 @@ const App: React.FC = () => {
 
               <div className='relative isolate min-h-screen transition-colors duration-300 bg-background text-foreground'>
                 {/* Header */}
-                <header className='sticky top-0 z-50 border-b border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm'>
-                  <div className='container mx-auto px-6 py-4'>
+                <header className='sticky top-0 z-50 border-b-2 border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm transition-all duration-200'>
+                  <div className='container mx-auto px-6 py-5'>
                     <div className='flex items-center justify-between'>
                       <motion.div
                         className='flex items-center gap-3'
@@ -675,10 +707,10 @@ const App: React.FC = () => {
                 <nav
                   role='navigation'
                   aria-label='Primary'
-                  className='sticky top-[73px] z-40 border-b border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80'
+                  className='sticky top-[73px] z-40 border-b-2 border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 transition-all duration-200'
                 >
                   <div className='container mx-auto px-6'>
-                    <div className='flex gap-1 py-2 overflow-x-auto'>
+                    <div className='flex gap-2 py-3 overflow-x-auto'>
                       {tabs.map((tab, index) => {
                         const Icon = tab.icon
                         const isActive = activeTab === tab.id
@@ -739,7 +771,7 @@ const App: React.FC = () => {
                 {/* Main Content */}
                 <div className='flex min-h-[calc(100vh-12rem)] min-w-0'>
                   <main role='main' className='flex-1 min-h-0 overflow-y-auto'>
-                    <div className='container mx-auto px-6 py-8 pb-12'>
+                    <div className='container mx-auto px-6 py-10 pb-16'>
                       <AnimatePresence mode='wait'>
                         {renderContent()}
                       </AnimatePresence>
@@ -748,8 +780,8 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <footer className='mt-16 border-t border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85'>
-                  <div className='container mx-auto px-6 py-8'>
+                <footer className='mt-20 border-t-2 border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85 transition-all duration-200'>
+                  <div className='container mx-auto px-6 py-10'>
                     <div className='flex items-center justify-between'>
                       <motion.div
                         className='flex items-center gap-3'

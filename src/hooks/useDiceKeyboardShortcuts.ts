@@ -138,7 +138,12 @@ export function useDiceKeyboardShortcuts({
         event.preventDefault()
         const { moveId, stat } = MOVE_SHORTCUTS[code]
         logger.info('dice_shortcut_move_roll', { moveId, stat, characterId })
-        rollMove(moveId, stat, characterId)
+        rollMove({
+          moveId,
+          stat,
+          characterId,
+          label: `${moveId} (Keyboard Shortcut)`,
+        })
       }
     },
     [characterId, rollStat, rollMove, rollCustom, isRolling, modifierKey],

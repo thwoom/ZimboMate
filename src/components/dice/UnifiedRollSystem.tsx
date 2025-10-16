@@ -98,7 +98,10 @@ export const UnifiedRollSystem: React.FC<UnifiedRollSystemProps> = ({
     historyByCharacter: state.historyByCharacter,
   }))
 
-  const history = historyByCharacter[characterId] ?? []
+  const history =
+    characterId && historyByCharacter[characterId]
+      ? historyByCharacter[characterId]
+      : []
 
   const statCards = useMemo(() => {
     return STAT_ORDER.map((stat) => {
@@ -131,11 +134,21 @@ export const UnifiedRollSystem: React.FC<UnifiedRollSystemProps> = ({
   }
 
   const handleStatRoll = async (stat: keyof Attributes, label?: string) => {
+    if (!characterId || !character) {
+      setCopyStatus('Select a character before rolling')
+      setTimeout(() => setCopyStatus(null), 2000)
+      return
+    }
     const roll = await rollStat(stat, characterId, label)
     setLastRoll(roll)
   }
 
   const handleMoveRoll = async (move: QuickMove) => {
+    if (!characterId || !character) {
+      setCopyStatus('Select a character before rolling')
+      setTimeout(() => setCopyStatus(null), 2000)
+      return
+    }
     const roll = await rollMove({
       moveId: move.moveId,
       stat: move.stat,
@@ -146,6 +159,11 @@ export const UnifiedRollSystem: React.FC<UnifiedRollSystemProps> = ({
   }
 
   const handleCustomRoll = async () => {
+    if (!characterId || !character) {
+      setCopyStatus('Select a character before rolling')
+      setTimeout(() => setCopyStatus(null), 2000)
+      return
+    }
     const trimmedLabel = customLabel.trim()
     if (!trimmedLabel) {
       setCopyStatus('Add a label before rolling')
@@ -212,9 +230,13 @@ export const UnifiedRollSystem: React.FC<UnifiedRollSystemProps> = ({
             <button
               key={card.stat}
               type='button'
-              className='flex flex-col rounded-lg border border-border bg-card/80 p-3 text-left shadow-sm transition hover:border-primary/40 hover:shadow'
+              className={cn(
+                'flex flex-col rounded-lg border border-border bg-card/80 p-3 text-left shadow-sm transition hover:border-primary/40 hover:shadow',
+                (!character || !characterId) &&
+                  'cursor-not-allowed opacity-60 hover:border-border hover:shadow-none',
+              )}
               onClick={() => handleStatRoll(card.stat)}
-              disabled={isRolling}
+              disabled={isRolling || !character || !characterId}
             >
               <span className='text-xs uppercase tracking-wide text-muted-foreground'>
                 {card.stat}
@@ -262,7 +284,7 @@ export const UnifiedRollSystem: React.FC<UnifiedRollSystemProps> = ({
                 size='sm'
                 className='mt-3'
                 onClick={() => handleMoveRoll(move)}
-                disabled={isRolling}
+                disabled={isRolling || !character || !characterId}
               >
                 Roll move
               </Button>
@@ -323,7 +345,10 @@ export const UnifiedRollSystem: React.FC<UnifiedRollSystemProps> = ({
                 onChange={(event) => setCustomModifier(event.target.value)}
               />
             </div>
-            <Button onClick={handleCustomRoll} disabled={isRolling}>
+            <Button
+              onClick={handleCustomRoll}
+              disabled={isRolling || !character || !characterId}
+            >
               <Dices className='mr-2 h-4 w-4' /> Roll custom
             </Button>
           </div>

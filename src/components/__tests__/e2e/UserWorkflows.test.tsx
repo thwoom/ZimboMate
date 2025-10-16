@@ -7,23 +7,6 @@ import {
   setupTestEnvironment,
 } from '../../../utils/testing'
 
-// Mock complex dependencies
-vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid='canvas'>{children}</div>
-  ),
-  useFrame: vi.fn(),
-  useThree: vi.fn(() => ({ scene: {}, camera: {}, gl: {} })),
-}))
-
-vi.mock('howler', () => ({
-  Howl: vi.fn(() => ({
-    play: vi.fn(),
-    stop: vi.fn(),
-    volume: vi.fn(),
-  })),
-}))
-
 describe.skip('end-to-End User Workflows', () => {
   let testEnv: ReturnType<typeof setupTestEnvironment>
 

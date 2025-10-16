@@ -19,6 +19,8 @@ import {
   Zap,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { useCharacterStore } from '../../stores/characterStore'
 import { useDiceStore } from '../../stores/diceStore'
 
 interface CommandPaletteProps {
@@ -49,6 +51,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     null,
   )
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const activeCharacterId = useCharacterStore((state) => {
+    const active = state.getActiveCharacter ? state.getActiveCharacter() : null
+    return active?.id ?? state.characters[0]?.id ?? ''
+  })
+
+  const notifyMissingCharacter = useCallback(() => {
+    toast('Select a character before rolling dice.', {
+      description: 'Open the Character tab to create or choose a hero.',
+    })
+    onNavigate?.('character')
+  }, [onNavigate])
 
   // Access dice store for rolling
   const { rollStat, rollMove, rollCustom, clearAllHistory } = useDiceStore()
@@ -129,11 +143,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: Dice6,
         shortcut: 'Space',
         action: () => {
-          rollCustom(
-            0,
-            { label: 'Quick Roll', description: 'Command Palette Quick Roll' },
-            'eldara-moonwhisper',
-          )
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollCustom({
+            modifier: 0,
+            context: {
+              label: 'Quick Roll',
+              description: 'Command Palette Quick Roll',
+            },
+            characterId: activeCharacterId,
+          })
           onClose()
         },
       },
@@ -147,7 +168,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: BicepsFlexed,
         shortcut: 'S',
         action: () => {
-          rollStat('STR', 'eldara-moonwhisper', 'Command Palette STR Roll')
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollStat('STR', activeCharacterId, 'Command Palette STR Roll')
           onClose()
         },
       },
@@ -159,7 +184,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: Eye,
         shortcut: 'D',
         action: () => {
-          rollStat('DEX', 'eldara-moonwhisper', 'Command Palette DEX Roll')
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollStat('DEX', activeCharacterId, 'Command Palette DEX Roll')
           onClose()
         },
       },
@@ -171,7 +200,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: Shield,
         shortcut: 'C',
         action: () => {
-          rollStat('CON', 'eldara-moonwhisper', 'Command Palette CON Roll')
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollStat('CON', activeCharacterId, 'Command Palette CON Roll')
           onClose()
         },
       },
@@ -183,7 +216,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: Brain,
         shortcut: 'I',
         action: () => {
-          rollStat('INT', 'eldara-moonwhisper', 'Command Palette INT Roll')
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollStat('INT', activeCharacterId, 'Command Palette INT Roll')
           onClose()
         },
       },
@@ -195,7 +232,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: Eye,
         shortcut: 'W',
         action: () => {
-          rollStat('WIS', 'eldara-moonwhisper', 'Command Palette WIS Roll')
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollStat('WIS', activeCharacterId, 'Command Palette WIS Roll')
           onClose()
         },
       },
@@ -207,7 +248,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: Users,
         shortcut: 'H',
         action: () => {
-          rollStat('CHA', 'eldara-moonwhisper', 'Command Palette CHA Roll')
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollStat('CHA', activeCharacterId, 'Command Palette CHA Roll')
           onClose()
         },
       },
@@ -221,7 +266,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: Sword,
         shortcut: 'Shift+Q',
         action: () => {
-          rollMove('hack-and-slash', 'STR', 'eldara-moonwhisper')
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollMove({
+            moveId: 'hack-and-slash',
+            stat: 'STR',
+            characterId: activeCharacterId,
+          })
           onClose()
         },
       },
@@ -233,7 +286,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: Shield,
         shortcut: 'Shift+E',
         action: () => {
-          rollMove('defend', 'CON', 'eldara-moonwhisper')
+          if (!activeCharacterId) {
+            notifyMissingCharacter()
+            return
+          }
+          rollMove({
+            moveId: 'defend',
+            stat: 'CON',
+            characterId: activeCharacterId,
+          })
           onClose()
         },
       },
@@ -321,6 +382,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       onNavigate,
       onAction,
       onClose,
+      activeCharacterId,
+      notifyMissingCharacter,
       rollStat,
       rollMove,
       rollCustom,
