@@ -160,7 +160,7 @@ Key expectations:
 - **Web build:** `npm run build` → outputs to `dist/`.
 - **Desktop (Tauri):** `npm run build:tauri` → cross-platform installer packages.
 - **Preview:** `npm run preview` serves the built assets locally.
-- **Release process:** see `docs/reference/launch-plan.md`, `docs/operations/rollout.md`, and `docs/operations/release-checklist.md` for current launch sequencing.
+- **Release process:** see [`launch-plan`](./launch-plan.md), [`rollout`](../operations/rollout.md), and [`release-checklist`](../operations/release-checklist.md) for current launch sequencing.
 
 Deployment artifacts (dist bundles, installers) must pass `npm run test:smoke` before release.
 

@@ -73,11 +73,19 @@ const App: React.FC = () => {
   >([])
   const [debuggingEnabled, setDebuggingEnabled] = useState(false)
   const [autoFixCount, setAutoFixCount] = useState(0)
+  const [gameManagementInitialTab, setGameManagementInitialTab] = useState<
+    'chronicle' | 'campaign' | 'monsters' | 'multiplayer' | 'tools'
+  >('chronicle')
+  const [gameManagementResetToken, setGameManagementResetToken] = useState(0)
 
-  const handleRequestCharacter = () => {
-    setActiveTab('character')
-    setShowCharacterBuilder(true)
+  const openGameManagement = (
+    tab: 'chronicle' | 'campaign' | 'monsters' | 'multiplayer' | 'tools' = 'chronicle',
+  ) => {
+    setGameManagementInitialTab(tab)
+    setGameManagementResetToken((token) => token + 1)
+    setActiveTab('game-management')
   }
+
   const isLocalhost =
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' ||
@@ -162,8 +170,11 @@ const tabs: Array<{
   // Navigation shortcuts
   useNavigationShortcuts((tabId) => {
     if (tabId === 'dice') {
-      setActiveTab('play')
-      window.dispatchEvent(new CustomEvent('playtab-open-dice'))
+      openGameManagement('tools')
+      return
+    }
+    if (tabId === 'game-management') {
+      setActiveTab('game-management')
       return
     }
     setActiveTab(tabId as ActiveTab)
@@ -180,16 +191,19 @@ const tabs: Array<{
   // Dice shortcuts (legacy system)
   useDiceShortcuts(
     () => {
-      setActiveTab('play')
-      window.dispatchEvent(new CustomEvent('playtab-open-dice'))
+      openGameManagement('tools')
     },
-    activeTab === 'character' || activeTab === 'play',
+    activeTab === 'character' ||
+      activeTab === 'play' ||
+      activeTab === 'game-management',
   )
 
   // New advanced dice keyboard shortcuts
   useDiceKeyboardShortcuts({
     characterId: activeCharacter?.id ?? '',
-    enabled: activeTab === 'play' && Boolean(activeCharacter),
+    enabled:
+      (activeTab === 'play' || activeTab === 'game-management') &&
+      Boolean(activeCharacter),
     modifierKey: 'none', // Direct key presses for fast gameplay
   })
 
@@ -225,7 +239,7 @@ const tabs: Array<{
             exit='exit'
           >
             <div>
-              <PlayTab onRequestCharacter={handleRequestCharacter} />
+              <PlayTab />
             </div>
           </motion.div>
         )
@@ -377,7 +391,10 @@ const tabs: Array<{
             animate='visible'
             exit='exit'
           >
-            <GameManagementTab />
+            <GameManagementTab
+              key={`game-management-${gameManagementResetToken}`}
+              initialTab={gameManagementInitialTab}
+            />
           </motion.div>
         )
       case 'settings':
@@ -581,7 +598,7 @@ const tabs: Array<{
             animate='visible'
             exit='exit'
           >
-            <PlayTab onRequestCharacter={handleRequestCharacter} />
+            <PlayTab />
           </motion.div>
         )
     }
@@ -723,8 +740,12 @@ const tabs: Array<{
                   onClose={() => setCommandPaletteOpen(false)}
                   onNavigate={(tabId) => {
                     if (tabId === 'dice') {
-                      setActiveTab('play')
-                      window.dispatchEvent(new CustomEvent('playtab-open-dice'))
+                      openGameManagement('tools')
+                      setCommandPaletteOpen(false)
+                      return
+                    }
+                    if (tabId === 'game-management') {
+                      setActiveTab('game-management')
                       setCommandPaletteOpen(false)
                       return
                     }
@@ -735,8 +756,7 @@ const tabs: Array<{
                     logger.info('Command palette action:', actionId)
                     switch (actionId) {
                       case 'quick-roll-2d6':
-                        setActiveTab('play')
-                        window.dispatchEvent(new CustomEvent('playtab-open-dice'))
+                        openGameManagement('tools')
                         setCommandPaletteOpen(false)
                         break
                       case 'heal-character':

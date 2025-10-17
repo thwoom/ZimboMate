@@ -9,8 +9,8 @@ export const buttonVariants = cva(
           'bg-primary text-primary-foreground border-2 border-primary-border shadow-primary hover:bg-primary/90 hover:-translate-y-0.5 active:translate-y-0',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/90 border-2 border-secondary hover:-translate-y-0.5 active:translate-y-0',
-        outline: 'border-2 border-border bg-transparent hover:bg-popover/70 hover:border-primary/50',
-        ghost: 'bg-transparent hover:bg-popover hover:shadow-sm',
+        outline: 'border-2 border-border bg-transparent text-foreground hover:bg-popover/70 hover:border-primary/50',
+        ghost: 'bg-transparent text-foreground hover:bg-popover hover:shadow-sm',
         destructive:
           'bg-destructive text-destructive-foreground hover:bg-destructive/90 border-2 border-destructive-border hover:-translate-y-0.5 active:translate-y-0',
         magical:

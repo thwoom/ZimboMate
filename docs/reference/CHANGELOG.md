@@ -16,7 +16,7 @@ All notable changes to the Chronicle v2 automation upgrade are documented here.
 ### Operations Notes
 - Launch sequencing: keep `LLM_ROLLOUT_STAGE=dark` until beta smoke tests pass, flip to `opt_in` for targeted campaigns, then advance to `default` once guardrail telemetry remains green for 24 h.
 - Before toggling to `opt_in`, confirm `npm run test`, `npm run screenshot`, and `npm run screenshot:analyze` all pass and archive the regenerated Settings tab baseline (`tests/e2e/visual/theme-visual.spec.ts-snapshots/settings-tab-Desktop-Chrome-win32.png`).
-- Notify beta tables using the Opt-In Comms template in `docs/launch-plan.md` and include Automation Log highlights plus cost guardrail expectations.
+- Notify beta tables using the Opt-In Comms template in [`launch-plan`](./launch-plan.md) and include Automation Log highlights plus cost guardrail expectations.
 
 ## 2025-10-05 — Chronicle overlay foundations
 
@@ -26,4 +26,3 @@ All notable changes to the Chronicle v2 automation upgrade are documented here.
 
 ### Changed
 - Settings panel refreshed with theme + accessibility tooling, preparing the space for rollout dashboards and guardrail controls.
-

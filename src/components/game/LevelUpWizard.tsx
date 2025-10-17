@@ -196,12 +196,11 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
       if (open) {
         openWizard()
       } else {
-        closeWizard()
-        clearError()
-        setCancelDialogOpen(false)
+        // Show confirmation dialog when trying to close
+        setCancelDialogOpen(true)
       }
     },
-    [clearError, closeWizard, openWizard, setCancelDialogOpen],
+    [openWizard, setCancelDialogOpen],
   )
 
   const statOptions = useMemo(
@@ -433,11 +432,6 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
     selectedSpells,
   ])
 
-  const handleCancelLevelUp = useCallback(() => {
-    if (!effectiveCharacterId) return
-    setCancelDialogOpen(true)
-  }, [effectiveCharacterId])
-
   const confirmCancelLevelUp = useCallback(() => {
     if (!effectiveCharacterId) return
     cancelLevelUp(effectiveCharacterId)
@@ -454,7 +448,8 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
 
   const dismissCancelDialog = useCallback(() => {
     setCancelDialogOpen(false)
-  }, [setCancelDialogOpen])
+    openWizard()
+  }, [setCancelDialogOpen, openWizard])
 
   if (!pending || !character) {
     return null
@@ -584,9 +579,9 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
             )}
           >
             <CardContent className='flex items-start justify-between gap-3 p-4'>
-              <div>
-                <p className='font-medium'>{option.name}</p>
-                <p className='text-sm text-muted-foreground'>
+              <div className='min-w-0 flex-1'>
+                <p className='font-medium text-foreground'>{option.name}</p>
+                <p className='text-sm text-muted-foreground break-words'>
                   {option.description}
                 </p>
               </div>
@@ -619,10 +614,10 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
                   : 'hover:border-primary/60',
               )}
             >
-              <div className='flex items-center justify-between gap-3'>
-                <div>
-                  <p className='font-semibold'>{option.name}</p>
-                  <p className='text-sm text-muted-foreground'>
+              <div className='flex items-start justify-between gap-3'>
+                <div className='min-w-0 flex-1'>
+                  <p className='font-semibold text-foreground'>{option.name}</p>
+                  <p className='text-sm text-muted-foreground break-words'>
                     {option.description}
                   </p>
                   {option.prerequisites && (
@@ -682,7 +677,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
             {selectedSpells.length}/{requiredSpellCount} selected
           </Badge>
         </div>
-        <ScrollArea className='max-h-[320px] rounded-md border border-border'>
+        <ScrollArea className='h-[320px] rounded-md border border-border'>
           <div className='divide-y divide-border'>
             {groupedWizardSpells.map(([level, spells]) => (
               <div key={level} className='p-3'>
@@ -715,9 +710,9 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
                           disabled={disableCheckbox}
                           aria-label={spell.name}
                         />
-                        <div>
+                        <div className='min-w-0 flex-1'>
                           <p className='font-medium'>{spell.name}</p>
-                          <p className='text-xs text-muted-foreground'>
+                          <p className='text-xs text-muted-foreground break-words'>
                             {spell.description}
                           </p>
                           {spell.tags?.length ? (
@@ -860,23 +855,23 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent
         data-testid='level-up-wizard'
-        className='max-w-4xl border-border/80 bg-background/95 p-0 shadow-lg sm:rounded-xl'
+        className='max-w-4xl max-h-[90vh] flex flex-col border-border/80 bg-background p-0 shadow-lg sm:rounded-xl overflow-hidden [&>button]:text-foreground [&>button:hover]:text-foreground'
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
-        <DialogHeader className='space-y-2 border-b border-border/60 bg-muted/30 px-6 py-4 text-left'>
-          <DialogTitle className='flex items-center gap-2 text-lg'>
-            <Sparkles className='size-5 text-primary' />
-            Level Up Wizard · {character.name}
+        <DialogHeader className='shrink-0 space-y-2 border-b border-border/60 bg-muted/30 px-6 py-4 text-left'>
+          <DialogTitle className='flex items-center gap-2 text-lg text-foreground'>
+            <Sparkles className='size-5 shrink-0 text-primary' />
+            <span className='truncate'>Level Up Wizard · {character.name}</span>
           </DialogTitle>
-          <DialogDescription className='flex items-center gap-3 text-sm'>
-            <span className='inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-primary'>
+          <DialogDescription className='flex flex-wrap items-center gap-2 text-sm'>
+            <span className='inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-primary shrink-0'>
               Step {stepIndex + 1} of {steps.length}
             </span>
-            <span className='inline-flex items-center gap-2 text-muted-foreground'>
+            <span className='inline-flex items-center gap-2 text-muted-foreground shrink-0'>
               {headerMetadata.icon}
               {headerMetadata.title}
             </span>
-            <span className='text-xs text-muted-foreground'>
+            <span className='text-xs text-muted-foreground min-w-0'>
               {headerMetadata.description}
             </span>
           </DialogDescription>
@@ -887,7 +882,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
           />
         </DialogHeader>
 
-        <div className='flex flex-col gap-5 px-6 py-5'>
+        <div className='flex flex-col gap-5 px-6 py-5 overflow-y-auto min-h-0'>
           {error && (
             <Alert variant='destructive'>
               <AlertTitle>Cannot Apply Level-Up</AlertTitle>
@@ -895,7 +890,7 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
             </Alert>
           )}
 
-          <div className='flex gap-3 overflow-x-auto pb-2'>
+          <div className='flex items-center justify-between gap-2'>
             {steps.map((step, index) => {
               const metadata = STEP_METADATA[step]
               const status =
@@ -904,47 +899,61 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
                   : index === stepIndex
                     ? 'current'
                     : 'upcoming'
+              const isLast = index === steps.length - 1
+              
               return (
-                <div
-                  key={step}
-                  className={cn(
-                    'min-w-[180px] rounded-md border px-3 py-2 text-sm transition-colors',
-                    status === 'current' && 'border-primary bg-primary/5',
-                    status === 'complete' && 'border-chart-4/60 bg-chart-4/10',
-                    status === 'upcoming' && 'border-border',
-                  )}
-                >
-                  <div className='flex items-center gap-2 font-medium'>
-                    {metadata.icon}
-                    {metadata.title}
+                <React.Fragment key={step}>
+                  <div className='flex flex-col items-center gap-1.5'>
+                    <div
+                      className={cn(
+                        'flex size-8 items-center justify-center rounded-full border-2 transition-all',
+                        status === 'current' && 'border-primary bg-primary text-primary-foreground shadow-sm',
+                        status === 'complete' && 'border-chart-4 bg-chart-4 text-foreground',
+                        status === 'upcoming' && 'border-border bg-background text-muted-foreground',
+                      )}
+                    >
+                      {status === 'complete' ? (
+                        <CheckCircle2 className='size-4' />
+                      ) : (
+                        metadata.icon
+                      )}
+                    </div>
+                    <span
+                      className={cn(
+                        'text-xs font-medium transition-colors hidden sm:block',
+                        status === 'current' && 'text-foreground',
+                        status === 'complete' && 'text-muted-foreground',
+                        status === 'upcoming' && 'text-muted-foreground/60',
+                      )}
+                    >
+                      {metadata.title}
+                    </span>
                   </div>
-                  <p className='mt-1 text-xs text-muted-foreground'>
-                    {metadata.description}
-                  </p>
-                </div>
+                  {!isLast && (
+                    <div
+                      className={cn(
+                        'h-0.5 flex-1 transition-colors',
+                        status === 'complete' ? 'bg-chart-4' : 'bg-border',
+                      )}
+                    />
+                  )}
+                </React.Fragment>
               )
             })}
           </div>
 
-          <ScrollArea className='max-h-[420px] rounded-md'>
-            <div className='pr-2'>{renderStep()}</div>
+          <ScrollArea className='flex-1 min-h-0'>
+            <div className='pr-4'>{renderStep()}</div>
           </ScrollArea>
         </div>
 
-        <DialogFooter className='flex flex-col gap-3 border-t border-border/60 bg-muted/20 px-6 py-4 sm:flex-row sm:items-center sm:justify-between'>
-          <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-            <Info className='size-4' />
-            Choices save automatically. You can close the wizard and
-            resume later.
-          </div>
-          <div className='flex items-center gap-2'>
-            <Button
-              data-testid='wizard-cancel'
-              variant='ghost'
-              onClick={handleCancelLevelUp}
-            >
-              Cancel Level-Up
-            </Button>
+        <DialogFooter className='shrink-0 border-t border-border/60 bg-muted/20 px-6 py-4'>
+          <div className='flex w-full items-center justify-between gap-4'>
+            <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+              <Info className='size-4 shrink-0' />
+              <span className='hidden sm:inline'>Choices save automatically. Close to resume later.</span>
+              <span className='sm:hidden'>Auto-saved</span>
+            </div>
             <div className='flex items-center gap-2'>
               {stepIndex > 0 && (
                 <Button
@@ -979,19 +988,22 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
           </div>
         </DialogFooter>
 
-        <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialog open={cancelDialogOpen} onOpenChange={(open) => !open && dismissCancelDialog()}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Cancel level-up?</AlertDialogTitle>
+              <AlertDialogTitle>Close level-up wizard?</AlertDialogTitle>
               <AlertDialogDescription>
-                Leaving now will discard any unconfirmed choices for this character&apos;s advancement.
+                Your selections are saved automatically. You can resume later, or discard this level-up entirely.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel onClick={dismissCancelDialog}>
-                Keep editing
+                Resume editing
               </AlertDialogCancel>
-              <AlertDialogAction onClick={confirmCancelLevelUp}>
+              <AlertDialogAction 
+                onClick={confirmCancelLevelUp}
+                className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+              >
                 Discard level-up
               </AlertDialogAction>
             </AlertDialogFooter>

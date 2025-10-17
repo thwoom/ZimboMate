@@ -56,7 +56,7 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
     <Tabs
       value={activeTab}
       onValueChange={(value) => setActiveTab(value as SessionToolTab)}
-      className={cn('space-y-6', className)}
+      className={cn('min-w-0 space-y-6', className)}
     >
       {/* Header */}
       <div className='flex items-center justify-between'>
@@ -72,26 +72,22 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
       </div>
 
       {/* Tab Navigation */}
-      <Card variant='surface'>
-        <CardContent className='p-3 sm:p-4'>
-          <TabsList className='grid w-full grid-cols-2 gap-2 bg-muted/40 p-1 sm:grid-cols-4'>
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className='flex min-w-0 items-center gap-2 rounded-md px-2 py-2 text-sm font-medium data-[state=active]:shadow-primary sm:px-3'
-                  title={tab.description}
-                >
-                  <Icon className='size-4 shrink-0' aria-hidden='true' />
-                  <span className='truncate'>{tab.label}</span>
-                </TabsTrigger>
-              )
-            })}
-          </TabsList>
-        </CardContent>
-      </Card>
+      <TabsList className='w-full gap-1'>
+        {tabs.map((tab) => {
+          const Icon = tab.icon
+          return (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className='gap-1.5'
+              title={tab.description}
+            >
+              <Icon size={16} aria-hidden='true' />
+              <span>{tab.label}</span>
+            </TabsTrigger>
+          )
+        })}
+      </TabsList>
 
       {/* Search Bar (for notes and history) */}
       {(activeTab === 'notes' || activeTab === 'history') && (

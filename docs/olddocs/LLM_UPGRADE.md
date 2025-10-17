@@ -1,13 +1,13 @@
 Product Requirements Document (PRD)
-> **Archived 2025-10-12:** Kept for historical reference. All future automation planning continues in `docs/level-up-roadmap.md`.
+> **Archived 2025-10-12:** Kept for historical reference. All future automation planning continues in [`level-up-roadmap`](../reference/level-up-roadmap.md).
 
 Project: Chronicle v2 - Dungeon World + GPT-5 Unified
 Owner: Zimbo
 Author: (Assistant)
 Status: Draft -> Review -> Build
 Target Release: Next minor (vX.Y) with phased rollout
-Companion Spec: See `docs/DW_ASSISTANT_APP.md` for the full assistant feature set that builds on this automation effort.
-Next Steps After LLM Upgrade: Transition to the level-up workflow roadmap (`docs/level-up-roadmap.md`).
+Companion Spec: See [`DW_ASSISTANT_APP`](../product/DW_ASSISTANT_APP.md) for the full assistant feature set that builds on this automation effort.
+Next Steps After LLM Upgrade: Transition to the level-up workflow roadmap ([`level-up-roadmap`](../reference/level-up-roadmap.md)).
 
 1. Vision & Problem Statement
 
@@ -602,7 +602,7 @@ Phase 2 - Delta Pipeline Extensions (PRD Sec 8, TODOs #5–6, Sec 17.2)
 - Delta Executor: harden idempotency filters by hashing normalized ops + entity ids, cover equip/unequip conflict resolution, and surface descriptive errors back to the Automation Log.
 - UI Touchpoints: wire the entity chip hover states in `ChronicleOverlay` and `WikiTimeline`, and gate new automation cards behind `LLM_UNIFIED` until the bundle smoke tests pass.
 - QA & Verification: add regression fixtures for entity linking scenarios, extend the PlayTab integration spec to assert mention chips, and run `npm run test` + `npm run screenshot:analyze` before merging.
-- Rollout Prep: draft the dark-launch checklist, document the entity-linking toggle in `docs/rollout.md`, and capture cost telemetry acceptance criteria for Phase 4.
+- Rollout Prep: draft the dark-launch checklist, document the entity-linking toggle in [`rollout`](../operations/rollout.md), and capture cost telemetry acceptance criteria for Phase 4.
 
 **2025-10-08 progress:** Chronicle overlay and wiki views now surface linked entity metadata via `getLinkedEntities`, the accessibility/performance Playwright suites run through dedicated configs (`playwright.a11y.config.ts`, `playwright.perf.config.ts`) with smoke tests in place, and the `link_entity` tool schema plus delta executor fingerprinting/equip conflict handling have been hardened for Phase 2.
 
@@ -624,13 +624,13 @@ Phase 4 - Telemetry, Cost & Rollout Rails (PRD Sec 12, Sec 14, Sec 17.2, Sec 19-
 - Enforce session budgets and dark-launch -> opt-in -> default flags.
 - Document toggles and deployment steps in scripts + PRD.
   **2025-10-08 progress:** Telemetry now covers propose/apply/undo paths with rollout stage tags, session cost guardrails block GPT-5 calls when budgets are exhausted (returning a template fallback narrative), and the new `LLM_ROLLOUT_STAGE` flag coordinates dark/opt-in/default automation behaviour across the UI and executor.
-  **2025-10-11 kickoff:** Phase 4 officially in motion. Verifying the apply/undo telemetry payloads now persist bundle latency, stage, outcome, and cost across both the Tauri emitter and ChronicleProvider state, backfilling unit coverage around `recordTelemetry`. Drafting the dark-launch playbook: documenting how `LLM_ROLLOUT_STAGE` gates auto-apply/undo in `docs/rollout.md`, and outlining the session budget guardrail QA checklist before we flip `opt_in` on.
+  **2025-10-11 kickoff:** Phase 4 officially in motion. Verifying the apply/undo telemetry payloads now persist bundle latency, stage, outcome, and cost across both the Tauri emitter and ChronicleProvider state, backfilling unit coverage around `recordTelemetry`. Drafting the dark-launch playbook: documenting how `LLM_ROLLOUT_STAGE` gates auto-apply/undo in [`rollout`](../operations/rollout.md), and outlining the session budget guardrail QA checklist before we flip `opt_in` on.
   **2025-10-11 telemetry UI:** Chronicle overlay surfaces per-entry telemetry (stage, latency, and spend) from the new store log, and `useChronicleLLM().telemetryEvents` exposes the same feed so rollout dashboards can chart automation health alongside session budgets.
-  **2025-10-11 bridge sync:** The Tauri `llm_telemetry` channel now emits structured payloads with `stage`, `outcome`, `entryId`, and usage so ChronicleProvider logs cost and latency consistently. Guardrail skips emit `stage: guardrail` + `outcome: skipped`, `recordTelemetry` tags their source, and `docs/rollout.md` captures the flag/QA matrix for `LLM_ROLLOUT_STAGE` and cost caps.
+  **2025-10-11 bridge sync:** The Tauri `llm_telemetry` channel now emits structured payloads with `stage`, `outcome`, `entryId`, and usage so ChronicleProvider logs cost and latency consistently. Guardrail skips emit `stage: guardrail` + `outcome: skipped`, `recordTelemetry` tags their source, and [`rollout`](../operations/rollout.md) captures the flag/QA matrix for `LLM_ROLLOUT_STAGE` and cost caps.
   **2025-10-12 guardrail QA:** Verified guardrail telemetry end-to-end. Unit suite (`src/components/chronicle/__tests__/ChronicleProvider.llm.test.tsx`) covers the skip/failure path, and manual checklist confirms the desktop shell clears the bridge warning and surfaces the new telemetry fields.
   **2025-10-12 rollout dashboards:** Added `publishRolloutTelemetry`/`subscribeRolloutTelemetry` utilities (`src/utils/rolloutTelemetry.ts`) so ops dashboards can ingest the feed or listen for the `chronicle-telemetry` window event. History is capped (200) and replay-ready for rapid QA. Settings → System & Performance now includes a Rollout Dashboard panel with live stage/outcome metrics, latency averages, spend, and a filterable event feed (`src/components/chronicle/RolloutDashboardPanel.tsx`).
 
-  **2025-10-12 completion:** Telemetry payloads across propose/apply/undo persist latency, cost, stage, and outcome via the `llm_telemetry` bridge; session guardrails now enforce budgets with guardrail-stage events and template fallbacks; `docs/rollout.md` captures the dark/opt-in/default launch playbook; and the in-app rollout dashboard plus subscription utilities align ops on spend and automation health.
+  **2025-10-12 completion:** Telemetry payloads across propose/apply/undo persist latency, cost, stage, and outcome via the `llm_telemetry` bridge; session guardrails now enforce budgets with guardrail-stage events and template fallbacks; [`rollout`](../operations/rollout.md) captures the dark/opt-in/default launch playbook; and the in-app rollout dashboard plus subscription utilities align ops on spend and automation health.
 
 Phase 5 - Test & Visual Pass (PRD Sec 15)
 
@@ -645,11 +645,11 @@ Phase 6 - Release Packaging (PRD Sec 20, Appendices)
 - Update changelog and launch plan with Automation Log notes.
 - Prepare opt-in rollout comms and smoke-test dark launch flags.
 - Confirm docs capture undo recovery, telemetry, and rollout playbook.
-  **2025-10-12 kickoff:** Published repository `CHANGELOG.md` with Automation Log release highlights and created `docs/launch-plan.md` covering stage gating, comms templates, and dark launch smoke tests.
-  **2025-10-12 doc sync:** Extended `docs/rollout.md` with communications references linking the changelog, launch plan, and troubleshooting resources to keep undo recovery and telemetry guidance centralized.
-  **2025-10-12 comms prep:** Drafted opt-in announcement + support replies in `docs/comms/chronicle-opt-in-preview.md`.
-  **2025-10-12 smoke log:** Added `docs/smoke-tests/dark-launch-smoke-test.md` template to archive guardrail validation evidence before flag flips.
-  **2025-10-12 release checklist:** Published `docs/release-checklist.md` to consolidate Phase 6 approvals, telemetry verification, and flag management steps before merge.
+  **2025-10-12 kickoff:** Published repository [`CHANGELOG`](../reference/CHANGELOG.md) with Automation Log release highlights and created [`launch-plan`](../reference/launch-plan.md) covering stage gating, comms templates, and dark launch smoke tests.
+  **2025-10-12 doc sync:** Extended [`rollout`](../operations/rollout.md) with communications references linking the changelog, launch plan, and troubleshooting resources to keep undo recovery and telemetry guidance centralized.
+  **2025-10-12 comms prep:** Drafted opt-in announcement + support replies in [`chronicle-opt-in-preview`](../comms/chronicle-opt-in-preview.md).
+  **2025-10-12 smoke log:** Added [`dark-launch-smoke-test`](../smoke-tests/dark-launch-smoke-test.md) template to archive guardrail validation evidence before flag flips.
+  **2025-10-12 release checklist:** Published [`release-checklist`](../operations/release-checklist.md) to consolidate Phase 6 approvals, telemetry verification, and flag management steps before merge.
   **2025-10-12 completion:** Phase 6 release packaging complete—changelog, launch plan, comms, smoke-test log, rollout docs, and release checklist finalized for handoff.
 
 Status Snapshot

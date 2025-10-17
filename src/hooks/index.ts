@@ -38,6 +38,7 @@ export { useCharacterStats, useStatModifiers } from './useCharacterStats'
 
 // Game Mechanics Hooks
 export { useDiceRoll, useSimpleDiceRoll } from './useDiceRoll'
+export { useInlineRoll } from './useInlineRoll'
 export type {
   CastingResult,
   DragDropContext,

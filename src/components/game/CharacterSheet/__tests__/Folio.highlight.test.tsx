@@ -138,7 +138,7 @@ describe('folio highlight behaviour', () => {
   it('focuses the highlighted tab when focus=true', async () => {
     renderFolio({ page: 'gear', label: 'Equip sword', focus: true })
 
-    const gearTab = await screen.findByRole('tab', { name: /Gear & Load/i })
+    const gearTab = await screen.findByRole('tab', { name: /Gear/i })
     await waitFor(() => expect(gearTab).toHaveAttribute('data-state', 'active'))
     expect(mocks.gear).toHaveBeenCalledWith(
       expect.objectContaining({ highlighted: true }),

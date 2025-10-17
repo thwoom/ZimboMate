@@ -291,10 +291,11 @@
   }
   .texture {
     background-image: url(https://matsu-theme.vercel.app/texture.jpg);
-    background-size: 100% 100%;
+    background-size: cover;
     background-repeat: repeat;
-    opacity: 0.16;
-    mix-blend-mode: multiply;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    filter: sepia(0.1) contrast(0.9);
     z-index: 100;
     isolation: isolate;
     position: fixed;

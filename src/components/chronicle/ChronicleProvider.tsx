@@ -114,6 +114,65 @@ interface ChronicleContextValue {
 
 const ChronicleContext = createContext<ChronicleContextValue | null>(null)
 
+const FALLBACK_CHRONICLE_SETTINGS: ChronicleSettings = {
+  autoEntityCreation: false,
+  minimumConfidenceForAutoCreation: 0.7,
+  enableVoiceInput: false,
+  enableSmartSuggestions: false,
+  parseOnType: false,
+  defaultEntityTypes: ['character', 'location', 'item'],
+  customTags: [],
+  autoApplyPolicy: {},
+  tone: 'heroic',
+  verbosity: 'standard',
+  autoEquipWeapons: false,
+}
+
+let hasWarnedMissingChronicleContext = false
+function warnMissingChronicleContext() {
+  if (hasWarnedMissingChronicleContext) return
+  hasWarnedMissingChronicleContext = true
+  if (typeof console !== 'undefined') {
+    console.warn(
+      '[chronicle] useChronicleLLM called outside ChronicleProvider. Falling back to no-op implementation.',
+    )
+  }
+}
+
+const FALLBACK_CHRONICLE_LLM = {
+  async proposeEntryDeltas(): Promise<ProposeDeltasResponse> {
+    warnMissingChronicleContext()
+    throw new Error('ChronicleProvider is not mounted')
+  },
+  async applyDeltaBundle(): Promise<ApplyDeltaBundleResult> {
+    warnMissingChronicleContext()
+    throw new Error('ChronicleProvider is not mounted')
+  },
+  isProposing: false,
+  isApplyingBundle: false,
+  lastProgressEvent: null as LlmProgressEvent | null,
+  lastTelemetryEvent: null as LlmTelemetryEvent | null,
+  telemetryEvents: [] as ChronicleTelemetryEventLog[],
+  settings: FALLBACK_CHRONICLE_SETTINGS,
+  updateSettings: (_partial: Partial<ChronicleSettings>) => {
+    warnMissingChronicleContext()
+  },
+  sessionCostCents: 0,
+  costCapCents: undefined as number | undefined,
+  remainingCostBudgetCents: null as number | null,
+  isCostGuardrailActive: false,
+  resetSessionCost: () => {
+    warnMissingChronicleContext()
+  },
+  rolloutStage: 'dark' as LlmRolloutStage,
+  canApplyAutomation: false,
+  canUndoAutomation: false,
+  canAutoApply: false,
+  recordTelemetry: () => {
+    warnMissingChronicleContext()
+  },
+}
+
 const ZERO_USAGE: TokenUsage = {
   inputTokens: 0,
   outputTokens: 0,
@@ -896,6 +955,12 @@ export function useChronicle() {
 }
 
 export function useChronicleLLM() {
+  const context = use(ChronicleContext)
+
+  if (!context) {
+    return FALLBACK_CHRONICLE_LLM
+  }
+
   const {
     proposeEntryDeltas,
     applyDeltaBundle,
@@ -916,7 +981,7 @@ export function useChronicleLLM() {
     canUndoAutomation,
     canAutoApply,
     recordTelemetry,
-  } = useChronicle()
+  } = context
 
   return {
     proposeEntryDeltas,

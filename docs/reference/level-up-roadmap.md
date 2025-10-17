@@ -31,7 +31,7 @@ Dungeon World advancement is more than incrementing a level counter – players 
 - [x] Define Dungeon World contract + success criteria.
 - [x] Decide on wizard vs inline drawer (we shipped the modal wizard).
 - [x] Capture requirements in this roadmap.
-- [x] Confirm advancement data sources (`docs/data/compendium_data.md`, `src/data/advancement`, `src/data/spells`).
+- [x] Confirm advancement data sources ([`compendium_data`](../data/compendium_data.md), `src/data/advancement`, `src/data/spells`).
 
 **Exit criteria met:** Stakeholders signed off on scope/UX.
 
@@ -67,7 +67,7 @@ Dungeon World advancement is more than incrementing a level counter – players 
 ### Phase 4 – QA, Documentation, Polish (tracking)
 
 - [x] Optional Playwright scenario (earn XP → level up → verify move/spell).
-- [x] Refresh in-app Help + `docs/zimbo-v2-feature-catalog.md` + README with final screenshots/copy.
+- [x] Refresh in-app Help + [`zimbo-v2-feature-catalog`](../product/zimbo-v2-feature-catalog.md) + README with final screenshots/copy.
 - [x] Publish regression checklist covering casters vs martials, multiple level gains, stat-cap edge cases, cancel/resume.
 - [x] Telemetry hooks emit `level_up.confirmed` events (character id, class, new level, applied choices). _Added 2025-10-14._
 

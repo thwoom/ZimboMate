@@ -32,7 +32,7 @@ Execute `npm run test --watch=false` before promoting builds. For manual QA, wal
 
 ## 4. Cost & Telemetry Acceptance
 
-- Record Requests: ensure each GPT-5 propose/apply/undo path emits telemetry with latency, usage, stage, outcome, entry/bundle identifiers, and cost (see Phase 4 plan in `docs/olddocs/LLM_UPGRADE.md`).
+- Record Requests: ensure each GPT-5 propose/apply/undo path emits telemetry with latency, usage, stage, outcome, entry/bundle identifiers, and cost (see Phase 4 plan in [`LLM_UPGRADE`](../olddocs/LLM_UPGRADE.md)).
 - Telemetry payload (from the `llm_telemetry` channel) now includes:
   - `model`, `latencyMs`, and `usage` (input/output/total tokens)
   - `stage` ∈ {`propose`, `apply`, `undo`, `guardrail`}
@@ -42,7 +42,7 @@ Execute `npm run test --watch=false` before promoting builds. For manual QA, wal
   - `source` (`tauri` events originate from the bridge; `client` events are emitted by Chronicle UI flows)
 - Acceptance criteria:
   - ≥95 % of propose/apply/undo operations record telemetry within 5 minutes of completion.
-  - Sessions stay under the `settings.costCapCents` budget defined in `docs/olddocs/LLM_UPGRADE.md` Phase 4. When the cap is reached, telemetry must include a `stage: guardrail` event and the overlay should surface the budget warning.
+  - Sessions stay under the `settings.costCapCents` budget defined in [`LLM_UPGRADE`](../olddocs/LLM_UPGRADE.md) Phase 4. When the cap is reached, telemetry must include a `stage: guardrail` event and the overlay should surface the budget warning.
   - Guardrail skips add `metadata.skipReason` through the delta executor and log `outcome: skipped` telemetry entries for downstream analytics.
 - Visualization & QA steps:
   1. Chronicle overlay’s “Latest Chronicle Update” card surfaces per-bundle telemetry (stage, outcome, latency, spend, model, source). Confirm the panel shows the `guardrail` stage after forcing a budget hit.
@@ -65,6 +65,6 @@ Keep this document updated as additional rollout toggles or acceptance criteria 
 
 ## 6. Communications & References
 
-- Launch sequencing, opt-in messaging templates, and dark launch smoke tests live in `docs/launch-plan.md`.
-- Automation Log release notes and operations reminders are tracked in `CHANGELOG.md` (see 2025-10-12 entry).
-- Support teams should bookmark `docs/TROUBLESHOOTING.md` for guardrail template fallbacks and undo recovery FAQs.
+- Launch sequencing, opt-in messaging templates, and dark launch smoke tests live in [`launch-plan`](../reference/launch-plan.md).
+- Automation Log release notes and operations reminders are tracked in [`CHANGELOG`](../reference/CHANGELOG.md) (see 2025-10-12 entry).
+- Support teams should bookmark [`TROUBLESHOOTING`](../reference/TROUBLESHOOTING.md) for guardrail template fallbacks and undo recovery FAQs.

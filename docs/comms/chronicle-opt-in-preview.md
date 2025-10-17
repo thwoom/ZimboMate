@@ -30,7 +30,7 @@ Chronicle’s Automation Log just graduated! Your table is invited to opt in to 
 
 ### Support & Feedback
 - Player Success is briefed on the rollout; ping them via in-app support or Slack `#player-success`.
-- Known issues, mitigation tips, and guardrail troubleshooting live in `docs/TROUBLESHOOTING.md`.
+- Known issues, mitigation tips, and guardrail troubleshooting live in [`TROUBLESHOOTING`](../reference/TROUBLESHOOTING.md).
 
 Thanks for helping us polish the automation rails. We’ll monitor telemetry for 24 hours; if everything stays green we’ll propose enabling auto-apply for your table.
 
@@ -47,7 +47,7 @@ Thanks for helping us polish the automation rails. We’ll monitor telemetry for
 3. If the cap was hit:
    - Acknowledge the budget guardrail did its job.
    - Suggest raising the cap or resetting the session spend.
-   - Provide link to `docs/TROUBLESHOOTING.md#automation-guardrail`.
+  - Provide link to [`TROUBLESHOOTING`](../reference/TROUBLESHOOTING.md#automation-guardrail).
 4. If cap was not hit, escalate with telemetry payload to Engineering (include entryId, bundleId, timestamp).
 
 **Reply snippet:**

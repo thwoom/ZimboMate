@@ -253,6 +253,6 @@ Hidden within the GM dashboard until revealed:
 
 ## 10) Related Documents
 
-- Chronicle v2 - GPT-5 Unified PRD (`docs/olddocs/LLM_UPGRADE.md`)
+- Chronicle v2 - GPT-5 Unified PRD ([`LLM_UPGRADE`](../olddocs/LLM_UPGRADE.md))
 - Dungeon World Feature Parity Roadmap (legacy reference)
-- Testing Playbook (`docs/testing-playbook.md`)
+- Testing Playbook ([`testing-playbook`](../operations/testing-playbook.md))

@@ -15,32 +15,32 @@ import type { BadgeProps } from '../ui'
 import type { FolioHighlight } from '@/components/game/CharacterSheet/Folio'
 import type { EquipmentChange } from '@/components/game/CharacterSheet/FolioGearPage'
 import type { BondReminderFocusDetail } from '@/constants/events'
-import type { RollResult } from '@/stores/diceStore'
 import { AnimatePresence, motion } from 'framer-motion'
+import type { LucideIcon } from 'lucide-react'
 import {
   AlertTriangle,
   BookOpen,
+  Building2,
   CheckCircle2,
-  Crown,
-  Dice5,
+  ChevronDown,
+  ChevronUp,
+  CircuitBoard,
+  Dices,
+  Ghost,
   Loader2,
+  Orbit,
   RefreshCcw,
   Scroll,
   Send,
   ShieldAlert,
   Sparkles,
-  Sword,
-  User,
-  Wrench,
+  Wand2,
+  Lasso,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { toast } from 'sonner'
 import { RollHUD } from '@/components/dice/RollHUD'
-import { RollLog } from '@/components/dice/RollLog'
-import { UnifiedRollSystem } from '@/components/dice/UnifiedRollSystem'
 import Folio from '@/components/game/CharacterSheet/Folio'
 import { RightRail, SplitPane } from '@/components/layout'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BOND_REMINDER_FOCUS_EVENT } from '@/constants/events'
 import { cn } from '@/lib/utils'
 import { useDiceStore } from '@/stores/diceStore'
@@ -56,9 +56,15 @@ import { useChronicleStore } from '../../stores/chronicleStore'
 import { AutomationStatusChip } from '../chronicle/AutomationStatusChip'
 import { useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { DeltaChecklist } from '../chronicle/DeltaChecklist'
-import { Badge, Button, Card, CardContent, Input, Textarea } from '../ui'
+import { Badge, Button, Card, CardContent, Textarea } from '../ui'
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
-import { ContextAwareSystem } from './ContextAwareSystem'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select'
 
 interface DiceRollContext {
   id: string
@@ -70,8 +76,9 @@ interface DiceRollContext {
   outcome?: string
 }
 
-type ActiveTab = 'chronicle' | 'tools'
-type ToolsSubTab = 'dice' | 'items' | 'monsters' | 'npcs'
+interface PlayTabProps {
+  className?: string
+}
 
 type ChronicleEntryStatus =
   | 'draft'
@@ -94,32 +101,367 @@ interface ChronicleEntryView {
   errorMessage?: string
 }
 
-interface CreatedItem {
-  id: string
-  name: string
-  tags: string[]
-  description: string
-  stats?: string
+const STORY_STATUS_LABEL: Record<ChronicleEntryStatus, string> = {
+  draft: 'Draft',
+  proposing: 'Drafting',
+  ready: 'Ready',
+  applying: 'Applying',
+  applied: 'Applied',
+  error: 'Needs review',
 }
 
-interface CreatedNPC {
-  id: string
-  name: string
-  appearance: string
-  drive: string
-  quirk: string
-  voice: string
-  knows: string
+const STORY_BADGE_VARIANT: Record<ChronicleEntryStatus, BadgeProps['variant']> =
+  {
+    draft: 'secondary',
+    proposing: 'secondary',
+    ready: 'secondary',
+    applying: 'warning',
+    applied: 'success',
+    error: 'destructive',
+  }
+
+const RECENT_STORY_LIMIT = 5
+const STORY_SNIPPET_LIMIT = 110
+
+interface RecentStoryBarProps {
+  entries: ChronicleEntryView[]
+  onToggleOperation: (entryId: string, index: number, checked: boolean) => void
+  onApply: (entryId: string, options?: { auto?: boolean }) => Promise<void>
+  isApplyingBundle: boolean
+  canApplyAutomation: boolean
+  renderDeltaDescription: (op: DeltaOperation) => string
+  maxEntries?: number
+  className?: string
 }
 
-interface CreatedMonster {
-  id: string
-  name: string
-  hp: number
-  armor: number
-  damage: string
-  instinct: string
-  moves: string[]
+function getStorySnippet(entry: ChronicleEntryView): string {
+  const base = entry.narrative ?? entry.rawText
+  const sanitized = base.replace(/\s+/g, ' ').trim()
+  if (!sanitized) return 'Pending chronicle entry'
+  if (sanitized.length <= STORY_SNIPPET_LIMIT) return sanitized
+  return `${sanitized.slice(0, STORY_SNIPPET_LIMIT - 1)}…`
+}
+
+function getUpdateCount(entry: ChronicleEntryView): number {
+  return entry.bundle?.ops.length ?? 0
+}
+
+function RecentStoryBar({
+  entries,
+  onToggleOperation,
+  onApply,
+  isApplyingBundle,
+  canApplyAutomation,
+  maxEntries = RECENT_STORY_LIMIT,
+  renderDeltaDescription,
+  className,
+}: RecentStoryBarProps): JSX.Element {
+  const [expanded, setExpanded] = useState(false)
+  const [openEntryId, setOpenEntryId] = useState<string | null>(null)
+
+  const visibleEntries = useMemo(() => {
+    if (entries.length === 0) return [] as ChronicleEntryView[]
+    return [...entries].slice(-maxEntries).reverse()
+  }, [entries, maxEntries])
+
+  if (entries.length === 0) {
+    return (
+      <Card variant='surface' className={cn('w-full', className)}>
+        <CardContent className='flex items-center justify-center gap-3 px-4 py-3 text-muted-foreground'>
+          <BookOpen
+            size={20}
+            className='opacity-50 text-muted-foreground'
+            aria-hidden='true'
+          />
+          <div className='text-sm'>
+            <span className='font-medium'>Your chronicle awaits...</span>
+            <span className='ml-2 text-xs text-muted-foreground/70'>
+              Write your story below to begin
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const latestEntry = entries[entries.length - 1]
+
+  const renderUpdateChip = (entry: ChronicleEntryView, className?: string) => {
+    const count = getUpdateCount(entry)
+    if (count === 0) return null
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 rounded border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] text-primary',
+          className,
+        )}
+      >
+        <Sparkles className='h-3 w-3' aria-hidden='true' />
+        {count} update{count > 1 ? 's' : ''}
+      </span>
+    )
+  }
+
+  const renderWarningChip = (
+    entry: ChronicleEntryView,
+    className?: string,
+  ) => {
+    if (entry.warnings.length === 0) return null
+    return (
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 rounded border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[11px] text-destructive',
+          className,
+        )}
+        title={entry.warnings.join('\n')}
+      >
+        <AlertTriangle className='h-3 w-3' aria-hidden='true' />
+        Warnings
+      </span>
+    )
+  }
+
+  const renderApplyButton = (
+    entry: ChronicleEntryView,
+    options: { size?: 'sm' | 'xs'; className?: string } = {},
+  ) => {
+    if (!entry.bundle || entry.bundle.ops.length === 0) return null
+
+    const isApplyingEntry = entry.status === 'applying'
+    const isApplied = entry.status === 'applied'
+    const disabled =
+      isApplyingEntry || isApplyingBundle || !canApplyAutomation || isApplied
+
+    return (
+      <Button
+        size={options.size ?? 'sm'}
+        variant={isApplied ? 'outline' : 'primary'}
+        disabled={disabled}
+        className={cn(
+          'gap-2',
+          options.size === 'xs' ? 'h-7 px-2 text-xs' : '',
+          options.className,
+        )}
+        onClick={() => {
+          if (disabled) return
+          void onApply(entry.id)
+          setExpanded(true)
+          setOpenEntryId(entry.id)
+        }}
+      >
+        {isApplyingEntry ? (
+          <>
+            <Loader2 className='h-3.5 w-3.5 animate-spin' />
+            Applying...
+          </>
+        ) : isApplied ? (
+          <>
+            <CheckCircle2 className='h-3.5 w-3.5 text-emerald-500' />
+            Applied
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className='h-3.5 w-3.5' />
+            Apply
+          </>
+        )}
+      </Button>
+    )
+  }
+
+  const summaryStatusLabel = STORY_STATUS_LABEL[latestEntry.status]
+  const summaryBadgeVariant =
+    STORY_BADGE_VARIANT[latestEntry.status] ?? 'secondary'
+
+  return (
+    <Card variant='surface' className={cn('h-full w-full', className)}>
+      <CardContent className='h-full px-4 py-3'>
+        <div className='flex flex-col gap-3'>
+          <div className='flex items-start justify-between gap-3'>
+            <div className='flex min-w-0 items-start gap-2'>
+              <BookOpen
+                className='mt-0.5 h-4 w-4 shrink-0 text-primary'
+                aria-hidden='true'
+              />
+              <div className='min-w-0'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <Badge
+                    variant={summaryBadgeVariant}
+                    className='text-[10px] uppercase tracking-wide'
+                  >
+                    {summaryStatusLabel}
+                  </Badge>
+                  <span className='text-xs text-muted-foreground'>
+                    {latestEntry.createdAt.toLocaleTimeString()}
+                  </span>
+                  {renderUpdateChip(latestEntry)}
+                  {renderWarningChip(latestEntry)}
+                </div>
+                <p className='mt-1 text-sm font-semibold text-foreground truncate'>
+                  {getStorySnippet(latestEntry)}
+                </p>
+              </div>
+            </div>
+            <div className='flex items-center gap-2'>
+              {renderApplyButton(latestEntry, {
+                className: 'hidden xl:inline-flex whitespace-nowrap',
+              })}
+              <Button
+                variant='ghost'
+                size='sm'
+                className='h-8 w-8 shrink-0'
+                onClick={() => setExpanded((value) => !value)}
+                aria-expanded={expanded}
+                aria-label='Toggle recent story history'
+              >
+                {expanded ? (
+                  <ChevronUp className='h-4 w-4' />
+                ) : (
+                  <ChevronDown className='h-4 w-4' />
+                )}
+              </Button>
+            </div>
+          </div>
+
+            {expanded && (
+            <ul className='space-y-2 border-t-2 border-border pt-3'>
+              {visibleEntries.map((entry) => {
+                const isOpen = openEntryId === entry.id
+                const badgeVariant =
+                  STORY_BADGE_VARIANT[entry.status] ?? 'secondary'
+                const statusLabel = STORY_STATUS_LABEL[entry.status]
+
+                return (
+                  <li
+                    key={entry.id}
+                    className='rounded-lg border-2 border-border bg-card/70'
+                  >
+                    <button
+                      type='button'
+                      onClick={() =>
+                        setOpenEntryId((prev) => (prev === entry.id ? null : entry.id))
+                      }
+                      className='flex w-full items-start justify-between gap-3 px-3 py-2 text-left'
+                    >
+                      <div className='min-w-0'>
+                        <div className='flex flex-wrap items-center gap-2'>
+                          <Badge
+                            variant={badgeVariant}
+                            className='text-[10px] uppercase tracking-wide'
+                          >
+                            {statusLabel}
+                          </Badge>
+                          <span className='text-[11px] text-muted-foreground'>
+                            {entry.createdAt.toLocaleTimeString()}
+                          </span>
+                          {renderUpdateChip(entry)}
+                          {renderWarningChip(entry)}
+                        </div>
+                        <p className='mt-1 text-sm text-foreground truncate'>
+                          {getStorySnippet(entry)}
+                        </p>
+                      </div>
+                      <div className='flex shrink-0 items-center gap-2'>
+                        {renderApplyButton(entry, {
+                          size: 'xs',
+                          className: 'hidden lg:inline-flex whitespace-nowrap',
+                        })}
+                        <ChevronDown
+                          className={cn(
+                            'h-3.5 w-3.5 text-muted-foreground transition-transform',
+                            isOpen && 'rotate-180',
+                          )}
+                          aria-hidden='true'
+                        />
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className='space-y-3 border-t border-border/60 px-3 py-3 text-sm leading-relaxed'>
+                        <div className='whitespace-pre-wrap text-foreground'>
+                          {entry.narrative ?? entry.rawText}
+                        </div>
+
+                        {entry.narrative && entry.narrative !== entry.rawText && (
+                          <div className='text-[11px] text-muted-foreground italic'>
+                            {entry.rawText}
+                          </div>
+                        )}
+
+                        {entry.warnings.length > 0 && (
+                          <Alert variant='destructive'>
+                            <AlertTitle className='text-xs font-semibold flex items-center gap-1'>
+                              <AlertTriangle className='h-3.5 w-3.5' />
+                              Review this note
+                            </AlertTitle>
+                            <AlertDescription className='text-xs space-y-1'>
+                              {entry.warnings.map((warning) => (
+                                <div key={`${entry.id}-${warning}`}>{warning}</div>
+                              ))}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+
+                        {entry.bundle && entry.bundle.ops.length > 0 && (
+                          <div className='space-y-2'>
+                            <span className='text-[11px] uppercase tracking-wide text-muted-foreground'>
+                              Proposed updates
+                            </span>
+                            <DeltaChecklist
+                              operations={entry.bundle.ops}
+                              selection={entry.selection}
+                              onToggle={(index, checked) =>
+                                onToggleOperation(entry.id, index, checked)
+                              }
+                              disabled={
+                                entry.status === 'applied' ||
+                                entry.status === 'applying' ||
+                                !canApplyAutomation
+                              }
+                              renderDescription={renderDeltaDescription}
+                              showRuleReference
+                            />
+                            <div className='flex flex-wrap items-center gap-2'>
+                              {renderApplyButton(entry, {
+                                className: 'w-full justify-center sm:w-auto sm:justify-start',
+                              })}
+                              {entry.result && (
+                                <span className='text-[11px] text-muted-foreground'>
+                                  {entry.result.appliedOps.length} applied
+                                  {entry.result.skippedOps.length > 0
+                                    ? ` / ${entry.result.skippedOps.length} skipped`
+                                    : ''}
+                                </span>
+                              )}
+                              {!canApplyAutomation && (
+                                <span className='text-[11px] text-muted-foreground'>
+                                  Automation is in read-only mode.
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {entry.errorMessage && (
+                          <Alert variant='destructive'>
+                            <AlertTitle className='text-xs font-semibold'>
+                              Automation failed
+                            </AlertTitle>
+                            <AlertDescription className='text-xs'>
+                              {entry.errorMessage}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 type CampaignVibe =
@@ -134,6 +476,8 @@ type CampaignVibe =
 
 interface VibeDefinition {
   name: string
+  icon: LucideIcon
+  tagline: string
   combatTerms: string[]
   injuryTerms: string[]
   discoveryTerms: string[]
@@ -145,6 +489,9 @@ interface VibeDefinition {
 const campaignVibes: Record<CampaignVibe, VibeDefinition> = {
   fantasy: {
     name: 'High Fantasy',
+    icon: Wand2,
+    tagline: 'fantasy',
+    description: 'Mythic quests and arcane wonders color every scene.',
     combatTerms: ['battle', 'combat', 'skirmish', 'duel', 'clash'],
     injuryTerms: ['wounds', 'injuries', 'harm', 'damage'],
     discoveryTerms: ['discovered', 'uncovered', 'found', 'revealed'],
@@ -165,6 +512,9 @@ const campaignVibes: Record<CampaignVibe, VibeDefinition> = {
   },
   scifi: {
     name: 'Science Fiction',
+    icon: Orbit,
+    tagline: 'sci-fi',
+    description: 'Starships, synthwave skylines, and cosmic discovery.',
     combatTerms: ['firefight', 'engagement', 'conflict', 'encounter', 'battle'],
     injuryTerms: ['damage', 'injuries', 'trauma', 'harm'],
     discoveryTerms: ['detected', 'scanned', 'identified', 'located', 'found'],
@@ -185,6 +535,9 @@ const campaignVibes: Record<CampaignVibe, VibeDefinition> = {
   },
   cyberpunk: {
     name: 'Cyberpunk',
+    icon: CircuitBoard,
+    tagline: 'cyberpunk',
+    description: 'Neon alleyways, data heists, and chrome grit.',
     combatTerms: ['gunfight', 'clash', 'throwdown', 'run', 'firefight'],
     injuryTerms: ['damage', 'hurt', 'pain', 'bleeding', 'trauma'],
     discoveryTerms: ['jacked', 'accessed', 'hacked', 'found', 'located'],
@@ -205,6 +558,9 @@ const campaignVibes: Record<CampaignVibe, VibeDefinition> = {
   },
   horror: {
     name: 'Horror',
+    icon: Ghost,
+    tagline: 'horror',
+    description: 'Whispers in the dark and dread around every corner.',
     combatTerms: [
       'struggled against',
       'fought desperately',
@@ -225,6 +581,9 @@ const campaignVibes: Record<CampaignVibe, VibeDefinition> = {
   },
   western: {
     name: 'Wild West',
+    icon: Lasso,
+    tagline: 'western',
+    description: 'Frontier legends, dusk duels, and dusty trails.',
     combatTerms: ['shootout', 'gunfight', 'brawl', 'showdown', 'scuffle'],
     injuryTerms: ['wounds', 'injuries', 'hurt', 'bleeding', 'damage'],
     discoveryTerms: [
@@ -245,6 +604,9 @@ const campaignVibes: Record<CampaignVibe, VibeDefinition> = {
   },
   modern: {
     name: 'Modern Day',
+    icon: Building2,
+    tagline: 'modern',
+    description: 'Current-day intrigue and grounded drama.',
     combatTerms: ['fight', 'confrontation', 'altercation', 'struggle', 'clash'],
     injuryTerms: ['injuries', 'hurt', 'harm', 'wounds', 'damage'],
     discoveryTerms: ['found', 'discovered', 'noticed', 'spotted', 'located'],
@@ -519,88 +881,8 @@ function addAtmosphericFlavor(
   return text
 }
 
-// Mock AI assistance for creators (in real app would be actual AI)
-function createItem(input: string): CreatedItem {
-  const id = Math.random().toString(36).substr(2, 9)
-
-  if (input.toLowerCase().includes('sword')) {
-    return {
-      id,
-      name: 'Forged Blade',
-      tags: ['close', 'sharp'],
-      description: 'A well-crafted sword with a keen edge and sturdy grip.',
-      stats: '1d8 damage, close',
-    }
-  }
-
-  return {
-    id,
-    name: input || 'Mysterious Item',
-    tags: ['item'],
-    description: 'An interesting item with unknown properties.',
-    stats: 'Special properties unknown',
-  }
-}
-
-function createNPC(input: string): CreatedNPC {
-  const id = Math.random().toString(36).substr(2, 9)
-
-  if (input.toLowerCase().includes('merchant')) {
-    return {
-      id,
-      name: 'Aldric Coinworth',
-      appearance: 'A portly man with calculating eyes and fine clothes',
-      drive: 'To profit from every transaction',
-      quirk: 'Always counts coins twice',
-      voice: 'Smooth and persuasive, with a slight wheeze',
-      knows: 'Trade routes, valuable goods, local customs',
-    }
-  }
-
-  return {
-    id,
-    name: input || 'Unnamed Person',
-    appearance: 'An ordinary-looking individual',
-    drive: 'To live their daily life',
-    quirk: 'Has a memorable mannerism',
-    voice: 'Speaks in a distinctive way',
-    knows: 'Local gossip and common knowledge',
-  }
-}
-
-function createMonster(input: string): CreatedMonster {
-  const id = Math.random().toString(36).substr(2, 9)
-
-  if (input.toLowerCase().includes('goblin')) {
-    return {
-      id,
-      name: 'Goblin Raider',
-      hp: 6,
-      armor: 1,
-      damage: '1d6',
-      instinct: 'To raid and pillage',
-      moves: [
-        'Swarm with numbers',
-        'Strike from shadows',
-        'Flee when outnumbered',
-      ],
-    }
-  }
-
-  return {
-    id,
-    name: input || 'Unknown Creature',
-    hp: 8,
-    armor: 0,
-    damage: '1d6',
-    instinct: 'To survive',
-    moves: ['Fight when cornered', 'Protect territory', 'Seek sustenance'],
-  }
-}
-
 export const PlayTab: React.FC<PlayTabProps> = ({
   className = '',
-  onRequestCharacter,
 }) => {
   const llmUnifiedEnabled = useMemo(() => isLlmUnifiedEnabled(), [])
   const { getActiveCharacter } = useCharacterStore()
@@ -608,57 +890,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({
   const autoLogDiceRolls = useDiceStore(
     (state) => state.settings.autoLogToChronicle ?? true,
   )
-  const historyByCharacter = useDiceStore((state) => state.historyByCharacter)
-  const reroll = useDiceStore((state) => state.reroll)
-  const diceIsRolling = useDiceStore((state) => state.isRolling)
   const currentRoll = useDiceStore((state) => state.currentRoll)
-
-  const rollHistory = useMemo(() => {
-    if (!activeCharacter?.id) {
-      return [] as RollResult[]
-    }
-    return historyByCharacter[activeCharacter.id] ?? []
-  }, [activeCharacter?.id, historyByCharacter])
-
-  const handleCopyRollSummary = useCallback(async (summary: string) => {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(summary)
-        toast.success('Roll summary copied to clipboard.')
-      } else {
-        throw new Error('Clipboard unavailable')
-      }
-    } catch (error) {
-      toast.error('Unable to copy roll summary.', {
-        description: error instanceof Error ? error.message : undefined,
-      })
-    }
-  }, [])
-
-  const handleReroll = useCallback(
-    async (rollId: string) => {
-      if (diceIsRolling) {
-        toast('Finish the current roll before rerolling.', {
-          description: 'A dice roll is already in progress.',
-        })
-        return
-      }
-
-      try {
-        const result = await reroll(rollId)
-        if (result) {
-          toast.success('Re-rolling dice...')
-        } else {
-          toast.warning('Unable to reroll that entry.')
-        }
-      } catch (error) {
-        toast.error('Unable to reroll right now.', {
-          description: error instanceof Error ? error.message : undefined,
-        })
-      }
-    },
-    [diceIsRolling, reroll],
-  )
 
   const deltaHistory = useChronicleStore((state) => state.deltaHistory)
   const clearDeltaLog = useChronicleStore((state) => state.clearDeltaLog)
@@ -704,24 +936,9 @@ export const PlayTab: React.FC<PlayTabProps> = ({
     [clearDeltaLog],
   )
 
-  // New state for Immersive Storyteller Mode
-  const [activeTab, setActiveTab] = useState<ActiveTab>('chronicle')
-  const [toolsSubTab, setToolsSubTab] = useState<ToolsSubTab>('dice')
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const handleOpenDice = () => {
-      setActiveTab('tools')
-      setToolsSubTab('dice')
-    }
-
-    window.addEventListener('playtab-open-dice', handleOpenDice)
-    return () => window.removeEventListener('playtab-open-dice', handleOpenDice)
-  }, [])
   const [campaignVibe, setCampaignVibe] = useState<CampaignVibe>('fantasy')
+  const vibeConfig = campaignVibes[campaignVibe]
+  const VibeIcon = vibeConfig.icon
   const [transientFolioHighlight, setTransientFolioHighlight] =
     useState<FolioHighlight | null>(null)
   const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -746,14 +963,6 @@ export const PlayTab: React.FC<PlayTabProps> = ({
       }
     }
   }, [])
-
-  // Tool creation state
-  const [itemInput, setItemInput] = useState('')
-  const [npcInput, setNpcInput] = useState('')
-  const [monsterInput, setMonsterInput] = useState('')
-  const [createdItems, setCreatedItems] = useState<CreatedItem[]>([])
-  const [createdNPCs, setCreatedNPCs] = useState<CreatedNPC[]>([])
-  const [createdMonsters, setCreatedMonsters] = useState<CreatedMonster[]>([])
 
   // Chronicle automation helpers
   const updateEntry = useCallback(
@@ -1143,29 +1352,6 @@ export const PlayTab: React.FC<PlayTabProps> = ({
     void addChronicleEntry(summary)
   }, [autoLogDiceRolls, currentRoll, activeCharacter?.id, addChronicleEntry])
 
-  // Tool creation functions
-  // Tool creation functions
-  const handleCreateItem = () => {
-    if (!itemInput.trim()) return
-    const item = createItem(itemInput)
-    setCreatedItems((prev) => [...prev, item])
-    setItemInput('')
-  }
-
-  const handleCreateNPC = () => {
-    if (!npcInput.trim()) return
-    const npc = createNPC(npcInput)
-    setCreatedNPCs((prev) => [...prev, npc])
-    setNpcInput('')
-  }
-
-  const handleCreateMonster = () => {
-    if (!monsterInput.trim()) return
-    const monster = createMonster(monsterInput)
-    setCreatedMonsters((prev) => [...prev, monster])
-    setMonsterInput('')
-  }
-
   if (!activeCharacter) {
     return (
       <motion.div
@@ -1220,120 +1406,138 @@ export const PlayTab: React.FC<PlayTabProps> = ({
           <RightRail
             className='h-full min-h-0'
             header={
-              <div className='space-y-4'>
-                <Tabs
-                  value={activeTab}
-                  onValueChange={(value) => setActiveTab(value as ActiveTab)}
-                >
-                  <TabsList className='flex w-full flex-wrap items-center justify-start gap-2 bg-muted/40 p-1'>
-                    <TabsTrigger
-                      value='chronicle'
-                      className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                    >
-                      <BookOpen className='size-4 shrink-0' aria-hidden='true' />
-                      <span className='truncate'>Chronicle</span>
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value='tools'
-                      className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                    >
-                      <Wrench className='size-4 shrink-0' aria-hidden='true' />
-                      <span className='truncate'>Tools</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-                <AutomationStatusChip />
-                <div className='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
-                  <label
-                    htmlFor='campaign-setting'
-                    className='font-semibold uppercase tracking-wide text-muted-foreground'
+              <div className='space-y-4 px-6'>
+                {/* Always-visible latest roll summary with expandable history */}
+                <div className='space-y-3'>
+                  {/* Dice Roll HUD - Recent rolls and outcomes */}
+                  <motion.div 
+                    className='w-full'
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
                   >
-                    Campaign Setting
-                  </label>
-                  <select
-                    id='campaign-setting'
-                    value={campaignVibe}
-                    onChange={(event) =>
-                      setCampaignVibe(event.target.value as CampaignVibe)
-                    }
-                    className='min-w-[160px] rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground shadow-sm'
+                    <RollHUD characterId={activeCharacter?.id} className='w-full' />
+                  </motion.div>
+                  {/* Story Chronicle Bar - Recent narrative entries */}
+                  <motion.div 
+                    className='w-full'
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
                   >
-                    {Object.entries(campaignVibes).map(([key, config]) => (
-                      <option key={key} value={key}>
-                        {config.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className='font-medium text-foreground'>
-                    {campaignVibes[campaignVibe].name}
-                  </span>
+                    <RecentStoryBar
+                      entries={chronicleEntries}
+                      onToggleOperation={toggleOperationSelection}
+                      onApply={applyBundleForEntry}
+                      isApplyingBundle={isApplyingBundle}
+                      canApplyAutomation={canApplyAutomation}
+                      renderDeltaDescription={describeDeltaOperation}
+                      className='w-full'
+                    />
+                  </motion.div>
                 </div>
+                
+                <AutomationStatusChip />
               </div>
             }
           >
             <div className='flex h-full min-h-0 flex-col overflow-hidden'>
-              {/* Always-visible latest roll summary with expandable history */}
-              <div className='px-6 pt-4'>
-                <RollHUD characterId={activeCharacter?.id} />
-              </div>
               <AnimatePresence mode='wait'>
-                {activeTab === 'chronicle' && (
-                  <motion.div
-                    key='chronicle'
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className='flex h-full min-h-0 flex-col overflow-y-auto p-6'
-                  >
-                    {/* Chronicle Canvas - 60% of available space */}
-                    <div className='flex-1 mb-6'>
-                      <Card variant='parchment' className='h-full'>
-                        <CardContent className='flex h-full flex-col p-6'>
-                          <div className='flex items-center justify-between mb-4'>
-                            <h2 className='text-xl font-display flex items-center gap-2'>
-                              <Scroll size={20} className='text-primary' />
-                              Your Story
-                            </h2>
-                            <Badge variant='secondary' className='text-xs'>
-                              {chronicleEntries.length} entries
+                <motion.div
+                  key='chronicle'
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className='flex h-full min-h-0 flex-col overflow-y-auto p-6'
+                >
+                    {/* Chronicle Canvas - Compact input area */}
+                    <div className='mb-6'>
+                      <Card variant='parchment'>
+                        <CardContent className='space-y-4 p-4'>
+                          <div className='flex flex-wrap items-center justify-between gap-3'>
+                            <div className='flex flex-wrap items-center gap-2 md:gap-3'>
+                              <div className='flex items-center gap-2'>
+                                <Scroll size={18} className='text-primary' />
+                                <div className='flex flex-col gap-1 md:flex-row md:items-center md:gap-3'>
+                                  <div>
+                                    <h2 className='text-lg font-display leading-tight'>
+                                      Chronicle
+                                    </h2>
+                                    <p className='text-xs text-muted-foreground'>
+                                      {vibeConfig.description}
+                                    </p>
+                                  </div>
+                                  <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                                    <span className='font-semibold uppercase tracking-wide text-[11px]'>
+                                      Tone
+                                    </span>
+                                    <Select
+                                      value={campaignVibe}
+                                      onValueChange={(value) =>
+                                        setCampaignVibe(value as CampaignVibe)
+                                      }
+                                    >
+                                      <SelectTrigger className='h-8 min-w-[160px] items-center gap-2 rounded-md border border-input bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-colors hover:bg-card/90 focus:outline-none focus:ring-2 focus:ring-primary/40'>
+                                        <SelectValue placeholder='Tone'>
+                                          <span className='flex items-center gap-2 text-[11px] uppercase tracking-wide'>
+                                            <VibeIcon className='size-4 text-primary' aria-hidden='true' />
+                                            {vibeConfig.tagline}
+                                          </span>
+                                        </SelectValue>
+                                      </SelectTrigger>
+                                      <SelectContent className='w-[220px] rounded-md border border-border bg-card text-foreground shadow-lg'>
+                                        {Object.entries(campaignVibes).map(([key, config]) => {
+                                          const Icon = config.icon
+                                          return (
+                                            <SelectItem key={key} value={key} className='text-xs'>
+                                              <span className='flex w-full items-center gap-2 uppercase tracking-wide'>
+                                                <Icon className='size-4 text-primary/80' aria-hidden='true' />
+                                                {config.tagline}
+                                              </span>
+                                            </SelectItem>
+                                          )
+                                        })}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <Badge variant='secondary' className='text-xs self-start'>
+                              {chronicleEntries.length} entries logged
                             </Badge>
                           </div>
 
                           {/* Chronicle Text Area */}
-                          <div className='flex-1 flex flex-col'>
+                          <div className='space-y-3'>
                             <Textarea
                               ref={chronicleTextareaRef}
                               value={chronicleText}
                               onChange={(e) => setChronicleText(e.target.value)}
                               placeholder="What happens in your adventure? Write your story here...
-        
-        Tip: Write naturally - 'fought goblins, got hurt' becomes 'You battled the goblin raiders, suffering wounds in the fierce struggle.'"
-                              className='flex-1 resize-none text-base leading-relaxed font-serif'
-                              style={{ minHeight: '400px' }}
+
+Tip: Write naturally - 'fought goblins, got hurt' becomes 'You battled the goblin raiders, suffering wounds in the fierce struggle.'"
+                              className='resize-none text-sm leading-relaxed font-serif min-h-[180px]'
                             />
 
-                            <div className='flex justify-between items-center mt-4'>
-                              <div className='flex items-center gap-2'>
-                                <Sparkles size={14} className='text-primary' />
-                                <span className='text-xs text-muted-foreground'>
-                                  GPT-5 automation parses every note
-                                </span>
-                              </div>
+
+                            <div className='flex items-center justify-between'>
                               <Button
                                 onClick={() =>
                                   void addChronicleEntry(chronicleText)
                                 }
                                 disabled={!chronicleText.trim() || isProposing}
                                 className='gap-2'
+                                size='sm'
                               >
                                 {isProposing ? (
                                   <>
-                                    <Loader2 className='h-4 w-4 animate-spin' />
+                                    <Loader2 className='h-3.5 w-3.5 animate-spin' />
                                     Parsing...
                                   </>
                                 ) : (
                                   <>
-                                    <Send size={16} />
+                                    <Send size={14} />
                                     Add to Chronicle
                                   </>
                                 )}
@@ -1347,214 +1551,6 @@ export const PlayTab: React.FC<PlayTabProps> = ({
                     {/* Recent Entries & Dice Context */}
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                       <div className='space-y-6'>
-                        {/* Recent Chronicle Entries */}
-                        <Card variant='surface'>
-                          <CardContent className='p-4'>
-                            <h3 className='font-semibold mb-3 flex items-center gap-2'>
-                              <BookOpen size={16} />
-                              Recent Story
-                            </h3>
-                            <div className='space-y-3 max-h-72 overflow-y-auto'>
-                              {[...chronicleEntries]
-                                .slice(-5)
-                                .reverse()
-                                .map((entry) => {
-                                  const statusLabel = (() => {
-                                    switch (entry.status) {
-                                      case 'proposing':
-                                        return 'Drafting'
-                                      case 'applying':
-                                        return 'Applying'
-                                      case 'applied':
-                                        return 'Applied'
-                                      case 'error':
-                                        return 'Needs review'
-                                      default:
-                                        return 'Ready'
-                                    }
-                                  })()
-
-                                  const badgeVariant: BadgeProps['variant'] =
-                                    entry.status === 'applied'
-                                      ? 'success'
-                                      : entry.status === 'error'
-                                        ? 'destructive'
-                                        : entry.status === 'applying'
-                                          ? 'warning'
-                                          : 'secondary'
-
-                                  return (
-                                    <div
-                                      key={`${entry.id}`}
-                                      className='rounded-lg border border-border/60 bg-card p-3 shadow-sm'
-                                    >
-                                      <div className='flex flex-wrap items-center justify-between gap-2'>
-                                        <div className='flex items-center gap-2'>
-                                          <Badge
-                                            variant={badgeVariant}
-                                            className='text-[10px] uppercase tracking-wide'
-                                          >
-                                            {statusLabel}
-                                          </Badge>
-                                          <span className='text-xs text-muted-foreground'>
-                                            {entry.createdAt.toLocaleTimeString()}
-                                          </span>
-                                        </div>
-                                        {entry.bundle &&
-                                          entry.bundle.ops.length > 0 && (
-                                            <span className='text-[11px] text-muted-foreground'>
-                                              {entry.bundle.ops.length} update
-                                              {entry.bundle.ops.length === 1
-                                                ? ''
-                                                : 's'}
-                                            </span>
-                                          )}
-                                      </div>
-
-                                      <div className='mt-2 text-sm leading-relaxed whitespace-pre-wrap'>
-                                        {entry.narrative ?? entry.rawText}
-                                      </div>
-
-                                      {entry.narrative &&
-                                        entry.narrative !== entry.rawText && (
-                                          <div className='mt-2 text-[11px] text-muted-foreground italic'>
-                                            {entry.rawText}
-                                          </div>
-                                        )}
-
-                                      {entry.warnings.length > 0 && (
-                                        <Alert
-                                          variant='destructive'
-                                          className='mt-3'
-                                        >
-                                          <AlertTitle className='text-xs font-semibold flex items-center gap-1'>
-                                            <AlertTriangle className='h-3.5 w-3.5' />
-                                            Review this note
-                                          </AlertTitle>
-                                          <AlertDescription className='text-xs space-y-1'>
-                                            {entry.warnings.map((warning) => (
-                                              <div
-                                                key={`${entry.id}-${warning}`}
-                                              >
-                                                {warning}
-                                              </div>
-                                            ))}
-                                          </AlertDescription>
-                                        </Alert>
-                                      )}
-
-                                      {entry.bundle &&
-                                        entry.bundle.ops.length > 0 && (
-                                          <div className='mt-3 space-y-2'>
-                                            <span className='text-[11px] uppercase tracking-wide text-muted-foreground'>
-                                              Proposed updates
-                                            </span>
-                                            <DeltaChecklist
-                                              operations={entry.bundle.ops}
-                                              selection={entry.selection}
-                                              onToggle={(index, checked) =>
-                                                toggleOperationSelection(
-                                                  entry.id,
-                                                  index,
-                                                  checked,
-                                                )
-                                              }
-                                              disabled={
-                                                entry.status === 'applied' ||
-                                                entry.status === 'applying' ||
-                                                !canApplyAutomation
-                                              }
-                                              renderDescription={
-                                                describeDeltaOperation
-                                              }
-                                              showRuleReference
-                                            />
-                                            <div className='flex flex-wrap items-center gap-2 pt-1'>
-                                              <Button
-                                                size='sm'
-                                                variant={
-                                                  entry.status === 'applied'
-                                                    ? 'outline'
-                                                    : 'primary'
-                                                }
-                                                onClick={() =>
-                                                  void applyBundleForEntry(
-                                                    entry.id,
-                                                  )
-                                                }
-                                                disabled={
-                                                  entry.status === 'applying' ||
-                                                  isApplyingBundle ||
-                                                  !canApplyAutomation
-                                                }
-                                                className='gap-2'
-                                              >
-                                                {entry.status === 'applying' ? (
-                                                  <>
-                                                    <Loader2 className='h-4 w-4 animate-spin' />
-                                                    Applying...
-                                                  </>
-                                                ) : entry.status ===
-                                                  'applied' ? (
-                                                  <>
-                                                    <CheckCircle2 className='h-4 w-4 text-emerald-500' />
-                                                    Applied
-                                                  </>
-                                                ) : (
-                                                  <>
-                                                    <CheckCircle2 className='h-4 w-4' />
-                                                    Apply selected
-                                                  </>
-                                                )}
-                                              </Button>
-                                              {entry.result && (
-                                                <span className='text-[11px] text-muted-foreground'>
-                                                  {
-                                                    entry.result.appliedOps
-                                                      .length
-                                                  }{' '}
-                                                  applied
-                                                  {entry.result.skippedOps
-                                                    .length > 0
-                                                    ? ` / ${entry.result.skippedOps.length} skipped`
-                                                    : ''}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                        )}
-
-                                      {entry.errorMessage && (
-                                        <Alert
-                                          variant='destructive'
-                                          className='mt-3'
-                                        >
-                                          <AlertTitle className='text-xs font-semibold'>
-                                            Automation failed
-                                          </AlertTitle>
-                                          <AlertDescription className='text-xs'>
-                                            {entry.errorMessage}
-                                          </AlertDescription>
-                                        </Alert>
-                                      )}
-                                    </div>
-                                  )
-                                })}
-                              {chronicleEntries.length === 0 && (
-                                <div className='text-center text-muted-foreground py-8'>
-                                  <BookOpen
-                                    size={32}
-                                    className='mx-auto mb-2 opacity-50'
-                                  />
-                                  <p className='text-sm'>
-                                    Your chronicle awaits...
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-
                         {/* Automation Log */}
                         {llmUnifiedEnabled && (
                           <Card variant='surface'>
@@ -1621,9 +1617,9 @@ export const PlayTab: React.FC<PlayTabProps> = ({
                                           ? 'success'
                                           : 'secondary'
                                     return (
-                                      <div
+                                       <div
                                         key={log.bundleId}
-                                        className='rounded-md border border-border/60 bg-card p-3'
+                                        className='rounded-md border-2 border-border bg-card p-3'
                                       >
                                         <div className='flex flex-wrap items-center justify-between gap-2'>
                                           <div className='space-y-0.5'>
@@ -1733,257 +1729,8 @@ export const PlayTab: React.FC<PlayTabProps> = ({
                       </div>
 
                     </div>
-                  </motion.div>
-                )}
-                {activeTab === 'tools' && (
-                  <motion.div
-                    key='tools'
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className='flex h-full min-h-0 flex-col overflow-y-auto p-6'
-                  >
-                    <div className='space-y-6'>
-                      {/* Tools Sub-navigation */}
-                      <Tabs
-                        value={toolsSubTab}
-                        onValueChange={(value) =>
-                          setToolsSubTab(value as ToolsSubTab)
-                        }
-                      >
-                        <TabsList className='grid w-full grid-cols-1 gap-2 bg-muted/40 p-1 sm:grid-cols-4'>
-                          <TabsTrigger
-                            value='dice'
-                            className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                          >
-                            <Dice5 className='size-4 shrink-0' aria-hidden='true' />
-                            <span className='truncate'>Dice</span>
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value='items'
-                            className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                          >
-                            <Sword className='size-4 shrink-0' aria-hidden='true' />
-                            <span className='truncate'>Items</span>
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value='monsters'
-                            className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                          >
-                            <Crown className='size-4 shrink-0' aria-hidden='true' />
-                            <span className='truncate'>Monsters</span>
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value='npcs'
-                            className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
-                          >
-                            <User className='size-4 shrink-0' aria-hidden='true' />
-                            <span className='truncate'>NPCs</span>
-                          </TabsTrigger>
-                        </TabsList>
-                      </Tabs>
-
-                      {/* Tools Content */}
-                      {toolsSubTab === 'dice' ? (
-                        <div className='space-y-6'>
-                          {activeCharacter ? (
-                            <>
-                              <Card variant='elevated'>
-                                <CardContent className='p-4'>
-                                  <UnifiedRollSystem
-                                    characterId={activeCharacter.id}
-                                    className='rounded-lg border border-border/60 bg-card/70 p-1'
-                                    showHistory={false}
-                                  />
-                                </CardContent>
-                              </Card>
-                              <Card variant='surface'>
-                                <CardContent className='p-4'>
-                                  <ContextAwareSystem context='dice' compact />
-                                </CardContent>
-                              </Card>
-                              <Card variant='surface'>
-                                <CardContent className='space-y-3 p-4'>
-                                  <div className='flex items-center justify-between'>
-                                    <h3 className='text-sm font-semibold text-foreground'>
-                                      Recent Rolls
-                                    </h3>
-                                    <span className='text-xs text-muted-foreground'>
-                                      {rollHistory.length}
-                                    </span>
-                                  </div>
-                                  <RollLog
-                                    rolls={rollHistory}
-                                    onReroll={handleReroll}
-                                    onCopy={(roll) =>
-                                      handleCopyRollSummary(
-                                        formatRollSummary(roll),
-                                      )
-                                    }
-                                    className='max-h-64 overflow-y-auto pr-1'
-                                  />
-                                </CardContent>
-                              </Card>
-                            </>
-                          ) : (
-                            <Card
-                              variant='surface'
-                              className='border border-dashed border-primary/40'
-                            >
-                              <CardContent className='space-y-4 p-6 text-center'>
-                                <p className='text-sm text-muted-foreground'>
-                                  Choose or create a character to unlock stat-based dice rolls
-                                  and move tracking.
-                                </p>
-                                <div className='flex justify-center gap-2'>
-                                  {onRequestCharacter ? (
-                                    <Button variant='primary' onClick={onRequestCharacter}>
-                                      Open Character Builder
-                                    </Button>
-                                  ) : null}
-                                  <Button
-                                    variant='outline'
-                                    onClick={() => setActiveTab('chronicle')}
-                                  >
-                                    Close
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-                        </div>
-                      ) : (
-                        <div className='grid gap-6 lg:grid-cols-2'>
-                          <Card variant='elevated'>
-                            <CardContent className='p-4'>
-                              <h3 className='mb-3 font-semibold'>
-                                Create{' '}
-                                {toolsSubTab === 'items'
-                                  ? 'Item'
-                                  : toolsSubTab === 'monsters'
-                                    ? 'Monster'
-                                    : 'NPC'}
-                              </h3>
-                              <div className='space-y-3'>
-                                <Input
-                                  value={
-                                    toolsSubTab === 'items'
-                                      ? itemInput
-                                      : toolsSubTab === 'monsters'
-                                        ? monsterInput
-                                        : npcInput
-                                  }
-                                  onChange={(e) => {
-                                    if (toolsSubTab === 'items')
-                                      setItemInput(e.target.value)
-                                    else if (toolsSubTab === 'monsters')
-                                      setMonsterInput(e.target.value)
-                                    else setNpcInput(e.target.value)
-                                  }}
-                                  placeholder={`Describe your ${toolsSubTab.slice(0, -1)}...`}
-                                />
-                                <Button
-                                  onClick={
-                                    toolsSubTab === 'items'
-                                      ? handleCreateItem
-                                      : toolsSubTab === 'monsters'
-                                        ? handleCreateMonster
-                                        : handleCreateNPC
-                                  }
-                                  className='w-full gap-2'
-                                >
-                                  <Sparkles size={16} />
-                                  Create with AI
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                          <Card variant='surface'>
-                            <CardContent className='p-4'>
-                              <h3 className='mb-3 font-semibold'>
-                                Your{' '}
-                                {toolsSubTab.charAt(0).toUpperCase() +
-                                  toolsSubTab.slice(1)}
-                              </h3>
-                              <div className='max-h-96 space-y-3 overflow-y-auto'>
-                                {toolsSubTab === 'items' &&
-                                  createdItems.map((item) => (
-                                    <div
-                                      key={item.id}
-                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                    >
-                                      <div className='font-medium'>{item.name}</div>
-                                      <div className='text-xs text-muted-foreground'>
-                                        {item.tags.join(', ')}
-                                      </div>
-                                      <div className='mt-1 text-sm'>
-                                        {item.description}
-                                      </div>
-                                      <div className='mt-1 text-xs font-mono'>{item.stats}</div>
-                                    </div>
-                                  ))}
-
-                                {toolsSubTab === 'monsters' &&
-                                  createdMonsters.map((monster) => (
-                                    <div
-                                      key={monster.id}
-                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                    >
-                                      <div className='font-medium'>{monster.name}</div>
-                                      <div className='text-xs text-muted-foreground'>
-                                        {monster.hp} HP, {monster.armor} armor
-                                      </div>
-                                      <div className='mt-1 text-sm'>{monster.instinct}</div>
-                                      <ul className='mt-1 list-inside list-disc text-xs'>
-                                        {monster.moves.map((move) => (
-                                          <li key={`${monster.id}-${move}`}>{move}</li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  ))}
-
-                                {toolsSubTab === 'npcs' &&
-                                  createdNPCs.map((npc) => (
-                                    <div
-                                      key={npc.id}
-                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                    >
-                                      <div className='font-medium'>{npc.name}</div>
-                                      <div className='text-xs text-muted-foreground'>
-                                        {npc.quirk}
-                                      </div>
-                                      <div className='mt-1 text-sm'>{npc.appearance}</div>
-                                      <div className='mt-1 text-xs'>
-                                        <strong>Drive:</strong> {npc.drive}
-                                      </div>
-                                      <div className='text-xs'>
-                                        <strong>Knows:</strong> {npc.knows}
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
+                </motion.div>
               </AnimatePresence>
-              <div className='mt-4 shrink-0 rounded-lg border border-border bg-card/60 p-4'>
-                <div className='mb-3 flex items-center justify-between'>
-                  <h3 className='text-sm font-semibold text-foreground'>Recent Rolls</h3>
-                  {activeCharacter?.name ? (
-                    <span className='text-xs text-muted-foreground'>{activeCharacter.name}</span>
-                  ) : null}
-                </div>
-                <RollLog
-                  rolls={rollHistory}
-                  onReroll={handleReroll}
-                  onCopy={handleCopyRollSummary}
-                  className='max-h-72 overflow-y-auto pr-1'
-                />
-              </div>
             </div>
           </RightRail>
         }

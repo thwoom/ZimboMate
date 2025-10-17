@@ -3,10 +3,10 @@
 Use this list to track the final actions before promoting the GPT-5 automation upgrade to production.
 
 ## 1. Artifacts & Documentation
-- [ ] Update `CHANGELOG.md` with any last-minute fixes or messaging tweaks.
-- [ ] Capture dark launch smoke test evidence using `docs/smoke-tests/dark-launch-smoke-test.md` and attach to the release PR.
-- [ ] Add the opt-in announcement schedule + recipients to the release PR description (link to `docs/comms/chronicle-opt-in-preview.md`).
-- [ ] Ensure `docs/launch-plan.md` reflects actual dates/owners for dark → opt-in → default flips.
+- [ ] Update [`CHANGELOG`](../reference/CHANGELOG.md) with any last-minute fixes or messaging tweaks.
+- [ ] Capture dark launch smoke test evidence using the [`dark launch smoke test` template](../smoke-tests/dark-launch-smoke-test.md) and attach to the release PR.
+- [ ] Add the opt-in announcement schedule + recipients to the release PR description (link to [`chronicle-opt-in-preview`](../comms/chronicle-opt-in-preview.md)).
+- [ ] Ensure [`launch-plan`](../reference/launch-plan.md) reflects actual dates/owners for dark → opt-in → default flips.
 
 ## 2. QA & Telemetry
 - [ ] Verify guardrail telemetry feed via the rollout dashboard after smoke test (stage/outcome counters, latency averages).

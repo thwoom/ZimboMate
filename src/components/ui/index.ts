@@ -5,6 +5,7 @@ export type { AuthContextValue, User } from './AuthContext'
 export { AuthProvider } from './AuthProvider'
 export { Badge, type BadgeProps } from './Badge'
 export { badgeVariants } from './badge-variants'
+export { StatPickerPopover, STAT_ORDER } from './StatPickerPopover'
 // shadcn/ui Base Components (aligned with actual filenames)
 export { Button, type ButtonProps } from './Button'
 export { buttonVariants } from './button-variants'

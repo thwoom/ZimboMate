@@ -16,8 +16,25 @@ Welcome to the home for ZimboMate V2 docs. Everything here reflects the current 
 
 ### 🧑‍💻 Engineering
 - **[Developer Guide](./DEVELOPER_GUIDE.md)** – architecture, tooling, workflow
-- **[Rollout Checklist](./rollout.md)** – deployment gate references
-- **[Campaign Modal Plan](./olddocs/campaign-modals-plan.md)** – _legacy reference (completed)_
+- **[Rollout Checklist](../operations/rollout.md)** – deployment gate references
+- **[Campaign Modal Plan](../olddocs/campaign-modals-plan.md)** – _legacy reference (completed)_
+
+### 🎨 Product & Design
+- **[Feature Catalog](../product/zimbo-v2-feature-catalog.md)** – current surface areas with status
+- **[Visual Improvements Summary](../product/VISUAL_IMPROVEMENTS_SUMMARY.md)** – latest UI polish pass
+- **[DW Assistant App](../product/DW_ASSISTANT_APP.md)** – narrative goals and scope
+
+### 🧭 Operations & Quality
+- **[Release Checklist](../operations/release-checklist.md)** – go-live owners and sign-offs
+- **[Rollout Playbook](../operations/rollout.md)** – staged flag transitions, comms, telemetry
+- **[Testing Playbook](../operations/testing-playbook.md)** – QA responsibilities & tooling
+- **[Dark Launch Smoke Test](../smoke-tests/dark-launch-smoke-test.md)** – template for guardrail validation
+- **[Campaign Bug Summary](../operations/bug-reports/CAMPAIGN_BUG_SUMMARY.md)** – reference investigation notes
+- **[Playthrough Test Results](../operations/PLAYTHROUGH_TEST_RESULTS.md)** – scenario coverage archive
+
+### 🤖 Agent & AI Enablement
+- **[Agent Overview](../operations/agents/AGENTS.md)** – coordination between assistants
+- **[Claude Guide](../operations/agents/CLAUDE.md)** – Claude-specific operating instructions
 
 ---
 
@@ -52,4 +69,4 @@ Use this README to understand where to look first; if you archive or add docs, u
 
 ---
 
-_Last updated: 13 Oct 2025_
+_Last updated: 17 Oct 2025_

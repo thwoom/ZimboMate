@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 
-import { Card, CardContent } from '@/components/ui'
+import { Button, Card, CardContent } from '@/components/ui'
 import { CLASS_MOVES } from '@/data/advancement/classMoves'
 import { cn } from '@/lib/utils'
 import { resolveAttributeScore } from '@/models/Character'
 import { useCharacterStore } from '@/stores/characterStore'
+import { useInlineRoll } from '@/hooks/useInlineRoll'
+import { StatPickerPopover } from '@/components/ui/StatPickerPopover'
 
 import MoveChips from './widgets/MoveChips'
 
@@ -38,6 +40,28 @@ export default function FolioStatsPage({
     [ch],
   )
 
+  const { rollStatInline, rollMoveInline, isRolling } = useInlineRoll()
+  const hasActiveCharacter = Boolean(ch?.id)
+
+  const handleStatClick = useCallback(
+    (stat: keyof typeof attrs) => {
+      void rollStatInline(stat, { label: `${stat} Roll` })
+    },
+    [rollStatInline],
+  )
+
+  const handleMoveRoll = useCallback(
+    ({ moveId, name, stat }: { moveId: string; name: string; stat: keyof typeof attrs }) => {
+      void rollMoveInline({
+        moveId,
+        stat,
+        label: name,
+      })
+    },
+    [rollMoveInline],
+  )
+
+
   return (
     <div className='grid gap-3 md:grid-cols-2'>
       <Card className={cn(highlighted && 'ring-2 ring-primary/60')}>
@@ -47,19 +71,24 @@ export default function FolioStatsPage({
           </h3>
           <div className='grid grid-cols-3 gap-2'>
             {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const).map((k) => (
-              <div
+              <button
                 key={k}
+                type='button'
                 data-testid={`attribute-${k}`}
-                className='bg-muted/30 border-border rounded-md border p-2 text-center'
+                title={`Roll ${k}`}
+                aria-label={`Roll ${k}`}
+                disabled={!hasActiveCharacter || isRolling}
+                onClick={() => handleStatClick(k)}
+                className='bg-muted/30 border-border flex flex-col items-center justify-center rounded-md border p-2 text-center transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60'
               >
-                <div className='text-muted-foreground text-xs'>{k}</div>
-                <div className='text-foreground text-lg font-semibold'>
+                <span className='text-muted-foreground text-xs'>{k}</span>
+                <span className='text-foreground text-lg font-semibold'>
                   {resolveAttributeScore(
                     (attrs as Record<string, unknown>)[k],
                     10,
                   )}
-                </div>
-              </div>
+                </span>
+              </button>
             ))}
           </div>
         </CardContent>
@@ -70,9 +99,8 @@ export default function FolioStatsPage({
             Basic Moves
           </h3>
           <MoveChips
-            onSelect={() => {
-              /* composer integration */
-            }}
+            disabled={!hasActiveCharacter || isRolling}
+            onRoll={handleMoveRoll}
           />
         </CardContent>
       </Card>
@@ -101,6 +129,29 @@ export default function FolioStatsPage({
                   <p className='text-muted-foreground text-xs mt-1 line-clamp-3'>
                     {move.description}
                   </p>
+                  <div className='mt-2 flex justify-end'>
+                    <StatPickerPopover
+                      disabled={!hasActiveCharacter || isRolling}
+                      onSelect={(stat) => {
+                        void rollMoveInline({
+                          moveId: move.id,
+                          stat,
+                          label: move.name,
+                        })
+                      }}
+                      title={`Choose a stat for ${move.name}`}
+                      description='Pick the attribute that fits before you roll.'
+                    >
+                      <Button
+                        type='button'
+                        size='sm'
+                        variant='outline'
+                        disabled={!hasActiveCharacter || isRolling}
+                      >
+                        Roll move
+                      </Button>
+                    </StatPickerPopover>
+                  </div>
                 </li>
               ))}
             </ul>

@@ -16,6 +16,7 @@ import {
   Loader2,
   Plus,
   Scroll,
+  Search,
   ShieldAlert,
   Sparkles,
   Users,
@@ -28,12 +29,14 @@ import {
   formatRelativeTimeFromNow,
 } from '@/components/chronicle/highlightUtils'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
 import { createChronicleParser } from '@/utils/chronicleParser'
 import { logger } from '@/utils/logger'
 import { useIsTauriRuntime } from '@/utils/tauriRuntime'
 import { Badge, Button, Card, CardContent } from '../../ui'
+import { ChronicleTimeline } from './ChronicleTimeline'
 
 interface ChroniclePanelProps {
   className?: string
@@ -361,72 +364,68 @@ export const ChroniclePanel: React.FC<ChroniclePanelProps> = ({
       </div>
 
       {/* View Toggle */}
-      <Card variant='surface'>
-        <CardContent>
-          <div className='flex items-center justify-between'>
-            <div className='flex gap-2'>
-              <Button
-                variant={activeView === 'write' ? 'primary' : 'ghost'}
-                size='sm'
-                onClick={() => setActiveView('write')}
-                className='gap-2'
-              >
-                <BookOpen size={16} />
-                Write
-              </Button>
-              <Button
-                variant={activeView === 'timeline' ? 'primary' : 'ghost'}
-                size='sm'
-                onClick={() => setActiveView('timeline')}
-                className='gap-2'
-              >
-                <Scroll size={16} />
-                Timeline
-              </Button>
-              <Button
-                variant={activeView === 'advancements' ? 'primary' : 'ghost'}
-                size='sm'
-                onClick={() => {
-                  setActiveView('advancements')
-                  setShowLevelUpOnly(false)
-                }}
-                className='gap-2'
-                disabled={!hasLevelUpEntries}
-              >
-                <Sparkles size={16} />
-                Advancements ({levelUpEntries.length})
-              </Button>
-              <Button
-                variant={activeView === 'entities' ? 'primary' : 'ghost'}
-                size='sm'
-                onClick={() => setActiveView('entities')}
-                className='gap-2'
-              >
-                <Users size={16} />
-                Entities ({entities.length})
-              </Button>
-            </div>
+      <div className='flex items-center justify-between gap-4'>
+        <Tabs
+          value={activeView}
+          onValueChange={(value) =>
+            setActiveView(
+              value as 'write' | 'timeline' | 'advancements' | 'entities',
+            )
+          }
+          className='min-w-0'
+        >
+          <TabsList className='w-full gap-1'>
+            <TabsTrigger
+              value='write'
+              className='gap-1.5'
+            >
+              <BookOpen size={16} aria-hidden='true' />
+              <span>Write</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value='timeline'
+              className='gap-1.5'
+            >
+              <Scroll size={16} aria-hidden='true' />
+              <span>Timeline</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value='advancements'
+              className='gap-1.5'
+              disabled={!hasLevelUpEntries}
+              onClick={() => setShowLevelUpOnly(false)}
+            >
+              <Sparkles size={16} aria-hidden='true' />
+              <span>Advancements ({levelUpEntries.length})</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value='entities'
+              className='gap-1.5'
+            >
+              <Users size={16} aria-hidden='true' />
+              <span>Entities ({entities.length})</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-            {activeView !== 'write' && (
-              <div className='flex items-center gap-2'>
-                <Search size={14} />
-                <input
-                  type='text'
-                  placeholder='Search chronicle...'
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className='px-2 py-1 text-sm rounded border'
-                  style={{
-                    backgroundColor: 'var(--card)',
-                    borderColor: 'var(--border)',
-                    color: 'var(--foreground)',
-                  }}
-                />
-              </div>
-            )}
+        {activeView !== 'write' && (
+          <div className='flex items-center gap-2'>
+            <Search size={14} />
+            <input
+              type='text'
+              placeholder='Search chronicle...'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className='px-2 py-1 text-sm rounded border'
+              style={{
+                backgroundColor: 'var(--card)',
+                borderColor: 'var(--border)',
+                color: 'var(--foreground)',
+              }}
+            />
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
 
       {/* Main Content Area */}
       <AnimatePresence mode='wait'>

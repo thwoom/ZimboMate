@@ -1,6 +1,6 @@
 # ZimboMate V2 — Dungeon World Feature Parity Roadmap
 
-> **Reference only:** Legacy Dungeon World parity plan. See `docs/olddocs/LLM_UPGRADE.md` for the archived GPT-5 roadmap.
+> **Reference only:** Legacy Dungeon World parity plan. See [`LLM_UPGRADE`](./LLM_UPGRADE.md) for the archived GPT-5 roadmap.
 
 A comprehensive, actionable plan to bring ZimboMate V2 to full Dungeon World parity while preserving the V2 vision: magical-first UX, simple modern architecture, and great performance/accessibility.
 

@@ -46,6 +46,11 @@ interface DiceSettings {
   historyLimit: number
   autoAwardXp: boolean
   autoGrantHold: boolean
+  autoLogToChronicle: boolean
+  rollHudPinned: boolean
+  rollHudPosition: 'top' | 'bottom'
+  rollHudStyle: 'bar' | 'card'
+  showBarMicroHistory: boolean
 }
 
 interface DiceState {
@@ -81,6 +86,11 @@ interface DiceState {
   setHistoryLimit: (limit: number) => void
   setAutoAwardXp: (enabled: boolean) => void
   setAutoGrantHold: (enabled: boolean) => void
+  setAutoLogToChronicle: (enabled: boolean) => void
+  setRollHudPinned: (enabled: boolean) => void
+  setRollHudPosition: (pos: 'top' | 'bottom') => void
+  setRollHudStyle: (style: 'bar' | 'card') => void
+  setShowBarMicroHistory: (enabled: boolean) => void
 }
 
 function determineOutcome(total: number): RollOutcome {
@@ -175,6 +185,11 @@ export const useDiceStore = create<DiceState>()(
         historyLimit: 50,
         autoAwardXp: false,
         autoGrantHold: false,
+        autoLogToChronicle: true,
+        rollHudPinned: true,
+        rollHudPosition: 'top',
+        rollHudStyle: 'bar',
+        showBarMicroHistory: true,
       },
 
       async rollStat(stat, characterId, label) {
@@ -457,13 +472,116 @@ export const useDiceStore = create<DiceState>()(
           },
         }))
       },
+
+      setAutoLogToChronicle(enabled) {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            autoLogToChronicle: enabled,
+          },
+        }))
+      },
+
+      setRollHudPinned(enabled) {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            rollHudPinned: enabled,
+          },
+        }))
+      },
+
+      setRollHudPosition(pos) {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            rollHudPosition: pos,
+          },
+        }))
+      },
+
+      setRollHudStyle(style) {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            rollHudStyle: style,
+          },
+        }))
+      },
+
+      setShowBarMicroHistory(enabled) {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            showBarMicroHistory: enabled,
+          },
+        }))
+      },
     }),
     {
       name: 'zimbomate-dice-store',
+      version: 3,
       partialize: (state) => ({
         historyByCharacter: state.historyByCharacter,
         settings: state.settings,
       }),
+      migrate: (persistedState, version) => {
+        if (!persistedState) {
+          return persistedState
+        }
+
+        if (version === 0) {
+          const previousSettings =
+            (persistedState as Partial<DiceState>)?.settings ?? {}
+
+          return {
+            ...persistedState,
+            settings: {
+              historyLimit: 50,
+              autoAwardXp: false,
+              autoGrantHold: false,
+              autoLogToChronicle: true,
+              rollHudPinned: true,
+              rollHudPosition: 'top',
+              ...previousSettings,
+            },
+          }
+        }
+
+        const persistedSettings =
+          (persistedState as Partial<DiceState>)?.settings ?? null
+        if (persistedSettings) {
+          const maybePatched = {
+            ...persistedState,
+            settings: {
+              ...persistedSettings,
+              autoLogToChronicle:
+                typeof persistedSettings.autoLogToChronicle === 'undefined'
+                  ? true
+                  : persistedSettings.autoLogToChronicle,
+              rollHudPinned:
+                typeof (persistedSettings as any).rollHudPinned === 'undefined'
+                  ? true
+                  : (persistedSettings as any).rollHudPinned,
+              rollHudPosition:
+                typeof (persistedSettings as any).rollHudPosition === 'undefined'
+                  ? 'top'
+                  : (persistedSettings as any).rollHudPosition,
+              rollHudStyle:
+                typeof (persistedSettings as any).rollHudStyle === 'undefined'
+                  ? 'bar'
+                  : (persistedSettings as any).rollHudStyle,
+              showBarMicroHistory:
+                typeof (persistedSettings as any).showBarMicroHistory === 'undefined'
+                  ? true
+                  : (persistedSettings as any).showBarMicroHistory,
+            },
+          }
+          return maybePatched
+        }
+
+        return persistedState
+      },
     },
   ),
 )

@@ -68,7 +68,7 @@ export default function Folio({
   return (
     <div
       data-slot='folio'
-      className={cn('flex min-w-[320px] flex-col gap-2', className)}
+      className={cn('flex min-w-[320px] flex-col gap-1.5', className)}
     >
       <FolioHeader
         highlighted={highlight?.page === 'stats'}

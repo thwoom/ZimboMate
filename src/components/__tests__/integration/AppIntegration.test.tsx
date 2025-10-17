@@ -79,7 +79,8 @@ describe('app Integration Tests', () => {
     await screen.findByText(/attributes/i)
 
     await user.click(screen.getByRole('button', { name: /dice/i }))
-    await screen.findByText(/unified dice roller/i)
+    await screen.findByText(/roll stats, moves, or custom dice/i)
+    await user.click(await screen.findByRole('button', { name: /close quick roller/i }))
 
     await user.click(screen.getByRole('button', { name: /game management/i }))
     await screen.findByText(/campaign chronicle/i)

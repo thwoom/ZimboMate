@@ -26,6 +26,7 @@ import React, {
   useReducer,
   useState,
 } from 'react'
+import { useDiceStore } from '@/stores/diceStore'
 import { useChronicleStore } from '../../stores/chronicleStore'
 import { useChronicle, useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { RolloutDashboardPanel } from '../chronicle/RolloutDashboardPanel'
@@ -358,6 +359,30 @@ const GameplaySettingsContent: React.FC = () => {
     [updateSettings],
   )
 
+  const {
+    autoLogToChronicle,
+    setAutoLogToChronicle,
+    rollHudPinned,
+    setRollHudPinned,
+    rollHudPosition,
+    setRollHudPosition,
+    rollHudStyle,
+    setRollHudStyle,
+    showBarMicroHistory,
+    setShowBarMicroHistory,
+  } = useDiceStore((state) => ({
+    autoLogToChronicle: state.settings.autoLogToChronicle ?? true,
+    setAutoLogToChronicle: state.setAutoLogToChronicle,
+    rollHudPinned: state.settings.rollHudPinned ?? true,
+    setRollHudPinned: state.setRollHudPinned,
+    rollHudPosition: state.settings.rollHudPosition ?? 'top',
+    setRollHudPosition: state.setRollHudPosition,
+    rollHudStyle: state.settings.rollHudStyle ?? 'bar',
+    setRollHudStyle: state.setRollHudStyle,
+    showBarMicroHistory: state.settings.showBarMicroHistory ?? true,
+    setShowBarMicroHistory: state.setShowBarMicroHistory,
+  }))
+
   return (
     <div className='space-y-6'>
       {/* Chronicle Settings - Featured */}
@@ -680,6 +705,108 @@ const GameplaySettingsContent: React.FC = () => {
 
       {/* Other Gameplay Settings */}
       <div className='grid md:grid-cols-2 gap-4'>
+        {/* HUD Style */}
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
+          <div>
+            <label className='text-sm font-medium'>HUD Style</label>
+            <p className='text-xs text-muted-foreground '>
+              Choose between Compact Dice Bar or Card HUD
+            </p>
+          </div>
+          <div className='flex gap-2'>
+            <Button
+              size='sm'
+              variant={rollHudStyle === 'bar' ? 'primary' : 'outline'}
+              onClick={() => setRollHudStyle('bar')}
+            >
+              Bar
+            </Button>
+            <Button
+              size='sm'
+              variant={rollHudStyle === 'card' ? 'primary' : 'outline'}
+              onClick={() => setRollHudStyle('card')}
+            >
+              Card
+            </Button>
+          </div>
+        </div>
+        {/* Roll HUD Pin Toggle */}
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
+          <div>
+            <label className='text-sm font-medium'>Pin Roll HUD</label>
+            <p className='text-xs text-muted-foreground '>
+              Keep the latest dice result visible while you scroll.
+            </p>
+          </div>
+          <Button
+            variant={rollHudPinned ? 'primary' : 'outline'}
+            size='sm'
+            onClick={() => setRollHudPinned(!rollHudPinned)}
+          >
+            {rollHudPinned ? 'On' : 'Off'}
+          </Button>
+        </div>
+
+        {/* Roll HUD Position */}
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
+          <div>
+            <label className='text-sm font-medium'>HUD Position</label>
+            <p className='text-xs text-muted-foreground '>
+              Where the HUD sticks inside the tools panel.
+            </p>
+          </div>
+          <div className='flex gap-2'>
+            <Button
+              size='sm'
+              variant={rollHudPosition === 'top' ? 'primary' : 'outline'}
+              onClick={() => setRollHudPosition('top')}
+            >
+              Top
+            </Button>
+            <Button
+              size='sm'
+              variant={rollHudPosition === 'bottom' ? 'primary' : 'outline'}
+              onClick={() => setRollHudPosition('bottom')}
+            >
+              Bottom
+            </Button>
+          </div>
+        </div>
+
+        {/* Bar Micro History */}
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
+          <div>
+            <label className='text-sm font-medium'>Bar Micro History</label>
+            <p className='text-xs text-muted-foreground '>
+              Show a tiny outcome strip on the bar
+            </p>
+          </div>
+          <Button
+            variant={showBarMicroHistory ? 'primary' : 'outline'}
+            size='sm'
+            onClick={() => setShowBarMicroHistory(!showBarMicroHistory)}
+            disabled={rollHudStyle !== 'bar'}
+            title={rollHudStyle !== 'bar' ? 'Available in Bar style only' : undefined}
+          >
+            {showBarMicroHistory ? 'On' : 'Off'}
+          </Button>
+        </div>
+        <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
+          <div>
+            <label className='text-sm font-medium'>Auto-log dice rolls</label>
+            <p className='text-xs text-muted-foreground '>
+              Automatically add roll summaries to the Chronicle.
+            </p>
+          </div>
+          <Button
+            variant={autoLogToChronicle ? 'primary' : 'outline'}
+            size='sm'
+            onClick={() => setAutoLogToChronicle(!autoLogToChronicle)}
+          >
+            {autoLogToChronicle ? 'On' : 'Off'}
+          </Button>
+        </div>
+
         <div className='flex items-center justify-between p-3 rounded-lg bg-popover'>
           <div>
             <label className='text-sm font-medium'>Auto-save</label>

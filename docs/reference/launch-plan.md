@@ -21,15 +21,15 @@ Keep `LLM_UNIFIED=true` across environments; the flag only gates the legacy over
 
 ## 3. Opt-in Rollout Communications
 
-Primary copy lives in `docs/comms/chronicle-opt-in-preview.md`. Send the announcement 48 h before enabling `LLM_ROLLOUT_STAGE=opt_in` for the beta tenant list. Key reminders:
+Primary copy lives in [`chronicle-opt-in-preview`](../comms/chronicle-opt-in-preview.md). Send the announcement 48 h before enabling `LLM_ROLLOUT_STAGE=opt_in` for the beta tenant list. Key reminders:
 - Highlight Automation Log improvements (manual apply, telemetry transparency, undo recovery).
 - Call out guardrail expectations and point to Settings → Automation Guardrails.
 - Direct feedback to `#chronicle-optin` with entry ID + timestamp for telemetry correlation.
-- CC Player Success; ensure they have troubleshooting references (`docs/rollout.md`, `docs/TROUBLESHOOTING.md`).
+- CC Player Success; ensure they have troubleshooting references ([`rollout`](../operations/rollout.md), [`TROUBLESHOOTING`](../reference/TROUBLESHOOTING.md)).
 
 ## 4. Dark Launch Smoke Test Checklist
 
-Use the log template at `docs/smoke-tests/dark-launch-smoke-test.md` to capture evidence for each run.
+Use the log template at [`dark launch smoke test`](../smoke-tests/dark-launch-smoke-test.md) to capture evidence for each run.
 
 1. Set `LLM_ROLLOUT_STAGE=dark`; restart shell (web + Tauri) to reload.
 2. Submit a Chronicle entry and confirm Automation Log shows read-only warning.
@@ -42,11 +42,11 @@ Use the log template at `docs/smoke-tests/dark-launch-smoke-test.md` to capture 
 
 | Capability | Primary Doc | Notes |
 | ---------- | ----------- | ----- |
-| Undo recovery | `docs/rollout.md` §2 & §4 | Dark launch checklist covers apply/undo; Automation Log undo steps recorded here. |
-| Telemetry coverage | `docs/rollout.md` §4, `CHANGELOG.md` (2025-10-12) | Details telemetry payload fields, guardrail QA, dashboard replay. |
-| Rollout playbook | `docs/rollout.md`, this launch plan | Combined guidance for flags, QA, communications, and monitoring. |
+| Undo recovery | [`rollout`](../operations/rollout.md) §2 & §4 | Dark launch checklist covers apply/undo; Automation Log undo steps recorded here. |
+| Telemetry coverage | [`rollout`](../operations/rollout.md) §4, [`CHANGELOG`](../reference/CHANGELOG.md) (2025-10-12) | Details telemetry payload fields, guardrail QA, dashboard replay. |
+| Rollout playbook | [`rollout`](../operations/rollout.md), this launch plan | Combined guidance for flags, QA, communications, and monitoring. |
 
-Ensure the PRD (`docs/olddocs/LLM_UPGRADE.md`) references this plan in Phase 6 completion notes.
+Ensure the PRD ([`LLM_UPGRADE`](../olddocs/LLM_UPGRADE.md)) references this plan in Phase 6 completion notes.
 
 ## 6. Owners & Sign-off
 
