@@ -48,10 +48,10 @@ import {
 } from '@/services/chronicle'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useChronicleStore } from '@/stores/chronicleStore'
-import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
 import { useIsTauriRuntime } from '@/utils/tauriRuntime'
 import { chronicleActionListener } from '../../services/ChronicleActionListenerService'
 import { contextIntelligence } from '../../services/ChronicleContextIntelligence'
+import { AutomationStatusChip } from './AutomationStatusChip'
 import { useChronicleLLM } from './ChronicleProvider'
 import { DeltaChecklist } from './DeltaChecklist'
 import {
@@ -63,12 +63,14 @@ import {
   formatActorLabel,
   formatRelativeTimeFromNow,
 } from './highlightUtils'
+import { useAutomationStatus } from './useAutomationStatus'
 
 const ZERO_USAGE = {
   inputTokens: 0,
   outputTokens: 0,
   totalTokens: 0,
 }
+
 interface ChronicleOverlayProps {
   isEnabled?: boolean
   maxPrompts?: number
@@ -535,14 +537,10 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   className = '',
 }) => {
   const {
-    isProposing,
     isApplyingBundle,
-    lastProgressEvent,
-    lastTelemetryEvent,
     canUndoAutomation,
     recordTelemetry,
   } = useChronicleLLM()
-  const llmUnifiedEnabled = useMemo(() => isLlmUnifiedEnabled(), [])
   const deltaHistory = useChronicleStore((state) => state.deltaHistory)
   const clearDeltaLog = useChronicleStore((state) => state.clearDeltaLog)
   const auditLog = useChronicleStore((state) => state.auditLog)
@@ -597,23 +595,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
   const hasMoreAuditEntries = auditLog.length > visibleAuditEntries.length
   const canToggleAuditEntries = auditLog.length > 5 || isAuditExpanded
 
-  const pendingRequestedAt = useMemo(() => {
-    if (!pendingBundle?.requestedAt) {
-      return undefined
-    }
-    const date = new Date(pendingBundle.requestedAt)
-    return Number.isNaN(date.getTime()) ? undefined : date
-  }, [pendingBundle?.requestedAt])
-
-  const pendingRelative = useMemo(
-    () =>
-      pendingRequestedAt
-        ? formatRelativeTimeFromNow(pendingRequestedAt)
-        : undefined,
-    [pendingRequestedAt],
-  )
-
-  const latestAutomation = deltaHistory.length > 0 ? deltaHistory[0] : null
+    const latestAutomation = deltaHistory.length > 0 ? deltaHistory[0] : null
   const latestEntry = useMemo(
     () => (latestAutomation ? getEntry(latestAutomation.entryId) : undefined),
     [latestAutomation, getEntry],
@@ -785,42 +767,7 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
 
     [latestEntry],
   )
-  const automationStatus = useMemo(() => {
-    if (isApplyingBundle) {
-      return {
-        label: 'Applying updates',
-        message: 'Recording Chronicle deltas…',
-        toneClass: 'bg-primary/10 text-primary border border-primary/30',
-      }
-    }
-
-    if (isProposing) {
-      return {
-        label: 'Drafting entry',
-        message: lastProgressEvent?.text ?? 'GPT-5 is parsing the latest note.',
-        toneClass: 'bg-muted text-muted-foreground border border-border/60',
-      }
-    }
-
-    if (lastProgressEvent) {
-      return {
-        label: lastProgressEvent.stage.replaceAll('_', ' '),
-        message: lastProgressEvent.text,
-        toneClass: 'bg-muted text-muted-foreground border border-border/60',
-      }
-    }
-
-    if (lastTelemetryEvent) {
-      const latency = `${Math.round(lastTelemetryEvent.latencyMs)}ms`
-      return {
-        label: 'Automation ready',
-        message: `${latency}, ${lastTelemetryEvent.usage.totalTokens} tokens`,
-        toneClass: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
-      }
-    }
-
-    return null
-  }, [isApplyingBundle, isProposing, lastProgressEvent, lastTelemetryEvent])
+  const { llmUnifiedEnabled, flags: automationFlags } = useAutomationStatus()
 
   const latestActorLabel = useMemo(
     () => (latestAutomation ? formatActorLabel(latestAutomation.actor) : ''),
@@ -857,22 +804,11 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
     )
   }, [latestAutomation?.status])
 
-  const statusChip = useMemo(() => {
-    if (!automationStatus) return null
-
-    return (
-      <div
-        className={`text-xs rounded-full px-3 py-1 font-medium flex flex-col sm:flex-row sm:items-center gap-1 ${automationStatus.toneClass}`}
-      >
-        <span>{automationStatus.label}</span>
-        {automationStatus.message && (
-          <span className='text-[11px] sm:text-xs font-normal text-muted-foreground'>
-            {automationStatus.message}
-          </span>
-        )}
-      </div>
-    )
-  }, [automationStatus])
+  const [showAutomationDetails, setShowAutomationDetails] = useState(false)
+  const forcedAutomationDetails =
+    automationFlags.isApplying || automationFlags.isProposing
+  const shouldShowAutomationDetails =
+    showAutomationDetails || forcedAutomationDetails
 
   // Subscribe to action listener for new prompts
   useEffect(() => {
@@ -1070,67 +1006,46 @@ export const ChronicleOverlay: React.FC<ChronicleOverlayProps> = ({
             </AlertDescription>
           </Alert>
         )}
-        {pendingBundle && (
-          <Alert className='border-primary/50 bg-primary/5 shadow-sm'>
-            <Loader2 className='h-4 w-4 animate-spin text-primary' />
-            <AlertTitle className='flex items-center gap-2 text-sm font-semibold text-primary'>
-              Chronicle bundle pending
-              {isApplyingBundle && (
+        {pendingBundle && shouldShowAutomationDetails && (
+          <motion.div
+            key='automation-inline'
+            layout
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            className='flex items-center justify-between gap-3 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-xs text-muted-foreground'
+          >
+            <div className='flex items-center gap-2 text-primary'>
+              <Loader2 className='h-3.5 w-3.5 animate-spin' />
+              <span className='font-semibold uppercase tracking-wide'>
+                Chronicle bundle pending
+              </span>
+            </div>
+            <div className='flex flex-wrap items-center gap-2 text-[11px] text-foreground'>
+              <span>Entry {pendingBundle.entryId ?? '—'}</span>
+              {pendingBundle.bundleId && (
                 <Badge
                   variant='outline'
                   className='text-[9px] uppercase tracking-wide text-primary'
                 >
-                  applying
+                  #{pendingBundle.bundleId.slice(-6)}
                 </Badge>
               )}
-            </AlertTitle>
-            <AlertDescription className='space-y-2 text-xs text-muted-foreground'>
-              <div className='flex flex-wrap items-center gap-2 text-[11px] font-medium text-foreground'>
-                <span>Entry {pendingBundle.entryId ?? '\u2014'}</span>
-                {pendingBundle.bundleId && (
-                  <Badge
-                    variant='outline'
-                    className='text-[9px] uppercase tracking-wide'
-                  >
-                    #{pendingBundle.bundleId.slice(-6)}
-                  </Badge>
-                )}
-              </div>
-              <p>
-                {pendingBundle.autoApply
-                  ? 'Auto-apply is enabled. The bundle will commit as soon as GPT-5 finishes.'
-                  : 'Review the proposed changes in Chronicle to continue.'}
-              </p>
-              <div className='flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground'>
-                <Clock size={11} />
-                <span>
-                  {pendingRequestedAt
-                    ? pendingRequestedAt.toLocaleTimeString()
-                    : 'Awaiting timestamp'}
-                </span>
-                {pendingRelative && (
-                  <>
-                    <span aria-hidden='true'>&bull;</span>
-                    <span>{pendingRelative}</span>
-                  </>
-                )}
-              </div>
-              {isApplyingBundle && (
-                <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-                  <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />
-                  <span>
-                    {lastProgressEvent?.message ??
-                      (typeof lastProgressEvent?.progress === 'number'
-                        ? `Applying bundle (${Math.round(lastProgressEvent.progress)}%)`
-                        : 'Applying bundle...')}
-                  </span>
-                </div>
-              )}
-            </AlertDescription>
-          </Alert>
+              <span className='text-muted-foreground'>
+                {isApplyingBundle ? 'Applying…' : 'Awaiting review'}
+              </span>
+            </div>
+          </motion.div>
         )}
-        {llmUnifiedEnabled ? statusChip : null}
-        {llmUnifiedEnabled && latestAutomation && (
+        {llmUnifiedEnabled ? (
+          <AutomationStatusChip
+            className='self-start'
+            detailsOpen={shouldShowAutomationDetails}
+            onToggleDetails={() => setShowAutomationDetails((prev) => !prev)}
+          />
+        ) : null}
+        {llmUnifiedEnabled && shouldShowAutomationDetails && latestAutomation && (
           <motion.div
             layout
             initial={{ opacity: 0, y: 12 }}

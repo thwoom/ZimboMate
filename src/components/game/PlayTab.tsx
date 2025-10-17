@@ -15,12 +15,14 @@ import type { BadgeProps } from '../ui'
 import type { FolioHighlight } from '@/components/game/CharacterSheet/Folio'
 import type { EquipmentChange } from '@/components/game/CharacterSheet/FolioGearPage'
 import type { BondReminderFocusDetail } from '@/constants/events'
+import type { RollResult } from '@/stores/diceStore'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertTriangle,
   BookOpen,
   CheckCircle2,
   Crown,
+  Dice5,
   Loader2,
   RefreshCcw,
   Scroll,
@@ -32,11 +34,17 @@ import {
   Wrench,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { RollHUD } from '@/components/dice/RollHUD'
+import { RollLog } from '@/components/dice/RollLog'
+import { UnifiedRollSystem } from '@/components/dice/UnifiedRollSystem'
 import Folio from '@/components/game/CharacterSheet/Folio'
 import { RightRail, SplitPane } from '@/components/layout'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BOND_REMINDER_FOCUS_EVENT } from '@/constants/events'
 import { cn } from '@/lib/utils'
+import { useDiceStore } from '@/stores/diceStore'
+import { formatRollSummary } from '@/utils/diceFormatting'
 import { isLlmUnifiedEnabled } from '@/utils/featureFlags'
 import { useIsTauriRuntime } from '@/utils/tauriRuntime'
 import {
@@ -45,10 +53,12 @@ import {
 } from '../../services/chronicle'
 import { useCharacterStore } from '../../stores/characterStore'
 import { useChronicleStore } from '../../stores/chronicleStore'
+import { AutomationStatusChip } from '../chronicle/AutomationStatusChip'
 import { useChronicleLLM } from '../chronicle/ChronicleProvider'
 import { DeltaChecklist } from '../chronicle/DeltaChecklist'
 import { Badge, Button, Card, CardContent, Input, Textarea } from '../ui'
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
+import { ContextAwareSystem } from './ContextAwareSystem'
 
 interface DiceRollContext {
   id: string
@@ -59,6 +69,9 @@ interface DiceRollContext {
   context?: string
   outcome?: string
 }
+
+type ActiveTab = 'chronicle' | 'tools'
+type ToolsSubTab = 'dice' | 'items' | 'monsters' | 'npcs'
 
 type ChronicleEntryStatus =
   | 'draft'
@@ -116,21 +129,6 @@ type CampaignVibe =
   | 'horror'
   | 'western'
   | 'modern'
-
-interface AutomationSummary {
-  label: string
-  message: string
-  badgeVariant:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'success'
-    | 'warning'
-    | 'secondary'
-  alertVariant: 'default' | 'destructive'
-  icon: React.ComponentType<{ className?: string }>
-  spinning?: boolean
-}
 
 // Campaign Vibe System for Context-Aware Enhancement
 
@@ -600,10 +598,68 @@ function createMonster(input: string): CreatedMonster {
   }
 }
 
-export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
+export const PlayTab: React.FC<PlayTabProps> = ({
+  className = '',
+  onRequestCharacter,
+}) => {
   const llmUnifiedEnabled = useMemo(() => isLlmUnifiedEnabled(), [])
   const { getActiveCharacter } = useCharacterStore()
   const activeCharacter = getActiveCharacter()
+  const autoLogDiceRolls = useDiceStore(
+    (state) => state.settings.autoLogToChronicle ?? true,
+  )
+  const historyByCharacter = useDiceStore((state) => state.historyByCharacter)
+  const reroll = useDiceStore((state) => state.reroll)
+  const diceIsRolling = useDiceStore((state) => state.isRolling)
+  const currentRoll = useDiceStore((state) => state.currentRoll)
+
+  const rollHistory = useMemo(() => {
+    if (!activeCharacter?.id) {
+      return [] as RollResult[]
+    }
+    return historyByCharacter[activeCharacter.id] ?? []
+  }, [activeCharacter?.id, historyByCharacter])
+
+  const handleCopyRollSummary = useCallback(async (summary: string) => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(summary)
+        toast.success('Roll summary copied to clipboard.')
+      } else {
+        throw new Error('Clipboard unavailable')
+      }
+    } catch (error) {
+      toast.error('Unable to copy roll summary.', {
+        description: error instanceof Error ? error.message : undefined,
+      })
+    }
+  }, [])
+
+  const handleReroll = useCallback(
+    async (rollId: string) => {
+      if (diceIsRolling) {
+        toast('Finish the current roll before rerolling.', {
+          description: 'A dice roll is already in progress.',
+        })
+        return
+      }
+
+      try {
+        const result = await reroll(rollId)
+        if (result) {
+          toast.success('Re-rolling dice...')
+        } else {
+          toast.warning('Unable to reroll that entry.')
+        }
+      } catch (error) {
+        toast.error('Unable to reroll right now.', {
+          description: error instanceof Error ? error.message : undefined,
+        })
+      }
+    },
+    [diceIsRolling, reroll],
+  )
+
   const deltaHistory = useChronicleStore((state) => state.deltaHistory)
   const clearDeltaLog = useChronicleStore((state) => state.clearDeltaLog)
   const recentDeltaHistory = useMemo(
@@ -616,14 +672,13 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
   const isTauriRuntime = useIsTauriRuntime()
   const showAutomationGuard = !isTauriRuntime && !isAutomationGuardDismissed
   const chronicleTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const lastLoggedRollId = useRef<string | null>(null)
 
   const {
     proposeEntryDeltas,
     applyDeltaBundle,
     isProposing,
     isApplyingBundle,
-    lastProgressEvent,
-    lastTelemetryEvent,
     settings,
     updateSettings: _updateSettings,
     canApplyAutomation,
@@ -651,7 +706,21 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
 
   // New state for Immersive Storyteller Mode
   const [activeTab, setActiveTab] = useState<ActiveTab>('chronicle')
-  const [toolsSubTab, setToolsSubTab] = useState<ToolsSubTab>('items')
+  const [toolsSubTab, setToolsSubTab] = useState<ToolsSubTab>('dice')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const handleOpenDice = () => {
+      setActiveTab('tools')
+      setToolsSubTab('dice')
+    }
+
+    window.addEventListener('playtab-open-dice', handleOpenDice)
+    return () => window.removeEventListener('playtab-open-dice', handleOpenDice)
+  }, [])
   const [campaignVibe, setCampaignVibe] = useState<CampaignVibe>('fantasy')
   const [transientFolioHighlight, setTransientFolioHighlight] =
     useState<FolioHighlight | null>(null)
@@ -1052,118 +1121,27 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
     }
   }
 
-  const automationStatus = useMemo<AutomationSummary | null>(() => {
-    const progressStage = lastProgressEvent?.stage
-    const progressMessage =
-      lastProgressEvent?.message ??
-      (lastProgressEvent as { text?: string } | null)?.text ??
-      ''
-
-    if (!canApplyAutomation) {
-      return {
-        label: 'Automation read-only',
-        message:
-          'Chronicle automations are in dark-launch review mode. Apply and undo actions are disabled.',
-        badgeVariant: 'warning',
-        alertVariant: 'default',
-        icon: ShieldAlert,
-        spinning: false,
-      }
+  useEffect(() => {
+    if (!autoLogDiceRolls) {
+      return
     }
 
-    if (progressStage === 'error') {
-      return {
-        label: 'Automation error',
-        message:
-          progressMessage || 'Chronicle could not apply the last update.',
-        badgeVariant: 'destructive',
-        alertVariant: 'destructive',
-        icon: AlertTriangle,
-        spinning: false,
-      }
+    if (!currentRoll) {
+      return
     }
 
-    if (isApplyingBundle) {
-      return {
-        label: 'Applying updates',
-        message: progressMessage || 'Syncing selected deltas to your sheet.',
-        badgeVariant: 'warning',
-        alertVariant: 'default',
-        icon: Loader2,
-        spinning: true,
-      }
+    if (lastLoggedRollId.current === currentRoll.id) {
+      return
     }
 
-    if (isProposing) {
-      return {
-        label: 'Drafting deltas',
-        message: progressMessage || 'GPT-5 is parsing the latest note.',
-        badgeVariant: 'secondary',
-        alertVariant: 'default',
-        icon: Sparkles,
-        spinning: false,
-      }
+    if (activeCharacter?.id && currentRoll.characterId !== activeCharacter.id) {
+      return
     }
 
-    if (lastProgressEvent) {
-      const stageLabel = lastProgressEvent.stage
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (char) => char.toUpperCase())
-      return {
-        label: stageLabel,
-        message: progressMessage,
-        badgeVariant: 'secondary',
-        alertVariant: 'default',
-        icon: Sparkles,
-        spinning: false,
-      }
-    }
-
-    if (lastTelemetryEvent) {
-      const latency = `${Math.round(lastTelemetryEvent.latencyMs)} ms`
-      const tokens = `${lastTelemetryEvent.usage.totalTokens} tokens`
-      return {
-        label: 'Automation ready',
-        message: `${latency} / ${tokens}`,
-        badgeVariant: 'success',
-        alertVariant: 'default',
-        icon: CheckCircle2,
-        spinning: false,
-      }
-    }
-
-    return null
-  }, [
-    canApplyAutomation,
-    isApplyingBundle,
-    isProposing,
-    lastProgressEvent,
-    lastTelemetryEvent,
-  ])
-
-  const automationBanner = useMemo(() => {
-    if (!automationStatus) return null
-
-    const Icon = automationStatus.icon
-
-    return (
-      <Alert variant={automationStatus.alertVariant} className='shadow-sm'>
-        <Icon
-          className={
-            automationStatus.spinning ? 'h-4 w-4 animate-spin' : 'h-4 w-4'
-          }
-        />
-        <AlertTitle className='text-sm font-semibold'>
-          {automationStatus.label}
-        </AlertTitle>
-        {automationStatus.message && (
-          <AlertDescription className='text-sm'>
-            {automationStatus.message}
-          </AlertDescription>
-        )}
-      </Alert>
-    )
-  }, [automationStatus])
+    lastLoggedRollId.current = currentRoll.id
+    const summary = formatRollSummary(currentRoll)
+    void addChronicleEntry(summary)
+  }, [autoLogDiceRolls, currentRoll, activeCharacter?.id, addChronicleEntry])
 
   // Tool creation functions
   // Tool creation functions
@@ -1264,7 +1242,7 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
-                {automationBanner ? <div>{automationBanner}</div> : null}
+                <AutomationStatusChip />
                 <div className='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
                   <label
                     htmlFor='campaign-setting'
@@ -1294,6 +1272,10 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
             }
           >
             <div className='flex h-full min-h-0 flex-col overflow-hidden'>
+              {/* Always-visible latest roll summary with expandable history */}
+              <div className='px-6 pt-4'>
+                <RollHUD characterId={activeCharacter?.id} />
+              </div>
               <AnimatePresence mode='wait'>
                 {activeTab === 'chronicle' && (
                   <motion.div
@@ -1311,21 +1293,6 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                             <h2 className='text-xl font-display flex items-center gap-2'>
                               <Scroll size={20} className='text-primary' />
                               Your Story
-                              {automationStatus && (
-                                <Badge
-                                  variant={automationStatus.badgeVariant}
-                                  className='text-xs flex items-center gap-1'
-                                >
-                                  <automationStatus.icon
-                                    className={
-                                      automationStatus.spinning
-                                        ? 'h-3.5 w-3.5 animate-spin'
-                                        : 'h-3.5 w-3.5'
-                                    }
-                                  />
-                                  {automationStatus.label}
-                                </Badge>
-                              )}
                             </h2>
                             <Badge variant='secondary' className='text-xs'>
                               {chronicleEntries.length} entries
@@ -1784,7 +1751,14 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                           setToolsSubTab(value as ToolsSubTab)
                         }
                       >
-                        <TabsList className='grid w-full grid-cols-1 gap-2 bg-muted/40 p-1 sm:grid-cols-3'>
+                        <TabsList className='grid w-full grid-cols-1 gap-2 bg-muted/40 p-1 sm:grid-cols-4'>
+                          <TabsTrigger
+                            value='dice'
+                            className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
+                          >
+                            <Dice5 className='size-4 shrink-0' aria-hidden='true' />
+                            <span className='truncate'>Dice</span>
+                          </TabsTrigger>
                           <TabsTrigger
                             value='items'
                             className='flex min-w-0 items-center gap-2 px-3 py-2 text-sm font-medium data-[state=active]:shadow-primary'
@@ -1810,130 +1784,206 @@ export const PlayTab: React.FC<PlayTabProps> = ({ className = '' }) => {
                       </Tabs>
 
                       {/* Tools Content */}
-                      <div className='grid gap-6 lg:grid-cols-2'>
-                        <Card variant='elevated'>
-                          <CardContent className='p-4'>
-                            <h3 className='font-semibold mb-3'>
-                              Create{' '}
-                              {toolsSubTab === 'items'
-                                ? 'Item'
-                                : toolsSubTab === 'monsters'
-                                  ? 'Monster'
-                                  : 'NPC'}
-                            </h3>
-                            <div className='space-y-3'>
-                              <Input
-                                value={
-                                  toolsSubTab === 'items'
-                                    ? itemInput
-                                    : toolsSubTab === 'monsters'
-                                      ? monsterInput
-                                      : npcInput
-                                }
-                                onChange={(e) => {
-                                  if (toolsSubTab === 'items')
-                                    setItemInput(e.target.value)
-                                  else if (toolsSubTab === 'monsters')
-                                    setMonsterInput(e.target.value)
-                                  else setNpcInput(e.target.value)
-                                }}
-                                placeholder={`Describe your ${toolsSubTab.slice(0, -1)}...`}
-                              />
-                              <Button
-                                onClick={
-                                  toolsSubTab === 'items'
-                                    ? handleCreateItem
-                                    : toolsSubTab === 'monsters'
-                                      ? handleCreateMonster
-                                      : handleCreateNPC
-                                }
-                                className='w-full gap-2'
-                              >
-                                <Sparkles size={16} />
-                                Create with AI
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        <Card variant='surface'>
-                          <CardContent className='p-4'>
-                            <h3 className='font-semibold mb-3'>
-                              Your{' '}
-                              {toolsSubTab.charAt(0).toUpperCase() +
-                                toolsSubTab.slice(1)}
-                            </h3>
-                            <div className='space-y-3 max-h-96 overflow-y-auto'>
-                              {toolsSubTab === 'items' &&
-                                createdItems.map((item) => (
-                                  <div
-                                    key={item.id}
-                                    className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                  >
-                                    <div className='font-medium'>{item.name}</div>
-                                    <div className='text-xs text-muted-foreground'>
-                                      {item.tags.join(', ')}
-                                    </div>
-                                    <div className='text-sm mt-1'>
-                                      {item.description}
-                                    </div>
-                                    <div className='text-xs font-mono mt-1'>
-                                      {item.stats}
-                                    </div>
+                      {toolsSubTab === 'dice' ? (
+                        <div className='space-y-6'>
+                          {activeCharacter ? (
+                            <>
+                              <Card variant='elevated'>
+                                <CardContent className='p-4'>
+                                  <UnifiedRollSystem
+                                    characterId={activeCharacter.id}
+                                    className='rounded-lg border border-border/60 bg-card/70 p-1'
+                                    showHistory={false}
+                                  />
+                                </CardContent>
+                              </Card>
+                              <Card variant='surface'>
+                                <CardContent className='p-4'>
+                                  <ContextAwareSystem context='dice' compact />
+                                </CardContent>
+                              </Card>
+                              <Card variant='surface'>
+                                <CardContent className='space-y-3 p-4'>
+                                  <div className='flex items-center justify-between'>
+                                    <h3 className='text-sm font-semibold text-foreground'>
+                                      Recent Rolls
+                                    </h3>
+                                    <span className='text-xs text-muted-foreground'>
+                                      {rollHistory.length}
+                                    </span>
                                   </div>
-                                ))}
+                                  <RollLog
+                                    rolls={rollHistory}
+                                    onReroll={handleReroll}
+                                    onCopy={(roll) =>
+                                      handleCopyRollSummary(
+                                        formatRollSummary(roll),
+                                      )
+                                    }
+                                    className='max-h-64 overflow-y-auto pr-1'
+                                  />
+                                </CardContent>
+                              </Card>
+                            </>
+                          ) : (
+                            <Card
+                              variant='surface'
+                              className='border border-dashed border-primary/40'
+                            >
+                              <CardContent className='space-y-4 p-6 text-center'>
+                                <p className='text-sm text-muted-foreground'>
+                                  Choose or create a character to unlock stat-based dice rolls
+                                  and move tracking.
+                                </p>
+                                <div className='flex justify-center gap-2'>
+                                  {onRequestCharacter ? (
+                                    <Button variant='primary' onClick={onRequestCharacter}>
+                                      Open Character Builder
+                                    </Button>
+                                  ) : null}
+                                  <Button
+                                    variant='outline'
+                                    onClick={() => setActiveTab('chronicle')}
+                                  >
+                                    Close
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+                        </div>
+                      ) : (
+                        <div className='grid gap-6 lg:grid-cols-2'>
+                          <Card variant='elevated'>
+                            <CardContent className='p-4'>
+                              <h3 className='mb-3 font-semibold'>
+                                Create{' '}
+                                {toolsSubTab === 'items'
+                                  ? 'Item'
+                                  : toolsSubTab === 'monsters'
+                                    ? 'Monster'
+                                    : 'NPC'}
+                              </h3>
+                              <div className='space-y-3'>
+                                <Input
+                                  value={
+                                    toolsSubTab === 'items'
+                                      ? itemInput
+                                      : toolsSubTab === 'monsters'
+                                        ? monsterInput
+                                        : npcInput
+                                  }
+                                  onChange={(e) => {
+                                    if (toolsSubTab === 'items')
+                                      setItemInput(e.target.value)
+                                    else if (toolsSubTab === 'monsters')
+                                      setMonsterInput(e.target.value)
+                                    else setNpcInput(e.target.value)
+                                  }}
+                                  placeholder={`Describe your ${toolsSubTab.slice(0, -1)}...`}
+                                />
+                                <Button
+                                  onClick={
+                                    toolsSubTab === 'items'
+                                      ? handleCreateItem
+                                      : toolsSubTab === 'monsters'
+                                        ? handleCreateMonster
+                                        : handleCreateNPC
+                                  }
+                                  className='w-full gap-2'
+                                >
+                                  <Sparkles size={16} />
+                                  Create with AI
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          <Card variant='surface'>
+                            <CardContent className='p-4'>
+                              <h3 className='mb-3 font-semibold'>
+                                Your{' '}
+                                {toolsSubTab.charAt(0).toUpperCase() +
+                                  toolsSubTab.slice(1)}
+                              </h3>
+                              <div className='max-h-96 space-y-3 overflow-y-auto'>
+                                {toolsSubTab === 'items' &&
+                                  createdItems.map((item) => (
+                                    <div
+                                      key={item.id}
+                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
+                                    >
+                                      <div className='font-medium'>{item.name}</div>
+                                      <div className='text-xs text-muted-foreground'>
+                                        {item.tags.join(', ')}
+                                      </div>
+                                      <div className='mt-1 text-sm'>
+                                        {item.description}
+                                      </div>
+                                      <div className='mt-1 text-xs font-mono'>{item.stats}</div>
+                                    </div>
+                                  ))}
 
-                              {toolsSubTab === 'monsters' &&
-                                createdMonsters.map((monster) => (
-                                  <div
-                                    key={monster.id}
-                                    className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                  >
-                                    <div className='font-medium'>
-                                      {monster.name}
+                                {toolsSubTab === 'monsters' &&
+                                  createdMonsters.map((monster) => (
+                                    <div
+                                      key={monster.id}
+                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
+                                    >
+                                      <div className='font-medium'>{monster.name}</div>
+                                      <div className='text-xs text-muted-foreground'>
+                                        {monster.hp} HP, {monster.armor} armor
+                                      </div>
+                                      <div className='mt-1 text-sm'>{monster.instinct}</div>
+                                      <ul className='mt-1 list-inside list-disc text-xs'>
+                                        {monster.moves.map((move) => (
+                                          <li key={`${monster.id}-${move}`}>{move}</li>
+                                        ))}
+                                      </ul>
                                     </div>
-                                    <div className='text-xs text-muted-foreground'>
-                                      {monster.hp} HP, {monster.armor} armor
-                                    </div>
-                                    <div className='text-sm mt-1'>
-                                      {monster.instinct}
-                                    </div>
-                                    <ul className='text-xs mt-1 list-disc list-inside'>
-                                      {monster.moves.map((move) => (
-                                        <li key={`${monster.id}-${move}`}>{move}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                ))}
+                                  ))}
 
-                              {toolsSubTab === 'npcs' &&
-                                createdNPCs.map((npc) => (
-                                  <div
-                                    key={npc.id}
-                                    className='rounded-lg border border-border/60 bg-card/70 p-3'
-                                  >
-                                    <div className='font-medium'>{npc.name}</div>
-                                    <div className='text-xs text-muted-foreground'>
-                                      {npc.quirk}
+                                {toolsSubTab === 'npcs' &&
+                                  createdNPCs.map((npc) => (
+                                    <div
+                                      key={npc.id}
+                                      className='rounded-lg border border-border/60 bg-card/70 p-3'
+                                    >
+                                      <div className='font-medium'>{npc.name}</div>
+                                      <div className='text-xs text-muted-foreground'>
+                                        {npc.quirk}
+                                      </div>
+                                      <div className='mt-1 text-sm'>{npc.appearance}</div>
+                                      <div className='mt-1 text-xs'>
+                                        <strong>Drive:</strong> {npc.drive}
+                                      </div>
+                                      <div className='text-xs'>
+                                        <strong>Knows:</strong> {npc.knows}
+                                      </div>
                                     </div>
-                                    <div className='text-sm mt-1'>
-                                      {npc.appearance}
-                                    </div>
-                                    <div className='text-xs mt-1'>
-                                      <strong>Drive:</strong> {npc.drive}
-                                    </div>
-                                    <div className='text-xs'>
-                                      <strong>Knows:</strong> {npc.knows}
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
+                                  ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
+              <div className='mt-4 shrink-0 rounded-lg border border-border bg-card/60 p-4'>
+                <div className='mb-3 flex items-center justify-between'>
+                  <h3 className='text-sm font-semibold text-foreground'>Recent Rolls</h3>
+                  {activeCharacter?.name ? (
+                    <span className='text-xs text-muted-foreground'>{activeCharacter.name}</span>
+                  ) : null}
+                </div>
+                <RollLog
+                  rolls={rollHistory}
+                  onReroll={handleReroll}
+                  onCopy={handleCopyRollSummary}
+                  className='max-h-72 overflow-y-auto pr-1'
+                />
+              </div>
             </div>
           </RightRail>
         }

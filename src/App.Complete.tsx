@@ -7,7 +7,6 @@ import {
 } from '@heroicons/react/24/outline'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Dice6,
   NotebookPen,
   Play,
   Settings,
@@ -16,7 +15,6 @@ import {
 } from 'lucide-react'
 import React, { useState } from 'react'
 import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
-import { UnifiedRollSystem } from './components/dice/UnifiedRollSystem'
 import Folio from './components/game/CharacterSheet/Folio'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
 import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
@@ -25,18 +23,8 @@ import LevelUpBondReminder from './components/game/LevelUpBondReminder'
 import { LevelUpWizard } from './components/game/LevelUpWizard'
 import { PlayTab } from './components/game/PlayTab'
 import { SessionManager } from './components/game/SessionManager'
-import { StatRoller } from './components/game/StatRoller'
 import { RightRail, SplitPane } from './components/layout'
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardDescription,
-  CardTitle,
-  ThemeComponentShowcase,
-} from './components/ui'
+import { Badge, Button, Card, CardContent, ThemeComponentShowcase } from './components/ui'
 import { AuthProvider } from './components/ui/AuthProvider'
 import { ButtonDebugger } from './components/ui/ButtonDebugger'
 import { CommandPalette } from './components/ui/CommandPalette'
@@ -66,7 +54,6 @@ import './utils/exposeStoresForTesting'
 type ActiveTab =
   | 'play'
   | 'character'
-  | 'dice'
   | 'game-management'
   | 'settings'
   | 'button-debug'
@@ -87,8 +74,10 @@ const App: React.FC = () => {
   const [debuggingEnabled, setDebuggingEnabled] = useState(false)
   const [autoFixCount, setAutoFixCount] = useState(0)
 
-  // Dice sidebar state
-
+  const handleRequestCharacter = () => {
+    setActiveTab('character')
+    setShowCharacterBuilder(true)
+  }
   const isLocalhost =
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' ||
@@ -100,10 +89,16 @@ const App: React.FC = () => {
     import.meta.env.VITE_ENABLE_BUTTON_DEBUG === 'true' ||
     isLocalhost
 
-  const tabs = [
+const tabs: Array<{
+    id: ActiveTab
+    label: string
+    icon: React.ComponentType<{ size?: number }>
+    featured?: boolean
+    enhanced?: boolean
+    description?: string
+  }> = [
     { id: 'play' as const, label: 'Play', icon: Play, featured: true },
     { id: 'character' as const, label: 'Character', icon: User },
-    { id: 'dice' as const, label: 'Dice', icon: Dice6 },
     {
       id: 'game-management' as const,
       label: 'Game Management',
@@ -166,6 +161,11 @@ const App: React.FC = () => {
 
   // Navigation shortcuts
   useNavigationShortcuts((tabId) => {
+    if (tabId === 'dice') {
+      setActiveTab('play')
+      window.dispatchEvent(new CustomEvent('playtab-open-dice'))
+      return
+    }
     setActiveTab(tabId as ActiveTab)
   })
 
@@ -179,16 +179,17 @@ const App: React.FC = () => {
 
   // Dice shortcuts (legacy system)
   useDiceShortcuts(
-    (_stat) => {
-      setActiveTab('dice')
+    () => {
+      setActiveTab('play')
+      window.dispatchEvent(new CustomEvent('playtab-open-dice'))
     },
-    activeTab === 'dice' || activeTab === 'character',
+    activeTab === 'character' || activeTab === 'play',
   )
 
   // New advanced dice keyboard shortcuts
   useDiceKeyboardShortcuts({
     characterId: activeCharacter?.id ?? '',
-    enabled: activeTab === 'dice' && Boolean(activeCharacter),
+    enabled: activeTab === 'play' && Boolean(activeCharacter),
     modifierKey: 'none', // Direct key presses for fast gameplay
   })
 
@@ -224,7 +225,7 @@ const App: React.FC = () => {
             exit='exit'
           >
             <div>
-              <PlayTab />
+              <PlayTab onRequestCharacter={handleRequestCharacter} />
             </div>
           </motion.div>
         )
@@ -364,74 +365,6 @@ const App: React.FC = () => {
                   />
                 </>
               )}
-            </div>
-          </motion.div>
-        )
-      case 'dice':
-        return (
-          <motion.div
-            key='dice'
-            variants={tabVariants}
-            initial='hidden'
-            animate='visible'
-            exit='exit'
-            className='max-w-2xl mx-auto'
-          >
-            <div className='space-y-6'>
-              {!activeCharacter && (
-                <Card
-                  variant='surface'
-                  className='border-dashed border-primary/40 bg-card/70'
-                >
-                  <CardHeader>
-                    <CardTitle>No character selected</CardTitle>
-                    <CardDescription>
-                      Create or choose a character to unlock stat-based dice
-                      rolls and move tracking.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className='flex flex-wrap gap-3'>
-                    <Button
-                      variant='primary'
-                      onClick={() => {
-                        setActiveTab('character')
-                        setShowCharacterBuilder(true)
-                      }}
-                    >
-                      Start Character Builder
-                    </Button>
-                    <Button
-                      variant='outline'
-                      onClick={() => setActiveTab('character')}
-                    >
-                      Go to Character Tab
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-              <UnifiedRollSystem
-                characterId={activeCharacter?.id ?? ''}
-                className='max-w-full'
-              />
-
-              {/* Chronicle-Enabled Stat Rolling */}
-              <StatRoller
-                characterName='Eldara Moonwhisper'
-                statModifiers={{
-                  STR: 1,
-                  DEX: 2,
-                  CON: 1,
-                  INT: 4,
-                  WIS: 3,
-                  CHA: 2,
-                }}
-                onStatRoll={(stat, result) => {
-                  logger.info(`${stat} roll result:`, result)
-                }}
-                disabled={!activeCharacter}
-              />
-
-              <ContextAwareSystem context='dice' compact />
             </div>
           </motion.div>
         )
@@ -648,7 +581,7 @@ const App: React.FC = () => {
             animate='visible'
             exit='exit'
           >
-            <PlayTab />
+            <PlayTab onRequestCharacter={handleRequestCharacter} />
           </motion.div>
         )
     }
@@ -669,28 +602,25 @@ const App: React.FC = () => {
 
               <div className='relative isolate min-h-screen transition-colors duration-300 bg-background text-foreground'>
                 {/* Header */}
-                <header className='sticky top-0 z-50 border-b-2 border-primary/20 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm transition-all duration-200'>
-                  <div className='container mx-auto px-6 py-5'>
+                <header className='sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 transition-all duration-200'>
+                  <div className='container mx-auto px-6 py-3'>
                     <div className='flex items-center justify-between'>
                       <motion.div
-                        className='flex items-center gap-3'
+                        className='flex items-center gap-2'
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5 }}
                       >
                         <motion.div
-                          className='w-10 h-10 rounded-lg flex items-center justify-center bg-primary/20 text-primary'
-                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          className='w-8 h-8 rounded-md flex items-center justify-center bg-primary/10 text-primary'
+                          whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
-                          <Sparkles className='w-6 h-6 text-primary' />
+                          <Sparkles className='w-5 h-5' />
                         </motion.div>
-                        <div>
-                          <h1 className='font-display text-xl'>ZimboMate V2</h1>
-                          <p className='text-sm text-muted-foreground'>
-                            Dungeon World Companion
-                          </p>
-                        </div>
+                        <h1 className='font-display text-lg font-semibold text-foreground'>
+                          ZimboMate
+                        </h1>
                       </motion.div>
                       <motion.div
                         initial={{ opacity: 0, x: 20 }}
@@ -707,63 +637,64 @@ const App: React.FC = () => {
                 <nav
                   role='navigation'
                   aria-label='Primary'
-                  className='sticky top-[73px] z-40 border-b-2 border-primary/10 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 transition-all duration-200'
+                  className='sticky top-[57px] z-40 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 transition-all duration-200'
                 >
                   <div className='container mx-auto px-6'>
-                    <div className='flex gap-2 py-3 overflow-x-auto'>
-                      {tabs.map((tab, index) => {
-                        const Icon = tab.icon
-                        const isActive = activeTab === tab.id
+                  <div className='flex gap-2 py-3 overflow-x-auto'>
+                    {tabs.map((tab, index) => {
+                      const Icon = tab.icon
+                      const isActive = activeTab === tab.id
 
-                        return (
-                          <motion.div
-                            key={tab.id}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                      return (
+                        <motion.div
+                          key={tab.id}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                        >
+                          <Button
+                            variant={isActive ? 'primary' : 'ghost'}
+                            size='sm'
+                            onClick={() => setActiveTab(tab.id as ActiveTab)}
+                            className={`relative whitespace-nowrap ${
+                              tab.featured ? 'ring-2 ring-primary/30 ' : ''
+                            }`}
+                            title={tab.description || tab.label}
+                            aria-expanded={isActive}
                           >
-                            <Button
-                              variant={isActive ? 'primary' : 'ghost'}
-                              size='sm'
-                              onClick={() => setActiveTab(tab.id)}
-                              className={`relative whitespace-nowrap ${
-                                tab.featured ? 'ring-2 ring-primary/30 ' : ''
-                              }`}
-                              title={tab.description || tab.label}
-                            >
-                              <Icon size={16} />
-                              {tab.label}
-                              {tab.featured && !isActive && (
-                                <Badge
-                                  variant='secondary'
-                                  className='ml-1 text-xs'
-                                >
-                                  ★
-                                </Badge>
-                              )}
-                              {tab.enhanced && !isActive && (
-                                <Badge
-                                  variant='default'
-                                  className='ml-1 text-xs'
-                                >
-                                  ✨
-                                </Badge>
-                              )}
-                              {isActive && (
-                                <motion.div
-                                  className='absolute bottom-0 left-0 right-0 h-0.5 bg-primary'
-                                  layoutId='activeTab'
-                                  transition={{
-                                    type: 'spring',
-                                    stiffness: 300,
-                                    damping: 30,
-                                  }}
-                                />
-                              )}
-                            </Button>
-                          </motion.div>
-                        )
-                      })}
+                            <Icon size={16} />
+                            {tab.label}
+                            {tab.featured && !isActive && (
+                              <Badge
+                                variant='secondary'
+                                className='ml-1 text-xs'
+                              >
+                                ★
+                              </Badge>
+                            )}
+                            {tab.enhanced && !isActive && (
+                              <Badge
+                                variant='default'
+                                className='ml-1 text-xs'
+                              >
+                                ✨
+                              </Badge>
+                            )}
+                            {isActive && (
+                              <motion.div
+                                className='absolute bottom-0 left-0 right-0 h-0.5 bg-primary'
+                                layoutId='activeTab'
+                                transition={{
+                                  type: 'spring',
+                                  stiffness: 300,
+                                  damping: 30,
+                                }}
+                              />
+                            )}
+                          </Button>
+                        </motion.div>
+                      )
+                    })}
                     </div>
                   </div>
                 </nav>
@@ -771,7 +702,7 @@ const App: React.FC = () => {
                 {/* Main Content */}
                 <div className='flex min-h-[calc(100vh-12rem)] min-w-0'>
                   <main role='main' className='flex-1 min-h-0 overflow-y-auto'>
-                    <div className='container mx-auto px-6 py-10 pb-16'>
+                    <div className='container mx-auto px-6 py-4 pb-16'>
                       <AnimatePresence mode='wait'>
                         {renderContent()}
                       </AnimatePresence>
@@ -779,32 +710,6 @@ const App: React.FC = () => {
                   </main>
                 </div>
 
-                {/* Footer */}
-                <footer className='mt-20 border-t-2 border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85 transition-all duration-200'>
-                  <div className='container mx-auto px-6 py-10'>
-                    <div className='flex items-center justify-between'>
-                      <motion.div
-                        className='flex items-center gap-3'
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.5 }}
-                      >
-                        <User className='w-5 h-5 text-muted-foreground' />
-                        <span className='text-sm text-muted-foreground'>
-                          ZimboMate V2 • Built with React 19 & Tailwind v4
-                        </span>
-                      </motion.div>
-                      <motion.div
-                        className='text-sm text-muted-foreground'
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.7 }}
-                      >
-                        Phase 4D: Advanced File Management System Complete ✨
-                      </motion.div>
-                    </div>
-                  </div>
-                </footer>
 
                 {/* Theme Component Showcase */}
                 <ThemeComponentShowcase
@@ -817,23 +722,29 @@ const App: React.FC = () => {
                   isOpen={commandPaletteOpen}
                   onClose={() => setCommandPaletteOpen(false)}
                   onNavigate={(tabId) => {
+                    if (tabId === 'dice') {
+                      setActiveTab('play')
+                      window.dispatchEvent(new CustomEvent('playtab-open-dice'))
+                      setCommandPaletteOpen(false)
+                      return
+                    }
                     setActiveTab(tabId as ActiveTab)
                     setCommandPaletteOpen(false)
                   }}
                   onAction={(actionId) => {
                     logger.info('Command palette action:', actionId)
-                    // Handle various actions here
                     switch (actionId) {
                       case 'quick-roll-2d6':
-                        // Trigger dice roll
+                        setActiveTab('play')
+                        window.dispatchEvent(new CustomEvent('playtab-open-dice'))
+                        setCommandPaletteOpen(false)
                         break
                       case 'heal-character':
-                        // Heal character
                         break
                       case 'new-note':
-                        // Create new note
                         break
-                      // Add more actions as needed
+                      default:
+                        break
                     }
                   }}
                 />
