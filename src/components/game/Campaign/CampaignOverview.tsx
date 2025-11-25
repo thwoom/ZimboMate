@@ -18,7 +18,6 @@ import React from 'react'
 import {
   formatCampaignDuration,
   formatDateRelative,
-  formatSessionDuration,
   formatXPTotal,
   toDate,
 } from '../../../campaignManagementMockData'
@@ -56,13 +55,6 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({
 
   const statCards = [
     {
-      title: 'Total Sessions',
-      value: stats.totalSessions.toString(),
-      icon: Calendar,
-      color: 'var(--primary)',
-      description: 'Sessions played',
-    },
-    {
       title: 'Journal Entries',
       value: stats.totalJournalEntries.toString(),
       icon: BookOpen,
@@ -90,23 +82,10 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({
       color: 'var(--gold-500)',
       description: 'Experience earned',
     },
-    {
-      title: 'Avg Session',
-      value: formatSessionDuration(stats.averageSessionLength),
-      icon: Clock,
-      color: 'var(--primary)',
-      description: 'Average session length',
-    },
   ]
 
   const recentActivity = [
-    ...campaign.sessions.slice(-3).map((session) => ({
-      type: 'session' as const,
-      title: session.title,
-      date: session.date,
-      description: `${formatXPTotal(session.xpGained)} earned`,
-    })),
-    ...campaign.journal.slice(-2).map((entry) => ({
+    ...campaign.journal.slice(-3).map((entry) => ({
       type: 'journal' as const,
       title: entry.title,
       date: entry.date,
@@ -202,10 +181,6 @@ export const CampaignOverview: React.FC<CampaignOverviewProps> = ({
         </CardHeader>
         <CardContent>
           <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
-            <Button variant='outline' size='sm' className='gap-2'>
-              <Plus size={16} />
-              Add Session
-            </Button>
             <Button variant='outline' size='sm' className='gap-2'>
               <Plus size={16} />
               Journal Entry

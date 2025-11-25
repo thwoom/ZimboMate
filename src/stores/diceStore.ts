@@ -4,13 +4,15 @@
  */
 
 import type { Attributes } from '../models/Character'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import { getAttributeModifier } from '../models/Character'
 import { logger } from '../utils/logger'
 import { useCharacterStore } from './characterStore'
 import { useHoldStore } from './holdStore'
 import { useXPStore } from './xpStore'
+type LogActionType = 'move_roll' | 'damage_roll' | 'custom_roll'
+const logActionListener = { emitAction: (_payload: unknown) => {} }
 
 export type RollType = 'stat' | 'move' | 'custom'
 export type RollOutcome = 'success' | 'partial' | 'failure'
@@ -46,7 +48,7 @@ interface DiceSettings {
   historyLimit: number
   autoAwardXp: boolean
   autoGrantHold: boolean
-  autoLogToChronicle: boolean
+  autoLogSecretary: boolean
   rollHudPinned: boolean
   rollHudPosition: 'top' | 'bottom'
   rollHudStyle: 'bar' | 'card'
@@ -86,7 +88,7 @@ interface DiceState {
   setHistoryLimit: (limit: number) => void
   setAutoAwardXp: (enabled: boolean) => void
   setAutoGrantHold: (enabled: boolean) => void
-  setAutoLogToChronicle: (enabled: boolean) => void
+  setautoLogSecretary: (enabled: boolean) => void
   setRollHudPinned: (enabled: boolean) => void
   setRollHudPosition: (pos: 'top' | 'bottom') => void
   setRollHudStyle: (style: 'bar' | 'card') => void
@@ -124,6 +126,45 @@ function getCharacterAttributes(characterId: string): Attributes | null {
   } catch (error) {
     logger.error('diceStore: failed to read character attributes', error)
     return null
+  }
+}
+
+function emitsecretaryPromptForRoll(roll: RollResult) {
+  try {
+    const actionType: LogActionType =
+      roll.type === 'move'
+        ? 'move_roll'
+        : roll.type === 'stat'
+          ? 'stat_roll'
+          : 'dice_roll'
+
+    const character = useCharacterStore
+      .getState()
+      .getCharacter?.(roll.characterId)
+
+    logActionListener.emitAction({
+      actionType,
+      timestamp: new Date(),
+      characterId: roll.characterId,
+      characterName: character?.name,
+      diceRoll: {
+        type:
+          roll.type === 'move'
+            ? 'move'
+            : roll.type === 'stat'
+              ? 'stat'
+              : 'custom',
+        stat: roll.context.stat,
+        moveName: roll.context.moveId ?? roll.context.label,
+        result: roll.outcome,
+        total: roll.finalResult,
+        modifier: roll.modifier,
+        dice: [roll.dice1, roll.dice2],
+        rollId: roll.id,
+      },
+    })
+  } catch (error) {
+    logger.warn('diceStore: failed to emit secretary prompt', error)
   }
 }
 
@@ -175,7 +216,7 @@ function determineHoldGain(moveId: string, outcome: RollOutcome): number {
   }
 }
 
-export const useDiceStore = create<DiceState>()(
+export const useDiceStore = createWithEqualityFn<DiceState>()(
   persist(
     (set, get) => ({
       currentRoll: null,
@@ -185,7 +226,7 @@ export const useDiceStore = create<DiceState>()(
         historyLimit: 50,
         autoAwardXp: false,
         autoGrantHold: false,
-        autoLogToChronicle: true,
+        autoLogSecretary: true,
         rollHudPinned: true,
         rollHudPosition: 'top',
         rollHudStyle: 'bar',
@@ -364,6 +405,7 @@ export const useDiceStore = create<DiceState>()(
             },
           }
         })
+        emitsecretaryPromptForRoll(roll)
       },
 
       getHistoryForCharacter(characterId) {
@@ -473,11 +515,11 @@ export const useDiceStore = create<DiceState>()(
         }))
       },
 
-      setAutoLogToChronicle(enabled) {
+      setautoLogSecretary(enabled) {
         set((state) => ({
           settings: {
             ...state.settings,
-            autoLogToChronicle: enabled,
+            autoLogSecretary: enabled,
           },
         }))
       },
@@ -540,7 +582,7 @@ export const useDiceStore = create<DiceState>()(
               historyLimit: 50,
               autoAwardXp: false,
               autoGrantHold: false,
-              autoLogToChronicle: true,
+              autoLogSecretary: true,
               rollHudPinned: true,
               rollHudPosition: 'top',
               ...previousSettings,
@@ -555,10 +597,10 @@ export const useDiceStore = create<DiceState>()(
             ...persistedState,
             settings: {
               ...persistedSettings,
-              autoLogToChronicle:
-                typeof persistedSettings.autoLogToChronicle === 'undefined'
+              autoLogSecretary:
+                typeof persistedSettings.autoLogSecretary === 'undefined'
                   ? true
-                  : persistedSettings.autoLogToChronicle,
+                  : persistedSettings.autoLogSecretary,
               rollHudPinned:
                 typeof (persistedSettings as any).rollHudPinned === 'undefined'
                   ? true
@@ -618,3 +660,6 @@ export function migrateRollHistory(data: unknown[]): RollResult[] {
 }
 
 export type { RollContext, RollResult }
+
+
+

@@ -6,7 +6,6 @@
 import { motion } from 'framer-motion'
 import {
   BookOpenText,
-  CalendarClock,
   LayoutPanelLeft,
   MapPin,
   Plus,
@@ -23,9 +22,8 @@ import { CampaignSelector } from './Campaign/CampaignSelector'
 import { CreateCampaignModal } from './Campaign/CreateCampaignModal'
 import { LocationTracker } from './Campaign/LocationTracker'
 import { NPCManager } from './Campaign/NPCManager'
-import { SessionHistory } from './Campaign/SessionHistory'
 
-type CampaignTab = 'overview' | 'sessions' | 'journal' | 'npcs' | 'locations'
+type CampaignTab = 'overview' | 'journal' | 'npcs' | 'locations'
 
 interface CampaignPanelProps {
   className?: string
@@ -50,12 +48,6 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
       label: 'Overview',
       icon: LayoutPanelLeft,
       description: 'Campaign statistics and quick actions',
-    },
-    {
-      id: 'sessions' as const,
-      label: 'Sessions',
-      icon: CalendarClock,
-      description: 'Session history and planning',
     },
     {
       id: 'journal' as const,
@@ -118,13 +110,6 @@ export const CampaignPanel: React.FC<CampaignPanelProps> = ({
     switch (activeTab) {
       case 'overview':
         return <CampaignOverview campaignId={activeCampaign.id} />
-      case 'sessions':
-        return (
-          <SessionHistory
-            campaignId={activeCampaign.id}
-            searchQuery={searchQuery}
-          />
-        )
       case 'journal':
         return (
           <CampaignJournal

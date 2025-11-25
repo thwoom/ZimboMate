@@ -49,13 +49,13 @@ export default function Folio({
   const [currentPage, setCurrentPage] = useState<FolioPage>(defaultPage)
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
+    // intentional: state sync with external focus events
     setCurrentPage(defaultPage)
   }, [defaultPage])
 
   useEffect(() => {
     if (highlight?.focus && highlight.page !== currentPage) {
-      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
+      // intentional: state sync with external focus events
       setCurrentPage(highlight.page)
     }
   }, [highlight?.focus, highlight?.page, currentPage])

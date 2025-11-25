@@ -1,6 +1,6 @@
 import type { Item } from '../models/Equipment'
 import type { Inventory, InventoryEquipSlot } from '../models/Inventory'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import {
   InventoryFilter,
@@ -49,7 +49,7 @@ interface InventoryState {
   setLoading: (loading: boolean) => void
 }
 
-export const useInventoryStore = create<InventoryState>()(
+export const useInventoryStore = createWithEqualityFn<InventoryState>()(
   persist(
     (set, get) => ({
       inventory: null,

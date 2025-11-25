@@ -559,8 +559,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           >
             <Dialog.Title className='sr-only'>Command Palette</Dialog.Title>
             <Dialog.Description className='sr-only'>
-              Search commands, navigate Chronicle tabs, and trigger quick
-              Dungeon World actions.
+              Search commands, navigate tabs, and trigger quick Dungeon World actions.
             </Dialog.Description>
             {/* Header */}
             <div className='flex items-center gap-3 p-4 border-b border-primary/20'>

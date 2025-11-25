@@ -3,7 +3,7 @@
  * Manages experience points, auto-awards for failed rolls, and level tracking
  */
 
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import { logger } from '@/utils/logger'
 
@@ -62,7 +62,7 @@ interface XPState {
   setShowXPNotifications: (enabled: boolean) => void
 }
 
-export const useXPStore = create<XPState>()(
+export const useXPStore = createWithEqualityFn<XPState>()(
   persist(
     (set, get) => ({
       // Initial state

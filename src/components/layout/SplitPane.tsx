@@ -21,10 +21,10 @@ export default function SplitPane({
   showGutter = true,
 }: SplitPaneProps): JSX.Element {
   const gridClass = showGutter
-    ? 'md:grid-cols-[var(--folio-width)_12px_minmax(0,1fr)]'
-    : 'md:grid-cols-[var(--folio-width)_minmax(0,1fr)]'
-  
-  const gapClass = showGutter ? 'gap-4 md:gap-0' : 'gap-4'
+    ? 'md:grid-cols-[minmax(var(--folio-width),1fr)_12px_minmax(var(--rail-min),var(--rail-max))]'
+    : 'md:grid-cols-[minmax(var(--folio-width),1fr)_minmax(var(--rail-min),var(--rail-max))]'
+
+  const gapClass = showGutter ? 'gap-4 md:gap-0' : 'gap-4 md:gap-4'
 
   return (
     <section
@@ -35,7 +35,11 @@ export default function SplitPane({
         gridClass,
         className,
       )}
-      style={{ '--folio-width': `${leftMinWidth}px` } as React.CSSProperties}
+      style={{
+        '--folio-width': `${leftMinWidth}px`,
+        '--rail-min': '320px',
+        '--rail-max': '420px',
+      } as React.CSSProperties}
       role='group'
       aria-label='Two pane workspace'
     >

@@ -27,6 +27,9 @@ export { ColorPalette } from './ColorSwatch'
 export { HelpSystem } from './HelpSystem'
 export { Input, type InputProps } from './Input'
 export { Label } from './label'
+export { Switch } from './switch'
+export { Tooltip, TooltipContent, TooltipTrigger } from './tooltip'
+export { SettingsPanel } from './SettingsPanel'
 export {
   Progress,
   progressFillVariants,

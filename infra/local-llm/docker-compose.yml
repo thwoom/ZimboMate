@@ -1,0 +1,67 @@
+services:
+  qwen-tools:
+    image: ghcr.io/ggerganov/llama.cpp:full
+    container_name: zimbo-qwen-tools
+    entrypoint: /bin/bash
+    command: >-
+      -lc "
+        set -euo pipefail;
+        if [ ! -f /models/qwen2.5-7b-instruct-q4_k_m.gguf ]; then
+          echo 'Missing /models/qwen2.5-7b-instruct-q4_k_m.gguf. Download it into infra/local-llm/models.' >&2;
+          exit 1;
+        fi;
+        cd /app;
+        ./server
+          -m /models/qwen2.5-7b-instruct-q4_k_m.gguf
+          --alias qwen2.5-7b-tools
+          --host 0.0.0.0
+          --port 11434
+          --ctx-size 4096
+          --parallel 2
+          --batch-size 256
+          --api;
+      "
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./models:/models
+    environment:
+      OMP_NUM_THREADS: 6
+      LLAMA_ARG_THREADS: 6
+    restart: unless-stopped
+
+  narrator:
+    image: ghcr.io/ggerganov/llama.cpp:full
+    container_name: zimbo-narrator
+    entrypoint: /bin/bash
+    command: >-
+      -lc "
+        set -euo pipefail;
+        if [ ! -f /models/mistral-7b-instruct-v0.2-q4_k_m.gguf ]; then
+          echo 'Missing /models/mistral-7b-instruct-v0.2-q4_k_m.gguf. Download it into infra/local-llm/models.' >&2;
+          exit 1;
+        fi;
+        cd /app;
+        ./server
+          -m /models/mistral-7b-instruct-v0.2-q4_k_m.gguf
+          --alias mistral-7b-narrator
+          --host 0.0.0.0
+          --port 11435
+          --ctx-size 4096
+          --parallel 2
+          --batch-size 256
+          --api;
+      "
+    ports:
+      - "11435:11435"
+    volumes:
+      - ./models:/models
+    environment:
+      OMP_NUM_THREADS: 6
+      LLAMA_ARG_THREADS: 6
+    restart: unless-stopped
+
+networks:
+  default:
+    name: zimbo-local-llm
+    driver: bridge

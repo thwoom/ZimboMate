@@ -273,9 +273,9 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
     () => draft?.spellSelections ?? [],
     [draft?.spellSelections],
   )
-  const chronicleEnabled =
-    typeof draft?.chronicleEnabled === 'boolean'
-      ? draft.chronicleEnabled
+  const secretaryEnabled =
+    typeof draft?.secretaryEnabled === 'boolean'
+      ? draft.secretaryEnabled
       : true
   const currentStep =
     draft?.activeStep && LEVEL_UP_WIZARD_STEPS.includes(draft.activeStep)
@@ -399,11 +399,11 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
     ],
   )
 
-  const handleChronicleToggle = useCallback(
+  const handlesecretaryToggle = useCallback(
     (value: boolean) => {
       if (!effectiveCharacterId) return
       updateLevelUpDraft(effectiveCharacterId, {
-        chronicleEnabled: value,
+        secretaryEnabled: value,
       })
     },
     [effectiveCharacterId, updateLevelUpDraft],
@@ -818,15 +818,15 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
 
       <div className='flex items-center justify-between rounded-md border border-border p-4'>
         <div>
-          <p className='text-sm font-semibold'>Chronicle Logging</p>
+          <p className='text-sm font-semibold'>secretary Logging</p>
           <p className='text-xs text-muted-foreground'>
-            Include a detailed chronicle entry. A concise timeline summary is
+            Include a detailed secretary entry. A concise timeline summary is
             always recorded automatically.
           </p>
         </div>
         <Switch
-          checked={chronicleEnabled}
-          onCheckedChange={handleChronicleToggle}
+          checked={secretaryEnabled}
+          onCheckedChange={handlesecretaryToggle}
         />
       </div>
     </div>
@@ -1013,3 +1013,4 @@ export const LevelUpWizard: React.FC<LevelUpWizardProps> = ({
     </Dialog>
   )
 }
+

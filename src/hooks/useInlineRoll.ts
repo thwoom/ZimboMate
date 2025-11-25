@@ -93,7 +93,7 @@ export function useInlineRoll(options: UseInlineRollOptions = {}) {
         const result = await rollStat(stat, characterId, label)
         handleCompletion(result, inlineOptions?.description)
         return result
-      } catch (error) {
+  } catch (_error) {
         return null
       }
     },
@@ -113,7 +113,7 @@ export function useInlineRoll(options: UseInlineRollOptions = {}) {
         })
         handleCompletion(result, inlineOptions.description)
         return result
-      } catch (error) {
+  } catch (_error) {
         return null
       }
     },
@@ -137,7 +137,7 @@ export function useInlineRoll(options: UseInlineRollOptions = {}) {
         })
         handleCompletion(result, inlineOptions.description)
         return result
-      } catch (error) {
+  } catch (_error) {
         return null
       }
     },

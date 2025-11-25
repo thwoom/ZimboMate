@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, expect, vi } from 'vitest'
 import { setupGlobalErrorHandling } from '../components/ui/ErrorBoundary'
 import { logger } from '../utils/logger'
 import { customMatchers } from '../utils/testing'
+import { useAppModeStore } from '@/stores/appModeStore'
 
 import '@testing-library/jest-dom'
 
@@ -164,6 +165,10 @@ expect.extend(customMatchers)
 const getLlmMockControls = () => (globalThis as any).__LLM_MOCK__
 
 beforeEach(() => {
+useAppModeStore.setState({ mode: 'sheet-only', isFirstRun: false })
+  if (!(globalThis as Record<string, unknown>).__TAURI__) {
+    (globalThis as Record<string, unknown>).__TAURI__ = {}
+  }
   const controls = getLlmMockControls()
   if (controls?.reset) {
     controls.reset()
@@ -490,6 +495,8 @@ afterAll(() => {
     delete (globalThis.URL as unknown as Record<string, unknown>)
       .revokeObjectURL
   }
+
+  delete (globalThis as Record<string, unknown>).__TAURI__
 
   if (clipboardDescriptor) {
     Object.defineProperty(navigator, 'clipboard', clipboardDescriptor)

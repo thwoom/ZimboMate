@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 
 interface ThemeState {
@@ -9,7 +9,7 @@ interface ThemeState {
   toggleSounds: () => void
 }
 
-export const useThemeStore = create<ThemeState>()(
+export const useThemeStore = createWithEqualityFn<ThemeState>()(
   persist(
     (set) => ({
       theme: 'matsu',

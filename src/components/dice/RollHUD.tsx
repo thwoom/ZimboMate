@@ -1,4 +1,5 @@
 import type { RollResult } from '@/stores/diceStore'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, ChevronUp, Copy, Dices, RotateCcw } from 'lucide-react'
 import React, { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -53,6 +54,7 @@ export const RollHUD: React.FC<RollHUDProps> = ({ characterId, className }) => {
   const [expanded, setExpanded] = useState(false)
   const [animateDice, setAnimateDice] = useState(false)
   const [animateTotal, setAnimateTotal] = useState(false)
+  const [flashOutcome, setFlashOutcome] = useState<RollResult['outcome'] | null>(null)
 
   const last = useMemo(() => {
     if (!targetCharacterId) return currentRoll
@@ -128,16 +130,20 @@ export const RollHUD: React.FC<RollHUDProps> = ({ characterId, className }) => {
   // Animate on new roll
   const lastId = last?.id
   React.useEffect(() => {
-    if (!lastId) return
+    if (!lastId || !last) return
     setAnimateDice(true)
     setAnimateTotal(true)
+    setFlashOutcome(last.outcome)
+
     const t1 = setTimeout(() => setAnimateDice(false), 700)
     const t2 = setTimeout(() => setAnimateTotal(false), 600)
+    const t3 = setTimeout(() => setFlashOutcome(null), 800)
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
+      clearTimeout(t3)
     }
-  }, [lastId])
+  }, [last, lastId])
 
   // Global keyboard shortcuts: H toggle history, R reroll
   React.useEffect(() => {
@@ -186,10 +192,36 @@ export const RollHUD: React.FC<RollHUDProps> = ({ characterId, className }) => {
   )
 
   const actionButtonClass = cn('px-2.5', isBar ? 'h-7' : 'h-8')
+  const flashBackground: Record<RollResult['outcome'], string> = {
+    success: 'from-emerald-200/70 via-emerald-200/20 to-transparent',
+    partial: 'from-amber-200/70 via-amber-200/20 to-transparent',
+    failure: 'from-red-200/70 via-red-200/20 to-transparent',
+  }
 
   const inner = (
-    <div className='flex items-center justify-between gap-3'>
-      <div className='flex items-center gap-3 min-w-0 flex-1'>
+    <div
+      className={cn(
+        'relative overflow-hidden',
+        isBar ? 'rounded-sm' : 'rounded-md',
+      )}
+    >
+      <AnimatePresence>
+        {flashOutcome && (
+          <motion.div
+            key={flashOutcome}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 0.8, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className={cn(
+              'pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r blur-lg',
+              flashBackground[flashOutcome],
+            )}
+          />
+        )}
+      </AnimatePresence>
+      <div className='flex items-center justify-between gap-3'>
+        <div className='flex items-center gap-3 min-w-0 flex-1'>
         <div className='flex items-center gap-1.5'>
           <div
             role='img'
@@ -235,45 +267,46 @@ export const RollHUD: React.FC<RollHUDProps> = ({ characterId, className }) => {
         </div>
       </div>
 
-      <div className='flex items-center gap-2 flex-shrink-0'>
-        <Button
-          size='sm'
-          variant='outline'
-          className={cn(actionButtonClass, 'gap-1.5')}
-          onClick={() => {
-            void handleRerollLatest()
-          }}
-          aria-label='Reroll latest result'
-        >
-          <RotateCcw className='h-3.5 w-3.5' />
-          {!isBar && <span>Reroll</span>}
-        </Button>
-        <Button
-          size='sm'
-          variant='ghost'
-          className={cn(actionButtonClass, 'gap-1.5')}
-          onClick={() => copySummary(last)}
-          aria-label='Copy roll summary'
-        >
-          <Copy className='h-3.5 w-3.5' />
-          {!isBar && <span>Copy</span>}
-        </Button>
-        <Button
-          size='sm'
-          variant='outline'
-          className={cn(actionButtonClass, 'gap-1.5')}
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-          aria-controls='rollhud-history'
-          aria-label='Toggle roll history'
-        >
-          {expanded ? (
-            <ChevronUp className='h-3.5 w-3.5' />
-          ) : (
-            <ChevronDown className='h-3.5 w-3.5' />
-          )}
-          {!isBar && <span>History</span>}
-        </Button>
+        <div className='flex items-center gap-2 flex-shrink-0'>
+          <Button
+            size='sm'
+            variant='outline'
+            className={cn(actionButtonClass, 'gap-1.5')}
+            onClick={() => {
+              void handleRerollLatest()
+            }}
+            aria-label='Reroll latest result'
+          >
+            <RotateCcw className='h-3.5 w-3.5' />
+            {!isBar && <span>Reroll</span>}
+          </Button>
+          <Button
+            size='sm'
+            variant='ghost'
+            className={cn(actionButtonClass, 'gap-1.5')}
+            onClick={() => copySummary(last)}
+            aria-label='Copy roll summary'
+          >
+            <Copy className='h-3.5 w-3.5' />
+            {!isBar && <span>Copy</span>}
+          </Button>
+          <Button
+            size='sm'
+            variant='outline'
+            className={cn(actionButtonClass, 'gap-1.5')}
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            aria-controls='rollhud-history'
+            aria-label='Toggle roll history'
+          >
+            {expanded ? (
+              <ChevronUp className='h-3.5 w-3.5' />
+            ) : (
+              <ChevronDown className='h-3.5 w-3.5' />
+            )}
+            {!isBar && <span>History</span>}
+          </Button>
+        </div>
       </div>
     </div>
   )

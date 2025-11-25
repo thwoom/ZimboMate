@@ -11,9 +11,10 @@ import type {
   Location,
   NPC,
 } from '../models/Campaign'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import { campaignService } from '../services/CampaignService'
+import { useSecretaryStore } from './secretaryStore'
 
 interface CampaignState {
   // Campaign data
@@ -123,7 +124,7 @@ interface CampaignState {
   refreshFromService: () => void
 }
 
-export const useCampaignStore = create<CampaignState>()(
+export const useCampaignStore = createWithEqualityFn<CampaignState>()(
   persist(
     (set, get) => ({
       // Initial state - populate with mock data for development
@@ -144,6 +145,24 @@ export const useCampaignStore = create<CampaignState>()(
             activeCampaignId: campaign.id,
             error: null,
           }))
+
+          // Mirror creation into secretary log for cross-tab visibility
+          useSecretaryStore
+            .getState()
+            ?.applyActions({
+              text: `Campaign created: ${campaign.name}`,
+              actions: [
+                {
+                  type: 'addNote',
+                  title: `Campaign: ${campaign.name}`,
+                  body: description ?? '',
+                  confidence: 1,
+                  from: 'rules',
+                },
+              ],
+              confidence: 1,
+              createdAt: Date.now(),
+            })
 
           return campaign
         } catch (error) {
@@ -347,6 +366,22 @@ export const useCampaignStore = create<CampaignState>()(
 
           if (entry) {
             get().refreshFromService()
+            useSecretaryStore
+              .getState()
+              ?.applyActions({
+                text: `Journal entry: ${entry.title}`,
+                actions: [
+                  {
+                    type: 'addNote',
+                    title: entry.title,
+                    body: entry.content.slice(0, 400),
+                    confidence: 1,
+                    from: 'rules',
+                  },
+                ],
+                confidence: 1,
+                createdAt: Date.now(),
+              })
           }
 
           return entry

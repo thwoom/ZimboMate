@@ -1,30 +1,20 @@
 import type { CounterAdjust } from './widgets/InlineCounters'
-import type { DeltaOperation } from '@/services/llm'
-
 import React, { useCallback } from 'react'
-
-import { useChronicleLLM } from '@/components/chronicle/ChronicleProvider'
 import { cn } from '@/lib/utils'
 import { useCharacterStore } from '@/stores/characterStore'
-import { logger } from '@/utils/logger'
-import { createManualBundle } from './utils/manualBundle'
+import { useInventoryStore } from '@/stores/inventoryStore'
 import InlineCounters from './widgets/InlineCounters'
+import { logger } from '@/utils/logger'
+
 export interface FolioHeaderProps {
   className?: string
   highlighted?: boolean
   focusLabel?: string
 }
 
-export default function FolioHeader({
-  className,
-  highlighted = false,
-  focusLabel,
-}: FolioHeaderProps): JSX.Element {
+const FolioHeader: React.FC<FolioHeaderProps> = ({ className, highlighted = false, focusLabel }) => {
   const { getActiveCharacter } = useCharacterStore()
   const activeCharacter = getActiveCharacter()
-  const { applyDeltaBundle, canApplyAutomation, canAutoApply } =
-    useChronicleLLM()
-
   const characterId = activeCharacter?.id ?? null
   const name = activeCharacter?.name ?? 'Adventurer'
   const klass = activeCharacter?.class ?? '-'
@@ -37,97 +27,45 @@ export default function FolioHeader({
   const hold = (activeCharacter as any)?.hold ?? 0
 
   const handleCounterAdjust = useCallback(
-    async (change: CounterAdjust) => {
+    (change: CounterAdjust) => {
       if (!characterId) {
-        logger.warn(
-          '[folio] Inline counter adjustment ignored: no active character',
-        )
+        logger.warn('[folio] Inline counter adjustment ignored: no active character')
         return
       }
-      if (!canApplyAutomation) {
-        logger.warn(
-          '[folio] Inline counter adjustment ignored: automation is read-only in this rollout stage.',
-        )
-        return
-      }
-
-      const ops: DeltaOperation[] = []
-
       switch (change.kind) {
         case 'hp': {
           const amount = Math.abs(change.delta)
           if (amount === 0) break
-          if (change.delta < 0) {
-            ops.push({
-              type: 'apply_damage',
-              characterId,
-              amount,
-              source: 'Folio manual adjust',
-            })
-          } else {
-            ops.push({
-              type: 'heal',
-              characterId,
-              amount,
-              source: 'Folio manual adjust',
-            })
-          }
+          if (change.delta < 0) useCharacterStore.getState().damageCharacter?.(characterId, amount)
+          else useCharacterStore.getState().healCharacter?.(characterId, amount)
           break
         }
         case 'xp': {
           if (change.delta > 0) {
-            ops.push({ type: 'mark_xp', characterId, amount: change.delta })
-          } else if (change.delta < 0) {
-            logger.warn(
-              '[folio] XP reductions are not supported via manual counters yet',
-            )
+            useCharacterStore.getState().addXP?.(characterId, change.delta)
           }
           break
         }
         case 'ammo': {
           if (change.delta < 0) {
-            ops.push({
-              type: 'spend_ammo',
-              characterId,
-              amount: Math.abs(change.delta),
-            })
-          } else if (change.delta > 0) {
-            logger.warn(
-              '[folio] Ammo increases require inventory edits; skipping inline add',
-            )
+            const inv = useInventoryStore.getState()
+            const active = inv.inventories?.[characterId]
+            if (active && active.items.length > 0) {
+              const idx = active.items.findIndex((item) => item.tags?.includes('ammo'))
+              if (idx >= 0) {
+                const item = active.items[idx]
+                const uses = Math.max(0, (item.uses ?? 1) - Math.abs(change.delta))
+                inv.updateItem?.(characterId, item.id, { uses })
+              }
+            }
           }
-          break
-        }
-        case 'hold': {
-          logger.warn(
-            '[folio] Hold adjustments need a move context; skipping inline change',
-          )
-          break
-        }
-        case 'armor': {
-          logger.warn(
-            '[folio] Armor adjustments are derived from gear; edit equipment instead',
-          )
           break
         }
         default:
           break
       }
-
-      if (ops.length === 0) return
-
-      try {
-        const bundle = createManualBundle(ops)
-        await applyDeltaBundle({
-          bundle,
-          autoApply: canAutoApply,
-          selectedOpIndices: ops.map((_, index) => index),
-        })
-      } catch (error) {
-        logger.error('[folio] Failed to apply manual bundle', error)
-      }
     },
-    [applyDeltaBundle, canApplyAutomation, canAutoApply, characterId],
+    [characterId],
   )
 
   return (
@@ -140,12 +78,8 @@ export default function FolioHeader({
       )}
     >
       <div className='min-w-0 space-y-1'>
-        <h2 className='text-foreground truncate text-base font-semibold'>
-          {name}
-        </h2>
-        <p className='text-muted-foreground text-sm'>
-          Level {level} / {klass}
-        </p>
+        <h2 className='text-foreground truncate text-base font-semibold'>{name}</h2>
+        <p className='text-muted-foreground text-sm'>Level {level} / {klass}</p>
         {focusLabel && (
           <div className='max-w-full break-words rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary whitespace-normal'>
             {focusLabel}
@@ -163,3 +97,5 @@ export default function FolioHeader({
     </header>
   )
 }
+
+export default FolioHeader

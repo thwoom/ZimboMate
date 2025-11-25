@@ -79,7 +79,7 @@ describe('characterStore level-up workflow', () => {
     expect(pending?.draft).toBeDefined()
     expect(pending?.draft.activeStep).toBe('overview')
     expect(pending?.draft.moveIds).toEqual([])
-    expect(pending?.draft.chronicleEnabled).toBe(true)
+    expect(pending?.draft.secretaryEnabled).toBe(true)
   })
 
   it('applies level-up choices and clears pending state', () => {
@@ -159,7 +159,7 @@ describe('characterStore level-up workflow', () => {
     store.updateLevelUpDraft(character.id, {
       moveIds: moveOption ? [moveOption.id] : [],
       statIncreaseId: 'stat-str',
-      chronicleEnabled: false,
+      secretaryEnabled: false,
       activeStep: 'move',
     })
 
@@ -169,7 +169,7 @@ describe('characterStore level-up workflow', () => {
       moveOption ? [moveOption.id] : [],
     )
     expect(cloned?.draft.statIncreaseId).toBe('stat-str')
-    expect(cloned?.draft.chronicleEnabled).toBe(false)
+    expect(cloned?.draft.secretaryEnabled).toBe(false)
     expect(cloned?.draft.activeStep).toBe('move')
 
     cloned?.draft.moveIds.push('mutation-test')
@@ -235,7 +235,7 @@ describe('characterStore level-up workflow', () => {
     awardSpy.mockRestore()
   })
 
-  it('adds wizard spell selections and logs chronicle when enabled', () => {
+  it('adds wizard spell selections and keeps secretary logging flag when enabled', () => {
     const logSpy = logLevelUpEvent as unknown as vi.Mock
     const store = useCharacterStore.getState()
     const wizard = createTestCharacter({
@@ -263,7 +263,7 @@ describe('characterStore level-up workflow', () => {
     store.updateLevelUpDraft(wizard.id, {
       moveIds: moveOption ? [moveOption.id] : [],
       spellSelections: ['charm_person'],
-      chronicleEnabled: true,
+      secretaryEnabled: true,
     })
 
     store.applyLevelUpChoices(wizard.id, {})
@@ -282,7 +282,7 @@ describe('characterStore level-up workflow', () => {
     )
   })
 
-  it('does not log a chronicle entry when disabled', () => {
+  it('keeps secretary logging disabled when flag is false', () => {
     const logSpy = logLevelUpEvent as unknown as vi.Mock
     const store = useCharacterStore.getState()
     const wizard = createTestCharacter({
@@ -302,7 +302,7 @@ describe('characterStore level-up workflow', () => {
     store.updateLevelUpDraft(wizard.id, {
       moveIds: moveOption ? [moveOption.id] : [],
       spellSelections: ['alarm'],
-      chronicleEnabled: false,
+      secretaryEnabled: false,
     })
 
     store.applyLevelUpChoices(wizard.id, {})

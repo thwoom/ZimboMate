@@ -9,7 +9,7 @@ import type {
   MonsterTemplate,
   QuickMonster,
 } from '../models/Monster'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import {
   createQuickMonster,
@@ -75,7 +75,7 @@ interface MonsterState {
   getTemplateById: (id: string) => MonsterTemplate | null
 }
 
-export const useMonsterStore = create<MonsterState>()(
+export const useMonsterStore = createWithEqualityFn<MonsterState>()(
   persist(
     (set, get) => ({
       // Initial state

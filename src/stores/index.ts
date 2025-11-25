@@ -18,7 +18,6 @@ export type {
 } from '../models/Character'
 export { useCampaignStore } from './campaignStore'
 export { useCharacterStore } from './characterStore'
-export { useChronicleStore } from './chronicleStore'
 export { useGameStateStore } from './gameStateStore'
 export type {
   GameTime,
@@ -30,6 +29,7 @@ export type {
 export { useInventoryStore } from './inventoryStore'
 
 export { useSessionStore } from './sessionStore'
+export { useSecretaryStore } from './secretaryStore'
 
 export type {
   CombatState,

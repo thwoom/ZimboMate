@@ -37,9 +37,8 @@ async function captureScreenshots() {
   // Navigate through tabs
   const tabs = [
     { name: 'Character', file: '02-character-tab.png' },
-    { name: 'Dice', file: '03-dice-tab.png' },
-    { name: 'Game Management', file: '04-game-management-tab.png' },
-    { name: 'Settings', file: '05-settings-tab.png' }
+    { name: 'Game Management', file: '03-game-management-tab.png' },
+    { name: 'Settings', file: '04-settings-tab.png' }
   ];
 
   for (const tab of tabs) {
@@ -54,19 +53,6 @@ async function captureScreenshots() {
       });
     }
   }
-
-  // Check for Button Debug tab (dev only)
-  const debugButton = page.getByRole('button', { name: 'Button Debug' });
-  if (await debugButton.count() > 0) {
-    console.log('📸 Capturing Button Debug tab...');
-    await debugButton.first().click();
-    await page.waitForTimeout(500);
-    await page.screenshot({ 
-      path: join(outputDir, '06-button-debug-tab.png'),
-      fullPage: true 
-    });
-  }
-
   await browser.close();
   console.log('✅ Screenshots saved to screenshots/ directory');
 }

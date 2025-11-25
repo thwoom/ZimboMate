@@ -5,18 +5,16 @@
  */
 
 import type { Note } from '../components/game/SessionTools/NotesWidget'
-import type {
-  SessionTimer,
-  TimeBookmark,
-} from '../components/game/SessionTools/TimersWidget'
 import type { Tracker } from '../components/game/SessionTools/TrackersWidget'
+type SessionTimer = never
+type TimeBookmark = never
 import type {
   Condition,
   ForwardModifier,
   OngoingModifier,
 } from '../services/CharacterStateService'
 import type { DiceRoll } from '../services/DiceRollingService'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import { characterStateService } from '../services/CharacterStateService'
 
@@ -62,8 +60,8 @@ interface SessionState {
   // Session Tools data
   sessionNotes: Note[]
   sessionTrackers: Tracker[]
-  sessionTimers: SessionTimer[]
-  timeBookmarks: TimeBookmark[]
+  sessionTimers: []
+  timeBookmarks: []
 
   // Combat state
   combat: CombatState
@@ -103,13 +101,11 @@ interface SessionState {
   updateTracker: (trackerId: string, updates: Partial<Tracker>) => void
   deleteTracker: (trackerId: string) => void
 
-  // Timers management
-  addTimer: (timer: SessionTimer) => void
-  updateTimer: (timerId: string, updates: Partial<SessionTimer>) => void
+  // Timers/bookmarks removed for lightweight tabletop flow
+  addTimer: (timer: never) => void
+  updateTimer: (timerId: string, updates: Partial<never>) => void
   deleteTimer: (timerId: string) => void
-
-  // Bookmarks management
-  addBookmark: (bookmark: TimeBookmark) => void
+  addBookmark: (bookmark: never) => void
   deleteBookmark: (bookmarkId: string) => void
 
   // Combat management
@@ -142,7 +138,7 @@ interface SessionState {
   }
 }
 
-export const useSessionStore = create<SessionState>()(
+export const useSessionStore = createWithEqualityFn<SessionState>()(
   persist(
     (set, get) => ({
       // Initial state
@@ -316,43 +312,12 @@ export const useSessionStore = create<SessionState>()(
         }))
       },
 
-      // Timers management
-      addTimer: (timer) => {
-        set((state) => ({
-          sessionTimers: [...state.sessionTimers, timer],
-        }))
-      },
-
-      updateTimer: (timerId, updates) => {
-        set((state) => ({
-          sessionTimers: state.sessionTimers.map((timer) =>
-            timer.id === timerId ? { ...timer, ...updates } : timer,
-          ),
-        }))
-      },
-
-      deleteTimer: (timerId) => {
-        set((state) => ({
-          sessionTimers: state.sessionTimers.filter(
-            (timer) => timer.id !== timerId,
-          ),
-        }))
-      },
-
-      // Bookmarks management
-      addBookmark: (bookmark) => {
-        set((state) => ({
-          timeBookmarks: [...state.timeBookmarks, bookmark],
-        }))
-      },
-
-      deleteBookmark: (bookmarkId) => {
-        set((state) => ({
-          timeBookmarks: state.timeBookmarks.filter(
-            (bookmark) => bookmark.id !== bookmarkId,
-          ),
-        }))
-      },
+      // Timers/bookmarks (disabled for lightweight tabletop flow)
+      addTimer: () => {},
+      updateTimer: () => {},
+      deleteTimer: () => {},
+      addBookmark: () => {},
+      deleteBookmark: () => {},
 
       // Combat management
       startCombat: (characterIds) => {

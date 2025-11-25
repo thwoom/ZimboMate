@@ -1,100 +1,62 @@
-import React, { useCallback, useState } from 'react'
+import React from 'react'
+import { Card, CardContent, Textarea } from '@/components/ui'
+import { useSecretaryStore } from '@/stores/secretaryStore'
 
-import { Card, CardContent, Input } from '@/components/ui'
-import { cn } from '@/lib/utils'
-import { useCharacterStore } from '@/stores/characterStore'
-import { useChronicleStore } from '@/stores/chronicleStore'
-import { logger } from '@/utils/logger'
-
-import QuickNotePopover from './widgets/QuickNotePopover'
-
-export interface FolioNotesPageProps {
+interface FolioNotesPageProps {
   highlighted?: boolean
   onNoteCreated?: (title?: string) => void
 }
 
-export default function FolioNotesPage({
-  highlighted = false,
-  onNoteCreated,
-}: FolioNotesPageProps): JSX.Element {
-  const [title, setTitle] = useState('')
+const FolioNotesPage: React.FC<FolioNotesPageProps> = ({ onNoteCreated }) => {
+  const notes = useSecretaryStore((s) => s.notes)
 
-  const addEntry = useChronicleStore((state) => state.addEntry)
-  const currentSessionId = useChronicleStore((state) => state.currentSessionId)
-  const currentCampaignId = useChronicleStore(
-    (state) => state.currentCampaignId,
-  )
-  const getActiveCharacter = useCharacterStore(
-    (state) => state.getActiveCharacter,
-  )
-
-  const handleNoteSubmit = useCallback(
-    async ({ body }: { title?: string; body: string }) => {
-      const trimmedBody = body.trim()
-      const trimmedTitle = title.trim()
-      if (!trimmedBody) return
-
-      const activeCharacter = getActiveCharacter()
-      const rawText = trimmedTitle
-        ? `${trimmedTitle}
-
-${trimmedBody}`
-        : trimmedBody
-
-      try {
-        addEntry({
-          rawText,
-          sessionId: currentSessionId ?? 'folio-notes',
-          campaignId: currentCampaignId ?? undefined,
-          parsedEntities: [],
-          tags: ['folio-note'],
-          isSceneBreak: false,
-          userNotes: activeCharacter
-            ? `Linked to ${activeCharacter.name}`
-            : undefined,
-        })
-        onNoteCreated?.(trimmedTitle || undefined)
-        setTitle('')
-      } catch (error) {
-        logger.error('[folio] Failed to add quick note', error)
-      }
-    },
-    [
-      addEntry,
-      currentCampaignId,
-      currentSessionId,
-      getActiveCharacter,
-      onNoteCreated,
-      title,
-    ],
-  )
+  const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const data = new FormData(form)
+    const title = (data.get('title') as string) ?? ''
+    const body = (data.get('body') as string) ?? ''
+    useSecretaryStore.getState().applyActions({
+      text: `${title} ${body}`,
+      actions: [
+        {
+          type: 'addNote',
+          title: title || 'Note',
+          body,
+          confidence: 1,
+          from: 'rules',
+        },
+      ],
+      confidence: 1,
+      createdAt: Date.now(),
+    })
+    onNoteCreated?.(title)
+    form.reset()
+  }
 
   return (
-    <div className='grid gap-3 md:grid-cols-2'>
-      <Card className={cn(highlighted && 'ring-2 ring-primary/60')}>
-        <CardContent className='p-3'>
-          <h3 className='text-foreground mb-2 text-sm font-medium'>Notes</h3>
-          <div className='text-muted-foreground mb-3 text-sm'>
-            Attach quick notes to the chronicle without leaving your sheet.
-          </div>
-          <div className='flex items-center gap-2'>
-            <Input
-              aria-label='Note title'
-              placeholder='Short title (optional)'
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-            />
-            <QuickNotePopover title={title} onSubmit={handleNoteSubmit}>
-              <button
-                type='button'
-                className='bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-3 py-2 text-sm'
-              >
-                Add note
-              </button>
-            </QuickNotePopover>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardContent className='space-y-3'>
+        <form className='space-y-2' onSubmit={handleCreate}>
+          <input name='title' placeholder='Note title' className='w-full rounded border px-2 py-1 text-sm' />
+          <Textarea name='body' placeholder='Details' className='min-h-[120px]' />
+          <button type='submit' className='rounded bg-primary px-3 py-1 text-sm text-primary-foreground'>Save note</button>
+        </form>
+        <div className='space-y-2'>
+          {notes.map((note) => (
+            <div key={note.id} className='rounded border px-2 py-1'>
+              <div className='text-xs text-muted-foreground'>{new Date(note.createdAt).toLocaleTimeString()}</div>
+              <div className='text-sm font-semibold'>{note.title}</div>
+              {note.body ? <div className='text-xs text-muted-foreground'>{note.body}</div> : null}
+            </div>
+          ))}
+          {notes.length === 0 && (
+            <div className='text-sm text-muted-foreground'>No notes yet. Add one above.</div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
+
+export default FolioNotesPage

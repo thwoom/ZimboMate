@@ -1,23 +1,38 @@
+use base64::{engine::general_purpose::STANDARD as Base64Engine, Engine as _};
 use chrono::{NaiveDate, Utc};
-use reqwest::Client;
+use iota_stronghold::{
+    Client as StrongholdClient, ClientError as StrongholdClientError, KeyProvider, SnapshotPath,
+};
+use log::warn;
+use rand::{rngs::OsRng, RngCore};
+use reqwest::Client as HttpClient;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
-use std::fs;
-use std::path::PathBuf;
-use std::time::{Duration, Instant};
-use tauri::{AppHandle, Emitter};
-use tokio::sync::RwLock;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+    time::{Duration, Instant},
+};
+use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_stronghold::stronghold::Stronghold as StrongholdWrapper;
+use tokio::sync::{Mutex, RwLock};
+use zeroize::Zeroizing;
 
 const DEFAULT_BASE_URL: &str = "https://api.openai.com/v1";
 const DEFAULT_MODEL: &str = "gpt-5-chat-latest";
 const INITIALIZING_STAGE: &str = "initializing";
 const READY_STAGE: &str = "ready";
 const ERROR_STAGE: &str = "error";
-const APP_CONFIG_FOLDER: &str = "ZimboMate";
-const CREDENTIAL_FILE: &str = "openai_credentials.json";
+const STRONGHOLD_SNAPSHOT_FILE: &str = "llm_credentials.stronghold";
+const STRONGHOLD_PASSWORD_FILE: &str = "llm_master.key";
+const STRONGHOLD_CLIENT_NAME: &[u8] = b"llm-credentials-client";
+const STRONGHOLD_STORE_KEY: &[u8] = b"llm-credentials";
+const LEGACY_APP_CONFIG_FOLDER: &str = "ZimboMate";
+const LEGACY_CREDENTIAL_FILE: &str = "openai_credentials.json";
 
-#[derive(Debug, Default, Serialize, Deserialize)]
-struct PersistedCredentials {
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub(crate) struct StoredCredentials {
     #[serde(rename = "apiKey")]
     api_key: Option<String>,
     #[serde(rename = "baseUrl")]
@@ -27,7 +42,6 @@ struct PersistedCredentials {
     #[serde(rename = "projectId")]
     project_id: Option<String>,
 }
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum CampaignVibe {
     #[serde(rename = "fantasy")]
@@ -110,7 +124,7 @@ pub struct ModelInfo {
 }
 
 pub struct LlmService {
-    client: Client,
+    client: HttpClient,
     base_url: String,
     env_base_url: String,
     default_model: String,
@@ -133,9 +147,7 @@ impl LlmService {
             .unwrap_or_else(|| DEFAULT_MODEL.to_string());
 
         let prompt_cache_key = LlmService::read_env_var("OPENAI_PROMPT_CACHE_KEY");
-        let persisted = Self::load_persisted_credentials();
-
-        let client = Client::builder()
+        let client = HttpClient::builder()
             .timeout(Duration::from_secs(120))
             .build()
             .expect("failed to build HTTP client for OpenAI Responses API");
@@ -149,22 +161,10 @@ impl LlmService {
             prompt_cache_key,
             current_model: RwLock::new(None),
             is_ready: RwLock::new(false),
-            stored_api_key: persisted
-                .api_key
-                .map(|value| value.trim().to_string())
-                .filter(|value| !value.is_empty()),
-            stored_base_url: persisted
-                .base_url
-                .map(|value| value.trim().to_string())
-                .filter(|value| !value.is_empty()),
-            stored_model: persisted
-                .model
-                .map(|value| value.trim().to_string())
-                .filter(|value| !value.is_empty()),
-            stored_project_id: persisted
-                .project_id
-                .map(|value| value.trim().to_string())
-                .filter(|value| !value.is_empty()),
+            stored_api_key: None,
+            stored_base_url: None,
+            stored_model: None,
+            stored_project_id: None,
         };
 
         instance.apply_overrides();
@@ -200,47 +200,6 @@ impl LlmService {
             .ok()
             .map(|value| value.trim().to_string())
             .filter(|value| !value.is_empty())
-    }
-
-    fn config_path() -> Option<PathBuf> {
-        dirs::config_dir().map(|dir| dir.join(APP_CONFIG_FOLDER).join(CREDENTIAL_FILE))
-    }
-
-    fn load_persisted_credentials() -> PersistedCredentials {
-        if let Some(path) = Self::config_path() {
-            if let Ok(raw) = fs::read_to_string(&path) {
-                if let Ok(payload) = serde_json::from_str::<PersistedCredentials>(&raw) {
-                    return payload;
-                }
-            }
-        }
-
-        PersistedCredentials::default()
-    }
-
-    fn persist_credentials(&self) -> Result<(), String> {
-        let Some(path) = Self::config_path() else {
-            return Ok(());
-        };
-
-        if let Some(parent) = path.parent() {
-            if let Err(error) = fs::create_dir_all(parent) {
-                return Err(format!("Failed to create credentials directory: {}", error));
-            }
-        }
-
-        let payload = PersistedCredentials {
-            api_key: self.stored_api_key.clone(),
-            base_url: self.stored_base_url.clone(),
-            model: self.stored_model.clone(),
-            project_id: self.stored_project_id.clone(),
-        };
-
-        let contents = serde_json::to_string_pretty(&payload)
-            .map_err(|error| format!("Failed to serialize credentials: {}", error))?;
-
-        fs::write(&path, contents)
-            .map_err(|error| format!("Failed to persist credentials: {}", error))
     }
 
     fn apply_overrides(&mut self) {
@@ -316,12 +275,40 @@ impl LlmService {
             || self.stored_project_id.is_some()
     }
 
-    pub fn credentials_file_path() -> Option<PathBuf> {
-        Self::config_path()
-    }
-
     pub fn stored_project_id(&self) -> Option<String> {
         self.stored_project_id.clone()
+    }
+
+    pub async fn hydrate_from_stronghold(
+        service: &Arc<Mutex<LlmService>>,
+        app_handle: &AppHandle,
+    ) -> Result<(), String> {
+        let handle = app_handle.clone();
+        let credentials = tokio::task::spawn_blocking(move || {
+            let (stronghold, client) = Self::open_stronghold_client(&handle)?;
+            let mut credentials = Self::read_credentials_from_client(&client)?;
+            if credentials.is_none() {
+                if let Some(legacy) = Self::read_legacy_credentials()? {
+                    let sanitized = Self::sanitize_stored_credentials(legacy);
+                    Self::write_credentials_to_client(&client, &sanitized)?;
+                    stronghold
+                        .save()
+                        .map_err(|error| format!("Failed to save stronghold snapshot: {error}"))?;
+                    Self::remove_legacy_credentials();
+                    credentials = Some(sanitized);
+                }
+            }
+            Ok::<_, String>(credentials)
+        })
+        .await
+        .map_err(|error| format!("Stronghold hydration task failed: {error}"))??;
+
+        if let Some(credentials) = credentials {
+            let mut guard = service.lock().await;
+            guard.apply_stored_credentials(credentials);
+        }
+
+        Ok(())
     }
 
     pub async fn update_overrides(
@@ -330,73 +317,56 @@ impl LlmService {
         base_url: Option<String>,
         model: Option<String>,
         project_id: Option<String>,
-    ) -> Result<(), String> {
+    ) -> Result<bool, String> {
         let mut invalidate_runtime = false;
         let mut base_changed = false;
         let mut model_changed = false;
+        let mut changed = false;
 
         if let Some(value) = api_key {
-            let normalized = value.trim().to_string();
-            let next = if normalized.is_empty() {
-                None
-            } else {
-                Some(normalized)
-            };
+            let next = Self::normalize_optional(Some(value));
 
             if self.stored_api_key != next {
                 self.stored_api_key = next;
                 invalidate_runtime = true;
+                changed = true;
             }
         }
 
         if let Some(value) = base_url {
-            let normalized = value.trim().to_string();
-            let next = if normalized.is_empty() {
-                None
-            } else {
-                Some(normalized)
-            };
+            let next = Self::normalize_optional(Some(value));
 
             if self.stored_base_url != next {
                 self.stored_base_url = next;
                 base_changed = true;
                 invalidate_runtime = true;
+                changed = true;
             }
         }
 
         if let Some(value) = model {
-            let normalized = value.trim().to_string();
-            let next = if normalized.is_empty() {
-                None
-            } else {
-                Some(normalized)
-            };
+            let next = Self::normalize_optional(Some(value));
 
             if self.stored_model != next {
                 self.stored_model = next;
                 model_changed = true;
                 invalidate_runtime = true;
+                changed = true;
             }
         }
 
         if let Some(value) = project_id {
-            let normalized = value.trim().to_string();
-            let next = if normalized.is_empty() {
-                None
-            } else {
-                Some(normalized)
-            };
+            let next = Self::normalize_optional(Some(value));
 
             if self.stored_project_id != next {
                 self.stored_project_id = next;
+                changed = true;
             }
         }
 
         if base_changed || model_changed {
             self.apply_overrides();
         }
-
-        self.persist_credentials()?;
 
         if invalidate_runtime {
             {
@@ -409,6 +379,228 @@ impl LlmService {
                 *model = None;
             }
         }
+
+        Ok(changed)
+    }
+
+    pub fn snapshot_credentials(&self) -> StoredCredentials {
+        StoredCredentials {
+            api_key: self.stored_api_key.clone(),
+            base_url: self.stored_base_url.clone(),
+            model: self.stored_model.clone(),
+            project_id: self.stored_project_id.clone(),
+        }
+    }
+
+    fn apply_stored_credentials(&mut self, stored: StoredCredentials) {
+        let sanitized = Self::sanitize_stored_credentials(stored);
+        self.stored_api_key = sanitized.api_key;
+        self.stored_base_url = sanitized.base_url;
+        self.stored_model = sanitized.model;
+        self.stored_project_id = sanitized.project_id;
+        self.apply_overrides();
+    }
+
+    fn normalize_optional(value: Option<String>) -> Option<String> {
+        value.and_then(|value| {
+            let trimmed = value.trim().to_string();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed)
+            }
+        })
+    }
+
+    fn sanitize_stored_credentials(mut credentials: StoredCredentials) -> StoredCredentials {
+        credentials.api_key = Self::normalize_optional(credentials.api_key);
+        credentials.base_url = Self::normalize_optional(credentials.base_url);
+        credentials.model = Self::normalize_optional(credentials.model);
+        credentials.project_id = Self::normalize_optional(credentials.project_id);
+        credentials
+    }
+
+    fn stronghold_base_dir(app_handle: &AppHandle) -> Result<PathBuf, String> {
+        app_handle
+            .path()
+            .app_local_data_dir()
+            .map_err(|error| format!("Failed to resolve application data directory: {error}"))
+    }
+
+    fn load_or_create_master_password(path: &Path) -> Result<Vec<u8>, String> {
+        if path.exists() {
+            let data = fs::read_to_string(path)
+                .map_err(|error| format!("Failed to read stronghold key file: {error}"))?;
+            let trimmed = data.trim();
+            if trimmed.is_empty() {
+                return Err("Stronghold key file is empty".to_string());
+            }
+            Base64Engine
+                .decode(trimmed)
+                .map_err(|error| format!("Failed to decode stronghold key: {error}"))
+        } else {
+            if let Some(parent) = path.parent() {
+                fs::create_dir_all(parent).map_err(|error| {
+                    format!("Failed to create stronghold key directory: {error}")
+                })?;
+            }
+            let mut buffer = vec![0u8; 32];
+            OsRng.fill_bytes(&mut buffer);
+            let encoded = Base64Engine.encode(&buffer);
+            fs::write(path, encoded)
+                .map_err(|error| format!("Failed to write stronghold key file: {error}"))?;
+            Ok(buffer)
+        }
+    }
+
+    fn open_stronghold_client(
+        app_handle: &AppHandle,
+    ) -> Result<(StrongholdWrapper, StrongholdClient), String> {
+        let base_dir = Self::stronghold_base_dir(app_handle)?;
+        fs::create_dir_all(&base_dir)
+            .map_err(|error| format!("Failed to create stronghold directory: {error}"))?;
+        let snapshot_path = base_dir.join(STRONGHOLD_SNAPSHOT_FILE);
+        let password_path = base_dir.join(STRONGHOLD_PASSWORD_FILE);
+        let password = Self::load_or_create_master_password(&password_path)?;
+        let stronghold = StrongholdWrapper::new(&snapshot_path, password.clone())
+            .map_err(|error| format!("Failed to initialize stronghold: {error}"))?;
+        let key_provider = KeyProvider::try_from(Zeroizing::new(password))
+            .map_err(|error| format!("Failed to derive stronghold key provider: {error}"))?;
+        let snapshot = SnapshotPath::from_path(&snapshot_path);
+
+        let client = match stronghold.get_client(STRONGHOLD_CLIENT_NAME) {
+            Ok(client) => client,
+            Err(_) => {
+                if snapshot_path.exists() {
+                    match stronghold.load_client_from_snapshot(
+                        STRONGHOLD_CLIENT_NAME,
+                        &key_provider,
+                        &snapshot,
+                    ) {
+                        Ok(client) => client,
+                        Err(error) => match error {
+                            StrongholdClientError::ClientDataNotPresent
+                            | StrongholdClientError::SnapshotFileMissing(_) => {
+                                stronghold.create_client(STRONGHOLD_CLIENT_NAME).map_err(
+                                    |error| format!("Failed to create stronghold client: {error}"),
+                                )?
+                            }
+                            other => {
+                                return Err(format!("Failed to load stronghold client: {other}"))
+                            }
+                        },
+                    }
+                } else {
+                    stronghold
+                        .create_client(STRONGHOLD_CLIENT_NAME)
+                        .map_err(|error| format!("Failed to create stronghold client: {error}"))?
+                }
+            }
+        };
+
+        Ok((stronghold, client))
+    }
+
+    fn read_credentials_from_client(
+        client: &StrongholdClient,
+    ) -> Result<Option<StoredCredentials>, String> {
+        let store = client.store();
+        let bytes = store.get(STRONGHOLD_STORE_KEY).map_err(|error| {
+            format!("Failed to read credentials from stronghold store: {error}")
+        })?;
+
+        if let Some(bytes) = bytes {
+            if bytes.is_empty() {
+                return Ok(None);
+            }
+
+            match serde_json::from_slice::<StoredCredentials>(&bytes) {
+                Ok(credentials) => Ok(Some(Self::sanitize_stored_credentials(credentials))),
+                Err(error) => {
+                    warn!("[LLM] Failed to parse stored credentials payload: {error}");
+                    Ok(None)
+                }
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn write_credentials_to_client(
+        client: &StrongholdClient,
+        credentials: &StoredCredentials,
+    ) -> Result<(), String> {
+        let payload = serde_json::to_vec(credentials)
+            .map_err(|error| format!("Failed to serialize credentials: {error}"))?;
+        client
+            .store()
+            .insert(STRONGHOLD_STORE_KEY.to_vec(), payload, None)
+            .map_err(|error| format!("Failed to persist credentials: {error}"))?;
+        Ok(())
+    }
+
+    fn legacy_credentials_path() -> Option<PathBuf> {
+        dirs::config_dir().map(|dir| {
+            dir.join(LEGACY_APP_CONFIG_FOLDER)
+                .join(LEGACY_CREDENTIAL_FILE)
+        })
+    }
+
+    fn read_legacy_credentials() -> Result<Option<StoredCredentials>, String> {
+        let Some(path) = Self::legacy_credentials_path() else {
+            return Ok(None);
+        };
+
+        if !path.exists() {
+            return Ok(None);
+        }
+
+        let contents = fs::read_to_string(&path)
+            .map_err(|error| format!("Failed to read legacy credentials: {error}"))?;
+
+        match serde_json::from_str::<StoredCredentials>(&contents) {
+            Ok(credentials) => Ok(Some(Self::sanitize_stored_credentials(credentials))),
+            Err(error) => {
+                warn!(
+                    "[LLM] Failed to parse legacy credentials from {}: {error}",
+                    path.display()
+                );
+                Ok(None)
+            }
+        }
+    }
+
+    fn remove_legacy_credentials() {
+        if let Some(path) = Self::legacy_credentials_path() {
+            if path.exists() {
+                if let Err(error) = fs::remove_file(&path) {
+                    warn!(
+                        "[LLM] Failed to remove legacy credentials file {}: {}",
+                        path.display(),
+                        error
+                    );
+                }
+            }
+        }
+    }
+
+    pub async fn persist_credentials_snapshot(
+        credentials: StoredCredentials,
+        app_handle: &AppHandle,
+    ) -> Result<(), String> {
+        let handle = app_handle.clone();
+        let sanitized = Self::sanitize_stored_credentials(credentials);
+
+        tokio::task::spawn_blocking(move || {
+            let (stronghold, client) = Self::open_stronghold_client(&handle)?;
+            Self::write_credentials_to_client(&client, &sanitized)?;
+            stronghold
+                .save()
+                .map_err(|error| format!("Failed to save stronghold snapshot: {error}"))?;
+            Ok::<(), String>(())
+        })
+        .await
+        .map_err(|error| format!("Stronghold persist task failed: {error}"))??;
 
         Ok(())
     }
@@ -881,9 +1073,18 @@ Return JSON that matches the provided schema exactly. Never omit required fields
             .map_err(|e| format!("Failed to parse OpenAI response JSON: {}", e))?;
 
         if let Some(error) = value.get("error") {
-            let serialized =
-                serde_json::to_string(error).unwrap_or_else(|_| "unknown error".to_string());
-            return Err(format!("OpenAI returned an error payload: {}", serialized));
+            let is_meaningful_error = match error {
+                Value::Null => false,
+                Value::Bool(false) => false,
+                Value::Object(map) if map.is_empty() => false,
+                _ => true,
+            };
+
+            if is_meaningful_error {
+                let serialized =
+                    serde_json::to_string(error).unwrap_or_else(|_| "unknown error".to_string());
+                return Err(format!("OpenAI returned an error payload: {}", serialized));
+            }
         }
 
         if let Some(reason) = value
@@ -1027,11 +1228,20 @@ impl LlmService {
         })?;
 
         if let Some(error) = value.get("error") {
-            let serialized =
-                serde_json::to_string(error).unwrap_or_else(|_| "unknown error".to_string());
-            let message = format!("OpenAI returned an error payload: {}", serialized);
-            emit_failure_telemetry(&message);
-            return Err(message);
+            let is_meaningful_error = match error {
+                Value::Null => false,
+                Value::Bool(false) => false,
+                Value::Object(map) if map.is_empty() => false,
+                _ => true,
+            };
+
+            if is_meaningful_error {
+                let serialized =
+                    serde_json::to_string(error).unwrap_or_else(|_| "unknown error".to_string());
+                let message = format!("OpenAI returned an error payload: {}", serialized);
+                emit_failure_telemetry(&message);
+                return Err(message);
+            }
         }
 
         let usage = extract_token_usage(&value);

@@ -8,7 +8,7 @@ import type { SpellProgression } from '../data/advancement/spellProgression'
 import type { Attributes, Character } from '../models/Character'
 import type { AdvancementOption } from '../services/AdvancementService'
 import type { ServiceSpell } from '../services/SpellCastingService'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import { getXPThreshold } from '../models/Character'
 import { advancementService } from '../services/AdvancementService'
@@ -104,7 +104,7 @@ export interface LevelUpDraft {
   statIncreaseId?: string
   moveIds: string[]
   spellSelections: string[]
-  chronicleEnabled: boolean
+  secretaryEnabled: boolean
   activeStep: LevelUpWizardStep
   lastUpdated: string
 }
@@ -130,9 +130,9 @@ function createLevelUpDraft(
     spellSelections: Array.isArray(overrides.spellSelections)
       ? [...overrides.spellSelections]
       : [],
-    chronicleEnabled:
-      typeof overrides.chronicleEnabled === 'boolean'
-        ? overrides.chronicleEnabled
+    secretaryEnabled:
+      typeof overrides.secretaryEnabled === 'boolean'
+        ? overrides.secretaryEnabled
         : true,
     activeStep,
     lastUpdated: overrides.lastUpdated ?? timestamp,
@@ -146,14 +146,14 @@ function ensureLevelUpDraft(draft?: LevelUpDraft): LevelUpDraft {
 
   const hasValidMoveIds = Array.isArray(draft.moveIds)
   const hasValidSpellSelections = Array.isArray(draft.spellSelections)
-  const hasValidChronicle = typeof draft.chronicleEnabled === 'boolean'
+  const hasValidSecretary = typeof draft.secretaryEnabled === 'boolean'
   const hasValidStep = isLevelUpWizardStep(draft.activeStep)
   const hasValidTimestamp = typeof draft.lastUpdated === 'string'
 
   if (
     hasValidMoveIds &&
     hasValidSpellSelections &&
-    hasValidChronicle &&
+    hasValidSecretary &&
     hasValidStep &&
     hasValidTimestamp
   ) {
@@ -164,7 +164,7 @@ function ensureLevelUpDraft(draft?: LevelUpDraft): LevelUpDraft {
     statIncreaseId: draft.statIncreaseId,
     moveIds: hasValidMoveIds ? draft.moveIds : [],
     spellSelections: hasValidSpellSelections ? draft.spellSelections : [],
-    chronicleEnabled: hasValidChronicle ? draft.chronicleEnabled : true,
+    secretaryEnabled: hasValidSecretary ? draft.secretaryEnabled : true,
     activeStep: hasValidStep ? (draft.activeStep as LevelUpWizardStep) : 'overview',
     lastUpdated: hasValidTimestamp ? (draft.lastUpdated as string) : new Date().toISOString(),
   }
@@ -305,7 +305,7 @@ interface CharacterState {
   setLoading: (loading: boolean) => void
 }
 
-export const useCharacterStore = create<CharacterState>()(
+export const useCharacterStore = createWithEqualityFn<CharacterState>()(
   persist(
     (set, get) => ({
       // Initial state
@@ -836,7 +836,7 @@ export const useCharacterStore = create<CharacterState>()(
               moveNames: selectedMoveNames,
               spellNames: addedSpellNames,
             },
-            { includeNarrative: Boolean(draft.chronicleEnabled) },
+            { includeNarrative: Boolean(draft.secretaryEnabled) },
           )
 
           const statApplied = Boolean(statIncreaseName)
@@ -949,12 +949,12 @@ export const useCharacterStore = create<CharacterState>()(
             }
 
             if (
-              Object.prototype.hasOwnProperty.call(updates, 'chronicleEnabled') &&
-              typeof updates.chronicleEnabled === 'boolean'
+              Object.prototype.hasOwnProperty.call(updates, 'secretaryEnabled') &&
+              typeof updates.secretaryEnabled === 'boolean'
             ) {
               draft = {
                 ...draft,
-                chronicleEnabled: updates.chronicleEnabled,
+                secretaryEnabled: updates.secretaryEnabled,
               }
             }
 
@@ -1184,3 +1184,4 @@ export const useCharacterStore = create<CharacterState>()(
     },
   ),
 )
+

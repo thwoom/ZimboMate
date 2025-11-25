@@ -3,17 +3,16 @@
  * Phase 4A: Core Gameplay Features - Essential for actual play
  */
 
-import { History, NotebookPen, Search, Target, Timer } from 'lucide-react'
+import { History, NotebookPen, Search, Target } from 'lucide-react'
 import React, { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { Badge, Card, CardContent, Input } from '../../ui'
 import { NotesWidget } from './NotesWidget'
 import { RollHistoryWidget } from './RollHistoryWidget'
-import { TimersWidget } from './TimersWidget'
 import { TrackersWidget } from './TrackersWidget'
 
-type SessionToolTab = 'notes' | 'trackers' | 'timers' | 'history'
+type SessionToolTab = 'notes' | 'trackers' | 'history'
 
 interface SessionToolsPanelProps {
   className?: string
@@ -37,12 +36,6 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
       label: 'Trackers',
       icon: Target,
       description: 'Custom counters and progress trackers',
-    },
-    {
-      id: 'timers' as const,
-      label: 'Timers',
-      icon: Timer,
-      description: 'Session timers and bookmarks',
     },
     {
       id: 'history' as const,
@@ -116,9 +109,6 @@ export const SessionToolsPanel: React.FC<SessionToolsPanelProps> = ({
       </TabsContent>
       <TabsContent value='trackers' className='mt-0'>
         <TrackersWidget />
-      </TabsContent>
-      <TabsContent value='timers' className='mt-0'>
-        <TimersWidget />
       </TabsContent>
       <TabsContent value='history' className='mt-0'>
         <RollHistoryWidget searchQuery={searchQuery} />

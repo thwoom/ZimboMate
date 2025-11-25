@@ -4,7 +4,7 @@
  */
 
 import type { CombatResult } from '../services/GameLogicService'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import { gameLogicService } from '../services/GameLogicService'
 
@@ -113,7 +113,7 @@ interface CombatState {
   }
 }
 
-export const useCombatStore = create<CombatState>()(
+export const useCombatStore = createWithEqualityFn<CombatState>()(
   persist(
     (set, get) => ({
       // Initial state

@@ -39,7 +39,6 @@ const screenshotOptions = {
 const tabs = [
   { label: 'Play', file: 'play-tab.png' },
   { label: 'Character', file: 'character-tab.png' },
-  { label: 'Dice', file: 'dice-tab.png' },
   { label: 'Game Management', file: 'game-management-tab.png' },
   { label: 'Settings', file: 'settings-tab.png' },
 ]
@@ -71,21 +70,4 @@ test.describe('Visual Regression - Matsu Theme', () => {
       await expect(page).toHaveScreenshot(file, screenshotOptions)
     })
   }
-
-  test('Button Debug tab matches baseline when available', async ({ page }) => {
-    const button = page.getByRole('button', {
-      name: 'Button Debug',
-      exact: true,
-    })
-    if ((await button.count()) === 0) {
-      test.skip('Button Debug tab not available in this build')
-    }
-
-    await button.first().click()
-    await page.waitForTimeout(300)
-    await expect(page).toHaveScreenshot(
-      'button-debug-tab.png',
-      screenshotOptions,
-    )
-  })
 })

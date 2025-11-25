@@ -1,10 +1,3 @@
-import type { GameSession } from './services/MultiplayerService'
-import type { ButtonDiagnostic } from './utils/buttonUtils'
-import {
-  BugAntIcon,
-  DocumentTextIcon,
-  WrenchScrewdriverIcon,
-} from '@heroicons/react/24/outline'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   NotebookPen,
@@ -14,7 +7,7 @@ import {
   User,
 } from 'lucide-react'
 import React, { useState } from 'react'
-import { ChronicleProvider } from './components/chronicle/ChronicleProvider'
+import ModeStatusBadge from './components/ui/ModeStatusBadge'
 import Folio from './components/game/CharacterSheet/Folio'
 import { ContextAwareSystem } from './components/game/ContextAwareSystem'
 import { CharacterBuilder } from './components/game/creation/CharacterBuilder'
@@ -22,17 +15,16 @@ import { GameManagementTab } from './components/game/GameManagementTab'
 import LevelUpBondReminder from './components/game/LevelUpBondReminder'
 import { LevelUpWizard } from './components/game/LevelUpWizard'
 import { PlayTab } from './components/game/PlayTab'
-import { SessionManager } from './components/game/SessionManager'
 import { RightRail, SplitPane } from './components/layout'
 import { Badge, Button, Card, CardContent, ThemeComponentShowcase } from './components/ui'
 import { AuthProvider } from './components/ui/AuthProvider'
-import { ButtonDebugger } from './components/ui/ButtonDebugger'
 import { CommandPalette } from './components/ui/CommandPalette'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { SettingsPanel } from './components/ui/SettingsPanel'
 import { ThemeProvider } from './components/ui/ThemeProvider'
 import { ThemeStatusBadge } from './components/ui/ThemeStatusBadge'
 import { TooltipProvider } from './components/ui/tooltip'
+import { useCapabilities } from './hooks/useCapabilities'
 import { useDiceKeyboardShortcuts } from './hooks/useDiceKeyboardShortcuts'
 import {
   useCommandPalette,
@@ -41,61 +33,65 @@ import {
   useNavigationShortcuts,
 } from './hooks/useKeyboardShortcuts'
 import { useCharacterStore } from './stores/characterStore'
-import {
-  autoFixAllButtons,
-  diagnoseAllButtons,
-  enableButtonDebugging,
-  generateButtonReport,
-} from './utils/buttonUtils'
 import { logger } from './utils/logger'
 import './utils/initializeMockData' // Initialize mock data for development
 import './utils/exposeStoresForTesting'
+import { DiceRollEffects } from './components/dice/DiceRollEffects'
+import { ModeSelector } from './components/ui/ModeSelector'
 
-type ActiveTab =
-  | 'play'
-  | 'character'
-  | 'game-management'
-  | 'settings'
-  | 'button-debug'
+type ActiveTab = 'play' | 'character' | 'game-management' | 'settings'
 
 const App: React.FC = () => {
+  const capabilities = useCapabilities()
   const { characters, getActiveCharacter } = useCharacterStore()
   const activeCharacter = getActiveCharacter
     ? getActiveCharacter()
     : (characters[0] ?? null)
   const [activeTab, setActiveTab] = useState<ActiveTab>('play')
   const [showCharacterBuilder, setShowCharacterBuilder] = useState(false)
-  const [showSessionManager, setShowSessionManager] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [themeShowcaseOpen, setThemeShowcaseOpen] = useState(false)
-  const [buttonDiagnostics, setButtonDiagnostics] = useState<
-    ButtonDiagnostic[]
-  >([])
-  const [debuggingEnabled, setDebuggingEnabled] = useState(false)
-  const [autoFixCount, setAutoFixCount] = useState(0)
   const [gameManagementInitialTab, setGameManagementInitialTab] = useState<
-    'chronicle' | 'campaign' | 'monsters' | 'multiplayer' | 'tools'
-  >('chronicle')
+    'campaign' | 'monsters' | 'multiplayer' | 'tools'
+  >('campaign')
   const [gameManagementResetToken, setGameManagementResetToken] = useState(0)
+  const [modeSelectorOpen, setModeSelectorOpen] = useState(false)
+  const capabilitiesLoggedRef = React.useRef(false)
 
   const openGameManagement = (
-    tab: 'chronicle' | 'campaign' | 'monsters' | 'multiplayer' | 'tools' = 'chronicle',
+    tab?: 'campaign' | 'monsters' | 'multiplayer' | 'tools',
   ) => {
-    setGameManagementInitialTab(tab)
+    const resolved = tab ?? 'campaign'
+    setGameManagementInitialTab(resolved)
     setGameManagementResetToken((token) => token + 1)
     setActiveTab('game-management')
   }
+
+  React.useEffect(() => {
+    setGameManagementInitialTab('campaign')
+  }, [])
+
+  React.useEffect(() => {
+    const shouldLog =
+      import.meta.env.DEV ||
+      import.meta.env.VITE_ENABLE_CAPABILITIES_SNAPSHOT === 'true'
+    if (!shouldLog) return
+    if (capabilitiesLoggedRef.current) return
+    capabilitiesLoggedRef.current = true
+    logger.info('capabilities.snapshot', {
+      mode: capabilities.mode,
+      llmAllowed: capabilities.llmAllowed,
+      canApplyAutomation: capabilities.canApplyAutomation,
+      canUndoAutomation: capabilities.canUndoAutomation,
+      rolloutStage: capabilities.rolloutStage,
+    })
+  }, [capabilities, logger])
 
   const isLocalhost =
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1' ||
       window.location.hostname === '::1')
-
-  const shouldShowButtonDebugTab =
-    import.meta.env.DEV ||
-    import.meta.env.VITE_ENABLE_BUTTON_DEBUG === 'true' ||
-    isLocalhost
 
 const tabs: Array<{
     id: ActiveTab
@@ -111,7 +107,7 @@ const tabs: Array<{
       id: 'game-management' as const,
       label: 'Game Management',
       icon: NotebookPen,
-      description: 'Chronicle, Campaign, Monsters & More',
+      description: 'Campaign, Monsters & More',
     },
     {
       id: 'settings' as const,
@@ -119,15 +115,6 @@ const tabs: Array<{
       icon: Settings,
       enhanced: true,
     },
-    ...(shouldShowButtonDebugTab
-      ? [
-          {
-            id: 'button-debug' as const,
-            label: 'Button Debug',
-            icon: WrenchScrewdriverIcon,
-          },
-        ]
-      : []),
   ]
 
   // Command palette integration
@@ -292,13 +279,6 @@ const tabs: Array<{
                     </div>
                     <div className='flex flex-wrap items-center gap-2'>
                       <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => setShowSessionManager(true)}
-                      >
-                        Manage Session
-                      </Button>
-                      <Button
                         variant='primary'
                         size='sm'
                         onClick={() => setShowCharacterBuilder(true)}
@@ -409,186 +389,6 @@ const tabs: Array<{
             <SettingsPanel />
           </motion.div>
         )
-      case 'button-debug':
-        return (
-          <motion.div
-            key='button-debug'
-            variants={tabVariants}
-            initial='hidden'
-            animate='visible'
-            exit='exit'
-          >
-            <div className='max-w-6xl mx-auto space-y-8'>
-              {/* Button Debug Control Panel */}
-              <Card variant='magical' className='p-6'>
-                <CardContent>
-                  <div className='space-y-6'>
-                    <div>
-                      <h2 className='text-display-md mb-2'>
-                        ZimboMate v2 Button Debugger
-                      </h2>
-                      <p className='text-muted-foreground'>
-                        Diagnose and fix button functionality issues throughout
-                        the application
-                      </p>
-                    </div>
-
-                    <div className='flex flex-wrap gap-4'>
-                      <Button
-                        variant='cyber'
-                        onClick={() => {
-                          const results = diagnoseAllButtons()
-                          setButtonDiagnostics(results)
-                          logger.info('🔍 Button diagnosis completed:', results)
-                        }}
-                      >
-                        <BugAntIcon size={16} />
-                        Run Diagnosis
-                      </Button>
-
-                      <Button
-                        variant='secondary'
-                        onClick={() => {
-                          enableButtonDebugging()
-                          setDebuggingEnabled(true)
-                          logger.info('🔧 Button debugging enabled')
-                        }}
-                        disabled={debuggingEnabled}
-                      >
-                        <WrenchScrewdriverIcon size={16} />
-                        {debuggingEnabled
-                          ? 'Debugging Active'
-                          : 'Enable Debug Mode'}
-                      </Button>
-
-                      <Button
-                        variant='magical'
-                        onClick={() => {
-                          const fixed = autoFixAllButtons()
-                          setAutoFixCount((prev) => prev + fixed)
-                          logger.info(`🔧 Auto-fixed ${fixed} button issues`)
-                        }}
-                      >
-                        <WrenchScrewdriverIcon size={16} />
-                        Auto-Fix Issues
-                      </Button>
-
-                      <Button
-                        variant='outline'
-                        onClick={() => {
-                          const report = generateButtonReport()
-                          logger.info(report)
-
-                          // Download report
-                          const blob = new Blob([report], {
-                            type: 'text/plain',
-                          })
-                          const url = URL.createObjectURL(blob)
-                          const a = document.createElement('a')
-                          a.href = url
-                          a.download = 'zimbomate-v2-button-report.txt'
-                          a.click()
-                          URL.revokeObjectURL(url)
-                        }}
-                      >
-                        <DocumentTextIcon size={16} />
-                        Download Report
-                      </Button>
-                    </div>
-
-                    {/* Status Summary */}
-                    <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                      <div className='text-center p-4 rounded-lg bg-popover'>
-                        <div className='text-2xl font-bold text-[color:var(--nature-500)]'>
-                          {buttonDiagnostics.filter((d) => d.working).length}
-                        </div>
-                        <div className='text-sm text-muted-foreground'>
-                          Working Buttons
-                        </div>
-                      </div>
-
-                      <div className='text-center p-4 rounded-lg bg-popover'>
-                        <div className='text-2xl font-bold text-[color:var(--red-500)]'>
-                          {buttonDiagnostics.filter((d) => !d.working).length}
-                        </div>
-                        <div className='text-sm text-muted-foreground'>
-                          Issues Found
-                        </div>
-                      </div>
-
-                      <div className='text-center p-4 rounded-lg bg-popover'>
-                        <div className='text-2xl font-bold text-[color:var(--yellow-500)]'>
-                          {autoFixCount}
-                        </div>
-                        <div className='text-sm text-muted-foreground'>
-                          Auto-Fixed
-                        </div>
-                      </div>
-
-                      <div className='text-center p-4 rounded-lg bg-popover'>
-                        <div className='text-2xl font-bold text-primary'>
-                          {debuggingEnabled ? '🔧' : '💤'}
-                        </div>
-                        <div className='text-sm text-muted-foreground'>
-                          Debug Mode
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Interactive Test Suite */}
-              <ButtonDebugger
-                onTestResult={(testName, success, details) => {
-                  logger.info(
-                    `✅ Test result: ${testName} - ${success ? 'SUCCESS' : 'FAILED'}`,
-                    details,
-                  )
-                }}
-              />
-
-              {/* Console Commands Help */}
-              <Card>
-                <CardContent>
-                  <div className='space-y-4'>
-                    <h3 className='text-lg font-semibold'>Console Commands</h3>
-                    <div className='grid md:grid-cols-2 gap-4 text-sm font-mono'>
-                      <div>
-                        <code className='text-primary'>
-                          window.ZimboMate.debugButtons()
-                        </code>
-                        <p className='text-muted-foreground'>
-                          Enable visual debugging
-                        </p>
-                      </div>
-                      <div>
-                        <code className='text-primary'>
-                          window.ZimboMate.fixButtons()
-                        </code>
-                        <p className='text-muted-foreground'>
-                          Auto-fix all issues
-                        </p>
-                      </div>
-                      <div>
-                        <code className='text-primary'>
-                          window.ZimboMate.buttonReport()
-                        </code>
-                        <p className='text-muted-foreground'>Generate report</p>
-                      </div>
-                      <div>
-                        <code className='text-primary'>
-                          window.ZimboMate.diagnoseButtons()
-                        </code>
-                        <p className='text-muted-foreground'>Get diagnostics</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.div>
-        )
       default:
         return (
           <motion.div
@@ -604,18 +404,12 @@ const tabs: Array<{
     }
   }
 
-  const handleSessionJoined = (session: GameSession) => {
-    setShowSessionManager(false)
-    logger.info('Joined session:', session)
-  }
-
   return (
     <ErrorBoundary>
       <AuthProvider>
         <ThemeProvider>
-          <ChronicleProvider defaultEnabled={true}>
-            <TooltipProvider delayDuration={200} skipDelayDuration={300}>
-              <div className='texture' aria-hidden='true' />
+          <TooltipProvider delayDuration={200} skipDelayDuration={300}>
+            <div className='texture' aria-hidden='true' />
 
               <div className='relative isolate min-h-screen transition-colors duration-300 bg-background text-foreground'>
                 {/* Header */}
@@ -640,10 +434,12 @@ const tabs: Array<{
                         </h1>
                       </motion.div>
                       <motion.div
+                        className='flex items-center gap-3'
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                       >
+                        <ModeStatusBadge onSwitch={() => setModeSelectorOpen(true)} />
                         <ThemeStatusBadge />
                       </motion.div>
                     </div>
@@ -770,16 +566,20 @@ const tabs: Array<{
                 />
 
                 {/* Session Manager Modal */}
-                <SessionManager
-                  isVisible={showSessionManager}
-                  onClose={() => setShowSessionManager(false)}
-                  onSessionJoined={handleSessionJoined}
-                />
+                {/* SessionManager removed for local-only flow */}
                 <LevelUpWizard />
                 <LevelUpBondReminder />
+                <DiceRollEffects />
+                {modeSelectorOpen ? (
+                  <div className='fixed inset-0 z-[120] bg-background/95 backdrop-blur-sm'>
+                    <ModeSelector
+                      onSelected={() => setModeSelectorOpen(false)}
+                      onDismiss={() => setModeSelectorOpen(false)}
+                    />
+                  </div>
+                ) : null}
               </div>
             </TooltipProvider>
-          </ChronicleProvider>
         </ThemeProvider>
       </AuthProvider>
     </ErrorBoundary>
@@ -787,3 +587,4 @@ const tabs: Array<{
 }
 
 export default App
+

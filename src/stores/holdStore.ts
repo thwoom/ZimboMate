@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 /**
  * Hold Store for Dungeon World
  * Manages hold points for various moves (Defend, Discern Realities, etc.)
@@ -150,7 +150,7 @@ interface HoldState {
   clearAllHolds: (characterId: string) => void
 }
 
-export const useHoldStore = create<HoldState>()(
+export const useHoldStore = createWithEqualityFn<HoldState>()(
   persist(
     (set, get) => ({
       // Initial state

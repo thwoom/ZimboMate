@@ -4,9 +4,10 @@
  * Prevents notification spam with intelligent queuing and prioritization
  */
 
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createWithEqualityFn } from 'zustand/traditional'
+import { createJSONStorage, persist } from 'zustand/middleware'
 import { logger } from '@/utils/logger'
+import { createNativeStateStorage } from '@/lib/persistence/nativeStateStorage'
 
 export type NotificationType =
   | 'dice-roll'
@@ -85,7 +86,9 @@ const PRIORITY_WEIGHTS: Record<Notification['priority'], number> = {
   low: 1,
 }
 
-export const useNotificationStore = create<NotificationState>()(
+const notificationStateStorage = createJSONStorage(createNativeStateStorage('notifications'))
+
+export const useNotificationStore = createWithEqualityFn<NotificationState>()(
   persist(
     (set, get) => ({
       // Initial state
@@ -265,6 +268,7 @@ export const useNotificationStore = create<NotificationState>()(
     {
       name: 'zimbomate-notification-store',
       version: 1,
+      storage: notificationStateStorage,
       // Don't persist active notifications - they should reset on page reload
       partialize: (state) => ({
         preferences: state.preferences,

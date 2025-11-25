@@ -1,6 +1,15 @@
-use crate::llm_service::{
-    CampaignVibe, ChronicleProposeRequest, ChronicleProposeResponse, EnhancementResult, LlmService,
-    ModelInfo,
+use crate::{
+    embedded_engine::{
+        EmbeddedEngine, EmbeddedEngineError, EmbeddedToolRunRequest, EmbeddedToolRunResponse,
+    },
+    embedded_runtime::{
+        EmbeddedModelDescriptor, EmbeddedModelKind, EmbeddedRuntimeDownloadError,
+        EmbeddedRuntimeError, EmbeddedRuntimeHost, EmbeddedRuntimeManifest,
+    },
+    llm_service::{
+        CampaignVibe, ChronicleProposeRequest, ChronicleProposeResponse, EnhancementResult,
+        LlmService, ModelInfo,
+    },
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -98,6 +107,8 @@ pub struct UpdateLlmCredentialsPayload {
 // Global state for the LLM service
 pub struct AppState {
     pub llm_service: Arc<Mutex<LlmService>>,
+    pub embedded_runtime: Arc<EmbeddedRuntimeHost>,
+    pub embedded_engine: Arc<EmbeddedEngine>,
 }
 
 #[tauri::command]
@@ -187,6 +198,141 @@ pub async fn is_llm_ready(state: State<'_, AppState>) -> Result<bool, String> {
     Ok(service.is_initialized().await)
 }
 
+fn parse_runtime_kind(kind: Option<String>) -> Result<EmbeddedModelKind, String> {
+    match kind
+        .as_deref()
+        .map(|value| value.trim().to_lowercase())
+        .as_deref()
+    {
+        Some("rules") | Some("tool") | Some("tools") | Some("qwen") => Ok(EmbeddedModelKind::Rules),
+        Some("narration") | Some("voice") | Some("mistral") | Some("writer") => {
+            Ok(EmbeddedModelKind::Narration)
+        }
+        Some(other) => Err(format!("Unknown embedded model kind '{other}'")),
+        None => Err("Model kind is required (rules|narration)".to_string()),
+    }
+}
+
+#[tauri::command]
+pub async fn embedded_runtime_list_models(
+    state: State<'_, AppState>,
+) -> Result<Vec<EmbeddedModelDescriptor>, String> {
+    Ok(state.embedded_runtime.describe_models().await)
+}
+
+#[tauri::command]
+pub fn embedded_runtime_get_manifest(
+    state: State<'_, AppState>,
+) -> Result<EmbeddedRuntimeManifest, String> {
+    Ok(state.embedded_runtime.manifest().clone())
+}
+
+#[tauri::command]
+pub async fn embedded_runtime_ensure_model(
+    kind: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let parsed_kind = parse_runtime_kind(kind)?;
+    state
+        .embedded_runtime
+        .ensure_ready(parsed_kind)
+        .await
+        .map_err(|error| match error {
+            EmbeddedRuntimeError::MissingModel(path) => {
+                format!("Model file missing: {path}")
+            }
+            EmbeddedRuntimeError::UnknownModelKind => "Unknown embedded model kind".to_string(),
+        })
+}
+
+#[tauri::command]
+pub async fn embedded_runtime_download_model(
+    kind: Option<String>,
+    app_handle: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let parsed_kind = parse_runtime_kind(kind)?;
+    state
+        .embedded_runtime
+        .download_model(parsed_kind, &app_handle)
+        .await
+        .map_err(|error| match error {
+            EmbeddedRuntimeDownloadError::Busy => {
+                "Another embedded model download is already running".to_string()
+            }
+            other => other.to_string(),
+        })
+}
+
+#[tauri::command]
+pub async fn embedded_runtime_cancel_download(
+    kind: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let parsed_kind = parse_runtime_kind(kind)?;
+    state
+        .embedded_runtime
+        .cancel_download(parsed_kind)
+        .await
+        .map_err(|error| match error {
+            EmbeddedRuntimeDownloadError::NoActiveDownload => {
+                "No embedded download is currently running for this model".to_string()
+            }
+            other => other.to_string(),
+        })
+}
+
+#[tauri::command]
+pub fn embedded_runtime_models_dir(state: State<'_, AppState>) -> Result<String, String> {
+    Ok(state.embedded_runtime.models_dir().display().to_string())
+}
+
+#[tauri::command]
+pub async fn embedded_runtime_load_model(
+    kind: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let parsed_kind = parse_runtime_kind(kind)?;
+    state
+        .embedded_engine
+        .ensure_model_loaded(parsed_kind)
+        .await
+        .map_err(|error| match error {
+            EmbeddedEngineError::Host(message) => message,
+            other => other.to_string(),
+        })
+}
+
+#[tauri::command]
+pub async fn embedded_runtime_run_tools(
+    kind: Option<String>,
+    prompt: String,
+    state: State<'_, AppState>,
+) -> Result<EmbeddedToolRunResponse, String> {
+    let parsed_kind = parse_runtime_kind(kind)?;
+    let request = EmbeddedToolRunRequest { prompt };
+    state
+        .embedded_engine
+        .run_tools(parsed_kind, request)
+        .await
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn embedded_runtime_run_narration(
+    kind: Option<String>,
+    prompt: String,
+    state: State<'_, AppState>,
+) -> Result<EmbeddedToolRunResponse, String> {
+    let parsed_kind = parse_runtime_kind(kind)?;
+    let request = EmbeddedToolRunRequest { prompt };
+    state
+        .embedded_engine
+        .run_narration(parsed_kind, request)
+        .await
+        .map_err(|error| error.to_string())
+}
+
 fn build_credentials_response(service: &LlmService) -> LlmCredentialsResponse {
     let (api_key, api_key_source) = service
         .effective_api_key()
@@ -219,6 +365,7 @@ pub async fn get_llm_credentials(
 
 #[tauri::command]
 pub async fn set_llm_credentials(
+    app_handle: AppHandle,
     payload: UpdateLlmCredentialsPayload,
     state: State<'_, AppState>,
 ) -> Result<LlmCredentialsResponse, String> {
@@ -229,10 +376,22 @@ pub async fn set_llm_credentials(
         model,
         project_id,
     } = payload;
-    service
+    let changed = service
         .update_overrides(api_key, base_url, model, project_id)
         .await?;
-    Ok(build_credentials_response(&service))
+    let snapshot = if changed {
+        Some(service.snapshot_credentials())
+    } else {
+        None
+    };
+    let response = build_credentials_response(&service);
+    drop(service);
+
+    if let Some(credentials) = snapshot {
+        LlmService::persist_credentials_snapshot(credentials, &app_handle).await?;
+    }
+
+    Ok(response)
 }
 
 #[tauri::command]
@@ -246,14 +405,12 @@ pub async fn fetch_llm_usage(
 
 #[tauri::command]
 pub async fn get_admin_paths() -> Result<AdminPathsResponse, String> {
-    let credentials_file = LlmService::credentials_file_path()
-        .and_then(|path| path.to_str().map(|value| value.to_string()));
     let workspace_root =
         env::current_dir().map_err(|error| format!("Failed to resolve workspace root: {error}"))?;
     let logs_directory = workspace_root.join("logs");
 
     Ok(AdminPathsResponse {
-        credentials_file,
+        credentials_file: None,
         logs_directory: logs_directory.to_string_lossy().to_string(),
         workspace_root: workspace_root.to_string_lossy().to_string(),
     })

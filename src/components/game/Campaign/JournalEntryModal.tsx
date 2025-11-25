@@ -212,8 +212,7 @@ export const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     <div>
                       <p className='font-semibold'>Campaign Journal</p>
                       <p className='text-sm text-muted-foreground'>
-                        Share session highlights, mysteries, and pivotal
-                        decisions with your party.
+                        Jot highlights, mysteries, and pivotal decisions with your party.
                       </p>
                     </div>
                   </div>

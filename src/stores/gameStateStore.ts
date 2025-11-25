@@ -8,7 +8,7 @@ import type {
   Condition,
   OngoingModifier,
 } from '../services/CharacterStateService'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { persist } from 'zustand/middleware'
 import { characterStateService } from '../services/CharacterStateService'
 
@@ -125,7 +125,7 @@ interface GameStateState {
   }
 }
 
-export const useGameStateStore = create<GameStateState>()(
+export const useGameStateStore = createWithEqualityFn<GameStateState>()(
   persist(
     (set, get) => ({
       // Initial state

@@ -2,7 +2,19 @@
 
 All notable changes to the Chronicle v2 automation upgrade are documented here.
 
-## 2025-10-12 — Chronicle v2 GPT-5 automation rollout
+## 2025-10-18 - Chronicle dock prompt-as-entry integration
+
+### Added
+- Chronicle Dock now powers the Play tab right rail, mounting composer/history UI on top of store-backed prompt entries with `uiMode` toggles.
+- Store prompt helpers gained roll-id reuse, status updates, and accompanying Vitest coverage (`chronicle.promptEntry.test.ts`).
+- Dock integration tests exercise apply/undo/dismiss flows against mocked automation services.
+- Dock interaction analytics publish through `publishChronicleDockInteraction`, including dismiss reasons, session identifiers, and `uiMode` metadata on the `chronicle-dock-interaction` event bus for downstream dashboards.
+
+### Changed
+- Chronicle overlay sources prompts directly from the store and respects `chronicle.settings.uiMode`, eliminating `ChronicleActionListener` polling.
+- Dock interactions emit `analytics.dock_interaction` telemetry on apply/undo, and undo actions reset entry readiness while clearing delta history.
+
+## 2025-10-12 - Chronicle v2 GPT-5 automation rollout
 
 ### Added
 - Unified GPT-5 Responses pipeline for propose/apply/undo, with Automation Log status badges and undo recovery wired to telemetry events.
@@ -26,3 +38,4 @@ All notable changes to the Chronicle v2 automation upgrade are documented here.
 
 ### Changed
 - Settings panel refreshed with theme + accessibility tooling, preparing the space for rollout dashboards and guardrail controls.
+
